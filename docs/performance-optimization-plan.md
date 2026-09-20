@@ -1,6 +1,6 @@
 # 观测隔离与 F35 热路径优化计划
 
-状态：2026-09-20 已完成 O0 测量保护与 O1 克隆消除的实现及语义验收；候选性能复测尚待生成。O2–O5 仍为后续工作，不把 O1 的计数下降写成墙钟加速结论。
+状态：2026-09-20 已完成 O0 测量保护、O1 克隆消除、语义验收及两轮候选性能复测。新 profile 的主要成本为 failures（约 51%）与 resource dispatch（约 21%），下一步优先 O3；O2、O4、O5 仍按更新后的热点与语义门槛推进。
 
 优先顺序为：补齐测量保护 → 消除无效任务克隆 → 预计算静态关系 → 故障状态数组化 → 活动集合 → 有条件评估事件跳跃。前三个任务 phase 约占插桩执行时间的 79.7%，先处理其每分钟重复成本；保留 `full/summary` 观测隔离作为每轮优化的验收条件。
 
@@ -161,6 +161,6 @@ uv pip install --python .venv/bin/python -e .
 
 ## 5. 首轮交付与后续决策
 
-首轮 **O0 + O1** 已通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也已覆盖。O1 保持 61,920 分钟与 19,319,040 个 mission 扫描项，Plan spec clone 减少 19,319,040 次。候选墙钟与 phase 复测完成后，再决定是否推进 O2/O3；O4 按剩余热点拆分，O5 仍以唤醒合同和语义证据为前提。
+首轮 **O0 + O1** 已通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也已覆盖。O1 保持 61,920 分钟与 19,319,040 个 mission 扫描项，Plan spec clone 减少 19,319,040 次。两轮候选复测将 seed 0 full 中位数稳定在约 0.48s；与旧 2.629s 报告相比为强趋势，但旧报告缺少二进制身份，不能视作严格 A/B。更新后的 full profile 中 failures 约占 51%，因此先推进 O3；O2 由剩余静态匹配成本决定，O4 按 resource dispatch 等热点拆分，O5 仍以唤醒合同和语义证据为前提。
 
 当前不设“达到某倍加速”承诺。也不因本轮计划新增 UI、服务器、数据库、分布式调度、JIT、运行中编辑或 DAG 并行策略。Business/Core IR 物化与持久化缓存仍按架构路线推进；局部布局优化不意味着这些能力已经完成。

@@ -64,6 +64,10 @@ Map 数字只统计运行时显式标记的索引 Map 访问，是可比较的�
 [观测隔离与 F35 热路径优化计划](../../docs/performance-optimization-plan.md)。O0/O1 已完成实现与
 语义验收；本页以下 `20260920` 数字仍是优化前已保存基线，候选性能须由新报告单独证明。
 
+O1 候选结果见 [`results/20260920-o1-50857fe/README.md`](results/20260920-o1-50857fe/README.md)：
+三个 mission phase 的逐项深拷贝已消除，两个独立候选轮次均复现约 0.44–0.49s 的中位执行；
+更新后的主要成本为 failures 和 resource dispatch。与旧基线的倍数比较受旧二进制身份缺失限制。
+
 ## 原始证据
 
 - `results/f35-observation-interleaved-seed0-20260920.json`：交错 `full/summary` 未插桩墙钟、

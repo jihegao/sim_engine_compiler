@@ -50,7 +50,7 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 执行顺序与逐项验收见 [观测隔离与 F35 热路径优化计划](performance-optimization-plan.md)。
 先补齐测量保护、消除三个 mission phase 的无效深克隆，再预计算静态关系、迁移故障状态数组，
 随后按新 profile 评估活动集合。事件跳跃须等待完整唤醒合同与边界差分，不作为首轮改动。
-O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。31 项测试通过，F35 seeds `0、1、7`、截断 horizon、重复 seed 与 1/3 线程均已差分；候选墙钟复测仍单列报告。
+O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。31 项测试通过，F35 seeds `0、1、7`、截断 horizon、重复 seed 与 1/3 线程均已差分。两轮候选复测已完成，更新后的主要成本为 failures 与 resource dispatch；证据见 [O1 候选报告](../benchmarks/hot_path/results/20260920-o1-50857fe/README.md)。
 
 ## 测试分工
 
@@ -69,7 +69,7 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 ## 后续工作
 
-1. 完成 C1 O1 候选复测，根据更新后的 profile 决定是否推进 O2 静态关系与 O3 故障状态数组化。
+1. 按 C1 推进 O3 故障状态数组化；完成差分与复测后，再依据剩余调用点决定 O2 静态关系预计算范围。
 2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
 3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；具备依赖合同后单独评估兼容事件跳跃。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。
