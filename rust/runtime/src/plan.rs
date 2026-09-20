@@ -190,6 +190,137 @@ impl ExecutionPlan {
                 self.unsupported_features.join(", ")
             );
         }
+        for (position, aircraft) in self.aircraft.iter().enumerate() {
+            if aircraft.index != position {
+                bail!(
+                    "aircraft index {:?} does not match position {position}",
+                    aircraft.index
+                );
+            }
+        }
+        for (position, mission) in self.missions.iter().enumerate() {
+            if mission.index != position {
+                bail!(
+                    "mission index {:?} does not match position {position}",
+                    mission.index
+                );
+            }
+        }
+        for (position, activity) in self.activities.iter().enumerate() {
+            if activity.index != position {
+                bail!(
+                    "activity index {:?} does not match position {position}",
+                    activity.index
+                );
+            }
+            if activity.resource_node_index >= self.resource_nodes.len() {
+                bail!(
+                    "activity {:?} references invalid resource node index {:?}",
+                    activity.activity_id,
+                    activity.resource_node_index
+                );
+            }
+            if activity.equipment_component_index < -1
+                || activity.equipment_component_index >= self.components.len() as i64
+            {
+                bail!(
+                    "activity {:?} references invalid equipment component index {:?}",
+                    activity.activity_id,
+                    activity.equipment_component_index
+                );
+            }
+            for (step_position, step) in activity.steps.iter().enumerate() {
+                if step.index != step_position {
+                    bail!(
+                        "activity {:?} step index {:?} does not match position {step_position}",
+                        activity.activity_id,
+                        step.index
+                    );
+                }
+            }
+        }
+        for (position, node) in self.resource_nodes.iter().enumerate() {
+            if node.index != position {
+                bail!(
+                    "resource node index {:?} does not match position {position}",
+                    node.index
+                );
+            }
+        }
+        for (position, component) in self.components.iter().enumerate() {
+            if component.index != position {
+                bail!(
+                    "component index {:?} does not match position {position}",
+                    component.index
+                );
+            }
+            if component.parent_index < -1 || component.parent_index >= self.components.len() as i64
+            {
+                bail!(
+                    "component {:?} references invalid parent index {:?}",
+                    component.component_id,
+                    component.parent_index
+                );
+            }
+            if component.repair_activity_index < -1
+                || component.repair_activity_index >= self.activities.len() as i64
+            {
+                bail!(
+                    "component {:?} references invalid repair activity index {:?}",
+                    component.component_id,
+                    component.repair_activity_index
+                );
+            }
+            if let Some(aircraft_index) = component
+                .aircraft_indexes
+                .iter()
+                .find(|aircraft_index| **aircraft_index >= self.aircraft.len())
+            {
+                bail!(
+                    "component {:?} references invalid aircraft index {:?}",
+                    component.component_id,
+                    aircraft_index
+                );
+            }
+        }
+        for (position, cycle) in self.preventive_cycles.iter().enumerate() {
+            if cycle.index != position {
+                bail!(
+                    "preventive cycle index {:?} does not match position {position}",
+                    cycle.index
+                );
+            }
+            if cycle.aircraft_index >= self.aircraft.len() {
+                bail!(
+                    "preventive cycle {position} references invalid aircraft index {:?}",
+                    cycle.aircraft_index
+                );
+            }
+            if cycle.activity_index >= self.activities.len() {
+                bail!(
+                    "preventive cycle {position} references invalid activity index {:?}",
+                    cycle.activity_index
+                );
+            }
+        }
+        for (position, route) in self.supply_routes.iter().enumerate() {
+            if route.index != position {
+                bail!(
+                    "supply route index {:?} does not match position {position}",
+                    route.index
+                );
+            }
+            if route.source_node_index >= self.resource_nodes.len()
+                || route.destination_node_index >= self.resource_nodes.len()
+            {
+                bail!(
+                    "supply route {:?} references invalid node indexes {:?} -> {:?}",
+                    route.route_id,
+                    route.source_node_index,
+                    route.destination_node_index
+                );
+            }
+        }
         Ok(())
     }
 
@@ -310,7 +441,14 @@ fn python_float_repr(value: f64) -> String {
 
 #[cfg(test)]
 mod fingerprint_tests {
-    use super::python_float_repr;
+    use super::{ExecutionPlan, python_float_repr};
+
+    fn failure_plan() -> ExecutionPlan {
+        let bytes = include_bytes!(
+            "../../../tests/fixtures/synthetic/b2-failure-repair-execution-plan.json"
+        );
+        ExecutionPlan::from_slice(bytes).unwrap().0
+    }
 
     #[test]
     fn formats_like_python_repr() {
@@ -323,5 +461,21 @@ mod fingerprint_tests {
         ] {
             assert_eq!(python_float_repr(value), expected);
         }
+    }
+
+    #[test]
+    fn rejects_non_dense_component_indexes() {
+        let mut plan = failure_plan();
+        plan.components[1].index = 7;
+        let error = plan.validate().unwrap_err();
+        assert!(error.to_string().contains("does not match position"));
+    }
+
+    #[test]
+    fn rejects_invalid_component_aircraft_references() {
+        let mut plan = failure_plan();
+        plan.components[1].aircraft_indexes = vec![plan.aircraft.len()];
+        let error = plan.validate().unwrap_err();
+        assert!(error.to_string().contains("invalid aircraft index"));
     }
 }

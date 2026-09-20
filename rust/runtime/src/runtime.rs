@@ -170,8 +170,8 @@ struct AircraftState {
     flight_hours: f64,
     takeoff_count: i64,
     landing_count: i64,
-    failure_remaining: BTreeMap<usize, f64>,
-    component_failure_minutes: BTreeMap<usize, i64>,
+    failure_remaining_by_slot: Vec<Option<f64>>,
+    component_failure_minutes_by_slot: Vec<Option<i64>>,
     failed_component_index: Option<usize>,
     failed_component_minute: Option<i64>,
     in_flight_failure: bool,
@@ -390,10 +390,23 @@ impl Runtime {
         profile_enabled: bool,
     ) -> Result<Self> {
         plan.validate()?;
+        let failure_components_by_aircraft: Vec<Vec<usize>> = (0..plan.aircraft.len())
+            .map(|aircraft_index| {
+                plan.components
+                    .iter()
+                    .filter(|component| {
+                        component.failure_rate_per_hour > 0.0
+                            && component.aircraft_indexes.contains(&aircraft_index)
+                    })
+                    .map(|item| item.index)
+                    .collect()
+            })
+            .collect();
         let aircraft = plan
             .aircraft
             .iter()
-            .map(|item| AircraftState {
+            .enumerate()
+            .map(|(aircraft_index, item)| AircraftState {
                 tail_number: item.tail_number.clone(),
                 aircraft_type: item.aircraft_type.clone(),
                 model: item.model.clone(),
@@ -411,8 +424,16 @@ impl Runtime {
                 flight_hours: item.initial_flight_hours,
                 takeoff_count: item.initial_cycles,
                 landing_count: item.initial_cycles,
-                failure_remaining: BTreeMap::new(),
-                component_failure_minutes: BTreeMap::new(),
+                failure_remaining_by_slot: vec![
+                    None;
+                    failure_components_by_aircraft[aircraft_index].len()
+                ],
+                component_failure_minutes_by_slot: vec![
+                    None;
+                    failure_components_by_aircraft
+                        [aircraft_index]
+                        .len()
+                ],
                 failed_component_index: None,
                 failed_component_minute: None,
                 in_flight_failure: false,
@@ -454,18 +475,6 @@ impl Runtime {
                 .or_default()
                 .push(component.index);
         }
-        let failure_components_by_aircraft = (0..plan.aircraft.len())
-            .map(|aircraft_index| {
-                plan.components
-                    .iter()
-                    .filter(|component| {
-                        component.failure_rate_per_hour > 0.0
-                            && component.aircraft_indexes.contains(&aircraft_index)
-                    })
-                    .map(|item| item.index)
-                    .collect()
-            })
-            .collect();
         let execution_phases = plan
             .phases
             .iter()
@@ -563,13 +572,12 @@ impl Runtime {
                 }
                 let sampled =
                     self.sample_failure_minutes(component_index, aircraft_index, "initialize");
-                if self.plan.components[component_index]
-                    .aircraft_indexes
-                    .contains(&aircraft_index)
+                if let Some(component_slot) = self.failure_components_by_aircraft[aircraft_index]
+                    .iter()
+                    .position(|item| *item == component_index)
                 {
-                    self.aircraft[aircraft_index]
-                        .failure_remaining
-                        .insert(component_index, sampled);
+                    self.aircraft[aircraft_index].failure_remaining_by_slot[component_slot] =
+                        Some(sampled);
                 }
             }
         }
@@ -891,15 +899,24 @@ impl Runtime {
                         aircraft_index,
                         "repair_completed",
                     );
-                    self.aircraft[aircraft_index]
-                        .failure_remaining
-                        .insert(component_index, sampled);
+                    let component_slot = self.failure_components_by_aircraft[aircraft_index]
+                        .iter()
+                        .position(|item| *item == component_index)
+                        .ok_or_else(|| {
+                            anyhow::anyhow!(
+                                "component {:?} has no failure slot for aircraft {:?}",
+                                self.plan.components[component_index].component_id,
+                                self.aircraft[aircraft_index].tail_number
+                            )
+                        })?;
+                    self.aircraft[aircraft_index].failure_remaining_by_slot[component_slot] =
+                        Some(sampled);
                 }
                 self.aircraft[aircraft_index].failed_component_index = None;
                 self.aircraft[aircraft_index].failed_component_minute = None;
                 self.aircraft[aircraft_index]
-                    .component_failure_minutes
-                    .clear();
+                    .component_failure_minutes_by_slot
+                    .fill(None);
                 self.aircraft[aircraft_index].in_flight_failure = false;
                 let component_id = snapshot
                     .component_index
@@ -1231,9 +1248,10 @@ impl Runtime {
             }
         }
         let failed_on_return = self.aircraft[aircraft_index].in_flight_failure
-            || !self.aircraft[aircraft_index]
-                .component_failure_minutes
-                .is_empty();
+            || self.aircraft[aircraft_index]
+                .component_failure_minutes_by_slot
+                .iter()
+                .any(Option::is_some);
         if failed_on_return {
             self.aircraft[aircraft_index].state = "maintenance".into();
             if self.aircraft[aircraft_index].in_flight_failure {
@@ -1242,10 +1260,18 @@ impl Runtime {
             let component_index = self.aircraft[aircraft_index]
                 .failed_component_index
                 .unwrap_or_else(|| {
-                    *self.aircraft[aircraft_index]
-                        .component_failure_minutes
+                    self.failure_components_by_aircraft[aircraft_index]
                         .iter()
-                        .min_by_key(|(_, minute)| *minute)
+                        .copied()
+                        .zip(
+                            self.aircraft[aircraft_index]
+                                .component_failure_minutes_by_slot
+                                .iter(),
+                        )
+                        .filter_map(|(component_index, minute)| {
+                            minute.map(|minute| (component_index, minute))
+                        })
+                        .min_by_key(|(component_index, minute)| (*minute, *component_index))
                         .unwrap()
                         .0
                 });
@@ -1397,10 +1423,15 @@ impl Runtime {
     }
 
     fn failure_reaches_root(&self, aircraft_index: usize) -> bool {
-        let mut failed: HashSet<usize> = self.aircraft[aircraft_index]
-            .component_failure_minutes
-            .keys()
+        let mut failed: HashSet<usize> = self.failure_components_by_aircraft[aircraft_index]
+            .iter()
             .copied()
+            .zip(
+                self.aircraft[aircraft_index]
+                    .component_failure_minutes_by_slot
+                    .iter(),
+            )
+            .filter_map(|(component_index, minute)| minute.map(|_| component_index))
             .collect();
         loop {
             let mut changed = false;
@@ -1445,39 +1476,33 @@ impl Runtime {
             {
                 continue;
             }
-            let components = self.failure_components_by_aircraft[aircraft_index].clone();
-            self.count_scan("component", components.len());
-            for component_index in components {
-                self.count_map_reads(2);
-                if self.aircraft[aircraft_index]
-                    .component_failure_minutes
-                    .contains_key(&component_index)
+            let component_count = self.failure_components_by_aircraft[aircraft_index].len();
+            self.count_scan("component", component_count);
+            for component_slot in 0..component_count {
+                let component_index =
+                    self.failure_components_by_aircraft[aircraft_index][component_slot];
+                if self.aircraft[aircraft_index].component_failure_minutes_by_slot[component_slot]
+                    .is_some()
                 {
                     continue;
                 }
-                let mut remaining = self.aircraft[aircraft_index]
-                    .failure_remaining
-                    .get(&component_index)
-                    .copied()
-                    .unwrap_or_else(|| {
-                        self.sample_failure_minutes(
+                let mut remaining =
+                    match self.aircraft[aircraft_index].failure_remaining_by_slot[component_slot] {
+                        Some(remaining) => remaining,
+                        None => self.sample_failure_minutes(
                             component_index,
                             aircraft_index,
                             "missing_timer",
-                        )
-                    });
+                        ),
+                    };
                 remaining -= 1.0;
-                self.aircraft[aircraft_index]
-                    .failure_remaining
-                    .insert(component_index, remaining);
-                self.count_map_writes(1);
+                self.aircraft[aircraft_index].failure_remaining_by_slot[component_slot] =
+                    Some(remaining);
                 if remaining > 0.0 {
                     continue;
                 }
-                self.aircraft[aircraft_index]
-                    .component_failure_minutes
-                    .insert(component_index, self.minute);
-                self.count_map_writes(1);
+                self.aircraft[aircraft_index].component_failure_minutes_by_slot[component_slot] =
+                    Some(self.minute);
                 self.lru_failures += 1;
                 if self.profile_enabled {
                     self.profile.plan_spec_clones += 1;
@@ -2266,7 +2291,11 @@ impl Runtime {
         let failed_count = self
             .aircraft
             .iter()
-            .filter(|item| !item.component_failure_minutes.is_empty())
+            .filter(|item| {
+                item.component_failure_minutes_by_slot
+                    .iter()
+                    .any(Option::is_some)
+            })
             .count();
         let repairing_count = (0..self.aircraft.len())
             .filter(|aircraft_index| {
@@ -2307,9 +2336,14 @@ impl Runtime {
 
     #[cfg_attr(feature = "profiling", inline(never))]
     fn terminal_state(&self) -> Value {
-        let aircraft: Vec<_> = self.aircraft.iter().map(|item| {
-            let failures: BTreeMap<_, _> = item.component_failure_minutes.iter()
-                .map(|(index, minute)| (self.plan.components[*index].component_id.clone(), *minute)).collect();
+        let aircraft: Vec<_> = self.aircraft.iter().enumerate().map(|(aircraft_index, item)| {
+            let failures: BTreeMap<_, _> = self.failure_components_by_aircraft[aircraft_index]
+                .iter()
+                .zip(item.component_failure_minutes_by_slot.iter())
+                .filter_map(|(component_index, minute)| minute.map(|minute| {
+                    (self.plan.components[*component_index].component_id.clone(), minute)
+                }))
+                .collect();
             json!({
                 "tail_number": item.tail_number, "state": item.state,
                 "current_mission_id": self.mission_id(item.current_mission_index),
@@ -2386,6 +2420,13 @@ mod phase_tests {
         ExecutionPlan::from_slice(bytes).unwrap().0
     }
 
+    fn failure_plan() -> ExecutionPlan {
+        let bytes = include_bytes!(
+            "../../../tests/fixtures/synthetic/b2-failure-repair-execution-plan.json"
+        );
+        ExecutionPlan::from_slice(bytes).unwrap().0
+    }
+
     #[test]
     fn unknown_phase_still_fails_when_executed() {
         let mut plan = synthetic_plan();
@@ -2412,5 +2453,118 @@ mod phase_tests {
         let (_, profile) = runtime.run_profiled(Some(1)).unwrap();
 
         assert_eq!(profile.phases["daily_readiness"].calls, 2);
+    }
+
+    #[test]
+    fn sparse_failure_slots_preserve_draw_before_applicability_order() {
+        let mut plan = failure_plan();
+        plan.components[1].quantity = 2;
+        let mut second_aircraft = plan.aircraft[0].clone();
+        second_aircraft.index = 1;
+        second_aircraft.tail_number = "F35-02".into();
+        plan.aircraft.push(second_aircraft);
+        plan.components[1].aircraft_indexes.push(1);
+        let mut first_aircraft_only = plan.components[1].clone();
+        first_aircraft_only.index = 2;
+        first_aircraft_only.component_id = "first-aircraft-only".into();
+        first_aircraft_only.aircraft_indexes = vec![0];
+        plan.components.push(first_aircraft_only);
+
+        let mut runtime = Runtime::new(plan, "test-fingerprint".into(), 0).unwrap();
+
+        assert_eq!(
+            runtime.failure_components_by_aircraft,
+            vec![vec![1, 2], vec![1]]
+        );
+        assert_eq!(runtime.aircraft[0].failure_remaining_by_slot.len(), 2);
+        assert!(runtime.aircraft[0].failure_remaining_by_slot[0].is_some());
+        assert_eq!(runtime.aircraft[1].failure_remaining_by_slot.len(), 1);
+        let second_aircraft_shared_timer = runtime.aircraft[1].failure_remaining_by_slot[0];
+        runtime.aircraft[0].failure_remaining_by_slot[0] = Some(-1.0);
+        assert_eq!(
+            runtime.aircraft[1].failure_remaining_by_slot[0],
+            second_aircraft_shared_timer
+        );
+        let requests: Vec<_> = runtime
+            .sample_requests
+            .iter()
+            .map(|request| {
+                (
+                    request["entity"].as_str().unwrap(),
+                    request["component_id"].as_str().unwrap(),
+                    request["quantity_index"].as_u64().unwrap(),
+                    request["reason"].as_str().unwrap(),
+                )
+            })
+            .collect();
+        assert_eq!(
+            requests,
+            vec![
+                ("F35-01", "radar-lru", 0, "initialize"),
+                ("F35-01", "radar-lru", 1, "initialize"),
+                ("F35-01", "first-aircraft-only", 0, "initialize"),
+                ("F35-01", "first-aircraft-only", 1, "initialize"),
+                ("F35-02", "radar-lru", 0, "initialize"),
+                ("F35-02", "radar-lru", 1, "initialize"),
+                ("F35-02", "first-aircraft-only", 0, "initialize"),
+                ("F35-02", "first-aircraft-only", 1, "initialize"),
+            ]
+        );
+    }
+
+    #[test]
+    fn failure_countdown_uses_slots_and_preserves_terminal_business_keys() {
+        let mut runtime = Runtime::from_shared_profiled(
+            Arc::new(failure_plan()),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Full,
+        )
+        .unwrap();
+        runtime.minute = 5;
+        runtime.phase = "failures".into();
+        runtime.aircraft[0].state = "flying".into();
+        runtime.aircraft[0].failure_remaining_by_slot[0] = Some(0.5);
+
+        runtime.phase_failures().unwrap();
+
+        assert_eq!(
+            runtime.aircraft[0].component_failure_minutes_by_slot,
+            vec![Some(5)]
+        );
+        assert_eq!(runtime.aircraft[0].failed_component_index, Some(1));
+        assert_eq!(runtime.profile.indexed_map_reads, 0);
+        assert_eq!(runtime.profile.indexed_map_writes, 0);
+        assert_eq!(
+            runtime.terminal_state()["aircraft"][0]["component_failure_minutes"]["radar-lru"],
+            5
+        );
+    }
+
+    #[test]
+    fn missing_failure_timer_resamples_before_countdown() {
+        let mut plan = failure_plan();
+        plan.components[1].failure_rate_per_hour = 1e-12;
+        let mut runtime = Runtime::new(plan, "test-fingerprint".into(), 0).unwrap();
+        runtime.minute = 5;
+        runtime.phase = "failures".into();
+        runtime.aircraft[0].state = "flying".into();
+        runtime.aircraft[0].failure_remaining_by_slot[0] = None;
+        let initial_request_count = runtime.sample_requests.len();
+
+        runtime.phase_failures().unwrap();
+
+        assert_eq!(runtime.sample_requests.len(), initial_request_count + 1);
+        let request = runtime.sample_requests.last().unwrap();
+        assert_eq!(request["reason"], "missing_timer");
+        let sampled = request["value_minutes"].as_f64().unwrap();
+        assert_eq!(
+            runtime.aircraft[0].failure_remaining_by_slot[0],
+            Some(sampled - 1.0)
+        );
+        assert_eq!(
+            runtime.aircraft[0].component_failure_minutes_by_slot,
+            vec![None]
+        );
     }
 }
