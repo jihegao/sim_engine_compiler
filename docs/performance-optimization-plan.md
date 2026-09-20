@@ -1,6 +1,6 @@
 # 观测隔离与 F35 热路径优化计划
 
-状态：2026-09-20 已完成 O0、O1、O3 的实现、语义验收及两轮候选复测。最小 O2a 虽将 preventive 候选访问减少约 90%，但两轮墙钟没有可重复收益，已回退。当前直接进入 O4 resource dispatch 活动集合设计；O5 仍受唤醒合同门槛约束。
+状态：2026-09-20 已完成 O0、O1、O3 与 O4a 的实现、语义验收及固定构建复测。O4a 将 waiting/running job 候选从历史作业中分离，四组同会话 O3/O4a 对照的各 seed/观测组合跨会话中位改善为 5.20%–6.76%，已收录。O2a preventive 索引与 O4b active-preflight 索引虽减少目标访问，但整体收益未达到收录线，均已回退。O5 的操作读写与完整唤醒合同尚未建立，当前 profile 也仍由 resource dispatch、故障和实际业务 phase 主导，因此不进入事件跳跃实现。
 
 优先顺序为：补齐测量保护 → 消除无效任务克隆 → 预计算静态关系 → 故障状态数组化 → 活动集合 → 有条件评估事件跳跃。前三个任务 phase 约占插桩执行时间的 79.7%，先处理其每分钟重复成本；保留 `full/summary` 观测隔离作为每轮优化的验收条件。
 
@@ -48,8 +48,8 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 | O1 克隆消除 | `runtime.rs` 的三个 mission phase、`execute_minute` | 低，须差分证明 | 已实现并通过完整差分；任务扫描数不变，Plan spec clone 从 19,778,872 降至 459,832 |
 | O2 静态关系预计算 | `plan.rs`、runtime 初始化、`matches_type`、`activity_for` | 低至中 | O2a preventive 索引已验证语义但未产生稳定收益，候选已回退；其他静态索引待独立证据 |
 | O3 故障状态数组化 | `AircraftState`、故障初始化/推进/修复、终态转换 | 中 | 已实现、31 项差分通过并完成两轮复测；failures phase 由 265ms 降至 33ms |
-| O4 活动集合 | job、mission、preventive、shipment 的候选与索引维护 | 中至高 | 历史状态退出每分钟扫描；每种增删状态转移有可执行回归；同刻资源可见性一致 |
-| O5 事件跳跃评估 | Core 依赖/唤醒合同、调度器、timer token | 高，后续单独立项 | 先给出无遗漏唤醒证明与边界测试，再决定是否实现 |
+| O4 活动集合 | job、mission、preventive、shipment 的候选与索引维护 | 中至高 | O4a waiting/running 集合已收录；O4b active-preflight 因整体收益不足已回退；其余集合等待有负载证据 |
+| O5 事件跳跃评估 | Core 依赖/唤醒合同、调度器、timer token | 高，后续单独立项 | 当前门槛未满足；先物化读写/唤醒合同并证明可跳区间，再决定是否实现 |
 
 ### O0：补齐测量与观测保护
 
@@ -112,6 +112,10 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 
 验收：用调试断言将维护集合与当时直接筛选结果比较；增加“相同活动作业、增加已完成历史作业”的扩展案例，证明访问计数随活动量变化而非历史量。合成规模案例标明来源，不称为 F35 上游复现。
 
+执行结果：O4a 只维护 waiting/running job index，保留 waiting 三键排序与 running 的 job-index 顺序；空步骤、同分钟重新分派、取消释放和下一分钟预约返还均有定向回归。seed 0 的 waiting/running 实际候选访问为 150,975/90,839，峰值为 7/8。四组同会话固定二进制对照中 24 个单元有 23 个正向，各 seed/观测组合的跨会话中位改善为 5.20%–6.76%，证据见 [O4a 报告](../benchmarks/hot_path/results/20260920-o4a-1f394ba/README.md)。收益主要来自 job progress；resource dispatch phase 只呈小幅趋势，仍是主要热点。
+
+O4b 按 mission 维护 active-preflight job index，将 seed 0 的旧历史暴露估计 7,214,145 项降为 25,700 次候选访问，preflight phase 约减少 4–5ms；两轮整体墙钟却只有约 0%–2.5% 变化，未达到约 5% 收录线，候选已回退，证据见 [O4b 未收录报告](../benchmarks/hot_path/results/20260920-o4b-838e6bc/README.md)。preventive、取消预约与 shipment 索引没有继续叠加：前者已有 O2a 的负结果，后两者在固定 F35 运行中没有正路径负载。任务时间集合因 success-point fallback、派遣后取消等语义风险单独保留，不借 O4 名义顺带实现。
+
 ### O5：条件式推进事件跳跃
 
 只有 O1–O4 后的 profile 仍显示分钟空转占主导才进入。先补 Core 操作读写集合、guard 依赖、时间唤醒与 phase 可见性合同；证明可跳过的区间内不会改变任何 guard、指标或随机请求。
@@ -119,6 +123,8 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 唤醒来源至少包括：准备/起飞/取消/成功点、返航、作业完成、资源释放、运输到达、取消后的预约返还、日历跨日、preventive 阈值、飞行暴露故障、requested horizon 与最终 cutoff。过期或已取消事件必须有 owner generation / timer token，不能复活作业或重复结算。
 
 尤其不能把逐分钟浮点减法未经证明地改为一次减去跨度。等价无法证明时保留兼容分钟路径；新 `event-time-v2` 或 RNG/并行策略应作为独立语义版本立项，不计为当前兼容优化。
+
+本轮退出判断：O4a 后的 full profile 仍由 resource dispatch 约 36.5%、failures 约 11.9%、preventive 约 7.5% 与 preflight 约 6.3% 等实际 phase 主导；尚无独立“可安全跳过分钟”的计数或读写/唤醒证明。Business/Core IR 也尚未物化完整依赖合同。因此 O5 本轮只完成门槛判断，不实现调度器、timer token 或时间跳跃；这不是性能能力已完成。
 
 ## 4. 统一验收门槛
 
@@ -161,6 +167,6 @@ uv pip install --python .venv/bin/python -e .
 
 ## 5. 首轮交付与后续决策
 
-首轮 **O0 + O1** 已通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也已覆盖。O1 保持 61,920 分钟与 19,319,040 个 mission 扫描项，Plan spec clone 减少 19,319,040 次。两轮候选复测将 seed 0 full 中位数稳定在约 0.48s；与旧 2.629s 报告相比为强趋势，但旧报告缺少二进制身份，不能视作严格 A/B。更新后的 full profile 中 failures 约占 51%，因此先推进 O3；O2 由剩余静态匹配成本决定，O4 按 resource dispatch 等热点拆分，O5 仍以唤醒合同和语义证据为前提。
+本轮已依次完成 O0、O1、O3、O2a 决策、O4a 与 O4b 决策。所有收录候选均通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也在覆盖内。O1 消除 19,319,040 次 mission spec 深克隆；O3 将故障热状态改为稀疏数组；O4a 将 waiting/running 历史扫描移出两个目标 phase。O2a 与 O4b 机制计数下降但整体收益不足，已通过独立 revert 保持主线不叠加无效复杂度。O5 因唤醒合同与 profile 门槛未满足而停止在评估阶段。
 
 当前不设“达到某倍加速”承诺。也不因本轮计划新增 UI、服务器、数据库、分布式调度、JIT、运行中编辑或 DAG 并行策略。Business/Core IR 物化与持久化缓存仍按架构路线推进；局部布局优化不意味着这些能力已经完成。

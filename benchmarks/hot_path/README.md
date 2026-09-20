@@ -1,6 +1,6 @@
 # F35 执行热路径与观测隔离
 
-状态：2026-09-20 已完成首轮交付。固定输入为 F35 43 天 Execution Plan，fingerprint
+状态：2026-09-20 已完成观测隔离、O1/O3/O4a 收录及 O2a/O4b 回退决策。固定输入为 F35 43 天 Execution Plan，fingerprint
 `7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d`。语义差分覆盖
 seeds `0、1、7`；墙钟与内部 profile 使用 seed `0`，不把单 seed 的耗时分布外推为所有案例。
 
@@ -74,6 +74,15 @@ O3 候选结果见 [`results/20260920-o3-9400f0f/README.md`](results/20260920-o3
 
 O2a preventive 索引实验见 [`results/20260920-o2a-c072639/README.md`](results/20260920-o2a-c072639/README.md)：
 实际候选访问虽减少约 90%，但两轮墙钟没有可重复收益，候选已回退，未叠加到后续优化。
+
+O4a waiting/running 活动集合见 [`results/20260920-o4a-1f394ba/README.md`](results/20260920-o4a-1f394ba/README.md)：
+四组同会话 O3/O4a 固定二进制对照的 24 个单元中 23 个正向，各 seed/观测组合跨会话中位改善
+为 5.20%–6.76%。收益主要来自 job progress；resource dispatch phase 仍约占 36%，只呈小幅趋势。
+
+O4b active-preflight 实验见 [`results/20260920-o4b-838e6bc/README.md`](results/20260920-o4b-838e6bc/README.md)：
+目标候选访问由旧历史暴露估计 7,214,145 降至 25,700，preflight phase 约减少 4–5ms，
+但两轮整体墙钟仅约 0%–2.5% 变化，候选已回退。O5 因缺少完整读写/唤醒合同且当前热点仍为
+实际业务 phase，本轮不进入事件跳跃实现。
 
 ## 原始证据
 

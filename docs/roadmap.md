@@ -45,12 +45,12 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 主要成本是逐分钟 mission/job/component 扫描及其 Plan spec/字符串克隆与 Map 操作，
 而不是 trace JSON；证据见 `benchmarks/hot_path/README.md`。
 
-### C1：基于 F35 热路径的兼容优化（O0/O1 已验收）
+### C1：基于 F35 热路径的兼容优化（O0/O1/O3/O4a 已验收）
 
 执行顺序与逐项验收见 [观测隔离与 F35 热路径优化计划](performance-optimization-plan.md)。
 先补齐测量保护、消除三个 mission phase 的无效深克隆，再预计算静态关系、迁移故障状态数组，
 随后按新 profile 评估活动集合。事件跳跃须等待完整唤醒合同与边界差分，不作为首轮改动。
-O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。证据见 [O1 候选报告](../benchmarks/hot_path/results/20260920-o1-50857fe/README.md)。O3 已将每架飞机适用组件的故障剩余寿命/故障分钟迁移为稀疏平行数组，并增加稠密索引与引用校验；31 项差分继续通过，两轮正式复测相对 O1 再降低约 49%–63%，证据见 [O3 候选报告](../benchmarks/hot_path/results/20260920-o3-9400f0f/README.md)。
+O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。证据见 [O1 候选报告](../benchmarks/hot_path/results/20260920-o1-50857fe/README.md)。O3 已将每架飞机适用组件的故障剩余寿命/故障分钟迁移为稀疏平行数组，并增加稠密索引与引用校验；31 项差分继续通过，两轮正式复测相对 O1 再降低约 49%–63%，证据见 [O3 候选报告](../benchmarks/hot_path/results/20260920-o3-9400f0f/README.md)。O4a 已将 waiting/running 历史作业移出 progress/dispatch 候选扫描，四组同会话固定二进制对照的各 seed/观测组合跨会话中位改善为 5.20%–6.76%，证据见 [O4a 报告](../benchmarks/hot_path/results/20260920-o4a-1f394ba/README.md)。O2a preventive 与 O4b active-preflight 候选虽降低目标访问，但整体墙钟未达到收录线，均已回退并保留 [O2a](../benchmarks/hot_path/results/20260920-o2a-c072639/README.md) / [O4b](../benchmarks/hot_path/results/20260920-o4b-838e6bc/README.md) 证据。
 
 ## 测试分工
 
@@ -69,7 +69,7 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 ## 后续工作
 
-1. O2a preventive 索引因无可重复墙钟收益已回退；按 C1 进入 O4 resource dispatch 活动集合的最小切片。
+1. C1 当前收录到 O4a；O2a/O4b 已因收益不足回退。后续 resource dispatch 内部资源/备件/排序优化须先有独立调用点证据，不继续叠加无收益集合。
 2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
-3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；具备依赖合同后单独评估兼容事件跳跃。
+3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；具备完整操作读写与唤醒合同后，再单独评估兼容事件跳跃。本轮 O5 门槛未满足，未实现时间跳跃。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。
