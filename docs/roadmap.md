@@ -69,7 +69,7 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 ## 后续工作
 
-1. 按 C1 实施最小 O2a（按飞机索引 preventive cycles），重测后确定 O4 resource dispatch 活动集合的最小范围。
+1. 完成 C1 O2a 正式复测，依据 resource dispatch 与其他剩余 phase 占比确定 O4 活动集合的最小范围。
 2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
 3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；具备依赖合同后单独评估兼容事件跳跃。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。
