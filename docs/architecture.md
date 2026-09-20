@@ -71,7 +71,7 @@ flowchart TD
 
 故障时钟显式区分日历与飞行暴露量。采样时机、维修后的年龄恢复规则、取整和分布变换均属于语义合同。随机流以稳定实体身份定位；兼容模式还需固定旧 RNG 的算法与调用顺序。
 
-Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回调。批量请求以输入位置作为稳定 `sample_index`，允许重复 seed；Rust 线程池共享 `Arc<ExecutionPlan>`，每个样本创建独立 RunState，完成后按 `sample_index` 排序。线程数变化已验证不改变逐样本结果。summary/analysis/debug 观测级别不改变模型状态、随机抽样或事件调度；当前正式基准仍使用全量 result 观测。
+Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回调。批量请求以输入位置作为稳定 `sample_index`，允许重复 seed；Rust 线程池共享 `Arc<ExecutionPlan>`，每个样本创建独立 RunState，完成后按 `sample_index` 排序。线程数变化已验证不改变逐样本结果。当前实现提供 `full` 与 `summary`：前者保留完整 trace，后者不 materialize trace 事件 JSON，但保留同一调度、随机请求 tape、metrics 与终态；F35 seeds `0、1、7` 已通过跨级别差分。阶段 C 正式分段基准使用 `full`，热路径报告单独比较两级别。
 
 ## 创作模式与未来扩展
 

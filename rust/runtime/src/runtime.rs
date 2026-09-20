@@ -1,6 +1,8 @@
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    str::FromStr,
     sync::Arc,
+    time::Instant,
 };
 
 use anyhow::{Result, bail};
@@ -8,8 +10,146 @@ use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-use crate::plan::{ActivitySpec, ExecutionPlan, MissionSpec, WorkStepSpec};
+use crate::plan::{ActivitySpec, ExecutionPlan, WorkStepSpec};
 use crate::rng::PythonRandom;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ObservationLevel {
+    Summary,
+    Full,
+}
+
+impl FromStr for ObservationLevel {
+    type Err = anyhow::Error;
+
+    fn from_str(value: &str) -> Result<Self> {
+        match value {
+            "summary" => Ok(Self::Summary),
+            "full" => Ok(Self::Full),
+            other => bail!("unsupported observation level {other:?}; expected summary or full"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ExecutionPhase {
+    TransportArrivals,
+    MissionReturns,
+    JobProgressAndCompletions,
+    Failures,
+    OperationsPostflightBeforePreparation,
+    PreventiveGeneration,
+    PreflightGeneration,
+    ResourceDispatch,
+    MissionDispatch,
+    OperationsPostflightAfterDispatch,
+    MissionSuccess,
+    DailyReadiness,
+    OperationalAvailability,
+    Downtime,
+    Stop,
+    Unsupported(usize),
+}
+
+impl ExecutionPhase {
+    fn from_name(index: usize, name: &str) -> Self {
+        match name {
+            "transport_arrivals" => Self::TransportArrivals,
+            "mission_returns" => Self::MissionReturns,
+            "job_progress_and_completions" => Self::JobProgressAndCompletions,
+            "failures" => Self::Failures,
+            "operations_postflight_before_preparation" => {
+                Self::OperationsPostflightBeforePreparation
+            }
+            "preventive_generation" => Self::PreventiveGeneration,
+            "preflight_generation" => Self::PreflightGeneration,
+            "resource_dispatch" => Self::ResourceDispatch,
+            "mission_dispatch" => Self::MissionDispatch,
+            "operations_postflight_after_dispatch" => Self::OperationsPostflightAfterDispatch,
+            "mission_success" => Self::MissionSuccess,
+            "daily_readiness" => Self::DailyReadiness,
+            "operational_availability" => Self::OperationalAvailability,
+            "downtime" => Self::Downtime,
+            "stop" => Self::Stop,
+            _ => Self::Unsupported(index),
+        }
+    }
+
+    fn name(self) -> Option<&'static str> {
+        match self {
+            Self::TransportArrivals => Some("transport_arrivals"),
+            Self::MissionReturns => Some("mission_returns"),
+            Self::JobProgressAndCompletions => Some("job_progress_and_completions"),
+            Self::Failures => Some("failures"),
+            Self::OperationsPostflightBeforePreparation => {
+                Some("operations_postflight_before_preparation")
+            }
+            Self::PreventiveGeneration => Some("preventive_generation"),
+            Self::PreflightGeneration => Some("preflight_generation"),
+            Self::ResourceDispatch => Some("resource_dispatch"),
+            Self::MissionDispatch => Some("mission_dispatch"),
+            Self::OperationsPostflightAfterDispatch => Some("operations_postflight_after_dispatch"),
+            Self::MissionSuccess => Some("mission_success"),
+            Self::DailyReadiness => Some("daily_readiness"),
+            Self::OperationalAvailability => Some("operational_availability"),
+            Self::Downtime => Some("downtime"),
+            Self::Stop => Some("stop"),
+            Self::Unsupported(_) => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct PhaseProfile {
+    pub calls: u64,
+    pub elapsed_ns: u64,
+}
+
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct RuntimeProfile {
+    pub minute_iterations: u64,
+    pub execution_ns: u64,
+    pub phases: BTreeMap<String, PhaseProfile>,
+    pub mission_scan_items: u64,
+    pub aircraft_scan_items: u64,
+    pub job_scan_items: u64,
+    pub component_scan_items: u64,
+    pub preventive_scan_items: u64,
+    pub shipment_scan_items: u64,
+    pub trace_events_attempted: u64,
+    pub trace_events_materialized: u64,
+    pub trace_event_string_values: u64,
+    pub trace_event_build_ns: u64,
+    pub rng_requests: u64,
+    pub rng_ns: u64,
+    pub metrics_build_ns: u64,
+    pub terminal_state_build_ns: u64,
+    pub plan_spec_clones: u64,
+    pub indexed_map_reads: u64,
+    pub indexed_map_writes: u64,
+}
+
+impl RuntimeProfile {
+    fn add_phase(&mut self, phase: &str, elapsed_ns: u64) {
+        let item = self.phases.entry(phase.to_owned()).or_default();
+        item.calls += 1;
+        item.elapsed_ns = item.elapsed_ns.saturating_add(elapsed_ns);
+    }
+}
+
+fn elapsed_ns(started: Instant) -> u64 {
+    started.elapsed().as_nanos().try_into().unwrap_or(u64::MAX)
+}
+
+fn count_string_values(value: &Value) -> u64 {
+    match value {
+        Value::String(_) => 1,
+        Value::Array(items) => items.iter().map(count_string_values).sum(),
+        Value::Object(items) => items.values().map(count_string_values).sum(),
+        _ => 0,
+    }
+}
 
 #[derive(Clone, Debug)]
 struct AircraftState {
@@ -137,12 +277,16 @@ pub struct RunResult {
 
 pub struct Runtime {
     plan: Arc<ExecutionPlan>,
+    execution_phases: Vec<ExecutionPhase>,
     fingerprint: String,
     seed: u64,
     minute: i64,
     phase: String,
     running: bool,
     stop_reason: String,
+    observation_level: ObservationLevel,
+    profile_enabled: bool,
+    profile: RuntimeProfile,
     trace: Vec<Value>,
     sample_requests: Vec<Value>,
     rng: PythonRandom,
@@ -175,11 +319,76 @@ pub struct Runtime {
 }
 
 impl Runtime {
+    fn count_scan(&mut self, kind: &str, count: usize) {
+        if !self.profile_enabled {
+            return;
+        }
+        let count = count as u64;
+        match kind {
+            "mission" => self.profile.mission_scan_items += count,
+            "aircraft" => self.profile.aircraft_scan_items += count,
+            "job" => self.profile.job_scan_items += count,
+            "component" => self.profile.component_scan_items += count,
+            "preventive" => self.profile.preventive_scan_items += count,
+            "shipment" => self.profile.shipment_scan_items += count,
+            _ => unreachable!("unsupported scan counter"),
+        }
+    }
+
+    fn count_map_reads(&mut self, count: usize) {
+        if self.profile_enabled {
+            self.profile.indexed_map_reads += count as u64;
+        }
+    }
+
+    fn count_map_writes(&mut self, count: usize) {
+        if self.profile_enabled {
+            self.profile.indexed_map_writes += count as u64;
+        }
+    }
+
     pub fn new(plan: ExecutionPlan, fingerprint: String, seed: u64) -> Result<Self> {
-        Self::from_shared(Arc::new(plan), fingerprint, seed)
+        Self::new_with_observation(plan, fingerprint, seed, ObservationLevel::Full)
+    }
+
+    pub fn new_with_observation(
+        plan: ExecutionPlan,
+        fingerprint: String,
+        seed: u64,
+        observation_level: ObservationLevel,
+    ) -> Result<Self> {
+        Self::from_shared_with_observation(Arc::new(plan), fingerprint, seed, observation_level)
     }
 
     pub fn from_shared(plan: Arc<ExecutionPlan>, fingerprint: String, seed: u64) -> Result<Self> {
+        Self::from_shared_with_observation(plan, fingerprint, seed, ObservationLevel::Full)
+    }
+
+    pub fn from_shared_with_observation(
+        plan: Arc<ExecutionPlan>,
+        fingerprint: String,
+        seed: u64,
+        observation_level: ObservationLevel,
+    ) -> Result<Self> {
+        Self::from_shared_config(plan, fingerprint, seed, observation_level, false)
+    }
+
+    pub fn from_shared_profiled(
+        plan: Arc<ExecutionPlan>,
+        fingerprint: String,
+        seed: u64,
+        observation_level: ObservationLevel,
+    ) -> Result<Self> {
+        Self::from_shared_config(plan, fingerprint, seed, observation_level, true)
+    }
+
+    fn from_shared_config(
+        plan: Arc<ExecutionPlan>,
+        fingerprint: String,
+        seed: u64,
+        observation_level: ObservationLevel,
+        profile_enabled: bool,
+    ) -> Result<Self> {
         plan.validate()?;
         let aircraft = plan
             .aircraft
@@ -257,15 +466,25 @@ impl Runtime {
                     .collect()
             })
             .collect();
+        let execution_phases = plan
+            .phases
+            .iter()
+            .enumerate()
+            .map(|(index, name)| ExecutionPhase::from_name(index, name))
+            .collect();
         let mission_count = plan.missions.len();
         let mut runtime = Self {
             plan,
+            execution_phases,
             fingerprint,
             seed,
             minute: 0,
             phase: "initialize".into(),
             running: true,
             stop_reason: String::new(),
+            observation_level,
+            profile_enabled,
+            profile: RuntimeProfile::default(),
             trace: vec![],
             sample_requests: vec![],
             rng: PythonRandom::from_u64(seed),
@@ -300,20 +519,29 @@ impl Runtime {
         Ok(runtime)
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn sample_failure_minutes(
         &mut self,
         component_index: usize,
         aircraft_index: usize,
         reason: &str,
     ) -> f64 {
+        if self.profile_enabled {
+            self.profile.plan_spec_clones += 1;
+        }
         let component = self.plan.components[component_index].clone();
         let mut minimum = f64::INFINITY;
         for quantity_index in 0..component.quantity {
+            let started = Instant::now();
             let value = if component.failure_rate_per_hour > 0.0 {
                 self.rng.expovariate(component.failure_rate_per_hour) * 60.0
             } else {
                 f64::INFINITY
             };
+            if self.profile_enabled {
+                self.profile.rng_requests += 1;
+                self.profile.rng_ns = self.profile.rng_ns.saturating_add(elapsed_ns(started));
+            }
             self.sample_requests.push(json!({
                 "sequence": self.sample_requests.len() + 1, "time": self.minute, "phase": self.phase,
                 "stream": "legacy-sequential-v1", "distribution": "exponential",
@@ -347,14 +575,25 @@ impl Runtime {
         }
     }
 
-    fn emit(
+    #[cfg_attr(feature = "profiling", inline(never))]
+    fn emit<F>(
         &mut self,
         kind: &str,
         rule_id: &str,
         entity: String,
-        details: Value,
+        details: F,
         source_path: Option<String>,
-    ) {
+    ) where
+        F: FnOnce() -> Value,
+    {
+        if self.profile_enabled {
+            self.profile.trace_events_attempted += 1;
+        }
+        if self.observation_level == ObservationLevel::Summary {
+            return;
+        }
+        let started = Instant::now();
+        let details = details();
         let source = source_path
             .or_else(|| {
                 details
@@ -387,11 +626,20 @@ impl Runtime {
                     .find(|item| item.mission_id == entity)
                     .map(|item| item.source_path.clone())
             });
-        self.trace.push(json!({
+        let event = json!({
             "sequence": self.trace.len() + 1, "time": self.minute, "phase": self.phase,
             "kind": kind, "rule_id": rule_id, "entity": entity, "source_path": source,
             "details": details,
-        }));
+        });
+        if self.profile_enabled {
+            self.profile.trace_events_materialized += 1;
+            self.profile.trace_event_string_values += count_string_values(&event);
+            self.profile.trace_event_build_ns = self
+                .profile
+                .trace_event_build_ns
+                .saturating_add(elapsed_ns(started));
+        }
+        self.trace.push(event);
     }
 
     fn mission_id(&self, index: Option<usize>) -> Value {
@@ -400,8 +648,8 @@ impl Runtime {
             .unwrap_or(Value::Null)
     }
 
-    fn matches_type(&self, aircraft_index: usize, mission: &MissionSpec) -> bool {
-        let required = tokens(&mission.required_aircraft_type);
+    fn matches_type(&self, aircraft_index: usize, required_aircraft_type: &str) -> bool {
+        let required = tokens(required_aircraft_type);
         if required.is_empty() {
             return true;
         }
@@ -475,6 +723,9 @@ impl Runtime {
         } else {
             None
         };
+        if self.profile_enabled {
+            self.profile.plan_spec_clones += 1;
+        }
         let activity = self.plan.activities[activity_index].clone();
         let mut injected_spares = vec![];
         if kind == "repair"
@@ -512,13 +763,17 @@ impl Runtime {
             shortage_signature: None,
             spare_reservations: BTreeMap::new(),
         });
+        let tail_number = self.aircraft[aircraft_index].tail_number.clone();
+        let mission_id = self.mission_id(mission_index);
         self.emit(
             "operations_phase_created",
             "daily-v1.create-operation",
             job_id,
-            json!({"tail_number": self.aircraft[aircraft_index].tail_number,
-                "mission_id": self.mission_id(mission_index), "activity_id": activity.activity_id,
-                "operations_phase": activity.phase}),
+            || {
+                json!({"tail_number": tail_number,
+                "mission_id": mission_id, "activity_id": activity.activity_id,
+                "operations_phase": activity.phase})
+            },
             None,
         );
         if activity.steps.is_empty() {
@@ -552,7 +807,12 @@ impl Runtime {
         let stream_key = format!("{}|maintenance-method|{}|{}", self.seed, kind, occurrence);
         let digest = Sha256::digest(stream_key.as_bytes());
         let mut rng = PythonRandom::from_be_bytes(&digest[..16]);
+        let started = Instant::now();
         let roll = rng.random();
+        if self.profile_enabled {
+            self.profile.rng_requests += 1;
+            self.profile.rng_ns = self.profile.rng_ns.saturating_add(elapsed_ns(started));
+        }
         let method = if methods.iter().any(|item| item == "replacement") && roll < ratio {
             "replacement"
         } else {
@@ -563,9 +823,11 @@ impl Runtime {
             "maintenance_method_selected",
             "maintenance.select-method",
             job_id.to_string(),
-            json!({"maintenance_kind": kind, "maintenance_method": method,
+            || {
+                json!({"maintenance_kind": kind, "maintenance_method": method,
                 "replacement_ratio": ratio, "decision_roll": roll,
-                "rng_stream": hex_prefix(&digest, 8), "maintenance_occurrence": occurrence}),
+                "rng_stream": hex_prefix(&digest, 8), "maintenance_occurrence": occurrence})
+            },
             Some(activity.source_path.clone()),
         );
         method
@@ -573,15 +835,22 @@ impl Runtime {
 
     fn complete_job(&mut self, job_index: usize) -> Result<()> {
         let snapshot = self.jobs[job_index].clone();
+        if self.profile_enabled {
+            self.profile.plan_spec_clones += 1;
+        }
         let activity = self.plan.activities[snapshot.activity_index].clone();
         let aircraft_index = snapshot.aircraft_index;
+        let tail_number = self.aircraft[aircraft_index].tail_number.clone();
+        let mission_id = self.mission_id(snapshot.mission_index);
         self.emit(
             "operations_phase_completed",
             "daily-v1.complete-operation",
             snapshot.job_id.clone(),
-            json!({"tail_number": self.aircraft[aircraft_index].tail_number,
-                "mission_id": self.mission_id(snapshot.mission_index),
-                "activity_id": activity.activity_id, "operations_phase": activity.phase}),
+            || {
+                json!({"tail_number": tail_number,
+                "mission_id": mission_id,
+                "activity_id": activity.activity_id, "operations_phase": activity.phase})
+            },
             None,
         );
         match snapshot.kind.as_str() {
@@ -592,11 +861,12 @@ impl Runtime {
                         .insert(mission_index);
                     self.aircraft[aircraft_index].current_mission_index = Some(mission_index);
                     self.aircraft[aircraft_index].state = "mission_ready".into();
+                    let mission_id = self.mission_id(Some(mission_index));
                     self.emit(
                         "preflight_completed",
                         "mission.preflight-complete",
                         self.aircraft[aircraft_index].tail_number.clone(),
-                        json!({"mission_id": self.mission_id(Some(mission_index))}),
+                        || json!({"mission_id": mission_id}),
                         None,
                     );
                 }
@@ -609,7 +879,7 @@ impl Runtime {
                     "postflight_completed",
                     "daily-v1.postflight-complete",
                     self.aircraft[aircraft_index].tail_number.clone(),
-                    json!({}),
+                    || json!({}),
                     None,
                 );
             }
@@ -631,12 +901,22 @@ impl Runtime {
                     .component_failure_minutes
                     .clear();
                 self.aircraft[aircraft_index].in_flight_failure = false;
-                self.emit("repair_completed", "maintenance.repair-complete",
+                let component_id = snapshot
+                    .component_index
+                    .map(|index| self.plan.components[index].component_id.clone());
+                self.emit(
+                    "repair_completed",
+                    "maintenance.repair-complete",
                     self.aircraft[aircraft_index].tail_number.clone(),
-                    json!({"component_id": snapshot.component_index.map(|index| self.plan.components[index].component_id.clone())}), None);
+                    || json!({"component_id": component_id}),
+                    None,
+                );
             }
             "preventive" => {
                 if let Some(cycle_index) = snapshot.preventive_cycle_index {
+                    if self.profile_enabled {
+                        self.profile.plan_spec_clones += 1;
+                    }
                     let spec = self.plan.preventive_cycles[cycle_index].clone();
                     if spec.flight_hours > 0.0 {
                         self.preventive_cycles[cycle_index].life_flight_hours = 0.0;
@@ -660,7 +940,7 @@ impl Runtime {
                         "preventive_completed",
                         "maintenance.preventive-complete",
                         self.aircraft[aircraft_index].tail_number.clone(),
-                        json!({"activity_id": activity.activity_id}),
+                        || json!({"activity_id": activity.activity_id}),
                         None,
                     );
                 }
@@ -699,12 +979,15 @@ impl Runtime {
         let mission = &self.plan.missions[mission_index];
         let mut result = self.active_preflight_aircraft(mission_index);
         result.extend((0..self.aircraft.len()).filter(|index| {
-            self.ready_for_mission(*index, mission_index) && self.matches_type(*index, mission)
+            self.ready_for_mission(*index, mission_index)
+                && self.matches_type(*index, &mission.required_aircraft_type)
         }));
         result.len()
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_mission_returns(&mut self) -> Result<()> {
+        self.count_scan("aircraft", self.aircraft.len());
         for aircraft_index in 0..self.aircraft.len() {
             if self.aircraft[aircraft_index].state == "flying"
                 && self.aircraft[aircraft_index]
@@ -717,7 +1000,10 @@ impl Runtime {
         Ok(())
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_transport_arrivals(&mut self) {
+        self.count_scan("job", self.jobs.len());
+        self.count_scan("shipment", self.shipments.len());
         for job_index in 0..self.jobs.len() {
             if self.jobs[job_index].state != "cancelled"
                 || self.jobs[job_index].spare_reservations.is_empty()
@@ -726,9 +1012,13 @@ impl Runtime {
             }
             let node_index =
                 self.plan.activities[self.jobs[job_index].activity_index].resource_node_index;
-            let returned: Vec<_> = self.jobs[job_index].spare_reservations.iter()
-                .map(|(product_id, quantity)| json!({"product_id": product_id, "quantity": quantity})).collect();
+            let returned: Vec<_> = self.jobs[job_index]
+                .spare_reservations
+                .iter()
+                .map(|(product_id, quantity)| (product_id.clone(), *quantity))
+                .collect();
             let reservations = std::mem::take(&mut self.jobs[job_index].spare_reservations);
+            self.count_map_writes(reservations.len());
             for (product_id, quantity) in reservations {
                 *self.resources[node_index]
                     .inventory
@@ -739,7 +1029,11 @@ impl Runtime {
                 "organization_spare_reservation_returned",
                 "inventory.return-cancelled-reservation",
                 self.jobs[job_index].job_id.clone(),
-                json!({"products": returned, "node_index": node_index}),
+                || json!({
+                    "products": returned.into_iter().map(|(product_id, quantity)|
+                        json!({"product_id": product_id, "quantity": quantity})).collect::<Vec<_>>(),
+                    "node_index": node_index,
+                }),
                 None,
             );
         }
@@ -772,27 +1066,40 @@ impl Runtime {
                     .entry(shipment.product_id.clone())
                     .or_default() += shipment.quantity;
             }
+            self.count_map_writes(1);
+            if self.profile_enabled {
+                self.profile.plan_spec_clones += 1;
+            }
             let route = self.plan.supply_routes[shipment.route_index].clone();
             self.total_transport_delay += shipment.arrival_minute - shipment.requested_minute;
-            let details = json!({"job_id": shipment.job_id, "step_index": shipment.step_index,
-                "product_id": shipment.product_id, "quantity": shipment.quantity,
-                "source_node_index": shipment.source_node_index,
-                "destination_node_index": shipment.destination_node_index,
-                "supply_mode": route.supply_mode, "relation_id": route.relation_id,
-                "reserved_for_job": reserved, "requested_minute": shipment.requested_minute,
-                "arrival_minute": shipment.arrival_minute});
+            let trace_shipment = shipment.clone();
+            let trace_route = route.clone();
             self.emit(
                 "transport_arrived",
                 "inventory.transport-arrival",
                 shipment.job_id.clone(),
-                details.clone(),
+                || json!({"job_id": trace_shipment.job_id, "step_index": trace_shipment.step_index,
+                    "product_id": trace_shipment.product_id, "quantity": trace_shipment.quantity,
+                    "source_node_index": trace_shipment.source_node_index,
+                    "destination_node_index": trace_shipment.destination_node_index,
+                    "supply_mode": trace_route.supply_mode, "relation_id": trace_route.relation_id,
+                    "reserved_for_job": reserved, "requested_minute": trace_shipment.requested_minute,
+                    "arrival_minute": trace_shipment.arrival_minute}),
                 Some(route.source_path.clone()),
             );
             self.emit(
                 "organization_transport_arrived",
                 "organization.transport-arrival",
-                shipment.job_id,
-                details,
+                shipment.job_id.clone(),
+                || {
+                    json!({"job_id": shipment.job_id, "step_index": shipment.step_index,
+                    "product_id": shipment.product_id, "quantity": shipment.quantity,
+                    "source_node_index": shipment.source_node_index,
+                    "destination_node_index": shipment.destination_node_index,
+                    "supply_mode": route.supply_mode, "relation_id": route.relation_id,
+                    "reserved_for_job": reserved, "requested_minute": shipment.requested_minute,
+                    "arrival_minute": shipment.arrival_minute})
+                },
                 Some(route.source_path),
             );
         }
@@ -805,6 +1112,7 @@ impl Runtime {
         requirements: &BTreeMap<String, i64>,
     ) {
         let destination_index = self.plan.activities[activity_index].resource_node_index;
+        self.count_map_reads(requirements.len() * 2);
         for (product_id, needed) in requirements {
             let available = self.resources[destination_index]
                 .inventory
@@ -826,6 +1134,9 @@ impl Runtime {
                 continue;
             }
             for route_index in 0..self.plan.supply_routes.len() {
+                if self.profile_enabled {
+                    self.profile.plan_spec_clones += 1;
+                }
                 let route = self.plan.supply_routes[route_index].clone();
                 if route.destination_node_index != destination_index
                     || (!route.product_id.is_empty() && route.product_id != *product_id)
@@ -837,6 +1148,7 @@ impl Runtime {
                     .get(product_id)
                     .copied()
                     .unwrap_or(0);
+                self.count_map_reads(1);
                 let moved = shortage.min(route.capacity).min(stock);
                 if moved <= 0 {
                     continue;
@@ -845,6 +1157,7 @@ impl Runtime {
                     .inventory
                     .entry(product_id.clone())
                     .or_default() -= moved;
+                self.count_map_writes(1);
                 let shipment = ShipmentState {
                     job_id: self.jobs[job_index].job_id.clone(),
                     step_index: self.jobs[job_index].step_index,
@@ -858,22 +1171,32 @@ impl Runtime {
                 };
                 self.shipments.push(shipment.clone());
                 self.transport_replenishment_events += 1;
-                let details = json!({"job_id": shipment.job_id, "step_index": shipment.step_index,
-                    "product_id": product_id, "quantity": moved, "source_node_index": route.source_node_index,
-                    "destination_node_index": destination_index, "arrival_minute": shipment.arrival_minute,
-                    "supply_mode": route.supply_mode, "relation_id": route.relation_id});
+                let trace_shipment = shipment.clone();
+                let trace_route = route.clone();
                 self.emit(
                     "organization_supply_selected",
                     "organization.select-supplier",
                     shipment.job_id.clone(),
-                    details.clone(),
+                    || json!({"job_id": trace_shipment.job_id, "step_index": trace_shipment.step_index,
+                        "product_id": trace_shipment.product_id, "quantity": trace_shipment.quantity,
+                        "source_node_index": trace_shipment.source_node_index,
+                        "destination_node_index": trace_shipment.destination_node_index,
+                        "arrival_minute": trace_shipment.arrival_minute,
+                        "supply_mode": trace_route.supply_mode, "relation_id": trace_route.relation_id}),
                     Some(route.source_path.clone()),
                 );
                 self.emit(
                     "organization_transport_dispatched",
                     "organization.dispatch-transport",
-                    shipment.job_id,
-                    details,
+                    shipment.job_id.clone(),
+                    || {
+                        json!({"job_id": shipment.job_id, "step_index": shipment.step_index,
+                        "product_id": shipment.product_id, "quantity": shipment.quantity,
+                        "source_node_index": shipment.source_node_index,
+                        "destination_node_index": shipment.destination_node_index,
+                        "arrival_minute": shipment.arrival_minute,
+                        "supply_mode": route.supply_mode, "relation_id": route.relation_id})
+                    },
                     Some(route.source_path),
                 );
                 break;
@@ -926,6 +1249,9 @@ impl Runtime {
                         .unwrap()
                         .0
                 });
+            if self.profile_enabled {
+                self.profile.plan_spec_clones += 1;
+            }
             let component = self.plan.components[component_index].clone();
             if component.repair_activity_index < 0 {
                 bail!(
@@ -962,9 +1288,18 @@ impl Runtime {
                     self.missions[mission_index].return_time = Some(self.minute);
                 }
             }
-            self.emit(if early_return { "mission_failed_returned" } else { "mission_returned_with_component_failure" },
-                "failure.return-and-create-repair", self.aircraft[aircraft_index].tail_number.clone(),
-                json!({"mission_id": self.mission_id(mission_index), "component_id": component.component_id}), None);
+            let mission_id = self.mission_id(mission_index);
+            self.emit(
+                if early_return {
+                    "mission_failed_returned"
+                } else {
+                    "mission_returned_with_component_failure"
+                },
+                "failure.return-and-create-repair",
+                self.aircraft[aircraft_index].tail_number.clone(),
+                || json!({"mission_id": mission_id, "component_id": component.component_id}),
+                None,
+            );
         } else {
             self.completed_sorties += 1;
             self.aircraft[aircraft_index].state = "available".into();
@@ -980,11 +1315,12 @@ impl Runtime {
             }
         }
         if !failed_on_return {
+            let mission_id = self.mission_id(mission_index);
             self.emit(
                 "mission_returned",
                 "mission.normal-return",
                 self.aircraft[aircraft_index].tail_number.clone(),
-                json!({"mission_id": self.mission_id(mission_index)}),
+                || json!({"mission_id": mission_id}),
                 None,
             );
         }
@@ -1001,15 +1337,21 @@ impl Runtime {
         {
             bail!("resource ledger became negative");
         }
+        let reserved_personnel = self.jobs[job_index].reserved_personnel;
+        let reserved_equipment = self.jobs[job_index].reserved_equipment;
+        let personnel_in_use = self.resources[node_index].personnel_in_use;
+        let equipment_in_use = self.resources[node_index].equipment_in_use;
         self.emit(
             "resources_released",
             "resource.release",
             self.jobs[job_index].job_id.clone(),
-            json!({"node_index": node_index, "step_index": step.index,
-                "personnel": self.jobs[job_index].reserved_personnel,
-                "equipment": self.jobs[job_index].reserved_equipment,
-                "personnel_in_use": self.resources[node_index].personnel_in_use,
-                "equipment_in_use": self.resources[node_index].equipment_in_use}),
+            || {
+                json!({"node_index": node_index, "step_index": step.index,
+                "personnel": reserved_personnel,
+                "equipment": reserved_equipment,
+                "personnel_in_use": personnel_in_use,
+                "equipment_in_use": equipment_in_use})
+            },
             None,
         );
         self.jobs[job_index].reserved_personnel = 0;
@@ -1017,7 +1359,9 @@ impl Runtime {
         Ok(())
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_job_progress(&mut self) -> Result<()> {
+        self.count_scan("job", self.jobs.len());
         let running: Vec<_> = (0..self.jobs.len())
             .filter(|index| self.jobs[*index].state == "running")
             .collect();
@@ -1026,6 +1370,9 @@ impl Runtime {
             if self.jobs[job_index].remaining > 0 {
                 continue;
             }
+            if self.profile_enabled {
+                self.profile.plan_spec_clones += 2;
+            }
             let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
             let step = activity.steps[self.jobs[job_index].step_index].clone();
             self.release_resources(job_index, &step)?;
@@ -1033,7 +1380,7 @@ impl Runtime {
                 "operations_step_completed",
                 "work.serial-step-complete",
                 self.jobs[job_index].job_id.clone(),
-                json!({"step_index": step.index, "activity_code": step.code}),
+                || json!({"step_index": step.index, "activity_code": step.code}),
                 None,
             );
             self.jobs[job_index].step_index += 1;
@@ -1086,10 +1433,12 @@ impl Runtime {
         })
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_failures(&mut self) -> Result<()> {
         if self.plan.components.is_empty() {
             return Ok(());
         }
+        self.count_scan("aircraft", self.aircraft.len());
         for aircraft_index in 0..self.aircraft.len() {
             if self.aircraft[aircraft_index].state != "flying"
                 || self.aircraft[aircraft_index].in_flight_failure
@@ -1097,7 +1446,9 @@ impl Runtime {
                 continue;
             }
             let components = self.failure_components_by_aircraft[aircraft_index].clone();
+            self.count_scan("component", components.len());
             for component_index in components {
+                self.count_map_reads(2);
                 if self.aircraft[aircraft_index]
                     .component_failure_minutes
                     .contains_key(&component_index)
@@ -1119,19 +1470,24 @@ impl Runtime {
                 self.aircraft[aircraft_index]
                     .failure_remaining
                     .insert(component_index, remaining);
+                self.count_map_writes(1);
                 if remaining > 0.0 {
                     continue;
                 }
                 self.aircraft[aircraft_index]
                     .component_failure_minutes
                     .insert(component_index, self.minute);
+                self.count_map_writes(1);
                 self.lru_failures += 1;
+                if self.profile_enabled {
+                    self.profile.plan_spec_clones += 1;
+                }
                 let component = self.plan.components[component_index].clone();
                 self.emit(
                     "component_failed",
                     "failure.flight-exposure-countdown",
                     self.aircraft[aircraft_index].tail_number.clone(),
-                    json!({"component_id": component.component_id}),
+                    || json!({"component_id": component.component_id}),
                     Some(component.source_path.clone()),
                 );
                 if self.failure_reaches_root(aircraft_index) {
@@ -1143,7 +1499,7 @@ impl Runtime {
                         "aircraft_failed",
                         "failure.tree-root-propagation",
                         self.aircraft[aircraft_index].tail_number.clone(),
-                        json!({"component_id": component.component_id}),
+                        || json!({"component_id": component.component_id}),
                         Some(component.source_path),
                     );
                     self.return_aircraft(aircraft_index, true)?;
@@ -1154,7 +1510,10 @@ impl Runtime {
         Ok(())
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_generate_preventive(&mut self) -> Result<()> {
+        self.count_scan("job", self.jobs.len());
+        self.count_scan("aircraft", self.aircraft.len());
         let active: HashSet<_> = self
             .jobs
             .iter()
@@ -1168,6 +1527,7 @@ impl Runtime {
                 continue;
             }
             let mut due: Option<(usize, Vec<&str>)> = None;
+            self.count_scan("preventive", self.plan.preventive_cycles.len());
             for (cycle_index, spec) in self.plan.preventive_cycles.iter().enumerate() {
                 if spec.aircraft_index != aircraft_index {
                     continue;
@@ -1196,6 +1556,9 @@ impl Runtime {
             if self.aircraft[aircraft_index].state != "available" {
                 continue;
             }
+            if self.profile_enabled {
+                self.profile.plan_spec_clones += 1;
+            }
             let spec = self.plan.preventive_cycles[cycle_index].clone();
             self.aircraft[aircraft_index].state = "maintenance".into();
             self.preventive_maintenance_events += 1;
@@ -1207,47 +1570,59 @@ impl Runtime {
                 None,
                 Some(cycle_index),
             )?;
+            let activity_id = self.plan.activities[spec.activity_index]
+                .activity_id
+                .clone();
             self.emit(
                 "preventive_created",
                 "maintenance.preventive-due",
                 self.aircraft[aircraft_index].tail_number.clone(),
-                json!({"activity_id": self.plan.activities[spec.activity_index].activity_id,
-                    "due_dimensions": dimensions}),
+                || {
+                    json!({"activity_id": activity_id,
+                    "due_dimensions": dimensions})
+                },
                 Some(spec.source_path),
             );
         }
         Ok(())
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_create_preflight(&mut self) -> Result<()> {
+        self.count_scan("mission", self.plan.missions.len());
         for mission_index in 0..self.plan.missions.len() {
-            let mission = self.plan.missions[mission_index].clone();
+            let preparation_start = self.plan.missions[mission_index].preparation_start;
+            let required_aircraft = self.plan.missions[mission_index].required_aircraft;
             if !matches!(
                 self.missions[mission_index].status.as_str(),
                 "scheduled" | "delayed"
-            ) || self.minute < mission.preparation_start
+            ) || self.minute < preparation_start
             {
                 continue;
             }
             let commissioned = self.commissioned_count(mission_index);
-            if commissioned >= mission.required_aircraft {
+            if commissioned >= required_aircraft {
                 self.missions[mission_index].preflight_created = true;
                 continue;
             }
             let active = self.active_preflight_aircraft(mission_index);
-            let available: Vec<_> = (0..self.aircraft.len())
-                .filter(|index| {
-                    self.aircraft[*index].state == "available"
-                        && !self.aircraft[*index].postflight_due
-                        && self.matches_type(*index, &mission)
-                        && self.aircraft[*index].prepared_mission_indexes.is_empty()
-                        && !active.contains(index)
-                })
-                .collect();
+            let available: Vec<_> = {
+                let required_aircraft_type =
+                    &self.plan.missions[mission_index].required_aircraft_type;
+                (0..self.aircraft.len())
+                    .filter(|index| {
+                        self.aircraft[*index].state == "available"
+                            && !self.aircraft[*index].postflight_due
+                            && self.matches_type(*index, required_aircraft_type)
+                            && self.aircraft[*index].prepared_mission_indexes.is_empty()
+                            && !active.contains(index)
+                    })
+                    .collect()
+            };
             let mut created = 0;
             for aircraft_index in available
                 .into_iter()
-                .take(mission.required_aircraft.saturating_sub(commissioned))
+                .take(required_aircraft.saturating_sub(commissioned))
             {
                 self.aircraft[aircraft_index].state = "pre_support".into();
                 self.aircraft[aircraft_index].current_mission_index = Some(mission_index);
@@ -1263,13 +1638,13 @@ impl Runtime {
                 created += 1;
             }
             self.missions[mission_index].preflight_created =
-                self.commissioned_count(mission_index) >= mission.required_aircraft;
+                self.commissioned_count(mission_index) >= required_aircraft;
             if created > 0 {
                 self.emit(
                     "preflight_created",
                     "mission.commission-preflight",
-                    mission.mission_id,
-                    json!({"created": created}),
+                    self.plan.missions[mission_index].mission_id.clone(),
+                    || json!({"created": created}),
                     None,
                 );
             }
@@ -1297,7 +1672,9 @@ impl Runtime {
         requirements
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_start_waiting_jobs(&mut self) -> Result<()> {
+        self.count_scan("job", self.jobs.len());
         let mut waiting: Vec<_> = (0..self.jobs.len())
             .filter(|index| self.jobs[*index].state == "waiting")
             .collect();
@@ -1309,16 +1686,23 @@ impl Runtime {
             )
         });
         for job_index in waiting {
+            if self.profile_enabled {
+                self.profile.plan_spec_clones += 1;
+            }
             let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
             if self.jobs[job_index].step_index >= activity.steps.len() {
                 self.jobs[job_index].state = "completed".into();
                 self.complete_job(job_index)?;
                 continue;
             }
+            if self.profile_enabled {
+                self.profile.plan_spec_clones += 1;
+            }
             let step = activity.steps[self.jobs[job_index].step_index].clone();
             let node_index = activity.resource_node_index;
             let requirements = self.step_requirements(job_index, &activity, &step);
             self.dispatch_remote_spares(job_index, activity.index, &requirements);
+            self.count_map_reads(requirements.len() * 2);
             let immediately_available = requirements.iter().all(|(product_id, quantity)| {
                 self.resources[node_index]
                     .inventory
@@ -1346,8 +1730,9 @@ impl Runtime {
                     if immediately_available {
                         self.spare_immediately_filled_total += quantity;
                     }
+                    let step_index = self.jobs[job_index].step_index;
                     self.emit("spare_request", "inventory.request-once", self.jobs[job_index].job_id.clone(),
-                        json!({"step_index": self.jobs[job_index].step_index, "product_id": product_id,
+                        || json!({"step_index": step_index, "product_id": product_id,
                             "demand_quantity": quantity,
                             "immediately_filled_quantity": if immediately_available { *quantity } else { 0 },
                             "node_index": node_index}), None);
@@ -1369,15 +1754,24 @@ impl Runtime {
                     (available < *quantity).then(|| (product_id.clone(), *quantity, available))
                 })
                 .collect();
+            self.count_map_reads(requirements.len() * 2);
             if !shortages.is_empty() {
                 if self.jobs[job_index].shortage_signature.as_ref() != Some(&shortages) {
                     self.jobs[job_index].shortage_signature = Some(shortages.clone());
                     for (product_id, quantity, available) in shortages {
                         self.shortage_events += 1;
-                        self.emit("spare_shortage", "inventory.local-shortage", self.jobs[job_index].job_id.clone(),
-                            json!({"step_index": self.jobs[job_index].step_index, "product_id": product_id,
+                        let step_index = self.jobs[job_index].step_index;
+                        self.emit(
+                            "spare_shortage",
+                            "inventory.local-shortage",
+                            self.jobs[job_index].job_id.clone(),
+                            || {
+                                json!({"step_index": step_index, "product_id": product_id,
                                 "required_quantity": quantity, "available_quantity": available,
-                                "node_index": node_index}), None);
+                                "node_index": node_index})
+                            },
+                            None,
+                        );
                     }
                 }
                 continue;
@@ -1390,7 +1784,7 @@ impl Runtime {
                     "personnel_delay",
                     "resource.personnel-capacity",
                     self.jobs[job_index].job_id.clone(),
-                    json!({"step_index": step.index}),
+                    || json!({"step_index": step.index}),
                     None,
                 );
                 continue;
@@ -1402,7 +1796,7 @@ impl Runtime {
                     "equipment_shortage",
                     "resource.equipment-capacity",
                     self.jobs[job_index].job_id.clone(),
-                    json!({"step_index": step.index}),
+                    || json!({"step_index": step.index}),
                     None,
                 );
                 continue;
@@ -1417,6 +1811,7 @@ impl Runtime {
                 let step_index = self.jobs[job_index].step_index;
                 self.jobs[job_index].consumed_spare_steps.insert(step_index);
                 for (product_id, quantity) in &requirements {
+                    self.count_map_reads(1);
                     let reserved = self.jobs[job_index]
                         .spare_reservations
                         .get(product_id)
@@ -1433,6 +1828,7 @@ impl Runtime {
                         } else {
                             self.jobs[job_index].spare_reservations.remove(product_id);
                         }
+                        self.count_map_writes(1);
                     }
                     let shared = quantity - reserved;
                     if shared > 0 {
@@ -1440,12 +1836,22 @@ impl Runtime {
                             .inventory
                             .entry(product_id.clone())
                             .or_default() -= shared;
+                        self.count_map_writes(1);
                     }
                     self.spare_consumed_total += quantity;
-                    self.emit("spare_consumed", "inventory.consume-at-job-start", self.jobs[job_index].job_id.clone(),
-                        json!({"step_index": self.jobs[job_index].step_index, "product_id": product_id,
+                    let step_index = self.jobs[job_index].step_index;
+                    let maintenance_method = self.jobs[job_index].maintenance_method.clone();
+                    self.emit(
+                        "spare_consumed",
+                        "inventory.consume-at-job-start",
+                        self.jobs[job_index].job_id.clone(),
+                        || {
+                            json!({"step_index": step_index, "product_id": product_id,
                             "quantity": quantity, "node_index": node_index,
-                            "maintenance_method": self.jobs[job_index].maintenance_method}), None);
+                            "maintenance_method": maintenance_method})
+                        },
+                        None,
+                    );
                 }
             }
             self.jobs[job_index].reserved_personnel = step.personnel;
@@ -1465,45 +1871,60 @@ impl Runtime {
                     self.jobs[job_index].remaining = duration;
                 }
             }
+            let personnel_in_use = self.resources[node_index].personnel_in_use;
+            let equipment_in_use = self.resources[node_index].equipment_in_use;
             self.emit("resources_reserved", "resource.reserve-atomic", self.jobs[job_index].job_id.clone(),
-                json!({"node_index": node_index, "step_index": step.index, "personnel": step.personnel,
-                    "equipment": step.equipment, "personnel_in_use": self.resources[node_index].personnel_in_use,
-                    "equipment_in_use": self.resources[node_index].equipment_in_use}), None);
+                || json!({"node_index": node_index, "step_index": step.index, "personnel": step.personnel,
+                    "equipment": step.equipment, "personnel_in_use": personnel_in_use,
+                    "equipment_in_use": equipment_in_use}), None);
             self.emit(
                 "operations_step_started",
                 "work.stable-topological-serial",
                 self.jobs[job_index].job_id.clone(),
-                json!({"step_index": step.index, "activity_code": step.code}),
+                || json!({"step_index": step.index, "activity_code": step.code}),
                 None,
             );
         }
         Ok(())
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_dispatch_missions(&mut self) -> Result<()> {
+        self.count_scan("mission", self.plan.missions.len());
         for mission_index in 0..self.plan.missions.len() {
-            let mission = self.plan.missions[mission_index].clone();
+            let planned_start = self.plan.missions[mission_index].planned_start;
+            let required_aircraft = self.plan.missions[mission_index].required_aircraft;
+            let duration_minutes = self.plan.missions[mission_index].duration_minutes;
+            let cancel_minutes = self.plan.missions[mission_index].cancel_minutes;
             if !matches!(
                 self.missions[mission_index].status.as_str(),
                 "scheduled" | "delayed"
-            ) || self.minute < mission.planned_start
+            ) || self.minute < planned_start
             {
                 continue;
             }
-            let candidates: Vec<_> = (0..self.aircraft.len())
-                .filter(|index| {
-                    self.ready_for_mission(*index, mission_index)
-                        && self.matches_type(*index, &mission)
-                })
-                .collect();
-            if candidates.len() >= mission.required_aircraft {
-                let assigned = candidates[..mission.required_aircraft].to_vec();
+            let candidates: Vec<_> = {
+                let required_aircraft_type =
+                    &self.plan.missions[mission_index].required_aircraft_type;
+                (0..self.aircraft.len())
+                    .filter(|index| {
+                        self.ready_for_mission(*index, mission_index)
+                            && self.matches_type(*index, required_aircraft_type)
+                    })
+                    .collect()
+            };
+            self.count_scan("aircraft", self.aircraft.len());
+            if candidates.len() >= required_aircraft {
+                let assigned = candidates[..required_aircraft].to_vec();
+                let operations_plan_group_id = self.plan.missions[mission_index]
+                    .operations_plan_group_id
+                    .clone();
                 for aircraft_index in &assigned {
                     let aircraft = &mut self.aircraft[*aircraft_index];
                     aircraft.state = "flying".into();
                     aircraft.current_mission_index = Some(mission_index);
                     aircraft.prepared_mission_indexes.remove(&mission_index);
-                    aircraft.return_time = Some(self.minute + mission.duration_minutes);
+                    aircraft.return_time = Some(self.minute + duration_minutes);
                     let day = self.minute / 1440;
                     if aircraft.operations_day != Some(day) {
                         aircraft.operations_day = Some(day);
@@ -1511,39 +1932,48 @@ impl Runtime {
                     }
                     aircraft.daily_takeoffs += 1;
                     aircraft.takeoff_count += 1;
-                    aircraft.operations_plan_group_id = mission.operations_plan_group_id.clone();
+                    aircraft.operations_plan_group_id = operations_plan_group_id.clone();
                     aircraft.last_operations_mission_index = Some(mission_index);
                     aircraft.prepared_operations_day = None;
                 }
                 let state = &mut self.missions[mission_index];
                 state.status = "launched".into();
                 state.actual_start = Some(self.minute);
-                state.return_time = Some(self.minute + mission.duration_minutes);
+                state.return_time = Some(self.minute + duration_minutes);
                 state.assigned_aircraft = assigned.clone();
-                state.delay_minutes = (self.minute - mission.planned_start).max(0);
+                state.delay_minutes = (self.minute - planned_start).max(0);
                 self.launched_sorties += assigned.len() as i64;
                 self.total_departure_delay += state.delay_minutes;
                 if state.delay_minutes != 0 && self.delayed_missions.insert(mission_index) {
                     self.delayed_sorties += assigned.len() as i64;
                 }
-                self.emit("mission_launched", "mission.dispatch-ready-aircraft", mission.mission_id,
-                    json!({"aircraft": assigned.iter().map(|index| self.aircraft[*index].tail_number.clone()).collect::<Vec<_>>()}), None);
-            } else if self.minute - mission.planned_start >= mission.cancel_minutes {
+                let assigned_tail_numbers = assigned
+                    .iter()
+                    .map(|index| self.aircraft[*index].tail_number.clone())
+                    .collect::<Vec<_>>();
+                self.emit(
+                    "mission_launched",
+                    "mission.dispatch-ready-aircraft",
+                    self.plan.missions[mission_index].mission_id.clone(),
+                    || json!({"aircraft": assigned_tail_numbers}),
+                    None,
+                );
+            } else if self.minute - planned_start >= cancel_minutes {
                 self.missions[mission_index].status = "cancelled".into();
-                self.cancelled_sorties += mission.required_aircraft as i64;
-                self.total_departure_delay += mission.cancel_minutes;
+                self.cancelled_sorties += required_aircraft as i64;
+                self.total_departure_delay += cancel_minutes;
                 self.cancel_mission_preflight(mission_index)?;
                 self.emit(
                     "mission_cancelled",
                     "mission.cancel-insufficient-ready-aircraft",
-                    mission.mission_id,
-                    json!({}),
+                    self.plan.missions[mission_index].mission_id.clone(),
+                    || json!({}),
                     None,
                 );
             } else {
                 self.missions[mission_index].status = "delayed".into();
                 if self.delayed_missions.insert(mission_index) {
-                    self.delayed_sorties += mission.required_aircraft as i64;
+                    self.delayed_sorties += required_aircraft as i64;
                 }
             }
         }
@@ -1560,6 +1990,9 @@ impl Runtime {
             .collect();
         for job_index in targets {
             if self.jobs[job_index].state == "running" {
+                if self.profile_enabled {
+                    self.profile.plan_spec_clones += 2;
+                }
                 let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
                 let step = activity.steps[self.jobs[job_index].step_index].clone();
                 self.release_resources(job_index, &step)?;
@@ -1595,7 +2028,7 @@ impl Runtime {
                 continue;
             }
             if self.minute > mission.planned_start + mission.cancel_minutes
-                || !self.matches_type(aircraft_index, mission)
+                || !self.matches_type(aircraft_index, &mission.required_aircraft_type)
             {
                 continue;
             }
@@ -1608,7 +2041,9 @@ impl Runtime {
         false
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_coordinate_postflight(&mut self, cutoff: bool) -> Result<()> {
+        self.count_scan("aircraft", self.aircraft.len());
         let day = self.minute / 1440;
         for aircraft_index in 0..self.aircraft.len() {
             let operations_day = self.aircraft[aircraft_index].operations_day;
@@ -1653,14 +2088,17 @@ impl Runtime {
         Ok(())
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_mission_success(&mut self) {
+        self.count_scan("mission", self.plan.missions.len());
         for mission_index in 0..self.plan.missions.len() {
-            let mission = self.plan.missions[mission_index].clone();
+            let mission = &self.plan.missions[mission_index];
             let start = self.missions[mission_index]
                 .actual_start
                 .unwrap_or(mission.planned_start);
             let success_minute =
                 start + (mission.duration_minutes as f64 * mission.success_point).ceil() as i64;
+            let min_required_aircraft = mission.min_required_aircraft;
             if self.missions[mission_index].success_evaluated || success_minute > self.minute {
                 continue;
             }
@@ -1675,7 +2113,7 @@ impl Runtime {
                         .collect(),
                 )
                 .count();
-            let succeeded = count >= mission.min_required_aircraft;
+            let succeeded = count >= min_required_aircraft;
             self.missions[mission_index].success_member_count = count;
             self.missions[mission_index].success_at_minute = Some(self.minute);
             self.missions[mission_index].success_evaluated = true;
@@ -1687,34 +2125,47 @@ impl Runtime {
                     "mission_success_point_failed"
                 },
                 "mission.evaluate-success-point",
-                mission.mission_id,
-                json!({"members": count}),
+                self.plan.missions[mission_index].mission_id.clone(),
+                || json!({"members": count}),
                 None,
             );
         }
     }
 
     fn execute_minute(&mut self) -> Result<()> {
-        for phase in self.plan.phases.clone() {
-            self.phase = phase.clone();
-            match phase.as_str() {
-                "transport_arrivals" => self.phase_transport_arrivals(),
-                "mission_returns" => self.phase_mission_returns()?,
-                "job_progress_and_completions" => self.phase_job_progress()?,
-                "failures" => self.phase_failures()?,
-                "operations_postflight_before_preparation" => {
+        for phase_index in 0..self.execution_phases.len() {
+            let phase = self.execution_phases[phase_index];
+            let Some(phase_name) = phase.name() else {
+                let ExecutionPhase::Unsupported(source_index) = phase else {
+                    unreachable!("known execution phase must have a name")
+                };
+                let unsupported = self.plan.phases[source_index].clone();
+                self.phase.clone_from(&unsupported);
+                bail!("unsupported phase {:?}", unsupported);
+            };
+            self.phase.clear();
+            self.phase.push_str(phase_name);
+            let started = self.profile_enabled.then(Instant::now);
+            match phase {
+                ExecutionPhase::TransportArrivals => self.phase_transport_arrivals(),
+                ExecutionPhase::MissionReturns => self.phase_mission_returns()?,
+                ExecutionPhase::JobProgressAndCompletions => self.phase_job_progress()?,
+                ExecutionPhase::Failures => self.phase_failures()?,
+                ExecutionPhase::OperationsPostflightBeforePreparation => {
                     self.phase_coordinate_postflight(false)?
                 }
-                "preventive_generation" => self.phase_generate_preventive()?,
-                "preflight_generation" => self.phase_create_preflight()?,
-                "resource_dispatch" => self.phase_start_waiting_jobs()?,
-                "mission_dispatch" => self.phase_dispatch_missions()?,
-                "operations_postflight_after_dispatch" => {
+                ExecutionPhase::PreventiveGeneration => self.phase_generate_preventive()?,
+                ExecutionPhase::PreflightGeneration => self.phase_create_preflight()?,
+                ExecutionPhase::ResourceDispatch => self.phase_start_waiting_jobs()?,
+                ExecutionPhase::MissionDispatch => self.phase_dispatch_missions()?,
+                ExecutionPhase::OperationsPostflightAfterDispatch => {
                     self.phase_coordinate_postflight(false)?
                 }
-                "mission_success" => self.phase_mission_success(),
-                "daily_readiness" | "operational_availability" | "downtime" => {}
-                "stop" => {
+                ExecutionPhase::MissionSuccess => self.phase_mission_success(),
+                ExecutionPhase::DailyReadiness
+                | ExecutionPhase::OperationalAvailability
+                | ExecutionPhase::Downtime => {}
+                ExecutionPhase::Stop => {
                     if self.minute >= self.plan.duration_minutes {
                         self.phase_coordinate_postflight(true)?;
                         self.stop_reason = "duration".into();
@@ -1723,31 +2174,60 @@ impl Runtime {
                             "simulation_stopped",
                             "stop.duration",
                             "simulation".into(),
-                            json!({}),
+                            || json!({}),
                             None,
                         );
                     }
                 }
-                other => bail!("unsupported phase {:?}", other),
+                ExecutionPhase::Unsupported(_) => {
+                    unreachable!("unsupported execution phase handled before dispatch")
+                }
+            };
+            if let Some(started) = started {
+                self.profile.add_phase(phase_name, elapsed_ns(started));
             }
         }
         Ok(())
     }
 
-    pub fn run(mut self, until: Option<i64>) -> Result<RunResult> {
+    pub fn run(self, until: Option<i64>) -> Result<RunResult> {
+        self.run_internal(until).map(|(result, _)| result)
+    }
+
+    pub fn run_profiled(mut self, until: Option<i64>) -> Result<(RunResult, RuntimeProfile)> {
+        self.profile_enabled = true;
+        self.run_internal(until)
+    }
+
+    fn run_internal(mut self, until: Option<i64>) -> Result<(RunResult, RuntimeProfile)> {
         let horizon = until
             .unwrap_or(self.plan.duration_minutes)
             .min(self.plan.duration_minutes);
+        let execution_started = Instant::now();
         while self.running && self.minute < horizon {
             self.minute += 1;
+            if self.profile_enabled {
+                self.profile.minute_iterations += 1;
+            }
             self.execute_minute()?;
+        }
+        if self.profile_enabled {
+            self.profile.execution_ns = elapsed_ns(execution_started);
         }
         if horizon < self.plan.duration_minutes && self.running {
             self.stop_reason = "requested_until".into();
         }
+        let metrics_started = Instant::now();
         let metrics = self.metrics();
+        if self.profile_enabled {
+            self.profile.metrics_build_ns = elapsed_ns(metrics_started);
+        }
+        let terminal_state_started = Instant::now();
         let terminal_state = self.terminal_state();
-        Ok(RunResult {
+        if self.profile_enabled {
+            self.profile.terminal_state_build_ns = elapsed_ns(terminal_state_started);
+        }
+        let result = RunResult {
             plan_fingerprint: self.fingerprint,
             seed: self.seed,
             time: self.minute,
@@ -1756,9 +2236,11 @@ impl Runtime {
             trace: self.trace,
             metrics,
             terminal_state,
-        })
+        };
+        Ok((result, self.profile))
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn metrics(&self) -> Value {
         let executable: Vec<_> = self
             .plan
@@ -1823,6 +2305,7 @@ impl Runtime {
         })
     }
 
+    #[cfg_attr(feature = "profiling", inline(never))]
     fn terminal_state(&self) -> Value {
         let aircraft: Vec<_> = self.aircraft.iter().map(|item| {
             let failures: BTreeMap<_, _> = item.component_failure_minutes.iter()
@@ -1892,4 +2375,42 @@ fn hex_prefix(bytes: &[u8], count: usize) -> String {
         .take(count)
         .map(|item| format!("{item:02x}"))
         .collect()
+}
+
+#[cfg(test)]
+mod phase_tests {
+    use super::*;
+
+    fn synthetic_plan() -> ExecutionPlan {
+        let bytes = include_bytes!("../../../tests/fixtures/synthetic/b1-execution-plan.json");
+        ExecutionPlan::from_slice(bytes).unwrap().0
+    }
+
+    #[test]
+    fn unknown_phase_still_fails_when_executed() {
+        let mut plan = synthetic_plan();
+        plan.phases = vec!["unknown_phase".into()];
+        let error = Runtime::new(plan, "test-fingerprint".into(), 0)
+            .unwrap()
+            .run(Some(1))
+            .unwrap_err();
+
+        assert_eq!(error.to_string(), "unsupported phase \"unknown_phase\"");
+    }
+
+    #[test]
+    fn duplicate_phase_names_are_not_deduplicated() {
+        let mut plan = synthetic_plan();
+        plan.phases = vec!["daily_readiness".into(), "daily_readiness".into()];
+        let runtime = Runtime::from_shared_profiled(
+            Arc::new(plan),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Summary,
+        )
+        .unwrap();
+        let (_, profile) = runtime.run_profiled(Some(1)).unwrap();
+
+        assert_eq!(profile.phases["daily_readiness"].calls, 2);
+    }
 }

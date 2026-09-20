@@ -1,8 +1,8 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
-use sim_engine_runtime::{ExecutionPlan, Runtime, run_batch};
+use sim_engine_runtime::{ExecutionPlan, ObservationLevel, Runtime, run_batch_with_observation};
 
 #[derive(Parser)]
 #[command(about = "Execute an aircraft-support Execution Plan with the independent Rust runtime")]
@@ -17,6 +17,8 @@ struct Args {
     worker_threads: Option<usize>,
     #[arg(long)]
     until: Option<i64>,
+    #[arg(long, default_value = "full")]
+    observation_level: String,
 }
 
 fn main() -> Result<()> {
@@ -24,6 +26,7 @@ fn main() -> Result<()> {
     let bytes = fs::read(&args.plan)?;
     let (plan, raw) = ExecutionPlan::from_slice(&bytes)?;
     let fingerprint = ExecutionPlan::fingerprint(&raw)?;
+    let observation_level = ObservationLevel::from_str(&args.observation_level)?;
     if let Some(parent) = args.output.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -32,12 +35,13 @@ fn main() -> Result<()> {
             .split(',')
             .map(|item| item.trim().parse::<u64>())
             .collect::<std::result::Result<Vec<_>, _>>()?;
-        let result = run_batch(
+        let result = run_batch_with_observation(
             std::sync::Arc::new(plan),
             fingerprint,
             &seeds,
             args.worker_threads,
             args.until,
+            observation_level,
         )?;
         fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
         println!(
@@ -51,7 +55,13 @@ fn main() -> Result<()> {
             }))?
         );
     } else {
-        let result = Runtime::new(plan, fingerprint, args.seed.unwrap_or(0))?.run(args.until)?;
+        let result = Runtime::new_with_observation(
+            plan,
+            fingerprint,
+            args.seed.unwrap_or(0),
+            observation_level,
+        )?
+        .run(args.until)?;
         fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
         println!(
             "{}",

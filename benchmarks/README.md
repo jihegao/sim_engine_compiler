@@ -4,6 +4,10 @@
 
 独立 Rust runtime 的正式同 Plan 对比见[阶段 C 分段基准](stage_c/README.md)。该报告覆盖 Plan 读取/解析/指纹、RunState 初始化、单样本执行、批量执行、序列化、写盘和端到端路径，并同时保存 Python reference 与 Python 绑定数据。
 
+观测级别隔离与执行热路径证据见 [F35 执行热路径与观测隔离](hot_path/README.md)。该报告
+分开保存未插桩交错墙钟、内部 phase/计数器和系统采样火焰图；结果表明 trace JSON
+不是当前主要执行瓶颈，逐分钟任务扫描、Plan spec 克隆和树 Map 状态操作才是下一轮重点。
+
 每次报告保存环境、机器、代码/输入/Plan 指纹、profile、seed/样本编号、观测配置、规模、预热和重复次数，以及原始逐次数据。
 
 分别测量 Adapter、冷编译、热缓存加载、RunState 初始化、单样本执行、批量执行、序列化、端到端墙钟时间与峰值内存。报告中位数及分布，明确进程、线程和样本数量；不将仪器化 trace 计时与 summary 计时直接混比。

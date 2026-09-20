@@ -4,7 +4,7 @@ use anyhow::{Result, bail};
 use rayon::prelude::*;
 use serde::Serialize;
 
-use crate::{ExecutionPlan, RunResult, Runtime};
+use crate::{ExecutionPlan, ObservationLevel, RunResult, Runtime};
 
 #[derive(Debug, Serialize)]
 pub struct BatchSampleResult {
@@ -28,9 +28,32 @@ pub fn run_batch_from_slice(
     worker_threads: Option<usize>,
     until: Option<i64>,
 ) -> Result<BatchResult> {
+    run_batch_from_slice_with_observation(
+        plan_bytes,
+        seeds,
+        worker_threads,
+        until,
+        ObservationLevel::Full,
+    )
+}
+
+pub fn run_batch_from_slice_with_observation(
+    plan_bytes: &[u8],
+    seeds: &[u64],
+    worker_threads: Option<usize>,
+    until: Option<i64>,
+    observation_level: ObservationLevel,
+) -> Result<BatchResult> {
     let (plan, raw) = ExecutionPlan::from_slice(plan_bytes)?;
     let fingerprint = ExecutionPlan::fingerprint(&raw)?;
-    run_batch(Arc::new(plan), fingerprint, seeds, worker_threads, until)
+    run_batch_with_observation(
+        Arc::new(plan),
+        fingerprint,
+        seeds,
+        worker_threads,
+        until,
+        observation_level,
+    )
 }
 
 pub fn run_batch(
@@ -39,6 +62,24 @@ pub fn run_batch(
     seeds: &[u64],
     worker_threads: Option<usize>,
     until: Option<i64>,
+) -> Result<BatchResult> {
+    run_batch_with_observation(
+        plan,
+        fingerprint,
+        seeds,
+        worker_threads,
+        until,
+        ObservationLevel::Full,
+    )
+}
+
+pub fn run_batch_with_observation(
+    plan: Arc<ExecutionPlan>,
+    fingerprint: String,
+    seeds: &[u64],
+    worker_threads: Option<usize>,
+    until: Option<i64>,
+    observation_level: ObservationLevel,
 ) -> Result<BatchResult> {
     if seeds.is_empty() {
         bail!("batch request must contain at least one seed");
@@ -62,8 +103,13 @@ pub fn run_batch(
             .par_iter()
             .enumerate()
             .map(|(sample_index, seed)| {
-                let result =
-                    Runtime::from_shared(plan.clone(), fingerprint.clone(), *seed)?.run(until)?;
+                let result = Runtime::from_shared_with_observation(
+                    plan.clone(),
+                    fingerprint.clone(),
+                    *seed,
+                    observation_level,
+                )?
+                .run(until)?;
                 Ok(BatchSampleResult {
                     sample_index,
                     seed: *seed,

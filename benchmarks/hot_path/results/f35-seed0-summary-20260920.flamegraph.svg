@@ -1,0 +1,491 @@
+<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg version="1.1" width="1200" height="382" onload="init(evt)" viewBox="0 0 1200 382" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:fg="http://github.com/jonhoo/inferno"><!--Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples.--><!--NOTES: --><defs><linearGradient id="background" y1="0" y2="1" x1="0" x2="0"><stop stop-color="#eeeeee" offset="5%"/><stop stop-color="#eeeeb0" offset="95%"/></linearGradient></defs><style type="text/css">
+text { font-family:monospace; font-size:12px }
+#title { text-anchor:middle; font-size:17px; }
+#matched { text-anchor:end; }
+#search { text-anchor:end; opacity:0.1; cursor:pointer; }
+#search:hover, #search.show { opacity:1; }
+#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+#unzoom { cursor:pointer; }
+#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+.hide { display:none; }
+.parent { opacity:0.5; }
+</style><script type="text/ecmascript"><![CDATA[
+        var nametype = 'Function:';
+        var fontsize = 12;
+        var fontwidth = 0.59;
+        var xpad = 10;
+        var inverted = false;
+        var searchcolor = 'rgb(230,0,230)';
+        var fluiddrawing = true;
+        var truncate_text_right = false;
+    ]]><![CDATA["use strict";
+var details, searchbtn, unzoombtn, matchedtxt, svg, searching, frames, known_font_width;
+function init(evt) {
+    details = document.getElementById("details").firstChild;
+    searchbtn = document.getElementById("search");
+    unzoombtn = document.getElementById("unzoom");
+    matchedtxt = document.getElementById("matched");
+    svg = document.getElementsByTagName("svg")[0];
+    frames = document.getElementById("frames");
+    known_font_width = get_monospace_width(frames);
+    total_samples = parseInt(frames.attributes.total_samples.value);
+    searching = 0;
+
+    // Use GET parameters to restore a flamegraph's state.
+    var restore_state = function() {
+        var params = get_params();
+        if (params.x && params.y)
+            zoom(find_group(document.querySelector('[*|x="' + params.x + '"][y="' + params.y + '"]')));
+        if (params.s)
+            search(params.s);
+    };
+
+    if (fluiddrawing) {
+        // Make width dynamic so the SVG fits its parent's width.
+        svg.removeAttribute("width");
+        // Edge requires us to have a viewBox that gets updated with size changes.
+        var isEdge = /Edge\/\d./i.test(navigator.userAgent);
+        if (!isEdge) {
+            svg.removeAttribute("viewBox");
+        }
+        var update_for_width_change = function() {
+            if (isEdge) {
+                svg.attributes.viewBox.value = "0 0 " + svg.width.baseVal.value + " " + svg.height.baseVal.value;
+            }
+
+            // Keep consistent padding on left and right of frames container.
+            frames.attributes.width.value = svg.width.baseVal.value - xpad * 2;
+
+            // Text truncation needs to be adjusted for the current width.
+            update_text_for_elements(frames.children);
+
+            // Keep search elements at a fixed distance from right edge.
+            var svgWidth = svg.width.baseVal.value;
+            searchbtn.attributes.x.value = svgWidth - xpad;
+            matchedtxt.attributes.x.value = svgWidth - xpad;
+        };
+        window.addEventListener('resize', function() {
+            update_for_width_change();
+        });
+        // This needs to be done asynchronously for Safari to work.
+        setTimeout(function() {
+            unzoom();
+            update_for_width_change();
+            restore_state();
+        }, 0);
+    } else {
+        restore_state();
+    }
+}
+// event listeners
+window.addEventListener("click", function(e) {
+    var target = find_group(e.target);
+    if (target) {
+        if (target.nodeName == "a") {
+            if (e.ctrlKey === false) return;
+            e.preventDefault();
+        }
+        if (target.classList.contains("parent")) unzoom();
+        zoom(target);
+
+        // set parameters for zoom state
+        var el = target.querySelector("rect");
+        if (el && el.attributes && el.attributes.y && el.attributes["fg:x"]) {
+            var params = get_params()
+            params.x = el.attributes["fg:x"].value;
+            params.y = el.attributes.y.value;
+            history.replaceState(null, null, parse_params(params));
+        }
+    }
+    else if (e.target.id == "unzoom") {
+        unzoom();
+
+        // remove zoom state
+        var params = get_params();
+        if (params.x) delete params.x;
+        if (params.y) delete params.y;
+        history.replaceState(null, null, parse_params(params));
+    }
+    else if (e.target.id == "search") search_prompt();
+}, false)
+// mouse-over for info
+// show
+window.addEventListener("mouseover", function(e) {
+    var target = find_group(e.target);
+    if (target) details.nodeValue = nametype + " " + g_to_text(target);
+}, false)
+// clear
+window.addEventListener("mouseout", function(e) {
+    var target = find_group(e.target);
+    if (target) details.nodeValue = ' ';
+}, false)
+// ctrl-F for search
+window.addEventListener("keydown",function (e) {
+    if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+        e.preventDefault();
+        search_prompt();
+    }
+}, false)
+// functions
+function get_params() {
+    var params = {};
+    var paramsarr = window.location.search.substr(1).split('&');
+    for (var i = 0; i < paramsarr.length; ++i) {
+        var tmp = paramsarr[i].split("=");
+        if (!tmp[0] || !tmp[1]) continue;
+        params[tmp[0]]  = decodeURIComponent(tmp[1]);
+    }
+    return params;
+}
+function parse_params(params) {
+    var uri = "?";
+    for (var key in params) {
+        uri += key + '=' + encodeURIComponent(params[key]) + '&';
+    }
+    if (uri.slice(-1) == "&")
+        uri = uri.substring(0, uri.length - 1);
+    if (uri == '?')
+        uri = window.location.href.split('?')[0];
+    return uri;
+}
+function find_child(node, selector) {
+    var children = node.querySelectorAll(selector);
+    if (children.length) return children[0];
+    return;
+}
+function find_group(node) {
+    var parent = node.parentElement;
+    if (!parent) return;
+    if (parent.id == "frames") return node;
+    return find_group(parent);
+}
+function orig_save(e, attr, val) {
+    if (e.attributes["fg:orig_" + attr] != undefined) return;
+    if (e.attributes[attr] == undefined) return;
+    if (val == undefined) val = e.attributes[attr].value;
+    e.setAttribute("fg:orig_" + attr, val);
+}
+function orig_load(e, attr) {
+    if (e.attributes["fg:orig_"+attr] == undefined) return;
+    e.attributes[attr].value = e.attributes["fg:orig_" + attr].value;
+    e.removeAttribute("fg:orig_" + attr);
+}
+function g_to_text(e) {
+    var text = find_child(e, "title").firstChild.nodeValue;
+    return (text)
+}
+function g_to_func(e) {
+    var func = g_to_text(e);
+    // if there's any manipulation we want to do to the function
+    // name before it's searched, do it here before returning.
+    return (func);
+}
+function get_monospace_width(frames) {
+    // Given the id="frames" element, return the width of text characters if
+    // this is a monospace font, otherwise return 0.
+    text = find_child(frames.children[0], "text");
+    originalContent = text.textContent;
+    text.textContent = "!";
+    bangWidth = text.getComputedTextLength();
+    text.textContent = "W";
+    wWidth = text.getComputedTextLength();
+    text.textContent = originalContent;
+    if (bangWidth === wWidth) {
+        return bangWidth;
+    } else {
+        return 0;
+    }
+}
+function update_text_for_elements(elements) {
+    // In order to render quickly in the browser, you want to do one pass of
+    // reading attributes, and one pass of mutating attributes. See
+    // https://web.dev/avoid-large-complex-layouts-and-layout-thrashing/ for details.
+
+    // Fall back to inefficient calculation, if we're variable-width font.
+    // TODO This should be optimized somehow too.
+    if (known_font_width === 0) {
+        for (var i = 0; i < elements.length; i++) {
+            update_text(elements[i]);
+        }
+        return;
+    }
+
+    var textElemNewAttributes = [];
+    for (var i = 0; i < elements.length; i++) {
+        var e = elements[i];
+        var r = find_child(e, "rect");
+        var t = find_child(e, "text");
+        var w = parseFloat(r.attributes.width.value) * frames.attributes.width.value / 100 - 3;
+        var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+        var newX = format_percent((parseFloat(r.attributes.x.value) + (100 * 3 / frames.attributes.width.value)));
+
+        // Smaller than this size won't fit anything
+        if (w < 2 * known_font_width) {
+            textElemNewAttributes.push([newX, ""]);
+            continue;
+        }
+
+        // Fit in full text width
+        if (txt.length * known_font_width < w) {
+            textElemNewAttributes.push([newX, txt]);
+            continue;
+        }
+
+        var substringLength = Math.floor(w / known_font_width) - 2;
+        if (truncate_text_right) {
+            // Truncate the right side of the text.
+            textElemNewAttributes.push([newX, txt.substring(0, substringLength) + ".."]);
+            continue;
+        } else {
+            // Truncate the left side of the text.
+            textElemNewAttributes.push([newX, ".." + txt.substring(txt.length - substringLength, txt.length)]);
+            continue;
+        }
+    }
+
+    console.assert(textElemNewAttributes.length === elements.length, "Resize failed, please file a bug at https://github.com/jonhoo/inferno/");
+
+    // Now that we know new textContent, set it all in one go so we don't refresh a bazillion times.
+    for (var i = 0; i < elements.length; i++) {
+        var e = elements[i];
+        var values = textElemNewAttributes[i];
+        var t = find_child(e, "text");
+        t.attributes.x.value = values[0];
+        t.textContent = values[1];
+    }
+}
+
+function update_text(e) {
+    var r = find_child(e, "rect");
+    var t = find_child(e, "text");
+    var w = parseFloat(r.attributes.width.value) * frames.attributes.width.value / 100 - 3;
+    var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+    t.attributes.x.value = format_percent((parseFloat(r.attributes.x.value) + (100 * 3 / frames.attributes.width.value)));
+
+    // Smaller than this size won't fit anything
+    if (w < 2 * fontsize * fontwidth) {
+        t.textContent = "";
+        return;
+    }
+    t.textContent = txt;
+    // Fit in full text width
+    if (t.getComputedTextLength() < w)
+        return;
+    if (truncate_text_right) {
+        // Truncate the right side of the text.
+        for (var x = txt.length - 2; x > 0; x--) {
+            if (t.getSubStringLength(0, x + 2) <= w) {
+                t.textContent = txt.substring(0, x) + "..";
+                return;
+            }
+        }
+    } else {
+        // Truncate the left side of the text.
+        for (var x = 2; x < txt.length; x++) {
+            if (t.getSubStringLength(x - 2, txt.length) <= w) {
+                t.textContent = ".." + txt.substring(x, txt.length);
+                return;
+            }
+        }
+    }
+    t.textContent = "";
+}
+// zoom
+function zoom_reset(e) {
+    if (e.tagName == "rect") {
+        e.attributes.x.value = format_percent(100 * parseInt(e.attributes["fg:x"].value) / total_samples);
+        e.attributes.width.value = format_percent(100 * parseInt(e.attributes["fg:w"].value) / total_samples);
+    }
+    if (e.childNodes == undefined) return;
+    for(var i = 0, c = e.childNodes; i < c.length; i++) {
+        zoom_reset(c[i]);
+    }
+}
+function zoom_child(e, x, zoomed_width_samples) {
+    if (e.tagName == "text") {
+        var parent_x = parseFloat(find_child(e.parentNode, "rect[x]").attributes.x.value);
+        e.attributes.x.value = format_percent(parent_x + (100 * 3 / frames.attributes.width.value));
+    } else if (e.tagName == "rect") {
+        e.attributes.x.value = format_percent(100 * (parseInt(e.attributes["fg:x"].value) - x) / zoomed_width_samples);
+        e.attributes.width.value = format_percent(100 * parseInt(e.attributes["fg:w"].value) / zoomed_width_samples);
+    }
+    if (e.childNodes == undefined) return;
+    for(var i = 0, c = e.childNodes; i < c.length; i++) {
+        zoom_child(c[i], x, zoomed_width_samples);
+    }
+}
+function zoom_parent(e) {
+    if (e.attributes) {
+        if (e.attributes.x != undefined) {
+            e.attributes.x.value = "0.0%";
+        }
+        if (e.attributes.width != undefined) {
+            e.attributes.width.value = "100.0%";
+        }
+    }
+    if (e.childNodes == undefined) return;
+    for(var i = 0, c = e.childNodes; i < c.length; i++) {
+        zoom_parent(c[i]);
+    }
+}
+function zoom(node) {
+    var attr = find_child(node, "rect").attributes;
+    var width = parseInt(attr["fg:w"].value);
+    var xmin = parseInt(attr["fg:x"].value);
+    var xmax = xmin + width;
+    var ymin = parseFloat(attr.y.value);
+    unzoombtn.classList.remove("hide");
+    var el = frames.children;
+    var to_update_text = [];
+    for (var i = 0; i < el.length; i++) {
+        var e = el[i];
+        var a = find_child(e, "rect").attributes;
+        var ex = parseInt(a["fg:x"].value);
+        var ew = parseInt(a["fg:w"].value);
+        // Is it an ancestor
+        if (!inverted) {
+            var upstack = parseFloat(a.y.value) > ymin;
+        } else {
+            var upstack = parseFloat(a.y.value) < ymin;
+        }
+        if (upstack) {
+            // Direct ancestor
+            if (ex <= xmin && (ex+ew) >= xmax) {
+                e.classList.add("parent");
+                zoom_parent(e);
+                to_update_text.push(e);
+            }
+            // not in current path
+            else
+                e.classList.add("hide");
+        }
+        // Children maybe
+        else {
+            // no common path
+            if (ex < xmin || ex >= xmax) {
+                e.classList.add("hide");
+            }
+            else {
+                zoom_child(e, xmin, width);
+                to_update_text.push(e);
+            }
+        }
+    }
+    update_text_for_elements(to_update_text);
+}
+function unzoom() {
+    unzoombtn.classList.add("hide");
+    var el = frames.children;
+    for(var i = 0; i < el.length; i++) {
+        el[i].classList.remove("parent");
+        el[i].classList.remove("hide");
+        zoom_reset(el[i]);
+    }
+    update_text_for_elements(el);
+}
+// search
+function reset_search() {
+    var el = document.querySelectorAll("#frames rect");
+    for (var i = 0; i < el.length; i++) {
+        orig_load(el[i], "fill")
+    }
+    var params = get_params();
+    delete params.s;
+    history.replaceState(null, null, parse_params(params));
+}
+function search_prompt() {
+    if (!searching) {
+        var term = prompt("Enter a search term (regexp " +
+            "allowed, eg: ^ext4_)", "");
+        if (term != null) {
+            search(term)
+        }
+    } else {
+        reset_search();
+        searching = 0;
+        searchbtn.classList.remove("show");
+        searchbtn.firstChild.nodeValue = "Search"
+        matchedtxt.classList.add("hide");
+        matchedtxt.firstChild.nodeValue = ""
+    }
+}
+function search(term) {
+    var re = new RegExp(term);
+    var el = frames.children;
+    var matches = new Object();
+    var maxwidth = 0;
+    for (var i = 0; i < el.length; i++) {
+        var e = el[i];
+        // Skip over frames which are either not visible, or below the zoomed-to frame
+        if (e.classList.contains("hide") || e.classList.contains("parent")) {
+            continue;
+        }
+        var func = g_to_func(e);
+        var rect = find_child(e, "rect");
+        if (func == null || rect == null)
+            continue;
+        // Save max width. Only works as we have a root frame
+        var w = parseInt(rect.attributes["fg:w"].value);
+        if (w > maxwidth)
+            maxwidth = w;
+        if (func.match(re)) {
+            // highlight
+            var x = parseInt(rect.attributes["fg:x"].value);
+            orig_save(rect, "fill");
+            rect.attributes.fill.value = searchcolor;
+            // remember matches
+            if (matches[x] == undefined) {
+                matches[x] = w;
+            } else {
+                if (w > matches[x]) {
+                    // overwrite with parent
+                    matches[x] = w;
+                }
+            }
+            searching = 1;
+        }
+    }
+    if (!searching)
+        return;
+    var params = get_params();
+    params.s = term;
+    history.replaceState(null, null, parse_params(params));
+
+    searchbtn.classList.add("show");
+    searchbtn.firstChild.nodeValue = "Reset Search";
+    // calculate percent matched, excluding vertical overlap
+    var count = 0;
+    var lastx = -1;
+    var lastw = 0;
+    var keys = Array();
+    for (k in matches) {
+        if (matches.hasOwnProperty(k))
+            keys.push(k);
+    }
+    // sort the matched frames by their x location
+    // ascending, then width descending
+    keys.sort(function(a, b){
+        return a - b;
+    });
+    // Step through frames saving only the biggest bottom-up frames
+    // thanks to the sort order. This relies on the tree property
+    // where children are always smaller than their parents.
+    for (var k in keys) {
+        var x = parseInt(keys[k]);
+        var w = matches[keys[k]];
+        if (x >= lastx + lastw) {
+            count += w;
+            lastx = x;
+            lastw = w;
+        }
+    }
+    // display matched percent
+    matchedtxt.classList.remove("hide");
+    var pct = 100 * count / maxwidth;
+    if (pct != 100) pct = pct.toFixed(1);
+    matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+}
+function format_percent(n) {
+    return n.toFixed(4) + "%";
+}
+]]></script><rect x="0" y="0" width="100%" height="382" fill="url(#background)"/><text id="title" fill="rgb(0,0,0)" x="50.0000%" y="24.00">F35 Rust runtime seed 0 summary observation</text><text id="subtitle" x="50.0000%" y="48.00">macOS sample, 5 seconds, 1 ms interval, profiling symbols</text><text id="details" fill="rgb(0,0,0)" x="10" y="365.00"> </text><text id="unzoom" class="hide" fill="rgb(0,0,0)" x="10" y="24.00">Reset Zoom</text><text id="search" fill="rgb(0,0,0)" x="1190" y="24.00">Search</text><text id="matched" fill="rgb(0,0,0)" x="1190" y="365.00"> </text><svg id="frames" x="10" width="1180" total_samples="1554"><g><title>hot_path_profile`alloc::collections::btree::map::IntoIter&lt;K,V,A&gt;::dying_next (1 samples, 0.06%)</title><rect x="0.0000%" y="157" width="0.0644%" height="15" fill="rgb(227,0,7)" fg:x="0" fg:w="1"/><text x="0.2500%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="0.0000%" y="141" width="0.0644%" height="15" fill="rgb(217,0,24)" fg:x="0" fg:w="1"/><text x="0.2500%" y="151.50"></text></g><g><title>libsystem_platform`_platform_memset (1 samples, 0.06%)</title><rect x="0.0000%" y="125" width="0.0644%" height="15" fill="rgb(221,193,54)" fg:x="0" fg:w="1"/><text x="0.2500%" y="135.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::runtime::RunResult&gt; (2 samples, 0.13%)</title><rect x="0.0000%" y="205" width="0.1287%" height="15" fill="rgb(248,212,6)" fg:x="0" fg:w="2"/><text x="0.2500%" y="215.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;serde_json::value::Value&gt; (2 samples, 0.13%)</title><rect x="0.0000%" y="189" width="0.1287%" height="15" fill="rgb(208,68,35)" fg:x="0" fg:w="2"/><text x="0.2500%" y="199.50"></text></g><g><title>hot_path_profile`&lt;alloc::collections::btree::map::IntoIter&lt;K,V,A&gt; as core::ops::drop::Drop&gt;::drop (2 samples, 0.13%)</title><rect x="0.0000%" y="173" width="0.1287%" height="15" fill="rgb(232,128,0)" fg:x="0" fg:w="2"/><text x="0.2500%" y="183.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="0.0644%" y="157" width="0.0644%" height="15" fill="rgb(207,160,47)" fg:x="1" fg:w="1"/><text x="0.3144%" y="167.50"></text></g><g><title>libsystem_platform`_platform_memset (1 samples, 0.06%)</title><rect x="0.0644%" y="141" width="0.0644%" height="15" fill="rgb(228,23,34)" fg:x="1" fg:w="1"/><text x="0.3144%" y="151.50"></text></g><g><title>hot_path_profile`hot_path_profile::digest (1 samples, 0.06%)</title><rect x="0.1287%" y="205" width="0.0644%" height="15" fill="rgb(218,30,26)" fg:x="2" fg:w="1"/><text x="0.3787%" y="215.50"></text></g><g><title>hot_path_profile`serde_core::ser::Serializer::collect_seq (1 samples, 0.06%)</title><rect x="0.1287%" y="189" width="0.0644%" height="15" fill="rgb(220,122,19)" fg:x="2" fg:w="1"/><text x="0.3787%" y="199.50"></text></g><g><title>hot_path_profile`serde_json::value::ser::_&lt;impl serde_core::ser::Serialize for serde_json::value::Value&gt;::serialize (1 samples, 0.06%)</title><rect x="0.1287%" y="173" width="0.0644%" height="15" fill="rgb(250,228,42)" fg:x="2" fg:w="1"/><text x="0.3787%" y="183.50"></text></g><g><title>hot_path_profile`serde_json::value::ser::_&lt;impl serde_core::ser::Serialize for serde_json::value::Value&gt;::serialize (1 samples, 0.06%)</title><rect x="0.1287%" y="157" width="0.0644%" height="15" fill="rgb(240,193,28)" fg:x="2" fg:w="1"/><text x="0.3787%" y="167.50"></text></g><g><title>hot_path_profile`serde_json::ser::format_escaped_str (1 samples, 0.06%)</title><rect x="0.1287%" y="141" width="0.0644%" height="15" fill="rgb(216,20,37)" fg:x="2" fg:w="1"/><text x="0.3787%" y="151.50"></text></g><g><title>hot_path_profile`serde_core::ser::Serializer::collect_seq (2 samples, 0.13%)</title><rect x="0.1931%" y="205" width="0.1287%" height="15" fill="rgb(206,188,39)" fg:x="3" fg:w="2"/><text x="0.4431%" y="215.50"></text></g><g><title>hot_path_profile`serde_json::value::ser::_&lt;impl serde_core::ser::Serialize for serde_json::value::Value&gt;::serialize (2 samples, 0.13%)</title><rect x="0.1931%" y="189" width="0.1287%" height="15" fill="rgb(217,207,13)" fg:x="3" fg:w="2"/><text x="0.4431%" y="199.50"></text></g><g><title>hot_path_profile`serde_json::ser::format_escaped_str (2 samples, 0.13%)</title><rect x="0.1931%" y="173" width="0.1287%" height="15" fill="rgb(231,73,38)" fg:x="3" fg:w="2"/><text x="0.4431%" y="183.50"></text></g><g><title>libsystem_platform`_platform_memmove (1 samples, 0.06%)</title><rect x="0.2574%" y="157" width="0.0644%" height="15" fill="rgb(225,20,46)" fg:x="4" fg:w="1"/><text x="0.5074%" y="167.50"></text></g><g><title>hot_path_profile`sha2::sha256::compress256 (4 samples, 0.26%)</title><rect x="0.3218%" y="205" width="0.2574%" height="15" fill="rgb(210,31,41)" fg:x="5" fg:w="4"/><text x="0.5718%" y="215.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (1 samples, 0.06%)</title><rect x="0.5792%" y="173" width="0.0644%" height="15" fill="rgb(221,200,47)" fg:x="9" fg:w="1"/><text x="0.8292%" y="183.50"></text></g><g><title>hot_path_profile`alloc::collections::btree::map::BTreeMap&lt;K,V,A&gt;::insert (1 samples, 0.06%)</title><rect x="0.6435%" y="173" width="0.0644%" height="15" fill="rgb(226,26,5)" fg:x="10" fg:w="1"/><text x="0.8935%" y="183.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::plan::ComponentSpec&gt; (1 samples, 0.06%)</title><rect x="0.7079%" y="173" width="0.0644%" height="15" fill="rgb(249,33,26)" fg:x="11" fg:w="1"/><text x="0.9579%" y="183.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="0.7079%" y="157" width="0.0644%" height="15" fill="rgb(235,183,28)" fg:x="11" fg:w="1"/><text x="0.9579%" y="167.50"></text></g><g><title>libsystem_platform`__bzero (1 samples, 0.06%)</title><rect x="0.7079%" y="141" width="0.0644%" height="15" fill="rgb(221,5,38)" fg:x="11" fg:w="1"/><text x="0.9579%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (1 samples, 0.06%)</title><rect x="0.7722%" y="173" width="0.0644%" height="15" fill="rgb(247,18,42)" fg:x="12" fg:w="1"/><text x="1.0222%" y="183.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::from_shared_config (5 samples, 0.32%)</title><rect x="0.5792%" y="205" width="0.3218%" height="15" fill="rgb(241,131,45)" fg:x="9" fg:w="5"/><text x="0.8292%" y="215.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::sample_failure_minutes (5 samples, 0.32%)</title><rect x="0.5792%" y="189" width="0.3218%" height="15" fill="rgb(249,31,29)" fg:x="9" fg:w="5"/><text x="0.8292%" y="199.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="0.8366%" y="173" width="0.0644%" height="15" fill="rgb(225,111,53)" fg:x="13" fg:w="1"/><text x="1.0866%" y="183.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="0.9009%" y="189" width="0.0644%" height="15" fill="rgb(238,160,17)" fg:x="14" fg:w="1"/><text x="1.1509%" y="199.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$malloc (1 samples, 0.06%)</title><rect x="1.6088%" y="157" width="0.0644%" height="15" fill="rgb(214,148,48)" fg:x="25" fg:w="1"/><text x="1.8588%" y="167.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcpy (1 samples, 0.06%)</title><rect x="1.6731%" y="157" width="0.0644%" height="15" fill="rgb(232,36,49)" fg:x="26" fg:w="1"/><text x="1.9231%" y="167.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (1 samples, 0.06%)</title><rect x="1.7375%" y="157" width="0.0644%" height="15" fill="rgb(209,103,24)" fg:x="27" fg:w="1"/><text x="1.9875%" y="167.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (2 samples, 0.13%)</title><rect x="1.8018%" y="157" width="0.1287%" height="15" fill="rgb(229,88,8)" fg:x="28" fg:w="2"/><text x="2.0518%" y="167.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="1.9305%" y="157" width="0.0644%" height="15" fill="rgb(213,181,19)" fg:x="30" fg:w="1"/><text x="2.1805%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (3 samples, 0.19%)</title><rect x="1.9949%" y="157" width="0.1931%" height="15" fill="rgb(254,191,54)" fg:x="31" fg:w="3"/><text x="2.2449%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (4 samples, 0.26%)</title><rect x="2.1879%" y="157" width="0.2574%" height="15" fill="rgb(241,83,37)" fg:x="34" fg:w="4"/><text x="2.4379%" y="167.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (16 samples, 1.03%)</title><rect x="1.5444%" y="173" width="1.0296%" height="15" fill="rgb(233,36,39)" fg:x="24" fg:w="16"/><text x="1.7944%" y="183.50"></text></g><g><title>libsystem_platform`_platform_memmove (2 samples, 0.13%)</title><rect x="2.4453%" y="157" width="0.1287%" height="15" fill="rgb(226,3,54)" fg:x="38" fg:w="2"/><text x="2.6953%" y="167.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$malloc (1 samples, 0.06%)</title><rect x="2.8958%" y="141" width="0.0644%" height="15" fill="rgb(245,192,40)" fg:x="45" fg:w="1"/><text x="3.1458%" y="151.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (2 samples, 0.13%)</title><rect x="2.9601%" y="141" width="0.1287%" height="15" fill="rgb(238,167,29)" fg:x="46" fg:w="2"/><text x="3.2101%" y="151.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (3 samples, 0.19%)</title><rect x="3.0888%" y="141" width="0.1931%" height="15" fill="rgb(232,182,51)" fg:x="48" fg:w="3"/><text x="3.3388%" y="151.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (2 samples, 0.13%)</title><rect x="3.2819%" y="141" width="0.1287%" height="15" fill="rgb(231,60,39)" fg:x="51" fg:w="2"/><text x="3.5319%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (3 samples, 0.19%)</title><rect x="3.4106%" y="141" width="0.1931%" height="15" fill="rgb(208,69,12)" fg:x="53" fg:w="3"/><text x="3.6606%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (14 samples, 0.90%)</title><rect x="2.7671%" y="157" width="0.9009%" height="15" fill="rgb(235,93,37)" fg:x="43" fg:w="14"/><text x="3.0171%" y="167.50"></text></g><g><title>libsystem_platform`_platform_memmove (1 samples, 0.06%)</title><rect x="3.6036%" y="141" width="0.0644%" height="15" fill="rgb(213,116,39)" fg:x="56" fg:w="1"/><text x="3.8536%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T,A&gt; as core::clone::Clone&gt;::clone (18 samples, 1.16%)</title><rect x="2.5740%" y="173" width="1.1583%" height="15" fill="rgb(222,207,29)" fg:x="40" fg:w="18"/><text x="2.8240%" y="183.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="3.6680%" y="157" width="0.0644%" height="15" fill="rgb(206,96,30)" fg:x="57" fg:w="1"/><text x="3.9180%" y="167.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::ActivitySpec as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="3.7323%" y="173" width="0.0644%" height="15" fill="rgb(218,138,4)" fg:x="58" fg:w="1"/><text x="3.9823%" y="183.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::MissionSpec as core::clone::Clone&gt;::clone (10 samples, 0.64%)</title><rect x="3.7967%" y="173" width="0.6435%" height="15" fill="rgb(250,191,14)" fg:x="59" fg:w="10"/><text x="4.0467%" y="183.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (1 samples, 0.06%)</title><rect x="4.4402%" y="173" width="0.0644%" height="15" fill="rgb(239,60,40)" fg:x="69" fg:w="1"/><text x="4.6902%" y="183.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcmp (1 samples, 0.06%)</title><rect x="4.5045%" y="173" width="0.0644%" height="15" fill="rgb(206,27,48)" fg:x="70" fg:w="1"/><text x="4.7545%" y="183.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcpy (1 samples, 0.06%)</title><rect x="4.5689%" y="173" width="0.0644%" height="15" fill="rgb(225,35,8)" fg:x="71" fg:w="1"/><text x="4.8189%" y="183.50"></text></g><g><title>hot_path_profile`alloc::collections::btree::map::BTreeMap&lt;K,V,A&gt;::insert (7 samples, 0.45%)</title><rect x="4.6332%" y="173" width="0.4505%" height="15" fill="rgb(250,213,24)" fg:x="72" fg:w="7"/><text x="4.8832%" y="183.50"></text></g><g><title>hot_path_profile`alloc::collections::btree::map::entry::VacantEntry&lt;K,V,A&gt;::insert_entry (1 samples, 0.06%)</title><rect x="5.0837%" y="173" width="0.0644%" height="15" fill="rgb(247,123,22)" fg:x="79" fg:w="1"/><text x="5.3337%" y="183.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::commissioned_count (1 samples, 0.06%)</title><rect x="7.0785%" y="157" width="0.0644%" height="15" fill="rgb(231,138,38)" fg:x="110" fg:w="1"/><text x="7.3285%" y="167.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::matches_type (1 samples, 0.06%)</title><rect x="7.0785%" y="141" width="0.0644%" height="15" fill="rgb(231,145,46)" fg:x="110" fg:w="1"/><text x="7.3285%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="7.0785%" y="125" width="0.0644%" height="15" fill="rgb(251,118,11)" fg:x="110" fg:w="1"/><text x="7.3285%" y="135.50"></text></g><g><title>libsystem_kernel`mach_absolute_time (1 samples, 0.06%)</title><rect x="7.0785%" y="109" width="0.0644%" height="15" fill="rgb(217,147,25)" fg:x="110" fg:w="1"/><text x="7.3285%" y="119.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (1 samples, 0.06%)</title><rect x="7.1429%" y="141" width="0.0644%" height="15" fill="rgb(247,81,37)" fg:x="111" fg:w="1"/><text x="7.3929%" y="151.50"></text></g><g><title>hot_path_profile`alloc::str::_&lt;impl str&gt;::to_lowercase (1 samples, 0.06%)</title><rect x="7.2072%" y="141" width="0.0644%" height="15" fill="rgb(209,12,38)" fg:x="112" fg:w="1"/><text x="7.4572%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="7.2716%" y="125" width="0.0644%" height="15" fill="rgb(227,1,9)" fg:x="113" fg:w="1"/><text x="7.5216%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (1 samples, 0.06%)</title><rect x="7.2716%" y="109" width="0.0644%" height="15" fill="rgb(248,47,43)" fg:x="113" fg:w="1"/><text x="7.5216%" y="119.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::iter::traits::collect::FromIterator&lt;char&gt;&gt;::from_iter (1 samples, 0.06%)</title><rect x="7.3359%" y="125" width="0.0644%" height="15" fill="rgb(221,10,30)" fg:x="114" fg:w="1"/><text x="7.5859%" y="135.50"></text></g><g><title>hot_path_profile`alloc::raw_vec::RawVecInner&lt;A&gt;::reserve::do_reserve_and_handle (1 samples, 0.06%)</title><rect x="7.3359%" y="109" width="0.0644%" height="15" fill="rgb(210,229,1)" fg:x="114" fg:w="1"/><text x="7.5859%" y="119.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_coordinate_postflight (36 samples, 2.32%)</title><rect x="5.1480%" y="173" width="2.3166%" height="15" fill="rgb(222,148,37)" fg:x="80" fg:w="36"/><text x="5.3980%" y="183.50">h..</text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::matches_type (5 samples, 0.32%)</title><rect x="7.1429%" y="157" width="0.3218%" height="15" fill="rgb(234,67,33)" fg:x="111" fg:w="5"/><text x="7.3929%" y="167.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::tokens (3 samples, 0.19%)</title><rect x="7.2716%" y="141" width="0.1931%" height="15" fill="rgb(247,98,35)" fg:x="113" fg:w="3"/><text x="7.5216%" y="151.50"></text></g><g><title>hot_path_profile`&lt;hashbrown::map::HashMap&lt;K,V,S,A&gt; as core::iter::traits::collect::Extend&lt;(K,V)&gt;&gt;::extend (1 samples, 0.06%)</title><rect x="7.4003%" y="125" width="0.0644%" height="15" fill="rgb(247,138,52)" fg:x="115" fg:w="1"/><text x="7.6503%" y="135.50"></text></g><g><title>hot_path_profile`hashbrown::map::HashMap&lt;K,V,S,A&gt;::insert (1 samples, 0.06%)</title><rect x="7.4003%" y="109" width="0.0644%" height="15" fill="rgb(213,79,30)" fg:x="115" fg:w="1"/><text x="7.6503%" y="119.50"></text></g><g><title>hot_path_profile`core::hash::BuildHasher::hash_one (1 samples, 0.06%)</title><rect x="7.4003%" y="93" width="0.0644%" height="15" fill="rgb(246,177,23)" fg:x="115" fg:w="1"/><text x="7.6503%" y="103.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (11 samples, 0.71%)</title><rect x="8.9447%" y="157" width="0.7079%" height="15" fill="rgb(230,62,27)" fg:x="139" fg:w="11"/><text x="9.1947%" y="167.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$malloc (2 samples, 0.13%)</title><rect x="10.9395%" y="125" width="0.1287%" height="15" fill="rgb(216,154,8)" fg:x="170" fg:w="2"/><text x="11.1895%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcpy (3 samples, 0.19%)</title><rect x="11.0682%" y="125" width="0.1931%" height="15" fill="rgb(244,35,45)" fg:x="172" fg:w="3"/><text x="11.3182%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (7 samples, 0.45%)</title><rect x="11.2613%" y="125" width="0.4505%" height="15" fill="rgb(251,115,12)" fg:x="175" fg:w="7"/><text x="11.5113%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc35___rust_no_alloc_shim_is_unstable_v2 (5 samples, 0.32%)</title><rect x="11.7117%" y="125" width="0.3218%" height="15" fill="rgb(240,54,50)" fg:x="182" fg:w="5"/><text x="11.9617%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (12 samples, 0.77%)</title><rect x="12.0335%" y="125" width="0.7722%" height="15" fill="rgb(233,84,52)" fg:x="187" fg:w="12"/><text x="12.2835%" y="135.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (13 samples, 0.84%)</title><rect x="12.8057%" y="125" width="0.8366%" height="15" fill="rgb(207,117,47)" fg:x="199" fg:w="13"/><text x="13.0557%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (12 samples, 0.77%)</title><rect x="13.6422%" y="125" width="0.7722%" height="15" fill="rgb(249,43,39)" fg:x="212" fg:w="12"/><text x="13.8922%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (37 samples, 2.38%)</title><rect x="14.4144%" y="125" width="2.3810%" height="15" fill="rgb(209,38,44)" fg:x="224" fg:w="37"/><text x="14.6644%" y="135.50">li..</text></g><g><title>libsystem_malloc`malloc (1 samples, 0.06%)</title><rect x="16.7954%" y="125" width="0.0644%" height="15" fill="rgb(236,212,23)" fg:x="261" fg:w="1"/><text x="17.0454%" y="135.50"></text></g><g><title>libsystem_malloc`xzm_malloc_zone_malloc_type_malloc (1 samples, 0.06%)</title><rect x="16.8597%" y="125" width="0.0644%" height="15" fill="rgb(242,79,21)" fg:x="262" fg:w="1"/><text x="17.1097%" y="135.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::MissionSpec as core::clone::Clone&gt;::clone (116 samples, 7.46%)</title><rect x="9.6525%" y="157" width="7.4646%" height="15" fill="rgb(211,96,35)" fg:x="150" fg:w="116"/><text x="9.9025%" y="167.50">hot_path_p..</text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (101 samples, 6.50%)</title><rect x="10.6178%" y="141" width="6.4994%" height="15" fill="rgb(253,215,40)" fg:x="165" fg:w="101"/><text x="10.8678%" y="151.50">hot_path_..</text></g><g><title>libsystem_platform`_platform_memmove (3 samples, 0.19%)</title><rect x="16.9241%" y="125" width="0.1931%" height="15" fill="rgb(211,81,21)" fg:x="263" fg:w="3"/><text x="17.1741%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (5 samples, 0.32%)</title><rect x="17.1171%" y="157" width="0.3218%" height="15" fill="rgb(208,190,38)" fg:x="266" fg:w="5"/><text x="17.3671%" y="167.50"></text></g><g><title>hot_path_profile`hashbrown::raw::RawTable&lt;T,A&gt;::reserve_rehash (1 samples, 0.06%)</title><rect x="17.4389%" y="141" width="0.0644%" height="15" fill="rgb(235,213,38)" fg:x="271" fg:w="1"/><text x="17.6889%" y="151.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::activity_for (2 samples, 0.13%)</title><rect x="17.4389%" y="157" width="0.1287%" height="15" fill="rgb(237,122,38)" fg:x="271" fg:w="2"/><text x="17.6889%" y="167.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::tokens (1 samples, 0.06%)</title><rect x="17.5032%" y="141" width="0.0644%" height="15" fill="rgb(244,218,35)" fg:x="272" fg:w="1"/><text x="17.7532%" y="151.50"></text></g><g><title>hot_path_profile`&lt;hashbrown::map::HashMap&lt;K,V,S,A&gt; as core::iter::traits::collect::Extend&lt;(K,V)&gt;&gt;::extend (1 samples, 0.06%)</title><rect x="17.5032%" y="125" width="0.0644%" height="15" fill="rgb(240,68,47)" fg:x="272" fg:w="1"/><text x="17.7532%" y="135.50"></text></g><g><title>hot_path_profile`hashbrown::map::HashMap&lt;K,V,S,A&gt;::insert (1 samples, 0.06%)</title><rect x="17.5032%" y="109" width="0.0644%" height="15" fill="rgb(210,16,53)" fg:x="272" fg:w="1"/><text x="17.7532%" y="119.50"></text></g><g><title>libsystem_malloc`_free (1 samples, 0.06%)</title><rect x="17.5032%" y="93" width="0.0644%" height="15" fill="rgb(235,124,12)" fg:x="272" fg:w="1"/><text x="17.7532%" y="103.50"></text></g><g><title>hot_path_profile`&lt;core::iter::adapters::map::Map&lt;I,F&gt; as core::iter::traits::iterator::Iterator&gt;::fold (1 samples, 0.06%)</title><rect x="17.5676%" y="141" width="0.0644%" height="15" fill="rgb(224,169,11)" fg:x="273" fg:w="1"/><text x="17.8176%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="17.6319%" y="109" width="0.0644%" height="15" fill="rgb(250,166,2)" fg:x="274" fg:w="1"/><text x="17.8819%" y="119.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (1 samples, 0.06%)</title><rect x="17.6319%" y="93" width="0.0644%" height="15" fill="rgb(242,216,29)" fg:x="274" fg:w="1"/><text x="17.8819%" y="103.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::iter::traits::collect::FromIterator&lt;char&gt;&gt;::from_iter (1 samples, 0.06%)</title><rect x="17.6963%" y="109" width="0.0644%" height="15" fill="rgb(230,116,27)" fg:x="275" fg:w="1"/><text x="17.9463%" y="119.50"></text></g><g><title>hot_path_profile`alloc::raw_vec::RawVecInner&lt;A&gt;::reserve::do_reserve_and_handle (1 samples, 0.06%)</title><rect x="17.6963%" y="93" width="0.0644%" height="15" fill="rgb(228,99,48)" fg:x="275" fg:w="1"/><text x="17.9463%" y="103.50"></text></g><g><title>hot_path_profile`alloc::raw_vec::finish_grow (1 samples, 0.06%)</title><rect x="17.6963%" y="77" width="0.0644%" height="15" fill="rgb(253,11,6)" fg:x="275" fg:w="1"/><text x="17.9463%" y="87.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="17.6963%" y="61" width="0.0644%" height="15" fill="rgb(247,143,39)" fg:x="275" fg:w="1"/><text x="17.9463%" y="71.50"></text></g><g><title>hot_path_profile`&lt;hashbrown::map::HashMap&lt;K,V,S,A&gt; as core::iter::traits::collect::Extend&lt;(K,V)&gt;&gt;::extend (1 samples, 0.06%)</title><rect x="17.7606%" y="109" width="0.0644%" height="15" fill="rgb(236,97,10)" fg:x="276" fg:w="1"/><text x="18.0106%" y="119.50"></text></g><g><title>hot_path_profile`hashbrown::map::HashMap&lt;K,V,S,A&gt;::insert (1 samples, 0.06%)</title><rect x="17.7606%" y="93" width="0.0644%" height="15" fill="rgb(233,208,19)" fg:x="276" fg:w="1"/><text x="18.0106%" y="103.50"></text></g><g><title>hot_path_profile`core::hash::BuildHasher::hash_one (1 samples, 0.06%)</title><rect x="17.7606%" y="77" width="0.0644%" height="15" fill="rgb(216,164,2)" fg:x="276" fg:w="1"/><text x="18.0106%" y="87.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::tokens (4 samples, 0.26%)</title><rect x="17.6319%" y="125" width="0.2574%" height="15" fill="rgb(220,129,5)" fg:x="274" fg:w="4"/><text x="17.8819%" y="135.50"></text></g><g><title>hot_path_profile`alloc::str::_&lt;impl str&gt;::to_lowercase (1 samples, 0.06%)</title><rect x="17.8250%" y="109" width="0.0644%" height="15" fill="rgb(242,17,10)" fg:x="277" fg:w="1"/><text x="18.0750%" y="119.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::commissioned_count (6 samples, 0.39%)</title><rect x="17.5676%" y="157" width="0.3861%" height="15" fill="rgb(242,107,0)" fg:x="273" fg:w="6"/><text x="17.8176%" y="167.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::matches_type (5 samples, 0.32%)</title><rect x="17.6319%" y="141" width="0.3218%" height="15" fill="rgb(251,28,31)" fg:x="274" fg:w="5"/><text x="17.8819%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="17.8893%" y="125" width="0.0644%" height="15" fill="rgb(233,223,10)" fg:x="278" fg:w="1"/><text x="18.1393%" y="135.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::create_job (1 samples, 0.06%)</title><rect x="17.9537%" y="157" width="0.0644%" height="15" fill="rgb(215,21,27)" fg:x="279" fg:w="1"/><text x="18.2037%" y="167.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::ActivitySpec as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="17.9537%" y="141" width="0.0644%" height="15" fill="rgb(232,23,21)" fg:x="279" fg:w="1"/><text x="18.2037%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T,A&gt; as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="17.9537%" y="125" width="0.0644%" height="15" fill="rgb(244,5,23)" fg:x="279" fg:w="1"/><text x="18.2037%" y="135.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="17.9537%" y="109" width="0.0644%" height="15" fill="rgb(226,81,46)" fg:x="279" fg:w="1"/><text x="18.2037%" y="119.50"></text></g><g><title>libsystem_platform`_platform_memmove (1 samples, 0.06%)</title><rect x="17.9537%" y="93" width="0.0644%" height="15" fill="rgb(247,70,30)" fg:x="279" fg:w="1"/><text x="18.2037%" y="103.50"></text></g><g><title>libsystem_malloc`_free (14 samples, 0.90%)</title><rect x="18.0180%" y="157" width="0.9009%" height="15" fill="rgb(212,68,19)" fg:x="280" fg:w="14"/><text x="18.2680%" y="167.50"></text></g><g><title>libsystem_malloc`DYLD-STUB$$_platform_bzero (8 samples, 0.51%)</title><rect x="22.3295%" y="141" width="0.5148%" height="15" fill="rgb(240,187,13)" fg:x="347" fg:w="8"/><text x="22.5795%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (18 samples, 1.16%)</title><rect x="22.8443%" y="141" width="1.1583%" height="15" fill="rgb(223,113,26)" fg:x="355" fg:w="18"/><text x="23.0943%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (92 samples, 5.92%)</title><rect x="18.9189%" y="157" width="5.9202%" height="15" fill="rgb(206,192,2)" fg:x="294" fg:w="92"/><text x="19.1689%" y="167.50">libsyste..</text></g><g><title>libsystem_platform`_platform_memset (13 samples, 0.84%)</title><rect x="24.0026%" y="141" width="0.8366%" height="15" fill="rgb(241,108,4)" fg:x="373" fg:w="13"/><text x="24.2526%" y="151.50"></text></g><g><title>libsystem_malloc`free (1 samples, 0.06%)</title><rect x="24.8391%" y="157" width="0.0644%" height="15" fill="rgb(247,173,49)" fg:x="386" fg:w="1"/><text x="25.0891%" y="167.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_create_preflight (272 samples, 17.50%)</title><rect x="7.4646%" y="173" width="17.5032%" height="15" fill="rgb(224,114,35)" fg:x="116" fg:w="272"/><text x="7.7146%" y="183.50">hot_path_profile`sim_engine..</text></g><g><title>libsystem_malloc`xzm_malloc_zone_try_free_default (1 samples, 0.06%)</title><rect x="24.9035%" y="157" width="0.0644%" height="15" fill="rgb(245,159,27)" fg:x="387" fg:w="1"/><text x="25.1535%" y="167.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (18 samples, 1.16%)</title><rect x="26.7696%" y="157" width="1.1583%" height="15" fill="rgb(245,172,44)" fg:x="416" fg:w="18"/><text x="27.0196%" y="167.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$malloc (2 samples, 0.13%)</title><rect x="29.1506%" y="125" width="0.1287%" height="15" fill="rgb(236,23,11)" fg:x="453" fg:w="2"/><text x="29.4006%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcpy (3 samples, 0.19%)</title><rect x="29.2793%" y="125" width="0.1931%" height="15" fill="rgb(205,117,38)" fg:x="455" fg:w="3"/><text x="29.5293%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (8 samples, 0.51%)</title><rect x="29.4723%" y="125" width="0.5148%" height="15" fill="rgb(237,72,25)" fg:x="458" fg:w="8"/><text x="29.7223%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc35___rust_no_alloc_shim_is_unstable_v2 (3 samples, 0.19%)</title><rect x="29.9871%" y="125" width="0.1931%" height="15" fill="rgb(244,70,9)" fg:x="466" fg:w="3"/><text x="30.2371%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (8 samples, 0.51%)</title><rect x="30.1802%" y="125" width="0.5148%" height="15" fill="rgb(217,125,39)" fg:x="469" fg:w="8"/><text x="30.4302%" y="135.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (15 samples, 0.97%)</title><rect x="30.6950%" y="125" width="0.9653%" height="15" fill="rgb(235,36,10)" fg:x="477" fg:w="15"/><text x="30.9450%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (10 samples, 0.64%)</title><rect x="31.6602%" y="125" width="0.6435%" height="15" fill="rgb(251,123,47)" fg:x="492" fg:w="10"/><text x="31.9102%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (39 samples, 2.51%)</title><rect x="32.3037%" y="125" width="2.5097%" height="15" fill="rgb(221,13,13)" fg:x="502" fg:w="39"/><text x="32.5537%" y="135.50">li..</text></g><g><title>libsystem_malloc`malloc (1 samples, 0.06%)</title><rect x="34.8134%" y="125" width="0.0644%" height="15" fill="rgb(238,131,9)" fg:x="541" fg:w="1"/><text x="35.0634%" y="135.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::MissionSpec as core::clone::Clone&gt;::clone (119 samples, 7.66%)</title><rect x="27.9279%" y="157" width="7.6577%" height="15" fill="rgb(211,50,8)" fg:x="434" fg:w="119"/><text x="28.1779%" y="167.50">hot_path_p..</text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (107 samples, 6.89%)</title><rect x="28.7001%" y="141" width="6.8855%" height="15" fill="rgb(245,182,24)" fg:x="446" fg:w="107"/><text x="28.9501%" y="151.50">hot_path_..</text></g><g><title>libsystem_platform`_platform_memmove (11 samples, 0.71%)</title><rect x="34.8777%" y="125" width="0.7079%" height="15" fill="rgb(242,14,37)" fg:x="542" fg:w="11"/><text x="35.1277%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (4 samples, 0.26%)</title><rect x="35.5856%" y="157" width="0.2574%" height="15" fill="rgb(246,228,12)" fg:x="553" fg:w="4"/><text x="35.8356%" y="167.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc14___rust_dealloc (1 samples, 0.06%)</title><rect x="35.8430%" y="157" width="0.0644%" height="15" fill="rgb(213,55,15)" fg:x="557" fg:w="1"/><text x="36.0930%" y="167.50"></text></g><g><title>libsystem_malloc`_free (7 samples, 0.45%)</title><rect x="35.9073%" y="157" width="0.4505%" height="15" fill="rgb(209,9,3)" fg:x="558" fg:w="7"/><text x="36.1573%" y="167.50"></text></g><g><title>libsystem_malloc`DYLD-STUB$$_platform_bzero (2 samples, 0.13%)</title><rect x="38.9961%" y="141" width="0.1287%" height="15" fill="rgb(230,59,30)" fg:x="606" fg:w="2"/><text x="39.2461%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (26 samples, 1.67%)</title><rect x="39.1248%" y="141" width="1.6731%" height="15" fill="rgb(209,121,21)" fg:x="608" fg:w="26"/><text x="39.3748%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (84 samples, 5.41%)</title><rect x="36.3578%" y="157" width="5.4054%" height="15" fill="rgb(220,109,13)" fg:x="565" fg:w="84"/><text x="36.6078%" y="167.50">libsyst..</text></g><g><title>libsystem_platform`_platform_memset (15 samples, 0.97%)</title><rect x="40.7979%" y="141" width="0.9653%" height="15" fill="rgb(232,18,1)" fg:x="634" fg:w="15"/><text x="41.0479%" y="151.50"></text></g><g><title>libsystem_malloc`free (1 samples, 0.06%)</title><rect x="41.7632%" y="157" width="0.0644%" height="15" fill="rgb(215,41,42)" fg:x="649" fg:w="1"/><text x="42.0132%" y="167.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_dispatch_missions (264 samples, 16.99%)</title><rect x="24.9678%" y="173" width="16.9884%" height="15" fill="rgb(224,123,36)" fg:x="388" fg:w="264"/><text x="25.2178%" y="183.50">hot_path_profile`sim_engin..</text></g><g><title>libsystem_malloc`xzm_malloc_zone_try_free_default (2 samples, 0.13%)</title><rect x="41.8275%" y="157" width="0.1287%" height="15" fill="rgb(240,125,3)" fg:x="650" fg:w="2"/><text x="42.0775%" y="167.50"></text></g><g><title>hot_path_profile`alloc::collections::btree::map::BTreeMap&lt;K,V,A&gt;::insert (174 samples, 11.20%)</title><rect x="55.5341%" y="157" width="11.1969%" height="15" fill="rgb(205,98,50)" fg:x="863" fg:w="174"/><text x="55.7841%" y="167.50">hot_path_profile..</text></g><g><title>libsystem_malloc`_xzm_free (2 samples, 0.13%)</title><rect x="66.7310%" y="157" width="0.1287%" height="15" fill="rgb(205,185,37)" fg:x="1037" fg:w="2"/><text x="66.9810%" y="167.50"></text></g><g><title>libsystem_kernel`mach_absolute_time (2 samples, 0.13%)</title><rect x="66.7310%" y="141" width="0.1287%" height="15" fill="rgb(238,207,15)" fg:x="1037" fg:w="2"/><text x="66.9810%" y="151.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_failures (391 samples, 25.16%)</title><rect x="41.9562%" y="173" width="25.1609%" height="15" fill="rgb(213,199,42)" fg:x="652" fg:w="391"/><text x="42.2062%" y="183.50">hot_path_profile`sim_engine_runtime::run..</text></g><g><title>libsystem_platform`_platform_memmove (4 samples, 0.26%)</title><rect x="66.8597%" y="157" width="0.2574%" height="15" fill="rgb(235,201,11)" fg:x="1039" fg:w="4"/><text x="67.1097%" y="167.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (1 samples, 0.06%)</title><rect x="68.7902%" y="125" width="0.0644%" height="15" fill="rgb(207,46,11)" fg:x="1069" fg:w="1"/><text x="69.0402%" y="135.50"></text></g><g><title>hot_path_profile`alloc::raw_vec::RawVec&lt;T,A&gt;::grow_one (2 samples, 0.13%)</title><rect x="68.7902%" y="157" width="0.1287%" height="15" fill="rgb(241,35,35)" fg:x="1069" fg:w="2"/><text x="69.0402%" y="167.50"></text></g><g><title>hot_path_profile`alloc::raw_vec::finish_grow (2 samples, 0.13%)</title><rect x="68.7902%" y="141" width="0.1287%" height="15" fill="rgb(243,32,47)" fg:x="1069" fg:w="2"/><text x="69.0402%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (1 samples, 0.06%)</title><rect x="68.8546%" y="125" width="0.0644%" height="15" fill="rgb(247,202,23)" fg:x="1070" fg:w="1"/><text x="69.1046%" y="135.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_generate_preventive (30 samples, 1.93%)</title><rect x="67.1171%" y="173" width="1.9305%" height="15" fill="rgb(219,102,11)" fg:x="1043" fg:w="30"/><text x="67.3671%" y="183.50">h..</text></g><g><title>hot_path_profile`hashbrown::map::HashMap&lt;K,V,S,A&gt;::insert (2 samples, 0.13%)</title><rect x="68.9189%" y="157" width="0.1287%" height="15" fill="rgb(243,110,44)" fg:x="1071" fg:w="2"/><text x="69.1689%" y="167.50"></text></g><g><title>hot_path_profile`hashbrown::raw::RawTable&lt;T,A&gt;::reserve_rehash (1 samples, 0.06%)</title><rect x="68.9833%" y="141" width="0.0644%" height="15" fill="rgb(222,74,54)" fg:x="1072" fg:w="1"/><text x="69.2333%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (1 samples, 0.06%)</title><rect x="68.9833%" y="125" width="0.0644%" height="15" fill="rgb(216,99,12)" fg:x="1072" fg:w="1"/><text x="69.2333%" y="135.50"></text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T&gt; as alloc::vec::spec_from_iter::SpecFromIter&lt;T,I&gt;&gt;::from_iter (13 samples, 0.84%)</title><rect x="69.1120%" y="157" width="0.8366%" height="15" fill="rgb(226,22,26)" fg:x="1074" fg:w="13"/><text x="69.3620%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="69.8842%" y="141" width="0.0644%" height="15" fill="rgb(217,163,10)" fg:x="1086" fg:w="1"/><text x="70.1342%" y="151.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::ActivitySpec as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="69.9485%" y="157" width="0.0644%" height="15" fill="rgb(213,25,53)" fg:x="1087" fg:w="1"/><text x="70.1985%" y="167.50"></text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T,A&gt; as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="69.9485%" y="141" width="0.0644%" height="15" fill="rgb(252,105,26)" fg:x="1087" fg:w="1"/><text x="70.1985%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="69.9485%" y="125" width="0.0644%" height="15" fill="rgb(220,39,43)" fg:x="1087" fg:w="1"/><text x="70.1985%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="69.9485%" y="109" width="0.0644%" height="15" fill="rgb(229,68,48)" fg:x="1087" fg:w="1"/><text x="70.1985%" y="119.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc14___rust_dealloc (1 samples, 0.06%)</title><rect x="70.0129%" y="157" width="0.0644%" height="15" fill="rgb(252,8,32)" fg:x="1088" fg:w="1"/><text x="70.2629%" y="167.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (1 samples, 0.06%)</title><rect x="70.0772%" y="125" width="0.0644%" height="15" fill="rgb(223,20,43)" fg:x="1089" fg:w="1"/><text x="70.3272%" y="135.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::plan::WorkStepSpec&gt; (2 samples, 0.13%)</title><rect x="70.0772%" y="141" width="0.1287%" height="15" fill="rgb(229,81,49)" fg:x="1089" fg:w="2"/><text x="70.3272%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="70.1416%" y="125" width="0.0644%" height="15" fill="rgb(236,28,36)" fg:x="1090" fg:w="1"/><text x="70.3916%" y="135.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::plan::ActivitySpec&gt; (3 samples, 0.19%)</title><rect x="70.0772%" y="157" width="0.1931%" height="15" fill="rgb(249,185,26)" fg:x="1089" fg:w="3"/><text x="70.3272%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="70.2059%" y="141" width="0.0644%" height="15" fill="rgb(249,174,33)" fg:x="1091" fg:w="1"/><text x="70.4559%" y="151.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::complete_job (2 samples, 0.13%)</title><rect x="70.2703%" y="157" width="0.1287%" height="15" fill="rgb(233,201,37)" fg:x="1092" fg:w="2"/><text x="70.5203%" y="167.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::plan::ActivitySpec&gt; (1 samples, 0.06%)</title><rect x="70.3346%" y="141" width="0.0644%" height="15" fill="rgb(221,78,26)" fg:x="1093" fg:w="1"/><text x="70.5846%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="70.3346%" y="125" width="0.0644%" height="15" fill="rgb(250,127,30)" fg:x="1093" fg:w="1"/><text x="70.5846%" y="135.50"></text></g><g><title>libsystem_platform`_platform_memset (1 samples, 0.06%)</title><rect x="70.3346%" y="109" width="0.0644%" height="15" fill="rgb(230,49,44)" fg:x="1093" fg:w="1"/><text x="70.5846%" y="119.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_job_progress (23 samples, 1.48%)</title><rect x="69.0476%" y="173" width="1.4801%" height="15" fill="rgb(229,67,23)" fg:x="1073" fg:w="23"/><text x="69.2976%" y="183.50"></text></g><g><title>libsystem_malloc`_xzm_free (2 samples, 0.13%)</title><rect x="70.3990%" y="157" width="0.1287%" height="15" fill="rgb(249,83,47)" fg:x="1094" fg:w="2"/><text x="70.6490%" y="167.50"></text></g><g><title>libsystem_platform`_platform_memset (1 samples, 0.06%)</title><rect x="70.4633%" y="141" width="0.0644%" height="15" fill="rgb(215,43,3)" fg:x="1095" fg:w="1"/><text x="70.7133%" y="151.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_mission_returns (2 samples, 0.13%)</title><rect x="70.5277%" y="173" width="0.1287%" height="15" fill="rgb(238,154,13)" fg:x="1096" fg:w="2"/><text x="70.7777%" y="183.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::return_aircraft (1 samples, 0.06%)</title><rect x="70.5920%" y="157" width="0.0644%" height="15" fill="rgb(219,56,2)" fg:x="1097" fg:w="1"/><text x="70.8420%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="70.5920%" y="141" width="0.0644%" height="15" fill="rgb(233,0,4)" fg:x="1097" fg:w="1"/><text x="70.8420%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (1 samples, 0.06%)</title><rect x="70.5920%" y="125" width="0.0644%" height="15" fill="rgb(235,30,7)" fg:x="1097" fg:w="1"/><text x="70.8420%" y="135.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (22 samples, 1.42%)</title><rect x="72.5869%" y="157" width="1.4157%" height="15" fill="rgb(250,79,13)" fg:x="1128" fg:w="22"/><text x="72.8369%" y="167.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$malloc (1 samples, 0.06%)</title><rect x="75.2896%" y="125" width="0.0644%" height="15" fill="rgb(211,146,34)" fg:x="1170" fg:w="1"/><text x="75.5396%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcpy (3 samples, 0.19%)</title><rect x="75.3539%" y="125" width="0.1931%" height="15" fill="rgb(228,22,38)" fg:x="1171" fg:w="3"/><text x="75.6039%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (9 samples, 0.58%)</title><rect x="75.5470%" y="125" width="0.5792%" height="15" fill="rgb(235,168,5)" fg:x="1174" fg:w="9"/><text x="75.7970%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc35___rust_no_alloc_shim_is_unstable_v2 (5 samples, 0.32%)</title><rect x="76.1261%" y="125" width="0.3218%" height="15" fill="rgb(221,155,16)" fg:x="1183" fg:w="5"/><text x="76.3761%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (10 samples, 0.64%)</title><rect x="76.4479%" y="125" width="0.6435%" height="15" fill="rgb(215,215,53)" fg:x="1188" fg:w="10"/><text x="76.6979%" y="135.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (8 samples, 0.51%)</title><rect x="77.0914%" y="125" width="0.5148%" height="15" fill="rgb(223,4,10)" fg:x="1198" fg:w="8"/><text x="77.3414%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (13 samples, 0.84%)</title><rect x="77.6062%" y="125" width="0.8366%" height="15" fill="rgb(234,103,6)" fg:x="1206" fg:w="13"/><text x="77.8562%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (38 samples, 2.45%)</title><rect x="78.4427%" y="125" width="2.4453%" height="15" fill="rgb(227,97,0)" fg:x="1219" fg:w="38"/><text x="78.6927%" y="135.50">li..</text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::MissionSpec as core::clone::Clone&gt;::clone (124 samples, 7.98%)</title><rect x="74.0026%" y="157" width="7.9794%" height="15" fill="rgb(234,150,53)" fg:x="1150" fg:w="124"/><text x="74.2526%" y="167.50">hot_path_pr..</text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (108 samples, 6.95%)</title><rect x="75.0322%" y="141" width="6.9498%" height="15" fill="rgb(228,201,54)" fg:x="1166" fg:w="108"/><text x="75.2822%" y="151.50">hot_path_..</text></g><g><title>libsystem_platform`_platform_memmove (17 samples, 1.09%)</title><rect x="80.8880%" y="125" width="1.0940%" height="15" fill="rgb(222,22,37)" fg:x="1257" fg:w="17"/><text x="81.1380%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (4 samples, 0.26%)</title><rect x="81.9820%" y="157" width="0.2574%" height="15" fill="rgb(237,53,32)" fg:x="1274" fg:w="4"/><text x="82.2320%" y="167.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc14___rust_dealloc (1 samples, 0.06%)</title><rect x="82.2394%" y="157" width="0.0644%" height="15" fill="rgb(233,25,53)" fg:x="1278" fg:w="1"/><text x="82.4894%" y="167.50"></text></g><g><title>libsystem_malloc`_free (11 samples, 0.71%)</title><rect x="82.3037%" y="157" width="0.7079%" height="15" fill="rgb(210,40,34)" fg:x="1279" fg:w="11"/><text x="82.5537%" y="167.50"></text></g><g><title>libsystem_malloc`DYLD-STUB$$_platform_bzero (4 samples, 0.26%)</title><rect x="85.7143%" y="141" width="0.2574%" height="15" fill="rgb(241,220,44)" fg:x="1332" fg:w="4"/><text x="85.9643%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (16 samples, 1.03%)</title><rect x="85.9717%" y="141" width="1.0296%" height="15" fill="rgb(235,28,35)" fg:x="1336" fg:w="16"/><text x="86.2217%" y="151.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_mission_success (271 samples, 17.44%)</title><rect x="70.6564%" y="173" width="17.4389%" height="15" fill="rgb(210,56,17)" fg:x="1098" fg:w="271"/><text x="70.9064%" y="183.50">hot_path_profile`sim_engine..</text></g><g><title>libsystem_malloc`_xzm_free (79 samples, 5.08%)</title><rect x="83.0116%" y="157" width="5.0837%" height="15" fill="rgb(224,130,29)" fg:x="1290" fg:w="79"/><text x="83.2616%" y="167.50">libsys..</text></g><g><title>libsystem_platform`_platform_memset (17 samples, 1.09%)</title><rect x="87.0013%" y="141" width="1.0940%" height="15" fill="rgb(235,212,8)" fg:x="1352" fg:w="17"/><text x="87.2513%" y="151.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (1 samples, 0.06%)</title><rect x="88.9318%" y="141" width="0.0644%" height="15" fill="rgb(223,33,50)" fg:x="1382" fg:w="1"/><text x="89.1818%" y="151.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="88.9961%" y="141" width="0.0644%" height="15" fill="rgb(219,149,13)" fg:x="1383" fg:w="1"/><text x="89.2461%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="89.0605%" y="141" width="0.0644%" height="15" fill="rgb(250,156,29)" fg:x="1384" fg:w="1"/><text x="89.3105%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (5 samples, 0.32%)</title><rect x="88.8674%" y="157" width="0.3218%" height="15" fill="rgb(216,193,19)" fg:x="1381" fg:w="5"/><text x="89.1174%" y="167.50"></text></g><g><title>libsystem_platform`_platform_memmove (1 samples, 0.06%)</title><rect x="89.1248%" y="141" width="0.0644%" height="15" fill="rgb(216,135,14)" fg:x="1385" fg:w="1"/><text x="89.3748%" y="151.50"></text></g><g><title>hot_path_profile`core::ops::function::impls::_&lt;impl core::ops::function::FnMut&lt;A&gt; for &amp;mut F&gt;::call_mut (3 samples, 0.19%)</title><rect x="89.2535%" y="141" width="0.1931%" height="15" fill="rgb(241,47,5)" fg:x="1387" fg:w="3"/><text x="89.5035%" y="151.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcmp (1 samples, 0.06%)</title><rect x="89.3822%" y="125" width="0.0644%" height="15" fill="rgb(233,42,35)" fg:x="1389" fg:w="1"/><text x="89.6322%" y="135.50"></text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T&gt; as alloc::vec::spec_from_iter::SpecFromIter&lt;T,I&gt;&gt;::from_iter (5 samples, 0.32%)</title><rect x="89.1892%" y="157" width="0.3218%" height="15" fill="rgb(231,13,6)" fg:x="1386" fg:w="5"/><text x="89.4392%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="89.4466%" y="141" width="0.0644%" height="15" fill="rgb(207,181,40)" fg:x="1390" fg:w="1"/><text x="89.6966%" y="151.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcpy (1 samples, 0.06%)</title><rect x="89.5753%" y="125" width="0.0644%" height="15" fill="rgb(254,173,49)" fg:x="1392" fg:w="1"/><text x="89.8253%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc35___rust_no_alloc_shim_is_unstable_v2 (1 samples, 0.06%)</title><rect x="89.6396%" y="125" width="0.0644%" height="15" fill="rgb(221,1,38)" fg:x="1393" fg:w="1"/><text x="89.8896%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (1 samples, 0.06%)</title><rect x="89.7040%" y="125" width="0.0644%" height="15" fill="rgb(206,124,46)" fg:x="1394" fg:w="1"/><text x="89.9540%" y="135.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="89.7683%" y="125" width="0.0644%" height="15" fill="rgb(249,21,11)" fg:x="1395" fg:w="1"/><text x="90.0183%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (1 samples, 0.06%)</title><rect x="89.8327%" y="125" width="0.0644%" height="15" fill="rgb(222,201,40)" fg:x="1396" fg:w="1"/><text x="90.0827%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (2 samples, 0.13%)</title><rect x="89.8970%" y="125" width="0.1287%" height="15" fill="rgb(235,61,29)" fg:x="1397" fg:w="2"/><text x="90.1470%" y="135.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (9 samples, 0.58%)</title><rect x="89.5109%" y="141" width="0.5792%" height="15" fill="rgb(219,207,3)" fg:x="1391" fg:w="9"/><text x="89.7609%" y="151.50"></text></g><g><title>libsystem_platform`_platform_memmove (1 samples, 0.06%)</title><rect x="90.0257%" y="125" width="0.0644%" height="15" fill="rgb(222,56,46)" fg:x="1399" fg:w="1"/><text x="90.2757%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (1 samples, 0.06%)</title><rect x="90.2831%" y="109" width="0.0644%" height="15" fill="rgb(239,76,54)" fg:x="1403" fg:w="1"/><text x="90.5331%" y="119.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="90.3475%" y="109" width="0.0644%" height="15" fill="rgb(231,124,27)" fg:x="1404" fg:w="1"/><text x="90.5975%" y="119.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (3 samples, 0.19%)</title><rect x="90.4118%" y="109" width="0.1931%" height="15" fill="rgb(249,195,6)" fg:x="1405" fg:w="3"/><text x="90.6618%" y="119.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (7 samples, 0.45%)</title><rect x="90.2831%" y="125" width="0.4505%" height="15" fill="rgb(237,174,47)" fg:x="1403" fg:w="7"/><text x="90.5331%" y="135.50"></text></g><g><title>libsystem_platform`_platform_memmove (2 samples, 0.13%)</title><rect x="90.6049%" y="109" width="0.1287%" height="15" fill="rgb(206,201,31)" fg:x="1408" fg:w="2"/><text x="90.8549%" y="119.50"></text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T,A&gt; as core::clone::Clone&gt;::clone (1 samples, 0.06%)</title><rect x="90.7336%" y="125" width="0.0644%" height="15" fill="rgb(231,57,52)" fg:x="1410" fg:w="1"/><text x="90.9836%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$malloc (1 samples, 0.06%)</title><rect x="90.7979%" y="125" width="0.0644%" height="15" fill="rgb(248,177,22)" fg:x="1411" fg:w="1"/><text x="91.0479%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc35___rust_no_alloc_shim_is_unstable_v2 (1 samples, 0.06%)</title><rect x="90.8623%" y="125" width="0.0644%" height="15" fill="rgb(215,211,37)" fg:x="1412" fg:w="1"/><text x="91.1123%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (1 samples, 0.06%)</title><rect x="90.9266%" y="125" width="0.0644%" height="15" fill="rgb(241,128,51)" fg:x="1413" fg:w="1"/><text x="91.1766%" y="135.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="90.9910%" y="125" width="0.0644%" height="15" fill="rgb(227,165,31)" fg:x="1414" fg:w="1"/><text x="91.2410%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (2 samples, 0.13%)</title><rect x="91.0553%" y="125" width="0.1287%" height="15" fill="rgb(228,167,24)" fg:x="1415" fg:w="2"/><text x="91.3053%" y="135.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::ActivitySpec as core::clone::Clone&gt;::clone (28 samples, 1.80%)</title><rect x="89.5109%" y="157" width="1.8018%" height="15" fill="rgb(228,143,12)" fg:x="1391" fg:w="28"/><text x="89.7609%" y="167.50">h..</text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T,A&gt; as core::clone::Clone&gt;::clone (19 samples, 1.22%)</title><rect x="90.0901%" y="141" width="1.2227%" height="15" fill="rgb(249,149,8)" fg:x="1400" fg:w="19"/><text x="90.3401%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (2 samples, 0.13%)</title><rect x="91.1840%" y="125" width="0.1287%" height="15" fill="rgb(243,35,44)" fg:x="1417" fg:w="2"/><text x="91.4340%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (1 samples, 0.06%)</title><rect x="91.3127%" y="125" width="0.0644%" height="15" fill="rgb(246,89,9)" fg:x="1419" fg:w="1"/><text x="91.5627%" y="135.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="91.3771%" y="125" width="0.0644%" height="15" fill="rgb(233,213,13)" fg:x="1420" fg:w="1"/><text x="91.6271%" y="135.50"></text></g><g><title>hot_path_profile`&lt;sim_engine_runtime::plan::WorkStepSpec as core::clone::Clone&gt;::clone (3 samples, 0.19%)</title><rect x="91.3127%" y="157" width="0.1931%" height="15" fill="rgb(233,141,41)" fg:x="1419" fg:w="3"/><text x="91.5627%" y="167.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (3 samples, 0.19%)</title><rect x="91.3127%" y="141" width="0.1931%" height="15" fill="rgb(239,167,4)" fg:x="1419" fg:w="3"/><text x="91.5627%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="91.4414%" y="125" width="0.0644%" height="15" fill="rgb(209,217,16)" fg:x="1421" fg:w="1"/><text x="91.6914%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$memcmp (2 samples, 0.13%)</title><rect x="91.5058%" y="157" width="0.1287%" height="15" fill="rgb(219,88,35)" fg:x="1422" fg:w="2"/><text x="91.7558%" y="167.50"></text></g><g><title>hot_path_profile`alloc::collections::btree::map::IntoIter&lt;K,V,A&gt;::dying_next (1 samples, 0.06%)</title><rect x="91.6345%" y="157" width="0.0644%" height="15" fill="rgb(220,193,23)" fg:x="1424" fg:w="1"/><text x="91.8845%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_free (1 samples, 0.06%)</title><rect x="91.6345%" y="141" width="0.0644%" height="15" fill="rgb(230,90,52)" fg:x="1424" fg:w="1"/><text x="91.8845%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (1 samples, 0.06%)</title><rect x="91.6345%" y="125" width="0.0644%" height="15" fill="rgb(252,106,19)" fg:x="1424" fg:w="1"/><text x="91.8845%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc11___rdl_alloc (1 samples, 0.06%)</title><rect x="91.6988%" y="141" width="0.0644%" height="15" fill="rgb(206,74,20)" fg:x="1425" fg:w="1"/><text x="91.9488%" y="151.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (1 samples, 0.06%)</title><rect x="91.7632%" y="141" width="0.0644%" height="15" fill="rgb(230,138,44)" fg:x="1426" fg:w="1"/><text x="92.0132%" y="151.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="91.8275%" y="141" width="0.0644%" height="15" fill="rgb(235,182,43)" fg:x="1427" fg:w="1"/><text x="92.0775%" y="151.50"></text></g><g><title>hot_path_profile`alloc::collections::btree::map::entry::VacantEntry&lt;K,V,A&gt;::insert_entry (5 samples, 0.32%)</title><rect x="91.6988%" y="157" width="0.3218%" height="15" fill="rgb(242,16,51)" fg:x="1425" fg:w="5"/><text x="91.9488%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (2 samples, 0.13%)</title><rect x="91.8919%" y="141" width="0.1287%" height="15" fill="rgb(248,9,4)" fg:x="1428" fg:w="2"/><text x="92.1419%" y="151.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (1 samples, 0.06%)</title><rect x="92.0206%" y="141" width="0.0644%" height="15" fill="rgb(210,31,22)" fg:x="1430" fg:w="1"/><text x="92.2706%" y="151.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$free (2 samples, 0.13%)</title><rect x="92.1493%" y="125" width="0.1287%" height="15" fill="rgb(239,54,39)" fg:x="1432" fg:w="2"/><text x="92.3993%" y="135.50"></text></g><g><title>libsystem_malloc`DYLD-STUB$$_platform_bzero (1 samples, 0.06%)</title><rect x="92.2780%" y="109" width="0.0644%" height="15" fill="rgb(230,99,41)" fg:x="1434" fg:w="1"/><text x="92.5280%" y="119.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::plan::WorkStepSpec&gt; (5 samples, 0.32%)</title><rect x="92.0849%" y="141" width="0.3218%" height="15" fill="rgb(253,106,12)" fg:x="1431" fg:w="5"/><text x="92.3349%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (2 samples, 0.13%)</title><rect x="92.2780%" y="125" width="0.1287%" height="15" fill="rgb(213,46,41)" fg:x="1434" fg:w="2"/><text x="92.5280%" y="135.50"></text></g><g><title>libsystem_platform`__bzero (1 samples, 0.06%)</title><rect x="92.3423%" y="109" width="0.0644%" height="15" fill="rgb(215,133,35)" fg:x="1435" fg:w="1"/><text x="92.5923%" y="119.50"></text></g><g><title>libsystem_malloc`_free (1 samples, 0.06%)</title><rect x="92.4067%" y="141" width="0.0644%" height="15" fill="rgb(213,28,5)" fg:x="1436" fg:w="1"/><text x="92.6567%" y="151.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::plan::ActivitySpec&gt; (9 samples, 0.58%)</title><rect x="92.0206%" y="157" width="0.5792%" height="15" fill="rgb(215,77,49)" fg:x="1430" fg:w="9"/><text x="92.2706%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_free (2 samples, 0.13%)</title><rect x="92.4710%" y="141" width="0.1287%" height="15" fill="rgb(248,100,22)" fg:x="1437" fg:w="2"/><text x="92.7210%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (1 samples, 0.06%)</title><rect x="92.5354%" y="125" width="0.0644%" height="15" fill="rgb(208,67,9)" fg:x="1438" fg:w="1"/><text x="92.7854%" y="135.50"></text></g><g><title>hot_path_profile`_RNvCsj4CZ6flxxfE_7___rustc14___rust_dealloc (1 samples, 0.06%)</title><rect x="92.5997%" y="141" width="0.0644%" height="15" fill="rgb(219,133,21)" fg:x="1439" fg:w="1"/><text x="92.8497%" y="151.50"></text></g><g><title>hot_path_profile`core::ptr::drop_in_place&lt;sim_engine_runtime::plan::WorkStepSpec&gt; (3 samples, 0.19%)</title><rect x="92.5997%" y="157" width="0.1931%" height="15" fill="rgb(246,46,29)" fg:x="1439" fg:w="3"/><text x="92.8497%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_free (2 samples, 0.13%)</title><rect x="92.6641%" y="141" width="0.1287%" height="15" fill="rgb(246,185,52)" fg:x="1440" fg:w="2"/><text x="92.9141%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (2 samples, 0.13%)</title><rect x="92.6641%" y="125" width="0.1287%" height="15" fill="rgb(252,136,11)" fg:x="1440" fg:w="2"/><text x="92.9141%" y="135.50"></text></g><g><title>libsystem_malloc`&lt;deduplicated_symbol&gt; (2 samples, 0.13%)</title><rect x="92.9215%" y="109" width="0.1287%" height="15" fill="rgb(219,138,53)" fg:x="1444" fg:w="2"/><text x="93.1715%" y="119.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (1 samples, 0.06%)</title><rect x="93.0502%" y="109" width="0.0644%" height="15" fill="rgb(211,51,23)" fg:x="1446" fg:w="1"/><text x="93.3002%" y="119.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (1 samples, 0.06%)</title><rect x="93.1145%" y="109" width="0.0644%" height="15" fill="rgb(247,221,28)" fg:x="1447" fg:w="1"/><text x="93.3645%" y="119.50"></text></g><g><title>hot_path_profile`&lt;alloc::string::String as core::clone::Clone&gt;::clone (5 samples, 0.32%)</title><rect x="92.9215%" y="125" width="0.3218%" height="15" fill="rgb(251,222,45)" fg:x="1444" fg:w="5"/><text x="93.1715%" y="135.50"></text></g><g><title>libsystem_platform`_platform_memmove (1 samples, 0.06%)</title><rect x="93.1789%" y="109" width="0.0644%" height="15" fill="rgb(217,162,53)" fg:x="1448" fg:w="1"/><text x="93.4289%" y="119.50"></text></g><g><title>libsystem_malloc`_xzm_free (2 samples, 0.13%)</title><rect x="93.2432%" y="125" width="0.1287%" height="15" fill="rgb(229,93,14)" fg:x="1449" fg:w="2"/><text x="93.4932%" y="135.50"></text></g><g><title>hot_path_profile`core::slice::sort::shared::smallsort::insertion_sort_shift_left (10 samples, 0.64%)</title><rect x="92.7928%" y="157" width="0.6435%" height="15" fill="rgb(209,67,49)" fg:x="1442" fg:w="10"/><text x="93.0428%" y="167.50"></text></g><g><title>hot_path_profile`alloc::slice::_&lt;impl [T]&gt;::sort_by_key::_{{closure}} (8 samples, 0.51%)</title><rect x="92.9215%" y="141" width="0.5148%" height="15" fill="rgb(213,87,29)" fg:x="1444" fg:w="8"/><text x="93.1715%" y="151.50"></text></g><g><title>libsystem_platform`_platform_memcmp (1 samples, 0.06%)</title><rect x="93.3719%" y="125" width="0.0644%" height="15" fill="rgb(205,151,52)" fg:x="1451" fg:w="1"/><text x="93.6219%" y="135.50"></text></g><g><title>libsystem_kernel`mach_absolute_time (3 samples, 0.19%)</title><rect x="93.5006%" y="141" width="0.1931%" height="15" fill="rgb(253,215,39)" fg:x="1453" fg:w="3"/><text x="93.7506%" y="151.50"></text></g><g><title>libsystem_malloc`DYLD-STUB$$_platform_bzero (1 samples, 0.06%)</title><rect x="93.6937%" y="141" width="0.0644%" height="15" fill="rgb(221,220,41)" fg:x="1456" fg:w="1"/><text x="93.9437%" y="151.50"></text></g><g><title>libsystem_platform`__bzero (1 samples, 0.06%)</title><rect x="93.7580%" y="141" width="0.0644%" height="15" fill="rgb(218,133,21)" fg:x="1457" fg:w="1"/><text x="94.0080%" y="151.50"></text></g><g><title>libsystem_malloc`_xzm_free (7 samples, 0.45%)</title><rect x="93.4363%" y="157" width="0.4505%" height="15" fill="rgb(221,193,43)" fg:x="1452" fg:w="7"/><text x="93.6863%" y="167.50"></text></g><g><title>libsystem_platform`_platform_memset (1 samples, 0.06%)</title><rect x="93.8224%" y="141" width="0.0644%" height="15" fill="rgb(240,128,52)" fg:x="1458" fg:w="1"/><text x="94.0724%" y="151.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_start_waiting_jobs (94 samples, 6.05%)</title><rect x="88.0952%" y="173" width="6.0489%" height="15" fill="rgb(253,114,12)" fg:x="1369" fg:w="94"/><text x="88.3452%" y="183.50">hot_path..</text></g><g><title>libsystem_platform`_platform_memcmp (4 samples, 0.26%)</title><rect x="93.8867%" y="157" width="0.2574%" height="15" fill="rgb(215,223,47)" fg:x="1459" fg:w="4"/><text x="94.1367%" y="167.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::phase_transport_arrivals (17 samples, 1.09%)</title><rect x="94.1441%" y="173" width="1.0940%" height="15" fill="rgb(248,225,23)" fg:x="1463" fg:w="17"/><text x="94.3941%" y="183.50"></text></g><g><title>hot_path_profile`&lt;alloc::vec::Vec&lt;T&gt; as alloc::vec::spec_from_iter::SpecFromIter&lt;T,I&gt;&gt;::from_iter (1 samples, 0.06%)</title><rect x="95.2381%" y="157" width="0.0644%" height="15" fill="rgb(250,108,0)" fg:x="1480" fg:w="1"/><text x="95.4881%" y="167.50"></text></g><g><title>hot_path_profile`&lt;core::iter::adapters::map::Map&lt;I,F&gt; as core::iter::traits::iterator::Iterator&gt;::fold (1 samples, 0.06%)</title><rect x="95.2381%" y="141" width="0.0644%" height="15" fill="rgb(228,208,7)" fg:x="1480" fg:w="1"/><text x="95.4881%" y="151.50"></text></g><g><title>hot_path_profile`alloc::collections::btree::map::BTreeMap&lt;K,V,A&gt;::insert (1 samples, 0.06%)</title><rect x="95.2381%" y="125" width="0.0644%" height="15" fill="rgb(244,45,10)" fg:x="1480" fg:w="1"/><text x="95.4881%" y="135.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_freelist_outlined (1 samples, 0.06%)</title><rect x="95.2381%" y="109" width="0.0644%" height="15" fill="rgb(207,125,25)" fg:x="1480" fg:w="1"/><text x="95.4881%" y="119.50"></text></g><g><title>libsystem_malloc`_xzm_chunk_list_pop (1 samples, 0.06%)</title><rect x="95.2381%" y="93" width="0.0644%" height="15" fill="rgb(210,195,18)" fg:x="1480" fg:w="1"/><text x="95.4881%" y="103.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::terminal_state (2 samples, 0.13%)</title><rect x="95.2381%" y="173" width="0.1287%" height="15" fill="rgb(249,80,12)" fg:x="1480" fg:w="2"/><text x="95.4881%" y="183.50"></text></g><g><title>hot_path_profile`serde_core::ser::Serializer::collect_seq (1 samples, 0.06%)</title><rect x="95.3024%" y="157" width="0.0644%" height="15" fill="rgb(221,65,9)" fg:x="1481" fg:w="1"/><text x="95.5524%" y="167.50"></text></g><g><title>hot_path_profile`serde_core::ser::impls::_&lt;impl serde_core::ser::Serialize for &amp;T&gt;::serialize (1 samples, 0.06%)</title><rect x="95.3024%" y="141" width="0.0644%" height="15" fill="rgb(235,49,36)" fg:x="1481" fg:w="1"/><text x="95.5524%" y="151.50"></text></g><g><title>hot_path_profile`&lt;alloc::collections::btree::map::Iter&lt;K,V&gt; as core::iter::traits::iterator::Iterator&gt;::next (1 samples, 0.06%)</title><rect x="95.3024%" y="125" width="0.0644%" height="15" fill="rgb(225,32,20)" fg:x="1481" fg:w="1"/><text x="95.5524%" y="135.50"></text></g><g><title>hot_path_profile`DYLD-STUB$$clock_gettime (1 samples, 0.06%)</title><rect x="95.3668%" y="157" width="0.0644%" height="15" fill="rgb(215,141,46)" fg:x="1482" fg:w="1"/><text x="95.6168%" y="167.50"></text></g><g><title>libsystem_c`DYLD-STUB$$mach_absolute_time (2 samples, 0.13%)</title><rect x="95.5598%" y="125" width="0.1287%" height="15" fill="rgb(250,160,47)" fg:x="1485" fg:w="2"/><text x="95.8098%" y="135.50"></text></g><g><title>libsystem_c`DYLD-STUB$$mach_timebase_info (1 samples, 0.06%)</title><rect x="95.6885%" y="125" width="0.0644%" height="15" fill="rgb(216,222,40)" fg:x="1487" fg:w="1"/><text x="95.9385%" y="135.50"></text></g><g><title>libsystem_kernel`mach_absolute_time (11 samples, 0.71%)</title><rect x="95.7529%" y="125" width="0.7079%" height="15" fill="rgb(234,217,39)" fg:x="1488" fg:w="11"/><text x="96.0029%" y="135.50"></text></g><g><title>hot_path_profile`std::sys::pal::unix::time::Timespec::now (19 samples, 1.22%)</title><rect x="95.3668%" y="173" width="1.2227%" height="15" fill="rgb(207,178,40)" fg:x="1482" fg:w="19"/><text x="95.6168%" y="183.50"></text></g><g><title>libsystem_c`clock_gettime (18 samples, 1.16%)</title><rect x="95.4311%" y="157" width="1.1583%" height="15" fill="rgb(221,136,13)" fg:x="1483" fg:w="18"/><text x="95.6811%" y="167.50"></text></g><g><title>libsystem_c`clock_gettime_nsec_np (17 samples, 1.09%)</title><rect x="95.4955%" y="141" width="1.0940%" height="15" fill="rgb(249,199,10)" fg:x="1484" fg:w="17"/><text x="95.7455%" y="151.50"></text></g><g><title>libsystem_kernel`mach_timebase_info (2 samples, 0.13%)</title><rect x="96.4607%" y="125" width="0.1287%" height="15" fill="rgb(249,222,13)" fg:x="1499" fg:w="2"/><text x="96.7107%" y="135.50"></text></g><g><title>libsystem_c`DYLD-STUB$$mach_timebase_info (3 samples, 0.19%)</title><rect x="96.9112%" y="109" width="0.1931%" height="15" fill="rgb(244,185,38)" fg:x="1506" fg:w="3"/><text x="97.1612%" y="119.50"></text></g><g><title>hot_path_profile`std::sys::pal::unix::time::Timespec::now (23 samples, 1.48%)</title><rect x="96.5894%" y="157" width="1.4801%" height="15" fill="rgb(236,202,9)" fg:x="1501" fg:w="23"/><text x="96.8394%" y="167.50"></text></g><g><title>libsystem_c`clock_gettime (22 samples, 1.42%)</title><rect x="96.6538%" y="141" width="1.4157%" height="15" fill="rgb(250,229,37)" fg:x="1502" fg:w="22"/><text x="96.9038%" y="151.50"></text></g><g><title>libsystem_c`clock_gettime_nsec_np (19 samples, 1.22%)</title><rect x="96.8468%" y="125" width="1.2227%" height="15" fill="rgb(206,174,23)" fg:x="1505" fg:w="19"/><text x="97.0968%" y="135.50"></text></g><g><title>libsystem_kernel`mach_absolute_time (15 samples, 0.97%)</title><rect x="97.1042%" y="109" width="0.9653%" height="15" fill="rgb(211,33,43)" fg:x="1509" fg:w="15"/><text x="97.3542%" y="119.50"></text></g><g><title>hot_path_profile`std::time::Instant::elapsed (24 samples, 1.54%)</title><rect x="96.5894%" y="173" width="1.5444%" height="15" fill="rgb(245,58,50)" fg:x="1501" fg:w="24"/><text x="96.8394%" y="183.50"></text></g><g><title>hot_path_profile`std::sys::pal::unix::time::Timespec::sub_timespec (1 samples, 0.06%)</title><rect x="98.0695%" y="157" width="0.0644%" height="15" fill="rgb(244,68,36)" fg:x="1524" fg:w="1"/><text x="98.3195%" y="167.50"></text></g><g><title>libsystem_malloc`_free (2 samples, 0.13%)</title><rect x="98.1338%" y="173" width="0.1287%" height="15" fill="rgb(232,229,15)" fg:x="1525" fg:w="2"/><text x="98.3838%" y="183.50"></text></g><g><title>libsystem_malloc`_malloc_zone_malloc (1 samples, 0.06%)</title><rect x="98.2625%" y="173" width="0.0644%" height="15" fill="rgb(254,30,23)" fg:x="1527" fg:w="1"/><text x="98.5125%" y="183.50"></text></g><g><title>libsystem_kernel`mach_absolute_time (1 samples, 0.06%)</title><rect x="98.6486%" y="157" width="0.0644%" height="15" fill="rgb(235,160,14)" fg:x="1533" fg:w="1"/><text x="98.8986%" y="167.50"></text></g><g><title>libsystem_malloc`DYLD-STUB$$_platform_bzero (1 samples, 0.06%)</title><rect x="98.7130%" y="157" width="0.0644%" height="15" fill="rgb(212,155,44)" fg:x="1534" fg:w="1"/><text x="98.9630%" y="167.50"></text></g><g><title>libsystem_platform`__bzero (3 samples, 0.19%)</title><rect x="98.7773%" y="157" width="0.1931%" height="15" fill="rgb(226,2,50)" fg:x="1535" fg:w="3"/><text x="99.0273%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_free (11 samples, 0.71%)</title><rect x="98.3269%" y="173" width="0.7079%" height="15" fill="rgb(234,177,6)" fg:x="1528" fg:w="11"/><text x="98.5769%" y="183.50"></text></g><g><title>libsystem_platform`_platform_memset (1 samples, 0.06%)</title><rect x="98.9704%" y="157" width="0.0644%" height="15" fill="rgb(217,24,9)" fg:x="1538" fg:w="1"/><text x="99.2204%" y="167.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc (1 samples, 0.06%)</title><rect x="99.0347%" y="173" width="0.0644%" height="15" fill="rgb(220,13,46)" fg:x="1539" fg:w="1"/><text x="99.2847%" y="183.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_freelist_outlined (1 samples, 0.06%)</title><rect x="99.0991%" y="173" width="0.0644%" height="15" fill="rgb(239,221,27)" fg:x="1540" fg:w="1"/><text x="99.3491%" y="183.50"></text></g><g><title>libsystem_malloc`_xzm_xzone_malloc_tiny (3 samples, 0.19%)</title><rect x="99.1634%" y="173" width="0.1931%" height="15" fill="rgb(222,198,25)" fg:x="1541" fg:w="3"/><text x="99.4134%" y="183.50"></text></g><g><title>libsystem_platform`_platform_memcmp (4 samples, 0.26%)</title><rect x="99.3565%" y="173" width="0.2574%" height="15" fill="rgb(211,99,13)" fg:x="1544" fg:w="4"/><text x="99.6065%" y="183.50"></text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::run_profiled (1,538 samples, 98.97%)</title><rect x="0.9009%" y="205" width="98.9704%" height="15" fill="rgb(232,111,31)" fg:x="14" fg:w="1538"/><text x="1.1509%" y="215.50">hot_path_profile`sim_engine_runtime::runtime::Runtime::run_profiled</text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::Runtime::run_internal (1,537 samples, 98.91%)</title><rect x="0.9653%" y="189" width="98.9060%" height="15" fill="rgb(245,82,37)" fg:x="15" fg:w="1537"/><text x="1.2153%" y="199.50">hot_path_profile`sim_engine_runtime::runtime::Runtime::run_internal</text></g><g><title>libsystem_platform`_platform_memmove (4 samples, 0.26%)</title><rect x="99.6139%" y="173" width="0.2574%" height="15" fill="rgb(227,149,46)" fg:x="1548" fg:w="4"/><text x="99.8639%" y="183.50"></text></g><g><title>hot_path_profile`serde_json::ser::format_escaped_str (1 samples, 0.06%)</title><rect x="99.8713%" y="157" width="0.0644%" height="15" fill="rgb(218,36,50)" fg:x="1552" fg:w="1"/><text x="100.1213%" y="167.50"></text></g><g><title>all (1,554 samples, 100%)</title><rect x="0.0000%" y="333" width="100.0000%" height="15" fill="rgb(226,80,48)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="343.50"></text></g><g><title>Thread_22043731   DispatchQueue_1: com.apple.main-thread  (serial`Thread_22043731   DispatchQueue_1: com.apple.main-thread (1,554 samples, 100.00%)</title><rect x="0.0000%" y="317" width="100.0000%" height="15" fill="rgb(238,224,15)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="327.50">Thread_22043731   DispatchQueue_1: com.apple.main-thread  (serial`Thread_22043731   DispatchQueue_1: com.apple.main-thread</text></g><g><title>dyld`start (1,554 samples, 100.00%)</title><rect x="0.0000%" y="301" width="100.0000%" height="15" fill="rgb(241,136,10)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="311.50">dyld`start</text></g><g><title>hot_path_profile`main (1,554 samples, 100.00%)</title><rect x="0.0000%" y="285" width="100.0000%" height="15" fill="rgb(208,32,45)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="295.50">hot_path_profile`main</text></g><g><title>hot_path_profile`std::rt::lang_start_internal (1,554 samples, 100.00%)</title><rect x="0.0000%" y="269" width="100.0000%" height="15" fill="rgb(207,135,9)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="279.50">hot_path_profile`std::rt::lang_start_internal</text></g><g><title>hot_path_profile`std::rt::lang_start::_{{closure}} (1,554 samples, 100.00%)</title><rect x="0.0000%" y="253" width="100.0000%" height="15" fill="rgb(206,86,44)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="263.50">hot_path_profile`std::rt::lang_start::_{{closure}}</text></g><g><title>hot_path_profile`std::sys::backtrace::__rust_begin_short_backtrace (1,554 samples, 100.00%)</title><rect x="0.0000%" y="237" width="100.0000%" height="15" fill="rgb(245,177,15)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="247.50">hot_path_profile`std::sys::backtrace::__rust_begin_short_backtrace</text></g><g><title>hot_path_profile`hot_path_profile::main (1,554 samples, 100.00%)</title><rect x="0.0000%" y="221" width="100.0000%" height="15" fill="rgb(206,64,50)" fg:x="0" fg:w="1554"/><text x="0.2500%" y="231.50">hot_path_profile`hot_path_profile::main</text></g><g><title>hot_path_profile`sim_engine_runtime::runtime::_::_&lt;impl serde_core::ser::Serialize for sim_engine_runtime::runtime::RunResult&gt;::serialize (2 samples, 0.13%)</title><rect x="99.8713%" y="205" width="0.1287%" height="15" fill="rgb(234,36,40)" fg:x="1552" fg:w="2"/><text x="100.1213%" y="215.50"></text></g><g><title>hot_path_profile`serde_core::ser::Serializer::collect_seq (2 samples, 0.13%)</title><rect x="99.8713%" y="189" width="0.1287%" height="15" fill="rgb(213,64,8)" fg:x="1552" fg:w="2"/><text x="100.1213%" y="199.50"></text></g><g><title>hot_path_profile`serde_json::value::ser::_&lt;impl serde_core::ser::Serialize for serde_json::value::Value&gt;::serialize (2 samples, 0.13%)</title><rect x="99.8713%" y="173" width="0.1287%" height="15" fill="rgb(210,75,36)" fg:x="1552" fg:w="2"/><text x="100.1213%" y="183.50"></text></g><g><title>hot_path_profile`serde_json::value::ser::_&lt;impl serde_core::ser::Serialize for serde_json::value::Value&gt;::serialize (1 samples, 0.06%)</title><rect x="99.9356%" y="157" width="0.0644%" height="15" fill="rgb(229,88,21)" fg:x="1553" fg:w="1"/><text x="100.1856%" y="167.50"></text></g><g><title>hot_path_profile`serde_json::ser::format_escaped_str (1 samples, 0.06%)</title><rect x="99.9356%" y="141" width="0.0644%" height="15" fill="rgb(252,204,47)" fg:x="1553" fg:w="1"/><text x="100.1856%" y="151.50"></text></g></svg></svg>

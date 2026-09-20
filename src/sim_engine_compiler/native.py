@@ -59,10 +59,13 @@ def run_plan(
     *,
     seed: int = 0,
     until: int | None = None,
+    observation_level: str = "full",
 ) -> dict[str, Any]:
     """Run one sample in Rust and return the decoded result contract."""
 
-    encoded = _native_module().run_plan_json(_plan_json(plan), seed, until)
+    encoded = _native_module().run_plan_json(
+        _plan_json(plan), seed, until, observation_level
+    )
     return json.loads(encoded)
 
 
@@ -72,10 +75,11 @@ def run_batch(
     *,
     worker_threads: int | None = None,
     until: int | None = None,
+    observation_level: str = "full",
 ) -> dict[str, Any]:
     """Run independent samples in Rust with input-order-stable results."""
 
     encoded = _native_module().run_batch_json(
-        _plan_json(plan), list(seeds), worker_threads, until
+        _plan_json(plan), list(seeds), worker_threads, until, observation_level
     )
     return json.loads(encoded)

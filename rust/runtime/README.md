@@ -15,6 +15,8 @@ src/
   batch.rs          共享 Plan、独立 RunState、Rayon 样本并行与稳定排序
   python.rs         PyO3 整批调用边界
   bin/stage_c_benchmark.rs  原生分段基准
+  bin/observation_benchmark.rs  full/summary 交错执行基准
+  bin/hot_path_profile.rs  phase 与分配热路径内部计数
   plan.rs           版本化加载、能力校验、跨语言稳定指纹
   rng.rs            CPython 整数种子 MT19937 与指数采样
   runtime.rs        独立数组状态、分钟 phase、资源事务与指标
@@ -27,6 +29,16 @@ cargo run --release --manifest-path rust/runtime/Cargo.toml -- \
   tests/fixtures/spare_mvp/f35-43day-5352a0d/execution-plan.json \
   /tmp/f35-rust-seed-0.json \
   --seed 0
+```
+
+`full` 为兼容默认值并保留完整 trace。`summary` 不构造 trace 事件 JSON，但继续执行相同
+事件调度、RNG 请求、metrics 与终态构造；随机请求 tape 仍保留在结果中，供轨迹差分：
+
+```bash
+cargo run --release --manifest-path rust/runtime/Cargo.toml -- \
+  tests/fixtures/spare_mvp/f35-43day-5352a0d/execution-plan.json \
+  /tmp/f35-rust-seed-0-summary.json \
+  --seed 0 --observation-level summary
 ```
 
 批量执行保留输入顺序，重复 seed 由 `sample_index` 区分：
@@ -49,6 +61,7 @@ result = run_batch(
     "tests/fixtures/synthetic/b1-execution-plan.json",
     [7, 0, 7, 1],
     worker_threads=3,
+    observation_level="summary",
 )
 print([sample["sample_index"] for sample in result["samples"]])
 PY
@@ -66,4 +79,6 @@ Python `json.dumps(..., ensure_ascii=False, sort_keys=True, separators=(",", ":"
 一致的浮点与 JSON 编码；加载开启 `float_roundtrip`，避免高精度故障率在解析时
 落到相邻的 IEEE-754 值。
 
-Python 绑定一次传入完整 Plan 与 seeds，一次返回完整 batch，没有逐事件 Python 回调。当前仍待阶段 C 后续处理的是 Plan 缓存失效合同和事件跳跃；后者必须证明不改变分钟 phase、随机调用和资源可见性语义。
+Python 绑定一次传入完整 Plan 与 seeds，一次返回完整 batch，没有逐事件 Python 回调。
+F35 热路径报告见 `benchmarks/hot_path/README.md`。当前仍待阶段 C 后续处理的是 Plan
+缓存失效合同和事件跳跃；后者必须证明不改变分钟 phase、随机调用和资源可见性语义。
