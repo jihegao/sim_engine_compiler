@@ -118,12 +118,6 @@ pub struct RuntimeProfile {
     pub job_progress_candidate_visits: u64,
     pub waiting_job_indexes_peak: u64,
     pub running_job_indexes_peak: u64,
-    pub active_preflight_lookup_calls: u64,
-    pub active_preflight_legacy_history_exposure: u64,
-    pub active_preflight_candidate_visits: u64,
-    pub preflight_cancel_legacy_history_exposure: u64,
-    pub preflight_cancel_candidate_visits: u64,
-    pub active_preflight_jobs_peak: u64,
     pub component_scan_items: u64,
     pub preventive_scan_items: u64,
     pub shipment_scan_items: u64,
@@ -305,8 +299,6 @@ pub struct Runtime {
     jobs: Vec<JobState>,
     waiting_job_indexes: BTreeSet<usize>,
     running_job_indexes: BTreeSet<usize>,
-    active_preflight_job_indexes_by_mission: Vec<BTreeSet<usize>>,
-    active_preflight_job_count: usize,
     resources: Vec<ResourceState>,
     preventive_cycles: Vec<PreventiveCycleState>,
     shipments: Vec<ShipmentState>,
@@ -371,24 +363,10 @@ impl Runtime {
                 .profile
                 .running_job_indexes_peak
                 .max(self.running_job_indexes.len() as u64);
-            self.profile.active_preflight_jobs_peak = self
-                .profile
-                .active_preflight_jobs_peak
-                .max(self.active_preflight_job_count as u64);
         }
     }
 
     fn transition_job_state(&mut self, job_index: usize, state: &str) {
-        let was_active_preflight = self.jobs[job_index].kind == "preflight"
-            && matches!(self.jobs[job_index].state.as_str(), "waiting" | "running");
-        let will_be_active_preflight =
-            self.jobs[job_index].kind == "preflight" && matches!(state, "waiting" | "running");
-        let preflight_mission_index =
-            (was_active_preflight || will_be_active_preflight).then(|| {
-                self.jobs[job_index]
-                    .mission_index
-                    .expect("active preflight job must reference a mission")
-            });
         match self.jobs[job_index].state.as_str() {
             "waiting" => {
                 let removed = self.waiting_job_indexes.remove(&job_index);
@@ -413,32 +391,6 @@ impl Runtime {
             }
             _ => {}
         }
-        if let Some(mission_index) = preflight_mission_index {
-            let bucket = &mut self.active_preflight_job_indexes_by_mission[mission_index];
-            match (was_active_preflight, will_be_active_preflight) {
-                (false, true) => {
-                    let inserted = bucket.insert(job_index);
-                    if inserted {
-                        self.active_preflight_job_count += 1;
-                    }
-                    debug_assert!(inserted, "active preflight job duplicated in mission index");
-                }
-                (true, false) => {
-                    let removed = bucket.remove(&job_index);
-                    if removed {
-                        self.active_preflight_job_count -= 1;
-                    }
-                    debug_assert!(removed, "active preflight job missing from mission index");
-                }
-                (true, true) => {
-                    debug_assert!(
-                        bucket.contains(&job_index),
-                        "active preflight job missing from mission index"
-                    );
-                }
-                (false, false) => {}
-            }
-        }
         self.update_active_job_peaks();
         self.debug_assert_active_job_indexes();
     }
@@ -459,27 +411,6 @@ impl Runtime {
             .collect();
         debug_assert_eq!(self.waiting_job_indexes, waiting);
         debug_assert_eq!(self.running_job_indexes, running);
-        let mut active_preflight_job_indexes_by_mission =
-            vec![BTreeSet::new(); self.missions.len()];
-        for (job_index, job) in self.jobs.iter().enumerate() {
-            if job.kind == "preflight" && matches!(job.state.as_str(), "waiting" | "running") {
-                let mission_index = job
-                    .mission_index
-                    .expect("active preflight job must reference a mission");
-                active_preflight_job_indexes_by_mission[mission_index].insert(job_index);
-            }
-        }
-        debug_assert_eq!(
-            self.active_preflight_job_indexes_by_mission,
-            active_preflight_job_indexes_by_mission
-        );
-        debug_assert_eq!(
-            self.active_preflight_job_count,
-            self.active_preflight_job_indexes_by_mission
-                .iter()
-                .map(BTreeSet::len)
-                .sum::<usize>()
-        );
     }
 
     #[cfg(not(debug_assertions))]
@@ -640,8 +571,6 @@ impl Runtime {
             jobs: vec![],
             waiting_job_indexes: BTreeSet::new(),
             running_job_indexes: BTreeSet::new(),
-            active_preflight_job_indexes_by_mission: vec![BTreeSet::new(); mission_count],
-            active_preflight_job_count: 0,
             resources,
             preventive_cycles,
             shipments: vec![],
@@ -866,16 +795,6 @@ impl Runtime {
         component_index: Option<usize>,
         preventive_cycle_index: Option<usize>,
     ) -> Result<()> {
-        let preflight_mission_index = if kind == "preflight" {
-            let mission_index = mission_index
-                .ok_or_else(|| anyhow::anyhow!("preflight job must reference a mission"))?;
-            if mission_index >= self.active_preflight_job_indexes_by_mission.len() {
-                bail!("preflight job references invalid mission index {mission_index}");
-            }
-            Some(mission_index)
-        } else {
-            None
-        };
         self.job_sequence += 1;
         let job_id = format!("job-{:04}", self.job_sequence);
         let maintenance_method = if matches!(kind, "repair" | "preventive") {
@@ -926,14 +845,6 @@ impl Runtime {
         let job_index = self.jobs.len() - 1;
         let inserted = self.waiting_job_indexes.insert(job_index);
         debug_assert!(inserted, "new waiting job duplicated in active index");
-        if let Some(mission_index) = preflight_mission_index {
-            let inserted =
-                self.active_preflight_job_indexes_by_mission[mission_index].insert(job_index);
-            if inserted {
-                self.active_preflight_job_count += 1;
-            }
-            debug_assert!(inserted, "new preflight job duplicated in mission index");
-        }
         self.update_active_job_peaks();
         self.debug_assert_active_job_indexes();
         let tail_number = self.aircraft[aircraft_index].tail_number.clone();
@@ -1131,16 +1042,15 @@ impl Runtime {
         Ok(())
     }
 
-    fn active_preflight_aircraft(&mut self, mission_index: usize) -> HashSet<usize> {
-        let active = &self.active_preflight_job_indexes_by_mission[mission_index];
-        if self.profile_enabled {
-            self.profile.active_preflight_lookup_calls += 1;
-            self.profile.active_preflight_legacy_history_exposure += self.jobs.len() as u64;
-            self.profile.active_preflight_candidate_visits += active.len() as u64;
-        }
-        active
+    fn active_preflight_aircraft(&self, mission_index: usize) -> HashSet<usize> {
+        self.jobs
             .iter()
-            .map(|job_index| self.jobs[*job_index].aircraft_index)
+            .filter(|job| {
+                job.kind == "preflight"
+                    && job.mission_index == Some(mission_index)
+                    && matches!(job.state.as_str(), "waiting" | "running")
+            })
+            .map(|job| job.aircraft_index)
             .collect()
     }
 
@@ -1157,12 +1067,12 @@ impl Runtime {
                 || aircraft.current_mission_index == Some(mission_index))
     }
 
-    fn commissioned_count(&mut self, mission_index: usize) -> usize {
+    fn commissioned_count(&self, mission_index: usize) -> usize {
+        let mission = &self.plan.missions[mission_index];
         let mut result = self.active_preflight_aircraft(mission_index);
-        let required_aircraft_type = &self.plan.missions[mission_index].required_aircraft_type;
         result.extend((0..self.aircraft.len()).filter(|index| {
             self.ready_for_mission(*index, mission_index)
-                && self.matches_type(*index, required_aircraft_type)
+                && self.matches_type(*index, &mission.required_aircraft_type)
         }));
         result.len()
     }
@@ -2175,12 +2085,13 @@ impl Runtime {
     }
 
     fn cancel_mission_preflight(&mut self, mission_index: usize) -> Result<()> {
-        let active = &self.active_preflight_job_indexes_by_mission[mission_index];
-        if self.profile_enabled {
-            self.profile.preflight_cancel_legacy_history_exposure += self.jobs.len() as u64;
-            self.profile.preflight_cancel_candidate_visits += active.len() as u64;
-        }
-        let targets: Vec<_> = active.iter().copied().collect();
+        let targets: Vec<_> = (0..self.jobs.len())
+            .filter(|index| {
+                self.jobs[*index].kind == "preflight"
+                    && self.jobs[*index].mission_index == Some(mission_index)
+                    && matches!(self.jobs[*index].state.as_str(), "waiting" | "running")
+            })
+            .collect();
         for job_index in targets {
             if self.jobs[job_index].state == "running" {
                 if self.profile_enabled {
@@ -2206,40 +2117,27 @@ impl Runtime {
         Ok(())
     }
 
-    fn has_remaining_operations_mission(&mut self, aircraft_index: usize) -> bool {
-        let operations_day = self.aircraft[aircraft_index].operations_day;
-        let current_mission_index = self.aircraft[aircraft_index].current_mission_index;
-        for mission_index in 0..self.plan.missions.len() {
+    fn has_remaining_operations_mission(&self, aircraft_index: usize) -> bool {
+        let aircraft = &self.aircraft[aircraft_index];
+        for (mission_index, mission) in self.plan.missions.iter().enumerate() {
             if !matches!(
                 self.missions[mission_index].status.as_str(),
                 "scheduled" | "delayed"
             ) {
                 continue;
             }
-            let (planned_start, cancel_minutes, required_aircraft) = {
-                let mission = &self.plan.missions[mission_index];
-                (
-                    mission.planned_start,
-                    mission.cancel_minutes,
-                    mission.required_aircraft,
-                )
-            };
-            if self.minute.max(planned_start) / 1440 != operations_day.unwrap_or(-1) {
+            if self.minute.max(mission.planned_start) / 1440
+                != aircraft.operations_day.unwrap_or(-1)
+            {
                 continue;
             }
-            if self.minute > planned_start + cancel_minutes {
+            if self.minute > mission.planned_start + mission.cancel_minutes
+                || !self.matches_type(aircraft_index, &mission.required_aircraft_type)
+            {
                 continue;
             }
-            let matches_type = {
-                let required_aircraft_type =
-                    &self.plan.missions[mission_index].required_aircraft_type;
-                self.matches_type(aircraft_index, required_aircraft_type)
-            };
-            if !matches_type {
-                continue;
-            }
-            if current_mission_index == Some(mission_index)
-                || self.commissioned_count(mission_index) < required_aircraft
+            if aircraft.current_mission_index == Some(mission_index)
+                || self.commissioned_count(mission_index) < mission.required_aircraft
             {
                 return true;
             }
@@ -2905,7 +2803,7 @@ mod phase_tests {
     }
 
     #[test]
-    fn active_preflight_index_tracks_missions_states_zero_steps_and_unique_aircraft() {
+    fn cancellation_removes_active_jobs_releases_resources_and_defers_reservation_return() {
         let mut runtime = Runtime::from_shared_profiled(
             Arc::new(synthetic_plan()),
             "test-fingerprint".into(),
@@ -2913,235 +2811,53 @@ mod phase_tests {
             ObservationLevel::Summary,
         )
         .unwrap();
-
-        let missing_mission = runtime
-            .create_job(0, 0, "preflight", None, None, None)
-            .unwrap_err();
-        assert_eq!(
-            missing_mission.to_string(),
-            "preflight job must reference a mission"
-        );
-        let invalid_mission = runtime
-            .create_job(0, 0, "preflight", Some(2), None, None)
-            .unwrap_err();
-        assert_eq!(
-            invalid_mission.to_string(),
-            "preflight job references invalid mission index 2"
-        );
-        assert!(runtime.jobs.is_empty());
-
-        for _ in 0..16 {
+        runtime.minute = 10;
+        for _ in 0..2 {
             runtime
-                .create_job(0, 1, "historical", None, None, None)
+                .create_job(0, 0, "preflight", Some(0), None, None)
                 .unwrap();
         }
-        let mission_0_first = runtime.jobs.len();
-        runtime
-            .create_job(0, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        let mission_0_duplicate_aircraft = runtime.jobs.len();
-        runtime
-            .create_job(0, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        let mission_1 = runtime.jobs.len();
-        runtime
-            .create_job(1, 0, "preflight", Some(1), None, None)
-            .unwrap();
-        let zero_step = runtime.jobs.len();
-        runtime
-            .create_job(1, 1, "preflight", Some(1), None, None)
-            .unwrap();
-        let non_preflight = runtime.jobs.len();
-        runtime
-            .create_job(1, 0, "test", Some(0), None, None)
-            .unwrap();
-
-        assert_eq!(
-            runtime.active_preflight_job_indexes_by_mission,
-            vec![
-                BTreeSet::from([mission_0_first, mission_0_duplicate_aircraft]),
-                BTreeSet::from([mission_1]),
-            ]
-        );
-        assert_eq!(runtime.jobs[zero_step].state, "completed");
-        assert!(!runtime.active_preflight_job_indexes_by_mission[1].contains(&zero_step));
-        assert!(runtime.waiting_job_indexes.contains(&non_preflight));
-        assert!(!runtime.active_preflight_job_indexes_by_mission[0].contains(&non_preflight));
-
-        assert_eq!(runtime.active_preflight_aircraft(0), HashSet::from([0]));
-        assert_eq!(runtime.active_preflight_aircraft(1), HashSet::from([1]));
-
-        runtime.transition_job_state(mission_0_first, "running");
-        assert!(runtime.active_preflight_job_indexes_by_mission[0].contains(&mission_0_first));
-        runtime.transition_job_state(mission_0_first, "waiting");
-        assert!(runtime.active_preflight_job_indexes_by_mission[0].contains(&mission_0_first));
-        runtime.transition_job_state(mission_0_first, "completed");
-        runtime.transition_job_state(mission_0_duplicate_aircraft, "cancelled");
-        assert!(runtime.active_preflight_job_indexes_by_mission[0].is_empty());
-        assert!(runtime.active_preflight_aircraft(0).is_empty());
-
-        assert_eq!(runtime.profile.active_preflight_lookup_calls, 3);
-        assert_eq!(
-            runtime.profile.active_preflight_legacy_history_exposure,
-            3 * runtime.jobs.len() as u64
-        );
-        assert_eq!(runtime.profile.active_preflight_candidate_visits, 3);
-        assert_eq!(runtime.profile.active_preflight_jobs_peak, 4);
-    }
-
-    #[test]
-    fn commissioned_count_moves_from_active_preflight_to_prepared_aircraft() {
-        let mut runtime = Runtime::from_shared_profiled(
-            Arc::new(synthetic_plan()),
-            "test-fingerprint".into(),
-            0,
-            ObservationLevel::Summary,
-        )
-        .unwrap();
-        runtime.minute = 10;
-        runtime
-            .create_job(0, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        let job_index = runtime.jobs.len() - 1;
-
-        assert_eq!(runtime.commissioned_count(0), 1);
-        runtime.transition_job_state(job_index, "completed");
-        runtime.jobs[job_index].completed_time = Some(runtime.minute);
-        runtime.complete_job(job_index).unwrap();
-
-        assert!(runtime.active_preflight_job_indexes_by_mission[0].is_empty());
-        assert!(runtime.aircraft[0].prepared_mission_indexes.contains(&0));
-        assert_eq!(runtime.commissioned_count(0), 1);
-        assert_eq!(runtime.profile.active_preflight_lookup_calls, 2);
-        assert_eq!(runtime.profile.active_preflight_candidate_visits, 1);
-    }
-
-    #[test]
-    fn indexed_cancellation_preserves_order_mission_isolation_and_deferred_returns() {
-        let mut plan = synthetic_plan();
-        plan.resource_nodes[0].personnel_capacity = 10;
-        plan.resource_nodes[0].equipment_capacity = 10;
-        let mut runtime = Runtime::from_shared_profiled(
-            Arc::new(plan),
-            "test-fingerprint".into(),
-            0,
-            ObservationLevel::Full,
-        )
-        .unwrap();
-        runtime.minute = 10;
-
-        let completed_history = runtime.jobs.len();
-        runtime
-            .create_job(0, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        runtime.transition_job_state(completed_history, "completed");
-        let cancelled_history = runtime.jobs.len();
-        runtime
-            .create_job(0, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        runtime.transition_job_state(cancelled_history, "cancelled");
-
-        let first_running = runtime.jobs.len();
-        runtime
-            .create_job(0, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        let waiting = runtime.jobs.len();
-        runtime
-            .create_job(1, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        let second_running = runtime.jobs.len();
-        runtime
-            .create_job(0, 0, "preflight", Some(0), None, None)
-            .unwrap();
-        let other_mission = runtime.jobs.len();
-        runtime
-            .create_job(1, 0, "preflight", Some(1), None, None)
-            .unwrap();
         runtime.phase_start_waiting_jobs().unwrap();
-        let step = runtime.plan.activities[0].steps[0].clone();
-        runtime.release_resources(waiting, &step).unwrap();
-        runtime.transition_job_state(waiting, "waiting");
-
-        runtime.jobs[first_running]
+        let active: Vec<_> = runtime
+            .waiting_job_indexes
+            .union(&runtime.running_job_indexes)
+            .copied()
+            .collect();
+        assert_eq!(active.len(), 2);
+        runtime.jobs[active[0]]
             .spare_reservations
             .insert("reserved-part".into(), 2);
-        runtime.jobs[waiting]
+        runtime.jobs[active[1]]
             .spare_reservations
             .insert("reserved-part".into(), 3);
-        runtime.jobs[second_running]
-            .spare_reservations
-            .insert("reserved-part".into(), 4);
-        runtime.jobs[other_mission]
-            .spare_reservations
-            .insert("reserved-part".into(), 7);
-
-        assert_eq!(
-            runtime.active_preflight_job_indexes_by_mission[0],
-            BTreeSet::from([first_running, waiting, second_running])
-        );
-        assert_eq!(
-            runtime.active_preflight_job_indexes_by_mission[1],
-            BTreeSet::from([other_mission])
-        );
-        let trace_start = runtime.trace.len();
 
         runtime.cancel_mission_preflight(0).unwrap();
 
-        assert_eq!(runtime.jobs[completed_history].state, "completed");
-        assert_eq!(runtime.jobs[cancelled_history].state, "cancelled");
-        assert_eq!(runtime.jobs[first_running].state, "cancelled");
-        assert_eq!(runtime.jobs[waiting].state, "cancelled");
-        assert_eq!(runtime.jobs[second_running].state, "cancelled");
-        assert_eq!(runtime.jobs[other_mission].state, "running");
-        assert!(runtime.active_preflight_job_indexes_by_mission[0].is_empty());
-        assert_eq!(
-            runtime.active_preflight_job_indexes_by_mission[1],
-            BTreeSet::from([other_mission])
-        );
-        assert_eq!(runtime.resources[0].personnel_in_use, 1);
-        assert_eq!(runtime.resources[0].equipment_in_use, 1);
+        assert!(runtime.waiting_job_indexes.is_empty());
+        assert!(runtime.running_job_indexes.is_empty());
+        assert_eq!(runtime.resources[0].personnel_in_use, 0);
+        assert_eq!(runtime.resources[0].equipment_in_use, 0);
         assert_eq!(runtime.resources[0].inventory.get("reserved-part"), None);
         assert_eq!(
             runtime
-                .trace
+                .jobs
                 .iter()
-                .skip(trace_start)
-                .filter(|event| event["kind"] == "resources_released")
-                .map(|event| event["entity"].as_str().unwrap())
+                .map(|job| job.state.as_str())
                 .collect::<Vec<_>>(),
-            vec![
-                runtime.jobs[first_running].job_id.as_str(),
-                runtime.jobs[second_running].job_id.as_str(),
-            ]
+            vec!["cancelled", "cancelled"]
         );
-        assert_eq!(
-            runtime.profile.preflight_cancel_legacy_history_exposure,
-            runtime.jobs.len() as u64
-        );
-        assert_eq!(runtime.profile.preflight_cancel_candidate_visits, 3);
 
         runtime.minute += 1;
         runtime.phase_transport_arrivals();
         assert_eq!(
             runtime.resources[0].inventory.get("reserved-part"),
-            Some(&9)
+            Some(&5)
         );
         assert!(
-            [first_running, waiting, second_running]
+            runtime
+                .jobs
                 .iter()
-                .all(|job_index| runtime.jobs[*job_index].spare_reservations.is_empty())
-        );
-        assert_eq!(
-            runtime.jobs[other_mission]
-                .spare_reservations
-                .get("reserved-part"),
-            Some(&7)
-        );
-
-        runtime.phase_transport_arrivals();
-        assert_eq!(
-            runtime.resources[0].inventory.get("reserved-part"),
-            Some(&9)
+                .all(|job| job.spare_reservations.is_empty())
         );
     }
 }
