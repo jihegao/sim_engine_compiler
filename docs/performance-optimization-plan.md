@@ -1,6 +1,6 @@
 # 观测隔离与 F35 热路径优化计划
 
-状态：2026-09-20 已完成 O0、O1、O3 与 O4a 的实现、语义验收及固定构建复测。O4a 将 waiting/running job 候选从历史作业中分离，四组同会话 O3/O4a 对照的各 seed/观测组合跨会话中位改善为 5.20%–6.76%，已收录。O2a preventive 索引与 O4b active-preflight 索引虽减少目标访问，但整体收益未达到收录线，均已回退。O5 的操作读写与完整唤醒合同尚未建立，当前 profile 也仍由 resource dispatch、故障和实际业务 phase 主导，因此不进入事件跳跃实现。
+状态：2026-09-20 已完成 O0、O1、O3、O4a 与 O6 的实现、语义验收及固定构建复测。O6 将 resource dispatch 所需 activity/step 字段编译为只读 prepared layout，Plan spec clone 计数由 459,832 降至 153,010；四组 O4a/O6 固定二进制对照的各 seed/观测组合跨会话中位改善为 11.09%–18.17%，已收录。O2a preventive 索引与 O4b active-preflight 索引虽减少目标访问，但整体收益未达到收录线，均已回退。O5 的操作读写与完整唤醒合同尚未建立，因此仍不进入事件跳跃实现。
 
 优先顺序为：补齐测量保护 → 消除无效任务克隆 → 预计算静态关系 → 故障状态数组化 → 活动集合 → 有条件评估事件跳跃。前三个任务 phase 约占插桩执行时间的 79.7%，先处理其每分钟重复成本；保留 `full/summary` 观测隔离作为每轮优化的验收条件。
 
@@ -50,6 +50,7 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 | O3 故障状态数组化 | `AircraftState`、故障初始化/推进/修复、终态转换 | 中 | 已实现、31 项差分通过并完成两轮复测；failures phase 由 265ms 降至 33ms |
 | O4 活动集合 | job、mission、preventive、shipment 的候选与索引维护 | 中至高 | O4a waiting/running 集合已收录；O4b active-preflight 因整体收益不足已回退；其余集合等待有负载证据 |
 | O5 事件跳跃评估 | Core 依赖/唤醒合同、调度器、timer token | 高，后续单独立项 | 当前门槛未满足；先物化读写/唤醒合同并证明可跳区间，再决定是否实现 |
+| O6 compiled steps | activity/step 派发字段、静态 spare requirement、batch 共享 layout | 中 | 已收录；31 项差分通过，24/24 固定二进制单元正向，跨会话中位改善 11.09%–18.17% |
 
 ### O0：补齐测量与观测保护
 
@@ -116,6 +117,12 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 
 O4b 按 mission 维护 active-preflight job index，将 seed 0 的旧历史暴露估计 7,214,145 项降为 25,700 次候选访问，preflight phase 约减少 4–5ms；两轮整体墙钟却只有约 0%–2.5% 变化，未达到约 5% 收录线，候选已回退，证据见 [O4b 未收录报告](../benchmarks/hot_path/results/20260920-o4b-838e6bc/README.md)。preventive、取消预约与 shipment 索引没有继续叠加：前者已有 O2a 的负结果，后两者在固定 F35 运行中没有正路径负载。任务时间集合因 success-point fallback、派遣后取消等语义风险单独保留，不借 O4 名义顺带实现。
 
+### O6：resource dispatch compiled steps
+
+Runtime 从只读 Execution Plan 派生 activity/step layout，预存资源节点、priority、duration、人员/设备需求、step code 与规范化静态备件。`resource_dispatch` 不再为每次候选深拷贝完整 `ActivitySpec` 和 `WorkStepSpec`；`job_progress` 与取消释放复用同一 layout。静态 spare 继续保持原先临时 `BTreeMap` 的排序与重复键覆盖语义，动态 replacement spare 只在最终步骤按原规则合并，`non_replacement` 仍清空需求。批量 samples 共享 prepared activity layout，但其他 Runtime 静态索引仍按 sample 构造，不能据此宣称完整 `PreparedPlan` 已完成。
+
+定向测试覆盖静态 spare 重复键、动态注入及 non-replacement；完整 31 项差分继续通过。四组固定二进制对照 24/24 单元正向，各 seed/观测组合跨会话中位改善为 11.09%–18.17%；seed 0 插桩 resource dispatch 中位由 full/summary 105.474/101.336ms 降至 64.735/60.875ms。证据见 [O6 报告](../benchmarks/hot_path/results/20260920-o6-4508860/README.md)。固定 F35 step 没有静态 spare，因此本轮不能量化 dense inventory 或复杂运输场景收益。
+
 ### O5：条件式推进事件跳跃
 
 只有 O1–O4 后的 profile 仍显示分钟空转占主导才进入。先补 Core 操作读写集合、guard 依赖、时间唤醒与 phase 可见性合同；证明可跳过的区间内不会改变任何 guard、指标或随机请求。
@@ -167,6 +174,6 @@ uv pip install --python .venv/bin/python -e .
 
 ## 5. 首轮交付与后续决策
 
-本轮已依次完成 O0、O1、O3、O2a 决策、O4a 与 O4b 决策。所有收录候选均通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也在覆盖内。O1 消除 19,319,040 次 mission spec 深克隆；O3 将故障热状态改为稀疏数组；O4a 将 waiting/running 历史扫描移出两个目标 phase。O2a 与 O4b 机制计数下降但整体收益不足，已通过独立 revert 保持主线不叠加无效复杂度。O5 因唤醒合同与 profile 门槛未满足而停止在评估阶段。
+本轮已依次完成 O0、O1、O3、O2a 决策、O4a、O4b 决策与 O6。所有收录候选均通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也在覆盖内。O1 消除 19,319,040 次 mission spec 深克隆；O3 将故障热状态改为稀疏数组；O4a 将 waiting/running 历史扫描移出两个目标 phase；O6 将 resource dispatch 的 activity/step 解释与深拷贝移到 prepared layout。O2a 与 O4b 机制计数下降但整体收益不足，已通过独立 revert 保持主线不叠加无效复杂度。O5 因唤醒合同门槛未满足而停止在评估阶段。
 
 当前不设“达到某倍加速”承诺。也不因本轮计划新增 UI、服务器、数据库、分布式调度、JIT、运行中编辑或 DAG 并行策略。Business/Core IR 物化与持久化缓存仍按架构路线推进；局部布局优化不意味着这些能力已经完成。

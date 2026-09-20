@@ -1,6 +1,6 @@
 # F35 执行热路径与观测隔离
 
-状态：2026-09-20 已完成观测隔离、O1/O3/O4a 收录及 O2a/O4b 回退决策。固定输入为 F35 43 天 Execution Plan，fingerprint
+状态：2026-09-20 已完成观测隔离、O1/O3/O4a/O6 收录及 O2a/O4b 回退决策。固定输入为 F35 43 天 Execution Plan，fingerprint
 `7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d`。语义差分覆盖
 seeds `0、1、7`；墙钟与内部 profile 使用 seed `0`，不把单 seed 的耗时分布外推为所有案例。
 
@@ -84,6 +84,12 @@ O4b active-preflight 实验见 [`results/20260920-o4b-838e6bc/README.md`](result
 但两轮整体墙钟仅约 0%–2.5% 变化，候选已回退。O5 因缺少完整读写/唤醒合同且当前热点仍为
 实际业务 phase，本轮不进入事件跳跃实现。
 
+O6 compiled steps 见 [`results/20260920-o6-4508860/README.md`](results/20260920-o6-4508860/README.md)：
+resource dispatch/job progress 改用派生只读 step layout，Plan spec clone 计数由 459,832 降至
+153,010。四组 O4a/O6 固定二进制对照的 24 个单元全部正向，各 seed/观测组合跨会话中位改善
+为 11.09%–18.17%；完整结果哈希精确一致。该轮不包含 dense inventory，也未测量完整
+PreparedPlan 的初始化、批吞吐与内存收益。
+
 ## 原始证据
 
 - `results/f35-observation-interleaved-seed0-20260920.json`：交错 `full/summary` 未插桩墙钟、
@@ -150,6 +156,6 @@ uv pip install --python .venv/bin/python -e .
 
 差分用例覆盖 B1/B2/B3 synthetic 切片与 F35 seeds `0、1、7` 的两个观测级别、截断
 horizon，以及 `[7,0,7,1]` 在 1/3 线程批量路径上的顺序、重复 seed 和观测隔离。绑定测试
-现在要求 native extension 已安装，缺失会失败而不是整类跳过。以上是语义验收；当前保存的
-F35 性能数字仍来自 v1 报告。基线/候选两个独立二进制的交错调度尚未内建到这两个工具，
-正式优化对照仍需外部 runner 固定顺序并分别保留两边 v2 报告。
+现在要求 native extension 已安装，缺失会失败而不是整类跳过。以上是语义验收。O6 已保存
+固定基线/候选二进制的 v2 paired 报告；两个独立二进制的交错调度仍未内建到工具本身，
+正式优化对照继续由外部 runner 固定顺序并分别保留两边报告。
