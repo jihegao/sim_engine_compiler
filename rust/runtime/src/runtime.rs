@@ -114,6 +114,10 @@ pub struct RuntimeProfile {
     pub mission_scan_items: u64,
     pub aircraft_scan_items: u64,
     pub job_scan_items: u64,
+    pub resource_dispatch_candidate_visits: u64,
+    pub job_progress_candidate_visits: u64,
+    pub waiting_job_indexes_peak: u64,
+    pub running_job_indexes_peak: u64,
     pub component_scan_items: u64,
     pub preventive_scan_items: u64,
     pub shipment_scan_items: u64,
@@ -293,6 +297,8 @@ pub struct Runtime {
     aircraft: Vec<AircraftState>,
     missions: Vec<MissionState>,
     jobs: Vec<JobState>,
+    waiting_job_indexes: BTreeSet<usize>,
+    running_job_indexes: BTreeSet<usize>,
     resources: Vec<ResourceState>,
     preventive_cycles: Vec<PreventiveCycleState>,
     shipments: Vec<ShipmentState>,
@@ -346,6 +352,69 @@ impl Runtime {
             self.profile.indexed_map_writes += count as u64;
         }
     }
+
+    fn update_active_job_peaks(&mut self) {
+        if self.profile_enabled {
+            self.profile.waiting_job_indexes_peak = self
+                .profile
+                .waiting_job_indexes_peak
+                .max(self.waiting_job_indexes.len() as u64);
+            self.profile.running_job_indexes_peak = self
+                .profile
+                .running_job_indexes_peak
+                .max(self.running_job_indexes.len() as u64);
+        }
+    }
+
+    fn transition_job_state(&mut self, job_index: usize, state: &str) {
+        match self.jobs[job_index].state.as_str() {
+            "waiting" => {
+                let removed = self.waiting_job_indexes.remove(&job_index);
+                debug_assert!(removed, "waiting job missing from active index");
+            }
+            "running" => {
+                let removed = self.running_job_indexes.remove(&job_index);
+                debug_assert!(removed, "running job missing from active index");
+            }
+            _ => {}
+        }
+        self.jobs[job_index].state.clear();
+        self.jobs[job_index].state.push_str(state);
+        match state {
+            "waiting" => {
+                let inserted = self.waiting_job_indexes.insert(job_index);
+                debug_assert!(inserted, "waiting job duplicated in active index");
+            }
+            "running" => {
+                let inserted = self.running_job_indexes.insert(job_index);
+                debug_assert!(inserted, "running job duplicated in active index");
+            }
+            _ => {}
+        }
+        self.update_active_job_peaks();
+        self.debug_assert_active_job_indexes();
+    }
+
+    #[cfg(debug_assertions)]
+    fn debug_assert_active_job_indexes(&self) {
+        let waiting: BTreeSet<_> = self
+            .jobs
+            .iter()
+            .enumerate()
+            .filter_map(|(index, job)| (job.state == "waiting").then_some(index))
+            .collect();
+        let running: BTreeSet<_> = self
+            .jobs
+            .iter()
+            .enumerate()
+            .filter_map(|(index, job)| (job.state == "running").then_some(index))
+            .collect();
+        debug_assert_eq!(self.waiting_job_indexes, waiting);
+        debug_assert_eq!(self.running_job_indexes, running);
+    }
+
+    #[cfg(not(debug_assertions))]
+    fn debug_assert_active_job_indexes(&self) {}
 
     pub fn new(plan: ExecutionPlan, fingerprint: String, seed: u64) -> Result<Self> {
         Self::new_with_observation(plan, fingerprint, seed, ObservationLevel::Full)
@@ -500,6 +569,8 @@ impl Runtime {
             aircraft,
             missions: vec![MissionState::default(); mission_count],
             jobs: vec![],
+            waiting_job_indexes: BTreeSet::new(),
+            running_job_indexes: BTreeSet::new(),
             resources,
             preventive_cycles,
             shipments: vec![],
@@ -771,6 +842,11 @@ impl Runtime {
             shortage_signature: None,
             spare_reservations: BTreeMap::new(),
         });
+        let job_index = self.jobs.len() - 1;
+        let inserted = self.waiting_job_indexes.insert(job_index);
+        debug_assert!(inserted, "new waiting job duplicated in active index");
+        self.update_active_job_peaks();
+        self.debug_assert_active_job_indexes();
         let tail_number = self.aircraft[aircraft_index].tail_number.clone();
         let mission_id = self.mission_id(mission_index);
         self.emit(
@@ -785,11 +861,10 @@ impl Runtime {
             None,
         );
         if activity.steps.is_empty() {
-            let index = self.jobs.len() - 1;
-            self.jobs[index].state = "completed".into();
-            self.jobs[index].started_time = Some(self.minute);
-            self.jobs[index].completed_time = Some(self.minute);
-            self.complete_job(index)?;
+            self.transition_job_state(job_index, "completed");
+            self.jobs[job_index].started_time = Some(self.minute);
+            self.jobs[job_index].completed_time = Some(self.minute);
+            self.complete_job(job_index)?;
         }
         Ok(())
     }
@@ -1388,9 +1463,11 @@ impl Runtime {
     #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_job_progress(&mut self) -> Result<()> {
         self.count_scan("job", self.jobs.len());
-        let running: Vec<_> = (0..self.jobs.len())
-            .filter(|index| self.jobs[*index].state == "running")
-            .collect();
+        self.debug_assert_active_job_indexes();
+        let running: Vec<_> = self.running_job_indexes.iter().copied().collect();
+        if self.profile_enabled {
+            self.profile.job_progress_candidate_visits += running.len() as u64;
+        }
         for job_index in running {
             self.jobs[job_index].remaining -= 1;
             if self.jobs[job_index].remaining > 0 {
@@ -1411,11 +1488,11 @@ impl Runtime {
             );
             self.jobs[job_index].step_index += 1;
             if self.jobs[job_index].step_index >= activity.steps.len() {
-                self.jobs[job_index].state = "completed".into();
+                self.transition_job_state(job_index, "completed");
                 self.jobs[job_index].completed_time = Some(self.minute);
                 self.complete_job(job_index)?;
             } else {
-                self.jobs[job_index].state = "waiting".into();
+                self.transition_job_state(job_index, "waiting");
                 self.jobs[job_index].remaining = 0;
             }
         }
@@ -1700,9 +1777,11 @@ impl Runtime {
     #[cfg_attr(feature = "profiling", inline(never))]
     fn phase_start_waiting_jobs(&mut self) -> Result<()> {
         self.count_scan("job", self.jobs.len());
-        let mut waiting: Vec<_> = (0..self.jobs.len())
-            .filter(|index| self.jobs[*index].state == "waiting")
-            .collect();
+        self.debug_assert_active_job_indexes();
+        let mut waiting: Vec<_> = self.waiting_job_indexes.iter().copied().collect();
+        if self.profile_enabled {
+            self.profile.resource_dispatch_candidate_visits += waiting.len() as u64;
+        }
         waiting.sort_by_key(|index| {
             (
                 self.plan.activities[self.jobs[*index].activity_index].priority,
@@ -1716,7 +1795,7 @@ impl Runtime {
             }
             let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
             if self.jobs[job_index].step_index >= activity.steps.len() {
-                self.jobs[job_index].state = "completed".into();
+                self.transition_job_state(job_index, "completed");
                 self.complete_job(job_index)?;
                 continue;
             }
@@ -1881,7 +1960,7 @@ impl Runtime {
             }
             self.jobs[job_index].reserved_personnel = step.personnel;
             self.jobs[job_index].reserved_equipment = step.equipment;
-            self.jobs[job_index].state = "running".into();
+            self.transition_job_state(job_index, "running");
             if self.jobs[job_index].started_time.is_none() {
                 self.jobs[job_index].started_time = Some(self.minute);
             }
@@ -2022,7 +2101,7 @@ impl Runtime {
                 let step = activity.steps[self.jobs[job_index].step_index].clone();
                 self.release_resources(job_index, &step)?;
             }
-            self.jobs[job_index].state = "cancelled".into();
+            self.transition_job_state(job_index, "cancelled");
             self.jobs[job_index].remaining = 0;
         }
         for aircraft in &mut self.aircraft {
@@ -2565,6 +2644,220 @@ mod phase_tests {
         assert_eq!(
             runtime.aircraft[0].component_failure_minutes_by_slot,
             vec![None]
+        );
+    }
+
+    #[test]
+    fn active_job_indexes_ignore_history_and_preserve_phase_order() {
+        let mut plan = synthetic_plan();
+        plan.resource_nodes[0].personnel_capacity = 10;
+        plan.resource_nodes[0].equipment_capacity = 10;
+        let mut urgent_activity = plan.activities[0].clone();
+        urgent_activity.index = plan.activities.len();
+        urgent_activity.activity_id = "urgent-preflight".into();
+        urgent_activity.priority = 0;
+        plan.activities.push(urgent_activity);
+        let urgent_activity_index = plan.activities.len() - 1;
+        let mut runtime = Runtime::from_shared_profiled(
+            Arc::new(plan),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Full,
+        )
+        .unwrap();
+        runtime.minute = 10;
+        runtime.phase = "resource_dispatch".into();
+
+        for _ in 0..16 {
+            runtime
+                .create_job(0, 1, "historical", None, None, None)
+                .unwrap();
+        }
+        assert!(runtime.waiting_job_indexes.is_empty());
+        assert!(runtime.running_job_indexes.is_empty());
+
+        let first_waiting = runtime.jobs.len();
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+        runtime.jobs[first_waiting].job_id = "zz-tied-job".into();
+        let previously_started = runtime.jobs.len();
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+        runtime.jobs[previously_started].started_time = Some(5);
+        let urgent_waiting = runtime.jobs.len();
+        runtime
+            .create_job(0, urgent_activity_index, "test", None, None, None)
+            .unwrap();
+        let tied_waiting = runtime.jobs.len();
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+        runtime.jobs[tied_waiting].job_id = "aa-tied-job".into();
+        let active_job_ids = [
+            first_waiting,
+            previously_started,
+            urgent_waiting,
+            tied_waiting,
+        ]
+        .map(|index| runtime.jobs[index].job_id.clone());
+
+        runtime.phase_start_waiting_jobs().unwrap();
+
+        let started: Vec<_> = runtime
+            .trace
+            .iter()
+            .filter(|item| item["kind"] == "operations_step_started")
+            .map(|item| item["entity"].as_str().unwrap())
+            .collect();
+        assert_eq!(
+            started,
+            vec![
+                active_job_ids[2].as_str(),
+                active_job_ids[1].as_str(),
+                active_job_ids[3].as_str(),
+                active_job_ids[0].as_str(),
+            ]
+        );
+        assert_eq!(runtime.profile.resource_dispatch_candidate_visits, 4);
+        assert_eq!(runtime.profile.waiting_job_indexes_peak, 4);
+        assert_eq!(runtime.profile.job_scan_items, runtime.jobs.len() as u64);
+        assert!(runtime.waiting_job_indexes.is_empty());
+        assert_eq!(
+            runtime.running_job_indexes,
+            BTreeSet::from([
+                first_waiting,
+                previously_started,
+                urgent_waiting,
+                tied_waiting,
+            ])
+        );
+        assert_eq!(runtime.profile.running_job_indexes_peak, 4);
+
+        for job_index in [
+            first_waiting,
+            previously_started,
+            urgent_waiting,
+            tied_waiting,
+        ] {
+            runtime.jobs[job_index].remaining = 1;
+        }
+        runtime.phase = "job_progress_and_completions".into();
+        runtime.phase_job_progress().unwrap();
+
+        let completed: Vec<_> = runtime
+            .trace
+            .iter()
+            .filter(|item| item["kind"] == "operations_step_completed")
+            .map(|item| item["entity"].as_str().unwrap())
+            .collect();
+        assert_eq!(
+            completed,
+            vec![
+                active_job_ids[0].as_str(),
+                active_job_ids[1].as_str(),
+                active_job_ids[2].as_str(),
+                active_job_ids[3].as_str(),
+            ]
+        );
+        assert_eq!(runtime.profile.job_progress_candidate_visits, 4);
+        assert_eq!(
+            runtime.profile.job_scan_items,
+            2 * runtime.jobs.len() as u64
+        );
+        assert!(runtime.waiting_job_indexes.is_empty());
+        assert!(runtime.running_job_indexes.is_empty());
+    }
+
+    #[test]
+    fn completed_step_is_visible_to_same_minute_dispatch_and_zero_duration_waits_for_progress() {
+        let mut plan = synthetic_plan();
+        let mut second_step = plan.activities[0].steps[0].clone();
+        second_step.index = 1;
+        second_step.code = "PRE-2".into();
+        second_step.duration_minutes = 0;
+        plan.activities[0].steps[0].duration_minutes = 1;
+        plan.activities[0].steps.push(second_step);
+        let mut runtime = Runtime::from_shared_profiled(
+            Arc::new(plan),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Summary,
+        )
+        .unwrap();
+        runtime.minute = 1;
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+        let job_index = runtime.jobs.len() - 1;
+        runtime.phase_start_waiting_jobs().unwrap();
+        assert_eq!(runtime.jobs[job_index].state, "running");
+
+        runtime.minute = 2;
+        runtime.phase_job_progress().unwrap();
+        assert_eq!(runtime.jobs[job_index].state, "waiting");
+        assert_eq!(runtime.jobs[job_index].step_index, 1);
+        runtime.phase_start_waiting_jobs().unwrap();
+        assert_eq!(runtime.jobs[job_index].state, "running");
+        assert_eq!(runtime.jobs[job_index].remaining, 0);
+
+        runtime.minute = 3;
+        runtime.phase_job_progress().unwrap();
+        assert_eq!(runtime.jobs[job_index].state, "completed");
+        assert_eq!(runtime.jobs[job_index].completed_time, Some(3));
+        assert_eq!(runtime.profile.resource_dispatch_candidate_visits, 2);
+        assert_eq!(runtime.profile.job_progress_candidate_visits, 2);
+    }
+
+    #[test]
+    fn cancellation_removes_active_jobs_releases_resources_and_defers_reservation_return() {
+        let mut runtime = Runtime::from_shared_profiled(
+            Arc::new(synthetic_plan()),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Summary,
+        )
+        .unwrap();
+        runtime.minute = 10;
+        for _ in 0..2 {
+            runtime
+                .create_job(0, 0, "preflight", Some(0), None, None)
+                .unwrap();
+        }
+        runtime.phase_start_waiting_jobs().unwrap();
+        let active: Vec<_> = runtime
+            .waiting_job_indexes
+            .union(&runtime.running_job_indexes)
+            .copied()
+            .collect();
+        assert_eq!(active.len(), 2);
+        runtime.jobs[active[0]]
+            .spare_reservations
+            .insert("reserved-part".into(), 2);
+        runtime.jobs[active[1]]
+            .spare_reservations
+            .insert("reserved-part".into(), 3);
+
+        runtime.cancel_mission_preflight(0).unwrap();
+
+        assert!(runtime.waiting_job_indexes.is_empty());
+        assert!(runtime.running_job_indexes.is_empty());
+        assert_eq!(runtime.resources[0].personnel_in_use, 0);
+        assert_eq!(runtime.resources[0].equipment_in_use, 0);
+        assert_eq!(runtime.resources[0].inventory.get("reserved-part"), None);
+        assert_eq!(
+            runtime
+                .jobs
+                .iter()
+                .map(|job| job.state.as_str())
+                .collect::<Vec<_>>(),
+            vec!["cancelled", "cancelled"]
+        );
+
+        runtime.minute += 1;
+        runtime.phase_transport_arrivals();
+        assert_eq!(
+            runtime.resources[0].inventory.get("reserved-part"),
+            Some(&5)
+        );
+        assert!(
+            runtime
+                .jobs
+                .iter()
+                .all(|job| job.spare_reservations.is_empty())
         );
     }
 }
