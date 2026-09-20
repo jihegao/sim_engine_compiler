@@ -649,14 +649,18 @@ def _compile_supply_routes(
     return tuple(routes)
 
 
-def compile_aircraft_support(inputs: dict[str, Any]) -> ExecutionPlan:
+def compile_aircraft_support(
+    inputs: dict[str, Any], *, semantic_profile: str = "legacy-minute-v1"
+) -> ExecutionPlan:
     if inputs.get("schema_version") != "aircraft-support-v1-input-v1":
         raise CompilationError("unsupported canonical input schema")
     if inputs.get("operations_support_policy") != "daily-v1":
         raise CompilationError("B1 requires operations_support_policy=daily-v1")
     time = inputs.get("time") if isinstance(inputs.get("time"), dict) else {}
+    if semantic_profile not in {"legacy-minute-v1", "event-time-v2"}:
+        raise CompilationError(f"unsupported time profile {semantic_profile!r}")
     if _positive_int(time.get("tick_minutes"), 1) != 1:
-        raise CompilationError("legacy-minute-v1 requires tick_minutes=1")
+        raise CompilationError(f"{semantic_profile} requires tick_minutes=1")
     duration = _positive_int(time.get("duration_minutes"), 1440)
     aircraft = _compile_aircraft(inputs)
     nodes = _compile_nodes(inputs)
@@ -676,7 +680,7 @@ def compile_aircraft_support(inputs: dict[str, Any]) -> ExecutionPlan:
     return ExecutionPlan(
         plan_version=PLAN_VERSION,
         domain="aircraft-support",
-        semantic_profile="legacy-minute-v1",
+        semantic_profile=semantic_profile,
         work_policy="stable-topological-serial",
         rng_profile="legacy-sequential-v1",
         source_inputs_sha256=_canonical_digest(inputs),

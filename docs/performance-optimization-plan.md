@@ -1,6 +1,6 @@
 # 观测隔离与 F35 热路径优化计划
 
-状态：2026-09-20 已完成 O0、O1、O3、O4a 与 O6 的实现、语义验收及固定构建复测。O6 将 resource dispatch 所需 activity/step 字段编译为只读 prepared layout，Plan spec clone 计数由 459,832 降至 153,010；四组 O4a/O6 固定二进制对照的各 seed/观测组合跨会话中位改善为 11.09%–18.17%，已收录。O2a preventive 索引与 O4b active-preflight 索引虽减少目标访问，但整体收益未达到收录线，均已回退。O5 的操作读写与完整唤醒合同尚未建立，因此仍不进入事件跳跃实现。
+状态：2026-09-21 已完成 O0、O1、O3、O4a、O6，以及显式 `event-time-v2` 的 O5 第一阶段。O5 保留 `legacy-minute-v1`，以保守唤醒日历跳过无可见变化的分钟，并在唤醒分钟执行原 15-phase 表；F35 seeds `0/1/7` 的 full/summary 结果精确一致。AMD128 两个稳定会话的六个组合跨会话中位改善为 69.74%–81.62%，证据见 [O5 报告](../benchmarks/hot_path/results/o5-event-time-v2-20260921/README.md)。它仍是 time-skipping prototype，不是持久事件回调器。
 
 优先顺序为：补齐测量保护 → 消除无效任务克隆 → 预计算静态关系 → 故障状态数组化 → 活动集合 → 有条件评估事件跳跃。前三个任务 phase 约占插桩执行时间的 79.7%，先处理其每分钟重复成本；保留 `full/summary` 观测隔离作为每轮优化的验收条件。
 
@@ -49,7 +49,7 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 | O2 静态关系预计算 | `plan.rs`、runtime 初始化、`matches_type`、`activity_for` | 低至中 | O2a preventive 索引已验证语义但未产生稳定收益，候选已回退；其他静态索引待独立证据 |
 | O3 故障状态数组化 | `AircraftState`、故障初始化/推进/修复、终态转换 | 中 | 已实现、31 项差分通过并完成两轮复测；failures phase 由 265ms 降至 33ms |
 | O4 活动集合 | job、mission、preventive、shipment 的候选与索引维护 | 中至高 | O4a waiting/running 集合已收录；O4b active-preflight 因整体收益不足已回退；其余集合等待有负载证据 |
-| O5 事件跳跃评估 | Core 依赖/唤醒合同、调度器、timer token | 高，后续单独立项 | 当前门槛未满足；先物化读写/唤醒合同并证明可跳区间，再决定是否实现 |
+| O5 事件跳跃评估 | Core 依赖/唤醒合同、调度器、timer token | 高，独立 semantic profile | 第一阶段已实现并收录为实验性 `event-time-v2`；下一阶段才是持久事件、generation token 与 callback |
 | O6 compiled steps | activity/step 派发字段、静态 spare requirement、batch 共享 layout | 中 | 已收录；31 项差分通过，24/24 固定二进制单元正向，跨会话中位改善 11.09%–18.17% |
 
 ### O0：补齐测量与观测保护
@@ -131,7 +131,9 @@ Runtime 从只读 Execution Plan 派生 activity/step layout，预存资源节�
 
 尤其不能把逐分钟浮点减法未经证明地改为一次减去跨度。等价无法证明时保留兼容分钟路径；新 `event-time-v2` 或 RNG/并行策略应作为独立语义版本立项，不计为当前兼容优化。
 
-本轮退出判断：O4a 后的 full profile 仍由 resource dispatch 约 36.5%、failures 约 11.9%、preventive 约 7.5% 与 preflight 约 6.3% 等实际 phase 主导；尚无独立“可安全跳过分钟”的计数或读写/唤醒证明。Business/Core IR 也尚未物化完整依赖合同。因此 O5 本轮只完成门槛判断，不实现调度器、timer token 或时间跳跃；这不是性能能力已完成。
+执行结果：O5 第一阶段新增显式 `event-time-v2`，只在 canonical phase 表下启用。运行时从运输、返航、作业完成、故障暴露、跨日、preventive、任务准备/派遣/成功点、延迟可见性和 horizon 推导下一唤醒分钟；区间内按 legacy 顺序推进连续倒计时，唤醒分钟仍执行完整 phase 表。F35 seed 0 从 61,920 个分钟迭代降为 1,609 个唤醒，跳过 60,311 分钟。B1/B3/B2、两个漏唤醒回归、F35 三 seed 双观测和 184 组参数网格均未出现除 Plan identity 外的差异。AMD128 两个稳定会话的各组合改善为 69.74%–81.62%，证据见 [O5 报告](../benchmarks/hot_path/results/o5-event-time-v2-20260921/README.md)。
+
+边界：当前每次 wake 都重建临时日历，仍逐分钟扣减 running job/故障时钟，并在目标分钟执行全 phase 表；没有持久 heap、owner generation、stale token 或 microstep callback。因此它是兼容结果导向的保守 time skipping，不把 O5 标为完整离散事件回调能力。O5b 若继续，应把 schedule/cancel 放到状态变化点，并继续通过相同精确差分门槛。
 
 ## 4. 统一验收门槛
 
@@ -174,6 +176,6 @@ uv pip install --python .venv/bin/python -e .
 
 ## 5. 首轮交付与后续决策
 
-本轮已依次完成 O0、O1、O3、O2a 决策、O4a、O4b 决策与 O6。所有收录候选均通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也在覆盖内。O1 消除 19,319,040 次 mission spec 深克隆；O3 将故障热状态改为稀疏数组；O4a 将 waiting/running 历史扫描移出两个目标 phase；O6 将 resource dispatch 的 activity/step 解释与深拷贝移到 prepared layout。O2a 与 O4b 机制计数下降但整体收益不足，已通过独立 revert 保持主线不叠加无效复杂度。O5 因唤醒合同门槛未满足而停止在评估阶段。
+本轮已依次完成 O0、O1、O3、O2a 决策、O4a、O4b 决策、O6 与 O5 第一阶段。当前 41 项 Python/Rust conformance 与 differential tests 通过；O5 另有 184 组参数网格差分，并在 AMD128 完成同二进制交错复测。O1 消除 19,319,040 次 mission spec 深克隆；O3 将故障热状态改为稀疏数组；O4a 将 waiting/running 历史扫描移出两个目标 phase；O6 将 resource dispatch 的 activity/step 解释与深拷贝移到 prepared layout；O5 以独立 semantic profile 跳过空分钟。O2a 与 O4b 机制计数下降但整体收益不足，已回退。O5 的 persistent callback、timer generation 和 microstep convergence 仍未实现。
 
 当前不设“达到某倍加速”承诺。也不因本轮计划新增 UI、服务器、数据库、分布式调度、JIT、运行中编辑或 DAG 并行策略。Business/Core IR 物化与持久化缓存仍按架构路线推进；局部布局优化不意味着这些能力已经完成。

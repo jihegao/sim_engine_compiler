@@ -25,7 +25,7 @@
 
 | 维度 | 兼容目标 | 后续扩展 |
 |---|---|---|
-| 时间 | `legacy-minute-v1`，阶段表由源码确认 | `event-time-v2`，另定同刻收敛语义 |
+| 时间 | `legacy-minute-v1`，阶段表由源码确认 | `event-time-v2` 第一阶段已实现保守跳时，唤醒分钟仍执行同一阶段表；persistent callback 与同刻 microstep 收敛仍待定义 |
 | 随机 | `legacy-sequential-v1`，复现算法与调用顺序 | `named-counter-v1`，稳定身份和分布变换合同 |
 | 作业 | `stable-topological-serial` | 显式 DAG 并行策略，属于模型变更 |
 | 创作 | Project 派生 IR | IR-native 修订及 agent patch |

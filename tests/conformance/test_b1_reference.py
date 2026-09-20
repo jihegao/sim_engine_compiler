@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import unittest
 
-from sim_engine_compiler.compiler import compile_aircraft_support
+from sim_engine_compiler.compiler import CompilationError, compile_aircraft_support
 from sim_engine_compiler.ir.plan import ExecutionPlan
 from sim_engine_compiler.reference import SimpyReferenceRuntime
 from sim_engine_compiler.reference.conformance import first_divergence
@@ -47,6 +47,15 @@ class B1DailyOperationsTests(unittest.TestCase):
         restored = ExecutionPlan.from_dict(self.plan.to_dict())
         self.assertEqual(restored, self.plan)
         self.assertEqual(restored.fingerprint, self.plan.fingerprint)
+
+    def test_compiler_selects_event_time_profile_explicitly(self):
+        event_plan = compile_aircraft_support(
+            self.inputs, semantic_profile="event-time-v2"
+        )
+        self.assertEqual(event_plan.semantic_profile, "event-time-v2")
+        self.assertNotEqual(event_plan.fingerprint, self.plan.fingerprint)
+        with self.assertRaisesRegex(CompilationError, "unsupported time profile"):
+            compile_aircraft_support(self.inputs, semantic_profile="unknown-time-v1")
 
     def test_executes_hand_calculable_daily_operations_timeline(self):
         selected = [
