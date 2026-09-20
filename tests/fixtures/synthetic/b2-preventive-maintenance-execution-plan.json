@@ -1,0 +1,118 @@
+{
+  "plan_version": "aircraft-support-plan/v1alpha2",
+  "domain": "aircraft-support",
+  "semantic_profile": "legacy-minute-v1",
+  "work_policy": "stable-topological-serial",
+  "rng_profile": "legacy-sequential-v1",
+  "source_inputs_sha256": "55b54af4168fc0acbd9681f2865bdb4dc03130aa64b3588e982bbc3908cf90a4",
+  "duration_minutes": 10,
+  "phases": [
+    "transport_arrivals",
+    "mission_returns",
+    "job_progress_and_completions",
+    "failures",
+    "operations_postflight_before_preparation",
+    "preventive_generation",
+    "preflight_generation",
+    "resource_dispatch",
+    "mission_dispatch",
+    "operations_postflight_after_dispatch",
+    "mission_success",
+    "daily_readiness",
+    "operational_availability",
+    "downtime",
+    "stop"
+  ],
+  "aircraft": [
+    {
+      "index": 0,
+      "tail_number": "F35-01",
+      "aircraft_type": "F35",
+      "model": "F35",
+      "initial_state": "available",
+      "airport": "",
+      "airport_id": "",
+      "initial_calendar_days": 1,
+      "initial_flight_hours": 2.0,
+      "initial_cycles": 3
+    }
+  ],
+  "missions": [],
+  "activities": [
+    {
+      "index": 0,
+      "activity_id": "preventive-f35",
+      "name": "Calendar inspection",
+      "phase": "",
+      "plan_group_id": "",
+      "aircraft_model": "F35",
+      "resource_node_index": 0,
+      "priority": 1,
+      "kind": "preventive",
+      "equipment_component_index": 0,
+      "maintenance_methods": [
+        "non_replacement"
+      ],
+      "replacement_ratio": 0.0,
+      "steps": [
+        {
+          "index": 0,
+          "code": "PM-1",
+          "duration_minutes": 3,
+          "personnel": 1,
+          "equipment": 1,
+          "spares": [],
+          "predecessors": [],
+          "source_path": "support_activities.activities[0].jobs[0]"
+        }
+      ],
+      "source_path": "support_activities.activities[0]"
+    }
+  ],
+  "resource_nodes": [
+    {
+      "index": 0,
+      "node_id": "flight-line",
+      "personnel_capacity": 1,
+      "equipment_capacity": 1,
+      "inventory": [],
+      "organization_node_id": "flight-line",
+      "source_path": "support_network.nodes[0]"
+    }
+  ],
+  "components": [
+    {
+      "index": 0,
+      "component_id": "f35",
+      "name": "F35",
+      "parent_index": -1,
+      "aircraft_indexes": [
+        0
+      ],
+      "product_id": "",
+      "product_type": "",
+      "quantity": 1,
+      "failure_rate_per_hour": 0.0,
+      "failure_threshold": 1,
+      "repair_activity_index": -1,
+      "repair_duration_minutes": 0,
+      "source_path": "equipment_tree.components[0]"
+    }
+  ],
+  "preventive_cycles": [
+    {
+      "index": 0,
+      "aircraft_index": 0,
+      "activity_index": 0,
+      "calendar_days": 1,
+      "flight_hours": 5.0,
+      "landing_cycles": 0,
+      "initial_calendar_days": 1,
+      "initial_flight_hours": 2.0,
+      "initial_landing_cycles": 3,
+      "source_path": "aircraft.assets[0].preventive_cycles[0]"
+    }
+  ],
+  "supply_routes": [],
+  "unsupported_features": []
+}

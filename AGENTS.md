@@ -1,6 +1,6 @@
 # Development boundaries
 
-- Read README.md, docs/architecture.md, docs/semantic-baseline.md and docs/roadmap.md before implementation. This repository currently contains a scaffold, not an executable simulation engine.
+- Read README.md, docs/architecture.md, docs/semantic-baseline.md and docs/roadmap.md before implementation. The Python reference runtime is executable and is the accepted semantic baseline; Rust remains a scaffold.
 - Preserve the three layers: Business IR → Core Simulation IR → Execution Plan. Keep mutable RunState outside the plan.
 - Import canonical simulation_inputs through integrations/spare_mvp. Do not create another Project JSON interpreter. Inspect the upstream revision and contracts before implementing the bridge.
 - Keep aircraft rules in domains/aircraft_support. The compiler and generic runtime must not dispatch through `if domain == ...` branches.

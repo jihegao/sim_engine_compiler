@@ -1,6 +1,6 @@
 # 阶段 A：语义基线
 
-本表依据讨论整理。2026-09-20 已在固定上游提交和真实 F35 43 天 canonical 输入上完成现有分钟/编译结构/SimPy 路线基线，并发现一次 `daily-v1` phase 漂移；证据见 [基准报告](../benchmarks/spare_mvp_f35_43day/README.md)。这建立了 oracle，但尚未逐项冻结下表全部语义，也未验证本项目独立执行器。不能用不同输入、不同 profile 或不同随机样本的最终均值接近来替代兼容验证。
+本表依据讨论整理。2026-09-20 已在固定上游提交和 F35 43 天 canonical 输入上建立 oracle，并完成独立执行器 seeds `0、1、7` 验收；证据见 [conformance 报告](b1-independent-reference.md)和[性能基线](../benchmarks/spare_mvp_f35_43day/README.md)。验收比较随机请求、核心事件、终态和账本，没有用不同输入或最终均值接近替代兼容验证。
 
 ## 行为覆盖表
 
@@ -30,14 +30,11 @@
 | 作业 | `stable-topological-serial` | 显式 DAG 并行策略，属于模型变更 |
 | 创作 | Project 派生 IR | IR-native 修订及 agent patch |
 
-这些名称沿用讨论作为设计标签，尚不是已支持的注册 profile。并行分支汇合测试应归属扩展 profile，不能强加给串行兼容基线。
+前三个 profile 已写入 Execution Plan 并由加载器校验。并行分支汇合测试应归属扩展 profile，不能强加给串行兼容基线。
 
-## 阶段 A 完成条件
+## 阶段 A 已完成证据
 
-- 固定可访问的上游 revision、环境和 canonical schema；定位 Adapter、模型 step、RNG、资源及指标源码。
-- 至少保存一个可公开使用的导出样例和一组可手算 synthetic fixtures；每个输入标出真实来源，保留 hash 与生成步骤。
-- 写出实际 phase 表、随机采样请求格式、结果及 trace 比较规则；每个覆盖项都有证据或明确排除范围。
-- 保存旧模型 oracle 输出与重跑命令，标明 instrumentation 是否影响计时。
-- 针对首个切片声明支持的行为与明确拒绝的能力；剩余项进入后续切片，不能据局部通过声称全量兼容。
-
-讨论提及的 43 天案例没有随本次任务提供原始 canonical 输入；暂不列为可复现 benchmark，也不以同名合成数据代替。
+- 上游 revision、canonical schema、Adapter、输入 hash 和 Plan fingerprint 已写入 fixture manifest。
+- B1/B2/B3 可手算案例保存 canonical 输入、Plan、reference 结果和旧模型 oracle。
+- phase 表、随机请求格式、浮点比较规则、核心事件和终态比较均有自动化测试。
+- F35 43 天固定输入及 seeds `0、1、7` 压缩 oracle 可离线重跑，不依赖活动数据库。

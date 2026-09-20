@@ -1,6 +1,6 @@
 # 实施路线与验收
 
-当前完成的是“初始化结构与设计文档”。以下阶段均未完成；不以空目录、接口占位或未执行的测试替代验收。
+当前已完成项目结构、F35 上游基准和 Independent SimPy Reference Runtime Conformance。详细证据见 [独立 reference conformance](b1-independent-reference.md)。B1/B2/B3 兼容范围及 F35 seeds `0、1、7` 已通过；阶段 B 后续工作是物化 Business/Core IR、缓存与执行优化。
 
 ## 阶段路线
 
@@ -22,15 +22,19 @@
 
 模型建议为两架飞机、一个任务名额、一个保障节点、一个维修人员；用固定故障与维修时长触发资源占用、完工、释放和备用机选择。确切时间线由 A1 的语义决定，不在骨架阶段猜测。
 
-贯通 canonical fixture → Business IR → Core IR → Plan → Python → Result/Trace。支持受限类型的任务、资源、guard/effect；其他能力明确拒绝。验收要能手算结果、定位源规则，并验证资源守恒与无重复派遣。
+已贯通 canonical fixture → Plan → serialized file → independent SimPy → Result/Trace。当前尚未单独物化 Business/Core IR 文件，compiler pass 直接构造 Plan。任务、日保障、稳定串行步骤和容量资源已通过手算案例与旧模型 oracle。
 
 ### B2：故障、时钟与随机回放
 
 加入组件树、飞行暴露量、版本化计时器、维修与换件、采样请求 tape。先比较请求身份与首次分歧，再实现完整兼容 RNG。检验地面暂停、跨航次继续及取消后的旧事件。
 
+已完成：故障采样保持旧模型的“适用性判断前先抽样”顺序；维修完成后按同一流重采样；预防维修按日历、飞行小时和起落循环生成。跨 macOS/Linux 的 `libm` 指数结果只允许末位浮点容差，事件分钟严格比较。
+
 ### B3：完整兼容范围与增量唤醒
 
 覆盖 daily-v1、稳定串行作业、组织资源分配、库存/运输/取消、时间条件唤醒及指标。建立 read/write 依赖检查，防止状态改变遗漏等待者。兼容覆盖表全部处置后才能宣称指定范围通过。
+
+已完成当前案例范围：本地库存、纵向与横向预编译供应路线、运输到达唤醒、取消预约返还及最终库存账本。通用 read/write 反向依赖表仍属于后续 Core IR 工作。
 
 ### B4：缓存与分段基准
 
@@ -51,9 +55,9 @@
 
 Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运行中状态；完整 Project 编辑器；LLM 自创新 operation 并即时执行；先设计覆盖所有行业的大型通用语言。
 
-## 开工前尚待解决
+## 后续工作
 
-1. 获取上游可用路径或 checkout，并确认实际 canonical 导出及 EngineRunner/SimulationEngine 接口。
-2. 选择允许纳入仓库的输入，记录来源和精确 revision；不默认复制本地数据库。
-3. 冻结首个切片支持的 profile 子集、时间边界和比较口径。
-4. B 阶段选定类型/schema 实现并锁依赖；C 阶段再固定 Rust 工具链、交换格式和 Python 绑定方式。
+1. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR。
+2. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断。
+3. 固定 Rust 工具链、交换格式和 Python 绑定方式，令 Rust 执行同一份 Plan。
+4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。

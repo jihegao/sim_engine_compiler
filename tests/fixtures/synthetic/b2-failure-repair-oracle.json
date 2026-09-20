@@ -1,0 +1,463 @@
+{
+  "oracle": "AircraftSupportV1Model",
+  "oracle_fixture_version": "legacy-minute-oracle/v1",
+  "spare_mvp_commit": "5352a0d7757cbac012c75d516d1a7ac4ff15aa2a",
+  "input_file_sha256": "dde933595e13dcddf108745bb60e5ad1e8fafbb8eb0339f834230916a424e219",
+  "seed": 0,
+  "time": 30,
+  "sample_requests": [
+    {
+      "sequence": 1,
+      "time": 0,
+      "phase": "initialize",
+      "stream": "legacy-sequential-v1",
+      "distribution": "exponential",
+      "component_id": "radar-lru",
+      "quantity": 1,
+      "rate_per_hour": 20.0,
+      "value_minutes": 5.58182133319567
+    },
+    {
+      "sequence": 2,
+      "time": 14,
+      "phase": "job_progress_and_completions",
+      "stream": "legacy-sequential-v1",
+      "distribution": "exponential",
+      "component_id": "radar-lru",
+      "quantity": 1,
+      "rate_per_hour": 20.0,
+      "value_minutes": 4.255887458915286
+    }
+  ],
+  "trace": [
+    {
+      "time": 3,
+      "phase": "preflight_generation",
+      "kind": "operations_phase_created",
+      "message": "F35-01 preflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0001",
+        "activity_id": "f35-daily-preflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "preflight",
+        "activity_code": null,
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0001"
+    },
+    {
+      "time": 3,
+      "phase": "preflight_generation",
+      "kind": "preflight_created",
+      "message": "sortie-failure-d1-w1 created 1 jobs",
+      "details": {},
+      "entity": "sortie-failure-d1-w1"
+    },
+    {
+      "time": 3,
+      "phase": "resource_dispatch",
+      "kind": "job_started",
+      "message": "job-0001 started PRE-1",
+      "details": {},
+      "entity": "job-0001"
+    },
+    {
+      "time": 3,
+      "phase": "resource_dispatch",
+      "kind": "operations_step_started",
+      "message": "F35-01 preflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0001",
+        "activity_id": "f35-daily-preflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "preflight",
+        "activity_code": "PRE-1",
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0001"
+    },
+    {
+      "time": 4,
+      "phase": "job_progress_and_completions",
+      "kind": "operations_step_completed",
+      "message": "F35-01 preflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0001",
+        "activity_id": "f35-daily-preflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "preflight",
+        "activity_code": "PRE-1",
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0001"
+    },
+    {
+      "time": 4,
+      "phase": "job_progress_and_completions",
+      "kind": "operations_phase_completed",
+      "message": "F35-01 preflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0001",
+        "activity_id": "f35-daily-preflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "preflight",
+        "activity_code": null,
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0001"
+    },
+    {
+      "time": 4,
+      "phase": "job_progress_and_completions",
+      "kind": "preflight_completed",
+      "message": "F35-01 prepared for sortie-failure-d1-w1",
+      "details": {},
+      "entity": "F35-01"
+    },
+    {
+      "time": 5,
+      "phase": "mission_dispatch",
+      "kind": "mission_launched",
+      "message": "sortie-failure-d1-w1 launched 1 aircraft",
+      "details": {},
+      "entity": "sortie-failure-d1-w1"
+    },
+    {
+      "time": 11,
+      "phase": "failures",
+      "kind": "component_failed",
+      "message": "F35-01 failed Radar LRU",
+      "details": {},
+      "entity": "F35-01"
+    },
+    {
+      "time": 11,
+      "phase": "failures",
+      "kind": "aircraft_failed",
+      "message": "F35-01 failure propagated to whole aircraft",
+      "details": {},
+      "entity": "F35-01"
+    },
+    {
+      "time": 11,
+      "phase": "failures",
+      "kind": "maintenance_method_selected",
+      "message": "job-0002 selected non_replacement",
+      "details": {
+        "job_id": "job-0002",
+        "tail_number": "F35-01",
+        "aircraft_model": "F35",
+        "activity_id": "corrective-radar",
+        "component_id": "radar-lru",
+        "maintenance_kind": "repair",
+        "maintenance_method": "non_replacement",
+        "replacement_ratio": 0.0,
+        "decision_roll": 0.48832405789834954,
+        "rng_stream": "77a74ad6bdc1a15e",
+        "maintenance_occurrence": 1
+      },
+      "entity": "job-0002"
+    },
+    {
+      "time": 11,
+      "phase": "failures",
+      "kind": "mission_failed_returned",
+      "message": "F35-01 early returned with propagated aircraft failure",
+      "details": {},
+      "entity": "F35-01"
+    },
+    {
+      "time": 11,
+      "phase": "failures",
+      "kind": "mission_failed_minimum_aircraft",
+      "message": "sortie-failure-d1-w1 failed below required aircraft count",
+      "details": {},
+      "entity": "sortie-failure-d1-w1"
+    },
+    {
+      "time": 11,
+      "phase": "resource_dispatch",
+      "kind": "job_started",
+      "message": "job-0002 started REPAIR-1",
+      "details": {},
+      "entity": "job-0002"
+    },
+    {
+      "time": 14,
+      "phase": "job_progress_and_completions",
+      "kind": "repair_completed",
+      "message": "F35-01 repair completed",
+      "details": {},
+      "entity": "F35-01"
+    },
+    {
+      "time": 14,
+      "phase": "operations_postflight_before_preparation",
+      "kind": "operations_phase_created",
+      "message": "F35-01 postflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0003",
+        "activity_id": "f35-daily-postflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "postflight",
+        "activity_code": null,
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0003"
+    },
+    {
+      "time": 14,
+      "phase": "resource_dispatch",
+      "kind": "job_started",
+      "message": "job-0003 started POST-1",
+      "details": {},
+      "entity": "job-0003"
+    },
+    {
+      "time": 14,
+      "phase": "resource_dispatch",
+      "kind": "operations_step_started",
+      "message": "F35-01 postflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0003",
+        "activity_id": "f35-daily-postflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "postflight",
+        "activity_code": "POST-1",
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0003"
+    },
+    {
+      "time": 15,
+      "phase": "mission_success",
+      "kind": "mission_success_point_failed",
+      "message": "sortie-failure-d1-w1 failed at success point with 0/1 available members",
+      "details": {},
+      "entity": "sortie-failure-d1-w1"
+    },
+    {
+      "time": 16,
+      "phase": "job_progress_and_completions",
+      "kind": "operations_step_completed",
+      "message": "F35-01 postflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0003",
+        "activity_id": "f35-daily-postflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "postflight",
+        "activity_code": "POST-1",
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0003"
+    },
+    {
+      "time": 16,
+      "phase": "job_progress_and_completions",
+      "kind": "operations_phase_completed",
+      "message": "F35-01 postflight",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "job_id": "job-0003",
+        "activity_id": "f35-daily-postflight",
+        "plan_group_id": "f35-daily",
+        "operations_phase": "postflight",
+        "activity_code": null,
+        "predecessors": [],
+        "resource_node_id": "flight-line"
+      },
+      "entity": "job-0003"
+    },
+    {
+      "time": 16,
+      "phase": "job_progress_and_completions",
+      "kind": "postflight_completed",
+      "message": "F35-01 postflight completed",
+      "details": {},
+      "entity": "F35-01"
+    },
+    {
+      "time": 30,
+      "phase": "stop",
+      "kind": "simulation_stopped",
+      "message": "simulation stopped by duration",
+      "details": {
+        "reason": "duration",
+        "conditions": [
+          "duration"
+        ]
+      },
+      "entity": "simulation"
+    }
+  ],
+  "metrics": {
+    "sortie_completion_rate": 0.0,
+    "mission_success_rate": 0.0,
+    "sortie_rate": 1.0,
+    "ready_rate": 1.0,
+    "operational_availability": null,
+    "operational_availability_sample_count": 0,
+    "available_aircraft_hours": 0,
+    "total_aircraft_hours": 0,
+    "aircraft_count": 1,
+    "simulation_days": 1.0,
+    "available_aircraft": 1,
+    "unassigned_available_aircraft": 1,
+    "mission_ready_aircraft": 0,
+    "daily_readiness_sample_count": 0,
+    "active_jobs": 0,
+    "spare_stock_total": 0,
+    "avg_departure_delay": 0.0,
+    "spare_consumed_total": 0,
+    "maintenance_backlog": 0,
+    "repair_backlog": 0,
+    "postflight_backlog": 0,
+    "preventive_backlog": 0,
+    "lru_failures": 1,
+    "failed_count": 0,
+    "repairing_count": 0,
+    "flying_count": 0,
+    "sortie_count": 0,
+    "postflight_count": 0,
+    "preventive_count": 0,
+    "preventive_maintenance_events": 0,
+    "downtime_preventive_events": 0,
+    "planned_sorties": 1,
+    "planned_mission_waves": 1,
+    "successful_mission_waves": 0,
+    "launched_sorties": 1,
+    "completed_sorties": 0,
+    "failed_sorties": 1,
+    "cancelled_sorties": 0,
+    "delayed_sorties": 0,
+    "spare_demand_total": 0,
+    "spare_immediately_filled_total": 0,
+    "spare_fill_rate": 1.0,
+    "spare_utilization": 0.0,
+    "shortage_events": 0,
+    "transport_in_transit_count": 0,
+    "downtime_failure_events": 1,
+    "downtime_spare_shortage_events": 0,
+    "downtime_resource_delay_events": 0,
+    "downtime_equipment_shortage_events": 0,
+    "downtime_failure_hours": 0.05,
+    "downtime_equipment_shortage_hours": 0.0,
+    "downtime_spare_shortage_hours": 0.0,
+    "downtime_preventive_hours": 0.0,
+    "transport_replenishment_events": 0,
+    "total_transport_delay_minutes": 0,
+    "mean_transport_delay": 0.0,
+    "elapsed_minutes": 30,
+    "stop_reason": "duration",
+    "stop_conditions_met": [
+      "duration"
+    ],
+    "in_flight_failures": 1,
+    "mean_launch_time": 0.0,
+    "mean_recovery_time": 6.0,
+    "mean_turnaround_time": 6.0
+  },
+  "terminal_state": {
+    "aircraft": [
+      {
+        "tail_number": "F35-01",
+        "state": "available",
+        "current_mission_id": null,
+        "prepared_mission_ids": [],
+        "operations_day": 0,
+        "daily_takeoffs": 1,
+        "postflight_required": false,
+        "postflight_due": false,
+        "flight_hours": 0.1,
+        "takeoff_count": 1,
+        "landing_count": 1,
+        "failed_component_id": null,
+        "component_failure_minutes": {},
+        "in_flight_failure": false
+      }
+    ],
+    "missions": [
+      {
+        "mission_id": "sortie-failure-d1-w1",
+        "status": "failed",
+        "actual_start": 5,
+        "assigned_tail_numbers": [
+          "F35-01"
+        ],
+        "success_evaluated": true,
+        "succeeded": false
+      }
+    ],
+    "jobs": [
+      {
+        "job_id": "job-0001",
+        "kind": "preflight",
+        "aircraft": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "activity_id": "f35-daily-preflight",
+        "state": "completed",
+        "step_index": 1,
+        "started_time": 3,
+        "completed_time": 4,
+        "component_id": null,
+        "maintenance_method": null
+      },
+      {
+        "job_id": "job-0002",
+        "kind": "repair",
+        "aircraft": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "activity_id": "corrective-radar",
+        "state": "completed",
+        "step_index": 1,
+        "started_time": 11,
+        "completed_time": 14,
+        "component_id": "radar-lru",
+        "maintenance_method": "non_replacement"
+      },
+      {
+        "job_id": "job-0003",
+        "kind": "postflight",
+        "aircraft": "F35-01",
+        "mission_id": "sortie-failure-d1-w1",
+        "activity_id": "f35-daily-postflight",
+        "state": "completed",
+        "step_index": 1,
+        "started_time": 14,
+        "completed_time": 16,
+        "component_id": null,
+        "maintenance_method": null
+      }
+    ],
+    "resources": [
+      {
+        "node_id": "flight-line",
+        "personnel_in_use": 0,
+        "equipment_in_use": 0,
+        "inventory": {}
+      }
+    ]
+  }
+}

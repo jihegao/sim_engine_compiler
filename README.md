@@ -2,7 +2,7 @@
 
 面向任务、资产与保障资源的业务模型编译器及离散事件运行时。首个领域是飞机机群任务与保障，原型通过 `spare_mvp` 的 canonical `simulation_inputs` 接入。
 
-**当前状态：项目结构与设计基线已建立，并捕获了 `spare_mvp` F35 43 天的分钟/编译结构/SimPy 上游基准；导入器、IR schema、编译器和独立执行器尚未实现。** Python 包目前只有命名空间和基准验证工具；Rust 目录保留实现边界。本文的流水线描述目标架构，不表示本项目已能运行仿真。
+**当前状态：Independent SimPy Reference Runtime Conformance 已完成。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Execution Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已与固定旧模型 oracle 对齐。Rust 目录仍是预留边界。
 
 ```text
 spare_mvp Project JSON
@@ -29,11 +29,11 @@ Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负�
 │   └── adr/0001-layered-ir.md       首个架构决策
 ├── contracts/README.md              合同清单、版本、身份与诊断设计
 ├── src/sim_engine_compiler/
-│   ├── ir/                         三层 IR 类型（待实现）
-│   ├── compiler/                   编译 passes、依赖分析、缓存（待实现）
-│   ├── domains/aircraft_support/    领域实体、规则、指标（待实现）
-│   ├── reference/                  独立 Python 执行器（待实现）
-│   └── integrations/spare_mvp/      上游合同接入（待实现）
+│   ├── ir/                         Execution Plan 合同；Business/Core IR 待补
+│   ├── compiler/                   canonical lowering 与索引化 Execution Plan
+│   ├── domains/aircraft_support/    领域插件边界（待从 B1 lowering 提取）
+│   ├── reference/                  独立 SimPy 执行器与首处分歧工具
+│   └── integrations/spare_mvp/      上游文件边界与说明
 ├── rust/runtime/                    Rust 内核预留，阶段 C 建 crate
 ├── tests/
 │   ├── fixtures/                   小案例、输入来源、golden 产物
@@ -61,8 +61,8 @@ python3.12 -m venv .venv
 .venv/bin/python -m pip install -e .
 ```
 
-目前没有本项目自己的仿真 CLI 或执行器。已实跑的 [F35 43 天对照基线](benchmarks/spare_mvp_f35_43day/README.md)属于上游 oracle；Rust 工具链、PyO3 和其他运行依赖在相应实现阶段选型并锁定。
+当前可使用两个文件边界 CLI：`scripts/compile_execution_plan.py` 将 canonical JSON 编译为计划，`scripts/run_reference_plan.py` 只执行已序列化计划。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)单独保留；本阶段结论是语义一致，不把 SimPy reference 宣称为性能目标。
 
 ## 设计来源与证据边界
 
-依据 2026-09-20 的讨论：[设计仿真引擎 and IR](chatgpt-conversation://6aaf8dfc-02e0-83ea-8eb1-460c5abf7b5f)。本轮已读取完整讨论；未访问到上游 `spare_mvp` 源码和 canonical 输入快照。讨论提到的历史性能数据及兼容行为尚未在本项目复测，不能作为验收通过依据。
+依据 2026-09-20 的讨论：[设计仿真引擎 and IR](chatgpt-conversation://6aaf8dfc-02e0-83ea-8eb1-460c5abf7b5f)。本项目已从上游提交 `5352a0d7757cbac012c75d516d1a7ac4ff15aa2a` 导出固定 canonical 输入，并重新生成 seed `0、1、7` oracle；验收不依赖运行中的上游数据库。

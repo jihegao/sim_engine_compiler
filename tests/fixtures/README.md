@@ -1,6 +1,6 @@
 # Fixtures
 
-当前没有输入或 golden 文件。阶段 A 按来源分组建立：
+当前包含 B1/B2/B3 synthetic 输入、序列化计划、reference 结果、固定旧模型 oracle，以及 F35 43 天 canonical 输入、完整计划和 seeds `0、1、7` 压缩 oracle。按来源分组：
 
 - `synthetic/`：可手算、可重建的小模型，包含生成器或明确的人工构造步骤。
 - `spare_mvp/`：允许纳入仓库的 canonical 输入及其导出来源。

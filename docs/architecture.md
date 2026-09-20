@@ -1,6 +1,6 @@
 # 架构与模块边界
 
-状态：初始设计，尚未实现。模块名称在本项目内确定；对接上游的接口名称、字段和版本须在阶段 A 核验。
+状态：Python reference 基线已实现 canonical input → Execution Plan → independent SimPy，并完成 B1/B2/B3 与 F35 三个 seed 的兼容验收；Business/Core IR 分层物化、Rust 及 agent 编辑仍按本文推进。
 
 ## 模型流转
 

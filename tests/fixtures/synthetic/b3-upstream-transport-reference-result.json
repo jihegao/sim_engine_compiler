@@ -1,0 +1,369 @@
+{
+  "plan_fingerprint": "158b154e2c0a2cbd2065d451fad49611dbf0755555afc0068e5479ee384b0a9f",
+  "seed": 0,
+  "time": 10,
+  "stop_reason": "duration",
+  "sample_requests": [],
+  "trace": [
+    {
+      "sequence": 1,
+      "time": 1,
+      "phase": "preventive_generation",
+      "kind": "maintenance_method_selected",
+      "rule_id": "maintenance.select-method",
+      "entity": "job-0001",
+      "source_path": "support_activities.activities[0]",
+      "details": {
+        "maintenance_kind": "preventive",
+        "maintenance_method": "replacement",
+        "replacement_ratio": 1.0,
+        "decision_roll": 0.5622851503479002,
+        "rng_stream": "cf34b86956a17ef6",
+        "maintenance_occurrence": 1
+      }
+    },
+    {
+      "sequence": 2,
+      "time": 1,
+      "phase": "preventive_generation",
+      "kind": "operations_phase_created",
+      "rule_id": "daily-v1.create-operation",
+      "entity": "job-0001",
+      "source_path": "support_activities.activities[0]",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": null,
+        "activity_id": "preventive-filter",
+        "operations_phase": ""
+      }
+    },
+    {
+      "sequence": 3,
+      "time": 1,
+      "phase": "preventive_generation",
+      "kind": "preventive_created",
+      "rule_id": "maintenance.preventive-due",
+      "entity": "F35-01",
+      "source_path": "aircraft.assets[0].preventive_cycles[0]",
+      "details": {
+        "activity_id": "preventive-filter",
+        "due_dimensions": [
+          "calendar_days"
+        ]
+      }
+    },
+    {
+      "sequence": 4,
+      "time": 1,
+      "phase": "resource_dispatch",
+      "kind": "organization_supply_selected",
+      "rule_id": "organization.select-supplier",
+      "entity": "job-0001",
+      "source_path": "support_network.organization_graph.transport_policies[0]",
+      "details": {
+        "job_id": "job-0001",
+        "step_index": 0,
+        "product_id": "filter",
+        "quantity": 1,
+        "source_node_index": 0,
+        "destination_node_index": 1,
+        "arrival_minute": 3,
+        "supply_mode": "vertical",
+        "relation_id": ""
+      }
+    },
+    {
+      "sequence": 5,
+      "time": 1,
+      "phase": "resource_dispatch",
+      "kind": "organization_transport_dispatched",
+      "rule_id": "organization.dispatch-transport",
+      "entity": "job-0001",
+      "source_path": "support_network.organization_graph.transport_policies[0]",
+      "details": {
+        "job_id": "job-0001",
+        "step_index": 0,
+        "product_id": "filter",
+        "quantity": 1,
+        "source_node_index": 0,
+        "destination_node_index": 1,
+        "arrival_minute": 3,
+        "supply_mode": "vertical",
+        "relation_id": ""
+      }
+    },
+    {
+      "sequence": 6,
+      "time": 1,
+      "phase": "resource_dispatch",
+      "kind": "spare_request",
+      "rule_id": "inventory.request-once",
+      "entity": "job-0001",
+      "source_path": null,
+      "details": {
+        "step_index": 0,
+        "product_id": "filter",
+        "demand_quantity": 1,
+        "immediately_filled_quantity": 0,
+        "node_index": 1
+      }
+    },
+    {
+      "sequence": 7,
+      "time": 1,
+      "phase": "resource_dispatch",
+      "kind": "spare_shortage",
+      "rule_id": "inventory.local-shortage",
+      "entity": "job-0001",
+      "source_path": null,
+      "details": {
+        "step_index": 0,
+        "product_id": "filter",
+        "required_quantity": 1,
+        "available_quantity": 0,
+        "node_index": 1
+      }
+    },
+    {
+      "sequence": 8,
+      "time": 3,
+      "phase": "transport_arrivals",
+      "kind": "transport_arrived",
+      "rule_id": "inventory.transport-arrival",
+      "entity": "job-0001",
+      "source_path": "support_network.organization_graph.transport_policies[0]",
+      "details": {
+        "job_id": "job-0001",
+        "step_index": 0,
+        "product_id": "filter",
+        "quantity": 1,
+        "source_node_index": 0,
+        "destination_node_index": 1,
+        "supply_mode": "vertical",
+        "relation_id": "",
+        "reserved_for_job": true,
+        "requested_minute": 1,
+        "arrival_minute": 3
+      }
+    },
+    {
+      "sequence": 9,
+      "time": 3,
+      "phase": "transport_arrivals",
+      "kind": "organization_transport_arrived",
+      "rule_id": "organization.transport-arrival",
+      "entity": "job-0001",
+      "source_path": "support_network.organization_graph.transport_policies[0]",
+      "details": {
+        "job_id": "job-0001",
+        "step_index": 0,
+        "product_id": "filter",
+        "quantity": 1,
+        "source_node_index": 0,
+        "destination_node_index": 1,
+        "supply_mode": "vertical",
+        "relation_id": "",
+        "reserved_for_job": true,
+        "requested_minute": 1,
+        "arrival_minute": 3
+      }
+    },
+    {
+      "sequence": 10,
+      "time": 3,
+      "phase": "resource_dispatch",
+      "kind": "spare_consumed",
+      "rule_id": "inventory.consume-at-job-start",
+      "entity": "job-0001",
+      "source_path": null,
+      "details": {
+        "step_index": 0,
+        "product_id": "filter",
+        "quantity": 1,
+        "node_index": 1,
+        "maintenance_method": "replacement"
+      }
+    },
+    {
+      "sequence": 11,
+      "time": 3,
+      "phase": "resource_dispatch",
+      "kind": "resources_reserved",
+      "rule_id": "resource.reserve-atomic",
+      "entity": "job-0001",
+      "source_path": null,
+      "details": {
+        "node_index": 1,
+        "step_index": 0,
+        "personnel": 1,
+        "equipment": 1,
+        "personnel_in_use": 1,
+        "equipment_in_use": 1
+      }
+    },
+    {
+      "sequence": 12,
+      "time": 3,
+      "phase": "resource_dispatch",
+      "kind": "operations_step_started",
+      "rule_id": "work.stable-topological-serial",
+      "entity": "job-0001",
+      "source_path": null,
+      "details": {
+        "step_index": 0,
+        "activity_code": "PM-FILTER"
+      }
+    },
+    {
+      "sequence": 13,
+      "time": 5,
+      "phase": "job_progress_and_completions",
+      "kind": "resources_released",
+      "rule_id": "resource.release",
+      "entity": "job-0001",
+      "source_path": null,
+      "details": {
+        "node_index": 1,
+        "step_index": 0,
+        "personnel": 1,
+        "equipment": 1,
+        "personnel_in_use": 0,
+        "equipment_in_use": 0
+      }
+    },
+    {
+      "sequence": 14,
+      "time": 5,
+      "phase": "job_progress_and_completions",
+      "kind": "operations_step_completed",
+      "rule_id": "work.serial-step-complete",
+      "entity": "job-0001",
+      "source_path": null,
+      "details": {
+        "step_index": 0,
+        "activity_code": "PM-FILTER"
+      }
+    },
+    {
+      "sequence": 15,
+      "time": 5,
+      "phase": "job_progress_and_completions",
+      "kind": "operations_phase_completed",
+      "rule_id": "daily-v1.complete-operation",
+      "entity": "job-0001",
+      "source_path": "support_activities.activities[0]",
+      "details": {
+        "tail_number": "F35-01",
+        "mission_id": null,
+        "activity_id": "preventive-filter",
+        "operations_phase": ""
+      }
+    },
+    {
+      "sequence": 16,
+      "time": 5,
+      "phase": "job_progress_and_completions",
+      "kind": "preventive_completed",
+      "rule_id": "maintenance.preventive-complete",
+      "entity": "F35-01",
+      "source_path": "support_activities.activities[0]",
+      "details": {
+        "activity_id": "preventive-filter"
+      }
+    },
+    {
+      "sequence": 17,
+      "time": 10,
+      "phase": "stop",
+      "kind": "simulation_stopped",
+      "rule_id": "stop.duration",
+      "entity": "simulation",
+      "source_path": null,
+      "details": {}
+    }
+  ],
+  "metrics": {
+    "planned_sorties": 0,
+    "planned_mission_waves": 0,
+    "successful_mission_waves": 0,
+    "mission_success_rate": 0.0,
+    "launched_sorties": 0,
+    "completed_sorties": 0,
+    "cancelled_sorties": 0,
+    "delayed_sorties": 0,
+    "postflight_count": 0,
+    "avg_departure_delay": 0.0,
+    "elapsed_minutes": 10,
+    "stop_reason": "duration",
+    "lru_failures": 0,
+    "in_flight_failures": 0,
+    "failed_sorties": 0,
+    "preventive_maintenance_events": 1,
+    "failed_count": 0,
+    "repairing_count": 0,
+    "spare_stock_total": 0,
+    "spare_demand_total": 1,
+    "spare_immediately_filled_total": 0,
+    "spare_fill_rate": 0.0,
+    "spare_consumed_total": 1,
+    "shortage_events": 1,
+    "transport_in_transit_count": 0,
+    "transport_replenishment_events": 1,
+    "total_transport_delay_minutes": 2,
+    "mean_transport_delay": 0.03333333333333333
+  },
+  "terminal_state": {
+    "aircraft": [
+      {
+        "tail_number": "F35-01",
+        "state": "available",
+        "current_mission_id": null,
+        "prepared_mission_ids": [],
+        "operations_day": null,
+        "daily_takeoffs": 0,
+        "postflight_required": false,
+        "postflight_due": false,
+        "flight_hours": 0.0,
+        "takeoff_count": 0,
+        "landing_count": 0,
+        "failed_component_id": null,
+        "component_failure_minutes": {},
+        "in_flight_failure": false
+      }
+    ],
+    "missions": [],
+    "jobs": [
+      {
+        "job_id": "job-0001",
+        "kind": "preventive",
+        "aircraft": "F35-01",
+        "mission_id": null,
+        "activity_id": "preventive-filter",
+        "state": "completed",
+        "step_index": 1,
+        "started_time": 3,
+        "completed_time": 5,
+        "component_id": null,
+        "maintenance_method": "replacement"
+      }
+    ],
+    "resources": [
+      {
+        "node_id": "base",
+        "personnel_in_use": 0,
+        "equipment_in_use": 0,
+        "inventory": {
+          "filter": 0
+        }
+      },
+      {
+        "node_id": "line",
+        "personnel_in_use": 0,
+        "equipment_in_use": 0,
+        "inventory": {
+          "filter": 0
+        }
+      }
+    ]
+  }
+}

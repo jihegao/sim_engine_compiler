@@ -1,0 +1,57 @@
+{
+  "schema_version": "aircraft-support-v1-input-v1",
+  "operations_support_policy": "daily-v1",
+  "project_identity": {"project_id": "synthetic-b3-upstream-transport", "project_version": "1", "scenario_id": "scenario-1", "source_import_id": "hand-calculable"},
+  "mission_profile": {"profile_id": "b3-profile", "name": "Upstream spare", "duration_minutes": 10, "basic_missions": [], "composite_tasks": [], "mission_calendar": [], "mission_phases": [], "airports": []},
+  "aircraft": {
+    "fleet_count": 1,
+    "initial_ready": 1,
+    "models": ["F35"],
+    "assets": [{
+      "tail_number": "F35-01",
+      "aircraft_type": "F35",
+      "model": "F35",
+      "initial_state": "available",
+      "initial_life_state": {"calendar_days": 1, "flight_hours": 0, "takeoff_landing_cycles": 0},
+      "preventive_cycles": [{
+        "activity_id": "preventive-filter",
+        "equipment_id": "f35",
+        "thresholds": {"calendar_days": 1, "flight_hours": 0, "takeoff_landing_cycles": 0},
+        "initial_life_state": {"calendar_days": 1, "flight_hours": 0, "takeoff_landing_cycles": 0}
+      }]
+    }]
+  },
+  "equipment_tree": {"root_component_id": "f35", "components": [{"id": "f35", "name": "F35", "parent_id": "", "aircraft_model": "F35", "quantity": 1}]},
+  "support_network": {
+    "nodes": [
+      {"id": "base", "name": "Base", "organization_node_id": "base", "personnel_capacity": 0, "equipment_capacity": 0, "inventory": {"filter": 1}, "transport_policies": []},
+      {"id": "line", "name": "Flight line", "organization_node_id": "line", "personnel_capacity": 1, "equipment_capacity": 1, "inventory": {"filter": 0}, "transport_policies": [{"id": "base-line-filter", "from": "base", "to": "line", "product_id": "filter", "capacity": 1, "transport_minutes": 2, "priority": 1}]}
+    ],
+    "organization_graph": {
+      "runtime_mode": "vertical",
+      "nodes": [{"id": "base", "name": "Base", "parent_id": null}, {"id": "line", "name": "Flight line", "parent_id": "base"}],
+      "parent_edges": [{"from_node_id": "base", "to_node_id": "line"}],
+      "lateral_edges": [],
+      "transport_policies": [{"id": "base-line-filter", "from_organization_node_id": "base", "to_organization_node_id": "line", "product_id": "filter", "capacity": 1, "transport_minutes": 2, "priority": 1}],
+      "resource_ownership": []
+    }
+  },
+  "support_activities": {"activities": [{
+    "id": "preventive-filter",
+    "name": "Replace filter",
+    "activity_type": "preventive",
+    "aircraft_model": "F35",
+    "equipment_id": "f35",
+    "resource_id": "line",
+    "priority": 1,
+    "maintenance_methods": ["replacement"],
+    "replacement_ratio": 1,
+    "calendarDayInterval": 1,
+    "jobs": [{"activityCode": "PM-FILTER", "durationMinutes": 2, "personnel": [{"professional": "inspection", "quantity": 1}], "equipment": [{"model": "kit", "quantity": 1}], "spare": "filter,1", "predecessors": []}]
+  }]},
+  "time": {"duration_minutes": 10, "tick_minutes": 1, "sample_every_minutes": 10, "max_state_frames_single": 2000, "requested_steps": 10},
+  "monte_carlo": {"sample_count": 1, "sweep": {}},
+  "seed": 0,
+  "stop_policy": {"schema_version": "stop-policy-v1", "mode": "or", "conditions": [{"type": "duration", "duration_minutes": 10}], "defaulted": false},
+  "disable_visualization_frames": true
+}

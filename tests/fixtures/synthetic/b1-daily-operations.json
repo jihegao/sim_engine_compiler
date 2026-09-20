@@ -1,0 +1,177 @@
+{
+  "schema_version": "aircraft-support-v1-input-v1",
+  "operations_support_policy": "daily-v1",
+  "project_identity": {
+    "project_id": "synthetic-b1-daily-operations",
+    "project_version": "1",
+    "scenario_id": "scenario-1",
+    "source_import_id": "hand-calculable"
+  },
+  "mission_profile": {
+    "profile_id": "b1-profile",
+    "name": "Two same-day sorties",
+    "duration_minutes": 60,
+    "basic_missions": [
+      {
+        "id": "basic-sortie",
+        "missionId": "basic-sortie",
+        "name": "Sortie",
+        "advanceNoticeMinutes": 10,
+        "cancelMinutes": 5,
+        "equipmentQuantity": 1,
+        "equipmentType": "F35",
+        "minRequiredSorties": 1,
+        "successPoint": 0.75,
+        "taskDurationMinutes": 10
+      }
+    ],
+    "composite_tasks": [
+      {
+        "id": "daily-sorties",
+        "name": "Daily sorties",
+        "priority": 1,
+        "taskItems": [
+          {
+            "id": "sortie-a",
+            "basicMissionId": "basic-sortie",
+            "basicTaskName": "Sortie A",
+            "firstWaveTime": "00:20",
+            "dailyRepeatCount": 1,
+            "equipmentType": "F35",
+            "operations_plan_group_id": "f35-daily"
+          },
+          {
+            "id": "sortie-b",
+            "basicMissionId": "basic-sortie",
+            "basicTaskName": "Sortie B",
+            "firstWaveTime": "00:40",
+            "dailyRepeatCount": 1,
+            "equipmentType": "F35",
+            "operations_plan_group_id": "f35-daily"
+          }
+        ]
+      }
+    ],
+    "mission_calendar": [
+      {
+        "day_index": 1,
+        "composite_task_id": "daily-sorties"
+      }
+    ],
+    "mission_phases": [],
+    "airports": []
+  },
+  "aircraft": {
+    "fleet_count": 2,
+    "initial_ready": 2,
+    "models": ["F35"],
+    "assets": [
+      {
+        "tail_number": "F35-01",
+        "aircraft_type": "F35",
+        "model": "F35",
+        "initial_state": "available"
+      },
+      {
+        "tail_number": "F35-02",
+        "aircraft_type": "F35",
+        "model": "F35",
+        "initial_state": "available"
+      }
+    ]
+  },
+  "equipment_tree": {
+    "root_component_id": "f35",
+    "components": [
+      {
+        "id": "f35",
+        "name": "F35",
+        "parent_id": "",
+        "aircraft_model": "F35",
+        "quantity": 1
+      }
+    ]
+  },
+  "support_network": {
+    "nodes": [
+      {
+        "id": "flight-line",
+        "name": "Flight line",
+        "personnel_capacity": 1,
+        "equipment_capacity": 1,
+        "inventory": {}
+      }
+    ]
+  },
+  "support_activities": {
+    "activities": [
+      {
+        "id": "f35-daily-preflight",
+        "name": "Preflight",
+        "operations_phase": "preflight",
+        "plan_group_id": "f35-daily",
+        "aircraft_model": "F35",
+        "resource_id": "flight-line",
+        "priority": 1,
+        "jobs": [
+          {
+            "activityCode": "PRE-1",
+            "durationMinutes": 3,
+            "personnel": [{"professional": "crew", "quantity": 1}],
+            "equipment": [{"model": "cart", "quantity": 1}],
+            "spare": [],
+            "predecessors": []
+          }
+        ]
+      },
+      {
+        "id": "f35-daily-relaunch",
+        "name": "Relaunch",
+        "operations_phase": "relaunch",
+        "plan_group_id": "f35-daily",
+        "aircraft_model": "F35",
+        "resource_id": "flight-line",
+        "priority": 1,
+        "jobs": []
+      },
+      {
+        "id": "f35-daily-postflight",
+        "name": "Postflight",
+        "operations_phase": "postflight",
+        "plan_group_id": "f35-daily",
+        "aircraft_model": "F35",
+        "resource_id": "flight-line",
+        "priority": 1,
+        "jobs": [
+          {
+            "activityCode": "POST-1",
+            "durationMinutes": 2,
+            "personnel": [{"professional": "crew", "quantity": 1}],
+            "equipment": [{"model": "cart", "quantity": 1}],
+            "spare": [],
+            "predecessors": []
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "duration_minutes": 60,
+    "tick_minutes": 1,
+    "sample_every_minutes": 30,
+    "max_state_frames_single": 2000,
+    "requested_steps": 60
+  },
+  "monte_carlo": {
+    "sample_count": 1,
+    "sweep": {}
+  },
+  "seed": 0,
+  "stop_policy": {
+    "schema_version": "stop-policy-v1",
+    "mode": "or",
+    "conditions": [{"type": "duration", "duration_minutes": 60}],
+    "defaulted": false
+  },
+  "disable_visualization_frames": true
+}

@@ -1,12 +1,12 @@
 # IR
 
-阶段 B 逐步增加以下类型模块，目前尚无实现：
+`plan.py` 已实现 `aircraft-support-plan/v1alpha2`；Business IR 与 Core Simulation IR 尚未单独物化：
 
 | 计划模块 | 职责 |
 |---|---|
 | `business.py` | BusinessModel、ModelRevision、实体关系、规则 AST、过程模板 |
 | `core.py` | 类型化状态、事件、guard/effect、事务、时钟、采样、指标 |
-| `plan.py` | ExecutionPlan、静态表、指令块、索引、状态布局、能力需求 |
+| `plan.py` | 已实现 ExecutionPlan、任务/活动/组件/预防周期/资源/供应路线静态表和稠密索引 |
 | `profiles.py` | 版本化时间、RNG、作业与资源语义引用 |
 | `provenance.py` | 输入身份、编译身份、修订来源与 SourceMap |
 
