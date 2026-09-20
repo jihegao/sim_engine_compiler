@@ -1,6 +1,6 @@
 # 架构与模块边界
 
-状态：Python reference 基线已实现 canonical input → Execution Plan → independent SimPy，并完成 B1/B2/B3 与 F35 三个 seed 的兼容验收；Business/Core IR 分层物化、Rust 及 agent 编辑仍按本文推进。
+状态：Python reference 与独立 Rust 单样本 runtime 已实现 canonical input → Execution Plan → result，并完成 B1/B2/B3 与 F35 三个 seed 的跨后端验收；Business/Core IR 分层物化、Rust 批量执行及 agent 编辑仍按本文推进。
 
 ## 模型流转
 

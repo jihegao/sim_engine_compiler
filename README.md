@@ -2,7 +2,7 @@
 
 面向任务、资产与保障资源的业务模型编译器及离散事件运行时。首个领域是飞机机群任务与保障，原型通过 `spare_mvp` 的 canonical `simulation_inputs` 接入。
 
-**当前状态：Independent SimPy Reference Runtime Conformance 已完成。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Execution Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已与固定旧模型 oracle 对齐。Rust 目录仍是预留边界。
+**当前状态：Python reference 与独立 Rust 单样本 runtime 均已通过当前 Execution Plan 兼容范围。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已完成旧模型 → Python reference → Rust 的差分闭环。
 
 ```text
 spare_mvp Project JSON
@@ -34,7 +34,7 @@ Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负�
 │   ├── domains/aircraft_support/    领域插件边界（待从 B1 lowering 提取）
 │   ├── reference/                  独立 SimPy 执行器与首处分歧工具
 │   └── integrations/spare_mvp/      上游文件边界与说明
-├── rust/runtime/                    Rust 内核预留，阶段 C 建 crate
+├── rust/runtime/                    独立 Rust 单样本执行内核与 CLI
 ├── tests/
 │   ├── fixtures/                   小案例、输入来源、golden 产物
 │   ├── conformance/                合同、不变量、可手算案例
@@ -61,7 +61,7 @@ python3.12 -m venv .venv
 .venv/bin/python -m pip install -e .
 ```
 
-当前可使用两个文件边界 CLI：`scripts/compile_execution_plan.py` 将 canonical JSON 编译为计划，`scripts/run_reference_plan.py` 只执行已序列化计划。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)单独保留；本阶段结论是语义一致，不把 SimPy reference 宣称为性能目标。
+当前可使用三个文件边界入口：`scripts/compile_execution_plan.py` 将 canonical JSON 编译为计划，`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)单独保留；语义验收与性能结论继续分开。
 
 ## 设计来源与证据边界
 

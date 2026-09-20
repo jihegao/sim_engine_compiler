@@ -1,6 +1,9 @@
 # Differential
 
-阶段 A/B 建立旧模型与 Python 的比较，阶段 C 加入 Rust。当前无 runner 或已执行结果。
+阶段 A/B 建立旧模型与 Python 的比较，阶段 C 已加入独立 Rust runtime。
+`test_rust_runtime.py` 会构建固定工具链的 release crate：四个 B1/B2/B3 合成
+Plan 与完整保存结果比较，F35 seeds `0、1、7` 则在测试时从同一份序列化 Plan
+分别生成 Python 与 Rust 完整结果并逐字段比较。
 
 比较前先核对 canonical 输入、语义 profile、参数、初始状态、horizon、样本身份和随机请求 tape。对齐业务事件、时间/phase、资源账本与末态，输出首处分歧及其源规则/字段。
 

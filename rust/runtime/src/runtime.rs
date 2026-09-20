@@ -1,0 +1,1888 @@
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+
+use anyhow::{Result, bail};
+use serde::Serialize;
+use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+
+use crate::plan::{ActivitySpec, ExecutionPlan, MissionSpec, WorkStepSpec};
+use crate::rng::PythonRandom;
+
+#[derive(Clone, Debug)]
+struct AircraftState {
+    tail_number: String,
+    aircraft_type: String,
+    model: String,
+    state: String,
+    current_mission_index: Option<usize>,
+    return_time: Option<i64>,
+    prepared_mission_indexes: BTreeSet<usize>,
+    operations_day: Option<i64>,
+    daily_takeoffs: i64,
+    operations_plan_group_id: String,
+    last_operations_mission_index: Option<usize>,
+    prepared_operations_day: Option<i64>,
+    postflight_required: bool,
+    postflight_due: bool,
+    flight_hours: f64,
+    takeoff_count: i64,
+    landing_count: i64,
+    failure_remaining: BTreeMap<usize, f64>,
+    component_failure_minutes: BTreeMap<usize, i64>,
+    failed_component_index: Option<usize>,
+    failed_component_minute: Option<i64>,
+    in_flight_failure: bool,
+}
+
+#[derive(Clone, Debug)]
+struct MissionState {
+    status: String,
+    actual_start: Option<i64>,
+    return_time: Option<i64>,
+    assigned_aircraft: Vec<usize>,
+    failed_aircraft: Vec<usize>,
+    preflight_created: bool,
+    delay_minutes: i64,
+    success_evaluated: bool,
+    success_member_count: usize,
+    success_at_minute: Option<i64>,
+    succeeded: bool,
+}
+
+impl Default for MissionState {
+    fn default() -> Self {
+        Self {
+            status: "scheduled".into(),
+            actual_start: None,
+            return_time: None,
+            assigned_aircraft: vec![],
+            failed_aircraft: vec![],
+            preflight_created: false,
+            delay_minutes: 0,
+            success_evaluated: false,
+            success_member_count: 0,
+            success_at_minute: None,
+            succeeded: false,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct JobState {
+    job_id: String,
+    aircraft_index: usize,
+    kind: String,
+    activity_index: usize,
+    mission_index: Option<usize>,
+    state: String,
+    step_index: usize,
+    remaining: i64,
+    started_time: Option<i64>,
+    completed_time: Option<i64>,
+    reserved_personnel: i64,
+    reserved_equipment: i64,
+    component_index: Option<usize>,
+    preventive_cycle_index: Option<usize>,
+    maintenance_method: Option<String>,
+    injected_spares: Vec<(String, i64)>,
+    requested_spare_steps: HashSet<usize>,
+    consumed_spare_steps: HashSet<usize>,
+    shortage_signature: Option<Vec<(String, i64, i64)>>,
+    spare_reservations: BTreeMap<String, i64>,
+}
+
+#[derive(Clone, Debug)]
+struct ResourceState {
+    personnel_capacity: i64,
+    equipment_capacity: i64,
+    personnel_in_use: i64,
+    equipment_in_use: i64,
+    inventory: BTreeMap<String, i64>,
+}
+
+#[derive(Clone, Debug)]
+struct PreventiveCycleState {
+    life_flight_hours: f64,
+    life_landing_cycles: i64,
+    last_preventive_minute: i64,
+}
+
+#[derive(Clone, Debug)]
+struct ShipmentState {
+    job_id: String,
+    step_index: usize,
+    product_id: String,
+    quantity: i64,
+    source_node_index: usize,
+    destination_node_index: usize,
+    requested_minute: i64,
+    arrival_minute: i64,
+    route_index: usize,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct RunResult {
+    pub plan_fingerprint: String,
+    pub seed: u64,
+    pub time: i64,
+    pub stop_reason: String,
+    pub sample_requests: Vec<Value>,
+    pub trace: Vec<Value>,
+    pub metrics: Value,
+    pub terminal_state: Value,
+}
+
+pub struct Runtime {
+    plan: ExecutionPlan,
+    fingerprint: String,
+    seed: u64,
+    minute: i64,
+    phase: String,
+    running: bool,
+    stop_reason: String,
+    trace: Vec<Value>,
+    sample_requests: Vec<Value>,
+    rng: PythonRandom,
+    aircraft: Vec<AircraftState>,
+    missions: Vec<MissionState>,
+    jobs: Vec<JobState>,
+    resources: Vec<ResourceState>,
+    preventive_cycles: Vec<PreventiveCycleState>,
+    shipments: Vec<ShipmentState>,
+    job_sequence: usize,
+    launched_sorties: i64,
+    completed_sorties: i64,
+    cancelled_sorties: i64,
+    delayed_sorties: i64,
+    total_departure_delay: i64,
+    lru_failures: i64,
+    in_flight_failures: i64,
+    failed_sorties: i64,
+    preventive_maintenance_events: i64,
+    spare_demand_total: i64,
+    spare_immediately_filled_total: i64,
+    spare_consumed_total: i64,
+    shortage_events: i64,
+    transport_replenishment_events: i64,
+    total_transport_delay: i64,
+    delayed_missions: HashSet<usize>,
+    activity_by_group_phase: HashMap<(String, String), Vec<usize>>,
+    children_by_component: HashMap<i64, Vec<usize>>,
+    failure_components_by_aircraft: Vec<Vec<usize>>,
+}
+
+impl Runtime {
+    pub fn new(plan: ExecutionPlan, fingerprint: String, seed: u64) -> Result<Self> {
+        plan.validate()?;
+        let aircraft = plan
+            .aircraft
+            .iter()
+            .map(|item| AircraftState {
+                tail_number: item.tail_number.clone(),
+                aircraft_type: item.aircraft_type.clone(),
+                model: item.model.clone(),
+                state: item.initial_state.clone(),
+                current_mission_index: None,
+                return_time: None,
+                prepared_mission_indexes: BTreeSet::new(),
+                operations_day: None,
+                daily_takeoffs: 0,
+                operations_plan_group_id: String::new(),
+                last_operations_mission_index: None,
+                prepared_operations_day: None,
+                postflight_required: false,
+                postflight_due: false,
+                flight_hours: item.initial_flight_hours,
+                takeoff_count: item.initial_cycles,
+                landing_count: item.initial_cycles,
+                failure_remaining: BTreeMap::new(),
+                component_failure_minutes: BTreeMap::new(),
+                failed_component_index: None,
+                failed_component_minute: None,
+                in_flight_failure: false,
+            })
+            .collect();
+        let resources = plan
+            .resource_nodes
+            .iter()
+            .map(|item| ResourceState {
+                personnel_capacity: item.personnel_capacity,
+                equipment_capacity: item.equipment_capacity,
+                personnel_in_use: 0,
+                equipment_in_use: 0,
+                inventory: item.inventory.iter().cloned().collect(),
+            })
+            .collect();
+        let preventive_cycles = plan
+            .preventive_cycles
+            .iter()
+            .map(|item| PreventiveCycleState {
+                life_flight_hours: item.initial_flight_hours,
+                life_landing_cycles: item.initial_landing_cycles,
+                last_preventive_minute: -item.initial_calendar_days * 1440,
+            })
+            .collect();
+        let mut activity_by_group_phase: HashMap<(String, String), Vec<usize>> = HashMap::new();
+        for activity in &plan.activities {
+            if !activity.phase.is_empty() {
+                activity_by_group_phase
+                    .entry((activity.plan_group_id.clone(), activity.phase.clone()))
+                    .or_default()
+                    .push(activity.index);
+            }
+        }
+        let mut children_by_component: HashMap<i64, Vec<usize>> = HashMap::new();
+        for component in &plan.components {
+            children_by_component
+                .entry(component.parent_index)
+                .or_default()
+                .push(component.index);
+        }
+        let failure_components_by_aircraft = (0..plan.aircraft.len())
+            .map(|aircraft_index| {
+                plan.components
+                    .iter()
+                    .filter(|component| {
+                        component.failure_rate_per_hour > 0.0
+                            && component.aircraft_indexes.contains(&aircraft_index)
+                    })
+                    .map(|item| item.index)
+                    .collect()
+            })
+            .collect();
+        let mission_count = plan.missions.len();
+        let mut runtime = Self {
+            plan,
+            fingerprint,
+            seed,
+            minute: 0,
+            phase: "initialize".into(),
+            running: true,
+            stop_reason: String::new(),
+            trace: vec![],
+            sample_requests: vec![],
+            rng: PythonRandom::from_u64(seed),
+            aircraft,
+            missions: vec![MissionState::default(); mission_count],
+            jobs: vec![],
+            resources,
+            preventive_cycles,
+            shipments: vec![],
+            job_sequence: 0,
+            launched_sorties: 0,
+            completed_sorties: 0,
+            cancelled_sorties: 0,
+            delayed_sorties: 0,
+            total_departure_delay: 0,
+            lru_failures: 0,
+            in_flight_failures: 0,
+            failed_sorties: 0,
+            preventive_maintenance_events: 0,
+            spare_demand_total: 0,
+            spare_immediately_filled_total: 0,
+            spare_consumed_total: 0,
+            shortage_events: 0,
+            transport_replenishment_events: 0,
+            total_transport_delay: 0,
+            delayed_missions: HashSet::new(),
+            activity_by_group_phase,
+            children_by_component,
+            failure_components_by_aircraft,
+        };
+        runtime.initialize_failure_timers();
+        Ok(runtime)
+    }
+
+    fn sample_failure_minutes(
+        &mut self,
+        component_index: usize,
+        aircraft_index: usize,
+        reason: &str,
+    ) -> f64 {
+        let component = self.plan.components[component_index].clone();
+        let mut minimum = f64::INFINITY;
+        for quantity_index in 0..component.quantity {
+            let value = if component.failure_rate_per_hour > 0.0 {
+                self.rng.expovariate(component.failure_rate_per_hour) * 60.0
+            } else {
+                f64::INFINITY
+            };
+            self.sample_requests.push(json!({
+                "sequence": self.sample_requests.len() + 1, "time": self.minute, "phase": self.phase,
+                "stream": "legacy-sequential-v1", "distribution": "exponential",
+                "entity": self.aircraft[aircraft_index].tail_number,
+                "component_id": component.component_id, "quantity_index": quantity_index,
+                "rate_per_hour": component.failure_rate_per_hour, "value_minutes": value,
+                "reason": reason, "source_path": component.source_path,
+            }));
+            minimum = minimum.min(value);
+        }
+        minimum
+    }
+
+    fn initialize_failure_timers(&mut self) {
+        for aircraft_index in 0..self.aircraft.len() {
+            for component_index in 0..self.plan.components.len() {
+                if self.plan.components[component_index].failure_rate_per_hour <= 0.0 {
+                    continue;
+                }
+                let sampled =
+                    self.sample_failure_minutes(component_index, aircraft_index, "initialize");
+                if self.plan.components[component_index]
+                    .aircraft_indexes
+                    .contains(&aircraft_index)
+                {
+                    self.aircraft[aircraft_index]
+                        .failure_remaining
+                        .insert(component_index, sampled);
+                }
+            }
+        }
+    }
+
+    fn emit(
+        &mut self,
+        kind: &str,
+        rule_id: &str,
+        entity: String,
+        details: Value,
+        source_path: Option<String>,
+    ) {
+        let source = source_path
+            .or_else(|| {
+                details
+                    .get("activity_id")
+                    .and_then(Value::as_str)
+                    .and_then(|id| {
+                        self.plan
+                            .activities
+                            .iter()
+                            .find(|item| item.activity_id == id)
+                            .map(|item| item.source_path.clone())
+                    })
+            })
+            .or_else(|| {
+                details
+                    .get("mission_id")
+                    .and_then(Value::as_str)
+                    .and_then(|id| {
+                        self.plan
+                            .missions
+                            .iter()
+                            .find(|item| item.mission_id == id)
+                            .map(|item| item.source_path.clone())
+                    })
+            })
+            .or_else(|| {
+                self.plan
+                    .missions
+                    .iter()
+                    .find(|item| item.mission_id == entity)
+                    .map(|item| item.source_path.clone())
+            });
+        self.trace.push(json!({
+            "sequence": self.trace.len() + 1, "time": self.minute, "phase": self.phase,
+            "kind": kind, "rule_id": rule_id, "entity": entity, "source_path": source,
+            "details": details,
+        }));
+    }
+
+    fn mission_id(&self, index: Option<usize>) -> Value {
+        index
+            .map(|item| Value::String(self.plan.missions[item].mission_id.clone()))
+            .unwrap_or(Value::Null)
+    }
+
+    fn matches_type(&self, aircraft_index: usize, mission: &MissionSpec) -> bool {
+        let required = tokens(&mission.required_aircraft_type);
+        if required.is_empty() {
+            return true;
+        }
+        let aircraft = &self.aircraft[aircraft_index];
+        !required.is_disjoint(
+            &tokens(&aircraft.aircraft_type)
+                .union(&tokens(&aircraft.model))
+                .cloned()
+                .collect(),
+        )
+    }
+
+    fn activity_for(&self, group_id: &str, phase: &str, aircraft_index: usize) -> Result<usize> {
+        let aircraft = &self.aircraft[aircraft_index];
+        let aircraft_tokens: HashSet<_> = tokens(&aircraft.aircraft_type)
+            .union(&tokens(&aircraft.model))
+            .cloned()
+            .collect();
+        let candidates: Vec<_> = self
+            .activity_by_group_phase
+            .get(&(group_id.to_string(), phase.to_string()))
+            .into_iter()
+            .flatten()
+            .filter(|index| {
+                let required = tokens(&self.plan.activities[**index].aircraft_model);
+                required.is_empty() || !required.is_disjoint(&aircraft_tokens)
+            })
+            .copied()
+            .collect();
+        if candidates.len() != 1 {
+            bail!(
+                "operations group {:?} requires exactly one compatible {} activity",
+                group_id,
+                phase
+            );
+        }
+        Ok(candidates[0])
+    }
+
+    fn preparation_activity(
+        &mut self,
+        mission_index: usize,
+        aircraft_index: usize,
+    ) -> Result<usize> {
+        let mission = &self.plan.missions[mission_index];
+        let day = self.minute.max(mission.planned_start) / 1440;
+        let phase = if self.aircraft[aircraft_index].operations_day == Some(day)
+            && self.aircraft[aircraft_index].daily_takeoffs != 0
+        {
+            "relaunch"
+        } else {
+            "preflight"
+        };
+        self.aircraft[aircraft_index].prepared_operations_day = Some(day);
+        self.activity_for(&mission.operations_plan_group_id, phase, aircraft_index)
+    }
+
+    fn create_job(
+        &mut self,
+        aircraft_index: usize,
+        activity_index: usize,
+        kind: &str,
+        mission_index: Option<usize>,
+        component_index: Option<usize>,
+        preventive_cycle_index: Option<usize>,
+    ) -> Result<()> {
+        self.job_sequence += 1;
+        let job_id = format!("job-{:04}", self.job_sequence);
+        let maintenance_method = if matches!(kind, "repair" | "preventive") {
+            Some(self.maintenance_method(activity_index, kind, &job_id))
+        } else {
+            None
+        };
+        let activity = self.plan.activities[activity_index].clone();
+        let mut injected_spares = vec![];
+        if kind == "repair"
+            && maintenance_method.as_deref() == Some("replacement")
+            && !activity.steps.is_empty()
+            && !activity.steps.iter().any(|step| !step.spares.is_empty())
+            && let Some(component_index) = component_index
+        {
+            let component = &self.plan.components[component_index];
+            if component.product_type.trim().eq_ignore_ascii_case("LRU")
+                && !component.product_id.is_empty()
+            {
+                injected_spares.push((component.product_id.clone(), 1));
+            }
+        }
+        self.jobs.push(JobState {
+            job_id: job_id.clone(),
+            aircraft_index,
+            kind: kind.into(),
+            activity_index,
+            mission_index,
+            state: "waiting".into(),
+            step_index: 0,
+            remaining: 0,
+            started_time: None,
+            completed_time: None,
+            reserved_personnel: 0,
+            reserved_equipment: 0,
+            component_index,
+            preventive_cycle_index,
+            maintenance_method,
+            injected_spares,
+            requested_spare_steps: HashSet::new(),
+            consumed_spare_steps: HashSet::new(),
+            shortage_signature: None,
+            spare_reservations: BTreeMap::new(),
+        });
+        self.emit(
+            "operations_phase_created",
+            "daily-v1.create-operation",
+            job_id,
+            json!({"tail_number": self.aircraft[aircraft_index].tail_number,
+                "mission_id": self.mission_id(mission_index), "activity_id": activity.activity_id,
+                "operations_phase": activity.phase}),
+            None,
+        );
+        if activity.steps.is_empty() {
+            let index = self.jobs.len() - 1;
+            self.jobs[index].state = "completed".into();
+            self.jobs[index].started_time = Some(self.minute);
+            self.jobs[index].completed_time = Some(self.minute);
+            self.complete_job(index)?;
+        }
+        Ok(())
+    }
+
+    fn maintenance_method(&mut self, activity_index: usize, kind: &str, job_id: &str) -> String {
+        let activity = &self.plan.activities[activity_index];
+        let methods = if activity.maintenance_methods.is_empty() {
+            vec!["non_replacement".to_string()]
+        } else {
+            activity.maintenance_methods.clone()
+        };
+        let mut ratio = activity.replacement_ratio;
+        if methods == ["replacement"] {
+            ratio = 1.0;
+        } else if !methods.iter().any(|item| item == "replacement") {
+            ratio = 0.0;
+        }
+        let occurrence = 1 + self
+            .jobs
+            .iter()
+            .filter(|job| job.kind == kind && job.maintenance_method.is_some())
+            .count();
+        let stream_key = format!("{}|maintenance-method|{}|{}", self.seed, kind, occurrence);
+        let digest = Sha256::digest(stream_key.as_bytes());
+        let mut rng = PythonRandom::from_be_bytes(&digest[..16]);
+        let roll = rng.random();
+        let method = if methods.iter().any(|item| item == "replacement") && roll < ratio {
+            "replacement"
+        } else {
+            "non_replacement"
+        }
+        .to_string();
+        self.emit(
+            "maintenance_method_selected",
+            "maintenance.select-method",
+            job_id.to_string(),
+            json!({"maintenance_kind": kind, "maintenance_method": method,
+                "replacement_ratio": ratio, "decision_roll": roll,
+                "rng_stream": hex_prefix(&digest, 8), "maintenance_occurrence": occurrence}),
+            Some(activity.source_path.clone()),
+        );
+        method
+    }
+
+    fn complete_job(&mut self, job_index: usize) -> Result<()> {
+        let snapshot = self.jobs[job_index].clone();
+        let activity = self.plan.activities[snapshot.activity_index].clone();
+        let aircraft_index = snapshot.aircraft_index;
+        self.emit(
+            "operations_phase_completed",
+            "daily-v1.complete-operation",
+            snapshot.job_id.clone(),
+            json!({"tail_number": self.aircraft[aircraft_index].tail_number,
+                "mission_id": self.mission_id(snapshot.mission_index),
+                "activity_id": activity.activity_id, "operations_phase": activity.phase}),
+            None,
+        );
+        match snapshot.kind.as_str() {
+            "preflight" => {
+                if let Some(mission_index) = snapshot.mission_index {
+                    self.aircraft[aircraft_index]
+                        .prepared_mission_indexes
+                        .insert(mission_index);
+                    self.aircraft[aircraft_index].current_mission_index = Some(mission_index);
+                    self.aircraft[aircraft_index].state = "mission_ready".into();
+                    self.emit(
+                        "preflight_completed",
+                        "mission.preflight-complete",
+                        self.aircraft[aircraft_index].tail_number.clone(),
+                        json!({"mission_id": self.mission_id(Some(mission_index))}),
+                        None,
+                    );
+                }
+            }
+            "postflight" => {
+                self.aircraft[aircraft_index].state = "available".into();
+                self.aircraft[aircraft_index].postflight_required = false;
+                self.aircraft[aircraft_index].postflight_due = false;
+                self.emit(
+                    "postflight_completed",
+                    "daily-v1.postflight-complete",
+                    self.aircraft[aircraft_index].tail_number.clone(),
+                    json!({}),
+                    None,
+                );
+            }
+            "repair" => {
+                self.aircraft[aircraft_index].state = "available".into();
+                if let Some(component_index) = snapshot.component_index {
+                    let sampled = self.sample_failure_minutes(
+                        component_index,
+                        aircraft_index,
+                        "repair_completed",
+                    );
+                    self.aircraft[aircraft_index]
+                        .failure_remaining
+                        .insert(component_index, sampled);
+                }
+                self.aircraft[aircraft_index].failed_component_index = None;
+                self.aircraft[aircraft_index].failed_component_minute = None;
+                self.aircraft[aircraft_index]
+                    .component_failure_minutes
+                    .clear();
+                self.aircraft[aircraft_index].in_flight_failure = false;
+                self.emit("repair_completed", "maintenance.repair-complete",
+                    self.aircraft[aircraft_index].tail_number.clone(),
+                    json!({"component_id": snapshot.component_index.map(|index| self.plan.components[index].component_id.clone())}), None);
+            }
+            "preventive" => {
+                if let Some(cycle_index) = snapshot.preventive_cycle_index {
+                    let spec = self.plan.preventive_cycles[cycle_index].clone();
+                    if spec.flight_hours > 0.0 {
+                        self.preventive_cycles[cycle_index].life_flight_hours = 0.0;
+                    }
+                    if spec.landing_cycles > 0 {
+                        self.preventive_cycles[cycle_index].life_landing_cycles = 0;
+                    }
+                    self.preventive_cycles[cycle_index].last_preventive_minute = self.minute;
+                    self.aircraft[aircraft_index].state = "available".into();
+                    let first_cycle = self
+                        .plan
+                        .preventive_cycles
+                        .iter()
+                        .position(|item| item.aircraft_index == aircraft_index);
+                    if first_cycle == Some(cycle_index) {
+                        self.aircraft[aircraft_index].flight_hours = 0.0;
+                        self.aircraft[aircraft_index].takeoff_count = 0;
+                        self.aircraft[aircraft_index].landing_count = 0;
+                    }
+                    self.emit(
+                        "preventive_completed",
+                        "maintenance.preventive-complete",
+                        self.aircraft[aircraft_index].tail_number.clone(),
+                        json!({"activity_id": activity.activity_id}),
+                        None,
+                    );
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    fn active_preflight_aircraft(&self, mission_index: usize) -> HashSet<usize> {
+        self.jobs
+            .iter()
+            .filter(|job| {
+                job.kind == "preflight"
+                    && job.mission_index == Some(mission_index)
+                    && matches!(job.state.as_str(), "waiting" | "running")
+            })
+            .map(|job| job.aircraft_index)
+            .collect()
+    }
+
+    fn ready_for_mission(&self, aircraft_index: usize, mission_index: usize) -> bool {
+        let aircraft = &self.aircraft[aircraft_index];
+        if !aircraft.prepared_mission_indexes.contains(&mission_index) {
+            return false;
+        }
+        if aircraft.state == "mission_ready" {
+            return aircraft.current_mission_index == Some(mission_index);
+        }
+        aircraft.state == "available"
+            && (aircraft.current_mission_index.is_none()
+                || aircraft.current_mission_index == Some(mission_index))
+    }
+
+    fn commissioned_count(&self, mission_index: usize) -> usize {
+        let mission = &self.plan.missions[mission_index];
+        let mut result = self.active_preflight_aircraft(mission_index);
+        result.extend((0..self.aircraft.len()).filter(|index| {
+            self.ready_for_mission(*index, mission_index) && self.matches_type(*index, mission)
+        }));
+        result.len()
+    }
+
+    fn phase_mission_returns(&mut self) -> Result<()> {
+        for aircraft_index in 0..self.aircraft.len() {
+            if self.aircraft[aircraft_index].state == "flying"
+                && self.aircraft[aircraft_index]
+                    .return_time
+                    .is_some_and(|time| time <= self.minute)
+            {
+                self.return_aircraft(aircraft_index, false)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn phase_transport_arrivals(&mut self) {
+        for job_index in 0..self.jobs.len() {
+            if self.jobs[job_index].state != "cancelled"
+                || self.jobs[job_index].spare_reservations.is_empty()
+            {
+                continue;
+            }
+            let node_index =
+                self.plan.activities[self.jobs[job_index].activity_index].resource_node_index;
+            let returned: Vec<_> = self.jobs[job_index].spare_reservations.iter()
+                .map(|(product_id, quantity)| json!({"product_id": product_id, "quantity": quantity})).collect();
+            let reservations = std::mem::take(&mut self.jobs[job_index].spare_reservations);
+            for (product_id, quantity) in reservations {
+                *self.resources[node_index]
+                    .inventory
+                    .entry(product_id)
+                    .or_default() += quantity;
+            }
+            self.emit(
+                "organization_spare_reservation_returned",
+                "inventory.return-cancelled-reservation",
+                self.jobs[job_index].job_id.clone(),
+                json!({"products": returned, "node_index": node_index}),
+                None,
+            );
+        }
+        let mut arrived = Vec::new();
+        self.shipments.retain(|item| {
+            if item.arrival_minute <= self.minute {
+                arrived.push(item.clone());
+                false
+            } else {
+                true
+            }
+        });
+        for shipment in arrived {
+            let job_index = self
+                .jobs
+                .iter()
+                .position(|item| item.job_id == shipment.job_id);
+            let reserved = job_index.is_some_and(|index| {
+                self.jobs[index].state == "waiting"
+                    && self.jobs[index].step_index == shipment.step_index
+            });
+            if let Some(index) = job_index.filter(|_| reserved) {
+                *self.jobs[index]
+                    .spare_reservations
+                    .entry(shipment.product_id.clone())
+                    .or_default() += shipment.quantity;
+            } else {
+                *self.resources[shipment.destination_node_index]
+                    .inventory
+                    .entry(shipment.product_id.clone())
+                    .or_default() += shipment.quantity;
+            }
+            let route = self.plan.supply_routes[shipment.route_index].clone();
+            self.total_transport_delay += shipment.arrival_minute - shipment.requested_minute;
+            let details = json!({"job_id": shipment.job_id, "step_index": shipment.step_index,
+                "product_id": shipment.product_id, "quantity": shipment.quantity,
+                "source_node_index": shipment.source_node_index,
+                "destination_node_index": shipment.destination_node_index,
+                "supply_mode": route.supply_mode, "relation_id": route.relation_id,
+                "reserved_for_job": reserved, "requested_minute": shipment.requested_minute,
+                "arrival_minute": shipment.arrival_minute});
+            self.emit(
+                "transport_arrived",
+                "inventory.transport-arrival",
+                shipment.job_id.clone(),
+                details.clone(),
+                Some(route.source_path.clone()),
+            );
+            self.emit(
+                "organization_transport_arrived",
+                "organization.transport-arrival",
+                shipment.job_id,
+                details,
+                Some(route.source_path),
+            );
+        }
+    }
+
+    fn dispatch_remote_spares(
+        &mut self,
+        job_index: usize,
+        activity_index: usize,
+        requirements: &BTreeMap<String, i64>,
+    ) {
+        let destination_index = self.plan.activities[activity_index].resource_node_index;
+        for (product_id, needed) in requirements {
+            let available = self.resources[destination_index]
+                .inventory
+                .get(product_id)
+                .copied()
+                .unwrap_or(0)
+                + self.jobs[job_index]
+                    .spare_reservations
+                    .get(product_id)
+                    .copied()
+                    .unwrap_or(0);
+            let shortage = (*needed - available).max(0);
+            let already = self.shipments.iter().any(|item| {
+                item.job_id == self.jobs[job_index].job_id
+                    && item.step_index == self.jobs[job_index].step_index
+                    && item.product_id == *product_id
+            });
+            if shortage <= 0 || already {
+                continue;
+            }
+            for route_index in 0..self.plan.supply_routes.len() {
+                let route = self.plan.supply_routes[route_index].clone();
+                if route.destination_node_index != destination_index
+                    || (!route.product_id.is_empty() && route.product_id != *product_id)
+                {
+                    continue;
+                }
+                let stock = self.resources[route.source_node_index]
+                    .inventory
+                    .get(product_id)
+                    .copied()
+                    .unwrap_or(0);
+                let moved = shortage.min(route.capacity).min(stock);
+                if moved <= 0 {
+                    continue;
+                }
+                *self.resources[route.source_node_index]
+                    .inventory
+                    .entry(product_id.clone())
+                    .or_default() -= moved;
+                let shipment = ShipmentState {
+                    job_id: self.jobs[job_index].job_id.clone(),
+                    step_index: self.jobs[job_index].step_index,
+                    product_id: product_id.clone(),
+                    quantity: moved,
+                    source_node_index: route.source_node_index,
+                    destination_node_index: destination_index,
+                    requested_minute: self.minute,
+                    arrival_minute: self.minute + route.transport_minutes.max(1),
+                    route_index: route.index,
+                };
+                self.shipments.push(shipment.clone());
+                self.transport_replenishment_events += 1;
+                let details = json!({"job_id": shipment.job_id, "step_index": shipment.step_index,
+                    "product_id": product_id, "quantity": moved, "source_node_index": route.source_node_index,
+                    "destination_node_index": destination_index, "arrival_minute": shipment.arrival_minute,
+                    "supply_mode": route.supply_mode, "relation_id": route.relation_id});
+                self.emit(
+                    "organization_supply_selected",
+                    "organization.select-supplier",
+                    shipment.job_id.clone(),
+                    details.clone(),
+                    Some(route.source_path.clone()),
+                );
+                self.emit(
+                    "organization_transport_dispatched",
+                    "organization.dispatch-transport",
+                    shipment.job_id,
+                    details,
+                    Some(route.source_path),
+                );
+                break;
+            }
+        }
+    }
+
+    fn return_aircraft(&mut self, aircraft_index: usize, early_return: bool) -> Result<()> {
+        let mission_index = self.aircraft[aircraft_index].current_mission_index;
+        self.aircraft[aircraft_index].postflight_required = true;
+        let mission_start = mission_index
+            .map(|index| {
+                self.missions[index]
+                    .actual_start
+                    .unwrap_or(self.plan.missions[index].planned_start)
+            })
+            .unwrap_or(self.minute);
+        let end_minute = if early_return {
+            self.minute
+        } else {
+            self.aircraft[aircraft_index]
+                .return_time
+                .unwrap_or(self.minute)
+        };
+        let flight_hours = ((end_minute - mission_start) as f64 / 60.0).max(0.0);
+        self.aircraft[aircraft_index].flight_hours += flight_hours;
+        self.aircraft[aircraft_index].landing_count += 1;
+        for (cycle_index, spec) in self.plan.preventive_cycles.iter().enumerate() {
+            if spec.aircraft_index == aircraft_index {
+                self.preventive_cycles[cycle_index].life_flight_hours += flight_hours;
+                self.preventive_cycles[cycle_index].life_landing_cycles += 1;
+            }
+        }
+        let failed_on_return = self.aircraft[aircraft_index].in_flight_failure
+            || !self.aircraft[aircraft_index]
+                .component_failure_minutes
+                .is_empty();
+        if failed_on_return {
+            self.aircraft[aircraft_index].state = "maintenance".into();
+            if self.aircraft[aircraft_index].in_flight_failure {
+                self.failed_sorties += 1;
+            }
+            let component_index = self.aircraft[aircraft_index]
+                .failed_component_index
+                .unwrap_or_else(|| {
+                    *self.aircraft[aircraft_index]
+                        .component_failure_minutes
+                        .iter()
+                        .min_by_key(|(_, minute)| *minute)
+                        .unwrap()
+                        .0
+                });
+            let component = self.plan.components[component_index].clone();
+            if component.repair_activity_index < 0 {
+                bail!(
+                    "no repair activity for component {:?}",
+                    component.component_id
+                );
+            }
+            self.create_job(
+                aircraft_index,
+                component.repair_activity_index as usize,
+                "repair",
+                mission_index,
+                Some(component_index),
+                None,
+            )?;
+            if let Some(mission_index) =
+                mission_index.filter(|_| self.aircraft[aircraft_index].in_flight_failure)
+            {
+                if !self.missions[mission_index]
+                    .failed_aircraft
+                    .contains(&aircraft_index)
+                {
+                    self.missions[mission_index]
+                        .failed_aircraft
+                        .push(aircraft_index);
+                }
+                let active = self.missions[mission_index]
+                    .assigned_aircraft
+                    .iter()
+                    .filter(|item| !self.missions[mission_index].failed_aircraft.contains(item))
+                    .count();
+                if active < self.plan.missions[mission_index].min_required_aircraft {
+                    self.missions[mission_index].status = "failed".into();
+                    self.missions[mission_index].return_time = Some(self.minute);
+                }
+            }
+            self.emit(if early_return { "mission_failed_returned" } else { "mission_returned_with_component_failure" },
+                "failure.return-and-create-repair", self.aircraft[aircraft_index].tail_number.clone(),
+                json!({"mission_id": self.mission_id(mission_index), "component_id": component.component_id}), None);
+        } else {
+            self.completed_sorties += 1;
+            self.aircraft[aircraft_index].state = "available".into();
+        }
+        self.aircraft[aircraft_index].current_mission_index = None;
+        self.aircraft[aircraft_index].return_time = None;
+        if let Some(mission_index) = mission_index {
+            let active = self.aircraft.iter().any(|item| {
+                item.state == "flying" && item.current_mission_index == Some(mission_index)
+            });
+            if self.missions[mission_index].status == "launched" && !active {
+                self.missions[mission_index].status = "completed".into();
+            }
+        }
+        if !failed_on_return {
+            self.emit(
+                "mission_returned",
+                "mission.normal-return",
+                self.aircraft[aircraft_index].tail_number.clone(),
+                json!({"mission_id": self.mission_id(mission_index)}),
+                None,
+            );
+        }
+        Ok(())
+    }
+
+    fn release_resources(&mut self, job_index: usize, step: &WorkStepSpec) -> Result<()> {
+        let node_index =
+            self.plan.activities[self.jobs[job_index].activity_index].resource_node_index;
+        self.resources[node_index].personnel_in_use -= self.jobs[job_index].reserved_personnel;
+        self.resources[node_index].equipment_in_use -= self.jobs[job_index].reserved_equipment;
+        if self.resources[node_index].personnel_in_use < 0
+            || self.resources[node_index].equipment_in_use < 0
+        {
+            bail!("resource ledger became negative");
+        }
+        self.emit(
+            "resources_released",
+            "resource.release",
+            self.jobs[job_index].job_id.clone(),
+            json!({"node_index": node_index, "step_index": step.index,
+                "personnel": self.jobs[job_index].reserved_personnel,
+                "equipment": self.jobs[job_index].reserved_equipment,
+                "personnel_in_use": self.resources[node_index].personnel_in_use,
+                "equipment_in_use": self.resources[node_index].equipment_in_use}),
+            None,
+        );
+        self.jobs[job_index].reserved_personnel = 0;
+        self.jobs[job_index].reserved_equipment = 0;
+        Ok(())
+    }
+
+    fn phase_job_progress(&mut self) -> Result<()> {
+        let running: Vec<_> = (0..self.jobs.len())
+            .filter(|index| self.jobs[*index].state == "running")
+            .collect();
+        for job_index in running {
+            self.jobs[job_index].remaining -= 1;
+            if self.jobs[job_index].remaining > 0 {
+                continue;
+            }
+            let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
+            let step = activity.steps[self.jobs[job_index].step_index].clone();
+            self.release_resources(job_index, &step)?;
+            self.emit(
+                "operations_step_completed",
+                "work.serial-step-complete",
+                self.jobs[job_index].job_id.clone(),
+                json!({"step_index": step.index, "activity_code": step.code}),
+                None,
+            );
+            self.jobs[job_index].step_index += 1;
+            if self.jobs[job_index].step_index >= activity.steps.len() {
+                self.jobs[job_index].state = "completed".into();
+                self.jobs[job_index].completed_time = Some(self.minute);
+                self.complete_job(job_index)?;
+            } else {
+                self.jobs[job_index].state = "waiting".into();
+                self.jobs[job_index].remaining = 0;
+            }
+        }
+        Ok(())
+    }
+
+    fn failure_reaches_root(&self, aircraft_index: usize) -> bool {
+        let mut failed: HashSet<usize> = self.aircraft[aircraft_index]
+            .component_failure_minutes
+            .keys()
+            .copied()
+            .collect();
+        loop {
+            let mut changed = false;
+            for component in self.plan.components.iter().rev() {
+                if failed.contains(&component.index)
+                    || !component.aircraft_indexes.contains(&aircraft_index)
+                {
+                    continue;
+                }
+                let count = self
+                    .children_by_component
+                    .get(&(component.index as i64))
+                    .into_iter()
+                    .flatten()
+                    .filter(|child| failed.contains(child))
+                    .count();
+                if count > 0 && count >= component.failure_threshold {
+                    failed.insert(component.index);
+                    changed = true;
+                }
+            }
+            if !changed {
+                break;
+            }
+        }
+        self.plan.components.iter().any(|component| {
+            failed.contains(&component.index)
+                && component.parent_index < 0
+                && component.aircraft_indexes.contains(&aircraft_index)
+        })
+    }
+
+    fn phase_failures(&mut self) -> Result<()> {
+        if self.plan.components.is_empty() {
+            return Ok(());
+        }
+        for aircraft_index in 0..self.aircraft.len() {
+            if self.aircraft[aircraft_index].state != "flying"
+                || self.aircraft[aircraft_index].in_flight_failure
+            {
+                continue;
+            }
+            let components = self.failure_components_by_aircraft[aircraft_index].clone();
+            for component_index in components {
+                if self.aircraft[aircraft_index]
+                    .component_failure_minutes
+                    .contains_key(&component_index)
+                {
+                    continue;
+                }
+                let mut remaining = self.aircraft[aircraft_index]
+                    .failure_remaining
+                    .get(&component_index)
+                    .copied()
+                    .unwrap_or_else(|| {
+                        self.sample_failure_minutes(
+                            component_index,
+                            aircraft_index,
+                            "missing_timer",
+                        )
+                    });
+                remaining -= 1.0;
+                self.aircraft[aircraft_index]
+                    .failure_remaining
+                    .insert(component_index, remaining);
+                if remaining > 0.0 {
+                    continue;
+                }
+                self.aircraft[aircraft_index]
+                    .component_failure_minutes
+                    .insert(component_index, self.minute);
+                self.lru_failures += 1;
+                let component = self.plan.components[component_index].clone();
+                self.emit(
+                    "component_failed",
+                    "failure.flight-exposure-countdown",
+                    self.aircraft[aircraft_index].tail_number.clone(),
+                    json!({"component_id": component.component_id}),
+                    Some(component.source_path.clone()),
+                );
+                if self.failure_reaches_root(aircraft_index) {
+                    self.aircraft[aircraft_index].failed_component_index = Some(component_index);
+                    self.aircraft[aircraft_index].failed_component_minute = Some(self.minute);
+                    self.aircraft[aircraft_index].in_flight_failure = true;
+                    self.in_flight_failures += 1;
+                    self.emit(
+                        "aircraft_failed",
+                        "failure.tree-root-propagation",
+                        self.aircraft[aircraft_index].tail_number.clone(),
+                        json!({"component_id": component.component_id}),
+                        Some(component.source_path),
+                    );
+                    self.return_aircraft(aircraft_index, true)?;
+                    break;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn phase_generate_preventive(&mut self) -> Result<()> {
+        let active: HashSet<_> = self
+            .jobs
+            .iter()
+            .filter(|job| {
+                job.kind == "preventive" && matches!(job.state.as_str(), "waiting" | "running")
+            })
+            .map(|job| job.aircraft_index)
+            .collect();
+        for aircraft_index in 0..self.aircraft.len() {
+            if active.contains(&aircraft_index) {
+                continue;
+            }
+            let mut due: Option<(usize, Vec<&str>)> = None;
+            for (cycle_index, spec) in self.plan.preventive_cycles.iter().enumerate() {
+                if spec.aircraft_index != aircraft_index {
+                    continue;
+                }
+                let cycle = &self.preventive_cycles[cycle_index];
+                let mut dimensions = vec![];
+                if spec.calendar_days > 0
+                    && self.minute >= cycle.last_preventive_minute + spec.calendar_days * 1440
+                {
+                    dimensions.push("calendar_days");
+                }
+                if spec.flight_hours > 0.0 && cycle.life_flight_hours >= spec.flight_hours {
+                    dimensions.push("flight_hours");
+                }
+                if spec.landing_cycles > 0 && cycle.life_landing_cycles >= spec.landing_cycles {
+                    dimensions.push("takeoff_landing_cycles");
+                }
+                if !dimensions.is_empty() {
+                    due = Some((cycle_index, dimensions));
+                    break;
+                }
+            }
+            let Some((cycle_index, dimensions)) = due else {
+                continue;
+            };
+            if self.aircraft[aircraft_index].state != "available" {
+                continue;
+            }
+            let spec = self.plan.preventive_cycles[cycle_index].clone();
+            self.aircraft[aircraft_index].state = "maintenance".into();
+            self.preventive_maintenance_events += 1;
+            self.create_job(
+                aircraft_index,
+                spec.activity_index,
+                "preventive",
+                None,
+                None,
+                Some(cycle_index),
+            )?;
+            self.emit(
+                "preventive_created",
+                "maintenance.preventive-due",
+                self.aircraft[aircraft_index].tail_number.clone(),
+                json!({"activity_id": self.plan.activities[spec.activity_index].activity_id,
+                    "due_dimensions": dimensions}),
+                Some(spec.source_path),
+            );
+        }
+        Ok(())
+    }
+
+    fn phase_create_preflight(&mut self) -> Result<()> {
+        for mission_index in 0..self.plan.missions.len() {
+            let mission = self.plan.missions[mission_index].clone();
+            if !matches!(
+                self.missions[mission_index].status.as_str(),
+                "scheduled" | "delayed"
+            ) || self.minute < mission.preparation_start
+            {
+                continue;
+            }
+            let commissioned = self.commissioned_count(mission_index);
+            if commissioned >= mission.required_aircraft {
+                self.missions[mission_index].preflight_created = true;
+                continue;
+            }
+            let active = self.active_preflight_aircraft(mission_index);
+            let available: Vec<_> = (0..self.aircraft.len())
+                .filter(|index| {
+                    self.aircraft[*index].state == "available"
+                        && !self.aircraft[*index].postflight_due
+                        && self.matches_type(*index, &mission)
+                        && self.aircraft[*index].prepared_mission_indexes.is_empty()
+                        && !active.contains(index)
+                })
+                .collect();
+            let mut created = 0;
+            for aircraft_index in available
+                .into_iter()
+                .take(mission.required_aircraft.saturating_sub(commissioned))
+            {
+                self.aircraft[aircraft_index].state = "pre_support".into();
+                self.aircraft[aircraft_index].current_mission_index = Some(mission_index);
+                let activity_index = self.preparation_activity(mission_index, aircraft_index)?;
+                self.create_job(
+                    aircraft_index,
+                    activity_index,
+                    "preflight",
+                    Some(mission_index),
+                    None,
+                    None,
+                )?;
+                created += 1;
+            }
+            self.missions[mission_index].preflight_created =
+                self.commissioned_count(mission_index) >= mission.required_aircraft;
+            if created > 0 {
+                self.emit(
+                    "preflight_created",
+                    "mission.commission-preflight",
+                    mission.mission_id,
+                    json!({"created": created}),
+                    None,
+                );
+            }
+        }
+        Ok(())
+    }
+
+    fn step_requirements(
+        &self,
+        job_index: usize,
+        activity: &ActivitySpec,
+        step: &WorkStepSpec,
+    ) -> BTreeMap<String, i64> {
+        let mut requirements: BTreeMap<_, _> = step.spares.iter().cloned().collect();
+        if self.jobs[job_index].step_index + 1 == activity.steps.len() {
+            for (product_id, quantity) in &self.jobs[job_index].injected_spares {
+                *requirements.entry(product_id.clone()).or_default() += quantity;
+            }
+        }
+        if self.jobs[job_index].maintenance_method.as_deref() == Some("non_replacement")
+            && matches!(self.jobs[job_index].kind.as_str(), "repair" | "preventive")
+        {
+            requirements.clear();
+        }
+        requirements
+    }
+
+    fn phase_start_waiting_jobs(&mut self) -> Result<()> {
+        let mut waiting: Vec<_> = (0..self.jobs.len())
+            .filter(|index| self.jobs[*index].state == "waiting")
+            .collect();
+        waiting.sort_by_key(|index| {
+            (
+                self.plan.activities[self.jobs[*index].activity_index].priority,
+                self.jobs[*index].started_time.unwrap_or(self.minute),
+                self.jobs[*index].job_id.clone(),
+            )
+        });
+        for job_index in waiting {
+            let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
+            if self.jobs[job_index].step_index >= activity.steps.len() {
+                self.jobs[job_index].state = "completed".into();
+                self.complete_job(job_index)?;
+                continue;
+            }
+            let step = activity.steps[self.jobs[job_index].step_index].clone();
+            let node_index = activity.resource_node_index;
+            let requirements = self.step_requirements(job_index, &activity, &step);
+            self.dispatch_remote_spares(job_index, activity.index, &requirements);
+            let immediately_available = requirements.iter().all(|(product_id, quantity)| {
+                self.resources[node_index]
+                    .inventory
+                    .get(product_id)
+                    .copied()
+                    .unwrap_or(0)
+                    + self.jobs[job_index]
+                        .spare_reservations
+                        .get(product_id)
+                        .copied()
+                        .unwrap_or(0)
+                    >= *quantity
+            });
+            if !requirements.is_empty()
+                && !self.jobs[job_index]
+                    .requested_spare_steps
+                    .contains(&self.jobs[job_index].step_index)
+            {
+                let step_index = self.jobs[job_index].step_index;
+                self.jobs[job_index]
+                    .requested_spare_steps
+                    .insert(step_index);
+                for (product_id, quantity) in &requirements {
+                    self.spare_demand_total += quantity;
+                    if immediately_available {
+                        self.spare_immediately_filled_total += quantity;
+                    }
+                    self.emit("spare_request", "inventory.request-once", self.jobs[job_index].job_id.clone(),
+                        json!({"step_index": self.jobs[job_index].step_index, "product_id": product_id,
+                            "demand_quantity": quantity,
+                            "immediately_filled_quantity": if immediately_available { *quantity } else { 0 },
+                            "node_index": node_index}), None);
+                }
+            }
+            let shortages: Vec<_> = requirements
+                .iter()
+                .filter_map(|(product_id, quantity)| {
+                    let available = self.resources[node_index]
+                        .inventory
+                        .get(product_id)
+                        .copied()
+                        .unwrap_or(0)
+                        + self.jobs[job_index]
+                            .spare_reservations
+                            .get(product_id)
+                            .copied()
+                            .unwrap_or(0);
+                    (available < *quantity).then(|| (product_id.clone(), *quantity, available))
+                })
+                .collect();
+            if !shortages.is_empty() {
+                if self.jobs[job_index].shortage_signature.as_ref() != Some(&shortages) {
+                    self.jobs[job_index].shortage_signature = Some(shortages.clone());
+                    for (product_id, quantity, available) in shortages {
+                        self.shortage_events += 1;
+                        self.emit("spare_shortage", "inventory.local-shortage", self.jobs[job_index].job_id.clone(),
+                            json!({"step_index": self.jobs[job_index].step_index, "product_id": product_id,
+                                "required_quantity": quantity, "available_quantity": available,
+                                "node_index": node_index}), None);
+                    }
+                }
+                continue;
+            }
+            self.jobs[job_index].shortage_signature = None;
+            if self.resources[node_index].personnel_in_use + step.personnel
+                > self.resources[node_index].personnel_capacity
+            {
+                self.emit(
+                    "personnel_delay",
+                    "resource.personnel-capacity",
+                    self.jobs[job_index].job_id.clone(),
+                    json!({"step_index": step.index}),
+                    None,
+                );
+                continue;
+            }
+            if self.resources[node_index].equipment_in_use + step.equipment
+                > self.resources[node_index].equipment_capacity
+            {
+                self.emit(
+                    "equipment_shortage",
+                    "resource.equipment-capacity",
+                    self.jobs[job_index].job_id.clone(),
+                    json!({"step_index": step.index}),
+                    None,
+                );
+                continue;
+            }
+            self.resources[node_index].personnel_in_use += step.personnel;
+            self.resources[node_index].equipment_in_use += step.equipment;
+            if !requirements.is_empty()
+                && !self.jobs[job_index]
+                    .consumed_spare_steps
+                    .contains(&self.jobs[job_index].step_index)
+            {
+                let step_index = self.jobs[job_index].step_index;
+                self.jobs[job_index].consumed_spare_steps.insert(step_index);
+                for (product_id, quantity) in &requirements {
+                    let reserved = self.jobs[job_index]
+                        .spare_reservations
+                        .get(product_id)
+                        .copied()
+                        .unwrap_or(0)
+                        .min(*quantity);
+                    if reserved > 0 {
+                        let remaining =
+                            self.jobs[job_index].spare_reservations[product_id] - reserved;
+                        if remaining > 0 {
+                            self.jobs[job_index]
+                                .spare_reservations
+                                .insert(product_id.clone(), remaining);
+                        } else {
+                            self.jobs[job_index].spare_reservations.remove(product_id);
+                        }
+                    }
+                    let shared = quantity - reserved;
+                    if shared > 0 {
+                        *self.resources[node_index]
+                            .inventory
+                            .entry(product_id.clone())
+                            .or_default() -= shared;
+                    }
+                    self.spare_consumed_total += quantity;
+                    self.emit("spare_consumed", "inventory.consume-at-job-start", self.jobs[job_index].job_id.clone(),
+                        json!({"step_index": self.jobs[job_index].step_index, "product_id": product_id,
+                            "quantity": quantity, "node_index": node_index,
+                            "maintenance_method": self.jobs[job_index].maintenance_method}), None);
+                }
+            }
+            self.jobs[job_index].reserved_personnel = step.personnel;
+            self.jobs[job_index].reserved_equipment = step.equipment;
+            self.jobs[job_index].state = "running".into();
+            if self.jobs[job_index].started_time.is_none() {
+                self.jobs[job_index].started_time = Some(self.minute);
+            }
+            self.jobs[job_index].remaining = step.duration_minutes;
+            if self.jobs[job_index].kind == "repair"
+                && self.jobs[job_index].component_index.is_some()
+                && self.jobs[job_index].step_index + 1 == activity.steps.len()
+            {
+                let duration = self.plan.components[self.jobs[job_index].component_index.unwrap()]
+                    .repair_duration_minutes;
+                if duration > 0 {
+                    self.jobs[job_index].remaining = duration;
+                }
+            }
+            self.emit("resources_reserved", "resource.reserve-atomic", self.jobs[job_index].job_id.clone(),
+                json!({"node_index": node_index, "step_index": step.index, "personnel": step.personnel,
+                    "equipment": step.equipment, "personnel_in_use": self.resources[node_index].personnel_in_use,
+                    "equipment_in_use": self.resources[node_index].equipment_in_use}), None);
+            self.emit(
+                "operations_step_started",
+                "work.stable-topological-serial",
+                self.jobs[job_index].job_id.clone(),
+                json!({"step_index": step.index, "activity_code": step.code}),
+                None,
+            );
+        }
+        Ok(())
+    }
+
+    fn phase_dispatch_missions(&mut self) -> Result<()> {
+        for mission_index in 0..self.plan.missions.len() {
+            let mission = self.plan.missions[mission_index].clone();
+            if !matches!(
+                self.missions[mission_index].status.as_str(),
+                "scheduled" | "delayed"
+            ) || self.minute < mission.planned_start
+            {
+                continue;
+            }
+            let candidates: Vec<_> = (0..self.aircraft.len())
+                .filter(|index| {
+                    self.ready_for_mission(*index, mission_index)
+                        && self.matches_type(*index, &mission)
+                })
+                .collect();
+            if candidates.len() >= mission.required_aircraft {
+                let assigned = candidates[..mission.required_aircraft].to_vec();
+                for aircraft_index in &assigned {
+                    let aircraft = &mut self.aircraft[*aircraft_index];
+                    aircraft.state = "flying".into();
+                    aircraft.current_mission_index = Some(mission_index);
+                    aircraft.prepared_mission_indexes.remove(&mission_index);
+                    aircraft.return_time = Some(self.minute + mission.duration_minutes);
+                    let day = self.minute / 1440;
+                    if aircraft.operations_day != Some(day) {
+                        aircraft.operations_day = Some(day);
+                        aircraft.daily_takeoffs = 0;
+                    }
+                    aircraft.daily_takeoffs += 1;
+                    aircraft.takeoff_count += 1;
+                    aircraft.operations_plan_group_id = mission.operations_plan_group_id.clone();
+                    aircraft.last_operations_mission_index = Some(mission_index);
+                    aircraft.prepared_operations_day = None;
+                }
+                let state = &mut self.missions[mission_index];
+                state.status = "launched".into();
+                state.actual_start = Some(self.minute);
+                state.return_time = Some(self.minute + mission.duration_minutes);
+                state.assigned_aircraft = assigned.clone();
+                state.delay_minutes = (self.minute - mission.planned_start).max(0);
+                self.launched_sorties += assigned.len() as i64;
+                self.total_departure_delay += state.delay_minutes;
+                if state.delay_minutes != 0 && self.delayed_missions.insert(mission_index) {
+                    self.delayed_sorties += assigned.len() as i64;
+                }
+                self.emit("mission_launched", "mission.dispatch-ready-aircraft", mission.mission_id,
+                    json!({"aircraft": assigned.iter().map(|index| self.aircraft[*index].tail_number.clone()).collect::<Vec<_>>()}), None);
+            } else if self.minute - mission.planned_start >= mission.cancel_minutes {
+                self.missions[mission_index].status = "cancelled".into();
+                self.cancelled_sorties += mission.required_aircraft as i64;
+                self.total_departure_delay += mission.cancel_minutes;
+                self.cancel_mission_preflight(mission_index)?;
+                self.emit(
+                    "mission_cancelled",
+                    "mission.cancel-insufficient-ready-aircraft",
+                    mission.mission_id,
+                    json!({}),
+                    None,
+                );
+            } else {
+                self.missions[mission_index].status = "delayed".into();
+                if self.delayed_missions.insert(mission_index) {
+                    self.delayed_sorties += mission.required_aircraft as i64;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn cancel_mission_preflight(&mut self, mission_index: usize) -> Result<()> {
+        let targets: Vec<_> = (0..self.jobs.len())
+            .filter(|index| {
+                self.jobs[*index].kind == "preflight"
+                    && self.jobs[*index].mission_index == Some(mission_index)
+                    && matches!(self.jobs[*index].state.as_str(), "waiting" | "running")
+            })
+            .collect();
+        for job_index in targets {
+            if self.jobs[job_index].state == "running" {
+                let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
+                let step = activity.steps[self.jobs[job_index].step_index].clone();
+                self.release_resources(job_index, &step)?;
+            }
+            self.jobs[job_index].state = "cancelled".into();
+            self.jobs[job_index].remaining = 0;
+        }
+        for aircraft in &mut self.aircraft {
+            if aircraft.current_mission_index == Some(mission_index)
+                && matches!(aircraft.state.as_str(), "pre_support" | "mission_ready")
+            {
+                aircraft.state = "available".into();
+                aircraft.current_mission_index = None;
+                aircraft.prepared_operations_day = None;
+            }
+            aircraft.prepared_mission_indexes.remove(&mission_index);
+        }
+        Ok(())
+    }
+
+    fn has_remaining_operations_mission(&self, aircraft_index: usize) -> bool {
+        let aircraft = &self.aircraft[aircraft_index];
+        for (mission_index, mission) in self.plan.missions.iter().enumerate() {
+            if !matches!(
+                self.missions[mission_index].status.as_str(),
+                "scheduled" | "delayed"
+            ) {
+                continue;
+            }
+            if self.minute.max(mission.planned_start) / 1440
+                != aircraft.operations_day.unwrap_or(-1)
+            {
+                continue;
+            }
+            if self.minute > mission.planned_start + mission.cancel_minutes
+                || !self.matches_type(aircraft_index, mission)
+            {
+                continue;
+            }
+            if aircraft.current_mission_index == Some(mission_index)
+                || self.commissioned_count(mission_index) < mission.required_aircraft
+            {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn phase_coordinate_postflight(&mut self, cutoff: bool) -> Result<()> {
+        let day = self.minute / 1440;
+        for aircraft_index in 0..self.aircraft.len() {
+            let operations_day = self.aircraft[aircraft_index].operations_day;
+            if operations_day.is_none() || self.aircraft[aircraft_index].daily_takeoffs == 0 {
+                continue;
+            }
+            if (day > operations_day.unwrap() || cutoff)
+                && (self.aircraft[aircraft_index].postflight_required
+                    || self.aircraft[aircraft_index].state == "flying")
+            {
+                self.aircraft[aircraft_index].postflight_due = true;
+            }
+            if !self.aircraft[aircraft_index].postflight_required {
+                continue;
+            }
+            if !self.has_remaining_operations_mission(aircraft_index) {
+                self.aircraft[aircraft_index].postflight_due = true;
+            }
+            if !self.aircraft[aircraft_index].postflight_due
+                || matches!(
+                    self.aircraft[aircraft_index].state.as_str(),
+                    "flying" | "maintenance" | "preventive" | "post_support"
+                )
+            {
+                continue;
+            }
+            self.aircraft[aircraft_index].state = "post_support".into();
+            let group = self.aircraft[aircraft_index]
+                .operations_plan_group_id
+                .clone();
+            let activity_index = self.activity_for(&group, "postflight", aircraft_index)?;
+            let mission_index = self.aircraft[aircraft_index].last_operations_mission_index;
+            self.create_job(
+                aircraft_index,
+                activity_index,
+                "postflight",
+                mission_index,
+                None,
+                None,
+            )?;
+        }
+        Ok(())
+    }
+
+    fn phase_mission_success(&mut self) {
+        for mission_index in 0..self.plan.missions.len() {
+            let mission = self.plan.missions[mission_index].clone();
+            let start = self.missions[mission_index]
+                .actual_start
+                .unwrap_or(mission.planned_start);
+            let success_minute =
+                start + (mission.duration_minutes as f64 * mission.success_point).ceil() as i64;
+            if self.missions[mission_index].success_evaluated || success_minute > self.minute {
+                continue;
+            }
+            let count = self.missions[mission_index]
+                .assigned_aircraft
+                .iter()
+                .collect::<HashSet<_>>()
+                .difference(
+                    &self.missions[mission_index]
+                        .failed_aircraft
+                        .iter()
+                        .collect(),
+                )
+                .count();
+            let succeeded = count >= mission.min_required_aircraft;
+            self.missions[mission_index].success_member_count = count;
+            self.missions[mission_index].success_at_minute = Some(self.minute);
+            self.missions[mission_index].success_evaluated = true;
+            self.missions[mission_index].succeeded = succeeded;
+            self.emit(
+                if succeeded {
+                    "mission_success_point_succeeded"
+                } else {
+                    "mission_success_point_failed"
+                },
+                "mission.evaluate-success-point",
+                mission.mission_id,
+                json!({"members": count}),
+                None,
+            );
+        }
+    }
+
+    fn execute_minute(&mut self) -> Result<()> {
+        for phase in self.plan.phases.clone() {
+            self.phase = phase.clone();
+            match phase.as_str() {
+                "transport_arrivals" => self.phase_transport_arrivals(),
+                "mission_returns" => self.phase_mission_returns()?,
+                "job_progress_and_completions" => self.phase_job_progress()?,
+                "failures" => self.phase_failures()?,
+                "operations_postflight_before_preparation" => {
+                    self.phase_coordinate_postflight(false)?
+                }
+                "preventive_generation" => self.phase_generate_preventive()?,
+                "preflight_generation" => self.phase_create_preflight()?,
+                "resource_dispatch" => self.phase_start_waiting_jobs()?,
+                "mission_dispatch" => self.phase_dispatch_missions()?,
+                "operations_postflight_after_dispatch" => {
+                    self.phase_coordinate_postflight(false)?
+                }
+                "mission_success" => self.phase_mission_success(),
+                "daily_readiness" | "operational_availability" | "downtime" => {}
+                "stop" => {
+                    if self.minute >= self.plan.duration_minutes {
+                        self.phase_coordinate_postflight(true)?;
+                        self.stop_reason = "duration".into();
+                        self.running = false;
+                        self.emit(
+                            "simulation_stopped",
+                            "stop.duration",
+                            "simulation".into(),
+                            json!({}),
+                            None,
+                        );
+                    }
+                }
+                other => bail!("unsupported phase {:?}", other),
+            }
+        }
+        Ok(())
+    }
+
+    pub fn run(mut self, until: Option<i64>) -> Result<RunResult> {
+        let horizon = until
+            .unwrap_or(self.plan.duration_minutes)
+            .min(self.plan.duration_minutes);
+        while self.running && self.minute < horizon {
+            self.minute += 1;
+            self.execute_minute()?;
+        }
+        if horizon < self.plan.duration_minutes && self.running {
+            self.stop_reason = "requested_until".into();
+        }
+        let metrics = self.metrics();
+        let terminal_state = self.terminal_state();
+        Ok(RunResult {
+            plan_fingerprint: self.fingerprint,
+            seed: self.seed,
+            time: self.minute,
+            stop_reason: self.stop_reason,
+            sample_requests: self.sample_requests,
+            trace: self.trace,
+            metrics,
+            terminal_state,
+        })
+    }
+
+    fn metrics(&self) -> Value {
+        let executable: Vec<_> = self
+            .plan
+            .missions
+            .iter()
+            .enumerate()
+            .filter(|(_, mission)| mission.planned_start <= self.minute)
+            .map(|(index, _)| index)
+            .collect();
+        let planned_sorties: usize = executable
+            .iter()
+            .map(|index| self.plan.missions[*index].required_aircraft)
+            .sum();
+        let successful = executable
+            .iter()
+            .filter(|index| self.missions[**index].succeeded)
+            .count();
+        let postflight_count = self
+            .aircraft
+            .iter()
+            .filter(|item| item.postflight_required)
+            .count();
+        let failed_count = self
+            .aircraft
+            .iter()
+            .filter(|item| !item.component_failure_minutes.is_empty())
+            .count();
+        let repairing_count = (0..self.aircraft.len())
+            .filter(|aircraft_index| {
+                self.jobs.iter().any(|job| {
+                    job.aircraft_index == *aircraft_index
+                        && job.kind == "repair"
+                        && matches!(job.state.as_str(), "waiting" | "running")
+                })
+            })
+            .count();
+        let spare_stock_total: i64 = self
+            .resources
+            .iter()
+            .flat_map(|item| item.inventory.values())
+            .sum();
+        json!({
+            "planned_sorties": planned_sorties, "planned_mission_waves": executable.len(),
+            "successful_mission_waves": successful,
+            "mission_success_rate": successful as f64 / executable.len().max(1) as f64,
+            "launched_sorties": self.launched_sorties, "completed_sorties": self.completed_sorties,
+            "cancelled_sorties": self.cancelled_sorties, "delayed_sorties": self.delayed_sorties,
+            "postflight_count": postflight_count,
+            "avg_departure_delay": self.total_departure_delay as f64 / (self.launched_sorties + self.cancelled_sorties).max(1) as f64,
+            "elapsed_minutes": self.minute, "stop_reason": self.stop_reason,
+            "lru_failures": self.lru_failures, "in_flight_failures": self.in_flight_failures,
+            "failed_sorties": self.failed_sorties, "preventive_maintenance_events": self.preventive_maintenance_events,
+            "failed_count": failed_count, "repairing_count": repairing_count,
+            "spare_stock_total": spare_stock_total, "spare_demand_total": self.spare_demand_total,
+            "spare_immediately_filled_total": self.spare_immediately_filled_total,
+            "spare_fill_rate": self.spare_immediately_filled_total as f64 / self.spare_demand_total.max(1) as f64,
+            "spare_consumed_total": self.spare_consumed_total, "shortage_events": self.shortage_events,
+            "transport_in_transit_count": self.shipments.len(),
+            "transport_replenishment_events": self.transport_replenishment_events,
+            "total_transport_delay_minutes": self.total_transport_delay,
+            "mean_transport_delay": self.total_transport_delay as f64 / (60 * self.transport_replenishment_events.max(1)) as f64,
+        })
+    }
+
+    fn terminal_state(&self) -> Value {
+        let aircraft: Vec<_> = self.aircraft.iter().map(|item| {
+            let failures: BTreeMap<_, _> = item.component_failure_minutes.iter()
+                .map(|(index, minute)| (self.plan.components[*index].component_id.clone(), *minute)).collect();
+            json!({
+                "tail_number": item.tail_number, "state": item.state,
+                "current_mission_id": self.mission_id(item.current_mission_index),
+                "prepared_mission_ids": item.prepared_mission_indexes.iter()
+                    .map(|index| self.plan.missions[*index].mission_id.clone()).collect::<Vec<_>>(),
+                "operations_day": item.operations_day, "daily_takeoffs": item.daily_takeoffs,
+                "postflight_required": item.postflight_required, "postflight_due": item.postflight_due,
+                "flight_hours": item.flight_hours, "takeoff_count": item.takeoff_count,
+                "landing_count": item.landing_count,
+                "failed_component_id": item.failed_component_index.map(|index| self.plan.components[index].component_id.clone()),
+                "component_failure_minutes": failures, "in_flight_failure": item.in_flight_failure,
+            })
+        }).collect();
+        let missions: Vec<_> = self
+            .missions
+            .iter()
+            .enumerate()
+            .map(|(index, item)| {
+                json!({
+                    "mission_id": self.plan.missions[index].mission_id, "status": item.status,
+                    "actual_start": item.actual_start,
+                    "assigned_tail_numbers": item.assigned_aircraft.iter().map(|aircraft_index|
+                        self.aircraft[*aircraft_index].tail_number.clone()).collect::<Vec<_>>(),
+                    "success_evaluated": item.success_evaluated, "succeeded": item.succeeded,
+                })
+            })
+            .collect();
+        let jobs: Vec<_> = self.jobs.iter().map(|item| json!({
+            "job_id": item.job_id, "kind": item.kind,
+            "aircraft": self.aircraft[item.aircraft_index].tail_number,
+            "mission_id": self.mission_id(item.mission_index),
+            "activity_id": self.plan.activities[item.activity_index].activity_id,
+            "state": item.state, "step_index": item.step_index,
+            "started_time": item.started_time, "completed_time": item.completed_time,
+            "component_id": item.component_index.map(|index| self.plan.components[index].component_id.clone()),
+            "maintenance_method": item.maintenance_method,
+        })).collect();
+        let resources: Vec<_> = self.resources.iter().enumerate().map(|(index, item)| json!({
+            "node_id": self.plan.resource_nodes[index].node_id,
+            "personnel_in_use": item.personnel_in_use, "equipment_in_use": item.equipment_in_use,
+            "inventory": item.inventory,
+        })).collect();
+        json!({"aircraft": aircraft, "missions": missions, "jobs": jobs, "resources": resources})
+    }
+}
+
+fn tokens(value: &str) -> HashSet<String> {
+    let text = value.trim().to_lowercase();
+    if text.is_empty() {
+        return HashSet::new();
+    }
+    [
+        text.clone(),
+        text.chars().filter(|item| item.is_alphanumeric()).collect(),
+    ]
+    .into_iter()
+    .collect()
+}
+
+fn hex_prefix(bytes: &[u8], count: usize) -> String {
+    bytes
+        .iter()
+        .take(count)
+        .map(|item| format!("{item:02x}"))
+        .collect()
+}

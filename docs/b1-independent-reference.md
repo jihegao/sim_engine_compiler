@@ -1,6 +1,6 @@
 # Independent SimPy Reference Runtime Conformance
 
-状态：2026-09-20，B1/B2/B3 及 F35 43 天 seeds `0、1、7` 已通过固定旧模型 oracle 验收。
+状态：2026-09-20，B1/B2/B3 及 F35 43 天 seeds `0、1、7` 已通过固定旧模型 oracle、Python reference 和独立 Rust runtime 的跨后端验收。
 
 ## 独立边界
 
@@ -62,8 +62,21 @@ Execution Plan 编译并索引化：
 .venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-当前 21 项测试通过；全套包含三个 43 天样本，在本机约 31 秒完成。该耗时用于验证，不作为 Rust 加速结论。
+Rust 单样本执行入口：
+
+```bash
+cargo run --release --manifest-path rust/runtime/Cargo.toml -- \
+  tests/fixtures/spare_mvp/f35-43day-5352a0d/execution-plan.json \
+  /tmp/f35-rust-seed-0.json \
+  --seed 0
+
+.venv/bin/python -m unittest tests.differential.test_rust_runtime -v
+```
+
+Rust 差分测试对四个手算 Plan 比较完整固定结果，并对 F35 seeds `0、1、7` 在运行时分别生成 Python reference 结果，逐字段比较 Plan 指纹、全部随机请求、完整 trace、全部指标和终态。浮点容差只用于跨 `libm` 的采样值；本机三组运行的完整结果均未发现差异。
+
+本次 release 冒烟中，单个 F35 seed 的 Rust 执行为约 2.7–3.0 秒、进程最大 RSS 约 44 MB；同机 Python reference seed 0 约 4.8 秒、最大 RSS 约 76 MB。这是单次开发机观测，包含 JSON 结果构造和写盘，尚不是正式性能基准或稳定加速比。
 
 ## 后续边界
 
-当前 compiler 直接从 canonical input lowering 到 Execution Plan，Business IR 与 Core Simulation IR 尚未单独物化。下一阶段应让 Rust runtime 读取同一份 Plan，并以本套 Python reference/oracle 差分测试作为语义门禁。
+当前 compiler 直接从 canonical input lowering 到 Execution Plan，Business IR 与 Core Simulation IR 尚未单独物化。Rust 已执行同一 Plan；阶段 C 后续是批量样本并行、稳定结果排序、Python 绑定和分段性能基准。

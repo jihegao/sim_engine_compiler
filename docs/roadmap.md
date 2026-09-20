@@ -1,6 +1,6 @@
 # 实施路线与验收
 
-当前已完成项目结构、F35 上游基准和 Independent SimPy Reference Runtime Conformance。详细证据见 [独立 reference conformance](b1-independent-reference.md)。B1/B2/B3 兼容范围及 F35 seeds `0、1、7` 已通过；阶段 B 后续工作是物化 Business/Core IR、缓存与执行优化。
+当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本执行内核。详细证据见 [独立 reference conformance](b1-independent-reference.md)。B1/B2/B3 兼容范围及 F35 seeds `0、1、7` 已完成 Python/Rust 完整结果差分；阶段 B 后续是物化 Business/Core IR，阶段 C 后续是批量并行、绑定、缓存与性能基准。
 
 ## 阶段路线
 
@@ -59,5 +59,5 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 1. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR。
 2. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断。
-3. 固定 Rust 工具链、交换格式和 Python 绑定方式，令 Rust 执行同一份 Plan。
+3. 增加 Rust 批量样本并行和稳定排序，并根据调用边界决定 Python 绑定方式。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。
