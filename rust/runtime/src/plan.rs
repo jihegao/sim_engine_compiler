@@ -450,13 +450,6 @@ mod fingerprint_tests {
         ExecutionPlan::from_slice(bytes).unwrap().0
     }
 
-    fn preventive_plan() -> ExecutionPlan {
-        let bytes = include_bytes!(
-            "../../../tests/fixtures/synthetic/b2-preventive-maintenance-execution-plan.json"
-        );
-        ExecutionPlan::from_slice(bytes).unwrap().0
-    }
-
     #[test]
     fn formats_like_python_repr() {
         for (value, expected) in [
@@ -484,18 +477,5 @@ mod fingerprint_tests {
         plan.components[1].aircraft_indexes = vec![plan.aircraft.len()];
         let error = plan.validate().unwrap_err();
         assert!(error.to_string().contains("invalid aircraft index"));
-    }
-
-    #[test]
-    fn rejects_invalid_preventive_references() {
-        let mut invalid_aircraft = preventive_plan();
-        invalid_aircraft.preventive_cycles[0].aircraft_index = invalid_aircraft.aircraft.len();
-        let error = invalid_aircraft.validate().unwrap_err();
-        assert!(error.to_string().contains("invalid aircraft index"));
-
-        let mut invalid_activity = preventive_plan();
-        invalid_activity.preventive_cycles[0].activity_index = invalid_activity.activities.len();
-        let error = invalid_activity.validate().unwrap_err();
-        assert!(error.to_string().contains("invalid activity index"));
     }
 }

@@ -1,6 +1,6 @@
 # 观测隔离与 F35 热路径优化计划
 
-状态：2026-09-20 已完成 O0、O1、O3 的实现、语义验收及两轮候选复测。最小 O2a（按飞机索引 preventive cycles）已实现并通过语义验收，正式复测待生成；O4、O5 继续按更新后的热点与门槛推进。
+状态：2026-09-20 已完成 O0、O1、O3 的实现、语义验收及两轮候选复测。O3 相对固定 O1 候选在三个 seed 上将 full 中位数再降低约 49%–63%；新 profile 的主要成本为 resource dispatch（约 37%），preventive generation 约 6.6%，下一步执行最小 O2a 后再评估 O4。
 
 优先顺序为：补齐测量保护 → 消除无效任务克隆 → 预计算静态关系 → 故障状态数组化 → 活动集合 → 有条件评估事件跳跃。前三个任务 phase 约占插桩执行时间的 79.7%，先处理其每分钟重复成本；保留 `full/summary` 观测隔离作为每轮优化的验收条件。
 
@@ -46,7 +46,7 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 |---|---|---|---|
 | O0 测量保护 | `observation_benchmark`、`hot_path_profile`、差分测试 | 低 | 已实现并通过双观测级别、截断 horizon、批量/绑定差分；两二进制交错 runner 仍由外部执行 |
 | O1 克隆消除 | `runtime.rs` 的三个 mission phase、`execute_minute` | 低，须差分证明 | 已实现并通过完整差分；任务扫描数不变，Plan spec clone 从 19,778,872 降至 459,832 |
-| O2 静态关系预计算 | `plan.rs`、runtime 初始化、`matches_type`、`activity_for` | 低至中 | O2a preventive 索引已实现并通过差分；共享 prepared plan、类型匹配与 activity 预解析仍需独立证据 |
+| O2 静态关系预计算 | `plan.rs`、runtime 初始化、`matches_type`、`activity_for` | 低至中 | 静态关系每个已加载 Plan 构建一次并共享；候选次序和显式错误保留 |
 | O3 故障状态数组化 | `AircraftState`、故障初始化/推进/修复、终态转换 | 中 | 已实现、31 项差分通过并完成两轮复测；failures phase 由 265ms 降至 33ms |
 | O4 活动集合 | job、mission、preventive、shipment 的候选与索引维护 | 中至高 | 历史状态退出每分钟扫描；每种增删状态转移有可执行回归；同刻资源可见性一致 |
 | O5 事件跳跃评估 | Core 依赖/唤醒合同、调度器、timer token | 高，后续单独立项 | 先给出无遗漏唤醒证明与边界测试，再决定是否实现 |

@@ -115,10 +115,7 @@ pub struct RuntimeProfile {
     pub aircraft_scan_items: u64,
     pub job_scan_items: u64,
     pub component_scan_items: u64,
-    /// Legacy full-Plan exposure estimate retained for before/after profile comparison.
     pub preventive_scan_items: u64,
-    /// Exact number of indexed preventive candidates whose due dimensions were evaluated.
-    pub preventive_candidate_visits: u64,
     pub shipment_scan_items: u64,
     pub trace_events_attempted: u64,
     pub trace_events_materialized: u64,
@@ -319,7 +316,6 @@ pub struct Runtime {
     activity_by_group_phase: HashMap<(String, String), Vec<usize>>,
     children_by_component: HashMap<i64, Vec<usize>>,
     failure_components_by_aircraft: Vec<Vec<usize>>,
-    preventive_cycle_indices_by_aircraft: Vec<Vec<usize>>,
 }
 
 impl Runtime {
@@ -463,10 +459,6 @@ impl Runtime {
                 last_preventive_minute: -item.initial_calendar_days * 1440,
             })
             .collect();
-        let mut preventive_cycle_indices_by_aircraft = vec![vec![]; plan.aircraft.len()];
-        for (cycle_index, cycle) in plan.preventive_cycles.iter().enumerate() {
-            preventive_cycle_indices_by_aircraft[cycle.aircraft_index].push(cycle_index);
-        }
         let mut activity_by_group_phase: HashMap<(String, String), Vec<usize>> = HashMap::new();
         for activity in &plan.activities {
             if !activity.phase.is_empty() {
@@ -531,7 +523,6 @@ impl Runtime {
             activity_by_group_phase,
             children_by_component,
             failure_components_by_aircraft,
-            preventive_cycle_indices_by_aircraft,
         };
         runtime.initialize_failure_timers();
         Ok(runtime)
@@ -952,9 +943,11 @@ impl Runtime {
                     }
                     self.preventive_cycles[cycle_index].last_preventive_minute = self.minute;
                     self.aircraft[aircraft_index].state = "available".into();
-                    let first_cycle = self.preventive_cycle_indices_by_aircraft[aircraft_index]
-                        .first()
-                        .copied();
+                    let first_cycle = self
+                        .plan
+                        .preventive_cycles
+                        .iter()
+                        .position(|item| item.aircraft_index == aircraft_index);
                     if first_cycle == Some(cycle_index) {
                         self.aircraft[aircraft_index].flight_hours = 0.0;
                         self.aircraft[aircraft_index].takeoff_count = 0;
@@ -1248,11 +1241,11 @@ impl Runtime {
         let flight_hours = ((end_minute - mission_start) as f64 / 60.0).max(0.0);
         self.aircraft[aircraft_index].flight_hours += flight_hours;
         self.aircraft[aircraft_index].landing_count += 1;
-        for cycle_position in 0..self.preventive_cycle_indices_by_aircraft[aircraft_index].len() {
-            let cycle_index =
-                self.preventive_cycle_indices_by_aircraft[aircraft_index][cycle_position];
-            self.preventive_cycles[cycle_index].life_flight_hours += flight_hours;
-            self.preventive_cycles[cycle_index].life_landing_cycles += 1;
+        for (cycle_index, spec) in self.plan.preventive_cycles.iter().enumerate() {
+            if spec.aircraft_index == aircraft_index {
+                self.preventive_cycles[cycle_index].life_flight_hours += flight_hours;
+                self.preventive_cycles[cycle_index].life_landing_cycles += 1;
+            }
         }
         let failed_on_return = self.aircraft[aircraft_index].in_flight_failure
             || self.aircraft[aircraft_index]
@@ -1559,16 +1552,11 @@ impl Runtime {
                 continue;
             }
             let mut due: Option<(usize, Vec<&str>)> = None;
-            // Retain the legacy full-Plan exposure counter so profiles remain comparable.
             self.count_scan("preventive", self.plan.preventive_cycles.len());
-            for cycle_position in 0..self.preventive_cycle_indices_by_aircraft[aircraft_index].len()
-            {
-                if self.profile_enabled {
-                    self.profile.preventive_candidate_visits += 1;
+            for (cycle_index, spec) in self.plan.preventive_cycles.iter().enumerate() {
+                if spec.aircraft_index != aircraft_index {
+                    continue;
                 }
-                let cycle_index =
-                    self.preventive_cycle_indices_by_aircraft[aircraft_index][cycle_position];
-                let spec = &self.plan.preventive_cycles[cycle_index];
                 let cycle = &self.preventive_cycles[cycle_index];
                 let mut dimensions = vec![];
                 if spec.calendar_days > 0
@@ -2439,13 +2427,6 @@ mod phase_tests {
         ExecutionPlan::from_slice(bytes).unwrap().0
     }
 
-    fn preventive_plan() -> ExecutionPlan {
-        let bytes = include_bytes!(
-            "../../../tests/fixtures/synthetic/b2-preventive-maintenance-execution-plan.json"
-        );
-        ExecutionPlan::from_slice(bytes).unwrap().0
-    }
-
     #[test]
     fn unknown_phase_still_fails_when_executed() {
         let mut plan = synthetic_plan();
@@ -2472,109 +2453,6 @@ mod phase_tests {
         let (_, profile) = runtime.run_profiled(Some(1)).unwrap();
 
         assert_eq!(profile.phases["daily_readiness"].calls, 2);
-    }
-
-    #[test]
-    fn preventive_cycles_use_per_aircraft_plan_order_indexes() {
-        let mut plan = preventive_plan();
-        let mut second_aircraft = plan.aircraft[0].clone();
-        second_aircraft.index = 1;
-        second_aircraft.tail_number = "F35-02".into();
-        plan.aircraft.push(second_aircraft);
-
-        let mut second_aircraft_cycle = plan.preventive_cycles[0].clone();
-        second_aircraft_cycle.index = 0;
-        second_aircraft_cycle.aircraft_index = 1;
-        second_aircraft_cycle.source_path = "cycles[0]".into();
-        let mut first_aircraft_cycle = plan.preventive_cycles[0].clone();
-        first_aircraft_cycle.index = 1;
-        first_aircraft_cycle.flight_hours = 2.0;
-        first_aircraft_cycle.landing_cycles = 3;
-        first_aircraft_cycle.source_path = "cycles[1]".into();
-        let mut later_aircraft_cycle = first_aircraft_cycle.clone();
-        later_aircraft_cycle.index = 2;
-        later_aircraft_cycle.source_path = "cycles[2]".into();
-        plan.preventive_cycles = vec![
-            second_aircraft_cycle,
-            first_aircraft_cycle,
-            later_aircraft_cycle,
-        ];
-
-        let mut runtime = Runtime::from_shared_profiled(
-            Arc::new(plan),
-            "test-fingerprint".into(),
-            0,
-            ObservationLevel::Full,
-        )
-        .unwrap();
-
-        assert_eq!(
-            runtime.preventive_cycle_indices_by_aircraft,
-            vec![vec![1, 2], vec![0]]
-        );
-
-        runtime.aircraft[0].return_time = Some(60);
-        runtime.return_aircraft(0, false).unwrap();
-        assert_eq!(runtime.preventive_cycles[0].life_flight_hours, 2.0);
-        assert_eq!(runtime.preventive_cycles[1].life_flight_hours, 3.0);
-        assert_eq!(runtime.preventive_cycles[2].life_flight_hours, 3.0);
-
-        runtime.phase_generate_preventive().unwrap();
-
-        assert_eq!(
-            runtime
-                .jobs
-                .iter()
-                .map(|job| (job.aircraft_index, job.preventive_cycle_index))
-                .collect::<Vec<_>>(),
-            vec![(0, Some(1)), (1, Some(0))]
-        );
-        assert_eq!(runtime.profile.preventive_scan_items, 6);
-        assert_eq!(runtime.profile.preventive_candidate_visits, 2);
-        let first_aircraft_event = runtime
-            .trace
-            .iter()
-            .find(|event| event["kind"] == "preventive_created" && event["entity"] == "F35-01")
-            .unwrap();
-        assert_eq!(
-            first_aircraft_event["details"]["due_dimensions"],
-            json!(["calendar_days", "flight_hours", "takeoff_landing_cycles"])
-        );
-
-        runtime.aircraft[0].flight_hours = 7.0;
-        runtime.aircraft[0].takeoff_count = 8;
-        runtime.aircraft[0].landing_count = 9;
-        let untouched_first_cycle = (
-            runtime.preventive_cycles[1].life_flight_hours,
-            runtime.preventive_cycles[1].life_landing_cycles,
-        );
-        runtime.preventive_cycles[2].life_flight_hours = 6.0;
-        runtime.preventive_cycles[2].life_landing_cycles = 5;
-        runtime
-            .create_job(0, 0, "preventive", None, None, Some(2))
-            .unwrap();
-        let later_cycle_job = runtime.jobs.len() - 1;
-        runtime.complete_job(later_cycle_job).unwrap();
-        assert_eq!(runtime.aircraft[0].flight_hours, 7.0);
-        assert_eq!(runtime.aircraft[0].takeoff_count, 8);
-        assert_eq!(runtime.aircraft[0].landing_count, 9);
-        assert_eq!(runtime.preventive_cycles[2].life_flight_hours, 0.0);
-        assert_eq!(runtime.preventive_cycles[2].life_landing_cycles, 0);
-        assert_eq!(
-            (
-                runtime.preventive_cycles[1].life_flight_hours,
-                runtime.preventive_cycles[1].life_landing_cycles,
-            ),
-            untouched_first_cycle
-        );
-
-        runtime.aircraft[0].flight_hours = 9.0;
-        runtime.aircraft[0].takeoff_count = 9;
-        runtime.aircraft[0].landing_count = 9;
-        runtime.complete_job(0).unwrap();
-        assert_eq!(runtime.aircraft[0].flight_hours, 0.0);
-        assert_eq!(runtime.aircraft[0].takeoff_count, 0);
-        assert_eq!(runtime.aircraft[0].landing_count, 0);
     }
 
     #[test]
