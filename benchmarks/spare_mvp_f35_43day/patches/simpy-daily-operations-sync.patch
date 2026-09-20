@@ -1,0 +1,30 @@
+diff --git a/experiments/compiled_routes/runtime.py b/experiments/compiled_routes/runtime.py
+index 573bc5e..0000000 100644
+--- a/experiments/compiled_routes/runtime.py
++++ b/experiments/compiled_routes/runtime.py
+@@ -187,22 +187,25 @@ class SimpyProcessModel(CompiledModel):
+         self._process_mission_returns()
+         self._process_job_progress_and_completions()
+         self._evaluate_failures()
++        self._coordinate_operations_postflight()
+         self._generate_preventive_jobs()
+         self._create_due_preflight_jobs()
+         if self.attempted_epoch != self.resource_epoch:
+             ack = self.env.event()
+             self._resource_signal.succeed(ack)
+             yield ack
+         self._dispatch_due_missions()
++        self._coordinate_operations_postflight()
+         self._evaluate_mission_success_points()
+         self._record_daily_readiness_sample_if_due()
+         self._record_operational_availability_sample_if_due()
+         self._record_downtime_minutes()
+         reason, conditions = self._stop_decision()
+         if reason:
+             self.stop_reason, self.stop_conditions_met = reason, conditions
+             self._event("simulation_stopped", f"simulation stopped by {reason}", {"reason": reason, "conditions": conditions})
+         if reason or self.minute >= self.duration_minutes:
++            self._finalize_operations_cutoff()
+             self.running = False
+         if old_epoch != self.resource_epoch or old_aircraft != tuple((a.state, a.current_mission_id) for a in self.aircraft):
+             self.settle_until = self.minute + 1
