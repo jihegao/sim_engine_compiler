@@ -1,6 +1,6 @@
 # 架构与模块边界
 
-状态：Python reference 与独立 Rust 单样本 runtime 已实现 canonical input → Execution Plan → result，并完成 B1/B2/B3 与 F35 三个 seed 的跨后端验收；Business/Core IR 分层物化、Rust 批量执行及 agent 编辑仍按本文推进。
+状态：Python reference 与独立 Rust 单样本/批量 runtime 已实现 canonical input → Execution Plan → result，并完成 B1/B2/B3 与 F35 三个 seed 的跨后端验收；批量执行通过 PyO3 暴露给 Python。Business/Core IR 分层物化、缓存及 agent 编辑仍按本文推进。
 
 ## 模型流转
 
@@ -71,7 +71,7 @@ flowchart TD
 
 故障时钟显式区分日历与飞行暴露量。采样时机、维修后的年龄恢复规则、取整和分布变换均属于语义合同。随机流以稳定实体身份定位；兼容模式还需固定旧 RNG 的算法与调用顺序。
 
-Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回调。先并行样本，固定输出的样本身份与归约顺序。summary/analysis/debug 观测级别不改变模型状态、随机抽样或事件调度。
+Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回调。批量请求以输入位置作为稳定 `sample_index`，允许重复 seed；Rust 线程池共享 `Arc<ExecutionPlan>`，每个样本创建独立 RunState，完成后按 `sample_index` 排序。线程数变化已验证不改变逐样本结果。summary/analysis/debug 观测级别不改变模型状态、随机抽样或事件调度；当前正式基准仍使用全量 result 观测。
 
 ## 创作模式与未来扩展
 

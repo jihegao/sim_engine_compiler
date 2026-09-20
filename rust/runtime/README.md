@@ -1,6 +1,6 @@
 # Independent Rust runtime
 
-阶段 C 的单样本执行内核已经建立，并固定使用 Rust `1.90.0`。它直接读取
+阶段 C 的单样本与批量执行内核已经建立，并固定使用 Rust `1.90.0`。它直接读取
 `aircraft-support-plan/v1alpha2`，不导入 Python，也不调用 `spare_mvp` 或
 `AircraftSupportV1Model`。当前实现覆盖与 Python reference 相同的 B1/B2/B3
 兼容范围；F35 43 天 seeds `0、1、7` 的完整采样请求、trace、指标和终态均已
@@ -12,6 +12,9 @@
 src/
   lib.rs            crate API
   main.rs           Plan 文件 → Result JSON 命令行入口
+  batch.rs          共享 Plan、独立 RunState、Rayon 样本并行与稳定排序
+  python.rs         PyO3 整批调用边界
+  bin/stage_c_benchmark.rs  原生分段基准
   plan.rs           版本化加载、能力校验、跨语言稳定指纹
   rng.rs            CPython 整数种子 MT19937 与指数采样
   runtime.rs        独立数组状态、分钟 phase、资源事务与指标
@@ -26,6 +29,31 @@ cargo run --release --manifest-path rust/runtime/Cargo.toml -- \
   --seed 0
 ```
 
+批量执行保留输入顺序，重复 seed 由 `sample_index` 区分：
+
+```bash
+cargo run --release --manifest-path rust/runtime/Cargo.toml -- \
+  tests/fixtures/spare_mvp/f35-43day-5352a0d/execution-plan.json \
+  /tmp/f35-rust-batch.json \
+  --seeds 7,0,7,1 --worker-threads 3
+```
+
+Python 绑定通过项目根目录的 Maturin 配置构建：
+
+```bash
+uv pip install --python .venv/bin/python -e .
+.venv/bin/python - <<'PY'
+from sim_engine_compiler import run_batch
+
+result = run_batch(
+    "tests/fixtures/synthetic/b1-execution-plan.json",
+    [7, 0, 7, 1],
+    worker_threads=3,
+)
+print([sample["sample_index"] for sample in result["samples"]])
+PY
+```
+
 跨语言验收：
 
 ```bash
@@ -38,7 +66,4 @@ Python `json.dumps(..., ensure_ascii=False, sort_keys=True, separators=(",", ":"
 一致的浮点与 JSON 编码；加载开启 `float_roundtrip`，避免高精度故障率在解析时
 落到相邻的 IEEE-754 值。
 
-Python 绑定、批量样本并行、事件跳跃和细分性能基准仍属于阶段 C 后续工作。
-当前 CLI 是独立单样本后端，没有逐事件 Python 回调。
-
-多个样本可共享只读 Plan，各自拥有 RunState。后续批量 API 仍需保证稳定结果顺序。
+Python 绑定一次传入完整 Plan 与 seeds，一次返回完整 batch，没有逐事件 Python 回调。当前仍待阶段 C 后续处理的是 Plan 缓存失效合同和事件跳跃；后者必须证明不改变分钟 phase、随机调用和资源可见性语义。

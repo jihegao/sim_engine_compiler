@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::{
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    sync::Arc,
+};
 
 use anyhow::{Result, bail};
 use serde::Serialize;
@@ -133,7 +136,7 @@ pub struct RunResult {
 }
 
 pub struct Runtime {
-    plan: ExecutionPlan,
+    plan: Arc<ExecutionPlan>,
     fingerprint: String,
     seed: u64,
     minute: i64,
@@ -173,6 +176,10 @@ pub struct Runtime {
 
 impl Runtime {
     pub fn new(plan: ExecutionPlan, fingerprint: String, seed: u64) -> Result<Self> {
+        Self::from_shared(Arc::new(plan), fingerprint, seed)
+    }
+
+    pub fn from_shared(plan: Arc<ExecutionPlan>, fingerprint: String, seed: u64) -> Result<Self> {
         plan.validate()?;
         let aircraft = plan
             .aircraft

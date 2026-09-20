@@ -2,7 +2,7 @@
 
 面向任务、资产与保障资源的业务模型编译器及离散事件运行时。首个领域是飞机机群任务与保障，原型通过 `spare_mvp` 的 canonical `simulation_inputs` 接入。
 
-**当前状态：Python reference 与独立 Rust 单样本 runtime 均已通过当前 Execution Plan 兼容范围。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已完成旧模型 → Python reference → Rust 的差分闭环。
+**当前状态：Python reference 与独立 Rust 单样本/批量 runtime 均已通过当前 Execution Plan 兼容范围。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已完成旧模型 → Python reference → Rust 的差分闭环。Rust 批量执行共享只读 Plan、隔离每个样本的 RunState，并按输入 `sample_index` 稳定输出；Python 3.12 可通过 PyO3 绑定直接调用相同批量 API。
 
 ```text
 spare_mvp Project JSON
@@ -54,14 +54,14 @@ Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负�
 PYTHONPATH=src python3.12 -c 'import sim_engine_compiler; print(sim_engine_compiler.__version__)'
 ```
 
-如需可编辑安装，可使用虚拟环境：
+如需包含 Rust 绑定的可编辑安装，可使用虚拟环境与 `uv`（Maturin 会编译原生扩展）：
 
 ```bash
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -e .
+uv pip install --python .venv/bin/python -e .
 ```
 
-当前可使用三个文件边界入口：`scripts/compile_execution_plan.py` 将 canonical JSON 编译为计划，`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)单独保留；语义验收与性能结论继续分开。
+当前可使用三个文件边界入口：`scripts/compile_execution_plan.py` 将 canonical JSON 编译为计划，`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。Python 侧可调用 `sim_engine_compiler.run_plan(...)` 与 `sim_engine_compiler.run_batch(...)`。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)与[阶段 C 正式分段基准](benchmarks/stage_c/README.md)单独保留；语义验收与性能结论继续分开。
 
 ## 设计来源与证据边界
 

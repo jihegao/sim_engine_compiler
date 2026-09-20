@@ -60,6 +60,28 @@ class RustRuntimeConformanceTests(unittest.TestCase):
         )
         return json.loads(output.read_text())
 
+    def _run_rust_batch(
+        self, plan_path: Path, seeds: tuple[int, ...], worker_threads: int
+    ) -> dict:
+        suffix = "-".join(str(seed) for seed in seeds)
+        output = Path(self.tempdir.name) / f"{plan_path.stem}-batch-{worker_threads}-{suffix}.json"
+        subprocess.run(
+            [
+                str(self.binary),
+                str(plan_path),
+                str(output),
+                "--seeds",
+                ",".join(str(seed) for seed in seeds),
+                "--worker-threads",
+                str(worker_threads),
+            ],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return json.loads(output.read_text())
+
     def test_synthetic_slices_match_saved_python_results(self):
         for name in SYNTHETIC:
             with self.subTest(case=name):
@@ -85,6 +107,18 @@ class RustRuntimeConformanceTests(unittest.TestCase):
                         float_abs_tol=1e-12,
                     )
                 )
+
+    def test_batch_order_is_input_stable_and_thread_count_invariant(self):
+        plan_path = ROOT / "tests" / "fixtures" / "synthetic" / "b1-execution-plan.json"
+        seeds = (7, 0, 7, 1)
+        serial = self._run_rust_batch(plan_path, seeds, 1)
+        parallel = self._run_rust_batch(plan_path, seeds, 3)
+
+        self.assertEqual([item["sample_index"] for item in parallel["samples"]], list(range(4)))
+        self.assertEqual([item["seed"] for item in parallel["samples"]], list(seeds))
+        self.assertEqual(serial["samples"], parallel["samples"])
+        self.assertEqual(serial["worker_threads"], 1)
+        self.assertEqual(parallel["worker_threads"], 3)
 
 
 if __name__ == "__main__":

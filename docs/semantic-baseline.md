@@ -38,3 +38,4 @@
 - B1/B2/B3 可手算案例保存 canonical 输入、Plan、reference 结果和旧模型 oracle。
 - phase 表、随机请求格式、浮点比较规则、核心事件和终态比较均有自动化测试。
 - F35 43 天固定输入及 seeds `0、1、7` 压缩 oracle 可离线重跑，不依赖活动数据库。
+- Rust 批量入口已对重复 seed、输入顺序和 `1/3` 线程执行做稳定性验收；F35 seeds `0、1、7` 的批量结果跨线程一致，并逐样本通过 Python reference 差分。

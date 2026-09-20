@@ -2,15 +2,19 @@ use std::{fs, path::PathBuf};
 
 use anyhow::Result;
 use clap::Parser;
-use sim_engine_runtime::{ExecutionPlan, Runtime};
+use sim_engine_runtime::{ExecutionPlan, Runtime, run_batch};
 
 #[derive(Parser)]
 #[command(about = "Execute an aircraft-support Execution Plan with the independent Rust runtime")]
 struct Args {
     plan: PathBuf,
     output: PathBuf,
-    #[arg(long, default_value_t = 0)]
-    seed: u64,
+    #[arg(long, conflicts_with = "seeds")]
+    seed: Option<u64>,
+    #[arg(long, value_name = "SEED,...", conflicts_with = "seed")]
+    seeds: Option<String>,
+    #[arg(long, requires = "seeds")]
+    worker_threads: Option<usize>,
     #[arg(long)]
     until: Option<i64>,
 }
@@ -20,17 +24,42 @@ fn main() -> Result<()> {
     let bytes = fs::read(&args.plan)?;
     let (plan, raw) = ExecutionPlan::from_slice(&bytes)?;
     let fingerprint = ExecutionPlan::fingerprint(&raw)?;
-    let result = Runtime::new(plan, fingerprint, args.seed)?.run(args.until)?;
     if let Some(parent) = args.output.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
-    println!(
-        "{}",
-        serde_json::to_string(&serde_json::json!({
-            "plan_fingerprint": result.plan_fingerprint, "time": result.time,
-            "stop_reason": result.stop_reason, "events": result.trace.len(),
-        }))?
-    );
+    if let Some(raw_seeds) = args.seeds {
+        let seeds = raw_seeds
+            .split(',')
+            .map(|item| item.trim().parse::<u64>())
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        let result = run_batch(
+            std::sync::Arc::new(plan),
+            fingerprint,
+            &seeds,
+            args.worker_threads,
+            args.until,
+        )?;
+        fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
+        println!(
+            "{}",
+            serde_json::to_string(&serde_json::json!({
+                "plan_fingerprint": result.plan_fingerprint,
+                "sample_count": result.sample_count,
+                "worker_threads": result.worker_threads,
+                "sample_indexes": result.samples.iter().map(|item| item.sample_index).collect::<Vec<_>>(),
+                "seeds": result.samples.iter().map(|item| item.seed).collect::<Vec<_>>(),
+            }))?
+        );
+    } else {
+        let result = Runtime::new(plan, fingerprint, args.seed.unwrap_or(0))?.run(args.until)?;
+        fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
+        println!(
+            "{}",
+            serde_json::to_string(&serde_json::json!({
+                "plan_fingerprint": result.plan_fingerprint, "time": result.time,
+                "stop_reason": result.stop_reason, "events": result.trace.len(),
+            }))?
+        );
+    }
     Ok(())
 }
