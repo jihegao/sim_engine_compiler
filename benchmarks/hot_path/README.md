@@ -72,6 +72,9 @@ O3 候选结果见 [`results/20260920-o3-9400f0f/README.md`](results/20260920-o3
 故障倒计时已迁移为每架飞机的稀疏数组，相对固定 O1 候选在两个轮次、三个 seed、两个观测级别
 均有明确收益；更新后的主要成本为 resource dispatch，随后是 failures 和 preventive generation。
 
+O2a preventive 索引实验见 [`results/20260920-o2a-c072639/README.md`](results/20260920-o2a-c072639/README.md)：
+实际候选访问虽减少约 90%，但两轮墙钟没有可重复收益，候选已回退，未叠加到后续优化。
+
 ## 原始证据
 
 - `results/f35-observation-interleaved-seed0-20260920.json`：交错 `full/summary` 未插桩墙钟、
