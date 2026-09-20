@@ -10,7 +10,7 @@ use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-use crate::plan::{ActivitySpec, ExecutionPlan, WorkStepSpec};
+use crate::plan::ExecutionPlan;
 use crate::rng::PythonRandom;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
@@ -267,6 +267,95 @@ struct ShipmentState {
     route_index: usize,
 }
 
+#[derive(Clone, Debug)]
+pub(crate) struct PreparedStep {
+    index: usize,
+    code: String,
+    duration_minutes: i64,
+    personnel: i64,
+    equipment: i64,
+    static_spares: Arc<[(String, i64)]>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct PreparedActivity {
+    resource_node_index: usize,
+    priority: i64,
+    steps: Vec<PreparedStep>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct PreparedRuntimePlan {
+    activities: Vec<PreparedActivity>,
+}
+
+impl PreparedRuntimePlan {
+    pub(crate) fn from_plan(plan: &ExecutionPlan) -> Self {
+        let activities = plan
+            .activities
+            .iter()
+            .map(|activity| PreparedActivity {
+                resource_node_index: activity.resource_node_index,
+                priority: activity.priority,
+                steps: activity
+                    .steps
+                    .iter()
+                    .map(|step| {
+                        // WorkStepSpec.spares historically becomes a BTreeMap at dispatch:
+                        // duplicate product IDs keep the last quantity and keys are sorted.
+                        // Freeze exactly that representation once in the prepared layout.
+                        let static_spares: Arc<[(String, i64)]> = step
+                            .spares
+                            .iter()
+                            .cloned()
+                            .collect::<BTreeMap<_, _>>()
+                            .into_iter()
+                            .collect::<Vec<_>>()
+                            .into();
+                        PreparedStep {
+                            index: step.index,
+                            code: step.code.clone(),
+                            duration_minutes: step.duration_minutes,
+                            personnel: step.personnel,
+                            equipment: step.equipment,
+                            static_spares,
+                        }
+                    })
+                    .collect(),
+            })
+            .collect();
+        Self { activities }
+    }
+}
+
+enum StepRequirements {
+    Empty,
+    Static(Arc<[(String, i64)]>),
+    Dynamic(Vec<(String, i64)>),
+}
+
+impl StepRequirements {
+    fn as_slice(&self) -> &[(String, i64)] {
+        match self {
+            Self::Empty => &[],
+            Self::Static(items) => items,
+            Self::Dynamic(items) => items,
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.as_slice().len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.as_slice().is_empty()
+    }
+
+    fn iter(&self) -> std::slice::Iter<'_, (String, i64)> {
+        self.as_slice().iter()
+    }
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct RunResult {
     pub plan_fingerprint: String,
@@ -281,6 +370,7 @@ pub struct RunResult {
 
 pub struct Runtime {
     plan: Arc<ExecutionPlan>,
+    prepared: Arc<PreparedRuntimePlan>,
     execution_phases: Vec<ExecutionPhase>,
     fingerprint: String,
     seed: u64,
@@ -439,7 +529,15 @@ impl Runtime {
         seed: u64,
         observation_level: ObservationLevel,
     ) -> Result<Self> {
-        Self::from_shared_config(plan, fingerprint, seed, observation_level, false)
+        let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
+        Self::from_shared_prepared_config(
+            plan,
+            prepared,
+            fingerprint,
+            seed,
+            observation_level,
+            false,
+        )
     }
 
     pub fn from_shared_profiled(
@@ -448,11 +546,37 @@ impl Runtime {
         seed: u64,
         observation_level: ObservationLevel,
     ) -> Result<Self> {
-        Self::from_shared_config(plan, fingerprint, seed, observation_level, true)
+        let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
+        Self::from_shared_prepared_config(
+            plan,
+            prepared,
+            fingerprint,
+            seed,
+            observation_level,
+            true,
+        )
     }
 
-    fn from_shared_config(
+    pub(crate) fn from_shared_prepared_with_observation(
         plan: Arc<ExecutionPlan>,
+        prepared: Arc<PreparedRuntimePlan>,
+        fingerprint: String,
+        seed: u64,
+        observation_level: ObservationLevel,
+    ) -> Result<Self> {
+        Self::from_shared_prepared_config(
+            plan,
+            prepared,
+            fingerprint,
+            seed,
+            observation_level,
+            false,
+        )
+    }
+
+    fn from_shared_prepared_config(
+        plan: Arc<ExecutionPlan>,
+        prepared: Arc<PreparedRuntimePlan>,
         fingerprint: String,
         seed: u64,
         observation_level: ObservationLevel,
@@ -553,6 +677,7 @@ impl Runtime {
         let mission_count = plan.missions.len();
         let mut runtime = Self {
             plan,
+            prepared,
             execution_phases,
             fingerprint,
             seed,
@@ -802,15 +927,16 @@ impl Runtime {
         } else {
             None
         };
-        if self.profile_enabled {
-            self.profile.plan_spec_clones += 1;
-        }
-        let activity = self.plan.activities[activity_index].clone();
+        let prepared_activity = &self.prepared.activities[activity_index];
+        let activity_is_empty = prepared_activity.steps.is_empty();
         let mut injected_spares = vec![];
         if kind == "repair"
             && maintenance_method.as_deref() == Some("replacement")
-            && !activity.steps.is_empty()
-            && !activity.steps.iter().any(|step| !step.spares.is_empty())
+            && !prepared_activity.steps.is_empty()
+            && !prepared_activity
+                .steps
+                .iter()
+                .any(|step| !step.static_spares.is_empty())
             && let Some(component_index) = component_index
         {
             let component = &self.plan.components[component_index];
@@ -849,18 +975,20 @@ impl Runtime {
         self.debug_assert_active_job_indexes();
         let tail_number = self.aircraft[aircraft_index].tail_number.clone();
         let mission_id = self.mission_id(mission_index);
+        let activity_id = self.plan.activities[activity_index].activity_id.clone();
+        let operations_phase = self.plan.activities[activity_index].phase.clone();
         self.emit(
             "operations_phase_created",
             "daily-v1.create-operation",
             job_id,
             || {
                 json!({"tail_number": tail_number,
-                "mission_id": mission_id, "activity_id": activity.activity_id,
-                "operations_phase": activity.phase})
+                "mission_id": mission_id, "activity_id": activity_id,
+                "operations_phase": operations_phase})
             },
             None,
         );
-        if activity.steps.is_empty() {
+        if activity_is_empty {
             self.transition_job_state(job_index, "completed");
             self.jobs[job_index].started_time = Some(self.minute);
             self.jobs[job_index].completed_time = Some(self.minute);
@@ -1201,7 +1329,7 @@ impl Runtime {
         &mut self,
         job_index: usize,
         activity_index: usize,
-        requirements: &BTreeMap<String, i64>,
+        requirements: &[(String, i64)],
     ) {
         let destination_index = self.plan.activities[activity_index].resource_node_index;
         self.count_map_reads(requirements.len() * 2);
@@ -1428,9 +1556,12 @@ impl Runtime {
         Ok(())
     }
 
-    fn release_resources(&mut self, job_index: usize, step: &WorkStepSpec) -> Result<()> {
-        let node_index =
-            self.plan.activities[self.jobs[job_index].activity_index].resource_node_index;
+    fn release_resources(
+        &mut self,
+        job_index: usize,
+        node_index: usize,
+        step_index: usize,
+    ) -> Result<()> {
         self.resources[node_index].personnel_in_use -= self.jobs[job_index].reserved_personnel;
         self.resources[node_index].equipment_in_use -= self.jobs[job_index].reserved_equipment;
         if self.resources[node_index].personnel_in_use < 0
@@ -1447,7 +1578,7 @@ impl Runtime {
             "resource.release",
             self.jobs[job_index].job_id.clone(),
             || {
-                json!({"node_index": node_index, "step_index": step.index,
+                json!({"node_index": node_index, "step_index": step_index,
                 "personnel": reserved_personnel,
                 "equipment": reserved_equipment,
                 "personnel_in_use": personnel_in_use,
@@ -1473,21 +1604,24 @@ impl Runtime {
             if self.jobs[job_index].remaining > 0 {
                 continue;
             }
-            if self.profile_enabled {
-                self.profile.plan_spec_clones += 2;
-            }
-            let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
-            let step = activity.steps[self.jobs[job_index].step_index].clone();
-            self.release_resources(job_index, &step)?;
+            let activity_index = self.jobs[job_index].activity_index;
+            let step_position = self.jobs[job_index].step_index;
+            let activity = &self.prepared.activities[activity_index];
+            let step = &activity.steps[step_position];
+            let node_index = activity.resource_node_index;
+            let step_index = step.index;
+            let step_code = step.code.clone();
+            let step_count = activity.steps.len();
+            self.release_resources(job_index, node_index, step_index)?;
             self.emit(
                 "operations_step_completed",
                 "work.serial-step-complete",
                 self.jobs[job_index].job_id.clone(),
-                || json!({"step_index": step.index, "activity_code": step.code}),
+                || json!({"step_index": step_index, "activity_code": step_code}),
                 None,
             );
             self.jobs[job_index].step_index += 1;
-            if self.jobs[job_index].step_index >= activity.steps.len() {
+            if self.jobs[job_index].step_index >= step_count {
                 self.transition_job_state(job_index, "completed");
                 self.jobs[job_index].completed_time = Some(self.minute);
                 self.complete_job(job_index)?;
@@ -1757,21 +1891,24 @@ impl Runtime {
     fn step_requirements(
         &self,
         job_index: usize,
-        activity: &ActivitySpec,
-        step: &WorkStepSpec,
-    ) -> BTreeMap<String, i64> {
-        let mut requirements: BTreeMap<_, _> = step.spares.iter().cloned().collect();
-        if self.jobs[job_index].step_index + 1 == activity.steps.len() {
-            for (product_id, quantity) in &self.jobs[job_index].injected_spares {
-                *requirements.entry(product_id.clone()).or_default() += quantity;
-            }
-        }
+        static_spares: Arc<[(String, i64)]>,
+        step_count: usize,
+    ) -> StepRequirements {
         if self.jobs[job_index].maintenance_method.as_deref() == Some("non_replacement")
             && matches!(self.jobs[job_index].kind.as_str(), "repair" | "preventive")
         {
-            requirements.clear();
+            return StepRequirements::Empty;
         }
-        requirements
+        if self.jobs[job_index].step_index + 1 == step_count
+            && !self.jobs[job_index].injected_spares.is_empty()
+        {
+            let mut requirements: BTreeMap<_, _> = static_spares.iter().cloned().collect();
+            for (product_id, quantity) in &self.jobs[job_index].injected_spares {
+                *requirements.entry(product_id.clone()).or_default() += quantity;
+            }
+            return StepRequirements::Dynamic(requirements.into_iter().collect());
+        }
+        StepRequirements::Static(static_spares)
     }
 
     #[cfg_attr(feature = "profiling", inline(never))]
@@ -1784,28 +1921,31 @@ impl Runtime {
         }
         waiting.sort_by_key(|index| {
             (
-                self.plan.activities[self.jobs[*index].activity_index].priority,
+                self.prepared.activities[self.jobs[*index].activity_index].priority,
                 self.jobs[*index].started_time.unwrap_or(self.minute),
                 self.jobs[*index].job_id.clone(),
             )
         });
         for job_index in waiting {
-            if self.profile_enabled {
-                self.profile.plan_spec_clones += 1;
-            }
-            let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
-            if self.jobs[job_index].step_index >= activity.steps.len() {
+            let activity_index = self.jobs[job_index].activity_index;
+            let step_index = self.jobs[job_index].step_index;
+            let prepared_activity = &self.prepared.activities[activity_index];
+            let step_count = prepared_activity.steps.len();
+            if step_index >= step_count {
                 self.transition_job_state(job_index, "completed");
                 self.complete_job(job_index)?;
                 continue;
             }
-            if self.profile_enabled {
-                self.profile.plan_spec_clones += 1;
-            }
-            let step = activity.steps[self.jobs[job_index].step_index].clone();
-            let node_index = activity.resource_node_index;
-            let requirements = self.step_requirements(job_index, &activity, &step);
-            self.dispatch_remote_spares(job_index, activity.index, &requirements);
+            let step = &prepared_activity.steps[step_index];
+            let node_index = prepared_activity.resource_node_index;
+            let step_spec_index = step.index;
+            let step_code = step.code.clone();
+            let duration_minutes = step.duration_minutes;
+            let personnel = step.personnel;
+            let equipment = step.equipment;
+            let static_spares = step.static_spares.clone();
+            let requirements = self.step_requirements(job_index, static_spares, step_count);
+            self.dispatch_remote_spares(job_index, activity_index, requirements.as_slice());
             self.count_map_reads(requirements.len() * 2);
             let immediately_available = requirements.iter().all(|(product_id, quantity)| {
                 self.resources[node_index]
@@ -1829,7 +1969,7 @@ impl Runtime {
                 self.jobs[job_index]
                     .requested_spare_steps
                     .insert(step_index);
-                for (product_id, quantity) in &requirements {
+                for (product_id, quantity) in requirements.iter() {
                     self.spare_demand_total += quantity;
                     if immediately_available {
                         self.spare_immediately_filled_total += quantity;
@@ -1881,32 +2021,32 @@ impl Runtime {
                 continue;
             }
             self.jobs[job_index].shortage_signature = None;
-            if self.resources[node_index].personnel_in_use + step.personnel
+            if self.resources[node_index].personnel_in_use + personnel
                 > self.resources[node_index].personnel_capacity
             {
                 self.emit(
                     "personnel_delay",
                     "resource.personnel-capacity",
                     self.jobs[job_index].job_id.clone(),
-                    || json!({"step_index": step.index}),
+                    || json!({"step_index": step_spec_index}),
                     None,
                 );
                 continue;
             }
-            if self.resources[node_index].equipment_in_use + step.equipment
+            if self.resources[node_index].equipment_in_use + equipment
                 > self.resources[node_index].equipment_capacity
             {
                 self.emit(
                     "equipment_shortage",
                     "resource.equipment-capacity",
                     self.jobs[job_index].job_id.clone(),
-                    || json!({"step_index": step.index}),
+                    || json!({"step_index": step_spec_index}),
                     None,
                 );
                 continue;
             }
-            self.resources[node_index].personnel_in_use += step.personnel;
-            self.resources[node_index].equipment_in_use += step.equipment;
+            self.resources[node_index].personnel_in_use += personnel;
+            self.resources[node_index].equipment_in_use += equipment;
             if !requirements.is_empty()
                 && !self.jobs[job_index]
                     .consumed_spare_steps
@@ -1914,7 +2054,7 @@ impl Runtime {
             {
                 let step_index = self.jobs[job_index].step_index;
                 self.jobs[job_index].consumed_spare_steps.insert(step_index);
-                for (product_id, quantity) in &requirements {
+                for (product_id, quantity) in requirements.iter() {
                     self.count_map_reads(1);
                     let reserved = self.jobs[job_index]
                         .spare_reservations
@@ -1958,16 +2098,16 @@ impl Runtime {
                     );
                 }
             }
-            self.jobs[job_index].reserved_personnel = step.personnel;
-            self.jobs[job_index].reserved_equipment = step.equipment;
+            self.jobs[job_index].reserved_personnel = personnel;
+            self.jobs[job_index].reserved_equipment = equipment;
             self.transition_job_state(job_index, "running");
             if self.jobs[job_index].started_time.is_none() {
                 self.jobs[job_index].started_time = Some(self.minute);
             }
-            self.jobs[job_index].remaining = step.duration_minutes;
+            self.jobs[job_index].remaining = duration_minutes;
             if self.jobs[job_index].kind == "repair"
                 && self.jobs[job_index].component_index.is_some()
-                && self.jobs[job_index].step_index + 1 == activity.steps.len()
+                && self.jobs[job_index].step_index + 1 == step_count
             {
                 let duration = self.plan.components[self.jobs[job_index].component_index.unwrap()]
                     .repair_duration_minutes;
@@ -1978,14 +2118,14 @@ impl Runtime {
             let personnel_in_use = self.resources[node_index].personnel_in_use;
             let equipment_in_use = self.resources[node_index].equipment_in_use;
             self.emit("resources_reserved", "resource.reserve-atomic", self.jobs[job_index].job_id.clone(),
-                || json!({"node_index": node_index, "step_index": step.index, "personnel": step.personnel,
-                    "equipment": step.equipment, "personnel_in_use": personnel_in_use,
+                || json!({"node_index": node_index, "step_index": step_spec_index, "personnel": personnel,
+                    "equipment": equipment, "personnel_in_use": personnel_in_use,
                     "equipment_in_use": equipment_in_use}), None);
             self.emit(
                 "operations_step_started",
                 "work.stable-topological-serial",
                 self.jobs[job_index].job_id.clone(),
-                || json!({"step_index": step.index, "activity_code": step.code}),
+                || json!({"step_index": step_spec_index, "activity_code": step_code}),
                 None,
             );
         }
@@ -2094,12 +2234,14 @@ impl Runtime {
             .collect();
         for job_index in targets {
             if self.jobs[job_index].state == "running" {
-                if self.profile_enabled {
-                    self.profile.plan_spec_clones += 2;
-                }
-                let activity = self.plan.activities[self.jobs[job_index].activity_index].clone();
-                let step = activity.steps[self.jobs[job_index].step_index].clone();
-                self.release_resources(job_index, &step)?;
+                let activity_index = self.jobs[job_index].activity_index;
+                let step_position = self.jobs[job_index].step_index;
+                let activity = &self.prepared.activities[activity_index];
+                self.release_resources(
+                    job_index,
+                    activity.resource_node_index,
+                    activity.steps[step_position].index,
+                )?;
             }
             self.transition_job_state(job_index, "cancelled");
             self.jobs[job_index].remaining = 0;
@@ -2762,6 +2904,45 @@ mod phase_tests {
         );
         assert!(runtime.waiting_job_indexes.is_empty());
         assert!(runtime.running_job_indexes.is_empty());
+    }
+
+    #[test]
+    fn prepared_steps_preserve_spare_deduplication_and_dynamic_injection() {
+        let mut plan = synthetic_plan();
+        plan.activities[0].steps[0].spares = vec![
+            ("z-part".into(), 1),
+            ("a-part".into(), 2),
+            ("z-part".into(), 3),
+        ];
+        let mut runtime = Runtime::new(plan, "test-fingerprint".into(), 0).unwrap();
+        let static_spares = runtime.prepared.activities[0].steps[0]
+            .static_spares
+            .clone();
+        assert_eq!(
+            static_spares.as_ref(),
+            &[("a-part".into(), 2), ("z-part".into(), 3)]
+        );
+
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+        let job_index = runtime.jobs.len() - 1;
+        runtime.jobs[job_index].injected_spares = vec![("z-part".into(), 4), ("b-part".into(), 5)];
+        let requirements = runtime.step_requirements(job_index, static_spares.clone(), 1);
+        assert_eq!(
+            requirements.as_slice(),
+            &[
+                ("a-part".into(), 2),
+                ("b-part".into(), 5),
+                ("z-part".into(), 7),
+            ]
+        );
+
+        runtime.jobs[job_index].kind = "repair".into();
+        runtime.jobs[job_index].maintenance_method = Some("non_replacement".into());
+        assert!(
+            runtime
+                .step_requirements(job_index, static_spares, 1)
+                .is_empty()
+        );
     }
 
     #[test]

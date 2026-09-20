@@ -4,6 +4,7 @@ use anyhow::{Result, bail};
 use rayon::prelude::*;
 use serde::Serialize;
 
+use crate::runtime::PreparedRuntimePlan;
 use crate::{ExecutionPlan, ObservationLevel, RunResult, Runtime};
 
 #[derive(Debug, Serialize)]
@@ -88,6 +89,7 @@ pub fn run_batch_with_observation(
         bail!("worker_threads must be greater than zero");
     }
     plan.validate()?;
+    let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
 
     let available = thread::available_parallelism()
         .map(NonZeroUsize::get)
@@ -103,8 +105,9 @@ pub fn run_batch_with_observation(
             .par_iter()
             .enumerate()
             .map(|(sample_index, seed)| {
-                let result = Runtime::from_shared_with_observation(
+                let result = Runtime::from_shared_prepared_with_observation(
                     plan.clone(),
+                    prepared.clone(),
                     fingerprint.clone(),
                     *seed,
                     observation_level,
