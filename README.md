@@ -63,6 +63,8 @@ uv pip install --python .venv/bin/python -e .
 
 当前可使用三个文件边界入口：`scripts/compile_execution_plan.py` 将 canonical JSON 编译为计划，`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。Python 侧可调用 `sim_engine_compiler.run_plan(...)` 与 `sim_engine_compiler.run_batch(...)`。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)与[阶段 C 正式分段基准](benchmarks/stage_c/README.md)单独保留；语义验收与性能结论继续分开。
 
+实验分支还提供 `rust/compiler` 的 canonical-input AOT lowering 与版本化二进制 Plan 缓存。AMD128 的 Project→canonical 分段 profile、首次 miss 与 pre-Adapter Project 指纹命中结果见 [冷启动实验](benchmarks/cold_start/README.md)。该实验没有实现 Rust Project Adapter；重复模型命中与第一次启动是两条不同的证据边界。
+
 ## 设计来源与证据边界
 
 依据 2026-09-20 的讨论：[设计仿真引擎 and IR](chatgpt-conversation://6aaf8dfc-02e0-83ea-8eb1-460c5abf7b5f)。本项目已从上游提交 `5352a0d7757cbac012c75d516d1a7ac4ff15aa2a` 导出固定 canonical 输入，并重新生成 seed `0、1、7` oracle；验收不依赖运行中的上游数据库。

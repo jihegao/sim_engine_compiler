@@ -45,6 +45,12 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 主要成本是逐分钟 mission/job/component 扫描及其 Plan spec/字符串克隆与 Map 操作，
 而不是 trace JSON；证据见 `benchmarks/hot_path/README.md`。
 
+实验分支新增 Rust canonical-input AOT compiler 和 `sim-engine-plan-cache/v2`：五个固定
+fixture 与 Python Plan 结构一致，Project 指纹命中可在 Adapter 前加载 Plan。AMD128 30 次
+中位结果为命中并执行 O5 summary 的进程墙钟 `88.339 ms`；第一次启动仍受 Python
+Project export/Adapter 的 `~0.72 s` 主导。证据和未实现的 Rust Adapter 边界见
+`benchmarks/cold_start/README.md`。
+
 ### C1：基于 F35 热路径的兼容优化（O0/O1/O3/O4a/O6 已验收）
 
 执行顺序与逐项验收见 [观测隔离与 F35 热路径优化计划](performance-optimization-plan.md)。
