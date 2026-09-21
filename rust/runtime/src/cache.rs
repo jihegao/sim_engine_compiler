@@ -113,6 +113,11 @@ pub fn decode_plan_cache(
     if envelope.source_inputs_sha256 != envelope.plan.source_inputs_sha256 {
         bail!("cached source fingerprint does not match embedded plan");
     }
+    let actual_plan_fingerprint =
+        ExecutionPlan::fingerprint(&serde_json::to_value(&envelope.plan)?)?;
+    if envelope.plan_fingerprint != actual_plan_fingerprint {
+        bail!("cached plan fingerprint does not match embedded plan");
+    }
     if let Some(expected) = expected_compiler_version
         && envelope.compiler_version != expected
     {
@@ -163,7 +168,10 @@ mod tests {
 
     #[test]
     fn cache_round_trip_and_identity_guards() {
-        let bytes = encode_plan_cache(empty_plan(), "compiler/v1", "plan-sha").unwrap();
+        let plan = empty_plan();
+        let plan_fingerprint =
+            ExecutionPlan::fingerprint(&serde_json::to_value(&plan).unwrap()).unwrap();
+        let bytes = encode_plan_cache(plan, "compiler/v1", &plan_fingerprint).unwrap();
         let cached = decode_plan_cache(
             &bytes,
             Some("compiler/v1"),
@@ -171,14 +179,14 @@ mod tests {
             Some("legacy-minute-v1"),
         )
         .unwrap();
-        assert_eq!(cached.plan_fingerprint, "plan-sha");
+        assert_eq!(cached.plan_fingerprint, plan_fingerprint);
         assert!(decode_plan_cache(&bytes, Some("compiler/v2"), None, None).is_err());
         assert!(decode_plan_cache(&bytes, None, Some("other"), None).is_err());
         assert!(decode_plan_cache(&bytes, None, None, Some("event-time-v2")).is_err());
         let bytes = encode_plan_cache_with_identity(
             empty_plan(),
             "compiler/v1",
-            "plan-sha",
+            &plan_fingerprint,
             Some("project-sha"),
             Some("adapter/v1"),
         )
@@ -205,5 +213,7 @@ mod tests {
             )
             .is_err()
         );
+        let invalid = encode_plan_cache(empty_plan(), "compiler/v1", "not-the-plan-sha").unwrap();
+        assert!(decode_plan_cache(&invalid, Some("compiler/v1"), None, None).is_err());
     }
 }

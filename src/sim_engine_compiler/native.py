@@ -83,3 +83,32 @@ def run_batch(
         _plan_json(plan), list(seeds), worker_threads, until, observation_level
     )
     return json.loads(encoded)
+
+
+def run_canonical_batch(
+    samples: Sequence[Mapping[str, Any]],
+    *,
+    worker_threads: int | None = None,
+    cache_dir: str | PathLike[str] | None = None,
+) -> dict[str, Any]:
+    """Compile and run heterogeneous canonical Monte Carlo samples in Rust.
+
+    Every item must include ``sample_index``, ``seed``, ``sweep`` and the
+    upstream Adapter's ``canonical_inputs``. The engine always uses
+    ``event-time-v2`` with summary observation: complete metrics, RNG requests
+    and terminal state are retained while trace materialization is omitted.
+    """
+
+    encoded_samples = json.dumps(
+        list(samples),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
+    encoded = _native_module().run_canonical_batch_json(
+        encoded_samples,
+        worker_threads,
+        None if cache_dir is None else str(Path(cache_dir)),
+    )
+    return json.loads(encoded)
