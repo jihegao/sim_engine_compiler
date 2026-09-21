@@ -161,6 +161,8 @@ pub struct ExecutionPlan {
     pub rng_profile: String,
     pub source_inputs_sha256: String,
     pub duration_minutes: i64,
+    #[serde(default)]
+    pub natural_completion_enabled: bool,
     pub phases: Vec<String>,
     #[serde(default)]
     pub aircraft: Vec<AircraftSpec>,

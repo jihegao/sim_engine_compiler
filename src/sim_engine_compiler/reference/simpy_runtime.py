@@ -1277,12 +1277,35 @@ class SimpyReferenceRuntime:
             handlers[phase]()
 
     def _phase_stop(self) -> None:
-        if self.minute < self.plan.duration_minutes:
-            return
-        self._phase_coordinate_postflight(cutoff=True)
-        self.stop_reason = "duration"
-        self.running = False
-        self._emit("simulation_stopped", "stop.duration", "simulation")
+        if self.minute >= self.plan.duration_minutes:
+            self._phase_coordinate_postflight(cutoff=True)
+            self.stop_reason = "duration"
+            self.running = False
+            self._emit("simulation_stopped", "stop.duration", "simulation")
+        elif self.plan.natural_completion_enabled and self._natural_completion_reached():
+            self.stop_reason = "natural_complete"
+            self.running = False
+            self._emit("simulation_stopped", "stop.natural-complete", "simulation")
+
+    def _natural_completion_reached(self) -> bool:
+        if not self.plan.missions:
+            return self.minute >= self.plan.duration_minutes
+        if any(
+            mission.status not in {"completed", "failed", "cancelled"}
+            for mission in self.missions
+        ):
+            return False
+        if any(job.state in {"waiting", "running"} for job in self.jobs):
+            return False
+        if self.shipments:
+            return False
+        if any(
+            aircraft.state in {"flying", "mission_ready", "pre_support", "post_support"}
+            or aircraft.postflight_required
+            for aircraft in self.aircraft
+        ):
+            return False
+        return self.minute >= max(mission.planned_start for mission in self.plan.missions)
 
     def _clock(self, until: int):
         while self.running and self.minute < until:

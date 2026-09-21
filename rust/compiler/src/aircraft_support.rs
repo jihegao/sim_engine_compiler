@@ -10,7 +10,7 @@ use sim_engine_runtime::plan::{
     PreventiveCycleSpec, ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
 };
 
-pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha1";
+pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha2";
 
 const LEGACY_MINUTE_PHASES: &[&str] = &[
     "transport_arrivals",
@@ -1171,6 +1171,20 @@ pub fn compile_aircraft_support_with_profile(
         bail!("{semantic_profile} requires tick_minutes=1");
     }
     let duration_minutes = positive_i64(time.get("duration_minutes"), 1440);
+    let stop_policy = object(inputs.get("stop_policy"));
+    let stop_conditions = stop_policy
+        .map(|policy| array(policy.get("conditions")))
+        .unwrap_or_default();
+    let natural_completion_enabled = stop_policy
+        .and_then(|policy| policy.get("defaulted"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
+        || !stop_conditions.iter().any(|condition| {
+            matches!(
+                text(condition.get("type")).as_str(),
+                "duration" | "specified_time"
+            )
+        });
     let aircraft = compile_aircraft(inputs)?;
     let resource_nodes = compile_nodes(inputs)?;
     let equipment = object(inputs.get("equipment_tree"))
@@ -1200,6 +1214,7 @@ pub fn compile_aircraft_support_with_profile(
         rng_profile: "legacy-sequential-v1".to_owned(),
         source_inputs_sha256: format!("{:x}", Sha256::digest(canonical.as_bytes())),
         duration_minutes,
+        natural_completion_enabled,
         phases: LEGACY_MINUTE_PHASES
             .iter()
             .map(|value| (*value).to_owned())
@@ -1322,6 +1337,32 @@ mod tests {
                 .steps
                 .iter()
                 .all(|step| step.personnel == 1 && step.equipment == 1)
+        );
+    }
+
+    #[test]
+    fn compiles_natural_completion_only_without_explicit_temporal_blocking() {
+        let f35: Value = serde_json::from_slice(
+            &fs::read(
+                root().join("tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json"),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let explicit_duration: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/b1-daily-operations.json")).unwrap(),
+        )
+        .unwrap();
+
+        assert!(
+            compile_aircraft_support(&f35)
+                .unwrap()
+                .natural_completion_enabled
+        );
+        assert!(
+            !compile_aircraft_support(&explicit_duration)
+                .unwrap()
+                .natural_completion_enabled
         );
     }
 }

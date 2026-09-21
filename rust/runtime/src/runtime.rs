@@ -2624,6 +2624,44 @@ impl Runtime {
         }
     }
 
+    fn natural_completion_reached(&self) -> bool {
+        if self.plan.missions.is_empty() {
+            return self.minute >= self.plan.duration_minutes;
+        }
+        if self.missions.iter().any(|mission| {
+            !matches!(
+                mission.status.as_str(),
+                "completed" | "failed" | "cancelled"
+            )
+        }) {
+            return false;
+        }
+        if self
+            .jobs
+            .iter()
+            .any(|job| matches!(job.state.as_str(), "waiting" | "running"))
+        {
+            return false;
+        }
+        if !self.shipments.is_empty() || !self.resource_transits.is_empty() {
+            return false;
+        }
+        if self.aircraft.iter().any(|aircraft| {
+            matches!(
+                aircraft.state.as_str(),
+                "flying" | "mission_ready" | "pre_support" | "post_support"
+            ) || aircraft.postflight_required
+        }) {
+            return false;
+        }
+        self.plan
+            .missions
+            .iter()
+            .map(|mission| mission.planned_start)
+            .max()
+            .is_some_and(|last_planned_start| self.minute >= last_planned_start)
+    }
+
     fn execute_minute(&mut self) -> Result<()> {
         for phase_index in 0..self.execution_phases.len() {
             let phase = self.execution_phases[phase_index];
@@ -2665,6 +2703,18 @@ impl Runtime {
                         self.emit(
                             "simulation_stopped",
                             "stop.duration",
+                            "simulation".into(),
+                            || json!({}),
+                            None,
+                        );
+                    } else if self.plan.natural_completion_enabled
+                        && self.natural_completion_reached()
+                    {
+                        self.stop_reason = "natural_complete".into();
+                        self.running = false;
+                        self.emit(
+                            "simulation_stopped",
+                            "stop.natural-complete",
                             "simulation".into(),
                             || json!({}),
                             None,
@@ -2930,6 +2980,20 @@ mod phase_tests {
         let (_, profile) = runtime.run_profiled(Some(1)).unwrap();
 
         assert_eq!(profile.phases["daily_readiness"].calls, 2);
+    }
+
+    #[test]
+    fn defaulted_policy_can_stop_at_natural_completion() {
+        let mut plan = synthetic_plan();
+        plan.duration_minutes = 120;
+        plan.natural_completion_enabled = true;
+        let result = Runtime::new(plan, "natural-completion-test".into(), 0)
+            .unwrap()
+            .run(None)
+            .unwrap();
+
+        assert_eq!(result.stop_reason, "natural_complete");
+        assert!(result.time < 120);
     }
 
     #[test]

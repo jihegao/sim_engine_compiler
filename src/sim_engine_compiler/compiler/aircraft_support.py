@@ -668,6 +668,21 @@ def compile_aircraft_support(
     if _positive_int(time.get("tick_minutes"), 1) != 1:
         raise CompilationError(f"{semantic_profile} requires tick_minutes=1")
     duration = _positive_int(time.get("duration_minutes"), 1440)
+    stop_policy = (
+        inputs.get("stop_policy")
+        if isinstance(inputs.get("stop_policy"), dict)
+        else {}
+    )
+    stop_conditions = (
+        stop_policy.get("conditions")
+        if isinstance(stop_policy.get("conditions"), list)
+        else []
+    )
+    natural_completion_enabled = bool(stop_policy.get("defaulted")) or not any(
+        isinstance(condition, dict)
+        and str(condition.get("type") or "") in {"duration", "specified_time"}
+        for condition in stop_conditions
+    )
     aircraft = _compile_aircraft(inputs)
     nodes = _compile_nodes(inputs)
     raw_component_indexes = {
@@ -691,6 +706,7 @@ def compile_aircraft_support(
         rng_profile="legacy-sequential-v1",
         source_inputs_sha256=_canonical_digest(inputs),
         duration_minutes=duration,
+        natural_completion_enabled=natural_completion_enabled,
         phases=LEGACY_MINUTE_PHASES,
         aircraft=aircraft,
         missions=missions,

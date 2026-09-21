@@ -202,8 +202,8 @@ class PythonBindingTests(unittest.TestCase):
 
         def transformed(sweep: dict) -> dict:
             inputs = copy.deepcopy(base_inputs)
-            if "failure_multiplier" in sweep:
-                multiplier = sweep["failure_multiplier"]
+            if "failure_multiplier" in sweep or "failure_rate" in sweep:
+                multiplier = sweep.get("failure_multiplier", sweep.get("failure_rate"))
                 for component in inputs["equipment_tree"]["components"]:
                     component["failure_rate"] = (
                         float(component.get("failure_rate") or 0) * multiplier
@@ -228,7 +228,7 @@ class PythonBindingTests(unittest.TestCase):
             [
                 {
                     "sample_index": len(scenarios) - index - 1,
-                    "seed": oracle["seed"],
+                    "seed": scenario.get("seed", oracle["seed"]),
                     "sweep": scenario["sweep"],
                     "canonical_inputs": transformed(scenario["sweep"]),
                 }
@@ -251,6 +251,12 @@ class PythonBindingTests(unittest.TestCase):
                 json.dumps(sample["sweep"], sort_keys=True)
             ]
             self.assertEqual(sample["metrics"], expected["metrics"])
+            if "time" in expected:
+                self.assertEqual(sample["result"]["time"], expected["time"])
+            if "stop_reason" in expected:
+                self.assertEqual(
+                    sample["result"]["stop_reason"], expected["stop_reason"]
+                )
             if "terminal_state_jobs_sha256" in expected:
                 jobs = sample["result"]["terminal_state"]["jobs"]
                 encoded = json.dumps(

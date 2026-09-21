@@ -154,6 +154,7 @@ mod tests {
             rng_profile: "legacy-sequential-v1".to_owned(),
             source_inputs_sha256: "abc".to_owned(),
             duration_minutes: 1,
+            natural_completion_enabled: false,
             phases: Vec::new(),
             aircraft: Vec::new(),
             missions: Vec::new(),
