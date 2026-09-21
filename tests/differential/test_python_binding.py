@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 import tempfile
@@ -24,6 +25,7 @@ F35_CANONICAL_INPUTS = (
     / "f35-43day-5352a0d"
     / "simulation-inputs.json"
 )
+F35_SWEEP_ORACLE = F35_CANONICAL_INPUTS.with_name("sweep-core-oracle.json")
 NON_TRACE_RESULT_FIELDS = (
     "plan_fingerprint",
     "seed",
@@ -192,6 +194,60 @@ class PythonBindingTests(unittest.TestCase):
         self.assertEqual(
             [sample["result"] for sample in actual["samples"]], expected
         )
+
+    def test_canonical_batch_f35_sweeps_match_spare_mvp_core_oracle(self):
+        base_inputs = json.loads(F35_CANONICAL_INPUTS.read_text())
+        oracle = json.loads(F35_SWEEP_ORACLE.read_text())
+
+        def transformed(sweep: dict) -> dict:
+            inputs = copy.deepcopy(base_inputs)
+            if "failure_multiplier" in sweep:
+                multiplier = sweep["failure_multiplier"]
+                for component in inputs["equipment_tree"]["components"]:
+                    component["failure_rate"] = (
+                        float(component.get("failure_rate") or 0) * multiplier
+                    )
+                    component.setdefault("failure_distribution", {})[
+                        "_rate_multiplier"
+                    ] = multiplier
+            if "spare_multiplier" in sweep:
+                multiplier = sweep["spare_multiplier"]
+                for node in inputs["support_network"]["nodes"]:
+                    for product_id, quantity in node["inventory"].items():
+                        node["inventory"][product_id] = round(quantity * multiplier)
+            if "support_capacity" in sweep:
+                capacity = max(1, int(sweep["support_capacity"]))
+                for node in inputs["support_network"]["nodes"]:
+                    node["personnel_capacity"] = capacity
+                    node["equipment_capacity"] = capacity
+            return inputs
+
+        scenarios = list(oracle["scenarios"].items())
+        actual = sim_engine_compiler.run_canonical_batch(
+            [
+                {
+                    "sample_index": len(scenarios) - index - 1,
+                    "seed": oracle["seed"],
+                    "sweep": scenario["sweep"],
+                    "canonical_inputs": transformed(scenario["sweep"]),
+                }
+                for index, (_name, scenario) in enumerate(scenarios)
+            ],
+            worker_threads=4,
+        )
+
+        self.assertEqual(actual["failed_samples"], [])
+        self.assertEqual(
+            [sample["sample_index"] for sample in actual["samples"]],
+            list(range(len(scenarios))),
+        )
+        expected_by_sweep = {
+            json.dumps(scenario["sweep"], sort_keys=True): scenario["metrics"]
+            for scenario in oracle["scenarios"].values()
+        }
+        for sample in actual["samples"]:
+            expected = expected_by_sweep[json.dumps(sample["sweep"], sort_keys=True)]
+            self.assertEqual(sample["metrics"], expected)
 
 
 if __name__ == "__main__":
