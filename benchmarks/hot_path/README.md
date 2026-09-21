@@ -1,6 +1,6 @@
 # F35 执行热路径与观测隔离
 
-状态：2026-09-20 已完成观测隔离、O1/O3/O4a/O6 收录及 O2a/O4b 回退决策。固定输入为 F35 43 天 Execution Plan，fingerprint
+状态：2026-09-21 已完成观测隔离、O1/O3/O4a/O6/O5a 收录、O2a/O4b 回退，以及 O5b/O5c/O5d 实验决策。固定输入为 F35 43 天 Execution Plan，fingerprint
 `7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d`。语义差分覆盖
 seeds `0、1、7`；墙钟与内部 profile 使用 seed `0`，不把单 seed 的耗时分布外推为所有案例。
 
@@ -94,6 +94,12 @@ O5 `event-time-v2` 第一阶段见 [`results/o5-event-time-v2-20260921/README.md
 F35 seed 0 的 61,920 分钟降为 1,609 个唤醒；三 seed、full/summary 和边界案例精确等价。
 AMD128 两个稳定会话的各组合跨会话中位改善为 69.74%–81.62%。当前仍会重建日历并逐 tick
 推进故障暴露，不是 persistent callback scheduler。
+
+O5b/O5c/O5d 后续实验见 [`results/20260921-o5b-o5c-o5d-amd128/README.md`](results/20260921-o5b-o5c-o5d-amd128/README.md)：
+O5b 持久 heap 协调实现慢 56.03%–72.65%，已拒绝；O5c 保守 phase 入口稳定改善
+0.71%–1.58%，低于约 5% 收录线；O5d 在精确性守卫下批量推进连续倒计时，三轮 AMD128
+各组合稳定改善 30.61%–41.16%，通过候选门槛。O5d 本轮只保留独立源码差异和证据，尚未
+合入已接受的 O5a runtime。
 
 ## 原始证据
 
