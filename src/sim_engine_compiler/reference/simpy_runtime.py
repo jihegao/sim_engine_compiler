@@ -1345,8 +1345,11 @@ class SimpyReferenceRuntime:
             ),
             "spare_demand_total": self.spare_demand_total,
             "spare_immediately_filled_total": self.spare_immediately_filled_total,
-            "spare_fill_rate": self.spare_immediately_filled_total
-            / max(1, self.spare_demand_total),
+            "spare_fill_rate": (
+                1.0
+                if self.spare_demand_total == 0
+                else self.spare_immediately_filled_total / self.spare_demand_total
+            ),
             "spare_consumed_total": self.spare_consumed_total,
             "shortage_events": self.shortage_events,
             "transport_in_transit_count": len(self.shipments),

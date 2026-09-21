@@ -2562,7 +2562,11 @@ impl Runtime {
             "failed_count": failed_count, "repairing_count": repairing_count,
             "spare_stock_total": spare_stock_total, "spare_demand_total": self.spare_demand_total,
             "spare_immediately_filled_total": self.spare_immediately_filled_total,
-            "spare_fill_rate": self.spare_immediately_filled_total as f64 / self.spare_demand_total.max(1) as f64,
+            "spare_fill_rate": if self.spare_demand_total == 0 {
+                1.0
+            } else {
+                self.spare_immediately_filled_total as f64 / self.spare_demand_total as f64
+            },
             "spare_consumed_total": self.spare_consumed_total, "shortage_events": self.shortage_events,
             "transport_in_transit_count": self.shipments.len(),
             "transport_replenishment_events": self.transport_replenishment_events,

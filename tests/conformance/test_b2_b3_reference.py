@@ -22,6 +22,7 @@ class B2PreventiveTests(unittest.TestCase):
         )
         result = SimpyReferenceRuntime(compile_aircraft_support(inputs), seed=0).run()
         self.assertIsNone(first_divergence(oracle["terminal_state"], result["terminal_state"]))
+        self.assertEqual(oracle["metrics"]["spare_fill_rate"], result["metrics"]["spare_fill_rate"])
         expected = [
             (item["time"], item["phase"], item["kind"], item["entity"])
             for item in oracle["trace"]
