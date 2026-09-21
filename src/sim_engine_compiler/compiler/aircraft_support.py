@@ -164,13 +164,19 @@ def _topological_steps(activity: dict[str, Any], source_path: str) -> tuple[Work
                 ),
                 personnel=_resource_quantity(
                     item.get("personnel"),
-                    item.get("requiredPersonnel", item.get("required_personnel")),
-                    _positive_int(activity.get("required_personnel"), 1),
+                    item.get(
+                        "requiredPersonnel",
+                        item.get("required_personnel", activity.get("required_personnel")),
+                    ),
+                    1,
                 ),
                 equipment=_resource_quantity(
                     item.get("equipment"),
-                    item.get("requiredDevices", item.get("required_devices")),
-                    _positive_int(activity.get("required_devices"), 1),
+                    item.get(
+                        "requiredDevices",
+                        item.get("required_devices", activity.get("required_devices")),
+                    ),
+                    1,
                 ),
                 spares=_spare_requirements(item.get("spare")),
                 predecessors=tuple(dense_index[parent] for parent in predecessors_by_source[source]),

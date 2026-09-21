@@ -270,8 +270,6 @@ fn topological_steps(item: &Map<String, Value>, source_path: &str) -> Result<Vec
         .map(|(dense, source)| (*source, dense))
         .collect::<HashMap<_, _>>();
     let default_duration = positive_i64(item.get("duration_minutes"), 30);
-    let default_personnel = positive_i64(item.get("required_personnel"), 1);
-    let default_equipment = positive_i64(item.get("required_devices"), 1);
     Ok(ordered
         .iter()
         .enumerate()
@@ -288,14 +286,16 @@ fn topological_steps(item: &Map<String, Value>, source_path: &str) -> Result<Vec
                 personnel: resource_quantity(
                     step.get("personnel"),
                     step.get("requiredPersonnel")
-                        .or_else(|| step.get("required_personnel")),
-                    default_personnel,
+                        .or_else(|| step.get("required_personnel"))
+                        .or_else(|| item.get("required_personnel")),
+                    1,
                 ),
                 equipment: resource_quantity(
                     step.get("equipment"),
                     step.get("requiredDevices")
-                        .or_else(|| step.get("required_devices")),
-                    default_equipment,
+                        .or_else(|| step.get("required_devices"))
+                        .or_else(|| item.get("required_devices")),
+                    1,
                 ),
                 spares: spare_requirements(step.get("spare")),
                 predecessors: predecessors[*source]
@@ -1298,6 +1298,30 @@ mod tests {
         assert_ne!(
             ExecutionPlan::fingerprint(&serde_json::to_value(legacy).unwrap()).unwrap(),
             ExecutionPlan::fingerprint(&event_value).unwrap(),
+        );
+    }
+
+    #[test]
+    fn activity_resource_defaults_override_task_lists_like_spare_mvp() {
+        let inputs: Value = serde_json::from_slice(
+            &fs::read(
+                root().join("tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json"),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let plan = compile_aircraft_support(&inputs).unwrap();
+        let activity = plan
+            .activities
+            .iter()
+            .find(|item| item.activity_id == "f35-service-0103")
+            .unwrap();
+
+        assert!(
+            activity
+                .steps
+                .iter()
+                .all(|step| step.personnel == 1 && step.equipment == 1)
         );
     }
 }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -242,12 +243,27 @@ class PythonBindingTests(unittest.TestCase):
             list(range(len(scenarios))),
         )
         expected_by_sweep = {
-            json.dumps(scenario["sweep"], sort_keys=True): scenario["metrics"]
+            json.dumps(scenario["sweep"], sort_keys=True): scenario
             for scenario in oracle["scenarios"].values()
         }
         for sample in actual["samples"]:
-            expected = expected_by_sweep[json.dumps(sample["sweep"], sort_keys=True)]
-            self.assertEqual(sample["metrics"], expected)
+            expected = expected_by_sweep[
+                json.dumps(sample["sweep"], sort_keys=True)
+            ]
+            self.assertEqual(sample["metrics"], expected["metrics"])
+            if "terminal_state_jobs_sha256" in expected:
+                jobs = sample["result"]["terminal_state"]["jobs"]
+                encoded = json.dumps(
+                    jobs,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode()
+                self.assertEqual(len(jobs), expected["terminal_state_jobs_count"])
+                self.assertEqual(
+                    hashlib.sha256(encoded).hexdigest(),
+                    expected["terminal_state_jobs_sha256"],
+                )
 
 
 if __name__ == "__main__":
