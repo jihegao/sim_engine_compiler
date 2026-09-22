@@ -355,7 +355,11 @@ def main():
     suite.check("M04_second_domain_lowering", "Two domain mappings produce identical generic runtime behavior", lambda: metamorphic_domain(suite))
     validation_cases(suite)
     report = suite.report()
-    report["source_files_sha256"] = {str(path.relative_to(HERE)): sha256(path.read_bytes()).hexdigest() for path in [HERE / "cases.py", HERE / "run_cases.py", HERE / "generic.py", HERE / "reference.py", HERE / "SPEC.md", HERE / "rust_kernel" / "src" / "main.rs"]}
+    source_paths = [HERE / "cases.py", HERE / "run_cases.py", HERE / "generic.py",
+                    HERE / "validation.py", HERE / "reference.py", HERE / "SPEC.md",
+                    HERE / "rust_kernel" / "src" / "main.rs",
+                    *sorted((HERE / "domain_packages").glob("*.py"))]
+    report["source_files_sha256"] = {str(path.relative_to(HERE)): sha256(path.read_bytes()).hexdigest() for path in source_paths}
     report["rust_binary_sha256"] = sha256(args.rust.read_bytes()).hexdigest()
     write_json(args.output / "case_results.json", report)
     print(json.dumps({"passed": report["passed"], "failed": report["failed"], "engine_runs": report["engine_runs"]}, ensure_ascii=False))

@@ -17,8 +17,25 @@ conformance must be tested separately against the existing runtime.
 The constructor includes arrays, waiter sets, and initial event scheduling;
 execution starts at the first event pop. This supports separate timing.
 
+`compile_business`, `lower_core` and `build_plan` also accept a keyword-only
+`registry: DomainRegistry`. The default registry is assembled in
+`domain_packages/__init__.py`; concrete vocabulary mappings and Business
+validation/lowering are owned by `domain_packages/aircraft.py`,
+`production.py` and their shared `task_asset.py` helper. The generic compiler
+contains no concrete domain vocabulary or dispatch branches.
+
+A caller can inject `DomainRegistry([custom_adapter])`, whose adapter exposes
+`domain`, `validate_business(raw)` and `lower_core(validated)`. It may define a
+different Business schema and must lower to the existing Core contract. The
+registry has an immutable name mapping and rejects duplicate or unknown names.
+Adapters are explicitly installed trusted Python extensions, never imported
+or executed from names/code supplied in Business IR. Unsupported Core operations
+still fail compilation/backend validation. See `test_review_fixes.py` for an
+independent `work_orders` adapter and three-executor behavioral checks; this
+tests the extension boundary, not rich third-domain semantics.
+
 Business IR uses `schema='business/v1'`, `profile='ir-native-event-v1'`,
-`domain='aircraft'|'production'`, `model_id`, `revision`, `time_unit='tick'`,
+`domain` (built-ins: `aircraft` and `production`), `model_id`, `revision`, `time_unit='tick'`,
 `horizon` and optional `rules`. Supported rules are exactly
 `selection='first_available'`, `acquisition='atomic'`, `stock_abort='consume'`.
 Aircraft uses `fleet`, `missions`, `maintenance`; production uses `machines`,
@@ -64,6 +81,12 @@ with an incrementing generation; no horizon-based trace expansion is needed.
 * `events`: `{id,time,op:'set_state'|'add_stock',target:index,value:int,
   trigger:process_idx|null,repeat_every:integer|null}`.
 * `successors`: lists of process indices derived from `after`.
+
+JSON object member order is insignificant. Resource `needs` are sorted by
+resolved resource index before becoming Plan tuples, so reordering object
+members preserves Business, Core and Plan fingerprints. Array order is not
+normalized: resource/entity layout, candidate preference and FIFO declaration
+order retain their explicit semantics.
 
 The runtime contains no domain dispatch. Assets have a state (0 available,
 1 disabled) and an exclusive owner, maintained separately. All candidate

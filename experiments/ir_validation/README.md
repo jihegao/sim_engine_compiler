@@ -23,11 +23,22 @@ Python 3.12+；Rust stable（本次实测 rustc/cargo 1.98.1）。新原型 Pyth
 python3 -m pip install simpy==4.1.2
 cargo build --locked --release --manifest-path experiments/ir_validation/rust_kernel/Cargo.toml
 python3 experiments/ir_validation/run_cases.py
+python3 experiments/ir_validation/test_review_fixes.py
 python3 experiments/ir_validation/adversarial.py --rust experiments/ir_validation/rust_kernel/target/release/ir-validation-kernel
 python3 experiments/ir_validation/benchmark.py --repeats 7
 ```
 
 上述命令重建新架构案例、随机差分与基准。基准必须在前面的正确性检查通过后运行。输出中保留逐次纳秒计时、环境信息和语义等价断言。共享主机的绝对耗时会变化。
+
+检查原始提交的文件完整性时，在重新生成结果之前执行：
+
+```bash
+python3 experiments/ir_validation/verify_manifest.py
+```
+
+它逐项验证 `files` 中的存在性、大小及 SHA-256，并在 git checkout 中核对文件受版本管理；独立快照可用 `--inventory` 提供仓库路径 JSON 数组。清单记录的是交付文件子集，不包含自身、构建目录或传输中间文件；`build_artifacts` 仅为实测二进制身份元数据，不要求交付二进制。重新生成结果后，原始结果文件的哈希可能变化。
+
+PR #1 评审修订：领域 schema 和 lowering 已提取到 `domain_packages/`，调用方通过 `DomainRegistry` 注入扩展，`generic.py` 不包含具体领域名称或字段映射。`test_review_fixes.py` 通过独立 `work_orders` 领域、键顺序不变性和清单损坏探针验证这三项修复。原报告的性能数字仍来自评审前测量，本次修订只复跑相关正确性验证。
 
 已有飞机模型回归：
 
@@ -47,7 +58,8 @@ python3 experiments/ir_validation/legacy_cases.py \
 |---|---|
 | `REPORT_zh.md` | 中文结论、数据表、限制与后续验收门槛 |
 | `SPEC.md` | 新 profile 的时间、资源、循环、随机与结果合同 |
-| `generic.py` | Business/Core/Plan 编译与 Python 索引执行器 |
+| `generic.py` | 注入式编译入口、Core/Plan 编译与 Python 索引执行器 |
+| `domain_packages/` / `validation.py` | 独立领域适配器、注册表与通用校验工具 |
 | `reference.py` | 独立、具名状态和全扫描参考解释器 |
 | `rust_kernel/` | Rust 堆调度、紧凑状态、共享计划和样本并行 |
 | `cases.py` / `run_cases.py` | 手算案例、变形检查、错误输入拒绝 |
@@ -60,6 +72,8 @@ python3 experiments/ir_validation/legacy_cases.py \
 | `adversarial_results.json` / `legacy_results.json` | 对抗检查与既有语义证据 |
 | `source_manifest.json` | 原始仓库提交、逐文件 blob 身份与快照范围 |
 | `validation_manifest.json` | 本次实验源文件、结果文件与构建产物身份 |
+| `verify_manifest.py` | 交付清单的存在性、大小、哈希与仓库成员校验 |
+| `test_review_fixes.py` / `results/review_fix_results.json` | 三项评审问题的9项回归验证及结果 |
 
 ## 来源与修改边界
 
