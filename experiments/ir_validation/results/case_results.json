@@ -1,0 +1,1037 @@
+{
+  "cases": [
+    {
+      "business_sha256": "8e9fdcaaa543be09cf88974b25dfb0ba609448df37523d2244792980316fcf81",
+      "core_sha256": "bfc5be364a9d77692672629eb0aa6c6cd7cb96db868105574eb9ff9f9b0c505e",
+      "description": "A0 fails before dispatch; the same precompiled candidate list selects A1 at runtime.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {
+          "A0": 0,
+          "A1": 0
+        },
+        "processes": {
+          "flight": {
+            "finished": 3,
+            "selected_id": "A1",
+            "started": 1,
+            "status": 3
+          },
+          "restore:failure": {
+            "finished": 4,
+            "selected_id": "A0",
+            "started": 0,
+            "status": 3
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C01_runtime_spare",
+      "plan_fingerprint": "a8a219e2f6a1b55d3cb7a90295998de15626ddaf9cd481db4b7d26076c634f4e",
+      "plan_sha256": "233627ef3ecd6a1fe45702a3aad76b3f68c892d0951b37b779e421096a615b7b",
+      "source_sha256": "a865b59a3015d6fea7fc9844b91b172c4e5929432c4033062f5311fd187186e5",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "9a1e02cd21d3b1460f60ddb895ab255ae3e40bca808048c65667a9128fddb359",
+      "core_sha256": "e17454242753e5f4ac55d1cc655a15b924fdd2f0d7613085d92828e986918155",
+      "description": "Three simultaneous requests share one capacity unit; declared process order determines starts 0, 3, 5.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "first": {
+            "finished": 3,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          },
+          "second": {
+            "finished": 5,
+            "selected_id": null,
+            "started": 3,
+            "status": 3
+          },
+          "third": {
+            "finished": 6,
+            "selected_id": null,
+            "started": 5,
+            "status": 3
+          }
+        },
+        "resources": {
+          "crew": 1
+        },
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C02_capacity_fair_order",
+      "plan_fingerprint": "4b51370eca2538ce9727a403481cad3127824d990a2a2202716948a5b2f5f460",
+      "plan_sha256": "e3c277c0911bf103a6683e9dd4a303e0c92ca6cc123908fa6b001c988a6b281c",
+      "source_sha256": "33e8fa68b65e7bb19889daeaa66b0b65c78bcdb5c2345f374576a03b8d2f8e0c",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "141ce4252be8bd5f95c00b4289724df6a47c2a32b47e6034714f05e7399f8b14",
+      "core_sha256": "45367a800a42f82d5981ebca2be5f304e196044560a8ee87836588e769292946",
+      "description": "Blocked A+B work acquires neither unit; independent A work starts immediately, avoiding partial holding.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "both": {
+            "finished": 5,
+            "selected_id": null,
+            "started": 2,
+            "status": 3
+          },
+          "holder": {
+            "finished": 2,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          },
+          "independent": {
+            "finished": 1,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          }
+        },
+        "resources": {
+          "A": 1,
+          "B": 1
+        },
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C03_atomic_capacity",
+      "plan_fingerprint": "637cf2d3f3d44af8e0d5011fa40bd91780be42386d8b58f6bff15a13aaf1207f",
+      "plan_sha256": "1ceefafd4138aaabb26d6cf4dcbd2fff9967b0bd88ff8bc2bd148a27410804a0",
+      "source_sha256": "99e5a76997812762f557cd86fb251811437a84ec909048b33ed15f59d2c675ab",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "d71716110dd21cbf8b040103326b1bb508cbe157c812143e32404cdf761438e2",
+      "core_sha256": "7064e7e4f98dc084beee0bc31c1085961a545f32909b7740981aa3438c61c530",
+      "description": "Two jobs blocked on empty stock start at arrival tick 3; consumed stock never returns at completion.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "one": {
+            "finished": 5,
+            "selected_id": null,
+            "started": 3,
+            "status": 3
+          },
+          "two": {
+            "finished": 7,
+            "selected_id": null,
+            "started": 3,
+            "status": 3
+          }
+        },
+        "resources": {
+          "spare": 0,
+          "unrelated": 1
+        },
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C04_stock_arrival",
+      "plan_fingerprint": "156ee46e49ab6fe6977ae380db837fac05bd195d0730e52eb828756dd7bf6e25",
+      "plan_sha256": "3b3137958ebc6845fa0d878dc128e9ca65165afdc1f4899a3d0b3272e66f6bdc",
+      "source_sha256": "80640d95a6ca3f74341fda5fa40fad3ee3c1efa511d437344474d466a804e6e4",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "284bf77f4c8f2cbd3dc63bda5ddc950c1dd149b44bf7d981b7a01e12951da2be",
+      "core_sha256": "516d506dec78eed9fb5cde5382125d9387d5016429d17134781f5be744ac6007",
+      "description": "The prequeued failure at tick 2 precedes the dynamically queued completion at tick 2, so flight aborts.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "flight": {
+            "completed": 0,
+            "finished": -1,
+            "selected_id": "A",
+            "started": 0,
+            "status": 4
+          },
+          "restore:failure": {
+            "finished": 3,
+            "selected_id": "A",
+            "started": 2,
+            "status": 3
+          }
+        },
+        "resources": {},
+        "trace_absent": [
+          [
+            2,
+            "complete",
+            "flight",
+            "A",
+            0
+          ]
+        ],
+        "trace_contains": [
+          [
+            2,
+            "abort",
+            "flight",
+            "A",
+            0
+          ]
+        ],
+        "trace_order": []
+      },
+      "id": "C05_same_tick_failure_first",
+      "plan_fingerprint": "71dafa0c39ea2ea1c67e71181d709f4d2e95b08f0cd8e4b961e2db55c800ded9",
+      "plan_sha256": "abd2960efa500467410f4d0b8b70d9cf17bfa384ce8934332b079d5205428551",
+      "source_sha256": "7232fd94f74e489211a0205c5d6fc998e6c5fa4d7c9a03e09aa712592abcb2f5",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "59798503dcd83bda65f2547bdcbf19e230ddbd7b16948d07064f745c5236c661",
+      "core_sha256": "6c03e4cf466cd08e3f853cafd1c58cdd836f486c86bcf8f01d3556690bd38d6b",
+      "description": "Aborting releases capacity but consumes stock; an old completion at tick 10 must not change the recovered asset or later job.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {
+          "A": 0
+        },
+        "processes": {
+          "interrupted": {
+            "completed": 0,
+            "finished": -1,
+            "selected_id": "A",
+            "started": 0,
+            "status": 4
+          },
+          "later": {
+            "finished": 8,
+            "selected_id": "A",
+            "started": 6,
+            "status": 3
+          },
+          "restore:fault": {
+            "finished": 5,
+            "selected_id": "A",
+            "started": 2,
+            "status": 3
+          }
+        },
+        "resources": {
+          "crew": 1,
+          "fuel": 0
+        },
+        "trace_absent": [
+          [
+            10,
+            "complete",
+            "interrupted",
+            "A",
+            0
+          ]
+        ],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C06_abort_stale_completion",
+      "plan_fingerprint": "ae032c7992e04f55c70863106cd12ebac74029ce60fcbff22f642cd87bbc963d",
+      "plan_sha256": "5f797a9f90e5210abf74ba9ec96a26ea8fa8c56233b653df96b30bc3394a9758",
+      "source_sha256": "b4f85188d6c1489fea8659e6fec3d641aafbfba6d39632b868a0b8cb980bc51a",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "a3cc2f1f7a85e603b549656a1a6f895771f95286fa88d91655c9ad72b8ed0de8",
+      "core_sha256": "dcf8c70a689cfa103f0886087af5bd072fffa4fc2a882a97db4aa730eb1c2887",
+      "description": "One recurring mission and one recurring failure reuse fixed process tables across four flights and three repairs.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {
+          "A": 0
+        },
+        "processes": {
+          "flight": {
+            "completed": 4,
+            "finished": 13,
+            "generation": 3,
+            "selected_id": "A",
+            "started": 12,
+            "status": 3
+          },
+          "restore:fault": {
+            "completed": 3,
+            "finished": 11,
+            "generation": 2,
+            "selected_id": "A",
+            "started": 10,
+            "status": 3
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [
+          [
+            4,
+            "start",
+            "flight",
+            "A",
+            1
+          ],
+          [
+            8,
+            "start",
+            "flight",
+            "A",
+            1
+          ],
+          [
+            10,
+            "start",
+            "restore:fault",
+            "A",
+            1
+          ]
+        ],
+        "trace_order": []
+      },
+      "id": "C07_lifecycle_recurrence",
+      "plan_fingerprint": "b9342a55f7671e12f216ffe67efdbd824e51c8a5e43150fdd500dfff4b30e65c",
+      "plan_sha256": "eb8d48130c70f0ecea5721463417f7569c1f54a081480bc0f5fd12c5774a4f4d",
+      "source_sha256": "d4d81c7f7d479c39b9120b6c390bddc32ad246de6e7a5ca1d68cdc77c6179030",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "6bbf13695b17ecc2185072237c99d0f05a4338634f68abdc761666e9975d0ce6",
+      "core_sha256": "8dd582b35dd784a449b2810b3265104c42da876ada7e90d529ad84cf79a7e979",
+      "description": "Explicit serial predecessor edges make durations 2+3+1 complete at tick 6.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "cut": {
+            "finished": 2,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          },
+          "dry": {
+            "finished": 6,
+            "selected_id": null,
+            "started": 5,
+            "status": 3
+          },
+          "paint": {
+            "finished": 5,
+            "selected_id": null,
+            "started": 2,
+            "status": 3
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C08_serial_process_dag",
+      "plan_fingerprint": "81efdf8d24ed4da4a46e2a79dafe6527cf02bfb2acf32010c03c8884568a75e6",
+      "plan_sha256": "a7af2693d659ed14d347644fdba569ff651602a448e56bf15c581cd5bfeefcb8",
+      "source_sha256": "e87e38a383a35fe786243ae5bd8b86922f3461d92830be5b125cc2c9e1d9bff1",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "25f5d68ba5e385c2cd534dc209525e6d8ac453104f39d5ae6621c388977a6357",
+      "core_sha256": "7d10c59bb6f4f680a37d8ccd5a315e56dfdfe14ae646288aa9379509ba0b09df",
+      "description": "Two independent branches run simultaneously; the join waits for both and finishes at max(2,3)+1=4.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "cut": {
+            "finished": 2,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          },
+          "join": {
+            "finished": 4,
+            "selected_id": null,
+            "started": 3,
+            "status": 3
+          },
+          "paint": {
+            "finished": 3,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C09_parallel_process_dag",
+      "plan_fingerprint": "51bc06159c3baff6b838b26393a0914e127c978e8f634689ddbe92159158dc14",
+      "plan_sha256": "45b3d3d186e2ca14e2dd8601f4ad3834707e1147a74effef6cb164a82a39b049",
+      "source_sha256": "e666794377f5403ce2a0ae175f0d883df3235abe613224d624fa8d9f08a3fa91",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "4a24ab9c6afa20df9e26e5b6962241e44b080287d72206d3315f7f41c6bd282c",
+      "core_sha256": "d8c6c557d499697fa70d0b0c3b9f14482cf0f068c7a0ec758080d842ce7a5ab1",
+      "description": "Events at tick 5 execute, events after 5 do not; in-flight work remains running with no fabricated finish.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "before": {
+            "finished": 4,
+            "selected_id": null,
+            "started": 2,
+            "status": 3
+          },
+          "boundary": {
+            "finished": 5,
+            "selected_id": null,
+            "started": 5,
+            "status": 3
+          },
+          "future": {
+            "finished": -1,
+            "selected_id": null,
+            "started": -1,
+            "status": 0
+          },
+          "unfinished": {
+            "finished": -1,
+            "selected_id": null,
+            "started": 0,
+            "status": 2
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C10_inclusive_horizon",
+      "plan_fingerprint": "aea9d18097d7ab6606bd8308a751beb6e5efca4ad9ce18155586648299c25488",
+      "plan_sha256": "3f0885499333612ed07efc4d1559a213f6957e249555838b3248229e9b4776b9",
+      "source_sha256": "eb0b1d0624c76b0e6bceb3d38617e4c56c10a597caabb1a2f7cc9a322a8c97f2",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "04731bdda151ca22335adfe817857d672fc06d5a4424c15f6f6a5312fadc2bd8",
+      "core_sha256": "bd41038bbf6fab5f33d45500d52b48626ae10689ea68356b97a5ad33e18ef5c7",
+      "description": "Writing disabled to an already-disabled asset emits no restoration trigger; waiting flight stays blocked.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {
+          "A": 1
+        },
+        "processes": {
+          "flight": {
+            "finished": -1,
+            "selected_id": null,
+            "started": -1,
+            "status": 1
+          },
+          "restore:noop": {
+            "finished": -1,
+            "selected_id": null,
+            "started": -1,
+            "status": 0
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C11_noop_state_no_trigger",
+      "plan_fingerprint": "6e4c9b26dd1497805b94637eebc43d69d29391002119def521ccbd45ff2c44b6",
+      "plan_sha256": "9ab46e524d1b359783009d29f0caa7162cd6906853f07871f7ee01d776b00360",
+      "source_sha256": "171bfabcbf61068e8e845798fe7c8d977a41db306287bfae2157f2bd9129b3dc",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "f0763dafc326620157d5d4b6ac860eb5920cc21468b415927b04522274af784d",
+      "core_sha256": "43d0f2e116e59d68c9db23e2797824e89bc5ec61a77fb0d8f5453e68027cb99f",
+      "description": "Predecessor completion does not bypass a later release time or activate a release=null dependent.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "delayed": {
+            "finished": 6,
+            "selected_id": null,
+            "started": 5,
+            "status": 3
+          },
+          "dormant": {
+            "finished": -1,
+            "selected_id": null,
+            "started": -1,
+            "status": 0
+          },
+          "first": {
+            "finished": 2,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C12_dependency_release_gate",
+      "plan_fingerprint": "e6a232b84da210b747f4624e4e5371b121ef1cb31e8274fdb7e9bf56e963afa0",
+      "plan_sha256": "afcd8055d713d8931a9057a0545bc6313fcd5deacbe2b70d9f4d9989f17e76f0",
+      "source_sha256": "28b460acb3bdd1f504cef20f29e3d7a3ac9423817cf20d7174fe389c0f58e4d2",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "3ce7e629a2d1691a2eab4f6d28189c797ded57f8164e9d4de47413273fb50a7a",
+      "core_sha256": "a58e0cb5482ed17e25165a90302b53d8e829e3f341217694cef897951fc3db18",
+      "description": "Production machines, operations and outages lower to the same asset/resource/event operations without a scheduler domain branch.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {
+          "M1": 0,
+          "M2": 0
+        },
+        "processes": {
+          "cut": {
+            "finished": 3,
+            "selected_id": "M2",
+            "started": 1,
+            "status": 3
+          },
+          "pack": {
+            "finished": 7,
+            "selected_id": null,
+            "started": 6,
+            "status": 3
+          },
+          "polish": {
+            "finished": 6,
+            "selected_id": "M2",
+            "started": 3,
+            "status": 3
+          },
+          "restore:outage": {
+            "finished": 4,
+            "selected_id": "M1",
+            "started": 0,
+            "status": 3
+          }
+        },
+        "resources": {
+          "operator": 1,
+          "tech": 1
+        },
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C13_production_second_domain",
+      "plan_fingerprint": "f00dad048c370f6b2c4a4c12c50761a83cdc3f7bb6ae2d53d3572cc239cf965b",
+      "plan_sha256": "c5f6159018b51a798d43d6a28a0dd002099d1e84bd623c4b88391b0a1fc15bb6",
+      "source_sha256": "90993e5f0e494a8b9269da4673205bf4a9bdcdc4ec3f5d10266aef564dde137e",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "7311ec05d1c721040cd38939e4ae6a7a358cad0bfa433f7dd78c08d2c81277a1",
+      "core_sha256": "d83f44e845ccf2eccb2ef2a0a2b5887f7bdd396c8ea5cb9a785ca21e4850fe0c",
+      "description": "Zero-duration dependency cascades terminate at tick zero with each completion counted once.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "a": {
+            "completed": 1,
+            "finished": 0,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          },
+          "b": {
+            "completed": 1,
+            "finished": 0,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          },
+          "c": {
+            "completed": 1,
+            "finished": 0,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C14_zero_duration_cascade",
+      "plan_fingerprint": "c0694060592c44eb25e88c8a6311e588fe356e338dfca0abab975f9231d77adf",
+      "plan_sha256": "13eef2a55c4a77e5c384d0742d6a704b49ae1e6f421789ad12208e81e5010aa9",
+      "source_sha256": "006913b983ad62eb32e99d309963ef48eeacf16b06e5d074761aa13f5bea64c8",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "20b731ffde39a1fb74e17da1d637126575c4e256660fef138ef306e1403fca1e",
+      "core_sha256": "8969e099293281009be3a77dc16aa82e24c21ea4a221114ecaca533ad4c613ad",
+      "description": "Blocked mixed acquisition must not consume stock: the stock-only job starts at zero and mixed work waits for replenishment.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {},
+        "processes": {
+          "holder": {
+            "finished": 2,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          },
+          "mixed": {
+            "finished": 4,
+            "selected_id": null,
+            "started": 3,
+            "status": 3
+          },
+          "stock_only": {
+            "finished": 1,
+            "selected_id": null,
+            "started": 0,
+            "status": 3
+          }
+        },
+        "resources": {
+          "crew": 1,
+          "spare": 0
+        },
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": []
+      },
+      "id": "C15_atomic_stock",
+      "plan_fingerprint": "0224e5c81305d192db630e6f3535d2c6d696e312c908e2bd6c88562ccc662918",
+      "plan_sha256": "6fdc7447c348ecb3d12ab5f5fe68fdf2eb31182eff36835c69c520b61e5498b0",
+      "source_sha256": "520d27a7b43cc7f7bf5644f39c0d23c18d006dfcf93dbdac4fa2507efcfc2509",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "business_sha256": "78fb347674f8b41e5ed9dac8040d6a400f6b2a3a519d2e9da48f3482570def55",
+      "core_sha256": "43c553b46458a2e1b9c7247a0053713f9cbaa2492869df9e599c0b30e5984c11",
+      "description": "A repeat failure inserted at tick 1 for tick 2 follows the repair completion already queued at tick 0; restoration completes before refailure.",
+      "engines": [
+        "python_reference",
+        "python_indexed",
+        "rust"
+      ],
+      "hand_expectations": {
+        "assets": {
+          "A": 1
+        },
+        "processes": {
+          "restore:fault": {
+            "completed": 1,
+            "finished": -1,
+            "generation": 1,
+            "selected_id": "A",
+            "started": 2,
+            "status": 2
+          }
+        },
+        "resources": {},
+        "trace_absent": [],
+        "trace_contains": [],
+        "trace_order": [
+          [
+            2,
+            "complete",
+            "restore:fault",
+            "A",
+            0
+          ],
+          [
+            2,
+            "state",
+            "fault",
+            "A",
+            1
+          ],
+          [
+            2,
+            "start",
+            "restore:fault",
+            "A",
+            2
+          ]
+        ]
+      },
+      "id": "C16_same_tick_completion_first",
+      "plan_fingerprint": "dc8f2f26dfe17eacc956c0bd65d6dd019c2ec3fc15650c4a685835debb539aa2",
+      "plan_sha256": "459044610d8a414211d81c93f3b00d8faa335297953401e6e539d6c88b6f506e",
+      "source_sha256": "08a76eb4d535d5f230e055e3e8de7b9e2e3f90ae81cb19d05f1540995b348a1b",
+      "status": "passed",
+      "summary_full_equal": true
+    },
+    {
+      "description": "Random sample identity survives dense-index changes, unrelated work and waiting retries",
+      "id": "M01_rng_stable_identity",
+      "limitation": "Toy uint32 RNG; this is a reproducibility check, not distribution validation.",
+      "outcomes": {
+        "baseline": [
+          {
+            "duration": 4,
+            "seed": 0
+          },
+          {
+            "duration": 8,
+            "seed": 1
+          },
+          {
+            "duration": 8,
+            "seed": 7
+          },
+          {
+            "duration": 6,
+            "seed": 2026
+          },
+          {
+            "duration": 4,
+            "seed": 4294967295
+          }
+        ],
+        "reordered_plus_irrelevant": [
+          {
+            "duration": 4,
+            "seed": 0
+          },
+          {
+            "duration": 8,
+            "seed": 1
+          },
+          {
+            "duration": 8,
+            "seed": 7
+          },
+          {
+            "duration": 6,
+            "seed": 2026
+          },
+          {
+            "duration": 4,
+            "seed": 4294967295
+          }
+        ],
+        "retry": [
+          {
+            "duration": 4,
+            "seed": 0
+          },
+          {
+            "duration": 8,
+            "seed": 1
+          },
+          {
+            "duration": 8,
+            "seed": 7
+          },
+          {
+            "duration": 6,
+            "seed": 2026
+          },
+          {
+            "duration": 4,
+            "seed": 4294967295
+          }
+        ]
+      },
+      "seeds": [
+        0,
+        1,
+        7,
+        2026,
+        4294967295
+      ],
+      "status": "passed"
+    },
+    {
+      "description": "Candidate relationship changes create a new version while old plan/state and threaded sample results stay isolated",
+      "id": "M02_model_version_isolation",
+      "limitation": "New revision uses full deterministic recompilation; no incremental compiler or in-flight state migration is claimed.",
+      "new_flight": {
+        "aircraft": "A0",
+        "finish": 6,
+        "start": 4
+      },
+      "new_plan_fingerprint": "33ffb3afcc7814f32408411ffc6b5552e44964bff9130e244397ef82f6d86724",
+      "old_flight": {
+        "aircraft": "A1",
+        "finish": 3,
+        "start": 1
+      },
+      "old_plan_fingerprint": "a8a219e2f6a1b55d3cb7a90295998de15626ddaf9cd481db4b7d26076c634f4e",
+      "rust_threads": [
+        1,
+        3
+      ],
+      "seeds_in_requested_order": [
+        7,
+        0,
+        7,
+        2026
+      ],
+      "shared_plan_private_run_state": true,
+      "status": "passed"
+    },
+    {
+      "description": "Changing dependency edges changes parallel/serial behavior, beyond tuning parameters",
+      "edited_relation": "paint.after = ['cut']",
+      "id": "M03_rule_relationship_edit",
+      "parallel_completion": 4,
+      "parameter_only_edit": false,
+      "serial_completion": 6,
+      "status": "passed"
+    },
+    {
+      "description": "Two domain mappings produce identical generic runtime behavior",
+      "equal_except_identity_fingerprint": true,
+      "id": "M04_second_domain_lowering",
+      "limitation": "Two domain vocabularies currently share the same finite task/asset/resource grammar; richer domain expressiveness remains unproven.",
+      "status": "passed"
+    },
+    {
+      "description": "Unknown semantic profile rejects",
+      "diagnostic": "unsupported Business IR schema/profile",
+      "id": "V01_profile",
+      "input_sha256": "fe72a9bdf337c40edf4b1a6ea63de55125cd4e7f5cb644c436efd641e3ce9df8",
+      "status": "passed"
+    },
+    {
+      "description": "Unrecognized time units reject",
+      "diagnostic": "unsupported time unit (expected tick)",
+      "id": "V02_units",
+      "input_sha256": "2ee4de23d963c96e9c05fd3ef9e1f95ccd730b4aa402e6680d1d513280b797ff",
+      "status": "passed"
+    },
+    {
+      "description": "Missing asset reference rejects",
+      "diagnostic": "unknown candidate asset",
+      "id": "V03_reference",
+      "input_sha256": "3bf958b1ca692bee50a582707624c40599697b28fcf7891f4af6d56cb86af1ce",
+      "status": "passed"
+    },
+    {
+      "description": "Negative duration rejects",
+      "diagnostic": "duration: expected integer in [0,9223372036854775807]",
+      "id": "V04_negative",
+      "input_sha256": "05f40eabd3ac1b30e6f96eb043274ac4dd4f70423047e252efdec8dffd0eb870",
+      "status": "passed"
+    },
+    {
+      "description": "Unsupported dispatch policy rejects",
+      "diagnostic": "unsupported rule selection=magic-best",
+      "id": "V05_unsupported_rule",
+      "input_sha256": "770b04975d5874a04a6cc039b624312aba42bacc77e011b2bbf5c26b211abebe",
+      "status": "passed"
+    },
+    {
+      "description": "Local process DAG cycle rejects",
+      "diagnostic": "process predecessor graph contains a cycle",
+      "id": "V06_cyclic_dependencies",
+      "input_sha256": "e8b3cd40059a58dd7c09d61ae17c2ce9ed62b9ca85fba8a2a4d1f4a842cf0623",
+      "status": "passed"
+    },
+    {
+      "description": "Missing capacity/stock reference rejects",
+      "diagnostic": "one: unknown resource missing",
+      "id": "V07_missing_resource",
+      "input_sha256": "d2f2f63557418c987737703859df28b8e83a095e982c2610829a1ba4d94287f0",
+      "status": "passed"
+    },
+    {
+      "description": "Duplicate asset identity rejects",
+      "diagnostic": "fleet: duplicate id A",
+      "id": "V08_duplicate_identity",
+      "input_sha256": "f0ec970bfefc1d76a81639c6319a7266209e6c92d0eb5b673b9449f98993cce1",
+      "status": "passed"
+    },
+    {
+      "description": "Capacity demand above total rejects",
+      "diagnostic": "one: impossible capacity request crew",
+      "id": "V09_impossible_capacity",
+      "input_sha256": "73252538fe6fdefa251f7c1a25719bd58340fa0be9e8dd75c6e3fc00a5775aac",
+      "status": "passed"
+    },
+    {
+      "description": "Zero-delay recurrence rejects",
+      "diagnostic": "repeat_delay: expected integer in [1,9223372036854775807]",
+      "id": "V10_zero_recurrence",
+      "input_sha256": "d3e37642a7d0ec06c0fa4631da01866f91aaca7e042cb27e7cd0a5782c4dfe96",
+      "status": "passed"
+    },
+    {
+      "description": "Fractional clock rejects instead of rounding",
+      "diagnostic": "horizon: expected integer in [0,9223372036854775807]",
+      "id": "V11_fractional_clock",
+      "input_sha256": "5d4929e2dcafec3c28db7c794fdf5d74a7273695e039dc1c5b4930bd0e3fd389",
+      "status": "passed"
+    },
+    {
+      "description": "Invented business operation/key rejects",
+      "diagnostic": "missions: unsupported fields ['operation']",
+      "id": "V12_unknown_business_operation",
+      "input_sha256": "922164a568c66b9210deadebd478a876bad47498fa4d39f2685a8ffc73c3cf0b",
+      "status": "passed"
+    },
+    {
+      "description": "Boolean clock rejects instead of integer coercion",
+      "diagnostic": "horizon: expected integer in [0,9223372036854775807]",
+      "id": "V13_boolean_clock",
+      "input_sha256": "99e90a6e979d18955e7197e2d306ad3d572e29baba368a9dc8a275c9848dd001",
+      "status": "passed"
+    },
+    {
+      "description": "Reversed duration range rejects",
+      "diagnostic": "duration: duration lo exceeds hi",
+      "id": "V14_reversed_duration",
+      "input_sha256": "1c0b15306d956ddca3f392f3e51807d0775d9055a43dbe30206fd19d204bb4fd",
+      "status": "passed"
+    },
+    {
+      "description": "An agent-invented Core operation fails deterministic compilation",
+      "diagnostic": "unknown operation teleport",
+      "id": "V15_unknown_core_operation",
+      "input_sha256": "aeb837cc1041224cc8feb2370dc2863b77a9f2e03a8b5d106f0e01fe7e06c5d3",
+      "status": "passed"
+    },
+    {
+      "description": "Rust loader rejects unsupported operation even after a valid plan hash is recomputed",
+      "diagnostic": "{\"error\":\"request validation: unknown variant `teleport`, expected `set_state` or `add_stock`\"}",
+      "id": "V16_unknown_backend_operation",
+      "input_sha256": "fad63549a4d52654c0953672925f429fe81926e6361e32d79db0cdfe80cf2c4c",
+      "recomputed_valid_fingerprint": true,
+      "status": "passed"
+    },
+    {
+      "description": "Mutating a serialized plan without recomputing its fingerprint fails loading",
+      "diagnostic": "{\"error\":\"plan fingerprint mismatch\"}",
+      "id": "V17_corrupted_plan_fingerprint",
+      "input_sha256": "eea590326ecd986f20be61ad72a5532168496551ed131a39cbe43dc06c3e5f2e",
+      "status": "passed"
+    }
+  ],
+  "count": 37,
+  "engine_runs": {
+    "python_indexed": 62,
+    "python_reference": 58,
+    "rust": 62
+  },
+  "failed": 0,
+  "passed": 37,
+  "profile": "ir-native-event-v1",
+  "rust_binary_sha256": "a37695069275ad28daa73921376d3626417fdb428ed2c17b6a6aa3c111e00e3f",
+  "scope": "Synthetic new-profile acceptance; does not establish legacy spare_mvp equivalence.",
+  "source_files_sha256": {
+    "SPEC.md": "27bb9ecadd57b927801039461664d51df1e74a5369cd13c433bc5f92a080284a",
+    "cases.py": "4d0a3713662d13cc42377357f07c8ee23a86ba00c4610925f83678ac0d26d7a7",
+    "generic.py": "a0bdfa144a2b3d2393adbfedf5a44bf404a31880dffa88e5f1b59b4c832e6953",
+    "reference.py": "8d89d2c1dc7c0b96e8dc3f90b97562b367c602f1bddb9cfc9cd348f00b2eb63c",
+    "run_cases.py": "c481f42af4137ca78c75e1e896cb7a6f208ba04c29992b76a7c8aa48e55058d9",
+    "rust_kernel/src/main.rs": "74c01a5b7ecadfc0c2491b589bcfa6b82d45d7c7231b02de317fca46f94cb3d6"
+  }
+}

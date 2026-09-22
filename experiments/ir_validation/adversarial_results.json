@@ -1,0 +1,1520 @@
+{
+  "schema": "ir-validation-adversarial/v1",
+  "model_count": 100,
+  "model_passes": 100,
+  "differential_samples": 300,
+  "rust_included": true,
+  "invalid_probes": [
+    {
+      "case": "unknown_business_operation",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "jobs: unsupported fields ['operation']"
+    },
+    {
+      "case": "invalid_units",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "unsupported time unit (expected tick)"
+    },
+    {
+      "case": "unsupported_profile",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "unsupported Business IR schema/profile"
+    },
+    {
+      "case": "unknown_candidate",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "unknown candidate asset"
+    },
+    {
+      "case": "unknown_resource",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "work: unknown resource missing"
+    },
+    {
+      "case": "unknown_predecessor",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "unknown/duplicate process predecessor"
+    },
+    {
+      "case": "cyclic_predecessor",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "process predecessor graph contains a cycle"
+    },
+    {
+      "case": "negative_duration",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "duration: expected integer in [0,9223372036854775807]"
+    },
+    {
+      "case": "duration_unit_string",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "duration: expected integer in [0,9223372036854775807]"
+    },
+    {
+      "case": "boolean_time",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "horizon: expected integer in [0,9223372036854775807]"
+    },
+    {
+      "case": "impossible_capacity",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "work: impossible capacity request R"
+    },
+    {
+      "case": "unknown_rule",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "unsupported rule selection=llm_magic"
+    },
+    {
+      "case": "zero_repeat_delay",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "repeat_delay: expected integer in [1,9223372036854775807]"
+    },
+    {
+      "case": "duplicate_asset",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "machines: duplicate id A"
+    },
+    {
+      "case": "integer_exceeds_backend_int64",
+      "rejected": true,
+      "error_type": "ValidationError",
+      "message": "horizon: expected integer in [0,9223372036854775807]"
+    }
+  ],
+  "core_checks": {
+    "scope": "Direct Core IR operations, not Business IR editing capability.",
+    "generation_reuse": [
+      {
+        "horizon": 11,
+        "passed": true,
+        "status": [
+          2
+        ],
+        "generation": [
+          1
+        ],
+        "trace": [
+          [
+            0,
+            "start",
+            "work",
+            "A",
+            10
+          ],
+          [
+            2,
+            "abort",
+            "work",
+            "A",
+            0
+          ],
+          [
+            2,
+            "state",
+            "abort",
+            "A",
+            1
+          ],
+          [
+            3,
+            "state",
+            "reactivate",
+            "A",
+            0
+          ],
+          [
+            3,
+            "start",
+            "work",
+            "A",
+            10
+          ]
+        ]
+      },
+      {
+        "horizon": 14,
+        "passed": true,
+        "status": [
+          3
+        ],
+        "generation": [
+          1
+        ],
+        "trace": [
+          [
+            0,
+            "start",
+            "work",
+            "A",
+            10
+          ],
+          [
+            2,
+            "abort",
+            "work",
+            "A",
+            0
+          ],
+          [
+            2,
+            "state",
+            "abort",
+            "A",
+            1
+          ],
+          [
+            3,
+            "state",
+            "reactivate",
+            "A",
+            0
+          ],
+          [
+            3,
+            "start",
+            "work",
+            "A",
+            10
+          ],
+          [
+            13,
+            "complete",
+            "work",
+            "A",
+            0
+          ]
+        ]
+      }
+    ],
+    "core_probes": [
+      {
+        "case": "unknown_core_operation",
+        "rejected": true,
+        "message": "unknown operation invented_operation"
+      },
+      {
+        "case": "invalid_core_unit",
+        "rejected": true,
+        "message": "unsupported Core IR schema/profile/unit"
+      },
+      {
+        "case": "invalid_core_target",
+        "rejected": true,
+        "message": "invalid set_state target/value"
+      },
+      {
+        "case": "invalid_core_trigger",
+        "rejected": true,
+        "message": "unknown event trigger"
+      },
+      {
+        "case": "cyclic_core_processes",
+        "rejected": true,
+        "message": "process predecessor graph contains a cycle"
+      },
+      {
+        "case": "zero_core_recurrence",
+        "rejected": true,
+        "message": "repeat_every: expected integer in [1,9223372036854775807]"
+      },
+      {
+        "case": "stock_operation_on_capacity",
+        "rejected": true,
+        "message": "invalid add_stock target/trigger"
+      }
+    ],
+    "backend_probes": [
+      {
+        "case": "unknown_plan_operation",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"request validation: unknown variant `invented_operation`, expected `set_state` or `add_stock`\"}"
+      },
+      {
+        "case": "invalid_plan_unit",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"unsupported plan schema, profile, or time unit\"}"
+      },
+      {
+        "case": "unsupported_backend_profile",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"unsupported plan schema, profile, or time unit\"}"
+      },
+      {
+        "case": "invalid_dense_target",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"invalid state event\"}"
+      },
+      {
+        "case": "invalid_dense_candidate",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"invalid process work\"}"
+      },
+      {
+        "case": "cyclic_dense_process",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"invalid predecessor\"}"
+      },
+      {
+        "case": "integer_exceeds_int64",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"request validation: invalid value: integer `9223372036854775808`, expected i64\"}"
+      },
+      {
+        "case": "unknown_plan_field",
+        "rejected": true,
+        "exit_code": 2,
+        "message": "{\"error\":\"request validation: unknown field `arbitrary_code`, expected one of `schema`, `profile`, `time_unit`, `horizon`, `model_id`, `revision`, `business_fingerprint`, `core_fingerprint`, `fingerprint`, `source_map`, `assets`, `resources`, `processes`, `events`, `successors`\"}"
+      }
+    ],
+    "numeric_boundaries": [
+      {
+        "case": "completion_beyond_int64_horizon",
+        "passed": true
+      },
+      {
+        "case": "stock_overflow",
+        "backend": "reference",
+        "rejected": true,
+        "message": "stock overflow"
+      },
+      {
+        "case": "stock_overflow",
+        "backend": "indexed",
+        "rejected": true,
+        "message": "stock quantity exceeds int64 range"
+      },
+      {
+        "case": "stock_overflow",
+        "backend": "rust",
+        "rejected": true,
+        "message": "{\"error\":\"stock overflow\"}"
+      }
+    ]
+  },
+  "failures": [],
+  "models": [
+    {
+      "model": "generated-0",
+      "domain": "aircraft",
+      "input_sha256": "eb3a0e17097c75ffadf92447b3329fa855d036d99c5e20ab80816c555567d363",
+      "plan_fingerprint": "39537d022dada97d29022be2c30e668ced5f7c8b0f99f5e939551869c4895aed",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-1",
+      "domain": "production",
+      "input_sha256": "90c453385fab701147a8d1c245efb8d5da7a73ec7d8b49e7d650e3164e851edb",
+      "plan_fingerprint": "58261e0362c0f3bdc1574904999bd384931e4ad98c9ef8fa624ab98d017299d3",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-2",
+      "domain": "aircraft",
+      "input_sha256": "c4b6af5af4ede80df11fac1b23d20fe4d2e69d3e6ebdc025606821755cd5f49c",
+      "plan_fingerprint": "8578073cc056c1dce1c8503c7be62c3b72cbc8087a81aca4294cb46187941ad1",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-3",
+      "domain": "production",
+      "input_sha256": "4eed34dd0bdad4b281933466ce196e3003e74e47685c41d3473c33b61212d367",
+      "plan_fingerprint": "32e709bdc94264b2c593cc3c67f2c1d04fc573aea66d3ced25751357f57295f7",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-4",
+      "domain": "aircraft",
+      "input_sha256": "a24e8d92f7ff75df588992c3a0361602246b502ab4f00441d92ae50f51e120fb",
+      "plan_fingerprint": "d47a29034656fe8f8636e5ccf3ccb059faf5177dccea4b24d075659a739248fb",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-5",
+      "domain": "production",
+      "input_sha256": "c1a235695ad2fd534499aecd0bc3a723db33b1183b2d88ba6729a64669494b41",
+      "plan_fingerprint": "a59592726377eba0340ad6dd15214ce4819535f651f6d1e447cadb267ccda3e1",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-6",
+      "domain": "aircraft",
+      "input_sha256": "12a192ec82d5302955dbb2cda6bb0fda1b85d1d94e05b070dd7ef9440045614d",
+      "plan_fingerprint": "18b88c663bff6208a24d8374764f95510230658d473681305f210583bf73fd1b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-7",
+      "domain": "production",
+      "input_sha256": "fdd5abdd035b68432bd0926f3c943424c2bbad2e3aafe4dea6b81e71a4861273",
+      "plan_fingerprint": "a45c636d7b2aba7adf08866b45b96245db14bb205e0cf11f9f791ef2981a9690",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-8",
+      "domain": "aircraft",
+      "input_sha256": "6216a36e7197138499c3ecb8b6e0f0ea07f62153ab59ec4c3319b015c56409c8",
+      "plan_fingerprint": "6640b35cd00ca3105f78858b456fb7209e110698f9498d1151ace145d599cec5",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-9",
+      "domain": "production",
+      "input_sha256": "97087d6ca5cc1ee6d6b3d95ab4d30281b5f2747e727053484bd3bab86ddea556",
+      "plan_fingerprint": "ce1f14b35e10f611493a4d3da658a80004b36f9e342fd1895d7bb9c5ecedf812",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-10",
+      "domain": "aircraft",
+      "input_sha256": "405fd22b3f1e92040267f8da45bad321cfebf211e965bddb019f1e305f92a829",
+      "plan_fingerprint": "3f9482d2de2add5f182b9792ec2d5f9f3621d382b88864648ce2041cf4155375",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-11",
+      "domain": "production",
+      "input_sha256": "3b860dd277684d1c6e27eb7febac0c9759405d97dc89f07dad1b0daa48b1fb1b",
+      "plan_fingerprint": "c24741b0d46518f80abf341e1701624485596000a53485a3a345061580b28ca8",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-12",
+      "domain": "aircraft",
+      "input_sha256": "0dbb7bad4f1a9ea98ee766e1101711d6791acb7ff4c0d43f8bd29729aba7dd73",
+      "plan_fingerprint": "440a5593bdf3ca5766994951775134b313d767f822a63b7320c567dd502bb2fd",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-13",
+      "domain": "production",
+      "input_sha256": "c3615321a7954202ee5fd4ba8434bd7ec332e58879c631c9d6fe0782e0b45fcb",
+      "plan_fingerprint": "daab9ff99b772a0968c4e152ed166a65c689c6a91895ca9272395eb22f32ca20",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-14",
+      "domain": "aircraft",
+      "input_sha256": "edfa6924760137c4bec24083f39ac643b01eaa6c7ab1d1c0758f1a6dfd391b8b",
+      "plan_fingerprint": "f4b93fbab07d306808aa39f40fbecc1f81b83c224b0bac578f222a4ae4b42ba4",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-15",
+      "domain": "production",
+      "input_sha256": "f31c05415bf99ba9d1cba647a782754a7f1dd01b189134d4cdf45387ab91cb9d",
+      "plan_fingerprint": "809b4599f6454f0848c0ad906fd0f070a28c324eabdcf1e85499427a5db0fc0d",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-16",
+      "domain": "aircraft",
+      "input_sha256": "a641b3843826ba8f0fa63f55e8ab13633e0ee4ec21e54cb02ec52e6260fd557e",
+      "plan_fingerprint": "cebf92d92b3f024cedb8cd4905f8b1949b71beb1d6ee5f397bb7491a500ef6b1",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-17",
+      "domain": "production",
+      "input_sha256": "5810f58f9214994bf795bd876136695367b4c4e88d48a7b42c9c4a8e721c51ed",
+      "plan_fingerprint": "c577e9dfb2f337f9ed4198be213c0c09561549d2091d9e628734269d12bdbf59",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-18",
+      "domain": "aircraft",
+      "input_sha256": "ef5f8cbd00d259e7965aac1aaf06bcf2f2748fb3bd70c7b7691800f312800bf7",
+      "plan_fingerprint": "9a1fb387a91e6b6a81dfb1216f10f9a52c4ad7097e8e9c69f1ff353ae00d64f1",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-19",
+      "domain": "production",
+      "input_sha256": "af640f0966c474c82e3a58fb09cd939a952b14d2ca6559aa2f5892938a4fa28d",
+      "plan_fingerprint": "edd9e31dbfdf37ceaf14a4ba8f2a474718b64b01249f735d129b37140983f976",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-20",
+      "domain": "aircraft",
+      "input_sha256": "e11f9594db42e04d164f292643dbbe3fdb8537cfe8dd2be078295a2d8a07d36b",
+      "plan_fingerprint": "0f4115ef1e6d24231c699faab23e9d793212bac274328a05a9f47c968c588f5b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-21",
+      "domain": "production",
+      "input_sha256": "9a3c047814b4a0127c2d61d52bd19f03c345f3570ba1ff62bf4d3d5f790d5f5d",
+      "plan_fingerprint": "4c783ca54959c93c8186f707540b7d05c1fb124cca2d35070e37e102397593b3",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-22",
+      "domain": "aircraft",
+      "input_sha256": "11096aecc1dc90e412fa40108cb512f83f50d28e65c731acfa6deb734e5f7d9d",
+      "plan_fingerprint": "d4f78469befb8f0e72813f953b1a47d0c06a65e279df42016d83d8c286d0e36e",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-23",
+      "domain": "production",
+      "input_sha256": "52519104d14f1fa07fca87a2b8b583ac17825d16f7adfc70312ae455df224dec",
+      "plan_fingerprint": "14de5816da904e30a4525e68e87bad0a1fefb4243361abf035509889b1f44fe0",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-24",
+      "domain": "aircraft",
+      "input_sha256": "91d02f65fae6794ffdcabd2f637366f827374ce02ec0eef9f9abb430e63b2ac9",
+      "plan_fingerprint": "0dfa0a867c2ed0b6c3901f779004c368cfc845e6b627fddbf0ecdfa71731b246",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-25",
+      "domain": "production",
+      "input_sha256": "050eda56e52df92468d550ba5ec8675197b856b83d80248aeef785cd12690a25",
+      "plan_fingerprint": "41d20eda15dc62a96f28bd18a833aa9f20bfabb4927e4819e8ce1e92a2a25969",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-26",
+      "domain": "aircraft",
+      "input_sha256": "7c4b46957bd0d51c078141de0c8d373544eab1c409aeaa03022ac9b3c66b7b84",
+      "plan_fingerprint": "77359f3b2df5e06dd04af5a00e907fe08c6352a77a07529d4914be24afb457c6",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-27",
+      "domain": "production",
+      "input_sha256": "ac44f3008eb8d6fb6b7ba4b334c6fcf9750d2e8798a01a1ab223a8a160c147c4",
+      "plan_fingerprint": "fb3cc11bce4a76e12437b39fbeadada0697cddd6f2bd5bc5a87458c10db72e4c",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-28",
+      "domain": "aircraft",
+      "input_sha256": "1720b968cac90ac121ad8e4e9182d4fd384ae1b34f17d8a36c7b32c53ee7db9d",
+      "plan_fingerprint": "3775d45dcfdbbe4f523e5ea884725dbb0dba296d87cc2d6c4ce8f2521dfbf09b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-29",
+      "domain": "production",
+      "input_sha256": "34449dacac96c30cdf86ca5ff7b3ae0059eed21cf1846ae22099a362d56e880f",
+      "plan_fingerprint": "9c9791477996f546a59726346b56f4ceca7d846378df5f44f5d7eec89ac7e1dd",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-30",
+      "domain": "aircraft",
+      "input_sha256": "c621babef0eee2531168f57868cc4ecf234722fc1157f2a4d8e57e61f75d3e0a",
+      "plan_fingerprint": "6c8ac1a2d27442afd4c6bc50e7be2003c343bde25df9cacc30389c264387b29a",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-31",
+      "domain": "production",
+      "input_sha256": "14b8ab6c92284732131f9791ba2fb8888f4c8dc94773c09d7bae6adb17b49dbb",
+      "plan_fingerprint": "4365cccd80d23ce67ebade61a152a5df266e47cade79c71cc03e4842caab504e",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-32",
+      "domain": "aircraft",
+      "input_sha256": "fa27aa523e868c4fbda17cbe55c1cfd1fdee6487130e0c2f9c10725fa0e325b5",
+      "plan_fingerprint": "9f91d3179c8c63d1ac78c90a2e15e11173c2ccf929ba35495a42de66fd3bc0ac",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-33",
+      "domain": "production",
+      "input_sha256": "e59291926b7ec165c815005c351dacf9c997dfc0185a993e4811efb2612f961c",
+      "plan_fingerprint": "558e33a1683d99fda20bfadae5d06f552f249d99eea1c0514b36d1695606f427",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-34",
+      "domain": "aircraft",
+      "input_sha256": "7a0194472aa1e0ee358fa48b9b26a5b98c52c3ea35c61784e37b71a0fa6a6974",
+      "plan_fingerprint": "66a236909d9f07e9447758aecf610a79c345cb1725883cf657c6009ff8f6823f",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-35",
+      "domain": "production",
+      "input_sha256": "70f2f8cf177795ba5140233e773f6748e766cba56556bdf1174b73ef362d7c9b",
+      "plan_fingerprint": "d4ebfcc2c857701d20d2017dc873440c0f538f14669f835816e520dc40fc66c8",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-36",
+      "domain": "aircraft",
+      "input_sha256": "b4922de29e316fc2e23a814b9332d4b211e075af9bb6d9a59ca6574a523f588f",
+      "plan_fingerprint": "22dce1d1198805f9f1df444fc09cb303f1fc07ca83435de915f84da0ae902f70",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-37",
+      "domain": "production",
+      "input_sha256": "0d6eca78ddd89b66b343094283cc38051f0d7a237c4ce19d2dcc5c6c559a5b2d",
+      "plan_fingerprint": "1aa133f54004224c29de3d0409b334991d55a48eb88bbd886d380b13e1825282",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-38",
+      "domain": "aircraft",
+      "input_sha256": "de2057e518a1ab69c1416fa915fac550b136635b268df05fd165e21a5158b29a",
+      "plan_fingerprint": "fd8eafa80a54d0575caffc03217a6e22e9c48aa8d20b5da5b8020e5ed301a198",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-39",
+      "domain": "production",
+      "input_sha256": "be88eef99fab30d82476bc8754bc9f0fd1f0e8accf0c5773a3c561b62fc8701b",
+      "plan_fingerprint": "77647e481d02d16cc9c71e6f94f716dfd191e51916b6b0d675bbaf26556ee9c9",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-40",
+      "domain": "aircraft",
+      "input_sha256": "bcec3d62cd24733bff8e8119599d935881474f1422479c03bc29fb229b94df33",
+      "plan_fingerprint": "2049b847270b4709a84d51c71bffa15f966617201d3270553e14ed92091c60d7",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-41",
+      "domain": "production",
+      "input_sha256": "4100db9c751e6205cd07dd6ccd36f88dc10adcd071fafdc452ea4d43db7cad75",
+      "plan_fingerprint": "3299d7a6dbcc3d4cde26a78b4f16ef98441d8491fd2762b3813f8f681bf1fe75",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-42",
+      "domain": "aircraft",
+      "input_sha256": "b2257f742c506dce29eea05aad8efa2d3e660b2f409fca47b7c5716095b9c2ac",
+      "plan_fingerprint": "0ee9eb988a28edf13b3bc309b2e45833b3f373203a1173cf8fd0c70af29de621",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-43",
+      "domain": "production",
+      "input_sha256": "a286fd17ba2c454cd2e11e5142ac0d0ce0ee7600825b63fa4a6ec25399ea7749",
+      "plan_fingerprint": "8343174cecadc51f7ce8efbd21f7e2c0b4b7197340d51a38f8eca79b5420434e",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-44",
+      "domain": "aircraft",
+      "input_sha256": "b3381355b4009f6f43868cf3311a904481bb6d9d2f9af3641e515f5cac0ed6e3",
+      "plan_fingerprint": "4819d9a6a96f2fbfce9ee323b2e9c93cce6dc447e26369d8e0ac8e783d5c508e",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-45",
+      "domain": "production",
+      "input_sha256": "9325ac42a86bb936f53165f12c0b327a9087c608a96d21f92e82c9f1cb616911",
+      "plan_fingerprint": "5dd63f6cccd612d7458043755641c9659b12ff7a5733ed68a8fe8e89d350008d",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-46",
+      "domain": "aircraft",
+      "input_sha256": "25aeee3bef5ee89fb0a459b4684d626b7f714082b677049e3135252e703df133",
+      "plan_fingerprint": "e39d1ade6b52b3b4bd495866152bbaaf0c58a86f18c8fd537de0f8c874288d4b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-47",
+      "domain": "production",
+      "input_sha256": "ed6bf58b36868a82f86b39799ee4477c7379131e9af7d648c2b9ad1004a13077",
+      "plan_fingerprint": "01109461c262f9ddeb3678144372011db08d880d51821c94e300ccea730cbcc8",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-48",
+      "domain": "aircraft",
+      "input_sha256": "3b7ec0ef2d6735577d687b13db940c76b8dd5caa483b094f014e6bc077db1428",
+      "plan_fingerprint": "c1124ad3d119169b06d98e1ed5e234793bd3ed0ac4842f0382eaa878d287a960",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-49",
+      "domain": "production",
+      "input_sha256": "3ac7c326f92409ee7225213b0bcc10f8a5f880d7614f6f46ea2ad3b582a5f000",
+      "plan_fingerprint": "7f0763ba9106f3043dfba3db410adbae8915d94a3300a71ba26b21b8bac0c631",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-50",
+      "domain": "aircraft",
+      "input_sha256": "63e32a79080eae38ec6f9021408baf39e1852b0fd1b8ada40d6d8363069efeb4",
+      "plan_fingerprint": "a34b7161755ac91aef617295e806297840e5de063faab06cc134e99ea0da5c4d",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-51",
+      "domain": "production",
+      "input_sha256": "789842685983e9c8698bac193627bdf420843c9a2123dfd40d83aaf1fb9bf576",
+      "plan_fingerprint": "95192f3dd3f087e40bc0191b9b12f87491ca99e5cb8967711f84eecce69307f5",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-52",
+      "domain": "aircraft",
+      "input_sha256": "38cfe8d61d0d682ffaf743b4dabcbefb30f7727f5d70f8d4399fcc952b9041f3",
+      "plan_fingerprint": "9d235d07782d81bbb1a3ce0a58e8b299e206273ec62a9027f78d80403784f858",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-53",
+      "domain": "production",
+      "input_sha256": "77b4baeee8e3944258bae1ed68d17ecf81bd0db272afc1a38843936968c0c2f4",
+      "plan_fingerprint": "94e87c2a426d821f94511588a12775e43d8d90d24c36bbf8989bbeedb9ad2eb7",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-54",
+      "domain": "aircraft",
+      "input_sha256": "61bb3eb17cea1ab071fe71726183db28575f4fb56c37290da753e65408df4472",
+      "plan_fingerprint": "d08742fce22befd2d274b26c52d01abd4085495e778a2fc297fe8f53f98322a6",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-55",
+      "domain": "production",
+      "input_sha256": "658fcd9b872132fa536796860b7269d21e994ea8d3c0e2a25342a7a24ba65011",
+      "plan_fingerprint": "da7a54b15729b0628d8deb99dd96b5c7efc4b4e9efdb39469e5aa274e611086f",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-56",
+      "domain": "aircraft",
+      "input_sha256": "ba419d67fd65250fe85a8e87633b68a360c83ba71e5c3d88492810d80ab059be",
+      "plan_fingerprint": "5cfa897a3ae24e1bae9d8295670f949740932ed9fba03fb98fe98d10bafce36b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-57",
+      "domain": "production",
+      "input_sha256": "57c9832c67511d588166d56551f450ee81eb1ff8e61498ee2c4c3cacaa20c27c",
+      "plan_fingerprint": "f65573891ca440b8ffac5cafb081ab956f930f18dd3b631f5e5225949ecac92e",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-58",
+      "domain": "aircraft",
+      "input_sha256": "3b143e84fe9dca234611952056a876bfa31fb16c1b3f57589fdaf9feec6e7b86",
+      "plan_fingerprint": "1e4a3d2d90ead05bb57e0a8d1406d4ec1d09b7a64559b70daa7190f91c7cf3c2",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-59",
+      "domain": "production",
+      "input_sha256": "e67ad27ec5de3ddd88fe41b5731c52462d4986944622e57a14686a964cd51273",
+      "plan_fingerprint": "5bef4a99a300532d4c410624a0b48294179f370dc335ced87dc317809e86aa6c",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-60",
+      "domain": "aircraft",
+      "input_sha256": "7f16991ccef5ffe0f81241d22a66c68c3f05bfddb8b3a9a55c98298b0efd7063",
+      "plan_fingerprint": "d86e4fb3baba9d4b41fcae1b1036adb45c63664e5f910c3f44be486c40b915b5",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-61",
+      "domain": "production",
+      "input_sha256": "375da3d826e7b968800df52ebc2fecfab89d391f8845af0cff19bced4d5d38da",
+      "plan_fingerprint": "6b50d9fef113df23e7bb59baa5b70f461c682fcf6be1facceec434abb91c06f1",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-62",
+      "domain": "aircraft",
+      "input_sha256": "accd29d7ccba2566daf09f29975ff3db8eb11aa88c242278bc4514384292604e",
+      "plan_fingerprint": "334d3747000ca2663e60d23bd271f07d13a2b6d1a1c4f259f6cf1a7308e62d1a",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-63",
+      "domain": "production",
+      "input_sha256": "4ec54773a2baa25f4913c1ab37a504e415aca2c85cdc348008f291a7ed14cd5a",
+      "plan_fingerprint": "b9b77a1eff2872d0625437ae3f82d300dcffcc8239dd7018b0125188bf3c6993",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-64",
+      "domain": "aircraft",
+      "input_sha256": "d065f3970118dfeec3928ecc4e44fe621d56779d46a79c1af8ffd5f796f3c0ac",
+      "plan_fingerprint": "f50a8d0a758eb9c8779e400db5f5010581c5746a75b77dcff2768d41fdc78a92",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-65",
+      "domain": "production",
+      "input_sha256": "11e10940348f70df415730b4e5ca2aa5a4de6af2619740df337d734318e14add",
+      "plan_fingerprint": "1cc56b98d3f28595d9789ec90132e7e64ebde126249d79cb3239851fd4fd065c",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-66",
+      "domain": "aircraft",
+      "input_sha256": "cdb7a719a732296446887ee2ce88e80f79a07ac4837eb2c99297ec05e3b2524e",
+      "plan_fingerprint": "5b2c29c4f16181524bd54c8d1122c776dcec5c7e0b6c1619f73488d7241cb1f6",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-67",
+      "domain": "production",
+      "input_sha256": "c33016dca0e6a5f5a1152ba46e730c6e3d54c5f3f4c9b623e77d7f12b3682fc0",
+      "plan_fingerprint": "c120cd9b9aa569b4706eb3428280b87e72f4a07360d0133807bd2702e6ee023b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-68",
+      "domain": "aircraft",
+      "input_sha256": "4770ca26fa16546c47965552095225d311c9fc0b6706958330ab180fac2cc789",
+      "plan_fingerprint": "9467f9e7ebe4c51c42349f37c15f76923b08a3a6e8d4d5e2fd9eb29c8a628b8b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-69",
+      "domain": "production",
+      "input_sha256": "d9405c580e4c8bcd88e0eb4018ea01ffb6567da98e150628f956dbb16f53028f",
+      "plan_fingerprint": "1e904084802181bf6cbc4bcc56934afcb6ebfbc261df024f0010c46c7962615f",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-70",
+      "domain": "aircraft",
+      "input_sha256": "cb1121f40700e9dacc12a67a336e45181d8426f3276df1854c3867c29275ab33",
+      "plan_fingerprint": "6c3205660e74e2fe713ad8a616f8fb37dc3f017667484f424022b9a6d2cc0ba4",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-71",
+      "domain": "production",
+      "input_sha256": "1029e3ec39ed5006adc4f76a5d48a244c731b5587c262827c97d0c76d57b7082",
+      "plan_fingerprint": "fb8a86cedce33d57e844e5f4aea492978194c299aafc941ad5b66c3be8dae2b7",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-72",
+      "domain": "aircraft",
+      "input_sha256": "768698ab1fd4795b261c2a76ec0f3024a55b80e2340d2f68a3712adcb37d83fa",
+      "plan_fingerprint": "910e1ecdc555f9d4d44a9ef83401987f89cdd1b6827386ec4ef043e01d56b4bc",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-73",
+      "domain": "production",
+      "input_sha256": "77e63b4ec1be70d6cca6d988b40403e1ed69d89e0212980e637f32fb65bf910c",
+      "plan_fingerprint": "af6a936f460f01decb83fbc00ebb28ef79ab9a433f3e20a8a88fbcf1ef7b3bea",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-74",
+      "domain": "aircraft",
+      "input_sha256": "69093fbc41f335b4f0cd135e17aa8e87a98f7096223945cd0431b8b0debc1aef",
+      "plan_fingerprint": "d025179622e9bbd718e99aca456e3159ead97e00c16bef486fe860fff8edf630",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-75",
+      "domain": "production",
+      "input_sha256": "753cd105ebc8de4f03855573583118ec7ddbe828cc000241d0db793bb9326cb6",
+      "plan_fingerprint": "fd855aad4d7e553f7791d877edcaea07dbebdd67da580ff6eb8ab850bf31d18a",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-76",
+      "domain": "aircraft",
+      "input_sha256": "af976e31bb3b43e8ebbde8a92ec182a537fdda740ed13a755899c310c8c0f28d",
+      "plan_fingerprint": "b949e1c957d3db268dfe58b8961b6b6cd0e06be72f31fa4a976a80e07af41c73",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-77",
+      "domain": "production",
+      "input_sha256": "632aa9c8486dfd96645a9c94e42592feadb6754fa3df7668b79177c07eeb3a22",
+      "plan_fingerprint": "c4389a0e4210ff062254654db8f4d9e28415c5d93adf548ce0313a222057618b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-78",
+      "domain": "aircraft",
+      "input_sha256": "b3a700ba6852cc5e3016b4aee139a850ed50cf23a909f0d6d036d27281794a59",
+      "plan_fingerprint": "8037124d8d0fd6128ea130b5f91b67cf31cd19d64fe8bf1efa2c8ec3c83268b6",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-79",
+      "domain": "production",
+      "input_sha256": "fcc83dec7555ec01d6d519c2b3324a0b529be28d06371de3df8e6b540ec5a770",
+      "plan_fingerprint": "8e0fcccc9e7c9d3aa58b03c64e98055102afa78007bbfeacb1ed83267c5192fb",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-80",
+      "domain": "aircraft",
+      "input_sha256": "11835a800bbf3a488a2f37f7c1b89c2a032638d845dce5ea4a7b79db9ef888e0",
+      "plan_fingerprint": "1390021eeb4c6e5b6b7a659b7e84970c4ab745af59b08bc4438452ddaed1323e",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-81",
+      "domain": "production",
+      "input_sha256": "ebff06d36e286507bf9c4defa538c1fef134c50a396bc986a6815f34fc5ce015",
+      "plan_fingerprint": "70026076bee8d6db1414769fabe03014e29b31485c037a615d504094abbfc848",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-82",
+      "domain": "aircraft",
+      "input_sha256": "c9fffd830cb0c15b0c891ea7ca4dc45e6976ba0424aef95ee22f2db80a521a51",
+      "plan_fingerprint": "eab6afe83fc921476e135d6a462e2522bceb9b72bf9560e710fa152330e2924b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-83",
+      "domain": "production",
+      "input_sha256": "9058b8374132b94c6f2f1ab7edd5a56184e77925046f85f30eb7a0138bb04ff4",
+      "plan_fingerprint": "ba05476c79239da028fead1f4163462c384a6fa057383900195297bf9a72e92e",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-84",
+      "domain": "aircraft",
+      "input_sha256": "1dd0f1368663772d8a8d5aa230d7fbe5e23976423707315240b2461f85ade2cc",
+      "plan_fingerprint": "8a362b1cfd8a8d0274daa15209ffc284324a95c9b189ae919c23ddae2420b074",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-85",
+      "domain": "production",
+      "input_sha256": "ef62e159ece1c4153295bd2ed82f70ff22a5c1d45a3913d977dd03ceffb7283c",
+      "plan_fingerprint": "4809d474bf1a68fa0642876dec655ce789ff843c2d9e52bbabbdf873ea21fe71",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-86",
+      "domain": "aircraft",
+      "input_sha256": "33209bd9a450b54b943ac88c610be53d9900755d51b77cb42faeb988feba9c4e",
+      "plan_fingerprint": "dc52c005289f22417cf25ae2bc846c986164406c436d7b06cec4693b84211d30",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-87",
+      "domain": "production",
+      "input_sha256": "6757b9415d11b5e14e09435990b366a05b15519b08ceea895496065bda473671",
+      "plan_fingerprint": "e74dd37107e53e00347561761fce65d6139236cbd3cc23d4307a6f8579e1815f",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-88",
+      "domain": "aircraft",
+      "input_sha256": "a768632a3f5fd8bd7e37edad188f462dcf68e4315f59a5b634e227e42d2a1920",
+      "plan_fingerprint": "b37b11fe6f66e8afcd6f89b02ca8e2c62946f22d1a390df03e81ae7349ec0f9b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-89",
+      "domain": "production",
+      "input_sha256": "d89ded73be771d865c73105e67087bc71d69be2bfc204c9fa51fb7134ed9139e",
+      "plan_fingerprint": "49b4fd4955c17ac46db1855d509755f0e4dfd2ecfdd36839bd44e3a77d5f15bd",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-90",
+      "domain": "aircraft",
+      "input_sha256": "965e39ba5348b10cca6c8401c8acd80929df26281a89940e1745070a9e52a574",
+      "plan_fingerprint": "4139345de09519a533fe632130fecc8c47b3ef42c1568dc5b6e393b389c3ec7a",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-91",
+      "domain": "production",
+      "input_sha256": "b665b015345cf1b165d798e7dd235bb9763254da66ff27dff3d3ef79e51cca6a",
+      "plan_fingerprint": "6e4ac6a625743cb524f1b652a16787b5bab95a03f6bd76452eca96e3f237d06b",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-92",
+      "domain": "aircraft",
+      "input_sha256": "2ea00e70ace685fa06d9122ac5eef681f76092a430c9919800c1b06a6e22a5ea",
+      "plan_fingerprint": "c28d978ef6996462f7227e70a3b1760b90ac5a6ee7e0332f3c2f60b95e469e1a",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-93",
+      "domain": "production",
+      "input_sha256": "418e1cca612e8770b8d5622ea93786830dcb37107750aa5f53e80e6ed60c52d9",
+      "plan_fingerprint": "1cd7a4da7c5015796fe6075d5eb6d9b74a482659ab30b0cff919ec3f6fdde5b2",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-94",
+      "domain": "aircraft",
+      "input_sha256": "5e0782b9e1766021f8435f28ed045ebb9b94563ccf16fe9b595c80faf941f806",
+      "plan_fingerprint": "e0a69d9a7fc137b7548163761327e12771d6cd5e4cede2e9ec194718a00d5e30",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-95",
+      "domain": "production",
+      "input_sha256": "3085ad7e7511e439fcd8dc0c9643503e2a805127e5f39f868c5291163974336a",
+      "plan_fingerprint": "c5816c7aef407b313bc64aefb54519eb39fd966eded8010a8180c907c9e89938",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-96",
+      "domain": "aircraft",
+      "input_sha256": "53023e020f4cd20ee78be0aeb776e2c8f965bc2d20e75c5d182c79d6cdcc2d7a",
+      "plan_fingerprint": "b9dc07ca0cbdcb945c76d303650bcf4807f30331b79e4b38ae57e9bd724ce346",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-97",
+      "domain": "production",
+      "input_sha256": "48ad0e83a1228345d2fd64bb61625dd320b92a13d1e77bb9c7becf412c7d8f89",
+      "plan_fingerprint": "677147fe511c894bc4033f198edb5bbbdddfe0e98e2faad8c479c292fe14db86",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-98",
+      "domain": "aircraft",
+      "input_sha256": "a788fbbd14f0d7176211290a5d6201ad3306a2c0edc082e52d4b01197cbc212b",
+      "plan_fingerprint": "0e8b84595b23a1ffdb2ddbd08ecaaa72f21e9b6ca788389488d142d9924b9963",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    },
+    {
+      "model": "generated-99",
+      "domain": "production",
+      "input_sha256": "6354fa45691e538fcb31d9617f4b48499fddf64dd1706ef56a817eed076b4e45",
+      "plan_fingerprint": "d841b4d622a65d04392400c6aa31fdf7d38920ff86119768a2a5af79a88849bb",
+      "seeds": [
+        0,
+        17,
+        4294967295
+      ],
+      "passed": true
+    }
+  ],
+  "scope": "Synthetic ir-native-event-v1 generated-model tests; no legacy semantic or Monte Carlo distribution equivalence claim."
+}

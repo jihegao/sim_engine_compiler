@@ -1,0 +1,83 @@
+{
+  "arrivals": [],
+  "domain": "aircraft",
+  "fleet": [
+    {
+      "id": "A",
+      "initial_state": 0
+    }
+  ],
+  "horizon": 12,
+  "maintenance": [
+    {
+      "asset": "A",
+      "at": 2,
+      "duration": [
+        3,
+        3
+      ],
+      "id": "fault",
+      "needs": {
+        "crew": 1
+      },
+      "repeat_every": null
+    }
+  ],
+  "missions": [
+    {
+      "after": [],
+      "duration": [
+        10,
+        10
+      ],
+      "eligible": [
+        "A"
+      ],
+      "id": "interrupted",
+      "needs": {
+        "crew": 1,
+        "fuel": 1
+      },
+      "release": 0,
+      "repeat_delay": null
+    },
+    {
+      "after": [],
+      "duration": [
+        2,
+        2
+      ],
+      "eligible": [
+        "A"
+      ],
+      "id": "later",
+      "needs": {
+        "crew": 1
+      },
+      "release": 6,
+      "repeat_delay": null
+    }
+  ],
+  "model_id": "C06",
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "crew",
+      "initial": 1,
+      "kind": "capacity"
+    },
+    {
+      "id": "fuel",
+      "initial": 1,
+      "kind": "stock"
+    }
+  ],
+  "revision": "v1",
+  "rules": {
+    "acquisition": "atomic",
+    "selection": "first_available",
+    "stock_abort": "consume"
+  },
+  "schema": "business/v1",
+  "time_unit": "tick"
+}
