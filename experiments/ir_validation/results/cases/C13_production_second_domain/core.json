@@ -1,0 +1,135 @@
+{
+  "assets": [
+    {
+      "id": "M1",
+      "initial_state": 0
+    },
+    {
+      "id": "M2",
+      "initial_state": 0
+    }
+  ],
+  "business_fingerprint": "3ce7e629a2d1691a2eab4f6d28189c797ded57f8164e9d4de47413273fb50a7a",
+  "events": [
+    {
+      "id": "outage",
+      "op": "set_state",
+      "repeat_every": null,
+      "target": "M1",
+      "time": 0,
+      "trigger": "restore:outage",
+      "value": 1
+    }
+  ],
+  "horizon": 20,
+  "model_id": "C13",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [
+        "M1",
+        "M2"
+      ],
+      "duration": [
+        2,
+        2
+      ],
+      "finish_state": 0,
+      "id": "cut",
+      "interruptible": true,
+      "needs": {
+        "operator": 1
+      },
+      "release": 1,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [
+        "cut"
+      ],
+      "candidates": [
+        "M1",
+        "M2"
+      ],
+      "duration": [
+        3,
+        3
+      ],
+      "finish_state": 0,
+      "id": "polish",
+      "interruptible": true,
+      "needs": {
+        "operator": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [
+        "polish"
+      ],
+      "candidates": [],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "pack",
+      "interruptible": true,
+      "needs": {
+        "operator": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [
+        "M1"
+      ],
+      "duration": [
+        4,
+        4
+      ],
+      "finish_state": 0,
+      "id": "restore:outage",
+      "interruptible": false,
+      "needs": {
+        "tech": 1
+      },
+      "release": null,
+      "repeat_delay": null,
+      "required_state": 1
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "operator",
+      "initial": 1,
+      "kind": "capacity"
+    },
+    {
+      "id": "tech",
+      "initial": 1,
+      "kind": "capacity"
+    }
+  ],
+  "revision": "v1",
+  "schema": "core/v1",
+  "source_map": {
+    "asset:M1": "/machines/0",
+    "asset:M2": "/machines/1",
+    "event:outage": "/outages/0",
+    "process:cut": "/jobs/0",
+    "process:pack": "/jobs/2",
+    "process:polish": "/jobs/1",
+    "process:restore:outage": "/outages/0",
+    "resource:operator": "/resources/0",
+    "resource:tech": "/resources/1"
+  },
+  "time_unit": "tick"
+}

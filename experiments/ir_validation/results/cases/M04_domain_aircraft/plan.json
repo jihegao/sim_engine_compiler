@@ -1,0 +1,159 @@
+{
+  "assets": [
+    {
+      "id": "M1",
+      "initial_state": 0
+    },
+    {
+      "id": "M2",
+      "initial_state": 0
+    }
+  ],
+  "business_fingerprint": "ebd99ac19ed6b3ca7ef974bbdc78a1a533449638c91ee2e4a07bc11f8058d2a4",
+  "core_fingerprint": "cf1616a6b0336b197d82224e565f878b68fc9676a68ebe65fac95b6b79316ea8",
+  "events": [
+    {
+      "id": "outage",
+      "op": "set_state",
+      "repeat_every": null,
+      "target": 0,
+      "time": 0,
+      "trigger": 3,
+      "value": 1
+    }
+  ],
+  "fingerprint": "e363d3d2817ae4480a54412123da96bac5c9559cf6f9075bfd936bf572625f7f",
+  "horizon": 20,
+  "model_id": "C13",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [
+        0,
+        1
+      ],
+      "duration": [
+        2,
+        2
+      ],
+      "finish_state": 0,
+      "id": "cut",
+      "interruptible": true,
+      "needs": [
+        [
+          0,
+          1
+        ]
+      ],
+      "release": 1,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [
+        0
+      ],
+      "candidates": [
+        0,
+        1
+      ],
+      "duration": [
+        3,
+        3
+      ],
+      "finish_state": 0,
+      "id": "polish",
+      "interruptible": true,
+      "needs": [
+        [
+          0,
+          1
+        ]
+      ],
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [
+        1
+      ],
+      "candidates": [],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "pack",
+      "interruptible": true,
+      "needs": [
+        [
+          0,
+          1
+        ]
+      ],
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [
+        0
+      ],
+      "duration": [
+        4,
+        4
+      ],
+      "finish_state": 0,
+      "id": "restore:outage",
+      "interruptible": false,
+      "needs": [
+        [
+          1,
+          1
+        ]
+      ],
+      "release": null,
+      "repeat_delay": null,
+      "required_state": 1
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "operator",
+      "initial": 1,
+      "kind": "capacity"
+    },
+    {
+      "id": "tech",
+      "initial": 1,
+      "kind": "capacity"
+    }
+  ],
+  "revision": "v1",
+  "schema": "plan/v1",
+  "source_map": {
+    "asset:M1": "/fleet/0",
+    "asset:M2": "/fleet/1",
+    "event:outage": "/maintenance/0",
+    "process:cut": "/missions/0",
+    "process:pack": "/missions/2",
+    "process:polish": "/missions/1",
+    "process:restore:outage": "/maintenance/0",
+    "resource:operator": "/resources/0",
+    "resource:tech": "/resources/1"
+  },
+  "successors": [
+    [
+      1
+    ],
+    [
+      2
+    ],
+    [],
+    []
+  ],
+  "time_unit": "tick"
+}

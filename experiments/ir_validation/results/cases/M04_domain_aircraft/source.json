@@ -1,0 +1,95 @@
+{
+  "arrivals": [],
+  "domain": "aircraft",
+  "fleet": [
+    {
+      "id": "M1"
+    },
+    {
+      "id": "M2"
+    }
+  ],
+  "horizon": 20,
+  "maintenance": [
+    {
+      "asset": "M1",
+      "at": 0,
+      "duration": [
+        4,
+        4
+      ],
+      "id": "outage",
+      "needs": {
+        "tech": 1
+      }
+    }
+  ],
+  "missions": [
+    {
+      "after": [],
+      "duration": [
+        2,
+        2
+      ],
+      "eligible": [
+        "M1",
+        "M2"
+      ],
+      "id": "cut",
+      "needs": {
+        "operator": 1
+      },
+      "release": 1
+    },
+    {
+      "after": [
+        "cut"
+      ],
+      "duration": [
+        3,
+        3
+      ],
+      "eligible": [
+        "M1",
+        "M2"
+      ],
+      "id": "polish",
+      "needs": {
+        "operator": 1
+      },
+      "release": 0
+    },
+    {
+      "after": [
+        "polish"
+      ],
+      "duration": [
+        1,
+        1
+      ],
+      "eligible": [],
+      "id": "pack",
+      "needs": {
+        "operator": 1
+      },
+      "release": 0
+    }
+  ],
+  "model_id": "C13",
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "operator",
+      "initial": 1,
+      "kind": "capacity"
+    },
+    {
+      "id": "tech",
+      "initial": 1,
+      "kind": "capacity"
+    }
+  ],
+  "revision": "v1",
+  "schema": "business/v1",
+  "time_unit": "tick"
+}

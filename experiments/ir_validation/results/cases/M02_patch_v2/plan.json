@@ -1,0 +1,80 @@
+{
+  "assets": [
+    {
+      "id": "A0",
+      "initial_state": 0
+    },
+    {
+      "id": "A1",
+      "initial_state": 0
+    }
+  ],
+  "business_fingerprint": "1de3108956d773e69eae61e9ce325a325e302f4c786426893527b60f9ca23511",
+  "core_fingerprint": "ec6ed8eb48dda6290672921a64e5cd5f9e6c228a0e80d9580318ebec2e7b612a",
+  "events": [
+    {
+      "id": "failure",
+      "op": "set_state",
+      "repeat_every": null,
+      "target": 0,
+      "time": 0,
+      "trigger": 1,
+      "value": 1
+    }
+  ],
+  "fingerprint": "33ffb3afcc7814f32408411ffc6b5552e44964bff9130e244397ef82f6d86724",
+  "horizon": 20,
+  "model_id": "C01",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [
+        0
+      ],
+      "duration": [
+        2,
+        2
+      ],
+      "finish_state": 0,
+      "id": "flight",
+      "interruptible": true,
+      "needs": [],
+      "release": 1,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [
+        0
+      ],
+      "duration": [
+        4,
+        4
+      ],
+      "finish_state": 0,
+      "id": "restore:failure",
+      "interruptible": false,
+      "needs": [],
+      "release": null,
+      "repeat_delay": null,
+      "required_state": 1
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [],
+  "revision": "v2",
+  "schema": "plan/v1",
+  "source_map": {
+    "asset:A0": "/fleet/0",
+    "asset:A1": "/fleet/1",
+    "event:failure": "/maintenance/0",
+    "process:flight": "/missions/0",
+    "process:restore:failure": "/maintenance/0"
+  },
+  "successors": [
+    [],
+    []
+  ],
+  "time_unit": "tick"
+}

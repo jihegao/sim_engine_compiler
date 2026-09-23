@@ -1,0 +1,69 @@
+{
+  "assets": [
+    {
+      "id": "A",
+      "initial_state": 1
+    }
+  ],
+  "business_fingerprint": "04731bdda151ca22335adfe817857d672fc06d5a4424c15f6f6a5312fadc2bd8",
+  "events": [
+    {
+      "id": "noop",
+      "op": "set_state",
+      "repeat_every": null,
+      "target": "A",
+      "time": 1,
+      "trigger": "restore:noop",
+      "value": 1
+    }
+  ],
+  "horizon": 3,
+  "model_id": "C11",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [
+        "A"
+      ],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "flight",
+      "interruptible": true,
+      "needs": {},
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [
+        "A"
+      ],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "restore:noop",
+      "interruptible": false,
+      "needs": {},
+      "release": null,
+      "repeat_delay": null,
+      "required_state": 1
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [],
+  "revision": "v1",
+  "schema": "core/v1",
+  "source_map": {
+    "asset:A": "/fleet/0",
+    "event:noop": "/maintenance/0",
+    "process:flight": "/missions/0",
+    "process:restore:noop": "/maintenance/0"
+  },
+  "time_unit": "tick"
+}
