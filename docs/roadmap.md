@@ -50,7 +50,7 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 执行顺序与逐项验收见 [观测隔离与 F35 热路径优化计划](performance-optimization-plan.md)。
 先补齐测量保护、消除三个 mission phase 的无效深克隆，再预计算静态关系、迁移故障状态数组，
 随后按新 profile 评估活动集合。事件跳跃须等待完整唤醒合同与边界差分，不作为首轮改动。
-O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。证据见 [O1 候选报告](../benchmarks/hot_path/results/20260920-o1-50857fe/README.md)。O3 已将每架飞机适用组件的故障剩余寿命/故障分钟迁移为稀疏平行数组，并增加稠密索引与引用校验；31 项差分继续通过，两轮正式复测相对 O1 再降低约 49%–63%，证据见 [O3 候选报告](../benchmarks/hot_path/results/20260920-o3-9400f0f/README.md)。O4a 已将 waiting/running 历史作业移出 progress/dispatch 候选扫描，四组同会话固定二进制对照的各 seed/观测组合跨会话中位改善为 5.20%–6.76%，证据见 [O4a 报告](../benchmarks/hot_path/results/20260920-o4a-1f394ba/README.md)。O6 将 activity/step 派发字段编译为批量样本共享的只读 layout，消除 resource dispatch/job progress 的热路径深拷贝；24 个固定二进制对照单元全部正向，各 seed/观测组合跨会话中位改善为 11.09%–18.17%，证据见 [O6 报告](../benchmarks/hot_path/results/20260920-o6-4508860/README.md)。O2a preventive 与 O4b active-preflight 候选虽降低目标访问，但整体墙钟未达到收录线，均已回退并保留 [O2a](../benchmarks/hot_path/results/20260920-o2a-c072639/README.md) / [O4b](../benchmarks/hot_path/results/20260920-o4b-838e6bc/README.md) 证据。
+O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。证据见 [O1 候选报告](../benchmarks/hot_path/results/20260920-o1-50857fe/README.md)。O3 已将每架飞机适用组件的故障剩余寿命/故障分钟迁移为稀疏平行数组，并增加稠密索引与引用校验；31 项差分继续通过，两轮正式复测相对 O1 再降低约 49%–63%，证据见 [O3 候选报告](../benchmarks/hot_path/results/20260920-o3-9400f0f/README.md)。O4a 已将 waiting/running 历史作业移出 progress/dispatch 候选扫描，四组同会话固定二进制对照的各 seed/观测组合跨会话中位改善为 5.20%–6.76%，证据见 [O4a 报告](../benchmarks/hot_path/results/20260920-o4a-1f394ba/README.md)。O6 将 activity/step 派发字段编译为批量样本共享的只读 layout，消除 resource dispatch/job progress 的热路径深拷贝；24 个固定二进制对照单元全部正向，各 seed/观测组合跨会话中位改善为 11.09%–18.17%，证据见 [O6 报告](../benchmarks/hot_path/results/20260920-o6-4508860/README.md)。O7 消除 route scan、waiting 排序键和提前 step code 的重试克隆；Plan spec clone 从 153,010 降至 4,289，语义和目标 phase 验证通过，但 AMD128 六组固定 CPU 复测中 seed 7 未稳定同向且所有单元均低于 5%，因此仍是未提交候选、暂不验收，证据见 [O7 报告](../benchmarks/hot_path/results/20260920-o7-dispatch-clone-elision/README.md)。O2a preventive、O4b active-preflight 与 compatibility lowering 候选收益不足，均已回退。
 
 ## 测试分工
 
@@ -69,7 +69,7 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 ## 后续工作
 
-1. C1 当前收录到 O6；O2a/O4b 已因收益不足回退。后续 dense inventory/reservation、compatibility lowering 与 waiting ready queue 各自独立测量，不把 F35 无静态 spare/运输负载的结果外推到库存优化。
+1. C1 当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。若继续该方向，应把 job-specific dynamic spare requirement 缓存作为新候选独立测量；完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。
 2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
 3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；具备完整操作读写与唤醒合同后，再单独评估兼容事件跳跃。本轮 O5 门槛未满足，未实现时间跳跃。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。

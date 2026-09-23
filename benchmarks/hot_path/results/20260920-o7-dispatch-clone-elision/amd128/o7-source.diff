@@ -1,0 +1,220 @@
+--- baseline/rust/runtime/src/runtime.rs
++++ candidate/rust/runtime/src/runtime.rs
+@@ -115,6 +115,7 @@
+     pub aircraft_scan_items: u64,
+     pub job_scan_items: u64,
+     pub resource_dispatch_candidate_visits: u64,
++    pub supply_route_candidate_visits: u64,
+     pub job_progress_candidate_visits: u64,
+     pub waiting_job_indexes_peak: u64,
+     pub running_job_indexes_peak: u64,
+@@ -1355,25 +1356,41 @@
+             }
+             for route_index in 0..self.plan.supply_routes.len() {
+                 if self.profile_enabled {
+-                    self.profile.plan_spec_clones += 1;
++                    self.profile.supply_route_candidate_visits += 1;
+                 }
+-                let route = self.plan.supply_routes[route_index].clone();
+-                if route.destination_node_index != destination_index
+-                    || (!route.product_id.is_empty() && route.product_id != *product_id)
+-                {
+-                    continue;
+-                }
+-                let stock = self.resources[route.source_node_index]
++                let (source_node_index, capacity, transport_minutes, route_spec_index) = {
++                    let route = &self.plan.supply_routes[route_index];
++                    if route.destination_node_index != destination_index
++                        || (!route.product_id.is_empty() && route.product_id != *product_id)
++                    {
++                        continue;
++                    }
++                    (
++                        route.source_node_index,
++                        route.capacity,
++                        route.transport_minutes,
++                        route.index,
++                    )
++                };
++                let stock = self.resources[source_node_index]
+                     .inventory
+                     .get(product_id)
+                     .copied()
+                     .unwrap_or(0);
+                 self.count_map_reads(1);
+-                let moved = shortage.min(route.capacity).min(stock);
++                let moved = shortage.min(capacity).min(stock);
+                 if moved <= 0 {
+                     continue;
+                 }
+-                *self.resources[route.source_node_index]
++                let (supply_mode, relation_id, source_path) = {
++                    let route = &self.plan.supply_routes[route_index];
++                    (
++                        route.supply_mode.clone(),
++                        route.relation_id.clone(),
++                        route.source_path.clone(),
++                    )
++                };
++                *self.resources[source_node_index]
+                     .inventory
+                     .entry(product_id.clone())
+                     .or_default() -= moved;
+@@ -1383,16 +1400,17 @@
+                     step_index: self.jobs[job_index].step_index,
+                     product_id: product_id.clone(),
+                     quantity: moved,
+-                    source_node_index: route.source_node_index,
++                    source_node_index,
+                     destination_node_index: destination_index,
+                     requested_minute: self.minute,
+-                    arrival_minute: self.minute + route.transport_minutes.max(1),
+-                    route_index: route.index,
++                    arrival_minute: self.minute + transport_minutes.max(1),
++                    route_index: route_spec_index,
+                 };
+                 self.shipments.push(shipment.clone());
+                 self.transport_replenishment_events += 1;
+                 let trace_shipment = shipment.clone();
+-                let trace_route = route.clone();
++                let trace_supply_mode = supply_mode.clone();
++                let trace_relation_id = relation_id.clone();
+                 self.emit(
+                     "organization_supply_selected",
+                     "organization.select-supplier",
+@@ -1402,8 +1420,8 @@
+                         "source_node_index": trace_shipment.source_node_index,
+                         "destination_node_index": trace_shipment.destination_node_index,
+                         "arrival_minute": trace_shipment.arrival_minute,
+-                        "supply_mode": trace_route.supply_mode, "relation_id": trace_route.relation_id}),
+-                    Some(route.source_path.clone()),
++                        "supply_mode": trace_supply_mode, "relation_id": trace_relation_id}),
++                    Some(source_path.clone()),
+                 );
+                 self.emit(
+                     "organization_transport_dispatched",
+@@ -1415,9 +1433,9 @@
+                         "source_node_index": shipment.source_node_index,
+                         "destination_node_index": shipment.destination_node_index,
+                         "arrival_minute": shipment.arrival_minute,
+-                        "supply_mode": route.supply_mode, "relation_id": route.relation_id})
++                        "supply_mode": supply_mode, "relation_id": relation_id})
+                     },
+-                    Some(route.source_path),
++                    Some(source_path),
+                 );
+                 break;
+             }
+@@ -1919,12 +1937,20 @@
+         if self.profile_enabled {
+             self.profile.resource_dispatch_candidate_visits += waiting.len() as u64;
+         }
+-        waiting.sort_by_key(|index| {
+-            (
+-                self.prepared.activities[self.jobs[*index].activity_index].priority,
+-                self.jobs[*index].started_time.unwrap_or(self.minute),
+-                self.jobs[*index].job_id.clone(),
+-            )
++        waiting.sort_by(|left, right| {
++            let left_job = &self.jobs[*left];
++            let right_job = &self.jobs[*right];
++            let left_priority = self.prepared.activities[left_job.activity_index].priority;
++            let right_priority = self.prepared.activities[right_job.activity_index].priority;
++            left_priority
++                .cmp(&right_priority)
++                .then_with(|| {
++                    left_job
++                        .started_time
++                        .unwrap_or(self.minute)
++                        .cmp(&right_job.started_time.unwrap_or(self.minute))
++                })
++                .then_with(|| left_job.job_id.cmp(&right_job.job_id))
+         });
+         for job_index in waiting {
+             let activity_index = self.jobs[job_index].activity_index;
+@@ -1936,14 +1962,12 @@
+                 self.complete_job(job_index)?;
+                 continue;
+             }
+-            let step = &prepared_activity.steps[step_index];
+             let node_index = prepared_activity.resource_node_index;
+-            let step_spec_index = step.index;
+-            let step_code = step.code.clone();
+-            let duration_minutes = step.duration_minutes;
+-            let personnel = step.personnel;
+-            let equipment = step.equipment;
+-            let static_spares = step.static_spares.clone();
++            let step_spec_index = prepared_activity.steps[step_index].index;
++            let duration_minutes = prepared_activity.steps[step_index].duration_minutes;
++            let personnel = prepared_activity.steps[step_index].personnel;
++            let equipment = prepared_activity.steps[step_index].equipment;
++            let static_spares = prepared_activity.steps[step_index].static_spares.clone();
+             let requirements = self.step_requirements(job_index, static_spares, step_count);
+             self.dispatch_remote_spares(job_index, activity_index, requirements.as_slice());
+             self.count_map_reads(requirements.len() * 2);
+@@ -2117,6 +2141,9 @@
+             }
+             let personnel_in_use = self.resources[node_index].personnel_in_use;
+             let equipment_in_use = self.resources[node_index].equipment_in_use;
++            let step_code = self.prepared.activities[activity_index].steps[step_index]
++                .code
++                .clone();
+             self.emit("resources_reserved", "resource.reserve-atomic", self.jobs[job_index].job_id.clone(),
+                 || json!({"node_index": node_index, "step_index": step_spec_index, "personnel": personnel,
+                     "equipment": equipment, "personnel_in_use": personnel_in_use,
+@@ -2648,6 +2675,13 @@
+         ExecutionPlan::from_slice(bytes).unwrap().0
+     }
+
++    fn transport_plan() -> ExecutionPlan {
++        let bytes = include_bytes!(
++            "../../../tests/fixtures/synthetic/b3-upstream-transport-execution-plan.json"
++        );
++        ExecutionPlan::from_slice(bytes).unwrap().0
++    }
++
+     #[test]
+     fn unknown_phase_still_fails_when_executed() {
+         let mut plan = synthetic_plan();
+@@ -2945,6 +2979,41 @@
+         );
+     }
+
++    #[test]
++    fn unavailable_supply_route_is_rechecked_without_cloning_plan_specs() {
++        let mut plan = transport_plan();
++        plan.resource_nodes[0].inventory = vec![("filter".into(), 0)];
++        let mut runtime = Runtime::from_shared_profiled(
++            Arc::new(plan),
++            "test-fingerprint".into(),
++            0,
++            ObservationLevel::Full,
++        )
++        .unwrap();
++        runtime.minute = 10;
++        runtime.phase = "resource_dispatch".into();
++        runtime.create_job(0, 0, "test", None, None, None).unwrap();
++        let job_index = runtime.jobs.len() - 1;
++        let initial_plan_spec_clones = runtime.profile.plan_spec_clones;
++
++        runtime.phase_start_waiting_jobs().unwrap();
++        runtime.minute += 1;
++        runtime.phase_start_waiting_jobs().unwrap();
++
++        assert_eq!(runtime.profile.supply_route_candidate_visits, 2);
++        assert_eq!(runtime.profile.plan_spec_clones, initial_plan_spec_clones);
++        assert_eq!(runtime.jobs[job_index].state, "waiting");
++        assert!(runtime.shipments.is_empty());
++        assert_eq!(
++            runtime
++                .trace
++                .iter()
++                .filter(|event| event["kind"] == "spare_shortage")
++                .count(),
++            1
++        );
++    }
++
+     #[test]
+     fn completed_step_is_visible_to_same_minute_dispatch_and_zero_duration_waits_for_progress() {
+         let mut plan = synthetic_plan();

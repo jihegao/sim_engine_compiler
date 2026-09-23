@@ -1,6 +1,6 @@
 # 观测隔离与 F35 热路径优化计划
 
-状态：2026-09-20 已完成 O0、O1、O3、O4a 与 O6 的实现、语义验收及固定构建复测。O6 将 resource dispatch 所需 activity/step 字段编译为只读 prepared layout，Plan spec clone 计数由 459,832 降至 153,010；四组 O4a/O6 固定二进制对照的各 seed/观测组合跨会话中位改善为 11.09%–18.17%，已收录。O2a preventive 索引与 O4b active-preflight 索引虽减少目标访问，但整体收益未达到收录线，均已回退。O5 的操作读写与完整唤醒合同尚未建立，因此仍不进入事件跳跃实现。
+状态：2026-09-20 已完成 O0、O1、O3、O4a 与 O6 的实现、语义验收及固定构建复测。O7 消除 resource dispatch 重试路径的 route spec、waiting 排序键与提前 step code 克隆；语义差分和目标 phase 通过，但本机及 AMD128 独立复测均未达到整体墙钟收录门槛，因此仍是未提交候选、暂不收录。O2a preventive、O4b active-preflight 与独立 compatibility lowering 候选收益不足，均已回退。O5 的操作读写与完整唤醒合同尚未建立，因此仍不进入事件跳跃实现。
 
 优先顺序为：补齐测量保护 → 消除无效任务克隆 → 预计算静态关系 → 故障状态数组化 → 活动集合 → 有条件评估事件跳跃。前三个任务 phase 约占插桩执行时间的 79.7%，先处理其每分钟重复成本；保留 `full/summary` 观测隔离作为每轮优化的验收条件。
 
@@ -51,6 +51,7 @@ seed 0 的计数为 mission 扫描 19,319,040 项、job 扫描 49,410,043 项、
 | O4 活动集合 | job、mission、preventive、shipment 的候选与索引维护 | 中至高 | O4a waiting/running 集合已收录；O4b active-preflight 因整体收益不足已回退；其余集合等待有负载证据 |
 | O5 事件跳跃评估 | Core 依赖/唤醒合同、调度器、timer token | 高，后续单独立项 | 当前门槛未满足；先物化读写/唤醒合同并证明可跳区间，再决定是否实现 |
 | O6 compiled steps | activity/step 派发字段、静态 spare requirement、batch 共享 layout | 中 | 已收录；31 项差分通过，24/24 固定二进制单元正向，跨会话中位改善 11.09%–18.17% |
+| O7 dispatch clone elision | waiting 排序键、route scan、step code 的 owned clone 下沉 | 低至中 | 候选；31 项差分和目标 phase 通过，但 AMD128 六组固定 CPU 复测中 seed 7 未稳定同向，所有单元均低于 5%，暂不收录 |
 
 ### O0：补齐测量与观测保护
 
@@ -123,6 +124,26 @@ Runtime 从只读 Execution Plan 派生 activity/step layout，预存资源节�
 
 定向测试覆盖静态 spare 重复键、动态注入及 non-replacement；完整 31 项差分继续通过。四组固定二进制对照 24/24 单元正向，各 seed/观测组合跨会话中位改善为 11.09%–18.17%；seed 0 插桩 resource dispatch 中位由 full/summary 105.474/101.336ms 降至 64.735/60.875ms。证据见 [O6 报告](../benchmarks/hot_path/results/20260920-o6-4508860/README.md)。固定 F35 step 没有静态 spare，因此本轮不能量化 dense inventory 或复杂运输场景收益。
 
+### O7：resource dispatch 重试路径克隆消除
+
+waiting job 的三键顺序保持不变，但排序比较器借用 job ID；supply route 仍按 Plan 顺序每分钟
+重试，但只借用 route spec/复制标量，实际发运时才复制 trace 字符串；step code 只在作业真正
+启动时复制。没有缓存无库存结果，不改变后续库存到达或取消返还后的可见性。
+
+新增 `supply_route_candidate_visits` 证明 seed 0 的 148,721 次 route 访问仍然发生，而 Plan spec
+clone 从 153,010 降至 4,289。resource dispatch phase 的 full/summary 五次中位由
+63.249/59.389ms 降至 45.643/40.854ms。四组 fixed-binary 对照 24/24 单元正向，跨会话中位
+改善为 3.73%–11.06%；单/三线程 Stage C batch 与 end-to-end 也同向改善且结果 hash 不变。
+seed 7 约 3.7% 的首轮收益低于 5%；本机独立重建复测中多个 seed/观测单元转负，且绝对时间随
+运行顺序大幅漂移。AMD128 随后以固定 CPU、双 block 预热和正反各三组复测：seed 0/1 六组均
+正向但跨 session 中位仅 2.45%–3.26%，seed 7 full/summary 仅 5/6 和 4/6 正向，中位仅
+0.48% / 0.80%。按统一门槛 O7 暂不收录，代码只作为未提交 candidate。
+证据见 [O7 报告](../benchmarks/hot_path/results/20260920-o7-dispatch-clone-elision/README.md)。
+
+O7 前曾独立测试 compatibility lowering，四组单元变化为 -0.69%–2.84%，未达到收录线且包含
+负单元，已完整回退。共享其他 prepared indexes 仍属于初始化/批量/RSS 实验，不能混入 execution
+计时结论。
+
 ### O5：条件式推进事件跳跃
 
 只有 O1–O4 后的 profile 仍显示分钟空转占主导才进入。先补 Core 操作读写集合、guard 依赖、时间唤醒与 phase 可见性合同；证明可跳过的区间内不会改变任何 guard、指标或随机请求。
@@ -174,6 +195,6 @@ uv pip install --python .venv/bin/python -e .
 
 ## 5. 首轮交付与后续决策
 
-本轮已依次完成 O0、O1、O3、O2a 决策、O4a、O4b 决策与 O6。所有收录候选均通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也在覆盖内。O1 消除 19,319,040 次 mission spec 深克隆；O3 将故障热状态改为稀疏数组；O4a 将 waiting/running 历史扫描移出两个目标 phase；O6 将 resource dispatch 的 activity/step 解释与深拷贝移到 prepared layout。O2a 与 O4b 机制计数下降但整体收益不足，已通过独立 revert 保持主线不叠加无效复杂度。O5 因唤醒合同门槛未满足而停止在评估阶段。
+本轮已依次完成 O0、O1、O3、O2a 决策、O4a、O4b 决策、O6、compatibility lowering 决策与 O7 候选评估。所有收录候选均通过 31 项 Python/Rust conformance 与 differential tests：F35 seeds `0、1、7` 的 full 完整结果保持一致，summary 保持相同非 trace 结果，截断 horizon、重复 seed 和 1/3 线程路径也在覆盖内。O1 消除 19,319,040 次 mission spec 深克隆；O3 将故障热状态改为稀疏数组；O4a 将 waiting/running 历史扫描移出两个目标 phase；O6 将 resource dispatch 的 activity/step 解释与深拷贝移到 prepared layout。O2a、O4b 与 compatibility lowering 收益不足，均已独立回退；O7 语义与目标 phase 通过，但 AMD128 六组固定 CPU 复测仍未达到整体墙钟门槛，未进入已收录清单。O5 因唤醒合同门槛未满足而停止在评估阶段。
 
 当前不设“达到某倍加速”承诺。也不因本轮计划新增 UI、服务器、数据库、分布式调度、JIT、运行中编辑或 DAG 并行策略。Business/Core IR 物化与持久化缓存仍按架构路线推进；局部布局优化不意味着这些能力已经完成。
