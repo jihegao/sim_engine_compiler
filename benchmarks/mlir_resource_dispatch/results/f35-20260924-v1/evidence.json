@@ -1,0 +1,2982 @@
+{
+  "schema_version": "mlir-resource-dispatch-pilot-evidence/v1",
+  "input_path": "tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json",
+  "input_sha256": "a506b7dc2bead97fd1268eab34d67432ba5307a82d934016f20d09166533b70d",
+  "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+  "spare_mvp_commit": "5352a0d7757cbac012c75d516d1a7ac4ff15aa2a",
+  "semantic_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+  "mlir_version": "23.1.1",
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "python": "3.12.13",
+  "host": "macOS-27.0-arm64-arm-64bit",
+  "seeds": [
+    0,
+    1,
+    7
+  ],
+  "repeats": 3,
+  "compile_repeats": 3,
+  "candidate_rule_count": 852,
+  "total_cost_seconds_by_arm": {
+    "baseline": 1.9255449169892178,
+    "mlir_on": 1.8435483739920464
+  },
+  "total_cost_delta_seconds": -0.0819965429971714,
+  "total_cost_reduction_percent": 4.258355246543987,
+  "estimated_break_even_samples": 6,
+  "compile": {
+    "baseline": {
+      "command": [
+        "/opt/homebrew/opt/python@3.12/bin/python3.12",
+        "/Users/gaojihe/apps/sim_engine_compiler/scripts/compile_execution_plan.py",
+        "/Users/gaojihe/apps/sim_engine_compiler/tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json",
+        "/Users/gaojihe/apps/sim_engine_compiler/benchmarks/mlir_resource_dispatch/results/f35-20260924-v1/baseline-plan.json"
+      ],
+      "compile_wall_seconds": 0.056325332989217713,
+      "compile_wall_seconds_samples": [
+        0.05652375001227483,
+        0.056325332989217713,
+        0.056088791010552086
+      ],
+      "compiler_metadata_samples": [
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13,
+          "unsupported_features": []
+        },
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13,
+          "unsupported_features": []
+        },
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13,
+          "unsupported_features": []
+        }
+      ],
+      "plan_bytes": 380858,
+      "plan_sha256": "7c1347f2166bc8bf69bba53f5e25e5ae37b2dce965e37d123f8ffc2c59f8ac22"
+    },
+    "mlir_off": {
+      "command": [
+        "/opt/homebrew/opt/python@3.12/bin/python3.12",
+        "/Users/gaojihe/apps/sim_engine_compiler/scripts/compile_mlir_execution_plan.py",
+        "/Users/gaojihe/apps/sim_engine_compiler/tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json",
+        "/Users/gaojihe/apps/sim_engine_compiler/benchmarks/mlir_resource_dispatch/results/f35-20260924-v1/mlir-pass-off-plan.json",
+        "--plugin-dir",
+        "/Users/gaojihe/apps/sim_engine_compiler/tools/mlir_dispatch/build-unix",
+        "--mlir-opt",
+        "/opt/homebrew/Cellar/llvm/23.1.1_1/bin/mlir-opt",
+        "--mlir-output",
+        "/Users/gaojihe/apps/sim_engine_compiler/benchmarks/mlir_resource_dispatch/results/f35-20260924-v1/mlir_off-core.mlir",
+        "--disable-business-pass"
+      ],
+      "compile_wall_seconds": 0.12023741700977553,
+      "compile_wall_seconds_samples": [
+        0.11898912501055747,
+        0.12023741700977553,
+        0.12161345800268464
+      ],
+      "compiler_metadata_samples": [
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "mlir_version": "23.1.1",
+          "business_pass_enabled": false,
+          "candidate_rule_count": 0,
+          "resource_dispatch_index_checksum": null,
+          "mlir_output_sha256": "1042a8c2c73ff73afb43734b4d3fd54ec38b486f2886f625da641a8d0ea2c290",
+          "python_compile_seconds": 0.012117208010749891,
+          "mlir_seconds": 0.026705750002292916,
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13
+        },
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "mlir_version": "23.1.1",
+          "business_pass_enabled": false,
+          "candidate_rule_count": 0,
+          "resource_dispatch_index_checksum": null,
+          "mlir_output_sha256": "1042a8c2c73ff73afb43734b4d3fd54ec38b486f2886f625da641a8d0ea2c290",
+          "python_compile_seconds": 0.012488666994613595,
+          "mlir_seconds": 0.02673733299889136,
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13
+        },
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "mlir_version": "23.1.1",
+          "business_pass_enabled": false,
+          "candidate_rule_count": 0,
+          "resource_dispatch_index_checksum": null,
+          "mlir_output_sha256": "1042a8c2c73ff73afb43734b4d3fd54ec38b486f2886f625da641a8d0ea2c290",
+          "python_compile_seconds": 0.012344208007561974,
+          "mlir_seconds": 0.027683208987582475,
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13
+        }
+      ],
+      "plan_bytes": 380858,
+      "plan_sha256": "7c1347f2166bc8bf69bba53f5e25e5ae37b2dce965e37d123f8ffc2c59f8ac22"
+    },
+    "mlir_on": {
+      "command": [
+        "/opt/homebrew/opt/python@3.12/bin/python3.12",
+        "/Users/gaojihe/apps/sim_engine_compiler/scripts/compile_mlir_execution_plan.py",
+        "/Users/gaojihe/apps/sim_engine_compiler/tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json",
+        "/Users/gaojihe/apps/sim_engine_compiler/benchmarks/mlir_resource_dispatch/results/f35-20260924-v1/mlir-pass-on-plan.json",
+        "--plugin-dir",
+        "/Users/gaojihe/apps/sim_engine_compiler/tools/mlir_dispatch/build-unix",
+        "--mlir-opt",
+        "/opt/homebrew/Cellar/llvm/23.1.1_1/bin/mlir-opt",
+        "--mlir-output",
+        "/Users/gaojihe/apps/sim_engine_compiler/benchmarks/mlir_resource_dispatch/results/f35-20260924-v1/mlir_on-core.mlir"
+      ],
+      "compile_wall_seconds": 0.1473662499920465,
+      "compile_wall_seconds_samples": [
+        0.1457337909960188,
+        0.1473662499920465,
+        0.15142045900574885
+      ],
+      "compiler_metadata_samples": [
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "mlir_version": "23.1.1",
+          "business_pass_enabled": true,
+          "candidate_rule_count": 852,
+          "resource_dispatch_index_checksum": "9e77b678aa678cb5f651c1b5e6bc5c668ef3bf6a4106d376761cfc9ca7672c48",
+          "mlir_output_sha256": "047c207fd5b2565f7d6485f4a4ba95480f0dee7a55156030b0d3a44169681879",
+          "python_compile_seconds": 0.012672875003772788,
+          "mlir_seconds": 0.035125958995195106,
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13
+        },
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "mlir_version": "23.1.1",
+          "business_pass_enabled": true,
+          "candidate_rule_count": 852,
+          "resource_dispatch_index_checksum": "9e77b678aa678cb5f651c1b5e6bc5c668ef3bf6a4106d376761cfc9ca7672c48",
+          "mlir_output_sha256": "047c207fd5b2565f7d6485f4a4ba95480f0dee7a55156030b0d3a44169681879",
+          "python_compile_seconds": 0.012807167004211806,
+          "mlir_seconds": 0.03540829200937878,
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13
+        },
+        {
+          "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+          "mlir_version": "23.1.1",
+          "business_pass_enabled": true,
+          "candidate_rule_count": 852,
+          "resource_dispatch_index_checksum": "9e77b678aa678cb5f651c1b5e6bc5c668ef3bf6a4106d376761cfc9ca7672c48",
+          "mlir_output_sha256": "047c207fd5b2565f7d6485f4a4ba95480f0dee7a55156030b0d3a44169681879",
+          "python_compile_seconds": 0.01640445900557097,
+          "mlir_seconds": 0.031798041993170045,
+          "aircraft": 9,
+          "missions": 104,
+          "activities": 13
+        }
+      ],
+      "plan_bytes": 816897,
+      "plan_sha256": "9e174da4c9a64166c330e578d41b6b609671befbdade58d64cff28789aaef151"
+    }
+  },
+  "runtime": {
+    "schema_version": "mlir-resource-dispatch-pilot-benchmark/v1",
+    "generated_at_unix_seconds": 1790187984,
+    "host_os": "macos",
+    "host_arch": "aarch64",
+    "seeds": [
+      0,
+      1,
+      7
+    ],
+    "repeats": 3,
+    "baseline_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+    "mlir_disabled_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+    "mlir_enabled_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+    "baseline_plan_load_parse_validate_ns": 7644709,
+    "mlir_disabled_plan_load_parse_validate_ns": 4961167,
+    "mlir_enabled_plan_load_parse_validate_ns": 16372417,
+    "plan_bytes": 380858,
+    "mlir_candidate_rule_count": 852,
+    "exact_full_result_parity": true,
+    "records": [
+      {
+        "repeat": 0,
+        "seed": 0,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 3846042,
+        "execution_ns": 223846250,
+        "end_to_end_ns": 228325875,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 150975,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 223846250,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1019428
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1037374
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33584290
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7536929
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8127192
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1223820
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6554307
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1017765
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13128702
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 13961453
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16039938
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19398896
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 56266789
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 1010816
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8655982
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 150975,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 7096846,
+          "rng_requests": 3876,
+          "rng_ns": 160695,
+          "metrics_build_ns": 14625,
+          "terminal_state_build_ns": 574459,
+          "plan_spec_clones": 153010,
+          "indexed_map_reads": 1041061,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 0,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2749875,
+        "execution_ns": 223928917,
+        "end_to_end_ns": 227256875,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 150975,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 223928917,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1002260
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1015163
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32285389
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7366578
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7914148
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1203148
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6513446
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 987611
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13397122
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14126494
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15749738
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19353028
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 58127538
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 980401
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8744737
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 150975,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 6807337,
+          "rng_requests": 3876,
+          "rng_ns": 98369,
+          "metrics_build_ns": 13042,
+          "terminal_state_build_ns": 539458,
+          "plan_spec_clones": 153010,
+          "indexed_map_reads": 1041061,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 0,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7924459,
+        "execution_ns": 181212500,
+        "end_to_end_ns": 189753000,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 5183,
+        "resource_dispatch_cache_hits": 145792,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 181212500,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 985068
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1006116
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32331617
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 8562303
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7718042
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1161494
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6417145
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 990144
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13505760
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14230322
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15494353
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18949353
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 15627219
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 978091
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8632314
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 5183,
+          "resource_dispatch_cache_hits": 145792,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 5978593,
+          "rng_requests": 3876,
+          "rng_ns": 102089,
+          "metrics_build_ns": 13167,
+          "terminal_state_build_ns": 551208,
+          "plan_spec_clones": 7218,
+          "indexed_map_reads": 20517,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 0,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7715250,
+        "execution_ns": 182154916,
+        "end_to_end_ns": 190499875,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 5183,
+        "resource_dispatch_cache_hits": 145792,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 182154916,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 964744
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 989271
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32351762
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 8889317
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7704460
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1163947
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6479695
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 972501
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13379632
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14120163
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15619633
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19085661
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 15886346
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 973471
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8738567
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 5183,
+          "resource_dispatch_cache_hits": 145792,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 6712411,
+          "rng_requests": 3876,
+          "rng_ns": 101016,
+          "metrics_build_ns": 13042,
+          "terminal_state_build_ns": 557042,
+          "plan_spec_clones": 7218,
+          "indexed_map_reads": 20517,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 0,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2468958,
+        "execution_ns": 224082750,
+        "end_to_end_ns": 227100500,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 150975,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 224082750,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 996502
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1017907
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32592137
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 6813990
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7944633
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1182226
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6582113
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 998339
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13372623
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14069168
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15732197
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19811764
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 57860035
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 989852
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8796545
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 150975,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 5700925,
+          "rng_requests": 3876,
+          "rng_ns": 99687,
+          "metrics_build_ns": 11666,
+          "terminal_state_build_ns": 510292,
+          "plan_spec_clones": 153010,
+          "indexed_map_reads": 1041061,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 0,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2453375,
+        "execution_ns": 223225792,
+        "end_to_end_ns": 226200708,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 150975,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 223225792,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 990787
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1018733
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32344987
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 6774918
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7924776
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1161695
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6378401
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 994475
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13432811
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14092304
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15834737
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19704805
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 57892288
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 995194
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8761021
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 150975,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 5668880,
+          "rng_requests": 3876,
+          "rng_ns": 103754,
+          "metrics_build_ns": 13083,
+          "terminal_state_build_ns": 482708,
+          "plan_spec_clones": 153010,
+          "indexed_map_reads": 1041061,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 0,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2729625,
+        "execution_ns": 225822000,
+        "end_to_end_ns": 229172000,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 150975,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 225822000,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 981277
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1022142
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32695696
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7194798
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8053784
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1182075
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6450895
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 985619
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13656336
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14457178
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15973911
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19978469
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 58284203
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 980975
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8827662
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 150975,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 6541198,
+          "rng_requests": 3876,
+          "rng_ns": 96627,
+          "metrics_build_ns": 16458,
+          "terminal_state_build_ns": 578667,
+          "plan_spec_clones": 153010,
+          "indexed_map_reads": 1041061,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 0,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2409209,
+        "execution_ns": 224955208,
+        "end_to_end_ns": 227938667,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 150975,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 224955208,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 993603
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1005623
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32385963
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 6890721
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7917032
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1174536
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6589490
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 992480
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13563708
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14264365
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15829931
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19796299
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 58118040
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 979118
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8920489
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 150975,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 5846367,
+          "rng_requests": 3876,
+          "rng_ns": 97390,
+          "metrics_build_ns": 13000,
+          "terminal_state_build_ns": 533916,
+          "plan_spec_clones": 153010,
+          "indexed_map_reads": 1041061,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 0,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7988000,
+        "execution_ns": 184391750,
+        "end_to_end_ns": 192972291,
+        "result_sha256": "75a7e23844bbf58d866486499bdf64e2fb256e00a972d34d0d599c71e87e9efc",
+        "trace_events": 10670,
+        "resource_dispatch_candidate_visits": 150975,
+        "resource_dispatch_guard_evaluations": 5183,
+        "resource_dispatch_cache_hits": 145792,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 184391750,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 993865
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1029003
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33254251
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 8731640
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7834957
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1177668
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6468644
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1005772
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13543390
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 14394626
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16032707
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19459574
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 15718971
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 994472
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8640993
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792745,
+          "job_scan_items": 49410043,
+          "resource_dispatch_candidate_visits": 150975,
+          "resource_dispatch_guard_evaluations": 5183,
+          "resource_dispatch_cache_hits": 145792,
+          "job_progress_candidate_visits": 90839,
+          "waiting_job_indexes_peak": 7,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 19275687,
+          "preventive_scan_items": 8813646,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 10670,
+          "trace_events_materialized": 10670,
+          "trace_event_string_values": 52286,
+          "trace_event_build_ns": 6039219,
+          "rng_requests": 3876,
+          "rng_ns": 109370,
+          "metrics_build_ns": 21167,
+          "terminal_state_build_ns": 488750,
+          "plan_spec_clones": 7218,
+          "indexed_map_reads": 20517,
+          "indexed_map_writes": 2
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 1,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2525708,
+        "execution_ns": 203441708,
+        "end_to_end_ns": 206620250,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 124409,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 203441708,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1011484
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1031379
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33325863
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7081624
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8176948
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1184364
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6519061
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1006236
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 12123720
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12867803
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16155284
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18761250
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 39726458
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 1001473
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8454013
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 124409,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 6090756,
+          "rng_requests": 3880,
+          "rng_ns": 101567,
+          "metrics_build_ns": 15583,
+          "terminal_state_build_ns": 602416,
+          "plan_spec_clones": 126362,
+          "indexed_map_reads": 854343,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 1,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2532875,
+        "execution_ns": 204082042,
+        "end_to_end_ns": 207203959,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 124409,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 204082042,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1007612
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1028912
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33250719
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7071386
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8158443
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1162073
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6724637
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 997430
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11933315
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12684292
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16238538
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18778107
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 40441835
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 995632
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8357611
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 124409,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 6073939,
+          "rng_requests": 3880,
+          "rng_ns": 93966,
+          "metrics_build_ns": 14875,
+          "terminal_state_build_ns": 536084,
+          "plan_spec_clones": 126362,
+          "indexed_map_reads": 854343,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 1,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7574250,
+        "execution_ns": 177449500,
+        "end_to_end_ns": 185621083,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 5088,
+        "resource_dispatch_cache_hits": 119321,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 177449500,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 986586
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1015626
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33245173
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 8951807
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7901347
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1176390
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6527520
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 997792
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11925191
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12617411
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15818931
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18263938
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13936742
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 984282
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8250202
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 5088,
+          "resource_dispatch_cache_hits": 119321,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 6104968,
+          "rng_requests": 3880,
+          "rng_ns": 97566,
+          "metrics_build_ns": 12625,
+          "terminal_state_build_ns": 530791,
+          "plan_spec_clones": 7041,
+          "indexed_map_reads": 19096,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 1,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7853333,
+        "execution_ns": 177403709,
+        "end_to_end_ns": 185867625,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 5088,
+        "resource_dispatch_cache_hits": 119321,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 177403709,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 984525
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1017512
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 32995639
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 8847780
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7915346
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1158091
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6513679
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 992906
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11874546
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12646789
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15910965
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18433446
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 13920293
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 985088
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8314341
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 5088,
+          "resource_dispatch_cache_hits": 119321,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 6109268,
+          "rng_requests": 3880,
+          "rng_ns": 102722,
+          "metrics_build_ns": 12167,
+          "terminal_state_build_ns": 530250,
+          "plan_spec_clones": 7041,
+          "indexed_map_reads": 19096,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 1,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2503959,
+        "execution_ns": 202619875,
+        "end_to_end_ns": 205690542,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 124409,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 202619875,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1000548
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1004054
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33229497
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7024471
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8011543
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1175239
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6668806
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 988527
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11874564
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12656072
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16110576
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18880917
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 39164877
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 977402
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8540282
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 124409,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 5955313,
+          "rng_requests": 3880,
+          "rng_ns": 104361,
+          "metrics_build_ns": 12958,
+          "terminal_state_build_ns": 528833,
+          "plan_spec_clones": 126362,
+          "indexed_map_reads": 854343,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 1,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2545292,
+        "execution_ns": 201845625,
+        "end_to_end_ns": 204954500,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 124409,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 201845625,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 988694
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1019724
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33224945
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 6976764
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8056519
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1161967
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6425573
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 981611
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11830990
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12508144
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16051255
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18742554
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 39507411
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 985643
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8409907
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 124409,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 5931249,
+          "rng_requests": 3880,
+          "rng_ns": 100281,
+          "metrics_build_ns": 11500,
+          "terminal_state_build_ns": 527292,
+          "plan_spec_clones": 126362,
+          "indexed_map_reads": 854343,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 1,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2563750,
+        "execution_ns": 201769333,
+        "end_to_end_ns": 204928833,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 124409,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 201769333,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1001477
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1034268
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33107658
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 6994080
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8062900
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1156044
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6475830
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 997729
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11820119
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12520668
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16077028
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18832915
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 39384696
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 997171
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8382847
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 124409,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 5950630,
+          "rng_requests": 3880,
+          "rng_ns": 92913,
+          "metrics_build_ns": 14542,
+          "terminal_state_build_ns": 550625,
+          "plan_spec_clones": 126362,
+          "indexed_map_reads": 854343,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 1,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2538541,
+        "execution_ns": 203314792,
+        "end_to_end_ns": 206406750,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 124409,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 203314792,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1006445
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1029295
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33150248
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7077374
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8034011
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1178793
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6660269
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1005225
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11901905
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12663387
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16353255
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18732836
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 39743871
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 999348
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8333726
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 124409,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 6002749,
+          "rng_requests": 3880,
+          "rng_ns": 107688,
+          "metrics_build_ns": 12417,
+          "terminal_state_build_ns": 510417,
+          "plan_spec_clones": 126362,
+          "indexed_map_reads": 854343,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 1,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7719375,
+        "execution_ns": 179775541,
+        "end_to_end_ns": 188107041,
+        "result_sha256": "fcc35e1d8e7e88d82457912db022299deef68e4bb1696f71728d817095d5e628",
+        "trace_events": 11154,
+        "resource_dispatch_candidate_visits": 124409,
+        "resource_dispatch_guard_evaluations": 5088,
+        "resource_dispatch_cache_hits": 119321,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 179775541,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 987008
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1024233
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 33502288
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 8916075
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7978846
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1189580
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6648358
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1004950
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 11838675
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 12571018
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 16131426
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 18634134
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 14288142
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 1005165
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 8368231
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2792844,
+          "job_scan_items": 46422533,
+          "resource_dispatch_candidate_visits": 124409,
+          "resource_dispatch_guard_evaluations": 5088,
+          "resource_dispatch_cache_hits": 119321,
+          "job_progress_candidate_visits": 94580,
+          "waiting_job_indexes_peak": 6,
+          "running_job_indexes_peak": 7,
+          "component_scan_items": 19276110,
+          "preventive_scan_items": 8761842,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 11154,
+          "trace_events_materialized": 11154,
+          "trace_event_string_values": 54637,
+          "trace_event_build_ns": 6142374,
+          "rng_requests": 3880,
+          "rng_ns": 107803,
+          "metrics_build_ns": 12542,
+          "terminal_state_build_ns": 538333,
+          "plan_spec_clones": 7041,
+          "indexed_map_reads": 19096,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 7,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2591625,
+        "execution_ns": 184045958,
+        "end_to_end_ns": 187350125,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 59643,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 184045958,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1004582
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1025176
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40286312
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7758823
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 8019418
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1221936
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6532097
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 998411
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6221169
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7200187
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15883413
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19162050
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 22031771
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 997588
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10719074
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 59643,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 7122405,
+          "rng_requests": 3892,
+          "rng_ns": 108663,
+          "metrics_build_ns": 14917,
+          "terminal_state_build_ns": 664417,
+          "plan_spec_clones": 61339,
+          "indexed_map_reads": 398594,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 7,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2683833,
+        "execution_ns": 182901542,
+        "end_to_end_ns": 186222209,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 59643,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 182901542,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1011606
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1025711
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40135300
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7576658
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7846271
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1207248
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6607124
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1003539
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6243205
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7118226
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15728144
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19186776
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 21371733
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 998808
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10837301
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 59643,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 6885030,
+          "rng_requests": 3892,
+          "rng_ns": 109599,
+          "metrics_build_ns": 14208,
+          "terminal_state_build_ns": 592042,
+          "plan_spec_clones": 61339,
+          "indexed_map_reads": 398594,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 0,
+        "seed": 7,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7558042,
+        "execution_ns": 173089875,
+        "end_to_end_ns": 181362292,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 4041,
+        "resource_dispatch_cache_hits": 55602,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 173089875,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1000780
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1027793
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40056712
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 9630658
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7830137
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1196949
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6435416
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1014700
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6194111
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7114739
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15678777
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19181708
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 10911238
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 997990
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10232596
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 4041,
+          "resource_dispatch_cache_hits": 55602,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 7028166,
+          "rng_requests": 3892,
+          "rng_ns": 99195,
+          "metrics_build_ns": 12750,
+          "terminal_state_build_ns": 647834,
+          "plan_spec_clones": 5737,
+          "indexed_map_reads": 9380,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 7,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7741541,
+        "execution_ns": 174307041,
+        "end_to_end_ns": 182742291,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 4041,
+        "resource_dispatch_cache_hits": 55602,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 174307041,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 981027
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1021425
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40083338
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 9736755
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7847774
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1212346
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6523199
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1001983
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6253032
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7172341
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15814146
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19304611
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 10880340
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 986441
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10621730
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 4041,
+          "resource_dispatch_cache_hits": 55602,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 6967414,
+          "rng_requests": 3892,
+          "rng_ns": 103738,
+          "metrics_build_ns": 14000,
+          "terminal_state_build_ns": 590042,
+          "plan_spec_clones": 5737,
+          "indexed_map_reads": 9380,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 7,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2553500,
+        "execution_ns": 182672125,
+        "end_to_end_ns": 185851666,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 59643,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 182672125,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1016524
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1021304
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 39928694
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7620588
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7829586
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1198452
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6593381
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 991613
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6171554
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7057161
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15736806
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19252161
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 21810498
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 989078
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10573961
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 59643,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 6896419,
+          "rng_requests": 3892,
+          "rng_ns": 94332,
+          "metrics_build_ns": 13333,
+          "terminal_state_build_ns": 585625,
+          "plan_spec_clones": 61339,
+          "indexed_map_reads": 398594,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 1,
+        "seed": 7,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2551834,
+        "execution_ns": 183429375,
+        "end_to_end_ns": 186615000,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 59643,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 183429375,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1013255
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1010722
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40027570
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7589782
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7939051
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1209139
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6589614
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 995446
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6285688
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7141553
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15840618
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19481811
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 21913535
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 990992
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10535399
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 59643,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 6909397,
+          "rng_requests": 3892,
+          "rng_ns": 101349,
+          "metrics_build_ns": 13167,
+          "terminal_state_build_ns": 594834,
+          "plan_spec_clones": 61339,
+          "indexed_map_reads": 398594,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 7,
+        "arm": "existing_compile_chain",
+        "initialization_ns": 2531709,
+        "execution_ns": 184205042,
+        "end_to_end_ns": 187407584,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 59643,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 184205042,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 1005363
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1038132
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40426778
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7622412
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7963931
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1230267
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6639303
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 1017209
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6229009
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7121159
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15824771
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19418548
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 22188033
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 999545
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10721808
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 59643,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 6888919,
+          "rng_requests": 3892,
+          "rng_ns": 98253,
+          "metrics_build_ns": 14167,
+          "terminal_state_build_ns": 622917,
+          "plan_spec_clones": 61339,
+          "indexed_map_reads": 398594,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 7,
+        "arm": "mlir_business_pass_disabled",
+        "initialization_ns": 2585292,
+        "execution_ns": 183144291,
+        "end_to_end_ns": 186369917,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 59643,
+        "resource_dispatch_cache_hits": 0,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 183144291,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 995085
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1014633
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40083307
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 7607809
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7854302
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1223566
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6695294
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 993703
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6222144
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7050571
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15747188
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19335326
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 21608156
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 979533
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10756311
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 59643,
+          "resource_dispatch_cache_hits": 0,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 6925426,
+          "rng_requests": 3892,
+          "rng_ns": 105282,
+          "metrics_build_ns": 13334,
+          "terminal_state_build_ns": 591625,
+          "plan_spec_clones": 61339,
+          "indexed_map_reads": 398594,
+          "indexed_map_writes": 0
+        }
+      },
+      {
+        "repeat": 2,
+        "seed": 7,
+        "arm": "mlir_business_pass_enabled",
+        "initialization_ns": 7652584,
+        "execution_ns": 174571708,
+        "end_to_end_ns": 182884209,
+        "result_sha256": "8a32be963c3f45753553261c9a3d797248c444295f3ec6bc0e82ca2702a1807b",
+        "trace_events": 12752,
+        "resource_dispatch_candidate_visits": 59643,
+        "resource_dispatch_guard_evaluations": 4041,
+        "resource_dispatch_cache_hits": 55602,
+        "profile": {
+          "minute_iterations": 61920,
+          "execution_ns": 174571708,
+          "phases": {
+            "daily_readiness": {
+              "calls": 61920,
+              "elapsed_ns": 992343
+            },
+            "downtime": {
+              "calls": 61920,
+              "elapsed_ns": 1048168
+            },
+            "failures": {
+              "calls": 61920,
+              "elapsed_ns": 40614960
+            },
+            "job_progress_and_completions": {
+              "calls": 61920,
+              "elapsed_ns": 9776961
+            },
+            "mission_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 7925970
+            },
+            "mission_returns": {
+              "calls": 61920,
+              "elapsed_ns": 1262401
+            },
+            "mission_success": {
+              "calls": 61920,
+              "elapsed_ns": 6623382
+            },
+            "operational_availability": {
+              "calls": 61920,
+              "elapsed_ns": 992628
+            },
+            "operations_postflight_after_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 6235235
+            },
+            "operations_postflight_before_preparation": {
+              "calls": 61920,
+              "elapsed_ns": 7188430
+            },
+            "preflight_generation": {
+              "calls": 61920,
+              "elapsed_ns": 15696867
+            },
+            "preventive_generation": {
+              "calls": 61920,
+              "elapsed_ns": 19338111
+            },
+            "resource_dispatch": {
+              "calls": 61920,
+              "elapsed_ns": 10845543
+            },
+            "stop": {
+              "calls": 61920,
+              "elapsed_ns": 1000485
+            },
+            "transport_arrivals": {
+              "calls": 61920,
+              "elapsed_ns": 10354926
+            }
+          },
+          "mission_scan_items": 19319040,
+          "aircraft_scan_items": 2790045,
+          "job_scan_items": 54433866,
+          "resource_dispatch_candidate_visits": 59643,
+          "resource_dispatch_guard_evaluations": 4041,
+          "resource_dispatch_cache_hits": 55602,
+          "job_progress_candidate_visits": 111975,
+          "waiting_job_indexes_peak": 5,
+          "running_job_indexes_peak": 8,
+          "component_scan_items": 23368635,
+          "preventive_scan_items": 8528724,
+          "shipment_scan_items": 0,
+          "trace_events_attempted": 12752,
+          "trace_events_materialized": 12752,
+          "trace_event_string_values": 62526,
+          "trace_event_build_ns": 7135589,
+          "rng_requests": 3892,
+          "rng_ns": 101139,
+          "metrics_build_ns": 13208,
+          "terminal_state_build_ns": 584292,
+          "plan_spec_clones": 5737,
+          "indexed_map_reads": 9380,
+          "indexed_map_writes": 0
+        }
+      }
+    ],
+    "guard_reduction_percent": 95.72810549597496
+  }
+}

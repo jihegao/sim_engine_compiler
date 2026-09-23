@@ -115,6 +115,8 @@ pub struct RuntimeProfile {
     pub aircraft_scan_items: u64,
     pub job_scan_items: u64,
     pub resource_dispatch_candidate_visits: u64,
+    pub resource_dispatch_guard_evaluations: u64,
+    pub resource_dispatch_cache_hits: u64,
     pub job_progress_candidate_visits: u64,
     pub waiting_job_indexes_peak: u64,
     pub running_job_indexes_peak: u64,
@@ -287,6 +289,35 @@ pub(crate) struct PreparedActivity {
 #[derive(Clone, Debug)]
 pub(crate) struct PreparedRuntimePlan {
     activities: Vec<PreparedActivity>,
+    resource_dispatch_reverse: HashMap<DispatchResourceKey, Vec<DispatchCandidate>>,
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct DispatchResourceKey {
+    kind: String,
+    node_index: usize,
+    product_id: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+struct DispatchCandidate {
+    activity_index: usize,
+    step_index: usize,
+    product_filter: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+enum DispatchBlockReason {
+    Shortage,
+    Personnel,
+    Equipment,
+}
+
+#[derive(Clone, Debug)]
+struct CachedDispatchBlock {
+    activity_index: usize,
+    step_index: usize,
+    reason: DispatchBlockReason,
 }
 
 impl PreparedRuntimePlan {
@@ -324,7 +355,29 @@ impl PreparedRuntimePlan {
                     .collect(),
             })
             .collect();
-        Self { activities }
+        let mut resource_dispatch_reverse: HashMap<DispatchResourceKey, Vec<DispatchCandidate>> =
+            HashMap::new();
+        if let Some(index) = &plan.resource_dispatch_index {
+            for dependency in &index.dependencies {
+                let key = DispatchResourceKey {
+                    kind: dependency.key.kind.clone(),
+                    node_index: dependency.key.node_index,
+                    product_id: dependency.key.product_id.clone(),
+                };
+                let candidates = resource_dispatch_reverse.entry(key).or_default();
+                candidates.extend(dependency.candidates.iter().map(|candidate| {
+                    DispatchCandidate {
+                        activity_index: candidate.activity_index,
+                        step_index: candidate.step_index,
+                        product_filter: candidate.product_filter.clone(),
+                    }
+                }));
+            }
+        }
+        Self {
+            activities,
+            resource_dispatch_reverse,
+        }
     }
 }
 
@@ -388,7 +441,9 @@ pub struct Runtime {
     missions: Vec<MissionState>,
     jobs: Vec<JobState>,
     waiting_job_indexes: BTreeSet<usize>,
+    waiting_dispatch_jobs: HashMap<(usize, usize), BTreeSet<usize>>,
     running_job_indexes: BTreeSet<usize>,
+    dispatch_cache: Vec<Option<CachedDispatchBlock>>,
     resources: Vec<ResourceState>,
     preventive_cycles: Vec<PreventiveCycleState>,
     shipments: Vec<ShipmentState>,
@@ -443,6 +498,62 @@ impl Runtime {
         }
     }
 
+    fn invalidate_dispatch_job_cache(&mut self, job_index: usize) {
+        if let Some(cache) = self.dispatch_cache.get_mut(job_index) {
+            *cache = None;
+        }
+    }
+
+    fn invalidate_dispatch_resource(
+        &mut self,
+        kind: &str,
+        node_index: usize,
+        product_id: Option<&str>,
+    ) {
+        let key = DispatchResourceKey {
+            kind: kind.to_owned(),
+            node_index,
+            product_id: product_id.map(str::to_owned),
+        };
+        let Some(candidates) = self.prepared.resource_dispatch_reverse.get(&key).cloned() else {
+            return;
+        };
+        for candidate in candidates {
+            let waiting = self
+                .waiting_dispatch_jobs
+                .get(&(candidate.activity_index, candidate.step_index))
+                .cloned()
+                .unwrap_or_default();
+            for job_index in waiting {
+                let product_matches = candidate.product_filter.as_ref().is_none_or(|product| {
+                    self.jobs[job_index]
+                        .injected_spares
+                        .iter()
+                        .any(|(injected, quantity)| injected == product && *quantity > 0)
+                });
+                if product_matches {
+                    self.invalidate_dispatch_job_cache(job_index);
+                }
+            }
+        }
+    }
+
+    fn cache_dispatch_block(
+        &mut self,
+        job_index: usize,
+        activity_index: usize,
+        step_index: usize,
+        reason: DispatchBlockReason,
+    ) {
+        if self.plan.resource_dispatch_index.is_some() {
+            self.dispatch_cache[job_index] = Some(CachedDispatchBlock {
+                activity_index,
+                step_index,
+                reason,
+            });
+        }
+    }
+
     fn update_active_job_peaks(&mut self) {
         if self.profile_enabled {
             self.profile.waiting_job_indexes_peak = self
@@ -457,10 +568,21 @@ impl Runtime {
     }
 
     fn transition_job_state(&mut self, job_index: usize, state: &str) {
+        self.invalidate_dispatch_job_cache(job_index);
         match self.jobs[job_index].state.as_str() {
             "waiting" => {
                 let removed = self.waiting_job_indexes.remove(&job_index);
                 debug_assert!(removed, "waiting job missing from active index");
+                let key = (
+                    self.jobs[job_index].activity_index,
+                    self.jobs[job_index].step_index,
+                );
+                if let Some(indexes) = self.waiting_dispatch_jobs.get_mut(&key) {
+                    indexes.remove(&job_index);
+                    if indexes.is_empty() {
+                        self.waiting_dispatch_jobs.remove(&key);
+                    }
+                }
             }
             "running" => {
                 let removed = self.running_job_indexes.remove(&job_index);
@@ -474,6 +596,13 @@ impl Runtime {
             "waiting" => {
                 let inserted = self.waiting_job_indexes.insert(job_index);
                 debug_assert!(inserted, "waiting job duplicated in active index");
+                self.waiting_dispatch_jobs
+                    .entry((
+                        self.jobs[job_index].activity_index,
+                        self.jobs[job_index].step_index,
+                    ))
+                    .or_default()
+                    .insert(job_index);
             }
             "running" => {
                 let inserted = self.running_job_indexes.insert(job_index);
@@ -499,8 +628,18 @@ impl Runtime {
             .enumerate()
             .filter_map(|(index, job)| (job.state == "running").then_some(index))
             .collect();
+        let mut waiting_dispatch_jobs: HashMap<(usize, usize), BTreeSet<usize>> = HashMap::new();
+        for (index, job) in self.jobs.iter().enumerate() {
+            if job.state == "waiting" {
+                waiting_dispatch_jobs
+                    .entry((job.activity_index, job.step_index))
+                    .or_default()
+                    .insert(index);
+            }
+        }
         debug_assert_eq!(self.waiting_job_indexes, waiting);
         debug_assert_eq!(self.running_job_indexes, running);
+        debug_assert_eq!(self.waiting_dispatch_jobs, waiting_dispatch_jobs);
     }
 
     #[cfg(not(debug_assertions))]
@@ -695,7 +834,9 @@ impl Runtime {
             missions: vec![MissionState::default(); mission_count],
             jobs: vec![],
             waiting_job_indexes: BTreeSet::new(),
+            waiting_dispatch_jobs: HashMap::new(),
             running_job_indexes: BTreeSet::new(),
+            dispatch_cache: vec![],
             resources,
             preventive_cycles,
             shipments: vec![],
@@ -969,8 +1110,14 @@ impl Runtime {
             spare_reservations: BTreeMap::new(),
         });
         let job_index = self.jobs.len() - 1;
+        debug_assert_eq!(job_index, self.dispatch_cache.len());
+        self.dispatch_cache.push(None);
         let inserted = self.waiting_job_indexes.insert(job_index);
         debug_assert!(inserted, "new waiting job duplicated in active index");
+        self.waiting_dispatch_jobs
+            .entry((activity_index, 0))
+            .or_default()
+            .insert(job_index);
         self.update_active_job_peaks();
         self.debug_assert_active_job_indexes();
         let tail_number = self.aircraft[aircraft_index].tail_number.clone();
@@ -1242,8 +1389,9 @@ impl Runtime {
             for (product_id, quantity) in reservations {
                 *self.resources[node_index]
                     .inventory
-                    .entry(product_id)
+                    .entry(product_id.clone())
                     .or_default() += quantity;
+                self.invalidate_dispatch_resource("inventory", node_index, Some(&product_id));
             }
             self.emit(
                 "organization_spare_reservation_returned",
@@ -1280,11 +1428,17 @@ impl Runtime {
                     .spare_reservations
                     .entry(shipment.product_id.clone())
                     .or_default() += shipment.quantity;
+                self.invalidate_dispatch_job_cache(index);
             } else {
                 *self.resources[shipment.destination_node_index]
                     .inventory
                     .entry(shipment.product_id.clone())
                     .or_default() += shipment.quantity;
+                self.invalidate_dispatch_resource(
+                    "inventory",
+                    shipment.destination_node_index,
+                    Some(&shipment.product_id),
+                );
             }
             self.count_map_writes(1);
             if self.profile_enabled {
@@ -1378,6 +1532,11 @@ impl Runtime {
                     .entry(product_id.clone())
                     .or_default() -= moved;
                 self.count_map_writes(1);
+                self.invalidate_dispatch_resource(
+                    "inventory",
+                    route.source_node_index,
+                    Some(product_id),
+                );
                 let shipment = ShipmentState {
                     job_id: self.jobs[job_index].job_id.clone(),
                     step_index: self.jobs[job_index].step_index,
@@ -1573,6 +1732,12 @@ impl Runtime {
         let reserved_equipment = self.jobs[job_index].reserved_equipment;
         let personnel_in_use = self.resources[node_index].personnel_in_use;
         let equipment_in_use = self.resources[node_index].equipment_in_use;
+        if reserved_personnel != 0 {
+            self.invalidate_dispatch_resource("personnel_capacity", node_index, None);
+        }
+        if reserved_equipment != 0 {
+            self.invalidate_dispatch_resource("equipment_capacity", node_index, None);
+        }
         self.emit(
             "resources_released",
             "resource.release",
@@ -1944,6 +2109,40 @@ impl Runtime {
             let personnel = step.personnel;
             let equipment = step.equipment;
             let static_spares = step.static_spares.clone();
+            let cached_block = self
+                .dispatch_cache
+                .get(job_index)
+                .and_then(Option::as_ref)
+                .filter(|cached| {
+                    cached.activity_index == activity_index && cached.step_index == step_index
+                })
+                .cloned();
+            if let Some(cached) = cached_block {
+                if self.profile_enabled {
+                    self.profile.resource_dispatch_cache_hits += 1;
+                }
+                match cached.reason {
+                    DispatchBlockReason::Shortage => {}
+                    DispatchBlockReason::Personnel => self.emit(
+                        "personnel_delay",
+                        "resource.personnel-capacity",
+                        self.jobs[job_index].job_id.clone(),
+                        || json!({"step_index": step_spec_index}),
+                        None,
+                    ),
+                    DispatchBlockReason::Equipment => self.emit(
+                        "equipment_shortage",
+                        "resource.equipment-capacity",
+                        self.jobs[job_index].job_id.clone(),
+                        || json!({"step_index": step_spec_index}),
+                        None,
+                    ),
+                }
+                continue;
+            }
+            if self.profile_enabled {
+                self.profile.resource_dispatch_guard_evaluations += 1;
+            }
             let requirements = self.step_requirements(job_index, static_spares, step_count);
             self.dispatch_remote_spares(job_index, activity_index, requirements.as_slice());
             self.count_map_reads(requirements.len() * 2);
@@ -2018,12 +2217,24 @@ impl Runtime {
                         );
                     }
                 }
+                self.cache_dispatch_block(
+                    job_index,
+                    activity_index,
+                    step_index,
+                    DispatchBlockReason::Shortage,
+                );
                 continue;
             }
             self.jobs[job_index].shortage_signature = None;
             if self.resources[node_index].personnel_in_use + personnel
                 > self.resources[node_index].personnel_capacity
             {
+                self.cache_dispatch_block(
+                    job_index,
+                    activity_index,
+                    step_index,
+                    DispatchBlockReason::Personnel,
+                );
                 self.emit(
                     "personnel_delay",
                     "resource.personnel-capacity",
@@ -2036,6 +2247,12 @@ impl Runtime {
             if self.resources[node_index].equipment_in_use + equipment
                 > self.resources[node_index].equipment_capacity
             {
+                self.cache_dispatch_block(
+                    job_index,
+                    activity_index,
+                    step_index,
+                    DispatchBlockReason::Equipment,
+                );
                 self.emit(
                     "equipment_shortage",
                     "resource.equipment-capacity",
@@ -2047,6 +2264,12 @@ impl Runtime {
             }
             self.resources[node_index].personnel_in_use += personnel;
             self.resources[node_index].equipment_in_use += equipment;
+            if personnel != 0 {
+                self.invalidate_dispatch_resource("personnel_capacity", node_index, None);
+            }
+            if equipment != 0 {
+                self.invalidate_dispatch_resource("equipment_capacity", node_index, None);
+            }
             if !requirements.is_empty()
                 && !self.jobs[job_index]
                     .consumed_spare_steps
@@ -2081,6 +2304,11 @@ impl Runtime {
                             .entry(product_id.clone())
                             .or_default() -= shared;
                         self.count_map_writes(1);
+                        self.invalidate_dispatch_resource(
+                            "inventory",
+                            node_index,
+                            Some(product_id),
+                        );
                     }
                     self.spare_consumed_total += quantity;
                     let step_index = self.jobs[job_index].step_index;

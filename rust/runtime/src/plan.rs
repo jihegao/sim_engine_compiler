@@ -2,6 +2,7 @@ use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const PLAN_VERSION: &str = "aircraft-support-plan/v1alpha2";
 
@@ -136,6 +137,98 @@ pub struct SupplyRouteSpec {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ResourceDispatchCandidate {
+    pub activity_index: usize,
+    pub step_index: usize,
+    pub activity_id: String,
+    pub step_code: String,
+    pub source_path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product_filter: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ResourceDispatchKey {
+    pub kind: String,
+    pub node_index: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ResourceDispatchDependency {
+    pub key: ResourceDispatchKey,
+    pub candidates: Vec<ResourceDispatchCandidate>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ResourceDispatchIndex {
+    pub schema_version: String,
+    pub mlir_version: String,
+    pub pass_name: String,
+    pub base_plan_fingerprint: String,
+    pub candidate_rule_count: usize,
+    pub dependencies: Vec<ResourceDispatchDependency>,
+    pub checksum: String,
+}
+
+type DispatchCandidateKey = (usize, usize, String, String, String, Option<String>);
+type DispatchDependencyKey = (String, usize, Option<String>);
+
+fn dispatch_candidate_key(candidate: &ResourceDispatchCandidate) -> DispatchCandidateKey {
+    (
+        candidate.activity_index,
+        candidate.step_index,
+        candidate.activity_id.clone(),
+        candidate.step_code.clone(),
+        candidate.source_path.clone(),
+        candidate.product_filter.clone(),
+    )
+}
+
+fn add_expected_candidate(
+    expected: &mut BTreeMap<DispatchDependencyKey, BTreeSet<DispatchCandidateKey>>,
+    kind: &str,
+    node: usize,
+    product: Option<String>,
+    candidate: DispatchCandidateKey,
+) {
+    expected
+        .entry((kind.to_owned(), node, product))
+        .or_default()
+        .insert(candidate);
+}
+
+fn add_expected_inventory(
+    expected: &mut BTreeMap<DispatchDependencyKey, BTreeSet<DispatchCandidateKey>>,
+    routes: &[SupplyRouteSpec],
+    node: usize,
+    product: &str,
+    candidate: DispatchCandidateKey,
+) {
+    add_expected_candidate(
+        expected,
+        "inventory",
+        node,
+        Some(product.to_owned()),
+        candidate.clone(),
+    );
+    for route in routes {
+        if route.destination_node_index == node
+            && (route.product_id.is_empty() || route.product_id == product)
+        {
+            add_expected_candidate(
+                expected,
+                "inventory",
+                route.source_node_index,
+                Some(product.to_owned()),
+                candidate.clone(),
+            );
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ExecutionPlan {
     pub plan_version: String,
     pub domain: String,
@@ -161,6 +254,8 @@ pub struct ExecutionPlan {
     pub supply_routes: Vec<SupplyRouteSpec>,
     #[serde(default)]
     pub unsupported_features: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_dispatch_index: Option<ResourceDispatchIndex>,
 }
 
 impl ExecutionPlan {
@@ -190,6 +285,7 @@ impl ExecutionPlan {
                 self.unsupported_features.join(", ")
             );
         }
+        self.validate_resource_dispatch_index()?;
         for (position, aircraft) in self.aircraft.iter().enumerate() {
             if aircraft.index != position {
                 bail!(
@@ -325,8 +421,208 @@ impl ExecutionPlan {
     }
 
     pub fn fingerprint(raw: &Value) -> Result<String> {
-        let encoded = Self::python_canonical(raw)?;
+        let mut semantic_plan = raw.clone();
+        if let Some(object) = semantic_plan.as_object_mut() {
+            object.remove("resource_dispatch_index");
+        }
+        let encoded = Self::python_canonical(&semantic_plan)?;
         Ok(format!("{:x}", Sha256::digest(encoded)))
+    }
+
+    fn validate_resource_dispatch_index(&self) -> Result<()> {
+        let Some(index) = &self.resource_dispatch_index else {
+            return Ok(());
+        };
+        if index.schema_version != "resource-dispatch-index/v1"
+            || index.pass_name != "sim-build-resource-dependency-index"
+            || index.mlir_version != "23.1.1"
+        {
+            bail!("unsupported resource dispatch index contract");
+        }
+        let mut semantic_plan = serde_json::to_value(self)?;
+        semantic_plan
+            .as_object_mut()
+            .expect("serialized execution plan is an object")
+            .remove("resource_dispatch_index");
+        let base_fingerprint = Self::fingerprint(&semantic_plan)?;
+        if index.base_plan_fingerprint != base_fingerprint {
+            bail!("resource dispatch index was compiled for a different base plan");
+        }
+        let mut checksum_value = serde_json::to_value(index)?;
+        checksum_value
+            .as_object_mut()
+            .expect("serialized resource dispatch index is an object")
+            .remove("checksum");
+        let checksum_body = Self::python_canonical(&checksum_value)?;
+        let checksum = format!("{:x}", Sha256::digest(checksum_body));
+        if index.checksum != checksum {
+            bail!("resource dispatch index checksum mismatch");
+        }
+
+        let mut actual: BTreeMap<DispatchDependencyKey, BTreeSet<DispatchCandidateKey>> =
+            BTreeMap::new();
+        let mut actual_count = 0usize;
+        for dependency in &index.dependencies {
+            let key = &dependency.key;
+            if key.node_index >= self.resource_nodes.len() {
+                bail!("resource dispatch index references an invalid resource node");
+            }
+            match key.kind.as_str() {
+                "personnel_capacity" | "equipment_capacity" if key.product_id.is_none() => {}
+                "inventory"
+                    if key
+                        .product_id
+                        .as_ref()
+                        .is_some_and(|value| !value.is_empty()) => {}
+                _ => bail!("resource dispatch index has an unsupported resource key"),
+            }
+            let entry = actual
+                .entry((key.kind.clone(), key.node_index, key.product_id.clone()))
+                .or_default();
+            for candidate in &dependency.candidates {
+                let Some(activity) = self.activities.get(candidate.activity_index) else {
+                    bail!("resource dispatch index references an invalid activity");
+                };
+                let Some(step) = activity.steps.get(candidate.step_index) else {
+                    bail!("resource dispatch index references an invalid work step");
+                };
+                if activity.activity_id != candidate.activity_id
+                    || step.code != candidate.step_code
+                    || step.source_path != candidate.source_path
+                    || (key.kind != "inventory" && activity.resource_node_index != key.node_index)
+                    || (key.kind == "inventory"
+                        && activity.resource_node_index != key.node_index
+                        && !self.supply_routes.iter().any(|route| {
+                            route.destination_node_index == activity.resource_node_index
+                                && route.source_node_index == key.node_index
+                                && (route.product_id.is_empty()
+                                    || Some(route.product_id.as_str()) == key.product_id.as_deref())
+                        }))
+                {
+                    bail!("resource dispatch index candidate identity does not match the plan");
+                }
+                if let Some(product_filter) = &candidate.product_filter {
+                    if key.kind != "inventory"
+                        || key.product_id.as_deref() != Some(product_filter.as_str())
+                        || !self.components.iter().any(|component| {
+                            component.repair_activity_index == activity.index as i64
+                                && component.product_type.trim().eq_ignore_ascii_case("LRU")
+                                && component.product_id == *product_filter
+                        })
+                    {
+                        bail!("resource dispatch index has an invalid dynamic spare filter");
+                    }
+                }
+                if !entry.insert(dispatch_candidate_key(candidate)) {
+                    bail!("resource dispatch index contains a duplicate candidate rule");
+                }
+                actual_count += 1;
+            }
+        }
+        if actual_count != index.candidate_rule_count {
+            bail!("resource dispatch index candidate count mismatch");
+        }
+
+        let mut expected: BTreeMap<DispatchDependencyKey, BTreeSet<DispatchCandidateKey>> =
+            BTreeMap::new();
+        for activity in &self.activities {
+            for step in &activity.steps {
+                let candidate = (
+                    activity.index,
+                    step.index,
+                    activity.activity_id.clone(),
+                    step.code.clone(),
+                    step.source_path.clone(),
+                    None,
+                );
+                if step.personnel > 0 {
+                    add_expected_candidate(
+                        &mut expected,
+                        "personnel_capacity",
+                        activity.resource_node_index,
+                        None,
+                        candidate.clone(),
+                    );
+                }
+                if step.equipment > 0 {
+                    add_expected_candidate(
+                        &mut expected,
+                        "equipment_capacity",
+                        activity.resource_node_index,
+                        None,
+                        candidate.clone(),
+                    );
+                }
+                for (product, quantity) in &step.spares {
+                    if *quantity > 0 && !product.is_empty() {
+                        add_expected_inventory(
+                            &mut expected,
+                            &self.supply_routes,
+                            activity.resource_node_index,
+                            product,
+                            candidate.clone(),
+                        );
+                    }
+                }
+            }
+        }
+        for component in &self.components {
+            if !component.product_type.trim().eq_ignore_ascii_case("LRU")
+                || component.product_id.is_empty()
+                || component.repair_activity_index < 0
+            {
+                continue;
+            }
+            let activity_index = component.repair_activity_index as usize;
+            let Some(activity) = self.activities.get(activity_index) else {
+                continue;
+            };
+            let permits_replacement = activity
+                .maintenance_methods
+                .iter()
+                .any(|method| method == "replacement");
+            let effective_ratio = if activity.maintenance_methods.len() == 1
+                && activity.maintenance_methods[0] == "replacement"
+            {
+                1.0
+            } else if permits_replacement {
+                activity.replacement_ratio
+            } else {
+                0.0
+            };
+            if activity.steps.is_empty()
+                || activity.steps.iter().any(|step| !step.spares.is_empty())
+                || !permits_replacement
+                || effective_ratio <= 0.0
+            {
+                continue;
+            }
+            let step = activity.steps.last().expect("non-empty activity");
+            let candidate = (
+                activity.index,
+                step.index,
+                activity.activity_id.clone(),
+                step.code.clone(),
+                step.source_path.clone(),
+                Some(component.product_id.clone()),
+            );
+            add_expected_inventory(
+                &mut expected,
+                &self.supply_routes,
+                activity.resource_node_index,
+                &component.product_id,
+                candidate,
+            );
+        }
+        for (key, candidates) in expected {
+            let Some(actual_candidates) = actual.get(&key) else {
+                bail!("resource dispatch index omits a required resource dependency");
+            };
+            if !candidates.is_subset(actual_candidates) {
+                bail!("resource dispatch index omits a required candidate rule");
+            }
+        }
+        Ok(())
     }
 
     pub fn python_canonical(raw: &Value) -> Result<String> {

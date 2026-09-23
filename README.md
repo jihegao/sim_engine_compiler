@@ -4,6 +4,8 @@
 
 **当前状态：Python reference 与独立 Rust 单样本/批量 runtime 均已通过当前 Execution Plan 兼容范围。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已完成旧模型 → Python reference → Rust 的差分闭环。Rust 批量执行共享只读 Plan、隔离每个样本的 RunState，并按输入 `sample_index` 稳定输出；Python 3.12 可通过 PyO3 绑定直接调用相同批量 API。
 
+MLIR 资源依赖索引试点已贯通 F35 canonical 输入、`sim` 方言 pass、带反向依赖索引的 Execution Plan 和现有 Rust 执行器。三个 seed、三次重复的完整结果完全一致；守卫重检次数降低 95.73%，本轮编译、加载与九次运行总成本降低 4.26%。数据和适用边界见[试点记录](docs/mlir-resource-dispatch-pilot.md)。
+
 ```text
 spare_mvp Project JSON
   → 上游 ProjectJsonExporter / SimulationAdapter
@@ -61,7 +63,7 @@ python3.12 -m venv .venv
 uv pip install --python .venv/bin/python -e .
 ```
 
-当前可使用三个文件边界入口：`scripts/compile_execution_plan.py` 将 canonical JSON 编译为计划，`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。Python 侧可调用 `sim_engine_compiler.run_plan(...)` 与 `sim_engine_compiler.run_batch(...)`。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)与[阶段 C 正式分段基准](benchmarks/stage_c/README.md)单独保留；语义验收与性能结论继续分开。
+当前可使用编译入口 `scripts/compile_execution_plan.py` 和 MLIR 试点入口 `scripts/compile_mlir_execution_plan.py`；后者要求固定 LLVM/MLIR 23.1.1 插件。`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。Python 侧可调用 `sim_engine_compiler.run_plan(...)` 与 `sim_engine_compiler.run_batch(...)`。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)与[阶段 C 正式分段基准](benchmarks/stage_c/README.md)单独保留；语义验收与性能结论继续分开。
 
 ## 设计来源与证据边界
 

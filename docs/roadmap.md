@@ -1,6 +1,6 @@
 # 实施路线与验收
 
-当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本与批量执行内核、稳定排序、Python 绑定和正式分段基准。详细证据见 [独立 reference conformance](b1-independent-reference.md)与[阶段 C 基准](../benchmarks/stage_c/README.md)。B1/B2/B3 兼容范围及 F35 seeds `0、1、7` 已完成 Python/Rust 完整结果差分；阶段 B 后续是物化 Business/Core IR，阶段 C 后续是缓存失效合同与有证据支持的事件跳跃。
+当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本与批量执行内核、稳定排序、Python 绑定和正式分段基准。2026-09-24 另完成一个 opt-in MLIR 资源依赖索引试点：F35 三组对照的完整结果一致，9 次运行总成本降低 4.26%。详细证据见 [独立 reference conformance](b1-independent-reference.md)、[阶段 C 基准](../benchmarks/stage_c/README.md)和[MLIR 试点](mlir-resource-dispatch-pilot.md)。完整 Business/Core IR 尚未物化。
 
 ## 阶段路线
 
@@ -45,6 +45,12 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 主要成本是逐分钟 mission/job/component 扫描及其 Plan spec/字符串克隆与 Map 操作，
 而不是 trace JSON；证据见 `benchmarks/hot_path/README.md`。
 
+### B5：MLIR 资源依赖索引试点（已完成，opt-in）
+
+采用 LLVM/MLIR 23.1.1，在小型 `sim` Core IR 投影上实现资源依赖分析 pass。Rust 执行器消费可选反向索引，只复用依赖未变化的等待作业阻塞检查；事件顺序和 RNG 行为保持原样。
+
+已完成真实 F35 canonical 输入 → `sim` MLIR pass → Execution Plan → Rust 执行器的链路。三组对照使用 seeds `0、1、7` 各运行三次，full `RunResult` 完全一致。1,005,081 次候选访问中的动态 guard 检查从 1,005,081 降至 42,936，缓存命中 962,145；加上编译、计划加载后九次运行总成本降低 4.26%。完整限制和 raw evidence 见[MLIR 试点记录](mlir-resource-dispatch-pilot.md)。这项结果只对 opt-in F35 路径成立，不代表完整 IR 物化或一般硬件收益；LLVM codegen/JIT/GPU 不在本里程碑。
+
 ### C1：基于 F35 热路径的兼容优化（O0/O1/O3/O4a/O6 已验收）
 
 执行顺序与逐项验收见 [观测隔离与 F35 热路径优化计划](performance-optimization-plan.md)。
@@ -69,7 +75,7 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 ## 后续工作
 
-1. C1 当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。若继续该方向，应把 job-specific dynamic spare requirement 缓存作为新候选独立测量；完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。
+1. C1 的正式优化记录当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。MLIR 资源索引是独立 opt-in 试点，已证明 F35 九次执行下有 4.26% 总成本收益；推广前还要用另一台主机及更稠密、更多样的资源网络测量。完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。
 2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
 3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；具备完整操作读写与唤醒合同后，再单独评估兼容事件跳跃。本轮 O5 门槛未满足，未实现时间跳跃。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。
