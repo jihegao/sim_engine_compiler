@@ -55,6 +55,7 @@ def emit_sim_module(plan: object) -> str:
     attrs = [
         'sim.schema = "aircraft-support-core/v1"',
         f"sim.semantic_profile = {_quote(plan.semantic_profile)}",
+        f"sim.phases = {_string_array(plan.phases)}",
         f"sim.work_policy = {_quote(plan.work_policy)}",
         f"sim.rng_profile = {_quote(plan.rng_profile)}",
         f"sim.base_plan_fingerprint = {_quote(plan.fingerprint)}",
@@ -215,6 +216,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument(
+        "--semantic-profile",
+        choices=("legacy-minute-v1", "event-time-v2"),
+        default="legacy-minute-v1",
+    )
     parser.add_argument("--plugin-dir", type=Path)
     parser.add_argument("--mlir-opt", type=Path)
     parser.add_argument(
@@ -235,7 +241,10 @@ def main() -> None:
             plugin_dir = fallback
 
     started = time.perf_counter()
-    plan = compile_aircraft_support(json.loads(args.input.read_text(encoding="utf-8")))
+    plan = compile_aircraft_support(
+        json.loads(args.input.read_text(encoding="utf-8")),
+        semantic_profile=args.semantic_profile,
+    )
     compile_seconds = time.perf_counter() - started
     index, mlir_seconds, mlir_version = run_mlir_pass(
         plan,

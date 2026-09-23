@@ -51,12 +51,12 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 
 已完成真实 F35 canonical 输入 → `sim` MLIR pass → Execution Plan → Rust 执行器的链路。三组对照使用 seeds `0、1、7` 各运行三次，full `RunResult` 完全一致。1,005,081 次候选访问中的动态 guard 检查从 1,005,081 降至 42,936，缓存命中 962,145；加上编译、计划加载后九次运行总成本降低 4.26%。完整限制和 raw evidence 见[MLIR 试点记录](mlir-resource-dispatch-pilot.md)。这项结果只对 opt-in F35 路径成立，不代表完整 IR 物化或一般硬件收益；LLVM codegen/JIT/GPU 不在本里程碑。
 
-### C1：基于 F35 热路径的兼容优化（O0/O1/O3/O4a/O6 已验收）
+### C1：基于 F35 热路径的优化（O0/O1/O3/O4a/O5a/O6 已验收）
 
 执行顺序与逐项验收见 [观测隔离与 F35 热路径优化计划](performance-optimization-plan.md)。
 先补齐测量保护、消除三个 mission phase 的无效深克隆，再预计算静态关系、迁移故障状态数组，
-随后按新 profile 评估活动集合。事件跳跃须等待完整唤醒合同与边界差分，不作为首轮改动。
-O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。证据见 [O1 候选报告](../benchmarks/hot_path/results/20260920-o1-50857fe/README.md)。O3 已将每架飞机适用组件的故障剩余寿命/故障分钟迁移为稀疏平行数组，并增加稠密索引与引用校验；31 项差分继续通过，两轮正式复测相对 O1 再降低约 49%–63%，证据见 [O3 候选报告](../benchmarks/hot_path/results/20260920-o3-9400f0f/README.md)。O4a 已将 waiting/running 历史作业移出 progress/dispatch 候选扫描，四组同会话固定二进制对照的各 seed/观测组合跨会话中位改善为 5.20%–6.76%，证据见 [O4a 报告](../benchmarks/hot_path/results/20260920-o4a-1f394ba/README.md)。O6 将 activity/step 派发字段编译为批量样本共享的只读 layout，消除 resource dispatch/job progress 的热路径深拷贝；24 个固定二进制对照单元全部正向，各 seed/观测组合跨会话中位改善为 11.09%–18.17%，证据见 [O6 报告](../benchmarks/hot_path/results/20260920-o6-4508860/README.md)。O7 消除 route scan、waiting 排序键和提前 step code 的重试克隆；Plan spec clone 从 153,010 降至 4,289，语义和目标 phase 验证通过，但 AMD128 六组固定 CPU 复测中 seed 7 未稳定同向且所有单元均低于 5%，因此仍是未提交候选、暂不验收，证据见 [O7 报告](../benchmarks/hot_path/results/20260920-o7-dispatch-clone-elision/README.md)。O2a preventive、O4b active-preflight 与 compatibility lowering 候选收益不足，均已回退。
+随后按新 profile 评估活动集合。O5a 已作为独立 `event-time-v2` 语义 profile 验收；O5d 仍是待独立集成的候选，完整 callback 调度与 microstep 收敛尚未实现。
+O0–O6 的实现与证据见[热路径报告](../benchmarks/hot_path/README.md)。O5a 新增独立 `event-time-v2` profile，以保守唤醒日历跳过空分钟，并在唤醒时执行 canonical phase 表；F35 三 seed、双观测及边界差分精确一致，原 AMD128 报告中的稳定会话改善为 69.74%–81.62%。O5b/O5c 候选已拒绝或不收录；O5d guarded continuous advance 保留为待独立集成候选，原始证据见[O5 实验记录](../benchmarks/hot_path/results/20260921-o5b-o5c-o5d-amd128/README.md)。O7 clone-elision 候选通过语义与目标 phase 验证，但未达整体墙钟收录门槛，见[O7 报告](../benchmarks/hot_path/results/20260920-o7-dispatch-clone-elision/README.md)。
 
 ## 测试分工
 
@@ -77,5 +77,5 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 1. C1 的正式优化记录当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。MLIR 资源索引是独立 opt-in 试点，已证明 F35 九次执行下有 4.26% 总成本收益；推广前还要用另一台主机及更稠密、更多样的资源网络测量。完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。
 2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
-3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；具备完整操作读写与唤醒合同后，再单独评估兼容事件跳跃。本轮 O5 门槛未满足，未实现时间跳跃。
+3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；先把已通过实验门槛的 O5d guarded continuous advance 作为独立变更集成/验收，再在 O5 保守跳时基础上重新设计 transition-owned persistent event、owner generation、stale token 与 microstep convergence。当前尚未实现直接事件回调执行。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。

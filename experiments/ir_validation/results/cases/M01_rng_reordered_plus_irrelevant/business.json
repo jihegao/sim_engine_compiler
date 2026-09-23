@@ -1,0 +1,65 @@
+{
+  "arrivals": [],
+  "domain": "aircraft",
+  "fleet": [
+    {
+      "id": "unrelated",
+      "initial_state": 0
+    },
+    {
+      "id": "A",
+      "initial_state": 0
+    }
+  ],
+  "horizon": 30,
+  "maintenance": [],
+  "missions": [
+    {
+      "after": [],
+      "duration": [
+        1,
+        9
+      ],
+      "eligible": [
+        "unrelated"
+      ],
+      "id": "irrelevant",
+      "needs": {},
+      "release": 0,
+      "repeat_delay": null
+    },
+    {
+      "after": [],
+      "duration": [
+        1,
+        9
+      ],
+      "eligible": [
+        "A"
+      ],
+      "id": "random-job",
+      "needs": {
+        "crew": 1
+      },
+      "release": 0,
+      "repeat_delay": null
+    }
+  ],
+  "model_id": "M01_rng_identity",
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "crew",
+      "initial": 1,
+      "kind": "capacity"
+    }
+  ],
+  "revision": "v1",
+  "rules": {
+    "acquisition": "atomic",
+    "selection": "first_available",
+    "stock_abort": "consume"
+  },
+  "schema": "business/v1",
+  "time_unit": "tick"
+}

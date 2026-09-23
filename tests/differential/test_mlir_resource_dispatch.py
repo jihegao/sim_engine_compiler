@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -18,6 +20,11 @@ EVIDENCE = ROOT / "benchmarks/mlir_resource_dispatch/results/f35-20260924-v1"
 BASELINE_PLAN = EVIDENCE / "baseline-plan.json"
 MLIR_PLAN = EVIDENCE / "mlir-pass-on-plan.json"
 REPORT = EVIDENCE / "evidence.json"
+F35_INPUTS = (
+    ROOT
+    / "tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json"
+)
+MLIR_COMPILER = ROOT / "scripts/compile_mlir_execution_plan.py"
 
 
 def _cargo() -> str:
@@ -77,6 +84,52 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
             command, cwd=ROOT, capture_output=True, text=True
         )
         return completed, output
+
+    def compile_event_time_plan(self, output: Path, *, enable_index: bool) -> None:
+        plugin_dirs = [
+            ROOT / "tools/mlir_dispatch/build-unix",
+            ROOT / "tools/mlir_dispatch/build",
+            ROOT / "tools/mlir_dispatch/build-make",
+        ]
+        plugin_dir = next(
+            (
+                path
+                for path in plugin_dirs
+                if (path / "SimDialect.so").is_file()
+                and (path / "SimResourceDispatchPass.so").is_file()
+            ),
+            None,
+        )
+        prefix = os.environ.get("MLIR_PREFIX")
+        mlir_tools = [
+            Path(prefix) / "bin/mlir-opt" if prefix else None,
+            Path("/opt/homebrew/opt/llvm/bin/mlir-opt"),
+            Path(shutil.which("mlir-opt") or ""),
+        ]
+        mlir_opt = next(
+            (path for path in mlir_tools if path is not None and path.is_file()), None
+        )
+        if plugin_dir is None or mlir_opt is None:
+            self.skipTest("event-time MLIR combination requires MLIR 23.1.1 plugins")
+
+        command = [
+            sys.executable,
+            str(MLIR_COMPILER),
+            str(F35_INPUTS),
+            str(output),
+            "--semantic-profile",
+            "event-time-v2",
+            "--plugin-dir",
+            str(plugin_dir),
+            "--mlir-opt",
+            str(mlir_opt),
+        ]
+        if not enable_index:
+            command.append("--disable-business-pass")
+        completed = subprocess.run(
+            command, cwd=ROOT, capture_output=True, text=True
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
 
     def test_mlir_index_is_attached_deterministically_to_the_base_plan(self):
         evidence = json.loads(REPORT.read_text(encoding="utf-8"))
@@ -165,6 +218,38 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
         )
         self.assertLess(indexed_guards, baseline_guards)
         self.assertGreater(cache_hits, 0)
+
+    def test_event_time_profile_matches_with_mlir_index_enabled_or_disabled(self):
+        disabled_path = Path(self.tempdir.name) / "event-time-mlir-disabled.json"
+        enabled_path = Path(self.tempdir.name) / "event-time-mlir-enabled.json"
+        self.compile_event_time_plan(disabled_path, enable_index=False)
+        self.compile_event_time_plan(enabled_path, enable_index=True)
+
+        disabled_plan = json.loads(disabled_path.read_text(encoding="utf-8"))
+        enabled_plan = json.loads(enabled_path.read_text(encoding="utf-8"))
+        self.assertEqual(disabled_plan["semantic_profile"], "event-time-v2")
+        self.assertEqual(enabled_plan["semantic_profile"], "event-time-v2")
+        self.assertIsNone(disabled_plan.get("resource_dispatch_index"))
+        self.assertIsNotNone(enabled_plan["resource_dispatch_index"])
+        self.assertEqual(
+            ExecutionPlan.from_dict(disabled_plan).fingerprint,
+            ExecutionPlan.from_dict(enabled_plan).fingerprint,
+        )
+        self.assertEqual(
+            enabled_plan["resource_dispatch_index"]["base_plan_fingerprint"],
+            ExecutionPlan.from_dict(disabled_plan).fingerprint,
+        )
+
+        for seed in (0, 1, 7):
+            with self.subTest(seed=seed):
+                disabled_run, disabled_output = self.run_rust(disabled_path, seed)
+                enabled_run, enabled_output = self.run_rust(enabled_path, seed)
+                self.assertEqual(disabled_run.returncode, 0, disabled_run.stderr)
+                self.assertEqual(enabled_run.returncode, 0, enabled_run.stderr)
+                self.assertEqual(
+                    json.loads(enabled_output.read_text(encoding="utf-8")),
+                    json.loads(disabled_output.read_text(encoding="utf-8")),
+                )
 
 
 if __name__ == "__main__":

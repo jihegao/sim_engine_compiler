@@ -5,6 +5,23 @@ use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const PLAN_VERSION: &str = "aircraft-support-plan/v1alpha2";
+pub const EVENT_TIME_V2_PHASES: [&str; 15] = [
+    "transport_arrivals",
+    "mission_returns",
+    "job_progress_and_completions",
+    "failures",
+    "operations_postflight_before_preparation",
+    "preventive_generation",
+    "preflight_generation",
+    "resource_dispatch",
+    "mission_dispatch",
+    "operations_postflight_after_dispatch",
+    "mission_success",
+    "daily_readiness",
+    "operational_availability",
+    "downtime",
+    "stop",
+];
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AircraftSpec {
@@ -270,8 +287,23 @@ impl ExecutionPlan {
         if self.plan_version != PLAN_VERSION {
             bail!("unsupported plan version {:?}", self.plan_version);
         }
-        if self.semantic_profile != "legacy-minute-v1" {
+        if !matches!(
+            self.semantic_profile.as_str(),
+            "legacy-minute-v1" | "event-time-v2"
+        ) {
             bail!("unsupported time profile {:?}", self.semantic_profile);
+        }
+        if self.semantic_profile == "event-time-v2"
+            && !self
+                .phases
+                .iter()
+                .map(String::as_str)
+                .eq(EVENT_TIME_V2_PHASES)
+        {
+            bail!(
+                "event-time-v2 requires the canonical legacy phase order; got {:?}",
+                self.phases
+            );
         }
         if self.work_policy != "stable-topological-serial" {
             bail!("unsupported work policy {:?}", self.work_policy);

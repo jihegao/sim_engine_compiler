@@ -1,0 +1,86 @@
+{
+  "assets": [],
+  "business_fingerprint": "d71716110dd21cbf8b040103326b1bb508cbe157c812143e32404cdf761438e2",
+  "events": [
+    {
+      "id": "irrelevant",
+      "op": "add_stock",
+      "repeat_every": null,
+      "target": "unrelated",
+      "time": 1,
+      "trigger": null,
+      "value": 1
+    },
+    {
+      "id": "delivery",
+      "op": "add_stock",
+      "repeat_every": null,
+      "target": "spare",
+      "time": 3,
+      "trigger": null,
+      "value": 2
+    }
+  ],
+  "horizon": 20,
+  "model_id": "C04",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        2,
+        2
+      ],
+      "finish_state": 0,
+      "id": "one",
+      "interruptible": true,
+      "needs": {
+        "spare": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        4,
+        4
+      ],
+      "finish_state": 0,
+      "id": "two",
+      "interruptible": true,
+      "needs": {
+        "spare": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "spare",
+      "initial": 0,
+      "kind": "stock"
+    },
+    {
+      "id": "unrelated",
+      "initial": 0,
+      "kind": "stock"
+    }
+  ],
+  "revision": "v1",
+  "schema": "core/v1",
+  "source_map": {
+    "event:delivery": "/arrivals/1",
+    "event:irrelevant": "/arrivals/0",
+    "process:one": "/missions/0",
+    "process:two": "/missions/1",
+    "resource:spare": "/resources/0",
+    "resource:unrelated": "/resources/1"
+  },
+  "time_unit": "tick"
+}

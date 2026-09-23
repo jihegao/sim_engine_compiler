@@ -1,6 +1,6 @@
 # F35 执行热路径与观测隔离
 
-状态：2026-09-20 已完成观测隔离、O1/O3/O4a/O6 收录及 O2a/O4b/compatibility lowering 回退决策；O7 dispatch clone elision 已通过语义与目标 phase 验证，但本机与 AMD128 独立整体墙钟复测均未达到收录门槛，暂不收录。固定输入为 F35 43 天 Execution Plan，fingerprint
+状态：2026-09-21 已完成观测隔离、O1/O3/O4a/O6/O5a 收录、O2a/O4b/compatibility lowering 回退，以及 O5b/O5c/O5d 实验决策。O7 dispatch clone elision 已通过语义与目标 phase 验证，但本机与 AMD128 独立整体墙钟复测均未达到收录门槛，暂不收录。固定输入为 F35 43 天 Execution Plan，fingerprint
 `7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d`。语义差分覆盖
 seeds `0、1、7`；墙钟与内部 profile 使用 seed `0`，不把单 seed 的耗时分布外推为所有案例。
 
@@ -81,8 +81,7 @@ O4a waiting/running 活动集合见 [`results/20260920-o4a-1f394ba/README.md`](r
 
 O4b active-preflight 实验见 [`results/20260920-o4b-838e6bc/README.md`](results/20260920-o4b-838e6bc/README.md)：
 目标候选访问由旧历史暴露估计 7,214,145 降至 25,700，preflight phase 约减少 4–5ms，
-但两轮整体墙钟仅约 0%–2.5% 变化，候选已回退。O5 因缺少完整读写/唤醒合同且当前热点仍为
-实际业务 phase，本轮不进入事件跳跃实现。
+但两轮整体墙钟仅约 0%–2.5% 变化，候选已回退。
 
 O6 compiled steps 见 [`results/20260920-o6-4508860/README.md`](results/20260920-o6-4508860/README.md)：
 resource dispatch/job progress 改用派生只读 step layout，Plan spec clone 计数由 459,832 降至
@@ -98,6 +97,18 @@ Plan spec clone 从 153,010 降至 4,289，seed 0 resource dispatch phase 降低
 本机独立重建复测受功耗/调度漂移影响；AMD128 固定 CPU 六组复测中 seed 0/1 均正向但只有
 2.45%–3.26%，seed 7 仅 4/6–5/6 正向且中位 0.48%–0.80%，因此候选仍暂不收录。
 此前独立 compatibility lowering 候选仅 -0.69%–2.84%，已完整回退，没有与 O7 捆绑。
+
+O5 `event-time-v2` 第一阶段见 [`results/o5-event-time-v2-20260921/README.md`](results/o5-event-time-v2-20260921/README.md)：
+在独立 semantic profile 下按业务唤醒跳过空分钟，并在唤醒分钟执行原 canonical phase 表。
+F35 seed 0 的 61,920 分钟降为 1,609 个唤醒；三 seed、full/summary 和边界案例精确等价。
+AMD128 两个稳定会话的各组合跨会话中位改善为 69.74%–81.62%。当前仍会重建日历并逐 tick
+推进故障暴露，不是 persistent callback scheduler。
+
+O5b/O5c/O5d 后续实验见 [`results/20260921-o5b-o5c-o5d-amd128/README.md`](results/20260921-o5b-o5c-o5d-amd128/README.md)：
+O5b 持久 heap 协调实现慢 56.03%–72.65%，已拒绝；O5c 保守 phase 入口稳定改善
+0.71%–1.58%，低于约 5% 收录线；O5d 在精确性守卫下批量推进连续倒计时，三轮 AMD128
+各组合稳定改善 30.61%–41.16%，通过候选门槛。O5d 本轮只保留独立源码差异和证据，尚未
+合入已接受的 O5a runtime。
 
 ## 原始证据
 

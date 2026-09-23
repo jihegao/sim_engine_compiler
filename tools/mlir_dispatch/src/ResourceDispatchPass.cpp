@@ -29,6 +29,23 @@ namespace {
 
 constexpr llvm::StringLiteral kIndexSchema = "resource-dispatch-index/v1";
 constexpr llvm::StringLiteral kPassName = "sim-build-resource-dependency-index";
+constexpr llvm::StringLiteral kCanonicalPhaseOrder[] = {
+    "transport_arrivals",
+    "mission_returns",
+    "job_progress_and_completions",
+    "failures",
+    "operations_postflight_before_preparation",
+    "preventive_generation",
+    "preflight_generation",
+    "resource_dispatch",
+    "mission_dispatch",
+    "operations_postflight_after_dispatch",
+    "mission_success",
+    "daily_readiness",
+    "operational_availability",
+    "downtime",
+    "stop",
+};
 
 struct StepRef {
   int64_t activityIndex;
@@ -107,6 +124,18 @@ static bool containsOnlyStrings(ArrayAttr values,
   });
 }
 
+static bool hasCanonicalPhaseOrder(ArrayAttr phases) {
+  if (!phases || phases.size() != sizeof(kCanonicalPhaseOrder) /
+                                      sizeof(kCanonicalPhaseOrder[0]))
+    return false;
+  for (size_t index = 0; index < phases.size(); ++index) {
+    auto phase = dyn_cast<StringAttr>(phases[index]);
+    if (!phase || phase.getValue() != kCanonicalPhaseOrder[index])
+      return false;
+  }
+  return true;
+}
+
 static bool hasOnlyAttributes(
     Operation *op, std::initializer_list<llvm::StringRef> allowed) {
   return llvm::all_of(op->getAttrs(), [&](NamedAttribute attribute) {
@@ -149,15 +178,19 @@ public:
     ModuleOp module = getOperation();
     auto moduleVersion = module->getAttrOfType<StringAttr>("sim.schema");
     auto semanticProfile = module->getAttrOfType<StringAttr>("sim.semantic_profile");
+    auto phases = module->getAttrOfType<ArrayAttr>("sim.phases");
     auto workPolicy = module->getAttrOfType<StringAttr>("sim.work_policy");
     auto rngProfile = module->getAttrOfType<StringAttr>("sim.rng_profile");
     auto baseFingerprint =
         module->getAttrOfType<StringAttr>("sim.base_plan_fingerprint");
     if (!hasOnlyAttributes(module,
-                           {"sim.schema", "sim.semantic_profile", "sim.work_policy",
+                           {"sim.schema", "sim.semantic_profile", "sim.phases", "sim.work_policy",
                             "sim.rng_profile", "sim.base_plan_fingerprint"}) ||
         !moduleVersion || moduleVersion.getValue() != "aircraft-support-core/v1" ||
-        !semanticProfile || semanticProfile.getValue() != "legacy-minute-v1" ||
+        !semanticProfile ||
+        (semanticProfile.getValue() != "legacy-minute-v1" &&
+         semanticProfile.getValue() != "event-time-v2") ||
+        !hasCanonicalPhaseOrder(phases) ||
         !workPolicy || workPolicy.getValue() != "stable-topological-serial" ||
         !rngProfile || rngProfile.getValue() != "legacy-sequential-v1" ||
         !baseFingerprint || baseFingerprint.getValue().size() != 64) {

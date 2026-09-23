@@ -1,0 +1,95 @@
+{
+  "assets": [],
+  "business_fingerprint": "20b731ffde39a1fb74e17da1d637126575c4e256660fef138ef306e1403fca1e",
+  "events": [
+    {
+      "id": "replenish",
+      "op": "add_stock",
+      "repeat_every": null,
+      "target": "spare",
+      "time": 3,
+      "trigger": null,
+      "value": 1
+    }
+  ],
+  "horizon": 20,
+  "model_id": "C15",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        2,
+        2
+      ],
+      "finish_state": 0,
+      "id": "holder",
+      "interruptible": true,
+      "needs": {
+        "crew": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "mixed",
+      "interruptible": true,
+      "needs": {
+        "crew": 1,
+        "spare": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "stock_only",
+      "interruptible": true,
+      "needs": {
+        "spare": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "crew",
+      "initial": 1,
+      "kind": "capacity"
+    },
+    {
+      "id": "spare",
+      "initial": 1,
+      "kind": "stock"
+    }
+  ],
+  "revision": "v1",
+  "schema": "core/v1",
+  "source_map": {
+    "event:replenish": "/arrivals/0",
+    "process:holder": "/missions/0",
+    "process:mixed": "/missions/1",
+    "process:stock_only": "/missions/2",
+    "resource:crew": "/resources/0",
+    "resource:spare": "/resources/1"
+  },
+  "time_unit": "tick"
+}

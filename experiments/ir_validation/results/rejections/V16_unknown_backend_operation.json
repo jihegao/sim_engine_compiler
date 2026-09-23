@@ -1,0 +1,108 @@
+{
+  "assets": [
+    {
+      "id": "A",
+      "initial_state": 0
+    }
+  ],
+  "business_fingerprint": "eabf3c77e0baa3b9f9fed338df7bdfa9341af02ab205814df5c5a29ec19eac1d",
+  "core_fingerprint": "8dcb2b6a29e14bae7f4fcfb3430783cae1290a4accee56b410b2c3a7ee01d7c8",
+  "events": [
+    {
+      "id": "fault",
+      "op": "teleport",
+      "repeat_every": null,
+      "target": 0,
+      "time": 2,
+      "trigger": 2,
+      "value": 1
+    }
+  ],
+  "fingerprint": "83da5093ab89a4e07a95903aad82f7d08740a0b4458b10d939ee662aafad017c",
+  "horizon": 20,
+  "model_id": "validation",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [
+        0
+      ],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "one",
+      "interruptible": true,
+      "needs": [
+        [
+          0,
+          1
+        ]
+      ],
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [
+        0
+      ],
+      "candidates": [],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "two",
+      "interruptible": true,
+      "needs": [],
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [
+        0
+      ],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "restore:fault",
+      "interruptible": false,
+      "needs": [],
+      "release": null,
+      "repeat_delay": null,
+      "required_state": 1
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "crew",
+      "initial": 1,
+      "kind": "capacity"
+    }
+  ],
+  "revision": "v1",
+  "schema": "plan/v1",
+  "source_map": {
+    "asset:A": "/fleet/0",
+    "event:fault": "/maintenance/0",
+    "process:one": "/missions/0",
+    "process:restore:fault": "/maintenance/0",
+    "process:two": "/missions/1",
+    "resource:crew": "/resources/0"
+  },
+  "successors": [
+    [
+      1
+    ],
+    [],
+    []
+  ],
+  "time_unit": "tick"
+}

@@ -1,0 +1,1737 @@
+{
+  "schema": "ir-validation-benchmark/v1",
+  "recorded_unix": 1790071796.8128817,
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "cpu_count": 9,
+    "cpu_model": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "rust_binary_sha256": "a37695069275ad28daa73921376d3626417fdb428ed2c17b6a6aa3c111e00e3f"
+  },
+  "method": {
+    "repeats": 7,
+    "warmups": 1,
+    "observation": "trace off unless specified",
+    "notes": [
+      "Exploratory shared-host timings; not production or vendor comparisons.",
+      "Python wall times include initialization and result construction.",
+      "Rust execution includes result construction; CLI e2e includes process/JSON/IPC.",
+      "CLI timing excludes caller-side JSON encoding/decoding and compilation; cold_business_to_rust_result includes them.",
+      "core_lower defensively revalidates Business IR; compiler phase costs are inclusive, not disjoint passes.",
+      "Reference is deliberately scanning and used as algorithmic ablation."
+    ]
+  },
+  "workloads": [
+    {
+      "name": "sparse_horizon_1000",
+      "parameters": {
+        "pools": 1,
+        "per_pool": 32,
+        "sparse": true,
+        "horizon": 1000
+      },
+      "fingerprint": "be091e344a7e82c4450f3b6c6691be17309907db5e30588690e70ee356a25d60",
+      "counts": {
+        "assets": 0,
+        "resources": 1,
+        "processes": 32,
+        "horizon": 1000
+      },
+      "semantic_equal_three_engines": true,
+      "compile": {
+        "business_validate": {
+          "raw_ns": [
+            332285,
+            203534,
+            170301,
+            475236,
+            300164,
+            188660,
+            177280
+          ],
+          "median_ms": 0.203534,
+          "min_ms": 0.170301,
+          "max_ms": 0.475236,
+          "q1_ms": 0.17728,
+          "q3_ms": 0.332285
+        },
+        "core_lower": {
+          "raw_ns": [
+            468941,
+            287910,
+            615655,
+            285757,
+            275067,
+            388395,
+            294896
+          ],
+          "median_ms": 0.294896,
+          "min_ms": 0.275067,
+          "max_ms": 0.615655,
+          "q1_ms": 0.285757,
+          "q3_ms": 0.468941
+        },
+        "plan_compile": {
+          "raw_ns": [
+            1873283,
+            816312,
+            738199,
+            887783,
+            957688,
+            779243,
+            2030857
+          ],
+          "median_ms": 0.887783,
+          "min_ms": 0.738199,
+          "max_ms": 2.030857,
+          "q1_ms": 0.779243,
+          "q3_ms": 1.873283
+        }
+      },
+      "python_indexed_init_and_execution": {
+        "raw_ns": [
+          187468,
+          189323,
+          212212,
+          226258,
+          287427,
+          187669,
+          194919
+        ],
+        "median_ms": 0.194919,
+        "min_ms": 0.187468,
+        "max_ms": 0.287427,
+        "q1_ms": 0.187669,
+        "q3_ms": 0.226258
+      },
+      "python_indexed_initialization": {
+        "raw_ns": [
+          20213,
+          22116,
+          26277,
+          23632,
+          24665,
+          20393,
+          24071
+        ],
+        "median_ms": 0.023632,
+        "min_ms": 0.020213,
+        "max_ms": 0.026277,
+        "q1_ms": 0.020393,
+        "q3_ms": 0.024665
+      },
+      "python_indexed_execution": {
+        "raw_ns": [
+          167255,
+          167207,
+          185935,
+          202626,
+          262762,
+          167276,
+          170848
+        ],
+        "median_ms": 0.170848,
+        "min_ms": 0.167207,
+        "max_ms": 0.262762,
+        "q1_ms": 0.167255,
+        "q3_ms": 0.202626
+      },
+      "python_reference_init_and_execution": {
+        "raw_ns": [
+          1045137,
+          1076097,
+          1175116,
+          1597563,
+          1042767,
+          1048630,
+          1038228
+        ],
+        "median_ms": 1.04863,
+        "min_ms": 1.038228,
+        "max_ms": 1.597563,
+        "q1_ms": 1.042767,
+        "q3_ms": 1.175116
+      },
+      "rust_execution": {
+        "raw_ns": [
+          84375,
+          21106,
+          21270,
+          19824,
+          18623,
+          63528,
+          33681
+        ],
+        "median_ms": 0.02127,
+        "min_ms": 0.018623,
+        "max_ms": 0.084375,
+        "q1_ms": 0.019824,
+        "q3_ms": 0.063528
+      },
+      "rust_initialization": {
+        "raw_ns": [
+          6527,
+          4079,
+          4280,
+          3352,
+          3264,
+          3920,
+          3866
+        ],
+        "median_ms": 0.00392,
+        "min_ms": 0.003264,
+        "max_ms": 0.006527,
+        "q1_ms": 0.003352,
+        "q3_ms": 0.00428
+      },
+      "rust_parse_validate": {
+        "raw_ns": [
+          188412,
+          183679,
+          279010,
+          149495,
+          144480,
+          145986,
+          166446
+        ],
+        "median_ms": 0.166446,
+        "min_ms": 0.14448,
+        "max_ms": 0.27901,
+        "q1_ms": 0.145986,
+        "q3_ms": 0.188412
+      },
+      "rust_cli_end_to_end": {
+        "raw_ns": [
+          2772845,
+          2397534,
+          2976976,
+          3474972,
+          2532908,
+          2221227,
+          2179463
+        ],
+        "median_ms": 2.532908,
+        "min_ms": 2.179463,
+        "max_ms": 3.474972,
+        "q1_ms": 2.221227,
+        "q3_ms": 2.976976
+      },
+      "cold_business_to_rust_result": {
+        "raw_ns": [
+          4467541,
+          4304601,
+          7774660,
+          3907016,
+          4120235,
+          5302370,
+          3931217
+        ],
+        "median_ms": 4.304601,
+        "min_ms": 3.907016,
+        "max_ms": 7.77466,
+        "q1_ms": 3.931217,
+        "q3_ms": 5.30237
+      },
+      "python_indexed_counters": {
+        "events": 64,
+        "attempts": 32,
+        "waiter_inspections": 0,
+        "candidate_checks": 0,
+        "stale_completions": 0,
+        "max_queue": 32,
+        "events_popped": 64,
+        "request_attempts": 32,
+        "waiter_visits": 0
+      },
+      "reference_counters": {
+        "events": 64,
+        "waiter_visits": 1024,
+        "attempts": 32,
+        "event_list_visits": 1056
+      },
+      "reference_to_indexed_ratio": 5.379824439895546,
+      "indexed_to_rust_init_exec_ratio": 7.628923679060665
+    },
+    {
+      "name": "sparse_horizon_1b",
+      "parameters": {
+        "pools": 1,
+        "per_pool": 32,
+        "sparse": true,
+        "horizon": 1000000000
+      },
+      "fingerprint": "477e8c011b2b7d4812c4efc84d301dfedc1d36fc51e3c1d3b3b354c92841131d",
+      "counts": {
+        "assets": 0,
+        "resources": 1,
+        "processes": 32,
+        "horizon": 1000000000
+      },
+      "semantic_equal_three_engines": true,
+      "compile": {
+        "business_validate": {
+          "raw_ns": [
+            204996,
+            178365,
+            201764,
+            188889,
+            169657,
+            195759,
+            246759
+          ],
+          "median_ms": 0.195759,
+          "min_ms": 0.169657,
+          "max_ms": 0.246759,
+          "q1_ms": 0.178365,
+          "q3_ms": 0.204996
+        },
+        "core_lower": {
+          "raw_ns": [
+            286599,
+            306264,
+            274304,
+            280833,
+            308479,
+            279277,
+            285193
+          ],
+          "median_ms": 0.285193,
+          "min_ms": 0.274304,
+          "max_ms": 0.308479,
+          "q1_ms": 0.279277,
+          "q3_ms": 0.306264
+        },
+        "plan_compile": {
+          "raw_ns": [
+            1123041,
+            680187,
+            959873,
+            854022,
+            691423,
+            655157,
+            754458
+          ],
+          "median_ms": 0.754458,
+          "min_ms": 0.655157,
+          "max_ms": 1.123041,
+          "q1_ms": 0.680187,
+          "q3_ms": 0.959873
+        }
+      },
+      "python_indexed_init_and_execution": {
+        "raw_ns": [
+          356831,
+          187653,
+          195153,
+          264359,
+          200400,
+          189843,
+          199365
+        ],
+        "median_ms": 0.199365,
+        "min_ms": 0.187653,
+        "max_ms": 0.356831,
+        "q1_ms": 0.189843,
+        "q3_ms": 0.264359
+      },
+      "python_indexed_initialization": {
+        "raw_ns": [
+          20694,
+          22111,
+          23470,
+          21674,
+          26318,
+          21168,
+          23950
+        ],
+        "median_ms": 0.022111,
+        "min_ms": 0.020694,
+        "max_ms": 0.026318,
+        "q1_ms": 0.021168,
+        "q3_ms": 0.02395
+      },
+      "python_indexed_execution": {
+        "raw_ns": [
+          336137,
+          165542,
+          171683,
+          242685,
+          174082,
+          168675,
+          175415
+        ],
+        "median_ms": 0.174082,
+        "min_ms": 0.165542,
+        "max_ms": 0.336137,
+        "q1_ms": 0.168675,
+        "q3_ms": 0.242685
+      },
+      "python_reference_init_and_execution": {
+        "raw_ns": [
+          1214751,
+          1251916,
+          1783440,
+          1126338,
+          1070218,
+          1079586,
+          1256655
+        ],
+        "median_ms": 1.214751,
+        "min_ms": 1.070218,
+        "max_ms": 1.78344,
+        "q1_ms": 1.079586,
+        "q3_ms": 1.256655
+      },
+      "rust_execution": {
+        "raw_ns": [
+          21290,
+          21068,
+          20952,
+          20769,
+          21410,
+          20136,
+          45439
+        ],
+        "median_ms": 0.021068,
+        "min_ms": 0.020136,
+        "max_ms": 0.045439,
+        "q1_ms": 0.020769,
+        "q3_ms": 0.02141
+      },
+      "rust_initialization": {
+        "raw_ns": [
+          3963,
+          4298,
+          4056,
+          4240,
+          4189,
+          3794,
+          4702
+        ],
+        "median_ms": 0.004189,
+        "min_ms": 0.003794,
+        "max_ms": 0.004702,
+        "q1_ms": 0.003963,
+        "q3_ms": 0.004298
+      },
+      "rust_parse_validate": {
+        "raw_ns": [
+          163719,
+          226014,
+          140037,
+          165988,
+          141748,
+          254396,
+          143355
+        ],
+        "median_ms": 0.163719,
+        "min_ms": 0.140037,
+        "max_ms": 0.254396,
+        "q1_ms": 0.141748,
+        "q3_ms": 0.226014
+      },
+      "rust_cli_end_to_end": {
+        "raw_ns": [
+          1992915,
+          4088109,
+          2714255,
+          2570573,
+          3327682,
+          2470145,
+          2050937
+        ],
+        "median_ms": 2.570573,
+        "min_ms": 1.992915,
+        "max_ms": 4.088109,
+        "q1_ms": 2.050937,
+        "q3_ms": 3.327682
+      },
+      "cold_business_to_rust_result": {
+        "raw_ns": [
+          4720404,
+          4268006,
+          4347096,
+          4796791,
+          4646708,
+          4791537,
+          4228141
+        ],
+        "median_ms": 4.646708,
+        "min_ms": 4.228141,
+        "max_ms": 4.796791,
+        "q1_ms": 4.268006,
+        "q3_ms": 4.791537
+      },
+      "python_indexed_counters": {
+        "events": 64,
+        "attempts": 32,
+        "waiter_inspections": 0,
+        "candidate_checks": 0,
+        "stale_completions": 0,
+        "max_queue": 32,
+        "events_popped": 64,
+        "request_attempts": 32,
+        "waiter_visits": 0
+      },
+      "reference_counters": {
+        "events": 64,
+        "waiter_visits": 1024,
+        "attempts": 32,
+        "event_list_visits": 1056
+      },
+      "reference_to_indexed_ratio": 6.093100594387179,
+      "indexed_to_rust_init_exec_ratio": 7.894705579535104
+    },
+    {
+      "name": "unused_assets_16",
+      "parameters": {
+        "pools": 4,
+        "per_pool": 8,
+        "assets": 16
+      },
+      "fingerprint": "ac8b616d20e0f8308a13bc9b9acb26a80554cbd90cd8f70ad3fdebfdb2ebbd73",
+      "counts": {
+        "assets": 16,
+        "resources": 4,
+        "processes": 32,
+        "horizon": 1000
+      },
+      "semantic_equal_three_engines": true,
+      "compile": {
+        "business_validate": {
+          "raw_ns": [
+            322820,
+            192943,
+            220008,
+            197820,
+            220541,
+            186486,
+            232792
+          ],
+          "median_ms": 0.220008,
+          "min_ms": 0.186486,
+          "max_ms": 0.32282,
+          "q1_ms": 0.192943,
+          "q3_ms": 0.232792
+        },
+        "core_lower": {
+          "raw_ns": [
+            337450,
+            334216,
+            316811,
+            340107,
+            307451,
+            461054,
+            309729
+          ],
+          "median_ms": 0.334216,
+          "min_ms": 0.307451,
+          "max_ms": 0.461054,
+          "q1_ms": 0.309729,
+          "q3_ms": 0.340107
+        },
+        "plan_compile": {
+          "raw_ns": [
+            839656,
+            777523,
+            1201429,
+            772517,
+            772991,
+            877268,
+            766585
+          ],
+          "median_ms": 0.777523,
+          "min_ms": 0.766585,
+          "max_ms": 1.201429,
+          "q1_ms": 0.772517,
+          "q3_ms": 0.877268
+        }
+      },
+      "python_indexed_init_and_execution": {
+        "raw_ns": [
+          364498,
+          383166,
+          380686,
+          396351,
+          418198,
+          361465,
+          411971
+        ],
+        "median_ms": 0.383166,
+        "min_ms": 0.361465,
+        "max_ms": 0.418198,
+        "q1_ms": 0.364498,
+        "q3_ms": 0.411971
+      },
+      "python_indexed_initialization": {
+        "raw_ns": [
+          21085,
+          25120,
+          26220,
+          25252,
+          26340,
+          22752,
+          26567
+        ],
+        "median_ms": 0.025252,
+        "min_ms": 0.021085,
+        "max_ms": 0.026567,
+        "q1_ms": 0.022752,
+        "q3_ms": 0.02634
+      },
+      "python_indexed_execution": {
+        "raw_ns": [
+          343413,
+          358046,
+          354466,
+          371099,
+          391858,
+          338713,
+          385404
+        ],
+        "median_ms": 0.358046,
+        "min_ms": 0.338713,
+        "max_ms": 0.391858,
+        "q1_ms": 0.343413,
+        "q3_ms": 0.385404
+      },
+      "python_reference_init_and_execution": {
+        "raw_ns": [
+          1719381,
+          2914790,
+          2477290,
+          2321868,
+          1884734,
+          1806299,
+          2309213
+        ],
+        "median_ms": 2.309213,
+        "min_ms": 1.719381,
+        "max_ms": 2.91479,
+        "q1_ms": 1.806299,
+        "q3_ms": 2.47729
+      },
+      "rust_execution": {
+        "raw_ns": [
+          36316,
+          36137,
+          35484,
+          37966,
+          35940,
+          35465,
+          35713
+        ],
+        "median_ms": 0.03594,
+        "min_ms": 0.035465,
+        "max_ms": 0.037966,
+        "q1_ms": 0.035484,
+        "q3_ms": 0.036316
+      },
+      "rust_initialization": {
+        "raw_ns": [
+          4052,
+          23849,
+          4037,
+          3351,
+          4286,
+          4069,
+          4079
+        ],
+        "median_ms": 0.004069,
+        "min_ms": 0.003351,
+        "max_ms": 0.023849,
+        "q1_ms": 0.004037,
+        "q3_ms": 0.004286
+      },
+      "rust_parse_validate": {
+        "raw_ns": [
+          158708,
+          181420,
+          167197,
+          164918,
+          164480,
+          163012,
+          159370
+        ],
+        "median_ms": 0.16448,
+        "min_ms": 0.158708,
+        "max_ms": 0.18142,
+        "q1_ms": 0.15937,
+        "q3_ms": 0.167197
+      },
+      "rust_cli_end_to_end": {
+        "raw_ns": [
+          3223746,
+          6242932,
+          3042321,
+          2785579,
+          2294078,
+          2423846,
+          2261002
+        ],
+        "median_ms": 2.785579,
+        "min_ms": 2.261002,
+        "max_ms": 6.242932,
+        "q1_ms": 2.294078,
+        "q3_ms": 3.223746
+      },
+      "cold_business_to_rust_result": {
+        "raw_ns": [
+          8044670,
+          6655808,
+          5277356,
+          4466430,
+          5845026,
+          9732439,
+          4548132
+        ],
+        "median_ms": 5.845026,
+        "min_ms": 4.46643,
+        "max_ms": 9.732439,
+        "q1_ms": 4.548132,
+        "q3_ms": 8.04467
+      },
+      "python_indexed_counters": {
+        "events": 176,
+        "attempts": 144,
+        "waiter_inspections": 112,
+        "candidate_checks": 0,
+        "stale_completions": 0,
+        "max_queue": 32,
+        "events_popped": 176,
+        "request_attempts": 144,
+        "waiter_visits": 112
+      },
+      "reference_counters": {
+        "events": 176,
+        "waiter_visits": 1024,
+        "attempts": 144,
+        "event_list_visits": 1882
+      },
+      "reference_to_indexed_ratio": 6.026664683192141,
+      "indexed_to_rust_init_exec_ratio": 9.525331874906776
+    },
+    {
+      "name": "unused_assets_10000",
+      "parameters": {
+        "pools": 4,
+        "per_pool": 8,
+        "assets": 10000
+      },
+      "fingerprint": "17e224a2440f4a48ee8f12746c7f1612a551902788075639d3ae1579c339a7d9",
+      "counts": {
+        "assets": 10000,
+        "resources": 4,
+        "processes": 32,
+        "horizon": 1000
+      },
+      "semantic_equal_three_engines": true,
+      "compile": {
+        "business_validate": {
+          "raw_ns": [
+            11573294,
+            16860445,
+            9950117,
+            9087562,
+            10404577,
+            8633085,
+            8660978
+          ],
+          "median_ms": 9.950117,
+          "min_ms": 8.633085,
+          "max_ms": 16.860445,
+          "q1_ms": 8.660978,
+          "q3_ms": 11.573294
+        },
+        "core_lower": {
+          "raw_ns": [
+            23876134,
+            21978477,
+            19412340,
+            19991939,
+            20349034,
+            21609434,
+            21461003
+          ],
+          "median_ms": 21.461003,
+          "min_ms": 19.41234,
+          "max_ms": 23.876134,
+          "q1_ms": 19.991939,
+          "q3_ms": 21.978477
+        },
+        "plan_compile": {
+          "raw_ns": [
+            75253650,
+            72958679,
+            61604370,
+            55453323,
+            63151373,
+            65025359,
+            65384674
+          ],
+          "median_ms": 65.025359,
+          "min_ms": 55.453323,
+          "max_ms": 75.25365,
+          "q1_ms": 61.60437,
+          "q3_ms": 72.958679
+        }
+      },
+      "python_indexed_init_and_execution": {
+        "raw_ns": [
+          1581271,
+          1934125,
+          2419456,
+          1577206,
+          2991714,
+          1781682,
+          2645569
+        ],
+        "median_ms": 1.934125,
+        "min_ms": 1.577206,
+        "max_ms": 2.991714,
+        "q1_ms": 1.581271,
+        "q3_ms": 2.645569
+      },
+      "python_indexed_initialization": {
+        "raw_ns": [
+          1109518,
+          1463744,
+          1695793,
+          1079879,
+          2107121,
+          1281684,
+          2029452
+        ],
+        "median_ms": 1.463744,
+        "min_ms": 1.079879,
+        "max_ms": 2.107121,
+        "q1_ms": 1.109518,
+        "q3_ms": 2.029452
+      },
+      "python_indexed_execution": {
+        "raw_ns": [
+          471753,
+          470381,
+          723663,
+          497327,
+          884593,
+          499998,
+          616117
+        ],
+        "median_ms": 0.499998,
+        "min_ms": 0.470381,
+        "max_ms": 0.884593,
+        "q1_ms": 0.471753,
+        "q3_ms": 0.723663
+      },
+      "python_reference_init_and_execution": {
+        "raw_ns": [
+          51277445,
+          80870726,
+          53162232,
+          64242264,
+          53977670,
+          57979843,
+          54307314
+        ],
+        "median_ms": 54.307314,
+        "min_ms": 51.277445,
+        "max_ms": 80.870726,
+        "q1_ms": 53.162232,
+        "q3_ms": 64.242264
+      },
+      "rust_execution": {
+        "raw_ns": [
+          434081,
+          462552,
+          488717,
+          499510,
+          443325,
+          416494,
+          421392
+        ],
+        "median_ms": 0.443325,
+        "min_ms": 0.416494,
+        "max_ms": 0.49951,
+        "q1_ms": 0.421392,
+        "q3_ms": 0.488717
+      },
+      "rust_initialization": {
+        "raw_ns": [
+          193716,
+          191335,
+          484396,
+          202007,
+          191682,
+          201001,
+          211530
+        ],
+        "median_ms": 0.201001,
+        "min_ms": 0.191335,
+        "max_ms": 0.484396,
+        "q1_ms": 0.191682,
+        "q3_ms": 0.21153
+      },
+      "rust_parse_validate": {
+        "raw_ns": [
+          17732283,
+          15413803,
+          16385694,
+          14948354,
+          15487383,
+          15922347,
+          14543652
+        ],
+        "median_ms": 15.487383,
+        "min_ms": 14.543652,
+        "max_ms": 17.732283,
+        "q1_ms": 14.948354,
+        "q3_ms": 16.385694
+      },
+      "rust_cli_end_to_end": {
+        "raw_ns": [
+          26494711,
+          25607851,
+          27493633,
+          23716030,
+          24174723,
+          24113867,
+          22617834
+        ],
+        "median_ms": 24.174723,
+        "min_ms": 22.617834,
+        "max_ms": 27.493633,
+        "q1_ms": 23.71603,
+        "q3_ms": 26.494711
+      },
+      "cold_business_to_rust_result": {
+        "raw_ns": [
+          168135446,
+          158315448,
+          153475488,
+          163945134,
+          175738427,
+          162176454,
+          154282594
+        ],
+        "median_ms": 162.176454,
+        "min_ms": 153.475488,
+        "max_ms": 175.738427,
+        "q1_ms": 154.282594,
+        "q3_ms": 168.135446
+      },
+      "python_indexed_counters": {
+        "events": 176,
+        "attempts": 144,
+        "waiter_inspections": 112,
+        "candidate_checks": 0,
+        "stale_completions": 0,
+        "max_queue": 32,
+        "events_popped": 176,
+        "request_attempts": 144,
+        "waiter_visits": 112
+      },
+      "reference_counters": {
+        "events": 176,
+        "waiter_visits": 1024,
+        "attempts": 144,
+        "event_list_visits": 1882
+      },
+      "reference_to_indexed_ratio": 28.078492341498094,
+      "indexed_to_rust_init_exec_ratio": 3.0458325656252607
+    },
+    {
+      "name": "local_pools_16x8",
+      "parameters": {
+        "pools": 16,
+        "per_pool": 8
+      },
+      "fingerprint": "daeaa776e83bd6d3132121fea7aa1e782881bb7ae770c48d08191e23fae70449",
+      "counts": {
+        "assets": 0,
+        "resources": 16,
+        "processes": 128,
+        "horizon": 1000
+      },
+      "semantic_equal_three_engines": true,
+      "compile": {
+        "business_validate": {
+          "raw_ns": [
+            1046445,
+            902565,
+            839837,
+            760935,
+            971997,
+            668247,
+            676161
+          ],
+          "median_ms": 0.839837,
+          "min_ms": 0.668247,
+          "max_ms": 1.046445,
+          "q1_ms": 0.676161,
+          "q3_ms": 0.971997
+        },
+        "core_lower": {
+          "raw_ns": [
+            1164720,
+            1019241,
+            1223324,
+            1222655,
+            1166599,
+            1077076,
+            1115656
+          ],
+          "median_ms": 1.16472,
+          "min_ms": 1.019241,
+          "max_ms": 1.223324,
+          "q1_ms": 1.077076,
+          "q3_ms": 1.222655
+        },
+        "plan_compile": {
+          "raw_ns": [
+            3054213,
+            3085124,
+            3450684,
+            3172984,
+            3061527,
+            3220979,
+            3007754
+          ],
+          "median_ms": 3.085124,
+          "min_ms": 3.007754,
+          "max_ms": 3.450684,
+          "q1_ms": 3.054213,
+          "q3_ms": 3.220979
+        }
+      },
+      "python_indexed_init_and_execution": {
+        "raw_ns": [
+          1943649,
+          1431153,
+          1438073,
+          1454179,
+          1741432,
+          1418208,
+          1444827
+        ],
+        "median_ms": 1.444827,
+        "min_ms": 1.418208,
+        "max_ms": 1.943649,
+        "q1_ms": 1.431153,
+        "q3_ms": 1.741432
+      },
+      "python_indexed_initialization": {
+        "raw_ns": [
+          56914,
+          57088,
+          55944,
+          56873,
+          56540,
+          56371,
+          76052
+        ],
+        "median_ms": 0.056873,
+        "min_ms": 0.055944,
+        "max_ms": 0.076052,
+        "q1_ms": 0.056371,
+        "q3_ms": 0.057088
+      },
+      "python_indexed_execution": {
+        "raw_ns": [
+          1886735,
+          1374065,
+          1382129,
+          1397306,
+          1684892,
+          1361837,
+          1368775
+        ],
+        "median_ms": 1.382129,
+        "min_ms": 1.361837,
+        "max_ms": 1.886735,
+        "q1_ms": 1.368775,
+        "q3_ms": 1.684892
+      },
+      "python_reference_init_and_execution": {
+        "raw_ns": [
+          20117132,
+          12981622,
+          12233273,
+          12325237,
+          12318764,
+          13053504,
+          18433494
+        ],
+        "median_ms": 12.981622,
+        "min_ms": 12.233273,
+        "max_ms": 20.117132,
+        "q1_ms": 12.318764,
+        "q3_ms": 18.433494
+      },
+      "rust_execution": {
+        "raw_ns": [
+          119305,
+          122203,
+          119582,
+          120278,
+          114581,
+          114940,
+          139824
+        ],
+        "median_ms": 0.119582,
+        "min_ms": 0.114581,
+        "max_ms": 0.139824,
+        "q1_ms": 0.11494,
+        "q3_ms": 0.122203
+      },
+      "rust_initialization": {
+        "raw_ns": [
+          18547,
+          10441,
+          8785,
+          36112,
+          10908,
+          10508,
+          19433
+        ],
+        "median_ms": 0.010908,
+        "min_ms": 0.008785,
+        "max_ms": 0.036112,
+        "q1_ms": 0.010441,
+        "q3_ms": 0.019433
+      },
+      "rust_parse_validate": {
+        "raw_ns": [
+          507340,
+          477355,
+          454537,
+          447306,
+          615720,
+          547080,
+          470805
+        ],
+        "median_ms": 0.477355,
+        "min_ms": 0.447306,
+        "max_ms": 0.61572,
+        "q1_ms": 0.454537,
+        "q3_ms": 0.54708
+      },
+      "rust_cli_end_to_end": {
+        "raw_ns": [
+          6495246,
+          3068230,
+          2666140,
+          3243586,
+          5412624,
+          2973264,
+          3099886
+        ],
+        "median_ms": 3.099886,
+        "min_ms": 2.66614,
+        "max_ms": 6.495246,
+        "q1_ms": 2.973264,
+        "q3_ms": 5.412624
+      },
+      "cold_business_to_rust_result": {
+        "raw_ns": [
+          14692609,
+          10308975,
+          10041606,
+          13985940,
+          12872007,
+          9617666,
+          11795464
+        ],
+        "median_ms": 11.795464,
+        "min_ms": 9.617666,
+        "max_ms": 14.692609,
+        "q1_ms": 10.041606,
+        "q3_ms": 13.98594
+      },
+      "python_indexed_counters": {
+        "events": 704,
+        "attempts": 576,
+        "waiter_inspections": 448,
+        "candidate_checks": 0,
+        "stale_completions": 0,
+        "max_queue": 128,
+        "events_popped": 704,
+        "request_attempts": 576,
+        "waiter_visits": 448
+      },
+      "reference_counters": {
+        "events": 704,
+        "waiter_visits": 16384,
+        "attempts": 576,
+        "event_list_visits": 26967
+      },
+      "reference_to_indexed_ratio": 8.984897153776888,
+      "indexed_to_rust_init_exec_ratio": 10.892516811917615
+    },
+    {
+      "name": "local_pools_64x16",
+      "parameters": {
+        "pools": 64,
+        "per_pool": 16
+      },
+      "fingerprint": "aa35fc556bcd35b675e394982a98fabc44db3425ecc073d0ab4772cd4d650615",
+      "counts": {
+        "assets": 0,
+        "resources": 64,
+        "processes": 1024,
+        "horizon": 1000
+      },
+      "semantic_equal_three_engines": true,
+      "compile": {
+        "business_validate": {
+          "raw_ns": [
+            5167468,
+            6289723,
+            5842553,
+            5106792,
+            6975926,
+            6071387,
+            6219919
+          ],
+          "median_ms": 6.071387,
+          "min_ms": 5.106792,
+          "max_ms": 6.975926,
+          "q1_ms": 5.167468,
+          "q3_ms": 6.289723
+        },
+        "core_lower": {
+          "raw_ns": [
+            8789382,
+            9425154,
+            14091815,
+            11651847,
+            10757894,
+            8847890,
+            9130776
+          ],
+          "median_ms": 9.425154,
+          "min_ms": 8.789382,
+          "max_ms": 14.091815,
+          "q1_ms": 8.84789,
+          "q3_ms": 11.651847
+        },
+        "plan_compile": {
+          "raw_ns": [
+            41121963,
+            23142573,
+            46723786,
+            24800687,
+            41975220,
+            30522168,
+            23368641
+          ],
+          "median_ms": 30.522168,
+          "min_ms": 23.142573,
+          "max_ms": 46.723786,
+          "q1_ms": 23.368641,
+          "q3_ms": 41.97522
+        }
+      },
+      "python_indexed_init_and_execution": {
+        "raw_ns": [
+          60014111,
+          18810655,
+          20762905,
+          39238007,
+          19957068,
+          23598990,
+          21005204
+        ],
+        "median_ms": 21.005204,
+        "min_ms": 18.810655,
+        "max_ms": 60.014111,
+        "q1_ms": 19.957068,
+        "q3_ms": 39.238007
+      },
+      "python_indexed_initialization": {
+        "raw_ns": [
+          12186598,
+          358740,
+          436083,
+          1979815,
+          468911,
+          971436,
+          493677
+        ],
+        "median_ms": 0.493677,
+        "min_ms": 0.35874,
+        "max_ms": 12.186598,
+        "q1_ms": 0.436083,
+        "q3_ms": 1.979815
+      },
+      "python_indexed_execution": {
+        "raw_ns": [
+          47827513,
+          18451915,
+          20326822,
+          37258192,
+          19488157,
+          22627554,
+          20511527
+        ],
+        "median_ms": 20.511527,
+        "min_ms": 18.451915,
+        "max_ms": 47.827513,
+        "q1_ms": 19.488157,
+        "q3_ms": 37.258192
+      },
+      "python_reference_init_and_execution": {
+        "raw_ns": [
+          722287549,
+          649548357,
+          704852325,
+          601531113,
+          591824922,
+          655920599,
+          664536630
+        ],
+        "median_ms": 655.920599,
+        "min_ms": 591.824922,
+        "max_ms": 722.287549,
+        "q1_ms": 601.531113,
+        "q3_ms": 704.852325
+      },
+      "rust_execution": {
+        "raw_ns": [
+          2744309,
+          1743941,
+          1509513,
+          2396264,
+          1399381,
+          11384238,
+          1511068
+        ],
+        "median_ms": 1.743941,
+        "min_ms": 1.399381,
+        "max_ms": 11.384238,
+        "q1_ms": 1.509513,
+        "q3_ms": 2.744309
+      },
+      "rust_initialization": {
+        "raw_ns": [
+          63210,
+          60808,
+          81775,
+          64054,
+          69864,
+          66771,
+          55580
+        ],
+        "median_ms": 0.064054,
+        "min_ms": 0.05558,
+        "max_ms": 0.081775,
+        "q1_ms": 0.060808,
+        "q3_ms": 0.069864
+      },
+      "rust_parse_validate": {
+        "raw_ns": [
+          5977298,
+          7486585,
+          3630717,
+          6497230,
+          4062325,
+          3828301,
+          4051965
+        ],
+        "median_ms": 4.062325,
+        "min_ms": 3.630717,
+        "max_ms": 7.486585,
+        "q1_ms": 3.828301,
+        "q3_ms": 6.49723
+      },
+      "rust_cli_end_to_end": {
+        "raw_ns": [
+          15428098,
+          16546555,
+          11464829,
+          15133586,
+          9839005,
+          19905639,
+          17958634
+        ],
+        "median_ms": 15.428098,
+        "min_ms": 9.839005,
+        "max_ms": 19.905639,
+        "q1_ms": 11.464829,
+        "q3_ms": 17.958634
+      },
+      "cold_business_to_rust_result": {
+        "raw_ns": [
+          60615268,
+          68073627,
+          58766360,
+          94018624,
+          60176008,
+          68356875,
+          88469848
+        ],
+        "median_ms": 68.073627,
+        "min_ms": 58.76636,
+        "max_ms": 94.018624,
+        "q1_ms": 60.176008,
+        "q3_ms": 88.469848
+      },
+      "python_indexed_counters": {
+        "events": 9728,
+        "attempts": 8704,
+        "waiter_inspections": 7680,
+        "candidate_checks": 0,
+        "stale_completions": 0,
+        "max_queue": 1024,
+        "events_popped": 9728,
+        "request_attempts": 8704,
+        "waiter_visits": 7680
+      },
+      "reference_counters": {
+        "events": 9728,
+        "waiter_visits": 1048576,
+        "attempts": 8704,
+        "event_list_visits": 2344632
+      },
+      "reference_to_indexed_ratio": 31.226575995167675,
+      "indexed_to_rust_init_exec_ratio": 11.638850610251065
+    },
+    {
+      "name": "global_pool_1x256",
+      "parameters": {
+        "pools": 1,
+        "per_pool": 256,
+        "horizon": 2000
+      },
+      "fingerprint": "a77bafe4f9c92ea024119bce756567bfd705c5528c79b8f66ff4ad9ed21268d9",
+      "counts": {
+        "assets": 0,
+        "resources": 1,
+        "processes": 256,
+        "horizon": 2000
+      },
+      "semantic_equal_three_engines": true,
+      "compile": {
+        "business_validate": {
+          "raw_ns": [
+            1251382,
+            1213514,
+            1181295,
+            2320490,
+            1395691,
+            1323361,
+            1243372
+          ],
+          "median_ms": 1.251382,
+          "min_ms": 1.181295,
+          "max_ms": 2.32049,
+          "q1_ms": 1.213514,
+          "q3_ms": 1.395691
+        },
+        "core_lower": {
+          "raw_ns": [
+            1968219,
+            2355389,
+            2896433,
+            29226373,
+            1911786,
+            1888525,
+            1822842
+          ],
+          "median_ms": 1.968219,
+          "min_ms": 1.822842,
+          "max_ms": 29.226373,
+          "q1_ms": 1.888525,
+          "q3_ms": 2.896433
+        },
+        "plan_compile": {
+          "raw_ns": [
+            5407188,
+            5502339,
+            9652684,
+            5604111,
+            5937610,
+            5438310,
+            5156744
+          ],
+          "median_ms": 5.502339,
+          "min_ms": 5.156744,
+          "max_ms": 9.652684,
+          "q1_ms": 5.407188,
+          "q3_ms": 5.93761
+        }
+      },
+      "python_indexed_init_and_execution": {
+        "raw_ns": [
+          61700776,
+          62294379,
+          55702389,
+          598578526,
+          168919258,
+          222584019,
+          57775853
+        ],
+        "median_ms": 62.294379,
+        "min_ms": 55.702389,
+        "max_ms": 598.578526,
+        "q1_ms": 57.775853,
+        "q3_ms": 222.584019
+      },
+      "python_indexed_initialization": {
+        "raw_ns": [
+          288671,
+          133440,
+          96335,
+          2209085,
+          234523,
+          1257319,
+          93014
+        ],
+        "median_ms": 0.234523,
+        "min_ms": 0.093014,
+        "max_ms": 2.209085,
+        "q1_ms": 0.096335,
+        "q3_ms": 1.257319
+      },
+      "python_indexed_execution": {
+        "raw_ns": [
+          61412105,
+          62160939,
+          55606054,
+          596369441,
+          168684735,
+          221326700,
+          57682839
+        ],
+        "median_ms": 62.160939,
+        "min_ms": 55.606054,
+        "max_ms": 596.369441,
+        "q1_ms": 57.682839,
+        "q3_ms": 221.3267
+      },
+      "python_reference_init_and_execution": {
+        "raw_ns": [
+          376180775,
+          399464639,
+          390508669,
+          688732203,
+          849552593,
+          395567855,
+          564074968
+        ],
+        "median_ms": 399.464639,
+        "min_ms": 376.180775,
+        "max_ms": 849.552593,
+        "q1_ms": 390.508669,
+        "q3_ms": 688.732203
+      },
+      "rust_execution": {
+        "raw_ns": [
+          14302174,
+          4147577,
+          40566551,
+          5360024,
+          7805855,
+          5683657,
+          7093601
+        ],
+        "median_ms": 7.093601,
+        "min_ms": 4.147577,
+        "max_ms": 40.566551,
+        "q1_ms": 5.360024,
+        "q3_ms": 14.302174
+      },
+      "rust_initialization": {
+        "raw_ns": [
+          65566,
+          87761,
+          51272,
+          16754,
+          17125,
+          19929,
+          105656
+        ],
+        "median_ms": 0.051272,
+        "min_ms": 0.016754,
+        "max_ms": 0.105656,
+        "q1_ms": 0.017125,
+        "q3_ms": 0.087761
+      },
+      "rust_parse_validate": {
+        "raw_ns": [
+          14774651,
+          865707,
+          7590879,
+          4088375,
+          1380204,
+          1620267,
+          962027
+        ],
+        "median_ms": 1.620267,
+        "min_ms": 0.865707,
+        "max_ms": 14.774651,
+        "q1_ms": 0.962027,
+        "q3_ms": 7.590879
+      },
+      "rust_cli_end_to_end": {
+        "raw_ns": [
+          57298830,
+          8115816,
+          70776073,
+          29005131,
+          14026147,
+          13382617,
+          11534532
+        ],
+        "median_ms": 14.026147,
+        "min_ms": 8.115816,
+        "max_ms": 70.776073,
+        "q1_ms": 11.534532,
+        "q3_ms": 57.29883
+      },
+      "cold_business_to_rust_result": {
+        "raw_ns": [
+          32927808,
+          20825652,
+          80442986,
+          85332299,
+          24250732,
+          35768797,
+          20825130
+        ],
+        "median_ms": 32.927808,
+        "min_ms": 20.82513,
+        "max_ms": 85.332299,
+        "q1_ms": 20.825652,
+        "q3_ms": 80.442986
+      },
+      "python_indexed_counters": {
+        "events": 33152,
+        "attempts": 32896,
+        "waiter_inspections": 32640,
+        "candidate_checks": 0,
+        "stale_completions": 0,
+        "max_queue": 256,
+        "events_popped": 33152,
+        "request_attempts": 32896,
+        "waiter_visits": 32640
+      },
+      "reference_counters": {
+        "events": 33152,
+        "waiter_visits": 65536,
+        "attempts": 32896,
+        "event_list_visits": 2861952
+      },
+      "reference_to_indexed_ratio": 6.412531040721989,
+      "indexed_to_rust_init_exec_ratio": 8.652890013511117
+    }
+  ],
+  "batch": {
+    "samples": 32,
+    "threads": {
+      "1": {
+        "batch_wall": {
+          "raw_ns": [
+            12778165,
+            13456550,
+            13002215,
+            11632098,
+            12159789,
+            15974537,
+            11514357
+          ],
+          "median_ms": 12.778165,
+          "min_ms": 11.514357,
+          "max_ms": 15.974537,
+          "q1_ms": 11.632098,
+          "q3_ms": 13.45655
+        },
+        "cli_e2e": {
+          "raw_ns": [
+            28344040,
+            22564248,
+            21524913,
+            21811676,
+            23875526,
+            27750913,
+            20246373
+          ],
+          "median_ms": 22.564248,
+          "min_ms": 20.246373,
+          "max_ms": 28.34404,
+          "q1_ms": 21.524913,
+          "q3_ms": 27.750913
+        }
+      },
+      "3": {
+        "batch_wall": {
+          "raw_ns": [
+            4668526,
+            4084774,
+            5018537,
+            4900197,
+            6952746,
+            5912756,
+            7967838
+          ],
+          "median_ms": 5.018537,
+          "min_ms": 4.084774,
+          "max_ms": 7.967838,
+          "q1_ms": 4.668526,
+          "q3_ms": 6.952746
+        },
+        "cli_e2e": {
+          "raw_ns": [
+            13659234,
+            12522832,
+            13736223,
+            13988946,
+            17912806,
+            14336956,
+            18264906
+          ],
+          "median_ms": 13.988946,
+          "min_ms": 12.522832,
+          "max_ms": 18.264906,
+          "q1_ms": 13.659234,
+          "q3_ms": 17.912806
+        }
+      }
+    },
+    "stable_results_with_duplicate_seeds": true
+  },
+  "trace": {
+    "False": {
+      "raw_ns": [
+        5730594,
+        4676460,
+        4427011,
+        4372288,
+        4328567,
+        4235813,
+        4843888
+      ],
+      "median_ms": 4.427011,
+      "min_ms": 4.235813,
+      "max_ms": 5.730594,
+      "q1_ms": 4.328567,
+      "q3_ms": 4.843888
+    },
+    "True": {
+      "raw_ns": [
+        4752862,
+        4610004,
+        8063267,
+        5407251,
+        4431651,
+        4365869,
+        4425166
+      ],
+      "median_ms": 4.610004,
+      "min_ms": 4.365869,
+      "max_ms": 8.063267,
+      "q1_ms": 4.425166,
+      "q3_ms": 5.407251
+    }
+  }
+}
