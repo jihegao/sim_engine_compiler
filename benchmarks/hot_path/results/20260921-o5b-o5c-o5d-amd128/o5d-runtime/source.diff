@@ -1,0 +1,330 @@
+diff --git a/rust/runtime/src/runtime.rs b/rust/runtime/src/runtime.rs
+index 3b35aa7..cecb63a 100644
+--- a/rust/runtime/src/runtime.rs
++++ b/rust/runtime/src/runtime.rs
+@@ -119,6 +119,12 @@ pub struct RuntimeProfile {
+     pub event_max_queue_len: u64,
+     pub event_continuous_job_ticks: u64,
+     pub event_continuous_failure_ticks: u64,
++    pub event_continuous_job_analytic_advances: u64,
++    pub event_continuous_failure_analytic_advances: u64,
++    pub event_continuous_failure_fallback_ticks: u64,
++    pub event_continuous_failure_fallback_non_finite: u64,
++    pub event_continuous_failure_fallback_out_of_exact_range: u64,
++    pub event_continuous_failure_fallback_due_guard: u64,
+     pub execution_ns: u64,
+     pub phases: BTreeMap<String, PhaseProfile>,
+     pub mission_scan_items: u64,
+diff --git a/rust/runtime/src/runtime/event_time.rs b/rust/runtime/src/runtime/event_time.rs
+index 5c4ef71..c5936cf 100644
+--- a/rust/runtime/src/runtime/event_time.rs
++++ b/rust/runtime/src/runtime/event_time.rs
+@@ -4,6 +4,16 @@ use anyhow::{Result, bail};
+ 
+ use super::Runtime;
+ 
++const MAX_EXACT_F64_INTEGER: f64 = 9_007_199_254_740_992.0;
++
++#[derive(Clone, Copy, Debug, Eq, PartialEq)]
++enum FailureAdvanceMode {
++    Analytic,
++    FallbackNonFinite,
++    FallbackOutOfExactRange,
++    FallbackDueGuard,
++}
++
+ #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+ enum WakeKind {
+     TransportArrival,
+@@ -278,52 +288,116 @@ impl Runtime {
+         if skipped <= 0 {
+             return Ok(());
+         }
+-        for _ in 0..skipped {
+-            for &job_index in &self.running_job_indexes {
+-                self.jobs[job_index].remaining -= 1;
+-                if self.profile_enabled {
+-                    self.profile.event_continuous_job_ticks += 1;
+-                }
+-                if self.jobs[job_index].remaining <= 0 {
+-                    bail!(
+-                        "event-time-v2 skipped job completion for {:?} before minute {}",
+-                        self.jobs[job_index].job_id,
+-                        self.minute.saturating_add(skipped).saturating_add(1)
+-                    );
+-                }
++
++        for &job_index in &self.running_job_indexes {
++            if job_bulk_remaining(self.jobs[job_index].remaining, skipped).is_none() {
++                bail!(
++                    "event-time-v2 skipped job completion for {:?} before minute {}",
++                    self.jobs[job_index].job_id,
++                    self.minute.saturating_add(skipped).saturating_add(1)
++                );
+             }
+-            for aircraft_index in 0..self.aircraft.len() {
+-                if self.aircraft[aircraft_index].state != "flying"
+-                    || self.aircraft[aircraft_index].in_flight_failure
+-                {
++        }
++        for &job_index in &self.running_job_indexes {
++            self.jobs[job_index].remaining =
++                job_bulk_remaining(self.jobs[job_index].remaining, skipped)
++                    .expect("running job bulk advance was prevalidated");
++            if self.profile_enabled {
++                self.profile.event_continuous_job_ticks = self
++                    .profile
++                    .event_continuous_job_ticks
++                    .saturating_add(skipped as u64);
++                self.profile.event_continuous_job_analytic_advances = self
++                    .profile
++                    .event_continuous_job_analytic_advances
++                    .saturating_add(1);
++            }
++        }
++
++        for aircraft_index in 0..self.aircraft.len() {
++            if self.aircraft[aircraft_index].state != "flying"
++                || self.aircraft[aircraft_index].in_flight_failure
++            {
++                continue;
++            }
++            for slot in 0..self.aircraft[aircraft_index]
++                .failure_remaining_by_slot
++                .len()
++            {
++                if self.aircraft[aircraft_index].component_failure_minutes_by_slot[slot].is_some() {
+                     continue;
+                 }
+-                for slot in 0..self.aircraft[aircraft_index]
+-                    .failure_remaining_by_slot
+-                    .len()
+-                {
+-                    if self.aircraft[aircraft_index].component_failure_minutes_by_slot[slot]
+-                        .is_some()
+-                    {
+-                        continue;
+-                    }
+-                    let Some(remaining) =
+-                        self.aircraft[aircraft_index].failure_remaining_by_slot[slot].as_mut()
+-                    else {
+-                        bail!(
+-                            "event-time-v2 cannot skip a missing failure timer for aircraft {aircraft_index} slot {slot}"
+-                        );
+-                    };
+-                    *remaining -= 1.0;
+-                    if self.profile_enabled {
+-                        self.profile.event_continuous_failure_ticks += 1;
++                let Some(remaining) =
++                    self.aircraft[aircraft_index].failure_remaining_by_slot[slot].as_mut()
++                else {
++                    bail!(
++                        "event-time-v2 cannot skip a missing failure timer for aircraft {aircraft_index} slot {slot}"
++                    );
++                };
++                match failure_advance_mode(*remaining, skipped) {
++                    FailureAdvanceMode::Analytic => {
++                        *remaining -= skipped as f64;
++                        if self.profile_enabled {
++                            self.profile.event_continuous_failure_ticks = self
++                                .profile
++                                .event_continuous_failure_ticks
++                                .saturating_add(skipped as u64);
++                            self.profile.event_continuous_failure_analytic_advances = self
++                                .profile
++                                .event_continuous_failure_analytic_advances
++                                .saturating_add(1);
++                        }
+                     }
+-                    if *remaining <= 0.0 {
+-                        bail!(
+-                            "event-time-v2 skipped component failure for aircraft {aircraft_index} slot {slot}"
+-                        );
++                    mode => {
++                        if self.profile_enabled {
++                            match mode {
++                                FailureAdvanceMode::FallbackNonFinite => {
++                                    self.profile.event_continuous_failure_fallback_non_finite =
++                                        self.profile
++                                            .event_continuous_failure_fallback_non_finite
++                                            .saturating_add(1);
++                                }
++                                FailureAdvanceMode::FallbackOutOfExactRange => {
++                                    self.profile
++                                        .event_continuous_failure_fallback_out_of_exact_range =
++                                        self.profile
++                                            .event_continuous_failure_fallback_out_of_exact_range
++                                            .saturating_add(1);
++                                }
++                                FailureAdvanceMode::FallbackDueGuard => {
++                                    self.profile.event_continuous_failure_fallback_due_guard = self
++                                        .profile
++                                        .event_continuous_failure_fallback_due_guard
++                                        .saturating_add(1);
++                                }
++                                FailureAdvanceMode::Analytic => unreachable!(),
++                            }
++                        }
++                        for _ in 0..skipped {
++                            *remaining -= 1.0;
++                            if self.profile_enabled {
++                                self.profile.event_continuous_failure_ticks = self
++                                    .profile
++                                    .event_continuous_failure_ticks
++                                    .saturating_add(1);
++                                self.profile.event_continuous_failure_fallback_ticks = self
++                                    .profile
++                                    .event_continuous_failure_fallback_ticks
++                                    .saturating_add(1);
++                            }
++                            if *remaining <= 0.0 {
++                                bail!(
++                                    "event-time-v2 skipped component failure for aircraft {aircraft_index} slot {slot}"
++                                );
++                            }
++                        }
+                     }
+                 }
++                if *remaining <= 0.0 {
++                    bail!(
++                        "event-time-v2 skipped component failure for aircraft {aircraft_index} slot {slot}"
++                    );
++                }
+             }
+         }
+         Ok(())
+@@ -458,9 +532,31 @@ fn failure_ticks_until_due(remaining: f64) -> i64 {
+     }
+ }
+ 
++fn job_bulk_remaining(remaining: i64, skipped: i64) -> Option<i64> {
++    if skipped <= 0 {
++        return None;
++    }
++    remaining.checked_sub(skipped).filter(|next| *next > 0)
++}
++
++fn failure_advance_mode(remaining: f64, skipped: i64) -> FailureAdvanceMode {
++    if !remaining.is_finite() {
++        FailureAdvanceMode::FallbackNonFinite
++    } else if remaining <= 0.0 || skipped <= 0 || skipped >= failure_ticks_until_due(remaining) {
++        FailureAdvanceMode::FallbackDueGuard
++    } else if remaining > MAX_EXACT_F64_INTEGER {
++        FailureAdvanceMode::FallbackOutOfExactRange
++    } else {
++        FailureAdvanceMode::Analytic
++    }
++}
++
+ #[cfg(test)]
+ mod tests {
+-    use super::failure_ticks_until_due;
++    use super::{
++        FailureAdvanceMode, MAX_EXACT_F64_INTEGER, failure_advance_mode, failure_ticks_until_due,
++        job_bulk_remaining,
++    };
+ 
+     #[test]
+     fn failure_deadline_matches_repeated_minute_countdown() {
+@@ -474,4 +570,101 @@ mod tests {
+             assert_eq!(failure_ticks_until_due(remaining), ticks);
+         }
+     }
++
++    #[test]
++    fn job_bulk_advance_matches_repeated_and_rejects_completion() {
++        for remaining in [1, 2, 3, 31, 4_096, i64::MAX] {
++            for skipped in [1, 2, 7, 255, 4_095] {
++                let bulk = job_bulk_remaining(remaining, skipped);
++                if skipped >= remaining {
++                    assert_eq!(bulk, None);
++                    continue;
++                }
++                let mut repeated = remaining;
++                for _ in 0..skipped {
++                    repeated -= 1;
++                }
++                assert_eq!(bulk, Some(repeated));
++            }
++        }
++        assert_eq!(job_bulk_remaining(i64::MIN, 1), None);
++        assert_eq!(job_bulk_remaining(10, 0), None);
++    }
++
++    #[test]
++    fn guarded_failure_bulk_advance_matches_repeated_bits_and_due_tick() {
++        let whole_values = [
++            1_u64,
++            2,
++            3,
++            7,
++            31,
++            255,
++            1_023,
++            65_535,
++            1 << 20,
++            1 << 32,
++            1 << 48,
++            (1 << 52) - 2,
++            1 << 52,
++            (1 << 53) - 2,
++            1 << 53,
++        ];
++        for whole in whole_values {
++            for fraction in [0.0, 0.25, 0.5, 0.75] {
++                let remaining = whole as f64 + fraction;
++                for skipped in [1, 2, 3, 7, 31, 255, 4_095] {
++                    if skipped >= failure_ticks_until_due(remaining) {
++                        continue;
++                    }
++                    assert_eq!(
++                        failure_advance_mode(remaining, skipped),
++                        FailureAdvanceMode::Analytic
++                    );
++                    let mut repeated = remaining;
++                    for _ in 0..skipped {
++                        repeated -= 1.0;
++                    }
++                    let bulk = remaining - skipped as f64;
++                    assert_eq!(bulk.to_bits(), repeated.to_bits());
++                    assert_eq!(
++                        skipped + failure_ticks_until_due(bulk),
++                        failure_ticks_until_due(remaining)
++                    );
++                }
++            }
++        }
++    }
++
++    #[test]
++    fn failure_guard_routes_unsafe_values_to_repeated_fallback() {
++        assert_eq!(
++            failure_advance_mode(f64::NAN, 1),
++            FailureAdvanceMode::FallbackNonFinite
++        );
++        assert_eq!(
++            failure_advance_mode(f64::INFINITY, 1),
++            FailureAdvanceMode::FallbackNonFinite
++        );
++        assert_eq!(
++            failure_advance_mode(1.25, 2),
++            FailureAdvanceMode::FallbackDueGuard
++        );
++
++        let remaining = MAX_EXACT_F64_INTEGER + 2.0;
++        assert_eq!(
++            failure_advance_mode(remaining, 2),
++            FailureAdvanceMode::FallbackOutOfExactRange
++        );
++        let mut repeated = remaining;
++        for _ in 0..2 {
++            repeated -= 1.0;
++        }
++        let bulk = remaining - 2.0;
++        assert_ne!(bulk.to_bits(), repeated.to_bits());
++        assert_ne!(
++            failure_ticks_until_due(bulk),
++            failure_ticks_until_due(repeated)
++        );
++    }
+ }

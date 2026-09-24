@@ -1,6 +1,6 @@
 # 实施路线与验收
 
-当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本与批量执行内核、稳定排序、Python 绑定和正式分段基准。详细证据见 [独立 reference conformance](b1-independent-reference.md)与[阶段 C 基准](../benchmarks/stage_c/README.md)。B1/B2/B3 兼容范围及 F35 seeds `0、1、7` 已完成 Python/Rust 完整结果差分；阶段 B 后续是物化 Business/Core IR，阶段 C 后续是缓存失效合同与有证据支持的事件跳跃。
+当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本与批量执行内核、稳定排序、Python 绑定和正式分段基准。2026-09-24 另完成一个 opt-in MLIR 资源依赖索引试点：F35 三组对照的完整结果一致，9 次运行总成本降低 4.26%。详细证据见 [独立 reference conformance](b1-independent-reference.md)、[阶段 C 基准](../benchmarks/stage_c/README.md)和[MLIR 试点](mlir-resource-dispatch-pilot.md)。完整 Business/Core IR 尚未物化。
 
 ## 阶段路线
 
@@ -45,18 +45,24 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 主要成本是逐分钟 mission/job/component 扫描及其 Plan spec/字符串克隆与 Map 操作，
 而不是 trace JSON；证据见 `benchmarks/hot_path/README.md`。
 
-实验分支新增 Rust canonical-input AOT compiler 和 `sim-engine-plan-cache/v2`：五个固定
+实验分支新增 Rust canonical-input AOT compiler 和版本化 Plan 缓存（整合后格式 `sim-engine-plan-cache/v3`）：五个固定
 fixture 与 Python Plan 结构一致，Project 指纹命中可在 Adapter 前加载 Plan。AMD128 30 次
-中位结果为命中并执行 O5 summary 的进程墙钟 `88.339 ms`；第一次启动仍受 Python
+中位结果为整合前 v2 缓存命中并执行 O5 summary 的进程墙钟 `88.339 ms`；当前 v3 格式尚未重新测量。第一次启动仍受 Python
 Project export/Adapter 的 `~0.72 s` 主导。证据和未实现的 Rust Adapter 边界见
 `benchmarks/cold_start/README.md`。
 
-### C1：基于 F35 热路径的兼容优化（O0/O1/O3/O4a/O6 已验收）
+### B5：MLIR 资源依赖索引试点（已完成，opt-in）
+
+采用 LLVM/MLIR 23.1.1，在小型 `sim` Core IR 投影上实现资源依赖分析 pass。Rust 执行器消费可选反向索引，只复用依赖未变化的等待作业阻塞检查；事件顺序和 RNG 行为保持原样。
+
+整合前的真实 F35 canonical 输入 → `sim` MLIR pass → Execution Plan → Rust 执行器链路已完成三组对照：seeds `0、1、7` 各运行三次，full `RunResult` 完全一致。动态 guard 检查从 1,005,081 降至 42,936，九次运行的编译、加载与执行总成本降低 4.26%。这些数字属于旧计划和旧资源语义；MC 整合后的组合须重新差分和计时。完整限制和 raw evidence 见[MLIR 试点记录](mlir-resource-dispatch-pilot.md)。这项结果不代表完整 IR 物化或一般硬件收益；LLVM codegen/JIT/GPU 不在本里程碑。
+
+### C1：基于 F35 热路径的优化（O0/O1/O3/O4a/O5a/O6 已验收）
 
 执行顺序与逐项验收见 [观测隔离与 F35 热路径优化计划](performance-optimization-plan.md)。
 先补齐测量保护、消除三个 mission phase 的无效深克隆，再预计算静态关系、迁移故障状态数组，
-随后按新 profile 评估活动集合。事件跳跃须等待完整唤醒合同与边界差分，不作为首轮改动。
-O0 已补齐构建/源码身份、插桩等价和双观测级别测试；O1 已移除三个 mission phase 的逐项深克隆及逐分钟 phase 表复制。证据见 [O1 候选报告](../benchmarks/hot_path/results/20260920-o1-50857fe/README.md)。O3 已将每架飞机适用组件的故障剩余寿命/故障分钟迁移为稀疏平行数组，并增加稠密索引与引用校验；31 项差分继续通过，两轮正式复测相对 O1 再降低约 49%–63%，证据见 [O3 候选报告](../benchmarks/hot_path/results/20260920-o3-9400f0f/README.md)。O4a 已将 waiting/running 历史作业移出 progress/dispatch 候选扫描，四组同会话固定二进制对照的各 seed/观测组合跨会话中位改善为 5.20%–6.76%，证据见 [O4a 报告](../benchmarks/hot_path/results/20260920-o4a-1f394ba/README.md)。O6 将 activity/step 派发字段编译为批量样本共享的只读 layout，消除 resource dispatch/job progress 的热路径深拷贝；24 个固定二进制对照单元全部正向，各 seed/观测组合跨会话中位改善为 11.09%–18.17%，证据见 [O6 报告](../benchmarks/hot_path/results/20260920-o6-4508860/README.md)。O5 第一阶段新增显式 `event-time-v2` 保守跳时路径，F35 三 seed 双观测精确等价，AMD128 稳定会话的各组合跨会话中位改善为 69.74%–81.62%，证据见 [O5 报告](../benchmarks/hot_path/results/o5-event-time-v2-20260921/README.md)。O2a preventive 与 O4b active-preflight 候选虽降低目标访问，但整体墙钟未达到收录线，均已回退并保留 [O2a](../benchmarks/hot_path/results/20260920-o2a-c072639/README.md) / [O4b](../benchmarks/hot_path/results/20260920-o4b-838e6bc/README.md) 证据。
+随后按新 profile 评估活动集合。O5a 已作为独立 `event-time-v2` 语义 profile 验收；O5d 仍是待独立集成的候选，完整 callback 调度与 microstep 收敛尚未实现。
+O0–O6 的实现与证据见[热路径报告](../benchmarks/hot_path/README.md)。O5a 新增独立 `event-time-v2` profile，以保守唤醒日历跳过空分钟，并在唤醒时执行 canonical phase 表；F35 三 seed、双观测及边界差分精确一致，原 AMD128 报告中的稳定会话改善为 69.74%–81.62%。O5b/O5c 候选已拒绝或不收录；O5d guarded continuous advance 保留为待独立集成候选，原始证据见[O5 实验记录](../benchmarks/hot_path/results/20260921-o5b-o5c-o5d-amd128/README.md)。O7 clone-elision 候选通过语义与目标 phase 验证，但未达整体墙钟收录门槛，见[O7 报告](../benchmarks/hot_path/results/20260920-o7-dispatch-clone-elision/README.md)。
 
 ## 测试分工
 
@@ -75,7 +81,7 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 ## 后续工作
 
-1. C1 当前收录到 O6；O2a/O4b 已因收益不足回退。后续 dense inventory/reservation、compatibility lowering 与 waiting ready queue 各自独立测量，不把 F35 无静态 spare/运输负载的结果外推到库存优化。
+1. C1 的正式优化记录当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。MLIR 资源索引是独立 opt-in 试点，已证明 F35 九次执行下有 4.26% 总成本收益；推广前还要用另一台主机及更稠密、更多样的资源网络测量。完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。
 2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
-3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；在已验证的 O5 保守跳时基础上，单独设计 persistent event、owner generation、stale token 与 microstep convergence。当前尚未实现直接事件回调执行。
+3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；先把已通过实验门槛的 O5d guarded continuous advance 作为独立变更集成/验收，再在 O5 保守跳时基础上重新设计 transition-owned persistent event、owner generation、stale token 与 microstep convergence。当前尚未实现直接事件回调执行。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。

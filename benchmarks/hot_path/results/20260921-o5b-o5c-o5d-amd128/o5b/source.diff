@@ -1,0 +1,656 @@
+diff --git a/rust/runtime/src/runtime.rs b/rust/runtime/src/runtime.rs
+index 3b35aa7..c264804 100644
+--- a/rust/runtime/src/runtime.rs
++++ b/rust/runtime/src/runtime.rs
+@@ -112,11 +112,16 @@ pub struct PhaseProfile {
+ pub struct RuntimeProfile {
+     pub minute_iterations: u64,
+     pub event_calendar_rebuilds: u64,
++    pub event_calendar_syncs: u64,
++    pub event_calendar_compactions: u64,
+     pub event_candidates_pushed: u64,
+     pub event_candidates_popped: u64,
++    pub event_candidate_invalidations: u64,
++    pub event_stale_candidates_popped: u64,
+     pub event_wakeups: u64,
+     pub event_skipped_minutes: u64,
+     pub event_max_queue_len: u64,
++    pub event_active_wakes_peak: u64,
+     pub event_continuous_job_ticks: u64,
+     pub event_continuous_failure_ticks: u64,
+     pub execution_ns: u64,
+diff --git a/rust/runtime/src/runtime/event_time.rs b/rust/runtime/src/runtime/event_time.rs
+index 5c4ef71..28bf750 100644
+--- a/rust/runtime/src/runtime/event_time.rs
++++ b/rust/runtime/src/runtime/event_time.rs
+@@ -1,4 +1,7 @@
+-use std::{cmp::Reverse, collections::BinaryHeap};
++use std::{
++    cmp::Reverse,
++    collections::{BTreeMap, BinaryHeap},
++};
+ 
+ use anyhow::{Result, bail};
+ 
+@@ -19,6 +22,30 @@ enum WakeKind {
+     Horizon,
+ }
+ 
++#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
++enum WakeOwner {
++    Horizon,
++    DeferredPhase,
++    Shipment(usize),
++    AircraftReturn(usize),
++    AircraftFailure(usize, usize),
++    AircraftDayBoundary(usize),
++    JobCompletion(usize),
++    PreventiveCycle(usize),
++    MissionPreparation(usize),
++    MissionPlannedDispatch(usize),
++    MissionCancelDispatch(usize),
++    MissionSuccess(usize),
++}
++
++#[derive(Clone, Copy, Debug, Eq, PartialEq)]
++struct WakeSpec {
++    minute: i64,
++    phase_rank: u16,
++    owner_order: usize,
++    kind: WakeKind,
++}
++
+ #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+ struct ScheduledWake {
+     minute: i64,
+@@ -26,66 +53,184 @@ struct ScheduledWake {
+     owner_order: usize,
+     sequence: u64,
+     kind: WakeKind,
++    owner: WakeOwner,
++    generation: u64,
++}
++
++#[derive(Clone, Copy, Debug)]
++struct ActiveWake {
++    spec: WakeSpec,
++    scheduled: ScheduledWake,
++}
++
++#[derive(Default)]
++struct CalendarUpdate {
++    pushed: u64,
++    invalidated: u64,
++    compacted: bool,
+ }
+ 
+ struct WakeCalendar {
+     queue: BinaryHeap<Reverse<ScheduledWake>>,
++    active: BTreeMap<WakeOwner, ActiveWake>,
++    generations: BTreeMap<WakeOwner, u64>,
+     next_sequence: u64,
+ }
+ 
+ impl WakeCalendar {
++    const STALE_ENTRY_SLACK: usize = 32;
++
+     fn new() -> Self {
+         Self {
+             queue: BinaryHeap::new(),
++            active: BTreeMap::new(),
++            generations: BTreeMap::new(),
+             next_sequence: 0,
+         }
+     }
+ 
+-    fn schedule(
+-        &mut self,
++    fn reconcile(&mut self, desired: &BTreeMap<WakeOwner, WakeSpec>) -> CalendarUpdate {
++        let mut update = CalendarUpdate::default();
++        let removed: Vec<_> = self
++            .active
++            .keys()
++            .filter(|owner| !desired.contains_key(owner))
++            .copied()
++            .collect();
++        for owner in removed {
++            self.active.remove(&owner);
++            self.bump_generation(owner);
++            update.invalidated += 1;
++        }
++
++        for (&owner, &spec) in desired {
++            if self
++                .active
++                .get(&owner)
++                .is_some_and(|active| active.spec == spec)
++            {
++                continue;
++            }
++            if self.active.remove(&owner).is_some() {
++                update.invalidated += 1;
++            }
++            let generation = self.bump_generation(owner);
++            let sequence = self.next_sequence;
++            self.next_sequence = self.next_sequence.saturating_add(1);
++            let scheduled = ScheduledWake {
++                minute: spec.minute,
++                phase_rank: spec.phase_rank,
++                owner_order: spec.owner_order,
++                sequence,
++                kind: spec.kind,
++                owner,
++                generation,
++            };
++            self.queue.push(Reverse(scheduled));
++            self.active.insert(owner, ActiveWake { spec, scheduled });
++            update.pushed += 1;
++        }
++
++        let queue_limit = self
++            .active
++            .len()
++            .saturating_mul(2)
++            .saturating_add(Self::STALE_ENTRY_SLACK);
++        if self.queue.len() > queue_limit {
++            self.queue = self
++                .active
++                .values()
++                .map(|active| Reverse(active.scheduled))
++                .collect();
++            update.compacted = true;
++        }
++        update
++    }
++
++    fn bump_generation(&mut self, owner: WakeOwner) -> u64 {
++        let generation = self.generations.entry(owner).or_default();
++        *generation = generation.saturating_add(1);
++        *generation
++    }
++
++    fn pop_next(&mut self) -> (Option<ScheduledWake>, u64, u64) {
++        let mut popped = 0;
++        let mut stale = 0;
++        while let Some(Reverse(wake)) = self.queue.pop() {
++            popped += 1;
++            let is_active = self
++                .active
++                .get(&wake.owner)
++                .is_some_and(|active| active.scheduled == wake);
++            if is_active {
++                self.active.remove(&wake.owner);
++                return (Some(wake), popped, stale);
++            }
++            stale += 1;
++        }
++        (None, popped, stale)
++    }
++
++    fn schedule_candidate(
++        desired: &mut BTreeMap<WakeOwner, WakeSpec>,
+         current_minute: i64,
+         horizon: i64,
+-        minute: i64,
+-        phase_rank: u16,
+-        owner_order: usize,
+-        kind: WakeKind,
++        owner: WakeOwner,
++        spec: WakeSpec,
+     ) {
+-        if minute <= current_minute || minute > horizon {
++        if spec.minute <= current_minute || spec.minute > horizon {
+             return;
+         }
+-        let sequence = self.next_sequence;
+-        self.next_sequence = self.next_sequence.saturating_add(1);
+-        self.queue.push(Reverse(ScheduledWake {
+-            minute,
+-            phase_rank,
+-            owner_order,
+-            sequence,
+-            kind,
+-        }));
++        let previous = desired.insert(owner, spec);
++        debug_assert!(previous.is_none(), "duplicate event-time wake owner");
++    }
++
++    #[cfg(test)]
++    fn queue_limit(&self) -> usize {
++        self.active
++            .len()
++            .saturating_mul(2)
++            .saturating_add(Self::STALE_ENTRY_SLACK)
+     }
+ }
+ 
+ impl Runtime {
+     pub(super) fn run_event_time_until(&mut self, horizon: i64) -> Result<()> {
++        let mut calendar = WakeCalendar::new();
++        if self.profile_enabled {
++            self.profile.event_calendar_rebuilds += 1;
++        }
+         while self.running && self.minute < horizon {
+-            let mut calendar = self.build_wake_calendar(horizon);
++            let desired = self.collect_wake_candidates(horizon);
++            let update = calendar.reconcile(&desired);
+             if self.profile_enabled {
+-                self.profile.event_calendar_rebuilds += 1;
+-                self.profile.event_candidates_pushed += calendar.queue.len() as u64;
++                self.profile.event_calendar_syncs += 1;
++                self.profile.event_candidates_pushed += update.pushed;
++                self.profile.event_candidate_invalidations += update.invalidated;
+                 self.profile.event_max_queue_len = self
+                     .profile
+                     .event_max_queue_len
+                     .max(calendar.queue.len() as u64);
++                self.profile.event_active_wakes_peak = self
++                    .profile
++                    .event_active_wakes_peak
++                    .max(calendar.active.len() as u64);
++                if update.compacted {
++                    self.profile.event_calendar_rebuilds += 1;
++                    self.profile.event_calendar_compactions += 1;
++                }
++            }
++            let (wake, popped, stale) = calendar.pop_next();
++            if self.profile_enabled {
++                self.profile.event_candidates_popped += popped;
++                self.profile.event_stale_candidates_popped += stale;
+             }
+-            let Some(Reverse(wake)) = calendar.queue.pop() else {
++            let Some(wake) = wake else {
+                 bail!(
+                     "event-time-v2 calendar is empty at minute {} before horizon {horizon}",
+                     self.minute
+                 );
+             };
+-            if self.profile_enabled {
+-                self.profile.event_candidates_popped += 1;
+-            }
+             if wake.minute <= self.minute {
+                 bail!(
+                     "event-time-v2 produced non-forward wakeup {} at minute {}",
+@@ -106,34 +251,64 @@ impl Runtime {
+         Ok(())
+     }
+ 
+-    fn build_wake_calendar(&self, horizon: i64) -> WakeCalendar {
+-        let mut calendar = WakeCalendar::new();
+-        calendar.schedule(self.minute, horizon, horizon, 14, 0, WakeKind::Horizon);
++    fn collect_wake_candidates(&self, horizon: i64) -> BTreeMap<WakeOwner, WakeSpec> {
++        let mut desired = BTreeMap::new();
++        WakeCalendar::schedule_candidate(
++            &mut desired,
++            self.minute,
++            horizon,
++            WakeOwner::Horizon,
++            WakeSpec {
++                minute: horizon,
++                phase_rank: 14,
++                owner_order: 0,
++                kind: WakeKind::Horizon,
++            },
++        );
+         if self.minute == 0 {
+-            calendar.schedule(self.minute, horizon, 1, 0, 0, WakeKind::DeferredPhase);
++            WakeCalendar::schedule_candidate(
++                &mut desired,
++                self.minute,
++                horizon,
++                WakeOwner::DeferredPhase,
++                WakeSpec {
++                    minute: 1,
++                    phase_rank: 0,
++                    owner_order: 0,
++                    kind: WakeKind::DeferredPhase,
++                },
++            );
+         }
+ 
+         for (shipment_index, shipment) in self.shipments.iter().enumerate() {
+-            calendar.schedule(
++            WakeCalendar::schedule_candidate(
++                &mut desired,
+                 self.minute,
+                 horizon,
+-                shipment.arrival_minute.max(self.minute.saturating_add(1)),
+-                0,
+-                shipment_index,
+-                WakeKind::TransportArrival,
++                WakeOwner::Shipment(shipment_index),
++                WakeSpec {
++                    minute: shipment.arrival_minute.max(self.minute.saturating_add(1)),
++                    phase_rank: 0,
++                    owner_order: shipment_index,
++                    kind: WakeKind::TransportArrival,
++                },
+             );
+         }
+ 
+         for (aircraft_index, aircraft) in self.aircraft.iter().enumerate() {
+             if aircraft.state == "flying" {
+                 if let Some(return_time) = aircraft.return_time {
+-                    calendar.schedule(
++                    WakeCalendar::schedule_candidate(
++                        &mut desired,
+                         self.minute,
+                         horizon,
+-                        return_time.max(self.minute.saturating_add(1)),
+-                        1,
+-                        aircraft_index,
+-                        WakeKind::MissionReturn,
++                        WakeOwner::AircraftReturn(aircraft_index),
++                        WakeSpec {
++                            minute: return_time.max(self.minute.saturating_add(1)),
++                            phase_rank: 1,
++                            owner_order: aircraft_index,
++                            kind: WakeKind::MissionReturn,
++                        },
+                     );
+                 }
+                 if !aircraft.in_flight_failure {
+@@ -152,15 +327,19 @@ impl Runtime {
+                                 .saturating_add(failure_ticks_until_due(remaining)),
+                             Some(_) => continue,
+                         };
+-                        calendar.schedule(
++                        WakeCalendar::schedule_candidate(
++                            &mut desired,
+                             self.minute,
+                             horizon,
+-                            due,
+-                            3,
+-                            aircraft_index
+-                                .saturating_mul(1_000_000)
+-                                .saturating_add(slot),
+-                            WakeKind::ComponentFailure,
++                            WakeOwner::AircraftFailure(aircraft_index, slot),
++                            WakeSpec {
++                                minute: due,
++                                phase_rank: 3,
++                                owner_order: aircraft_index
++                                    .saturating_mul(1_000_000)
++                                    .saturating_add(slot),
++                                kind: WakeKind::ComponentFailure,
++                            },
+                         );
+                     }
+                 }
+@@ -170,13 +349,17 @@ impl Runtime {
+                 && !aircraft.postflight_due
+             {
+                 let boundary = operations_day.saturating_add(1).saturating_mul(1440);
+-                calendar.schedule(
++                WakeCalendar::schedule_candidate(
++                    &mut desired,
+                     self.minute,
+                     horizon,
+-                    boundary,
+-                    4,
+-                    aircraft_index,
+-                    WakeKind::DayBoundary,
++                    WakeOwner::AircraftDayBoundary(aircraft_index),
++                    WakeSpec {
++                        minute: boundary,
++                        phase_rank: 4,
++                        owner_order: aircraft_index,
++                        kind: WakeKind::DayBoundary,
++                    },
+                 );
+             }
+         }
+@@ -185,13 +368,17 @@ impl Runtime {
+             let due = self
+                 .minute
+                 .saturating_add(self.jobs[job_index].remaining.max(1));
+-            calendar.schedule(
++            WakeCalendar::schedule_candidate(
++                &mut desired,
+                 self.minute,
+                 horizon,
+-                due,
+-                2,
+-                job_index,
+-                WakeKind::JobCompletion,
++                WakeOwner::JobCompletion(job_index),
++                WakeSpec {
++                    minute: due,
++                    phase_rank: 2,
++                    owner_order: job_index,
++                    kind: WakeKind::JobCompletion,
++                },
+             );
+         }
+ 
+@@ -202,55 +389,75 @@ impl Runtime {
+             let due = self.preventive_cycles[cycle_index]
+                 .last_preventive_minute
+                 .saturating_add(spec.calendar_days.saturating_mul(1440));
+-            calendar.schedule(
++            WakeCalendar::schedule_candidate(
++                &mut desired,
+                 self.minute,
+                 horizon,
+-                due,
+-                5,
+-                cycle_index,
+-                WakeKind::PreventiveDue,
++                WakeOwner::PreventiveCycle(cycle_index),
++                WakeSpec {
++                    minute: due,
++                    phase_rank: 5,
++                    owner_order: cycle_index,
++                    kind: WakeKind::PreventiveDue,
++                },
+             );
+         }
+ 
+         for (mission_index, mission) in self.plan.missions.iter().enumerate() {
+             let state = &self.missions[mission_index];
+             if matches!(state.status.as_str(), "scheduled" | "delayed") {
+-                calendar.schedule(
++                WakeCalendar::schedule_candidate(
++                    &mut desired,
+                     self.minute,
+                     horizon,
+-                    mission.preparation_start,
+-                    6,
+-                    mission_index,
+-                    WakeKind::MissionPreparation,
++                    WakeOwner::MissionPreparation(mission_index),
++                    WakeSpec {
++                        minute: mission.preparation_start,
++                        phase_rank: 6,
++                        owner_order: mission_index,
++                        kind: WakeKind::MissionPreparation,
++                    },
+                 );
+-                calendar.schedule(
++                WakeCalendar::schedule_candidate(
++                    &mut desired,
+                     self.minute,
+                     horizon,
+-                    mission.planned_start,
+-                    8,
+-                    mission_index,
+-                    WakeKind::MissionDispatch,
++                    WakeOwner::MissionPlannedDispatch(mission_index),
++                    WakeSpec {
++                        minute: mission.planned_start,
++                        phase_rank: 8,
++                        owner_order: mission_index,
++                        kind: WakeKind::MissionDispatch,
++                    },
+                 );
+-                calendar.schedule(
++                WakeCalendar::schedule_candidate(
++                    &mut desired,
+                     self.minute,
+                     horizon,
+-                    mission.planned_start.saturating_add(mission.cancel_minutes),
+-                    8,
+-                    mission_index,
+-                    WakeKind::MissionDispatch,
++                    WakeOwner::MissionCancelDispatch(mission_index),
++                    WakeSpec {
++                        minute: mission.planned_start.saturating_add(mission.cancel_minutes),
++                        phase_rank: 8,
++                        owner_order: mission_index,
++                        kind: WakeKind::MissionDispatch,
++                    },
+                 );
+             }
+             if !state.success_evaluated {
+                 let start = state.actual_start.unwrap_or(mission.planned_start);
+                 let offset =
+                     (mission.duration_minutes as f64 * mission.success_point).ceil() as i64;
+-                calendar.schedule(
++                WakeCalendar::schedule_candidate(
++                    &mut desired,
+                     self.minute,
+                     horizon,
+-                    start.saturating_add(offset),
+-                    10,
+-                    mission_index,
+-                    WakeKind::MissionSuccess,
++                    WakeOwner::MissionSuccess(mission_index),
++                    WakeSpec {
++                        minute: start.saturating_add(offset),
++                        phase_rank: 10,
++                        owner_order: mission_index,
++                        kind: WakeKind::MissionSuccess,
++                    },
+                 );
+             }
+         }
+@@ -261,17 +468,21 @@ impl Runtime {
+             || self.preflight_possible_now()
+             || self.mission_dispatch_possible_now()
+         {
+-            calendar.schedule(
++            WakeCalendar::schedule_candidate(
++                &mut desired,
+                 self.minute,
+                 horizon,
+-                self.minute.saturating_add(1),
+-                0,
+-                0,
+-                WakeKind::DeferredPhase,
++                WakeOwner::DeferredPhase,
++                WakeSpec {
++                    minute: self.minute.saturating_add(1),
++                    phase_rank: 0,
++                    owner_order: 0,
++                    kind: WakeKind::DeferredPhase,
++                },
+             );
+         }
+ 
+-        calendar
++        desired
+     }
+ 
+     fn advance_continuous_state(&mut self, skipped: i64) -> Result<()> {
+@@ -460,7 +671,20 @@ fn failure_ticks_until_due(remaining: f64) -> i64 {
+ 
+ #[cfg(test)]
+ mod tests {
+-    use super::failure_ticks_until_due;
++    use std::{collections::BTreeMap, sync::Arc};
++
++    use crate::{ObservationLevel, plan::ExecutionPlan};
++
++    use super::{Runtime, WakeCalendar, WakeKind, WakeOwner, WakeSpec, failure_ticks_until_due};
++
++    fn wake_spec(minute: i64) -> WakeSpec {
++        WakeSpec {
++            minute,
++            phase_rank: 8,
++            owner_order: 0,
++            kind: WakeKind::MissionDispatch,
++        }
++    }
+ 
+     #[test]
+     fn failure_deadline_matches_repeated_minute_countdown() {
+@@ -474,4 +698,79 @@ mod tests {
+             assert_eq!(failure_ticks_until_due(remaining), ticks);
+         }
+     }
++
++    #[test]
++    fn persistent_calendar_does_not_requeue_unchanged_owner_deadlines() {
++        let desired = BTreeMap::from([
++            (WakeOwner::Horizon, wake_spec(100)),
++            (WakeOwner::MissionPlannedDispatch(0), wake_spec(20)),
++        ]);
++        let mut calendar = WakeCalendar::new();
++
++        let initial = calendar.reconcile(&desired);
++        let unchanged = calendar.reconcile(&desired);
++
++        assert_eq!(initial.pushed, 2);
++        assert_eq!(unchanged.pushed, 0);
++        assert_eq!(unchanged.invalidated, 0);
++        assert_eq!(calendar.queue.len(), 2);
++        assert_eq!(calendar.active.len(), 2);
++    }
++
++    #[test]
++    fn owner_generation_lazily_discards_rescheduled_deadline() {
++        let owner = WakeOwner::MissionPlannedDispatch(0);
++        let mut calendar = WakeCalendar::new();
++        calendar.reconcile(&BTreeMap::from([(owner, wake_spec(10))]));
++
++        let rescheduled = calendar.reconcile(&BTreeMap::from([(owner, wake_spec(20))]));
++        let (wake, popped, stale) = calendar.pop_next();
++
++        assert_eq!(rescheduled.pushed, 1);
++        assert_eq!(rescheduled.invalidated, 1);
++        assert_eq!(wake.unwrap().minute, 20);
++        assert_eq!(popped, 2);
++        assert_eq!(stale, 1);
++    }
++
++    #[test]
++    fn stale_entries_are_compacted_to_a_bounded_heap() {
++        let owner = WakeOwner::MissionPlannedDispatch(0);
++        let mut calendar = WakeCalendar::new();
++        let mut compactions = 0;
++
++        for minute in 100..200 {
++            let update = calendar.reconcile(&BTreeMap::from([(owner, wake_spec(minute))]));
++            compactions += usize::from(update.compacted);
++            assert!(calendar.queue.len() <= calendar.queue_limit());
++        }
++
++        assert!(compactions > 0);
++        assert_eq!(calendar.active.len(), 1);
++    }
++
++    #[test]
++    fn event_runtime_profiles_one_persistent_calendar_across_wakes() {
++        let bytes = include_bytes!("../../../../tests/fixtures/synthetic/b1-execution-plan.json");
++        let (mut plan, _) = ExecutionPlan::from_slice(bytes).unwrap();
++        plan.semantic_profile = "event-time-v2".into();
++        let runtime = Runtime::from_shared_profiled(
++            Arc::new(plan),
++            "test-fingerprint".into(),
++            0,
++            ObservationLevel::Summary,
++        )
++        .unwrap();
++
++        let (_, profile) = runtime.run_profiled(None).unwrap();
++
++        assert_eq!(profile.event_calendar_syncs, profile.event_wakeups);
++        assert_eq!(
++            profile.event_calendar_rebuilds,
++            profile.event_calendar_compactions + 1
++        );
++        assert!(profile.event_calendar_rebuilds < profile.event_calendar_syncs);
++        assert!(profile.event_active_wakes_peak > 0);
++        assert!(profile.event_candidates_pushed < profile.event_calendar_syncs * 4);
++    }
+ }

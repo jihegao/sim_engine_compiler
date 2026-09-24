@@ -1,6 +1,6 @@
 # 架构与模块边界
 
-状态：Python reference 与独立 Rust 单样本/批量 runtime 已实现 canonical input → Execution Plan → result，并完成 B1/B2/B3 与 F35 三个 seed 的跨后端验收；批量执行通过 PyO3 暴露给 Python。Business/Core IR 分层物化、缓存及 agent 编辑仍按本文推进。
+状态：Python reference 与独立 Rust 单样本/批量 runtime 已实现 canonical input → Execution Plan → result，并完成 B1/B2/B3 与 F35 三个 seed 的跨后端验收；批量执行通过 PyO3 暴露给 Python。2026-09-24 已完成一个范围受限的 MLIR 资源依赖索引试点，证据见 [MLIR 试点记录](mlir-resource-dispatch-pilot.md)。Business IR 尚未物化；该试点只投影当前 typed plan 中的相关 Core 语义子集，不代表三层 IR 全部实现。
 
 ## 模型流转
 
@@ -73,9 +73,17 @@ flowchart TD
 
 Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回调。批量请求以输入位置作为稳定 `sample_index`，允许重复 seed；Rust 线程池共享 `Arc<ExecutionPlan>`，每个样本创建独立 RunState，完成后按 `sample_index` 排序。线程数变化已验证不改变逐样本结果。当前实现提供 `full` 与 `summary`：前者保留完整 trace，后者不 materialize trace 事件 JSON，但保留同一调度、随机请求 tape、metrics 与终态；F35 seeds `0、1、7` 已通过跨级别差分。阶段 C 正式分段基准使用 `full`，热路径报告单独比较两级别。
 
+## MLIR 资源依赖索引试点
+
+`scripts/compile_mlir_execution_plan.py` 沿用现有 canonical `simulation_inputs` 编译入口，在内存中取得类型化的活动、工作步骤、组件和供应路线后，投影出小型 `sim` Core IR 模块。MLIR pass 校验 `legacy-minute-v1` 或 `event-time-v2` profile、canonical 15-phase 顺序、读集合、副作用、稳定身份和依赖完整性，构造资源到候选工作的反向索引；编译器将该派生索引附加到最终 Execution Plan 后导出。这里没有第二套 Project JSON 解析器，也没有持久化一套重复的业务语义。试点没有声称已经物化完整 Business IR 或通用 Core IR。
+
+索引只覆盖当前飞机保障 profile 明确表达的人员/设备容量、本地备件、供应路线源库存和动态 LRU 换件需求。索引不改变调度顺序、事件阶段或 RNG 调用；Rust 执行器仍按原优先级/时间/作业 ID 顺序访问等待作业，只有在依赖资源未变化时才复用阻塞结果，并按原位置重放每分钟容量延迟事件。缺少索引时走原始全检查路径；有索引但版本、校验和、基础计划指纹或完整依赖校验失败时拒绝执行。
+
+该 pass 只分析静态依赖，不移动或重复执行带副作用的事件操作。O5＋MLIR 组合回归在 F35 seeds `0、1、7` 上比较索引开/关的完整 Rust `RunResult`，结果完全一致；这是组合语义验证，不是新的性能测量。`LLVM/MLIR 23.1.1` 通过 CMake 精确固定。完整 F35 结果、三组对照、编译/加载/运行分段与限制见试点记录；本次从最新 `main` 开始的组合验证另见 [O5＋MLIR 整合报告](../experiments/ir_validation/INTEGRATION_20260924.md)。
+
 ## 创作模式与未来扩展
 
-原型为 `project-import`：Project 是真源，Business IR 为派生产物。原 Project 字段修改回到上游，再重新导入。未来 `ir-native` 模式以 ModelRevision 为真源，显式记录一次性导入来源。
+计划中的 `project-import` 模式以 Project 为真源，并从导入结果派生 Business IR；当前实现尚未物化 Business IR。原 Project 字段修改应回到上游，再重新导入。未来 `ir-native` 模式以 ModelRevision 为真源，显式记录一次性导入来源。
 
 阶段 D 增加补丁、影响分析、验证、编译与版本发布。正在运行的任务固定模型修订；新补丁生成新修订和新运行。运行中状态迁移另行设计。
 

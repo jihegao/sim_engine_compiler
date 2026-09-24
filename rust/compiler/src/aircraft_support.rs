@@ -1226,6 +1226,7 @@ pub fn compile_aircraft_support_with_profile(
         components,
         preventive_cycles,
         supply_routes,
+        resource_dispatch_index: None,
         unsupported_features: Vec::new(),
     };
     plan.validate()?;

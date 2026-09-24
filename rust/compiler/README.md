@@ -6,7 +6,8 @@ rules stay in `aircraft_support.rs`; the generic runtime does not dispatch on a
 domain name.
 
 The CLI defaults to the accepted experimental `event-time-v2` profile and
-writes a versioned binary Plan cache:
+writes a versioned binary Plan cache. The integrated cache format is
+`sim-engine-plan-cache/v3`; older v2 files fail closed and must be rebuilt:
 
 ```bash
 cargo build --release --manifest-path rust/compiler/Cargo.toml

@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::plan::{ExecutionPlan, PLAN_VERSION};
 
-const MAGIC: &[u8; 8] = b"SEPLAN\0\x02";
-pub const PLAN_CACHE_FORMAT_VERSION: &str = "sim-engine-plan-cache/v2";
+const MAGIC: &[u8; 8] = b"SEPLAN\0\x03";
+pub const PLAN_CACHE_FORMAT_VERSION: &str = "sim-engine-plan-cache/v3";
 
 pub fn is_plan_cache(bytes: &[u8]) -> bool {
     bytes.starts_with(MAGIC)
@@ -23,6 +23,21 @@ pub struct CachedExecutionPlan {
     pub plan_version: String,
     pub plan_fingerprint: String,
     pub plan: ExecutionPlan,
+}
+
+// ExecutionPlan's optional MLIR index is omitted from JSON when absent. Bincode
+// decodes struct fields positionally, so serialize the plan as JSON inside the
+// binary envelope instead of applying that omission to a positional sequence.
+#[derive(Deserialize, Serialize)]
+struct CachedPlanWire {
+    cache_format_version: String,
+    compiler_version: String,
+    source_model_sha256: Option<String>,
+    adapter_contract_version: Option<String>,
+    source_inputs_sha256: String,
+    plan_version: String,
+    plan_fingerprint: String,
+    plan_json: Vec<u8>,
 }
 
 pub fn encode_plan_cache(
@@ -51,7 +66,17 @@ pub fn encode_plan_cache_with_identity(
         plan_fingerprint: plan_fingerprint.to_owned(),
         plan,
     };
-    let payload = bincode_serde::encode_to_vec(&envelope, config::standard())
+    let wire = CachedPlanWire {
+        cache_format_version: envelope.cache_format_version,
+        compiler_version: envelope.compiler_version,
+        source_model_sha256: envelope.source_model_sha256,
+        adapter_contract_version: envelope.adapter_contract_version,
+        source_inputs_sha256: envelope.source_inputs_sha256,
+        plan_version: envelope.plan_version,
+        plan_fingerprint: envelope.plan_fingerprint,
+        plan_json: serde_json::to_vec(&envelope.plan)?,
+    };
+    let payload = bincode_serde::encode_to_vec(&wire, config::standard())
         .context("encode execution plan cache")?;
     let mut output = Vec::with_capacity(MAGIC.len() + payload.len());
     output.extend_from_slice(MAGIC);
@@ -95,12 +120,22 @@ pub fn decode_plan_cache(
     if !bytes.starts_with(MAGIC) {
         bail!("invalid execution plan cache magic");
     }
-    let (envelope, consumed): (CachedExecutionPlan, usize) =
+    let (wire, consumed): (CachedPlanWire, usize) =
         bincode_serde::decode_from_slice(&bytes[MAGIC.len()..], config::standard())
             .context("decode execution plan cache")?;
     if consumed != bytes.len() - MAGIC.len() {
         bail!("execution plan cache has trailing bytes");
     }
+    let envelope = CachedExecutionPlan {
+        cache_format_version: wire.cache_format_version,
+        compiler_version: wire.compiler_version,
+        source_model_sha256: wire.source_model_sha256,
+        adapter_contract_version: wire.adapter_contract_version,
+        source_inputs_sha256: wire.source_inputs_sha256,
+        plan_version: wire.plan_version,
+        plan_fingerprint: wire.plan_fingerprint,
+        plan: serde_json::from_slice(&wire.plan_json).context("decode cached plan JSON")?,
+    };
     if envelope.cache_format_version != PLAN_CACHE_FORMAT_VERSION {
         bail!(
             "unsupported cache format {:?}",
@@ -163,6 +198,7 @@ mod tests {
             components: Vec::new(),
             preventive_cycles: Vec::new(),
             supply_routes: Vec::new(),
+            resource_dispatch_index: None,
             unsupported_features: Vec::new(),
         }
     }

@@ -165,9 +165,13 @@ class ExecutionPlan:
     preventive_cycles: tuple[PreventiveCycleSpec, ...]
     supply_routes: tuple[SupplyRouteSpec, ...]
     unsupported_features: tuple[str, ...]
+    resource_dispatch_index: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        value = asdict(self)
+        if self.resource_dispatch_index is None:
+            value.pop("resource_dispatch_index")
+        return value
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "ExecutionPlan":
@@ -240,11 +244,19 @@ class ExecutionPlan:
                 SupplyRouteSpec(**item) for item in value.get("supply_routes", [])
             ),
             unsupported_features=tuple(value.get("unsupported_features", ())),
+            resource_dispatch_index=value.get("resource_dispatch_index"),
         )
 
     @property
     def fingerprint(self) -> str:
         encoded = json.dumps(
-            self.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            {
+                key: value
+                for key, value in self.to_dict().items()
+                if key != "resource_dispatch_index"
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
         ).encode()
         return hashlib.sha256(encoded).hexdigest()

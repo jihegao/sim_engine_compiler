@@ -1,0 +1,2788 @@
+{
+  "schema_version": "ir-validation-current-engine/v1",
+  "source_revision": "4a2fc15b6c0aae723ba1dd7bdbdf54f6e05491dc",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "evidence_scope": "synthetic canonical fixtures and fixed F35 canonical input; checked-in fixed upstream oracles; no Project parsing or live upstream execution",
+  "positive_cases": [
+    {
+      "case": "b1-daily-operations",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "59c6397c9529fcd6582221deab72744cd4d5788c9b7b5e0fc945e9c15cdf8e5c",
+      "plan_fingerprint": "492cac75bbe23d42e6bd512880c34a0a42ac210fbdc9991f86032bf80731de6f",
+      "timing_ns": {
+        "compile": 350971,
+        "initialize": 96301,
+        "execute_with_full_observation": 2032399
+      },
+      "assertions": [
+        {
+          "assertion": "launches at 20 and 40",
+          "expected": [
+            20,
+            40
+          ],
+          "actual": [
+            20,
+            40
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "returns at 30 and 50",
+          "expected": [
+            30,
+            50
+          ],
+          "actual": [
+            30,
+            50
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "two successful completed sorties",
+          "expected": [
+            2,
+            2,
+            2
+          ],
+          "actual": [
+            2,
+            2,
+            2
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "492cac75bbe23d42e6bd512880c34a0a42ac210fbdc9991f86032bf80731de6f",
+          "actual": "492cac75bbe23d42e6bd512880c34a0a42ac210fbdc9991f86032bf80731de6f",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "492cac75bbe23d42e6bd512880c34a0a42ac210fbdc9991f86032bf80731de6f",
+          "actual": "492cac75bbe23d42e6bd512880c34a0a42ac210fbdc9991f86032bf80731de6f",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "0fc23b587f257e3c20bf984eec7f5af5bc21a150117f5ae7eec04064481b4051",
+      "fixed_synthetic_upstream_oracle_terminal_difference": null,
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 4077495,
+      "rust_event_wall_including_process_read_write_ns": 2744177,
+      "passed": true
+    },
+    {
+      "case": "b2-failure-repair",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "504e6bc02d3f19595e501115a2859ba17f5c4941ddcc6cc8af4ff61371a7d9fe",
+      "plan_fingerprint": "7ccd4f4b563e644a775175fb55f7c5b7d46eabae423b999fc7b32607d294466a",
+      "timing_ns": {
+        "compile": 396288,
+        "initialize": 83876,
+        "execute_with_full_observation": 1043364
+      },
+      "assertions": [
+        {
+          "assertion": "flight exposure ceil(5.5818) gives failure 11",
+          "expected": [
+            11
+          ],
+          "actual": [
+            11
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "3-minute repair finishes 14",
+          "expected": [
+            14
+          ],
+          "actual": [
+            14
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "failed sortie is not replaced in flight",
+          "expected": [
+            1,
+            1
+          ],
+          "actual": [
+            1,
+            1
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "7ccd4f4b563e644a775175fb55f7c5b7d46eabae423b999fc7b32607d294466a",
+          "actual": "7ccd4f4b563e644a775175fb55f7c5b7d46eabae423b999fc7b32607d294466a",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "7ccd4f4b563e644a775175fb55f7c5b7d46eabae423b999fc7b32607d294466a",
+          "actual": "7ccd4f4b563e644a775175fb55f7c5b7d46eabae423b999fc7b32607d294466a",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "1fea55c8dbe8b240096ee4a3e8230a229bd86d3fe2710988cc80319ac9fa8c13",
+      "fixed_synthetic_upstream_oracle_terminal_difference": null,
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2920151,
+      "rust_event_wall_including_process_read_write_ns": 2954953,
+      "passed": true
+    },
+    {
+      "case": "b2-preventive-maintenance",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "55b54af4168fc0acbd9681f2865bdb4dc03130aa64b3588e982bbc3908cf90a4",
+      "plan_fingerprint": "623c3d279bc72659a5574720b16eddbb14e2199a6d9abf0c805131ef55419045",
+      "timing_ns": {
+        "compile": 322040,
+        "initialize": 49468,
+        "execute_with_full_observation": 522315
+      },
+      "assertions": [
+        {
+          "assertion": "initially due maintenance completes at 4",
+          "expected": [
+            4
+          ],
+          "actual": [
+            4
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "623c3d279bc72659a5574720b16eddbb14e2199a6d9abf0c805131ef55419045",
+          "actual": "623c3d279bc72659a5574720b16eddbb14e2199a6d9abf0c805131ef55419045",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "623c3d279bc72659a5574720b16eddbb14e2199a6d9abf0c805131ef55419045",
+          "actual": "623c3d279bc72659a5574720b16eddbb14e2199a6d9abf0c805131ef55419045",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "146e64fab64b9feb715db164d3a93207d0c3892372214aefb7d99fe3437c7cb4",
+      "fixed_synthetic_upstream_oracle_terminal_difference": null,
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2705239,
+      "rust_event_wall_including_process_read_write_ns": 2551474,
+      "passed": true
+    },
+    {
+      "case": "b3-upstream-transport",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "ddee16cc76f625ab3e4b2b0a8b9ff9a8aabc6bcf4431b231f554aab148a6a424",
+      "plan_fingerprint": "158b154e2c0a2cbd2065d451fad49611dbf0755555afc0068e5479ee384b0a9f",
+      "timing_ns": {
+        "compile": 294705,
+        "initialize": 51539,
+        "execute_with_full_observation": 781538
+      },
+      "assertions": [
+        {
+          "assertion": "stock transported at 1 arrives at 3",
+          "expected": [
+            [
+              1
+            ],
+            [
+              3
+            ]
+          ],
+          "actual": [
+            [
+              1
+            ],
+            [
+              3
+            ]
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "arrival wakes job, 2-minute work finishes at 5",
+          "expected": [
+            5
+          ],
+          "actual": [
+            5
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "exactly one spare consumed",
+          "expected": 1,
+          "actual": 1,
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "158b154e2c0a2cbd2065d451fad49611dbf0755555afc0068e5479ee384b0a9f",
+          "actual": "158b154e2c0a2cbd2065d451fad49611dbf0755555afc0068e5479ee384b0a9f",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "158b154e2c0a2cbd2065d451fad49611dbf0755555afc0068e5479ee384b0a9f",
+          "actual": "158b154e2c0a2cbd2065d451fad49611dbf0755555afc0068e5479ee384b0a9f",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "17011eac5ddcab831401cb2bf941ae2cf940747dafc91ec741cbf49739379d11",
+      "fixed_synthetic_upstream_oracle_terminal_difference": null,
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 3196465,
+      "rust_event_wall_including_process_read_write_ns": 2797509,
+      "passed": true
+    },
+    {
+      "case": "dynamic-spare-seed-0",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "ff8f07259f5f22e7ed4507e4bcec967fb918682477c18279aa3bc1568e30330c",
+      "plan_fingerprint": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+      "timing_ns": {
+        "compile": 475540,
+        "initialize": 70480,
+        "execute_with_full_observation": 1296550
+      },
+      "assertions": [
+        {
+          "assertion": "runtime binding follows actual availability",
+          "expected": [
+            [
+              "F35-01"
+            ],
+            [
+              "F35-02"
+            ]
+          ],
+          "actual": [
+            [
+              "F35-01"
+            ],
+            [
+              "F35-02"
+            ]
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "departures fixed despite differing binding",
+          "expected": [
+            5,
+            12
+          ],
+          "actual": [
+            5,
+            12
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "actual": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "actual": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "2518170aaddc41c9dc393fcbdb5215ab41f6336b6fb44cbcca7c336a629bc2cc",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2926878,
+      "rust_event_wall_including_process_read_write_ns": 3484092,
+      "passed": true
+    },
+    {
+      "case": "repaired-aircraft-reused-seed-1",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 1,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "ff8f07259f5f22e7ed4507e4bcec967fb918682477c18279aa3bc1568e30330c",
+      "plan_fingerprint": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+      "timing_ns": {
+        "compile": 499767,
+        "initialize": 68409,
+        "execute_with_full_observation": 5051552
+      },
+      "assertions": [
+        {
+          "assertion": "runtime binding follows actual availability",
+          "expected": [
+            [
+              "F35-01"
+            ],
+            [
+              "F35-01"
+            ]
+          ],
+          "actual": [
+            [
+              "F35-01"
+            ],
+            [
+              "F35-01"
+            ]
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "departures fixed despite differing binding",
+          "expected": [
+            5,
+            12
+          ],
+          "actual": [
+            5,
+            12
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "actual": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "actual": "640da893737c614be2fe23379a192de505f1de2e0b00ad012246d91cf45560a3",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "50f92df263dc172d2c10def161422a67ee583bdf5cc4193cc91b401b4e8740dd",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2824539,
+      "rust_event_wall_including_process_read_write_ns": 4653017,
+      "passed": true
+    },
+    {
+      "case": "simultaneous-return-and-dispatch",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "6c9509c55a68f2a041b5899d65fa07316f7e69d9e74884c45e6dcf8d9b757c46",
+      "plan_fingerprint": "5efdcba21fb384ede89fcb33ded2a2ab987c75a60fd67e230f2e711733eefae8",
+      "timing_ns": {
+        "compile": 446815,
+        "initialize": 56604,
+        "execute_with_full_observation": 2253380
+      },
+      "assertions": [
+        {
+          "assertion": "return is visible before dispatch at minute 30",
+          "expected": [
+            "mission_returned",
+            "mission_launched"
+          ],
+          "actual": [
+            "mission_returned",
+            "mission_launched"
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "same aircraft can relaunch",
+          "expected": [
+            [
+              "F35-01"
+            ],
+            [
+              "F35-01"
+            ]
+          ],
+          "actual": [
+            [
+              "F35-01"
+            ],
+            [
+              "F35-01"
+            ]
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "5efdcba21fb384ede89fcb33ded2a2ab987c75a60fd67e230f2e711733eefae8",
+          "actual": "5efdcba21fb384ede89fcb33ded2a2ab987c75a60fd67e230f2e711733eefae8",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "5efdcba21fb384ede89fcb33ded2a2ab987c75a60fd67e230f2e711733eefae8",
+          "actual": "5efdcba21fb384ede89fcb33ded2a2ab987c75a60fd67e230f2e711733eefae8",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "08574f6f531b4ede07091a85bb0f76c52a67bdc321dfab890764ce5e442dd0e8",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2681617,
+      "rust_event_wall_including_process_read_write_ns": 3553832,
+      "passed": true
+    },
+    {
+      "case": "serial-branch-join",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "89098976860f00d45231a3421949c5d205f2884de74920cf2ebd708288435901",
+      "plan_fingerprint": "f1045fd2c9f157b3dc9c11fe495d50e8f41a717617c56c7a0de61998971baa5a",
+      "timing_ns": {
+        "compile": 795582,
+        "initialize": 95065,
+        "execute_with_full_observation": 2513521
+      },
+      "assertions": [
+        {
+          "assertion": "two independent branches remain serial by policy",
+          "expected": [
+            10,
+            12,
+            15
+          ],
+          "actual": [
+            10,
+            12,
+            15
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "2+3+1 minute serial preflight completes at 16",
+          "expected": [
+            16
+          ],
+          "actual": [
+            16
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "f1045fd2c9f157b3dc9c11fe495d50e8f41a717617c56c7a0de61998971baa5a",
+          "actual": "f1045fd2c9f157b3dc9c11fe495d50e8f41a717617c56c7a0de61998971baa5a",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "f1045fd2c9f157b3dc9c11fe495d50e8f41a717617c56c7a0de61998971baa5a",
+          "actual": "f1045fd2c9f157b3dc9c11fe495d50e8f41a717617c56c7a0de61998971baa5a",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "475c8bffc9a908ac67a61db3054f8e92f3e8044f1d961c59e205492c25b35d72",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 3001503,
+      "rust_event_wall_including_process_read_write_ns": 2783104,
+      "passed": true
+    },
+    {
+      "case": "shared-resource-release-wakeup",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "1c8d85cd8a67db9eaf59bc43067695c49c0475b595645ad48ba3f53cd1a29a48",
+      "plan_fingerprint": "0c18d48171e0f9a29bbde363053c88b66d490a848cfae853a65a8903f63ffe9c",
+      "timing_ns": {
+        "compile": 564424,
+        "initialize": 58505,
+        "execute_with_full_observation": 2007560
+      },
+      "assertions": [
+        {
+          "assertion": "capacity-one preflight starts at 10 and release 13",
+          "expected": [
+            10,
+            13
+          ],
+          "actual": [
+            10,
+            13
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "both aircraft depart at 20",
+          "expected": [
+            [
+              20,
+              2
+            ]
+          ],
+          "actual": [
+            [
+              20,
+              2
+            ]
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "0c18d48171e0f9a29bbde363053c88b66d490a848cfae853a65a8903f63ffe9c",
+          "actual": "0c18d48171e0f9a29bbde363053c88b66d490a848cfae853a65a8903f63ffe9c",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "0c18d48171e0f9a29bbde363053c88b66d490a848cfae853a65a8903f63ffe9c",
+          "actual": "0c18d48171e0f9a29bbde363053c88b66d490a848cfae853a65a8903f63ffe9c",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "db0c76023a8e55388c125fd5ea4401a46df1d8507ce2862ee12be90ac79eabdd",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2707639,
+      "rust_event_wall_including_process_read_write_ns": 3292918,
+      "passed": true
+    },
+    {
+      "case": "permanent-shortage-no-phantom-completion",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "2574fa99ec4d105a7a2b346188aa36a926e83ab4ecbbfc4288bcd243f7da35f3",
+      "plan_fingerprint": "ba59ce952d69d301e70ec3cd8cfa7c61fceffafa47c70cc77543de168bc0b41c",
+      "timing_ns": {
+        "compile": 903513,
+        "initialize": 49845,
+        "execute_with_full_observation": 490529
+      },
+      "assertions": [
+        {
+          "assertion": "no stock means no completion",
+          "expected": [],
+          "actual": [],
+          "passed": true
+        },
+        {
+          "assertion": "no phantom consumption",
+          "expected": 0,
+          "actual": 0,
+          "passed": true
+        },
+        {
+          "assertion": "job remains waiting at horizon",
+          "expected": [
+            "waiting"
+          ],
+          "actual": [
+            "waiting"
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "ba59ce952d69d301e70ec3cd8cfa7c61fceffafa47c70cc77543de168bc0b41c",
+          "actual": "ba59ce952d69d301e70ec3cd8cfa7c61fceffafa47c70cc77543de168bc0b41c",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "ba59ce952d69d301e70ec3cd8cfa7c61fceffafa47c70cc77543de168bc0b41c",
+          "actual": "ba59ce952d69d301e70ec3cd8cfa7c61fceffafa47c70cc77543de168bc0b41c",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "912ab78ef0d799c4ecd3c4e83bebbf664bb649961fc628ccf60630934d7acb75",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2548014,
+      "rust_event_wall_including_process_read_write_ns": 2242499,
+      "passed": true
+    },
+    {
+      "case": "repair-and-fly-lifecycle-loop",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "5e0b33585923cd252a241f13517216f4064497dd3f73fb57b322e2f1e8521417",
+      "plan_fingerprint": "5e2a5e234ddc7bc01a882af27ab97e9b3ff485eee9ee7a08879c5d4955a4319f",
+      "timing_ns": {
+        "compile": 589492,
+        "initialize": 62897,
+        "execute_with_full_observation": 3302729
+      },
+      "assertions": [
+        {
+          "assertion": "same aircraft launches three times",
+          "expected": [
+            5,
+            25,
+            45
+          ],
+          "actual": [
+            5,
+            25,
+            45
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "three failure-repair cycles complete",
+          "expected": [
+            3,
+            3
+          ],
+          "actual": [
+            3,
+            3
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "failure timer resampled after each repair",
+          "expected": 4,
+          "actual": 4,
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "5e2a5e234ddc7bc01a882af27ab97e9b3ff485eee9ee7a08879c5d4955a4319f",
+          "actual": "5e2a5e234ddc7bc01a882af27ab97e9b3ff485eee9ee7a08879c5d4955a4319f",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "5e2a5e234ddc7bc01a882af27ab97e9b3ff485eee9ee7a08879c5d4955a4319f",
+          "actual": "5e2a5e234ddc7bc01a882af27ab97e9b3ff485eee9ee7a08879c5d4955a4319f",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "71c974d252f513ca8839dfd11b437c91f82bd5f97558e927e8fcee87dff1d40b",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2924352,
+      "rust_event_wall_including_process_read_write_ns": 2795586,
+      "passed": true
+    },
+    {
+      "case": "cancel-returns-arrived-reservation",
+      "source": "synthetic canonical simulation_inputs",
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "input_sha256": "3f553183bd7c84dfd32068719a615f87f2d59627914491dd1f29d067377ca729",
+      "plan_fingerprint": "29b2684b1744f42591f17bd5b51dfede99ea1b1c1cff5f620ad5bb81881e9ec7",
+      "timing_ns": {
+        "compile": 575942,
+        "initialize": 56126,
+        "execute_with_full_observation": 561382
+      },
+      "assertions": [
+        {
+          "assertion": "cancel at 4; reservation return next transport phase 5",
+          "expected": [
+            [
+              4
+            ],
+            [
+              5
+            ]
+          ],
+          "actual": [
+            [
+              4
+            ],
+            [
+              5
+            ]
+          ],
+          "passed": true
+        },
+        {
+          "assertion": "one spare conserved in line inventory",
+          "expected": {
+            "base": {
+              "filter": 0
+            },
+            "line": {
+              "filter": 1
+            }
+          },
+          "actual": {
+            "base": {
+              "filter": 0
+            },
+            "line": {
+              "filter": 1
+            }
+          },
+          "passed": true
+        },
+        {
+          "assertion": "all terminal resource holdings nonnegative",
+          "expected": true,
+          "actual": true,
+          "passed": true
+        },
+        {
+          "assertion": "serialized plan roundtrip preserves fingerprint",
+          "expected": "29b2684b1744f42591f17bd5b51dfede99ea1b1c1cff5f620ad5bb81881e9ec7",
+          "actual": "29b2684b1744f42591f17bd5b51dfede99ea1b1c1cff5f620ad5bb81881e9ec7",
+          "passed": true
+        },
+        {
+          "assertion": "run leaves immutable plan fingerprint unchanged",
+          "expected": "29b2684b1744f42591f17bd5b51dfede99ea1b1c1cff5f620ad5bb81881e9ec7",
+          "actual": "29b2684b1744f42591f17bd5b51dfede99ea1b1c1cff5f620ad5bb81881e9ec7",
+          "passed": true
+        }
+      ],
+      "python_result_sha256": "805add2bcc46e046074ab1183397724d24f813345d45b2ff3d56e89ea384e4cc",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "rust_wall_including_process_read_write_ns": 2653233,
+      "rust_event_wall_including_process_read_write_ns": 3017162,
+      "passed": true
+    }
+  ],
+  "negative_probes": [
+    {
+      "case": "unknown-canonical-schema",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "unsupported canonical input schema",
+      "error_type": "CompilationError"
+    },
+    {
+      "case": "unknown-time-profile",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "unsupported time profile 'invented'",
+      "error_type": "CompilationError"
+    },
+    {
+      "case": "duplicate-aircraft-id",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "aircraft tail numbers must be unique",
+      "error_type": "CompilationError"
+    },
+    {
+      "case": "unknown-resource-reference",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "unknown resource node 'nonexistent' for 'f35-daily-preflight'",
+      "error_type": "CompilationError"
+    },
+    {
+      "case": "unknown-step-predecessor",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "unknown predecessor in 'f35-daily-preflight': ['missing']",
+      "error_type": "CompilationError"
+    },
+    {
+      "case": "local-process-cycle",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "cycle in activity 'f35-daily-preflight'",
+      "error_type": "CompilationError"
+    },
+    {
+      "case": "unsupported-parallel-work-policy",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "unsupported work policy 'dag-parallel'",
+      "error_type": "UnsupportedPlanError"
+    },
+    {
+      "case": "unsupported-operation-capability",
+      "expected": "explicit rejection",
+      "passed": true,
+      "actual": "plan requires unfinished conformance slices: agent-invented-op",
+      "error_type": "UnsupportedPlanError"
+    },
+    {
+      "case": "negative-work-duration",
+      "expected": "explicit rejection",
+      "passed": false,
+      "actual": "accepted",
+      "compiled_value": {
+        "actual_duration_minutes": 30
+      }
+    },
+    {
+      "case": "unknown-equipment-component-reference",
+      "expected": "explicit rejection",
+      "passed": false,
+      "actual": "accepted",
+      "compiled_value": null
+    },
+    {
+      "case": "duration-unit-string",
+      "expected": "explicit rejection",
+      "passed": false,
+      "actual": "accepted",
+      "compiled_value": null
+    }
+  ],
+  "f35": [
+    {
+      "seed": 0,
+      "profile": "legacy-minute-v1",
+      "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+      "python_initialize_ns": 12569767,
+      "python_execute_with_full_observation_ns": 14674965624,
+      "python_result_sha256": "aa7fda1d0e006887f77f0448e742fe88e7e04ec23172d4e2293c3173e7bcb35f",
+      "sample_requests": 3816,
+      "trace_events": 10670,
+      "metrics": {
+        "planned_sorties": 208,
+        "launched_sorties": 148,
+        "completed_sorties": 135,
+        "failed_sorties": 13,
+        "cancelled_sorties": 60,
+        "successful_mission_waves": 66
+      },
+      "fixed_upstream_oracle_terminal_difference": null,
+      "fixed_upstream_oracle_metrics_difference": null,
+      "fixed_upstream_oracle_timeline_difference": null,
+      "fixed_upstream_oracle_rng_difference": null,
+      "oracle_gzip_sha256": "35c2a63ade88156ad29a699f251a4fc262f75b6183d44abe2507d863d6c7b891",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "full_summary_metrics_difference": null,
+      "full_summary_terminal_difference": null,
+      "rust_legacy_wall_ns": 538541852,
+      "rust_event_wall_ns": 179960176,
+      "rust_event_summary_wall_ns": 141557921
+    },
+    {
+      "seed": 1,
+      "profile": "legacy-minute-v1",
+      "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+      "python_initialize_ns": 6399579,
+      "python_execute_with_full_observation_ns": 19867992223,
+      "python_result_sha256": "70b97ae4fb4d54c788b949640c151175052969edf60a396011f43f7e21616e15",
+      "sample_requests": 3818,
+      "trace_events": 11154,
+      "metrics": {
+        "planned_sorties": 208,
+        "launched_sorties": 148,
+        "completed_sorties": 135,
+        "failed_sorties": 13,
+        "cancelled_sorties": 60,
+        "successful_mission_waves": 66
+      },
+      "fixed_upstream_oracle_terminal_difference": null,
+      "fixed_upstream_oracle_metrics_difference": null,
+      "fixed_upstream_oracle_timeline_difference": null,
+      "fixed_upstream_oracle_rng_difference": null,
+      "oracle_gzip_sha256": "a095d0bbccfb3ff0510acb5348332808543fb0dae0a58ae26a93e842bc8f76bf",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "full_summary_metrics_difference": null,
+      "full_summary_terminal_difference": null,
+      "rust_legacy_wall_ns": 572795068,
+      "rust_event_wall_ns": 293210064,
+      "rust_event_summary_wall_ns": 178297834
+    },
+    {
+      "seed": 7,
+      "profile": "legacy-minute-v1",
+      "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+      "python_initialize_ns": 22483435,
+      "python_execute_with_full_observation_ns": 11704508422,
+      "python_result_sha256": "f49fb425f7db025b751f9189a1075de2d0a8414fc9fffce47db8db4bc02b0f44",
+      "sample_requests": 3820,
+      "trace_events": 12752,
+      "metrics": {
+        "planned_sorties": 208,
+        "launched_sorties": 178,
+        "completed_sorties": 164,
+        "failed_sorties": 14,
+        "cancelled_sorties": 30,
+        "successful_mission_waves": 77
+      },
+      "fixed_upstream_oracle_terminal_difference": null,
+      "fixed_upstream_oracle_metrics_difference": null,
+      "fixed_upstream_oracle_timeline_difference": null,
+      "fixed_upstream_oracle_rng_difference": null,
+      "oracle_gzip_sha256": "f87fd4cbf3cabe8915496311a55b6aed5270c83f971a4685811e66646637ff49",
+      "python_rust_full_difference": null,
+      "rust_legacy_event_full_difference": null,
+      "full_summary_metrics_difference": null,
+      "full_summary_terminal_difference": null,
+      "rust_legacy_wall_ns": 424609454,
+      "rust_event_wall_ns": 184584230,
+      "rust_event_summary_wall_ns": 146286739
+    }
+  ],
+  "benchmark": [
+    {
+      "schema_version": "stage-c-segmented-benchmark/v1",
+      "generated_at_unix_seconds": 1790071534,
+      "runtime_version": "0.1.0",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+      "operating_system": "linux",
+      "architecture": "x86_64",
+      "available_parallelism": 8,
+      "plan_path": "generated from fixed canonical F35 input by this script",
+      "plan_bytes": 271856,
+      "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+      "semantic_profile": "legacy-minute-v1",
+      "work_policy": "stable-topological-serial",
+      "rng_profile": "legacy-sequential-v1",
+      "seeds": [
+        0,
+        1,
+        7
+      ],
+      "worker_threads": 1,
+      "warmups": 1,
+      "repeats": 1,
+      "until": null,
+      "records": [
+        {
+          "repeat": 0,
+          "phases": {
+            "plan_read_ns": 393503,
+            "plan_parse_validate_ns": 10881810,
+            "fingerprint_ns": 4310740,
+            "run_state_initialization_ns": 36959040,
+            "single_sample_execution_ns": 896872178,
+            "single_sample_serialization_ns": 31418896,
+            "batch_execution_ns": 1182594171,
+            "batch_serialization_ns": 106561420,
+            "batch_write_ns": 67481483,
+            "end_to_end_batch_ns": 1604016702
+          },
+          "single_result_bytes": 4212926,
+          "batch_result_bytes": 13347506,
+          "batch_result_sha256": "d526ca1c1817037f11907e7e70da1c8831fb52105b749ee110bb43dbc4294558",
+          "samples_sha256": "36feeda0933498b927d4875680df0b8a0bf8fa8e7b915bba166fa9deefc16377",
+          "sample_indexes": [
+            0,
+            1,
+            2
+          ],
+          "seeds": [
+            0,
+            1,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": "stage-c-segmented-benchmark/v1",
+      "generated_at_unix_seconds": 1790071536,
+      "runtime_version": "0.1.0",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+      "operating_system": "linux",
+      "architecture": "x86_64",
+      "available_parallelism": 8,
+      "plan_path": "generated from fixed canonical F35 input by this script",
+      "plan_bytes": 271853,
+      "plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+      "semantic_profile": "event-time-v2",
+      "work_policy": "stable-topological-serial",
+      "rng_profile": "legacy-sequential-v1",
+      "seeds": [
+        0,
+        1,
+        7
+      ],
+      "worker_threads": 1,
+      "warmups": 1,
+      "repeats": 1,
+      "until": null,
+      "records": [
+        {
+          "repeat": 0,
+          "phases": {
+            "plan_read_ns": 170762,
+            "plan_parse_validate_ns": 9417887,
+            "fingerprint_ns": 2496863,
+            "run_state_initialization_ns": 11618510,
+            "single_sample_execution_ns": 112979722,
+            "single_sample_serialization_ns": 12381935,
+            "batch_execution_ns": 374204672,
+            "batch_serialization_ns": 38646431,
+            "batch_write_ns": 4716536,
+            "end_to_end_batch_ns": 710443670
+          },
+          "single_result_bytes": 4212926,
+          "batch_result_bytes": 13347506,
+          "batch_result_sha256": "c8edf02b1337c56d1106f01b573b4ad8c5d79f03c6988c64b817b819f9dc9972",
+          "samples_sha256": "5fd870792b9cf34b0c5080a07bb1a3231b70ece13388f187fbb070151d0b911c",
+          "sample_indexes": [
+            0,
+            1,
+            2
+          ],
+          "seeds": [
+            0,
+            1,
+            7
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Current compiler lowers canonical input directly to aircraft-specific plan; Business/Core IR not materialized here",
+    "Parallel local work policy unsupported; explicit rejection tested",
+    "Timing runs are local diagnostic measurements, not a controlled production benchmark"
+  ],
+  "dynamic_binding_same_plan": true,
+  "batch_independence": {
+    "seeds": [
+      7,
+      0,
+      7,
+      1
+    ],
+    "worker_threads": [
+      1,
+      3
+    ],
+    "difference": null,
+    "stable_sample_indexes": true,
+    "repeated_seed_equal": true
+  },
+  "f35_compile_ns": 51806938,
+  "f35_input_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+  "f35_shape": {
+    "aircraft": 9,
+    "missions": 104,
+    "components": 424,
+    "horizon_minutes": 61920
+  },
+  "paired_event_time_benchmark": {
+    "schema_version": "event-time-paired-benchmark/v1",
+    "generated_at_unix_seconds": 1790071572,
+    "session_label": "2026-09-22-ir-validation",
+    "build": {
+      "runtime_version": "0.1.0",
+      "build_profile": "release",
+      "profiling_feature": false,
+      "python_feature": false,
+      "target_os": "linux",
+      "target_arch": "x86_64",
+      "available_parallelism": 8,
+      "executable_path": "/workspace/scratch/e8c6fcda6503/sim_engine_compiler/rust/runtime/target/release/event_time_benchmark",
+      "executable_sha256": "432379c059b9cf61c573c5be11f060715c5c4d100890a24691e021094e7f5c4d",
+      "source_bundle_sha256": "cd61564e034d755ff3ee681ce964a779d9db15ca867dc828201111810a71ecaf",
+      "source_bundle_files": [
+        "rust/runtime/src/bin/benchmark_support/mod.rs",
+        "rust/runtime/src/lib.rs",
+        "rust/runtime/src/plan.rs",
+        "rust/runtime/src/rng.rs",
+        "rust/runtime/src/runtime.rs",
+        "rust/runtime/src/runtime/event_time.rs",
+        "rust/runtime/Cargo.toml",
+        "rust/runtime/Cargo.lock",
+        "rust/runtime/rust-toolchain.toml",
+        "rust/runtime/src/bin/event_time_benchmark.rs"
+      ],
+      "source_revision": null,
+      "source_tree_state": null,
+      "rustc_version": null,
+      "source_diff": null,
+      "host_manifest": null
+    },
+    "legacy_plan": {
+      "path": "/tmp/legacy-ir-validation-ho2ockvq/legacy-minute-v1-f35.json",
+      "bytes": 271856,
+      "file_sha256": "5f58b100c74c36019a9ab347deafe9c5314f4f2bec9d6f54e915032aca9ea93a",
+      "plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+      "semantic_profile": "legacy-minute-v1"
+    },
+    "event_plan": {
+      "path": "/tmp/legacy-ir-validation-ho2ockvq/event-time-v2-f35.json",
+      "bytes": 271853,
+      "file_sha256": "7852629d5769b0171730409d1725af039b7c4cb4e1a8b4c0d066810d77e6ea75",
+      "plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+      "semantic_profile": "event-time-v2"
+    },
+    "paired_model_sha256": "9dfc9e834d4ca77c62b9f663b40046a2fc150464996caa49ff08707cb194d99c",
+    "source_inputs_sha256": "6b7730e1203dbbf0f04fed56bdebb1a58a7ff6c013c76ea2e63e86649de6c2f6",
+    "plan_version": "aircraft-support-plan/v1alpha2",
+    "work_policy": "stable-topological-serial",
+    "rng_profile": "legacy-sequential-v1",
+    "duration_minutes": 61920,
+    "until": null,
+    "seeds": [
+      0,
+      1,
+      7
+    ],
+    "observation_levels": [
+      "full",
+      "summary"
+    ],
+    "warmups": 1,
+    "repeats": 5,
+    "records": [
+      {
+        "observation_level": "full",
+        "seed": 0,
+        "repeat": 0,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 855016503,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "95f17dca4ad8150d1e79f6ccdf44285a4843de1bdfaaa924b19cd5d107fa4475",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 245033489,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "be5f6105799a0fe974e5502d4d1ea5e4836d6e362eec5c0b0198c4e39d69c966",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.4893863140478727,
+        "event_improvement_pct": 71.3416655537934
+      },
+      {
+        "observation_level": "full",
+        "seed": 0,
+        "repeat": 1,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 808796229,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "95f17dca4ad8150d1e79f6ccdf44285a4843de1bdfaaa924b19cd5d107fa4475",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 326000855,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "be5f6105799a0fe974e5502d4d1ea5e4836d6e362eec5c0b0198c4e39d69c966",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 2.480963520785858,
+        "event_improvement_pct": 59.6930792564316
+      },
+      {
+        "observation_level": "full",
+        "seed": 0,
+        "repeat": 2,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 886465680,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "95f17dca4ad8150d1e79f6ccdf44285a4843de1bdfaaa924b19cd5d107fa4475",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 265702993,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "be5f6105799a0fe974e5502d4d1ea5e4836d6e362eec5c0b0198c4e39d69c966",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.3363029523720873,
+        "event_improvement_pct": 70.02670278222163
+      },
+      {
+        "observation_level": "full",
+        "seed": 0,
+        "repeat": 3,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 891860934,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "95f17dca4ad8150d1e79f6ccdf44285a4843de1bdfaaa924b19cd5d107fa4475",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 236196443,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "be5f6105799a0fe974e5502d4d1ea5e4836d6e362eec5c0b0198c4e39d69c966",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.775928725565101,
+        "event_improvement_pct": 73.5164492584446
+      },
+      {
+        "observation_level": "full",
+        "seed": 0,
+        "repeat": 4,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 914616037,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "95f17dca4ad8150d1e79f6ccdf44285a4843de1bdfaaa924b19cd5d107fa4475",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 249022646,
+          "result_bytes": 4212926,
+          "trace_events": 10670,
+          "result_sha256": "be5f6105799a0fe974e5502d4d1ea5e4836d6e362eec5c0b0198c4e39d69c966",
+          "business_result_sha256": "3eb8dc41fac42589ae0d51fd1db28cc26b877621c707e3a0e4c038c448f8df63",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "0f18fa72c9af346085d4fd16ce5bdfd897adfbff7b460d110efc0952f62bb8b0",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.6728227399848605,
+        "event_improvement_pct": 72.77298495477835
+      },
+      {
+        "observation_level": "full",
+        "seed": 1,
+        "repeat": 0,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 858167477,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "00aeca2faf5d7227ce63629f601d4a09787f1b5f92357974a56509b6e7b5ca0b",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 207590288,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "2ac03c122584cdd8a31686943f818c540564398b8d936789f36ceddd4afafd6f",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.133948101656856,
+        "event_improvement_pct": 75.81004948757806
+      },
+      {
+        "observation_level": "full",
+        "seed": 1,
+        "repeat": 1,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 1090330705,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "00aeca2faf5d7227ce63629f601d4a09787f1b5f92357974a56509b6e7b5ca0b",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 110399875,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "2ac03c122584cdd8a31686943f818c540564398b8d936789f36ceddd4afafd6f",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 9.876195104387573,
+        "event_improvement_pct": 89.87464312490403
+      },
+      {
+        "observation_level": "full",
+        "seed": 1,
+        "repeat": 2,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 435553595,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "00aeca2faf5d7227ce63629f601d4a09787f1b5f92357974a56509b6e7b5ca0b",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 100739696,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "2ac03c122584cdd8a31686943f818c540564398b8d936789f36ceddd4afafd6f",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.323554788174068,
+        "event_improvement_pct": 76.87088405274211
+      },
+      {
+        "observation_level": "full",
+        "seed": 1,
+        "repeat": 3,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 419665413,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "00aeca2faf5d7227ce63629f601d4a09787f1b5f92357974a56509b6e7b5ca0b",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 129311646,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "2ac03c122584cdd8a31686943f818c540564398b8d936789f36ceddd4afafd6f",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.2453798708895873,
+        "event_improvement_pct": 69.18696609386772
+      },
+      {
+        "observation_level": "full",
+        "seed": 1,
+        "repeat": 4,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 411831904,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "00aeca2faf5d7227ce63629f601d4a09787f1b5f92357974a56509b6e7b5ca0b",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 143304657,
+          "result_bytes": 4345064,
+          "trace_events": 11154,
+          "result_sha256": "2ac03c122584cdd8a31686943f818c540564398b8d936789f36ceddd4afafd6f",
+          "business_result_sha256": "b3b62e78eabc98b7515d22ef4154277387c6204842d60d256cdb709efd8ef83e",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "9d8644c97473394f7d729b13f3a47a261161fab3dca20d091ab023286efae5f7",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 2.873820799836254,
+        "event_improvement_pct": 65.20311913474289
+      },
+      {
+        "observation_level": "full",
+        "seed": 7,
+        "repeat": 0,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 429063456,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "0fb66048cfc58d221b9246e26dfc2148310070b47f9c1f07196212bc944772d8",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 115193946,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "51b201ce5a26d711b47b4bb93e9775176e0b8bdb1ef6f141637e912a1c1f4dea",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.724704907669367,
+        "event_improvement_pct": 73.1522355518434
+      },
+      {
+        "observation_level": "full",
+        "seed": 7,
+        "repeat": 1,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 398586258,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "0fb66048cfc58d221b9246e26dfc2148310070b47f9c1f07196212bc944772d8",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 144902480,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "51b201ce5a26d711b47b4bb93e9775176e0b8bdb1ef6f141637e912a1c1f4dea",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 2.750720746808474,
+        "event_improvement_pct": 63.64589167547267
+      },
+      {
+        "observation_level": "full",
+        "seed": 7,
+        "repeat": 2,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 677270761,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "0fb66048cfc58d221b9246e26dfc2148310070b47f9c1f07196212bc944772d8",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 162938524,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "51b201ce5a26d711b47b4bb93e9775176e0b8bdb1ef6f141637e912a1c1f4dea",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.156603020412779,
+        "event_improvement_pct": 75.9418930533161
+      },
+      {
+        "observation_level": "full",
+        "seed": 7,
+        "repeat": 3,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 467525245,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "0fb66048cfc58d221b9246e26dfc2148310070b47f9c1f07196212bc944772d8",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 193040819,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "51b201ce5a26d711b47b4bb93e9775176e0b8bdb1ef6f141637e912a1c1f4dea",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 2.4218983706238832,
+        "event_improvement_pct": 58.710075859112166
+      },
+      {
+        "observation_level": "full",
+        "seed": 7,
+        "repeat": 4,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 408116879,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "0fb66048cfc58d221b9246e26dfc2148310070b47f9c1f07196212bc944772d8",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 256301217,
+          "result_bytes": 4789254,
+          "trace_events": 12752,
+          "result_sha256": "51b201ce5a26d711b47b4bb93e9775176e0b8bdb1ef6f141637e912a1c1f4dea",
+          "business_result_sha256": "0cc125d809e18ce436a49b2e1ae2a80c44a49682858fa3b0f15b9d567d137bc1",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "ccc044a24043f1c1e0d3bd27e82829c3d2e79de01c7b407086446d00bf0df567",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 1.5923329735886507,
+        "event_improvement_pct": 37.199064731650076
+      },
+      {
+        "observation_level": "summary",
+        "seed": 0,
+        "repeat": 0,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 382899833,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "247905be92ce6c11d1dbd2db2d7e0ac9a2f1c1285dc9af0819013e09a7a0ec6e",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 110780593,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "fce88630b3d89ff06236709737e71c5aa491cf971152d0de5559d8de2fd717fc",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.456380062887008,
+        "event_improvement_pct": 71.06799652221316
+      },
+      {
+        "observation_level": "summary",
+        "seed": 0,
+        "repeat": 1,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 428110866,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "247905be92ce6c11d1dbd2db2d7e0ac9a2f1c1285dc9af0819013e09a7a0ec6e",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 92927630,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "fce88630b3d89ff06236709737e71c5aa491cf971152d0de5559d8de2fd717fc",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.606927627445142,
+        "event_improvement_pct": 78.29355959397675
+      },
+      {
+        "observation_level": "summary",
+        "seed": 0,
+        "repeat": 2,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 366149352,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "247905be92ce6c11d1dbd2db2d7e0ac9a2f1c1285dc9af0819013e09a7a0ec6e",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 88344921,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "fce88630b3d89ff06236709737e71c5aa491cf971152d0de5559d8de2fd717fc",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.144543317889208,
+        "event_improvement_pct": 75.87188929396221
+      },
+      {
+        "observation_level": "summary",
+        "seed": 0,
+        "repeat": 3,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 498161088,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "247905be92ce6c11d1dbd2db2d7e0ac9a2f1c1285dc9af0819013e09a7a0ec6e",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 181237587,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "fce88630b3d89ff06236709737e71c5aa491cf971152d0de5559d8de2fd717fc",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 2.748663211897651,
+        "event_improvement_pct": 63.61867850264531
+      },
+      {
+        "observation_level": "summary",
+        "seed": 0,
+        "repeat": 4,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 864565646,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "247905be92ce6c11d1dbd2db2d7e0ac9a2f1c1285dc9af0819013e09a7a0ec6e",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 0
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 185470537,
+          "result_bytes": 1392095,
+          "trace_events": 0,
+          "result_sha256": "fce88630b3d89ff06236709737e71c5aa491cf971152d0de5559d8de2fd717fc",
+          "business_result_sha256": "bead2bd53b8c7c52163652aba99ce5d8cb770228cc86634eb612ee3acb5d3ea4",
+          "sample_requests_sha256": "20d847bc9a50b94928f56fdf3f6c38b4080245a245df7086c42f3ee43d52e48c",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "50e6c3347c9685c590a58c6d98111757b105d0db2bd3df0d9a9ea9317ad7392c",
+          "terminal_state_sha256": "ab7c13e7e5c1cb9d4ce0f2b0170e82e42a8a8cb1758450b5af18ed4e2966d443",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 0
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.66147162770117,
+        "event_improvement_pct": 78.54754721540255
+      },
+      {
+        "observation_level": "summary",
+        "seed": 1,
+        "repeat": 0,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 541202895,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "d06a12dfe338f39c98eb2894318bc863fec09d770666ba7d3ce572a476c3f730",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 86328196,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "3f9f93525d05aaf3e5e0e7af98b2039287f413ed45092054b34a112518f7858c",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 6.2691324512329665,
+        "event_improvement_pct": 84.04882959837087
+      },
+      {
+        "observation_level": "summary",
+        "seed": 1,
+        "repeat": 1,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 353495713,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "d06a12dfe338f39c98eb2894318bc863fec09d770666ba7d3ce572a476c3f730",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 77792410,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "3f9f93525d05aaf3e5e0e7af98b2039287f413ed45092054b34a112518f7858c",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.544090008266873,
+        "event_improvement_pct": 77.99339365679944
+      },
+      {
+        "observation_level": "summary",
+        "seed": 1,
+        "repeat": 2,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 388403362,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "d06a12dfe338f39c98eb2894318bc863fec09d770666ba7d3ce572a476c3f730",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 84969061,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "3f9f93525d05aaf3e5e0e7af98b2039287f413ed45092054b34a112518f7858c",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.571115149783755,
+        "event_improvement_pct": 78.12350012562456
+      },
+      {
+        "observation_level": "summary",
+        "seed": 1,
+        "repeat": 3,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 367000180,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "d06a12dfe338f39c98eb2894318bc863fec09d770666ba7d3ce572a476c3f730",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 79855743,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "3f9f93525d05aaf3e5e0e7af98b2039287f413ed45092054b34a112518f7858c",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.595789434956481,
+        "event_improvement_pct": 78.24095263386519
+      },
+      {
+        "observation_level": "summary",
+        "seed": 1,
+        "repeat": 4,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 701322220,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "d06a12dfe338f39c98eb2894318bc863fec09d770666ba7d3ce572a476c3f730",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 1
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 128818861,
+          "result_bytes": 1396194,
+          "trace_events": 0,
+          "result_sha256": "3f9f93525d05aaf3e5e0e7af98b2039287f413ed45092054b34a112518f7858c",
+          "business_result_sha256": "091047fa62766207f44d5f1a9c5d2af26250c457645c5645caf4c4405f2b25b3",
+          "sample_requests_sha256": "a5d476adda0bc3f058209642b6be8f2d32496fa09bef748ee9d6beb218e20ab9",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "de0634eed6339dcfd9c936bf913e75441858e17fbc660ec8bbc1e2448dc24c07",
+          "terminal_state_sha256": "426a17046d4fff0865381504e86df5b6945feecadee3566c4f0600afd5a14eb2",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 1
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 5.4442510557518435,
+        "event_improvement_pct": 81.6320006230517
+      },
+      {
+        "observation_level": "summary",
+        "seed": 7,
+        "repeat": 0,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 800702435,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "62837dde0a4b6276ecd57b948bfa186364167536ee53a4d3f38e1c88f656927e",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 194278475,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "db791127f43364cfefb6d41fbbf763ddee19a7bd12a1ffb82c1457d7de08add2",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.121416101294804,
+        "event_improvement_pct": 75.73649504387981
+      },
+      {
+        "observation_level": "summary",
+        "seed": 7,
+        "repeat": 1,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 514835246,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "62837dde0a4b6276ecd57b948bfa186364167536ee53a4d3f38e1c88f656927e",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 103742841,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "db791127f43364cfefb6d41fbbf763ddee19a7bd12a1ffb82c1457d7de08add2",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 4.962609863363969,
+        "event_improvement_pct": 79.84931260902832
+      },
+      {
+        "observation_level": "summary",
+        "seed": 7,
+        "repeat": 2,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 357377688,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "62837dde0a4b6276ecd57b948bfa186364167536ee53a4d3f38e1c88f656927e",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 90502476,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "db791127f43364cfefb6d41fbbf763ddee19a7bd12a1ffb82c1457d7de08add2",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.94881669314771,
+        "event_improvement_pct": 74.67595794620509
+      },
+      {
+        "observation_level": "summary",
+        "seed": 7,
+        "repeat": 3,
+        "first_profile": "legacy-minute-v1",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 0,
+          "execution_ns": 305892113,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "62837dde0a4b6276ecd57b948bfa186364167536ee53a4d3f38e1c88f656927e",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 1,
+          "execution_ns": 104281650,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "db791127f43364cfefb6d41fbbf763ddee19a7bd12a1ffb82c1457d7de08add2",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 2.933326361828759,
+        "event_improvement_pct": 65.90900988676357
+      },
+      {
+        "observation_level": "summary",
+        "seed": 7,
+        "repeat": 4,
+        "first_profile": "event-time-v2",
+        "legacy": {
+          "time_profile": "legacy-minute-v1",
+          "order": 1,
+          "execution_ns": 332464970,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "62837dde0a4b6276ecd57b948bfa186364167536ee53a4d3f38e1c88f656927e",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "7a0915f399c91bef78171c8d37cb6e6961fd8fa261a5419eeb3633fc62286c3d",
+          "result_seed": 7
+        },
+        "event_time": {
+          "time_profile": "event-time-v2",
+          "order": 0,
+          "execution_ns": 85630833,
+          "result_bytes": 1414343,
+          "trace_events": 0,
+          "result_sha256": "db791127f43364cfefb6d41fbbf763ddee19a7bd12a1ffb82c1457d7de08add2",
+          "business_result_sha256": "07da44ec7058a68144d4fa0c4881251fc605fe6c17bd4a7b0d0a48d89823713d",
+          "sample_requests_sha256": "f753c9e74f38589f4d33b721cb2b4cd7e0c4a8f161bf8c663bde4e687d5945a8",
+          "trace_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "metrics_sha256": "a24de21dfad60419f7fea19793a18a73f05fe3350cdbce99cf4bff9e5e0914cd",
+          "terminal_state_sha256": "e4f5ca91369a4b4241cfb77aef436c226f71f818ad57baf7348132db10b30e53",
+          "result_time": 61920,
+          "result_stop_reason": "duration",
+          "result_plan_fingerprint": "d8abde5cf34dee521b0eff0f1b7cdcf51df0b453eea336dc17a42feede85cddd",
+          "result_seed": 7
+        },
+        "business_equivalent": true,
+        "legacy_to_event_ratio": 3.882538080646722,
+        "event_improvement_pct": 74.24365249668259
+      }
+    ]
+  },
+  "repository_suite": {
+    "modules": [
+      "tests.conformance.test_b1_reference",
+      "tests.conformance.test_b2_b3_reference",
+      "tests.conformance.test_f35_reference",
+      "tests.differential.test_rust_runtime",
+      "tests.differential.test_event_time_runtime",
+      "tests.differential.test_python_binding"
+    ],
+    "tests_run": 41,
+    "passed": true,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_ns": 131356283036,
+    "tests": [
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_business_event_time_and_phase_match_legacy_oracle",
+        "status": "passed",
+        "elapsed_ns": 73021
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_compiler_selects_event_time_profile_explicitly",
+        "status": "passed",
+        "elapsed_ns": 1176938
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_compiles_explicit_plan_without_unsupported_features",
+        "status": "passed",
+        "elapsed_ns": 461847
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_core_metrics_are_hand_calculable",
+        "status": "passed",
+        "elapsed_ns": 14404
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_executes_hand_calculable_daily_operations_timeline",
+        "status": "passed",
+        "elapsed_ns": 17362
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_first_divergence_reports_exact_path",
+        "status": "passed",
+        "elapsed_ns": 26350
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_relaunch_is_zero_duration_and_postflight_balances_resources",
+        "status": "passed",
+        "elapsed_ns": 18193
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B1DailyOperationsTests.test_terminal_state_and_core_metrics_match_independent_legacy_oracle",
+        "status": "passed",
+        "elapsed_ns": 64830
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B2FailureRepairTests.test_failure_repair_timeline_matches_oracle",
+        "status": "passed",
+        "elapsed_ns": 41879
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B2FailureRepairTests.test_random_sample_order_and_values_match_oracle",
+        "status": "passed",
+        "elapsed_ns": 30539
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.B2FailureRepairTests.test_terminal_state_and_failure_metrics_match_oracle",
+        "status": "passed",
+        "elapsed_ns": 50301
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.F35PlanBoundaryTests.test_f35_canonical_input_compiles_to_supported_plan",
+        "status": "passed",
+        "elapsed_ns": 36473037
+      },
+      {
+        "test": "tests.conformance.test_b1_reference.IndependentRuntimeBoundaryTests.test_reference_runtime_has_no_legacy_model_import_or_symbol",
+        "status": "passed",
+        "elapsed_ns": 27936124
+      },
+      {
+        "test": "tests.conformance.test_b2_b3_reference.B2PreventiveTests.test_initial_calendar_due_matches_oracle",
+        "status": "passed",
+        "elapsed_ns": 1779812
+      },
+      {
+        "test": "tests.conformance.test_b2_b3_reference.B3OrganizationInventoryTests.test_cancelled_waiting_job_returns_arrived_reservation",
+        "status": "passed",
+        "elapsed_ns": 1080111
+      },
+      {
+        "test": "tests.conformance.test_b2_b3_reference.B3OrganizationInventoryTests.test_lateral_route_is_precompiled_and_executed",
+        "status": "passed",
+        "elapsed_ns": 712502
+      },
+      {
+        "test": "tests.conformance.test_b2_b3_reference.B3OrganizationInventoryTests.test_vertical_supply_transport_wakeup_and_ledgers_match_oracle",
+        "status": "passed",
+        "elapsed_ns": 101738
+      },
+      {
+        "test": "tests.conformance.test_f35_reference.F35ReferenceConformanceTests.test_business_event_time_phase_and_binding_match_for_required_seeds",
+        "status": "passed",
+        "elapsed_ns": 18749956
+      },
+      {
+        "test": "tests.conformance.test_f35_reference.F35ReferenceConformanceTests.test_checked_in_plan_has_fixed_identity",
+        "status": "passed",
+        "elapsed_ns": 24809810
+      },
+      {
+        "test": "tests.conformance.test_f35_reference.F35ReferenceConformanceTests.test_core_metrics_match_for_required_seeds",
+        "status": "passed",
+        "elapsed_ns": 192231
+      },
+      {
+        "test": "tests.conformance.test_f35_reference.F35ReferenceConformanceTests.test_random_requests_match_for_required_seeds",
+        "status": "passed",
+        "elapsed_ns": 377828262
+      },
+      {
+        "test": "tests.conformance.test_f35_reference.F35ReferenceConformanceTests.test_terminal_state_and_resource_ledgers_match_for_required_seeds",
+        "status": "passed",
+        "elapsed_ns": 27344631
+      },
+      {
+        "test": "tests.differential.test_rust_runtime.RustRuntimeConformanceTests.test_batch_order_is_input_stable_and_thread_count_invariant",
+        "status": "passed",
+        "elapsed_ns": 33040305
+      },
+      {
+        "test": "tests.differential.test_rust_runtime.RustRuntimeConformanceTests.test_f35_required_seeds_match_python_reference_full_result",
+        "status": "passed",
+        "elapsed_ns": 44358688294
+      },
+      {
+        "test": "tests.differential.test_rust_runtime.RustRuntimeConformanceTests.test_f35_summary_preserves_business_results_and_random_trajectory",
+        "status": "passed",
+        "elapsed_ns": 2849942986
+      },
+      {
+        "test": "tests.differential.test_rust_runtime.RustRuntimeConformanceTests.test_synthetic_slices_match_saved_python_results",
+        "status": "passed",
+        "elapsed_ns": 28120553
+      },
+      {
+        "test": "tests.differential.test_rust_runtime.RustRuntimeConformanceTests.test_truncated_horizon_preserves_observation_isolation",
+        "status": "passed",
+        "elapsed_ns": 6743716
+      },
+      {
+        "test": "tests.differential.test_rust_runtime.RustRuntimeConformanceTests.test_unknown_observation_level_fails_explicitly",
+        "status": "passed",
+        "elapsed_ns": 2070211
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_01_b1_daily_operations_matches_legacy",
+        "status": "passed",
+        "elapsed_ns": 7663787
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_02_b3_upstream_transport_matches_legacy",
+        "status": "passed",
+        "elapsed_ns": 5957202
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_03_b2_failure_repair_matches_legacy",
+        "status": "passed",
+        "elapsed_ns": 5906519
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_04_b2_preventive_maintenance_matches_legacy",
+        "status": "passed",
+        "elapsed_ns": 5721003
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_05_event_time_rejects_noncanonical_phase_order",
+        "status": "passed",
+        "elapsed_ns": 2323479
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_06_f35_required_seeds_and_observation_levels_match_legacy",
+        "status": "passed",
+        "elapsed_ns": 5683888362
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_07_f35_horizon_before_at_and_after_event_matches_legacy",
+        "status": "passed",
+        "elapsed_ns": 2761290918
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_08_postflight_created_after_dispatch_wakes_remote_spare_request",
+        "status": "passed",
+        "elapsed_ns": 8457582
+      },
+      {
+        "test": "tests.differential.test_event_time_runtime.EventTimeRuntimeConformanceTests.test_09_zero_duration_mission_returns_on_next_minute",
+        "status": "passed",
+        "elapsed_ns": 6640929
+      },
+      {
+        "test": "tests.differential.test_python_binding.PythonBindingTests.test_invalid_batch_requests_fail_explicitly",
+        "status": "passed",
+        "elapsed_ns": 802712
+      },
+      {
+        "test": "tests.differential.test_python_binding.PythonBindingTests.test_parallel_batch_preserves_input_order_and_duplicate_seeds",
+        "status": "passed",
+        "elapsed_ns": 5138253
+      },
+      {
+        "test": "tests.differential.test_python_binding.PythonBindingTests.test_single_sample_matches_saved_reference",
+        "status": "passed",
+        "elapsed_ns": 863708
+      },
+      {
+        "test": "tests.differential.test_python_binding.PythonBindingTests.test_summary_omits_trace_without_changing_business_or_rng_results",
+        "status": "passed",
+        "elapsed_ns": 1939859
+      }
+    ],
+    "native_binding_loaded_from": "/workspace/scratch/e8c6fcda6503/sim_engine_compiler/rust/runtime/target/release/libsim_engine_runtime.so"
+  },
+  "summary": {
+    "positive_cases_passed": 12,
+    "positive_cases_total": 12,
+    "negative_probes_rejected": 8,
+    "negative_probes_total": 11,
+    "validation_gaps": [
+      "negative-work-duration",
+      "unknown-equipment-component-reference",
+      "duration-unit-string"
+    ],
+    "explicit_assertions_passed": 64,
+    "explicit_assertions_total": 64
+  },
+  "standalone_validation_boundary": "Negative probes call compile_aircraft_support directly, bypassing the upstream Adapter export script's Draft202012Validator. They establish gaps in this standalone compiler API, not acceptance by the complete Project+Adapter+schema chain. This workspace does not contain that upstream schema.",
+  "acceptance": {
+    "positive_cases_passed": true,
+    "f35_differences_absent": true,
+    "repository_suite_passed": true,
+    "standalone_input_validation_gate_passed": false
+  },
+  "paired_timing_summary": [
+    {
+      "observation_level": "full",
+      "pairs": 15,
+      "all_exact_business_equivalent": true,
+      "median_paired_execution_speedup": 3.4893863140478727,
+      "min_paired_execution_speedup": 1.5923329735886507,
+      "max_paired_execution_speedup": 9.876195104387573,
+      "median_legacy_execution_ms": 677.270761,
+      "median_event_execution_ms": 193.040819,
+      "timing_scope": "runtime.run only, excludes initialization/compilation/serialization; alternates execution order; 1 warmup per seed and mode; diagnostic shared-host measurement"
+    },
+    {
+      "observation_level": "summary",
+      "pairs": 15,
+      "all_exact_business_equivalent": true,
+      "median_paired_execution_speedup": 4.544090008266873,
+      "min_paired_execution_speedup": 2.748663211897651,
+      "max_paired_execution_speedup": 6.2691324512329665,
+      "median_legacy_execution_ms": 388.403362,
+      "median_event_execution_ms": 92.92763,
+      "timing_scope": "runtime.run only, excludes initialization/compilation/serialization; alternates execution order; 1 warmup per seed and mode; diagnostic shared-host measurement"
+    }
+  ],
+  "assertion_groups": {
+    "hand_calculated_timeline_and_metric_checks": 28,
+    "terminal_nonnegative_resource_invariants": 12,
+    "plan_roundtrip_and_immutability_checks": 24
+  },
+  "event_time_implementation_boundary": {
+    "source": "rust/runtime/src/runtime/event_time.rs",
+    "observation": "build_wake_calendar scans entity/mission/cycle collections at wakes; advance_continuous_state contains a per-skipped-minute countdown loop to preserve legacy floating arithmetic. The measured speedup demonstrates conservative event-calendar skipping, not a fully event-proportional generic kernel."
+  }
+}
