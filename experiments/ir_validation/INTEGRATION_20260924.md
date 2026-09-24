@@ -36,9 +36,9 @@ MLIR pass 现在接受 `legacy-minute-v1` 和 `event-time-v2`，并要求模块�
 
 ### 必须执行的 MLIR 门槛
 
-`test_mlir_resource_dispatch.py` 默认在普通开发环境缺少 MLIR 时会跳过相关测试；验收运行现在可设置 `SIM_ENGINE_REQUIRE_MLIR=1`。在此模式下，缺少基准证据、明确指定的插件目录、插件 `.so` 或 `mlir-opt` 都会导致失败，不会作为通过的 skip。新增 `.github/workflows/o5-mlir-integration.yml` 在干净 Ubuntu 24.04 runner 通过 LLVM 官方签名 APT 仓库安装精确固定的 LLVM/MLIR 23.1.2 包，构建当前 checkout 的插件，再运行 Rust tests、PyO3 tests、六项 MLIR tests（明确要求零 skip）和完整 Python suite。job artifact 保存该次实际 `HEAD`、tree SHA、工具链包版本、关键源码 SHA-256 和测试日志。该工作流须在 PR check 上成功后才满足 Linux 验收门槛。
+`test_mlir_resource_dispatch.py` 默认在普通开发环境缺少 MLIR 时会跳过相关测试；验收运行现在可设置 `SIM_ENGINE_REQUIRE_MLIR=1`。在此模式下，缺少基准证据、明确指定的插件目录、插件 `.so` 或 `mlir-opt` 都会导致失败，不会作为通过的 skip。新增 `.github/workflows/o5-mlir-integration.yml` 在干净 Ubuntu 24.04 runner 清理无关预装工具后下载并验证 LLVM 官方签名的 23.1.1 发行包，构建当前 checkout 的插件，再运行 Rust tests、PyO3 tests、六项 MLIR tests（明确要求零 skip）和完整 Python suite。job artifact 保存 Actions checkout SHA、PR head/base SHA、tree SHA、工具链版本、关键源码 SHA-256 和测试日志。该工作流须在 PR check 上成功后才满足 Linux 验收门槛。
 
-首次 Linux 工作流尝试因下载并解压完整 LLVM 发行包耗尽 runner 磁盘空间，在任何测试步骤开始前由 GitHub runner 的 `No space left on device` 终止，不能算作代码测试失败或通过。第二次尝试改用官方签名仓库中固定版本 23.1.2 包后解决了磁盘问题，但仓库 CMake 对 23.1.1 使用 `EXACT` 约束，因而在插件编译前明确拒绝 23.1.2。第三次使用精确的 23.1.1 发布包后，配置和 C++ 编译均成功；链接器因项目未把 LLVM/MLIR 安装前缀加入模块搜索路径而找不到 `MLIR`、`LLVM`。已为两个插件目标加入 `LLVM_LIBRARY_DIRS`、`MLIR_LIBRARY_DIRS`；随后从当前源码本地重新构建插件，并在必需 MLIR 模式下运行 6/6 组合测试（无 skip）通过。Linux check 仍须重跑以确认远端链接及完整测试集。
+首次 Linux 工作流尝试因下载并解压完整 LLVM 发行包耗尽 runner 磁盘空间，在任何测试步骤开始前由 GitHub runner 的 `No space left on device` 终止，不能算作代码测试失败或通过。第二次尝试改用官方签名仓库中固定版本 23.1.2 包后解决了磁盘问题，但仓库 CMake 对 23.1.1 使用 `EXACT` 约束，因而在插件编译前明确拒绝 23.1.2。第三次使用精确的 23.1.1 发布包后，配置和 C++ 编译均成功；官方 Linux 发布包没有 `libMLIR`、`libLLVM` 单体共享库，链接因此失败。现在 CMake 在两个单体共享库实际存在时按其导入路径链接；发布包只有静态组件库时，保留插件的 MLIR/LLVM 符号未解析状态，由导出符号的 `mlir-opt` 主程序提供运行时解析。该路径在本机现有共享库配置下重建成功，必需 MLIR 测试 6/6 无 skip。Linux check 仍须重跑以验证发布包这一分支、插件加载及完整测试集。
 
 ### 手算库存到达交互案例
 
