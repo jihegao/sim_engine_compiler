@@ -38,11 +38,13 @@ MLIR pass 现在接受 `legacy-minute-v1` 和 `event-time-v2`，并要求模块�
 
 `test_mlir_resource_dispatch.py` 默认在普通开发环境缺少 MLIR 时会跳过相关测试；验收运行现在可设置 `SIM_ENGINE_REQUIRE_MLIR=1`。在此模式下，缺少基准证据、明确指定的插件目录、插件 `.so` 或 `mlir-opt` 都会导致失败，不会作为通过的 skip。新增 `.github/workflows/o5-mlir-integration.yml` 在干净 Ubuntu 24.04 runner 清理无关预装工具后下载并验证 LLVM 官方签名的 23.1.1 发行包，构建当前 checkout 的插件，再运行 Rust tests、PyO3 tests、六项 MLIR tests（明确要求零 skip）和完整 Python suite。job artifact 保存 Actions checkout SHA、PR head/base SHA、tree SHA、工具链版本、关键源码 SHA-256 和测试日志。该工作流须在 PR check 上成功后才满足 Linux 验收门槛。
 
-首次 Linux 工作流尝试因下载并解压完整 LLVM 发行包耗尽 runner 磁盘空间，在任何测试步骤开始前由 GitHub runner 的 `No space left on device` 终止，不能算作代码测试失败或通过。第二次尝试改用官方签名仓库中固定版本 23.1.2 包后解决了磁盘问题，但仓库 CMake 对 23.1.1 使用 `EXACT` 约束，因而在插件编译前明确拒绝 23.1.2。随后几次尝试确认官方 Linux 23.1.1 发布包没有单体共享库和聚合 `MLIR` CMake 目标；C++ 插件可编译，但未链接运行库时 `mlir-opt` 无法加载它们。现 CMake 在单体共享库存在时按导入文件链接，在纯 Linux 静态组件包中让 Dialect 插件链接 `MLIRIR`，Pass 插件链接 `MLIRPass`，共用的 `LLVMSupport` 等由导入目标传递。当前版本在 macOS 标准共享库分支重建成功，必需 MLIR 测试 6/6 无 skip；新 Linux check 尚待验证静态组件插件是否能被工具正确加载，以及 PyO3、Rust 和完整 Python suite。
+首次 Linux 工作流尝试因下载并解压完整 LLVM 发行包耗尽 runner 磁盘空间，在任何测试步骤开始前由 GitHub runner 的 `No space left on device` 终止，不能算作代码测试失败或通过。第二次尝试改用官方签名仓库中固定版本 23.1.2 包后解决了磁盘问题，但仓库 CMake 对 23.1.1 使用 `EXACT` 约束，因而在插件编译前明确拒绝 23.1.2。随后几次尝试确认官方 Linux 23.1.1 发布包没有单体共享库和聚合 `MLIR` CMake 目标；C++ 插件可编译，但未链接运行库时 `mlir-opt` 无法加载它们。现 CMake 在单体共享库存在时按导入文件链接，在纯 Linux 静态组件包中让 Dialect 插件链接 `MLIRIR`、Pass 插件链接 `MLIRPass`，并按 LLVM CMake 配置对齐 RTTI 与异常处理编译标志。最终 Linux 验收结果和来源指纹见下文。
 
 Linux run `35950528690` 对应提交 `af32faf`：23.1.1 toolchain、当前分支插件构建、PyO3 构建与加载、Rust runtime tests、Python binding tests 均通过。MLIR 步骤确实运行了 6 项、零 skip，但其中两个编译用例仍报告 Dialect 与 Pass 插件加载失败，另四项通过；因此完整 Python suite 被前置失败门禁跳过。本次证明静态组件链接仍不足以满足 Linux 插件加载，不能作为合入验收。后续工作流已加入 `ldd -r`、插件导出符号、`dlopen` 和 `LD_DEBUG` 诊断记录，再据此修复并重跑。
 
-诊断 run `35951345543` 的 `ldd -r`/`dlopen` 日志定位到未解析 RTTI 符号：Dialect 插件缺少 `typeinfo for mlir::Dialect`，Pass 插件缺少 LLVM 命令行选项及 MLIR Pass 基类的 typeinfo。CMake 随后按 LLVM 包导出的 `LLVM_ENABLE_RTTI` 和 `LLVM_ENABLE_EH` 配置插件 ABI；验收 artifact 同时保存 `llvm-config --has-rtti`、CMake ABI 值及完整插件编译命令。用本机 Homebrew LLVM/MLIR（RTTI=ON、EH=OFF）重建后，必需 MLIR 测试 6/6 通过且零 skip。此结果验证条件编译路径和既有本机插件链路；Linux 静态发行包的 RTTI 对齐及加载仍待新 CI 结果确认。
+诊断 run `35951345543` 的 `ldd -r`/`dlopen` 日志定位到未解析 RTTI 符号：Dialect 插件缺少 `typeinfo for mlir::Dialect`，Pass 插件缺少 LLVM 命令行选项及 MLIR Pass 基类的 typeinfo。CMake 随后按 LLVM 包导出的 `LLVM_ENABLE_RTTI` 和 `LLVM_ENABLE_EH` 配置插件 ABI；验收 artifact 同时保存 `llvm-config --has-rtti`、CMake ABI 值及完整插件编译命令。用本机 Homebrew LLVM/MLIR（RTTI=ON、EH=OFF）重建后，必需 MLIR 测试 6/6 通过且零 skip。此结果验证条件编译路径和既有本机插件链路；Linux 静态发行包的对齐与加载结果见下文。
+
+Linux acceptance run [`35952151635`](https://github.com/jihegao/sim_engine_compiler/actions/runs/35952151635) 成功。PR head 为 `acec29a91e85a1febb96b6af4fc93d0dd36a1a1b`，base 为 `ae36799bb1238c430a830c26c6bf9db985db2ce2`，checkout/tree 指纹保存在该 run artifact。LLVM/MLIR 23.1.1 包报告 RTTI=OFF、EH=OFF；两个插件用对齐的编译选项构建后，`dlopen` 均成功，`ldd -r` 无未解析符号，`mlir-opt` loader probe 返回 0。PyO3 扩展构建和加载通过；Rust runtime 为 29 项通过，Python binding 为 4/4，强制 MLIR/O5 组合为 6/6 且零跳过，完整 Python suite 为 47/47、`OK`。四路径库存到达案例也在 suite 中通过：t=1 短缺，t=3 到货并消耗，t=5 维修完成。此 run 对应源码与树指纹，不包含性能基准；PR 随后仅作本报告验收记录更新。
 
 ### 手算库存到达交互案例
 
@@ -52,7 +54,7 @@ Linux run `35950528690` 对应提交 `af32faf`：23.1.1 toolchain、当前分支
 
 ### macOS PyO3 基线复现
 
-在同一台 macOS 27 / Apple Clang 21 / rustc 1.90.0 / Python 3.12.13 主机，使用干净 worktree 与独立 virtualenv 从 `origin/main` `ae36799bb1238c430a830c26c6bf9db985db2ce2`（tree `877b1c852063ea7b86fe940bde2ae4f018bf81a1`）构建 PyO3 扩展。主线同样无法 import，dyld 报 `mis-aligned LINKEDIT string pool`（offset `0x001508F4`）；main 完整 unittest 为 31 项运行、绑定类初始化 1 项错误。整合分支在同一主机也有相同错误（offset `0x00150A34`）。这次对照复现说明错误在该 macOS/toolchain 主机上主线也存在；Linux PyO3 和全套测试仍须由上述 clean-runner check 通过。
+在同一台 macOS 27 / Apple Clang 21 / rustc 1.90.0 / Python 3.12.13 主机，使用干净 worktree 与独立 virtualenv 从 `origin/main` `ae36799bb1238c430a830c26c6bf9db985db2ce2`（tree `877b1c852063ea7b86fe940bde2ae4f018bf81a1`）构建 PyO3 扩展。主线同样无法 import，dyld 报 `mis-aligned LINKEDIT string pool`（offset `0x001508F4`）；main 完整 unittest 为 31 项运行、绑定类初始化 1 项错误。整合分支在同一主机也有相同错误（offset `0x00150A34`）。这次对照复现说明错误在该 macOS/toolchain 主机上主线也存在；Linux PyO3 与全套测试已由上文 clean-runner acceptance run 通过；macOS 主线对照表明该主机的 PyO3 错误并非此次整合引入。
 
 `experiments/ir_validation/verify_manifest.py` 中的哈希是 PR #1 来源版本的历史快照校验，不会因整合时的新主线文件改动而自动更新。当前整合分支核验 302/311。为验证来源边界，在精确来源提交 `ed59f354df11d8855597e74099b75b5ea93acff1` 的干净 worktree 执行 `python3 experiments/ir_validation/verify_manifest.py`，得到 311/311、`passed: true`。对应重建命令为 `git worktree add --detach <dir> ed59f354df11d8855597e74099b75b5ea93acff1`，然后在 `<dir>` 内运行该脚本。当前整合分支 9 个哈希不匹配路径为 `.gitignore`、`README.md`、`benchmarks/hot_path/README.md`、`docs/architecture.md`、`docs/performance-optimization-plan.md`、`docs/roadmap.md`、`rust/runtime/src/plan.rs`、`rust/runtime/src/runtime.rs` 和 `src/sim_engine_compiler/ir/plan.py`。历史 manifest 与源报告保持原样；本次行为检查结果在本报告中独立记录。
 
