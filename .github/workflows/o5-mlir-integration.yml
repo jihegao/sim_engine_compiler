@@ -97,6 +97,41 @@ jobs:
           test -f tools/mlir_dispatch/build-unix/SimDialect.so
           test -f tools/mlir_dispatch/build-unix/SimResourceDispatchPass.so
 
+      - name: Capture Linux plugin loader diagnostics
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          mkdir -p "$RUNNER_TEMP/o5-mlir-acceptance"
+          for plugin in \
+            tools/mlir_dispatch/build-unix/SimDialect.so \
+            tools/mlir_dispatch/build-unix/SimResourceDispatchPass.so; do
+            name="$(basename "$plugin" .so)"
+            ldd -r "$plugin" \
+              >"$RUNNER_TEMP/o5-mlir-acceptance/$name-ldd.txt" 2>&1 || true
+            nm -D --defined-only "$plugin" \
+              >"$RUNNER_TEMP/o5-mlir-acceptance/$name-exports.txt" 2>&1 || true
+            python - "$plugin" \
+              >"$RUNNER_TEMP/o5-mlir-acceptance/$name-dlopen.txt" 2>&1 <<'PY' || true
+          import ctypes
+          import pathlib
+          import sys
+
+          path = pathlib.Path(sys.argv[1]).resolve()
+          try:
+              ctypes.CDLL(str(path), mode=ctypes.RTLD_LOCAL)
+          except OSError as error:
+              raise SystemExit(f"dlopen failed for {path}: {error}")
+          print(f"dlopen succeeded for {path}")
+          PY
+          done
+          set +e
+          LD_DEBUG=libs,files "$MLIR_PREFIX/bin/mlir-opt" \
+            --load-dialect-plugin="$GITHUB_WORKSPACE/tools/mlir_dispatch/build-unix/SimDialect.so" \
+            --load-pass-plugin="$GITHUB_WORKSPACE/tools/mlir_dispatch/build-unix/SimResourceDispatchPass.so" \
+            --show-dialects \
+            >"$RUNNER_TEMP/o5-mlir-acceptance/mlir-opt-loader.txt" 2>&1
+          echo "$?" >"$RUNNER_TEMP/o5-mlir-acceptance/mlir-opt-loader-exit.txt"
+
       - name: Install Python package and build PyO3 extension
         run: |
           set -euo pipefail
