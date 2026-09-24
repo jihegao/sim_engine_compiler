@@ -11,6 +11,7 @@ import tempfile
 import unittest
 
 from sim_engine_compiler.ir.plan import ExecutionPlan
+from sim_engine_compiler.compiler.aircraft_support import compile_aircraft_support
 from sim_engine_compiler.reference import SimpyReferenceRuntime
 from sim_engine_compiler.reference.conformance import first_divergence
 
@@ -215,13 +216,24 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
 
     def test_indexed_f35_full_results_match_the_python_reference(self):
         current_path, current_raw = self.current_indexed_plan()
-        current_plan = ExecutionPlan.from_dict(current_raw)
+        legacy_reference_plan = compile_aircraft_support(
+            json.loads(F35_INPUTS.read_text(encoding="utf-8")),
+            semantic_profile="legacy-minute-v1",
+        )
+        self.assertEqual(
+            current_raw["source_inputs_sha256"],
+            legacy_reference_plan.source_inputs_sha256,
+        )
         for seed in (0, 1, 7):
             with self.subTest(seed=seed):
-                expected = SimpyReferenceRuntime(current_plan, seed=seed).run()
+                expected = SimpyReferenceRuntime(legacy_reference_plan, seed=seed).run()
                 completed, output = self.run_rust(current_path, seed)
                 self.assertEqual(completed.returncode, 0, completed.stderr)
                 actual = json.loads(output.read_text(encoding="utf-8"))
+                # O5 has a distinct Plan identity but must retain the same
+                # business trace, RNG requests, metrics, and terminal state.
+                expected.pop("plan_fingerprint")
+                actual.pop("plan_fingerprint")
                 self.assertIsNone(
                     first_divergence(
                         expected,
