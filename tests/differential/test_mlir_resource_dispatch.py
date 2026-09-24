@@ -24,7 +24,10 @@ F35_INPUTS = (
     ROOT
     / "tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json"
 )
+B3_INPUTS = ROOT / "tests/fixtures/synthetic/b3-upstream-transport.json"
+B3_ORACLE = ROOT / "tests/fixtures/synthetic/b3-upstream-transport-oracle.json"
 MLIR_COMPILER = ROOT / "scripts/compile_mlir_execution_plan.py"
+REQUIRE_MLIR = os.environ.get("SIM_ENGINE_REQUIRE_MLIR") == "1"
 
 
 def _cargo() -> str:
@@ -49,6 +52,10 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not MLIR_PLAN.is_file() or not BASELINE_PLAN.is_file() or not REPORT.is_file():
+            if REQUIRE_MLIR:
+                raise AssertionError(
+                    "required MLIR acceptance evidence is missing; do not count this run as passed"
+                )
             raise unittest.SkipTest("run scripts/benchmark_mlir_resource_dispatch.py first")
         subprocess.run(
             [
@@ -85,12 +92,29 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
         )
         return completed, output
 
-    def compile_event_time_plan(self, output: Path, *, enable_index: bool) -> None:
-        plugin_dirs = [
-            ROOT / "tools/mlir_dispatch/build-unix",
-            ROOT / "tools/mlir_dispatch/build",
-            ROOT / "tools/mlir_dispatch/build-make",
-        ]
+    def compile_mlir_plan(
+        self,
+        inputs: Path,
+        output: Path,
+        *,
+        semantic_profile: str,
+        enable_index: bool,
+    ) -> None:
+        configured_plugin_dir = os.environ.get("SIM_ENGINE_MLIR_PLUGIN_DIR")
+        if REQUIRE_MLIR and not configured_plugin_dir:
+            self.fail(
+                "SIM_ENGINE_REQUIRE_MLIR=1 requires SIM_ENGINE_MLIR_PLUGIN_DIR "
+                "to point to the plugin built from this checkout"
+            )
+        plugin_dirs = (
+            [Path(configured_plugin_dir)]
+            if configured_plugin_dir
+            else [
+                ROOT / "tools/mlir_dispatch/build-unix",
+                ROOT / "tools/mlir_dispatch/build",
+                ROOT / "tools/mlir_dispatch/build-make",
+            ]
+        )
         plugin_dir = next(
             (
                 path
@@ -101,7 +125,9 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
             None,
         )
         prefix = os.environ.get("MLIR_PREFIX")
+        configured_mlir_opt = os.environ.get("SIM_ENGINE_MLIR_OPT")
         mlir_tools = [
+            Path(configured_mlir_opt) if configured_mlir_opt else None,
             Path(prefix) / "bin/mlir-opt" if prefix else None,
             Path("/opt/homebrew/opt/llvm/bin/mlir-opt"),
             Path(shutil.which("mlir-opt") or ""),
@@ -110,15 +136,20 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
             (path for path in mlir_tools if path is not None and path.is_file()), None
         )
         if plugin_dir is None or mlir_opt is None:
+            if REQUIRE_MLIR:
+                self.fail(
+                    "required MLIR toolchain is unavailable; acceptance must build "
+                    "the plugin and fail instead of skipping"
+                )
             self.skipTest("event-time MLIR combination requires MLIR 23.1.1 plugins")
 
         command = [
             sys.executable,
             str(MLIR_COMPILER),
-            str(F35_INPUTS),
+            str(inputs),
             str(output),
             "--semantic-profile",
-            "event-time-v2",
+            semantic_profile,
             "--plugin-dir",
             str(plugin_dir),
             "--mlir-opt",
@@ -130,6 +161,14 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
             command, cwd=ROOT, capture_output=True, text=True
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
+
+    def compile_event_time_plan(self, output: Path, *, enable_index: bool) -> None:
+        self.compile_mlir_plan(
+            F35_INPUTS,
+            output,
+            semantic_profile="event-time-v2",
+            enable_index=enable_index,
+        )
 
     def test_mlir_index_is_attached_deterministically_to_the_base_plan(self):
         evidence = json.loads(REPORT.read_text(encoding="utf-8"))
@@ -250,6 +289,116 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
                     json.loads(enabled_output.read_text(encoding="utf-8")),
                     json.loads(disabled_output.read_text(encoding="utf-8")),
                 )
+
+    def test_supply_arrival_wakes_waiting_work_in_all_four_modes(self):
+        oracle = json.loads(B3_ORACLE.read_text(encoding="utf-8"))
+        identity_neutral_results = []
+        interaction_timeline = None
+        expected_timeline = [
+            (item["time"], item["phase"], item["kind"])
+            for item in oracle["trace"]
+            if item["kind"]
+            in {
+                "spare_shortage",
+                "organization_transport_arrived",
+                "spare_consumed",
+                "preventive_completed",
+            }
+        ]
+
+        for semantic_profile in ("legacy-minute-v1", "event-time-v2"):
+            for enable_index in (False, True):
+                label = f"{semantic_profile}-index-{int(enable_index)}"
+                plan_path = Path(self.tempdir.name) / f"b3-{label}.json"
+                self.compile_mlir_plan(
+                    B3_INPUTS,
+                    plan_path,
+                    semantic_profile=semantic_profile,
+                    enable_index=enable_index,
+                )
+                plan = json.loads(plan_path.read_text(encoding="utf-8"))
+                self.assertEqual(plan["semantic_profile"], semantic_profile)
+                index = plan.get("resource_dispatch_index")
+                self.assertEqual(index is not None, enable_index)
+                if index is not None:
+                    self.assertEqual(
+                        index["base_plan_fingerprint"],
+                        ExecutionPlan.from_dict(plan).fingerprint,
+                    )
+
+                completed, result_path = self.run_rust(plan_path, 0)
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+                result = json.loads(result_path.read_text(encoding="utf-8"))
+                identity_neutral_results.append(
+                    {
+                        key: value
+                        for key, value in result.items()
+                        if key != "plan_fingerprint"
+                    }
+                )
+
+                for key in (
+                    "spare_stock_total",
+                    "spare_demand_total",
+                    "spare_immediately_filled_total",
+                    "spare_consumed_total",
+                    "shortage_events",
+                    "transport_in_transit_count",
+                    "transport_replenishment_events",
+                    "total_transport_delay_minutes",
+                    "mean_transport_delay",
+                ):
+                    self.assertEqual(
+                        oracle["metrics"][key],
+                        result["metrics"][key],
+                        f"{label} differs from the saved B3 oracle for metric {key}",
+                    )
+                self.assertIsNone(
+                    first_divergence(
+                        oracle["terminal_state"],
+                        result["terminal_state"],
+                        float_rel_tol=2e-15,
+                        float_abs_tol=1e-12,
+                    ),
+                    f"{label} differs from the saved B3 terminal state",
+                )
+
+                observed = [
+                    (item["time"], item["phase"], item["kind"])
+                    for item in result["trace"]
+                    if item["kind"]
+                    in {
+                        "spare_shortage",
+                        "organization_transport_arrived",
+                        "spare_consumed",
+                        "preventive_completed",
+                    }
+                ]
+                self.assertEqual(
+                    observed,
+                    expected_timeline,
+                    f"{label} differs from the saved B3 resource-arrival timeline",
+                )
+                if interaction_timeline is None:
+                    interaction_timeline = observed
+                else:
+                    self.assertEqual(observed, interaction_timeline, label)
+
+        self.assertEqual(
+            identity_neutral_results[1:],
+            identity_neutral_results[:1] * 3,
+            "all four profiles must produce the same full result except Plan identity",
+        )
+        self.assertEqual(
+            interaction_timeline,
+            [
+                (1, "resource_dispatch", "spare_shortage"),
+                (3, "transport_arrivals", "organization_transport_arrived"),
+                (3, "resource_dispatch", "spare_consumed"),
+                (5, "job_progress_and_completions", "preventive_completed"),
+            ],
+            "the waiting maintenance job resumes at inventory arrival t=3 and finishes at t=5",
+        )
 
 
 if __name__ == "__main__":

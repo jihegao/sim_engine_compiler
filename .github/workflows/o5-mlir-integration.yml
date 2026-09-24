@@ -1,0 +1,147 @@
+name: O5 and MLIR integration acceptance
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  clean-linux-acceptance:
+    name: Linux PyO3, full suite, required MLIR combination
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: dtolnay/rust-toolchain@1.90.0
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes cmake ninja-build xz-utils curl
+
+      - name: Install and verify pinned LLVM/MLIR 23.1.1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/LLVM-23.1.1-Linux-X64.tar.xz"
+          bundle="$archive.jsonl"
+          url="https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.1/LLVM-23.1.1-Linux-X64.tar.xz"
+          curl --fail --location --retry 3 "$url" --output "$archive"
+          curl --fail --location --retry 3 "$url.jsonl" --output "$bundle"
+          gh attestation verify --repo llvm/llvm-project --bundle "$bundle" "$archive"
+
+          llvm_root="$RUNNER_TEMP/llvm-23.1.1"
+          mkdir -p "$llvm_root"
+          tar -xJf "$archive" --directory "$llvm_root" --strip-components=1
+          test "$("$llvm_root/bin/llvm-config" --version)" = "23.1.1"
+          test -x "$llvm_root/bin/mlir-opt"
+          test -f "$llvm_root/lib/cmake/llvm/LLVMConfig.cmake"
+          test -f "$llvm_root/lib/cmake/mlir/MLIRConfig.cmake"
+          echo "MLIR_PREFIX=$llvm_root" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$llvm_root/lib:${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          rm "$archive" "$bundle"
+
+      - name: Create validation fingerprint
+        run: |
+          mkdir -p "$RUNNER_TEMP/o5-mlir-acceptance"
+          {
+            echo "commit=$(git rev-parse HEAD)"
+            echo "tree=$(git rev-parse 'HEAD^{tree}')"
+            echo "python=$(python --version 2>&1)"
+            echo "rustc=$(rustc --version)"
+            echo "cargo=$(cargo --version)"
+            echo "llvm=$($MLIR_PREFIX/bin/llvm-config --version)"
+            echo "mlir_opt=$($MLIR_PREFIX/bin/mlir-opt --version | head -n 1)"
+            sha256sum scripts/compile_mlir_execution_plan.py
+            sha256sum tests/differential/test_mlir_resource_dispatch.py
+            sha256sum tools/mlir_dispatch/src/ResourceDispatchPass.cpp
+          } | tee "$RUNNER_TEMP/o5-mlir-acceptance/manifest.txt"
+
+      - name: Build MLIR plugin from this checkout
+        run: |
+          set -euo pipefail
+          cmake -S tools/mlir_dispatch -B tools/mlir_dispatch/build-unix -G Ninja \
+            -DLLVM_DIR="$MLIR_PREFIX/lib/cmake/llvm" \
+            -DMLIR_DIR="$MLIR_PREFIX/lib/cmake/mlir"
+          cmake --build tools/mlir_dispatch/build-unix --parallel 2
+          test -f tools/mlir_dispatch/build-unix/SimDialect.so
+          test -f tools/mlir_dispatch/build-unix/SimResourceDispatchPass.so
+
+      - name: Install Python package and build PyO3 extension
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -e .
+          PYTHONPATH=src .venv/bin/python -c \
+            'from sim_engine_compiler import native_available; assert native_available(), "PyO3 extension failed to load"'
+
+      - name: Run Rust runtime tests
+        run: |
+          set -euo pipefail
+          cargo test --locked --manifest-path rust/runtime/Cargo.toml 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/cargo-test.log"
+
+      - name: Run Python binding tests
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m unittest discover -s tests/differential \
+            -p test_python_binding.py -v 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/python-binding.log"
+
+      - name: Run required MLIR and O5 interaction tests without skip
+        env:
+          PYTHONPATH: src
+          SIM_ENGINE_REQUIRE_MLIR: "1"
+          SIM_ENGINE_MLIR_PLUGIN_DIR: ${{ github.workspace }}/tools/mlir_dispatch/build-unix
+          SIM_ENGINE_MLIR_OPT: ${{ runner.temp }}/llvm-23.1.1/bin/mlir-opt
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m unittest discover -s tests/differential \
+            -p test_mlir_resource_dispatch.py -v 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/mlir-integration.log"
+          python - "$RUNNER_TEMP/o5-mlir-acceptance/mlir-integration.log" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          log = pathlib.Path(sys.argv[1]).read_text()
+          if not re.search(r"^Ran 6 tests in [0-9.]+s$", log, re.MULTILINE):
+              raise SystemExit("expected all six MLIR tests to execute")
+          if "skipped=" in log or "skipped " in log:
+              raise SystemExit("MLIR acceptance may not pass with skipped tests")
+          PY
+
+      - name: Run full Python test suite
+        env:
+          PYTHONPATH: src
+          SIM_ENGINE_REQUIRE_MLIR: "1"
+          SIM_ENGINE_MLIR_PLUGIN_DIR: ${{ github.workspace }}/tools/mlir_dispatch/build-unix
+          SIM_ENGINE_MLIR_OPT: ${{ runner.temp }}/llvm-23.1.1/bin/mlir-opt
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m unittest discover -s tests -v 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/python-full-suite.log"
+
+      - name: Upload test logs and source fingerprint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: o5-mlir-linux-acceptance-${{ github.sha }}
+          path: ${{ runner.temp }}/o5-mlir-acceptance/
+          if-no-files-found: error
