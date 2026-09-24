@@ -80,8 +80,11 @@ jobs:
             echo "rustc=$(rustc --version)"
             echo "cargo=$(cargo --version)"
             echo "llvm=$($MLIR_PREFIX/bin/llvm-config --version)"
+            echo "llvm_has_rtti=$($MLIR_PREFIX/bin/llvm-config --has-rtti)"
             echo "mlir_opt=$($MLIR_PREFIX/bin/mlir-opt --version | head -n 1)"
             echo "llvm_release=23.1.1"
+            grep -E '^set\(LLVM_ENABLE_(RTTI|EH) ' \
+              "$MLIR_PREFIX/lib/cmake/llvm/LLVMConfig.cmake"
             sha256sum scripts/compile_mlir_execution_plan.py
             sha256sum tests/differential/test_mlir_resource_dispatch.py
             sha256sum tools/mlir_dispatch/src/ResourceDispatchPass.cpp
@@ -92,8 +95,10 @@ jobs:
           set -euo pipefail
           cmake -S tools/mlir_dispatch -B tools/mlir_dispatch/build-unix -G Ninja \
             -DLLVM_DIR="$MLIR_PREFIX/lib/cmake/llvm" \
-            -DMLIR_DIR="$MLIR_PREFIX/lib/cmake/mlir"
-          cmake --build tools/mlir_dispatch/build-unix --parallel 2
+            -DMLIR_DIR="$MLIR_PREFIX/lib/cmake/mlir" 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/cmake-configure.log"
+          cmake --build tools/mlir_dispatch/build-unix --parallel 2 --verbose 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/plugin-build.log"
           test -f tools/mlir_dispatch/build-unix/SimDialect.so
           test -f tools/mlir_dispatch/build-unix/SimResourceDispatchPass.so
 

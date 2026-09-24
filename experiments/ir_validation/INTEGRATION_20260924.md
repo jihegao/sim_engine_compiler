@@ -42,6 +42,8 @@ MLIR pass 现在接受 `legacy-minute-v1` 和 `event-time-v2`，并要求模块�
 
 Linux run `35950528690` 对应提交 `af32faf`：23.1.1 toolchain、当前分支插件构建、PyO3 构建与加载、Rust runtime tests、Python binding tests 均通过。MLIR 步骤确实运行了 6 项、零 skip，但其中两个编译用例仍报告 Dialect 与 Pass 插件加载失败，另四项通过；因此完整 Python suite 被前置失败门禁跳过。本次证明静态组件链接仍不足以满足 Linux 插件加载，不能作为合入验收。后续工作流已加入 `ldd -r`、插件导出符号、`dlopen` 和 `LD_DEBUG` 诊断记录，再据此修复并重跑。
 
+诊断 run `35951345543` 的 `ldd -r`/`dlopen` 日志定位到未解析 RTTI 符号：Dialect 插件缺少 `typeinfo for mlir::Dialect`，Pass 插件缺少 LLVM 命令行选项及 MLIR Pass 基类的 typeinfo。CMake 随后按 LLVM 包导出的 `LLVM_ENABLE_RTTI` 和 `LLVM_ENABLE_EH` 配置插件 ABI；验收 artifact 同时保存 `llvm-config --has-rtti`、CMake ABI 值及完整插件编译命令。用本机 Homebrew LLVM/MLIR（RTTI=ON、EH=OFF）重建后，必需 MLIR 测试 6/6 通过且零 skip。此结果验证条件编译路径和既有本机插件链路；Linux 静态发行包的 RTTI 对齐及加载仍待新 CI 结果确认。
+
 ### 手算库存到达交互案例
 
 新增 `test_supply_arrival_wakes_waiting_work_in_all_four_modes` 使用已有 B3 upstream-transport 小案例，分别验证 `legacy-minute-v1`/`event-time-v2` 与 MLIR 索引开/关的四种组合。Rust 四份完整 `RunResult` 除 profile 纳入的 `plan_fingerprint` 外完全一致，并逐一对照保存的 B3 oracle：短缺发生在 t=1、补给到达且备件消耗在 t=3、预防维修在 t=5 完成；资源指标与终态匹配 oracle。此新增测试在本机从当前 C++ 源码重建 `build-unix` 插件后，以 `SIM_ENGINE_REQUIRE_MLIR=1` 运行，6/6 通过、无 skip。
