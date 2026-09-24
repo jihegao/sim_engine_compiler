@@ -9,6 +9,7 @@ use sim_engine_runtime::{
 
 #[derive(Parser)]
 #[command(about = "Execute an aircraft-support Execution Plan with the independent Rust runtime")]
+#[command(version)]
 struct Args {
     plan: PathBuf,
     output: PathBuf,

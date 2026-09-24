@@ -14,7 +14,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import tomllib
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -224,7 +223,9 @@ def compare(request: dict[str, Any]) -> dict[str, Any]:
         source_hashes = {arm["plan"]["source_inputs_sha256"] for arm in (baseline_plan, selected_plan)}
         if len(source_hashes) != 1:
             raise RuntimeError("Compiled arms have different canonical input fingerprints")
-        version = tomllib.loads((ROOT / "rust/runtime/Cargo.toml").read_text())["package"]["version"]
+        version = subprocess.check_output(
+            [str(RUNTIME), "--version"], cwd=ROOT, text=True
+        ).strip()
         build = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
         clean = not subprocess.check_output(
             ["git", "status", "--porcelain"], cwd=ROOT, text=True

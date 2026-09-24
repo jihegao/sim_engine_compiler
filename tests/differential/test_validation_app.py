@@ -34,6 +34,7 @@ class ValidationAppTests(unittest.TestCase):
         self.assertEqual([arm["cache_hit"] for arm in report["arms"]],
                          [False, False, False, True])
         self.assertEqual({arm["worker_threads"] for arm in report["arms"]}, {2})
+        self.assertTrue(report["engine"]["runtime_version"].startswith("sim-engine-runtime "))
 
     def test_b3_and_f35_o5_preserve_business_results(self):
         for case in ("B3", "F35"):
