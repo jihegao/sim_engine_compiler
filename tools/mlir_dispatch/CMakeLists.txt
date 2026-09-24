@@ -12,11 +12,13 @@ include_directories(SYSTEM ${LLVM_INCLUDE_DIRS} ${MLIR_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 add_library(SimDialect MODULE src/SimDialect.cpp)
+target_link_directories(SimDialect PRIVATE ${LLVM_LIBRARY_DIRS} ${MLIR_LIBRARY_DIRS})
 target_link_libraries(SimDialect PRIVATE MLIR LLVM)
 target_compile_definitions(SimDialect PRIVATE SIM_MLIR_VERSION="${LLVM_PACKAGE_VERSION}")
 set_target_properties(SimDialect PROPERTIES PREFIX "")
 
 add_library(SimResourceDispatchPass MODULE src/ResourceDispatchPass.cpp)
+target_link_directories(SimResourceDispatchPass PRIVATE ${LLVM_LIBRARY_DIRS} ${MLIR_LIBRARY_DIRS})
 target_link_libraries(SimResourceDispatchPass PRIVATE MLIR LLVM)
 target_compile_definitions(SimResourceDispatchPass PRIVATE SIM_MLIR_VERSION="${LLVM_PACKAGE_VERSION}")
 set_target_properties(SimResourceDispatchPass PROPERTIES PREFIX "")
