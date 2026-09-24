@@ -1,0 +1,107 @@
+{
+  "assets": [
+    {
+      "id": "A",
+      "initial_state": 0
+    }
+  ],
+  "business_fingerprint": "59798503dcd83bda65f2547bdcbf19e230ddbd7b16948d07064f745c5236c661",
+  "events": [
+    {
+      "id": "fault",
+      "op": "set_state",
+      "repeat_every": null,
+      "target": "A",
+      "time": 2,
+      "trigger": "restore:fault",
+      "value": 1
+    }
+  ],
+  "horizon": 12,
+  "model_id": "C06",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [
+        "A"
+      ],
+      "duration": [
+        10,
+        10
+      ],
+      "finish_state": 0,
+      "id": "interrupted",
+      "interruptible": true,
+      "needs": {
+        "crew": 1,
+        "fuel": 1
+      },
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [
+        "A"
+      ],
+      "duration": [
+        2,
+        2
+      ],
+      "finish_state": 0,
+      "id": "later",
+      "interruptible": true,
+      "needs": {
+        "crew": 1
+      },
+      "release": 6,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [
+        "A"
+      ],
+      "duration": [
+        3,
+        3
+      ],
+      "finish_state": 0,
+      "id": "restore:fault",
+      "interruptible": false,
+      "needs": {
+        "crew": 1
+      },
+      "release": null,
+      "repeat_delay": null,
+      "required_state": 1
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "crew",
+      "initial": 1,
+      "kind": "capacity"
+    },
+    {
+      "id": "fuel",
+      "initial": 1,
+      "kind": "stock"
+    }
+  ],
+  "revision": "v1",
+  "schema": "core/v1",
+  "source_map": {
+    "asset:A": "/fleet/0",
+    "event:fault": "/maintenance/0",
+    "process:interrupted": "/missions/0",
+    "process:later": "/missions/1",
+    "process:restore:fault": "/maintenance/0",
+    "resource:crew": "/resources/0",
+    "resource:fuel": "/resources/1"
+  },
+  "time_unit": "tick"
+}

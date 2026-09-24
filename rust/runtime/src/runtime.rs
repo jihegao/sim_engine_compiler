@@ -13,6 +13,8 @@ use sha2::{Digest, Sha256};
 use crate::plan::ExecutionPlan;
 use crate::rng::PythonRandom;
 
+mod event_time;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ObservationLevel {
@@ -109,6 +111,14 @@ pub struct PhaseProfile {
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct RuntimeProfile {
     pub minute_iterations: u64,
+    pub event_calendar_rebuilds: u64,
+    pub event_candidates_pushed: u64,
+    pub event_candidates_popped: u64,
+    pub event_wakeups: u64,
+    pub event_skipped_minutes: u64,
+    pub event_max_queue_len: u64,
+    pub event_continuous_job_ticks: u64,
+    pub event_continuous_failure_ticks: u64,
     pub execution_ns: u64,
     pub phases: BTreeMap<String, PhaseProfile>,
     pub mission_scan_items: u64,
@@ -2678,12 +2688,18 @@ impl Runtime {
             .unwrap_or(self.plan.duration_minutes)
             .min(self.plan.duration_minutes);
         let execution_started = Instant::now();
-        while self.running && self.minute < horizon {
-            self.minute += 1;
-            if self.profile_enabled {
-                self.profile.minute_iterations += 1;
+        match self.plan.semantic_profile.as_str() {
+            "legacy-minute-v1" => {
+                while self.running && self.minute < horizon {
+                    self.minute += 1;
+                    if self.profile_enabled {
+                        self.profile.minute_iterations += 1;
+                    }
+                    self.execute_minute()?;
+                }
             }
-            self.execute_minute()?;
+            "event-time-v2" => self.run_event_time_until(horizon)?,
+            unsupported => bail!("unsupported time profile {unsupported:?}"),
         }
         if self.profile_enabled {
             self.profile.execution_ns = elapsed_ns(execution_started);

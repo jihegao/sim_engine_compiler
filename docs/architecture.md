@@ -75,11 +75,11 @@ Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回�
 
 ## MLIR 资源依赖索引试点
 
-`scripts/compile_mlir_execution_plan.py` 沿用现有 canonical `simulation_inputs` 编译入口，在内存中取得类型化的活动、工作步骤、组件和供应路线后，投影出小型 `sim` Core IR 模块。MLIR pass 校验 profile、读集合、副作用、稳定身份和依赖完整性，构造资源到候选工作的反向索引；编译器将该派生索引附加到最终 Execution Plan 后导出。这里没有第二套 Project JSON 解析器，也没有持久化一套重复的业务语义。试点没有声称已经物化完整 Business IR 或通用 Core IR。
+`scripts/compile_mlir_execution_plan.py` 沿用现有 canonical `simulation_inputs` 编译入口，在内存中取得类型化的活动、工作步骤、组件和供应路线后，投影出小型 `sim` Core IR 模块。MLIR pass 校验 `legacy-minute-v1` 或 `event-time-v2` profile、canonical 15-phase 顺序、读集合、副作用、稳定身份和依赖完整性，构造资源到候选工作的反向索引；编译器将该派生索引附加到最终 Execution Plan 后导出。这里没有第二套 Project JSON 解析器，也没有持久化一套重复的业务语义。试点没有声称已经物化完整 Business IR 或通用 Core IR。
 
 索引只覆盖当前飞机保障 profile 明确表达的人员/设备容量、本地备件、供应路线源库存和动态 LRU 换件需求。索引不改变调度顺序、事件阶段或 RNG 调用；Rust 执行器仍按原优先级/时间/作业 ID 顺序访问等待作业，只有在依赖资源未变化时才复用阻塞结果，并按原位置重放每分钟容量延迟事件。缺少索引时走原始全检查路径；有索引但版本、校验和、基础计划指纹或完整依赖校验失败时拒绝执行。
 
-该 pass 只分析静态依赖，不移动或重复执行带副作用的事件操作。`LLVM/MLIR 23.1.1` 通过 CMake 精确固定。完整 F35 结果、三组对照、编译/加载/运行分段与限制见试点记录。
+该 pass 只分析静态依赖，不移动或重复执行带副作用的事件操作。O5＋MLIR 组合回归在 F35 seeds `0、1、7` 上比较索引开/关的完整 Rust `RunResult`，结果完全一致；这是组合语义验证，不是新的性能测量。`LLVM/MLIR 23.1.1` 通过 CMake 精确固定。完整 F35 结果、三组对照、编译/加载/运行分段与限制见试点记录；本次从最新 `main` 开始的组合验证另见 [O5＋MLIR 整合报告](../experiments/ir_validation/INTEGRATION_20260924.md)。
 
 ## 创作模式与未来扩展
 

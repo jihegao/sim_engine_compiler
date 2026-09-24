@@ -1,0 +1,218 @@
+diff --git a/rust/runtime/src/runtime.rs b/rust/runtime/src/runtime.rs
+index 3b35aa7..8e0334e 100644
+--- a/rust/runtime/src/runtime.rs
++++ b/rust/runtime/src/runtime.rs
+@@ -116,6 +116,9 @@ pub struct RuntimeProfile {
+     pub event_candidates_popped: u64,
+     pub event_wakeups: u64,
+     pub event_skipped_minutes: u64,
++    pub event_skipped_phase_invocations: u64,
++    pub event_full_minute_fallbacks: u64,
++    pub event_start_rank_counts: BTreeMap<u16, u64>,
+     pub event_max_queue_len: u64,
+     pub event_continuous_job_ticks: u64,
+     pub event_continuous_failure_ticks: u64,
+@@ -2389,7 +2392,11 @@ impl Runtime {
+     }
+ 
+     fn execute_minute(&mut self) -> Result<()> {
+-        for phase_index in 0..self.execution_phases.len() {
++        self.execute_minute_from(0)
++    }
++
++    fn execute_minute_from(&mut self, start_phase_index: usize) -> Result<()> {
++        for phase_index in start_phase_index..self.execution_phases.len() {
+             let phase = self.execution_phases[phase_index];
+             let Some(phase_name) = phase.name() else {
+                 let ExecutionPhase::Unsupported(source_index) = phase else {
+@@ -2692,6 +2699,45 @@ mod phase_tests {
+         assert_eq!(profile.phases["daily_readiness"].calls, 2);
+     }
+ 
++    #[test]
++    fn event_time_profile_accounts_for_phase_starts_and_fallbacks() {
++        let mut plan = synthetic_plan();
++        plan.semantic_profile = "event-time-v2".into();
++        let phase_count = plan.phases.len() as u64;
++        let runtime = Runtime::from_shared_profiled(
++            Arc::new(plan),
++            "test-fingerprint".into(),
++            0,
++            ObservationLevel::Summary,
++        )
++        .unwrap();
++        let (_, profile) = runtime.run_profiled(None).unwrap();
++
++        assert!(profile.event_full_minute_fallbacks > 0);
++        assert!(profile.event_skipped_phase_invocations > 0);
++        assert_eq!(
++            profile.event_start_rank_counts.values().sum::<u64>(),
++            profile.event_wakeups
++        );
++        assert_eq!(
++            profile
++                .event_start_rank_counts
++                .iter()
++                .map(|(rank, count)| u64::from(*rank) * count)
++                .sum::<u64>(),
++            profile.event_skipped_phase_invocations
++        );
++        assert_eq!(
++            profile
++                .phases
++                .values()
++                .map(|phase| phase.calls)
++                .sum::<u64>()
++                + profile.event_skipped_phase_invocations,
++            profile.event_wakeups * phase_count
++        );
++    }
++
+     #[test]
+     fn sparse_failure_slots_preserve_draw_before_applicability_order() {
+         let mut plan = failure_plan();
+diff --git a/rust/runtime/src/runtime/event_time.rs b/rust/runtime/src/runtime/event_time.rs
+index 5c4ef71..b0285d4 100644
+--- a/rust/runtime/src/runtime/event_time.rs
++++ b/rust/runtime/src/runtime/event_time.rs
+@@ -93,15 +93,40 @@ impl Runtime {
+                     self.minute
+                 );
+             }
++            let deferred_fallback = wake.kind == WakeKind::DeferredPhase
++                || calendar.queue.iter().any(|Reverse(candidate)| {
++                    candidate.minute == wake.minute && candidate.kind == WakeKind::DeferredPhase
++                });
+             let skipped = wake.minute - self.minute - 1;
+             self.advance_continuous_state(skipped)?;
+             self.minute = wake.minute;
++            let wake_start_rank = if deferred_fallback {
++                0
++            } else {
++                usize::from(wake.phase_rank)
++            };
++            let start_rank = wake_start_rank.min(self.continuous_phase_start_rank());
++            if start_rank >= self.execution_phases.len() {
++                bail!(
++                    "event-time-v2 produced phase rank {start_rank} outside {} execution phases",
++                    self.execution_phases.len()
++                );
++            }
+             if self.profile_enabled {
+                 self.profile.minute_iterations += 1;
+                 self.profile.event_wakeups += 1;
+                 self.profile.event_skipped_minutes += skipped as u64;
++                self.profile.event_skipped_phase_invocations += start_rank as u64;
++                if deferred_fallback {
++                    self.profile.event_full_minute_fallbacks += 1;
++                }
++                *self
++                    .profile
++                    .event_start_rank_counts
++                    .entry(start_rank as u16)
++                    .or_default() += 1;
+             }
+-            self.execute_minute()?;
++            self.execute_minute_from(start_rank)?;
+         }
+         Ok(())
+     }
+@@ -274,6 +299,23 @@ impl Runtime {
+         calendar
+     }
+ 
++    fn continuous_phase_start_rank(&self) -> usize {
++        if !self.running_job_indexes.is_empty() {
++            return 2;
++        }
++        if self.aircraft.iter().any(|aircraft| {
++            aircraft.state == "flying"
++                && !aircraft.in_flight_failure
++                && aircraft
++                    .component_failure_minutes_by_slot
++                    .iter()
++                    .any(Option::is_none)
++        }) {
++            return 3;
++        }
++        self.execution_phases.len()
++    }
++
+     fn advance_continuous_state(&mut self, skipped: i64) -> Result<()> {
+         if skipped <= 0 {
+             return Ok(());
+@@ -460,7 +502,9 @@ fn failure_ticks_until_due(remaining: f64) -> i64 {
+ 
+ #[cfg(test)]
+ mod tests {
+-    use super::failure_ticks_until_due;
++    use std::cmp::Reverse;
++
++    use super::{WakeCalendar, WakeKind, failure_ticks_until_due};
+ 
+     #[test]
+     fn failure_deadline_matches_repeated_minute_countdown() {
+@@ -474,4 +518,17 @@ mod tests {
+             assert_eq!(failure_ticks_until_due(remaining), ticks);
+         }
+     }
++
++    #[test]
++    fn same_minute_wakes_select_the_earliest_canonical_phase() {
++        let mut calendar = WakeCalendar::new();
++        calendar.schedule(0, 20, 10, 10, 0, WakeKind::MissionSuccess);
++        calendar.schedule(0, 20, 10, 8, 0, WakeKind::MissionDispatch);
++        calendar.schedule(0, 20, 10, 2, 0, WakeKind::JobCompletion);
++
++        let Reverse(wake) = calendar.queue.pop().unwrap();
++        assert_eq!(wake.minute, 10);
++        assert_eq!(wake.phase_rank, 2);
++        assert_eq!(wake.kind, WakeKind::JobCompletion);
++    }
+ }
+diff --git a/tests/differential/test_event_time_runtime.py b/tests/differential/test_event_time_runtime.py
+index 4ddd7bb..e7dc57d 100644
+--- a/tests/differential/test_event_time_runtime.py
++++ b/tests/differential/test_event_time_runtime.py
+@@ -270,6 +270,41 @@ class EventTimeRuntimeConformanceTests(unittest.TestCase):
+         legacy = self._run(legacy_plan)
+         event = self._run(event_plan)
+         self.assert_results_match_except_plan_identity(legacy, event)
++        launches = [
++            item for item in event["trace"] if item["kind"] == "mission_launched"
++        ]
++        returns = [
++            item for item in event["trace"] if item["kind"] == "mission_returned"
++        ]
++        self.assertEqual([item["time"] for item in launches], [20, 40])
++        self.assertEqual([item["time"] for item in returns], [21, 41])
++
++    def test_10_same_minute_preparation_and_dispatch_use_earliest_phase(self):
++        raw = json.loads((SYNTHETIC / "b1-execution-plan.json").read_text())
++        raw["missions"][0]["preparation_start"] = 20
++        legacy_plan = self._write_raw_plan("same-minute-wakes-legacy", raw)
++        event_raw = copy.deepcopy(raw)
++        event_raw["semantic_profile"] = "event-time-v2"
++        event_plan = self._write_raw_plan("same-minute-wakes-event", event_raw)
++
++        legacy = self._run(legacy_plan)
++        event = self._run(event_plan)
++        self.assert_results_match_except_plan_identity(legacy, event)
++        minute_twenty = [
++            item
++            for item in event["trace"]
++            if item["time"] == 20
++            and item["phase"] in ("preflight_generation", "mission_dispatch")
++        ]
++        self.assertTrue(minute_twenty)
++        phase_ranks = {
++            "preflight_generation": 6,
++            "mission_dispatch": 8,
++        }
++        self.assertEqual(
++            [phase_ranks[item["phase"]] for item in minute_twenty],
++            sorted(phase_ranks[item["phase"]] for item in minute_twenty),
++        )
+ 
+ 
+ if __name__ == "__main__":

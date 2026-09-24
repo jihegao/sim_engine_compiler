@@ -1,0 +1,114 @@
+{
+  "assets": [],
+  "business_fingerprint": "20b731ffde39a1fb74e17da1d637126575c4e256660fef138ef306e1403fca1e",
+  "core_fingerprint": "8969e099293281009be3a77dc16aa82e24c21ea4a221114ecaca533ad4c613ad",
+  "events": [
+    {
+      "id": "replenish",
+      "op": "add_stock",
+      "repeat_every": null,
+      "target": 1,
+      "time": 3,
+      "trigger": null,
+      "value": 1
+    }
+  ],
+  "fingerprint": "0224e5c81305d192db630e6f3535d2c6d696e312c908e2bd6c88562ccc662918",
+  "horizon": 20,
+  "model_id": "C15",
+  "processes": [
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        2,
+        2
+      ],
+      "finish_state": 0,
+      "id": "holder",
+      "interruptible": true,
+      "needs": [
+        [
+          0,
+          1
+        ]
+      ],
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "mixed",
+      "interruptible": true,
+      "needs": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    },
+    {
+      "after": [],
+      "candidates": [],
+      "duration": [
+        1,
+        1
+      ],
+      "finish_state": 0,
+      "id": "stock_only",
+      "interruptible": true,
+      "needs": [
+        [
+          1,
+          1
+        ]
+      ],
+      "release": 0,
+      "repeat_delay": null,
+      "required_state": 0
+    }
+  ],
+  "profile": "ir-native-event-v1",
+  "resources": [
+    {
+      "id": "crew",
+      "initial": 1,
+      "kind": "capacity"
+    },
+    {
+      "id": "spare",
+      "initial": 1,
+      "kind": "stock"
+    }
+  ],
+  "revision": "v1",
+  "schema": "plan/v1",
+  "source_map": {
+    "event:replenish": "/arrivals/0",
+    "process:holder": "/missions/0",
+    "process:mixed": "/missions/1",
+    "process:stock_only": "/missions/2",
+    "resource:crew": "/resources/0",
+    "resource:spare": "/resources/1"
+  },
+  "successors": [
+    [],
+    [],
+    []
+  ],
+  "time_unit": "tick"
+}

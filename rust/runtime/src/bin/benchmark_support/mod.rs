@@ -47,6 +47,10 @@ const COMMON_SOURCE_FILES: &[(&str, &[u8])] = &[
         include_bytes!("../../runtime.rs"),
     ),
     (
+        "rust/runtime/src/runtime/event_time.rs",
+        include_bytes!("../../runtime/event_time.rs"),
+    ),
+    (
         "rust/runtime/Cargo.toml",
         include_bytes!("../../../Cargo.toml"),
     ),
