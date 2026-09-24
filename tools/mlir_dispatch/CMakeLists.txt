@@ -20,13 +20,21 @@ function(link_mlir_plugin_runtime target)
         "$<TARGET_LINKER_FILE:MLIR>"
         "$<TARGET_LINKER_FILE:LLVM>"
       )
-    else()
-      message(STATUS
-        "Monolithic MLIR/LLVM shared libraries are unavailable; plugin symbols will resolve from the exporting mlir-opt host")
+      return()
     endif()
+  endif()
+
+  if(UNIX AND NOT APPLE AND TARGET MLIRIR AND TARGET MLIRPass AND TARGET LLVMSupport)
+    if("${target}" STREQUAL "SimDialect")
+      target_link_libraries(${target} PRIVATE MLIRIR)
+    else()
+      target_link_libraries(${target} PRIVATE MLIRPass)
+    endif()
+    message(STATUS "Linking ${target} against Linux MLIR static component targets")
   else()
     message(STATUS
-      "Monolithic MLIR/LLVM CMake targets are unavailable; plugin symbols will resolve from the exporting mlir-opt host")
+      "No usable monolithic MLIR/LLVM shared libraries or static component targets were found")
+    message(FATAL_ERROR "Cannot link MLIR plugin runtime for ${target}")
   endif()
 endfunction()
 
