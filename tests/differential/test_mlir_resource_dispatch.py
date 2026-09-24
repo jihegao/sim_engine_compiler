@@ -11,6 +11,7 @@ import tempfile
 import unittest
 
 from sim_engine_compiler.ir.plan import ExecutionPlan
+from sim_engine_compiler.compiler.aircraft_support import compile_aircraft_support
 from sim_engine_compiler.reference import SimpyReferenceRuntime
 from sim_engine_compiler.reference.conformance import first_divergence
 
@@ -170,6 +171,12 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
             enable_index=enable_index,
         )
 
+    def current_indexed_plan(self) -> tuple[Path, dict]:
+        path = Path(self.tempdir.name) / "current-mlir-indexed-plan.json"
+        if not path.is_file():
+            self.compile_event_time_plan(path, enable_index=True)
+        return path, json.loads(path.read_text(encoding="utf-8"))
+
     def test_mlir_index_is_attached_deterministically_to_the_base_plan(self):
         evidence = json.loads(REPORT.read_text(encoding="utf-8"))
         index = self.plan_raw["resource_dispatch_index"]
@@ -181,7 +188,10 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
         self.assertEqual(index["checksum"], next(iter(checksums)))
         self.assertEqual(index["schema_version"], "resource-dispatch-index/v1")
         self.assertEqual(index["pass_name"], "sim-build-resource-dependency-index")
-        self.assertEqual(evidence["semantic_plan_fingerprint"], self.plan.fingerprint)
+        # Archived pilot evidence belongs to the pre-MC plan revision.
+        self.assertEqual(
+            evidence["semantic_plan_fingerprint"], index["base_plan_fingerprint"]
+        )
         self.assertEqual(evidence["candidate_rule_count"], 852)
         dependency_keys = {
             (
@@ -205,12 +215,25 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
             self.assertIn(("inventory", source_node, product_id), dependency_keys)
 
     def test_indexed_f35_full_results_match_the_python_reference(self):
+        current_path, current_raw = self.current_indexed_plan()
+        legacy_reference_plan = compile_aircraft_support(
+            json.loads(F35_INPUTS.read_text(encoding="utf-8")),
+            semantic_profile="legacy-minute-v1",
+        )
+        self.assertEqual(
+            current_raw["source_inputs_sha256"],
+            legacy_reference_plan.source_inputs_sha256,
+        )
         for seed in (0, 1, 7):
             with self.subTest(seed=seed):
-                expected = SimpyReferenceRuntime(self.plan, seed=seed).run()
-                completed, output = self.run_rust(MLIR_PLAN, seed)
+                expected = SimpyReferenceRuntime(legacy_reference_plan, seed=seed).run()
+                completed, output = self.run_rust(current_path, seed)
                 self.assertEqual(completed.returncode, 0, completed.stderr)
                 actual = json.loads(output.read_text(encoding="utf-8"))
+                # O5 has a distinct Plan identity but must retain the same
+                # business trace, RNG requests, metrics, and terminal state.
+                expected.pop("plan_fingerprint")
+                actual.pop("plan_fingerprint")
                 self.assertIsNone(
                     first_divergence(
                         expected,
@@ -221,7 +244,8 @@ class MlirResourceDispatchPilotTests(unittest.TestCase):
                 )
 
     def test_runtime_rejects_an_incomplete_index_even_with_a_valid_checksum(self):
-        altered = json.loads(json.dumps(self.plan_raw))
+        _, current_raw = self.current_indexed_plan()
+        altered = json.loads(json.dumps(current_raw))
         index = altered["resource_dispatch_index"]
         dependency = index["dependencies"][0]
         dependency["candidates"].pop()

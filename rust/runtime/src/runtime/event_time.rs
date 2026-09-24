@@ -123,6 +123,16 @@ impl Runtime {
                 WakeKind::TransportArrival,
             );
         }
+        for (transit_index, transit) in self.resource_transits.iter().enumerate() {
+            calendar.schedule(
+                self.minute,
+                horizon,
+                transit.arrival_minute.max(self.minute.saturating_add(1)),
+                0,
+                self.shipments.len().saturating_add(transit_index),
+                WakeKind::TransportArrival,
+            );
+        }
 
         for (aircraft_index, aircraft) in self.aircraft.iter().enumerate() {
             if aircraft.state == "flying" {
@@ -338,6 +348,9 @@ impl Runtime {
     fn waiting_job_requires_next_minute(&self) -> bool {
         self.waiting_job_indexes.iter().any(|&job_index| {
             let job = &self.jobs[job_index];
+            if !job.remote_resources_pending.is_empty() {
+                return false;
+            }
             let activity = &self.prepared.activities[job.activity_index];
             let Some(step) = activity.steps.get(job.step_index) else {
                 return true;

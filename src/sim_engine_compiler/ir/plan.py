@@ -155,6 +155,7 @@ class ExecutionPlan:
     rng_profile: str
     source_inputs_sha256: str
     duration_minutes: int
+    natural_completion_enabled: bool
     phases: tuple[str, ...]
     aircraft: tuple[AircraftSpec, ...]
     missions: tuple[MissionSpec, ...]
@@ -208,6 +209,9 @@ class ExecutionPlan:
             rng_profile=value["rng_profile"],
             source_inputs_sha256=value["source_inputs_sha256"],
             duration_minutes=int(value["duration_minutes"]),
+            natural_completion_enabled=bool(
+                value.get("natural_completion_enabled", False)
+            ),
             phases=tuple(value.get("phases", ())),
             aircraft=tuple(AircraftSpec(**item) for item in value.get("aircraft", [])),
             missions=tuple(MissionSpec(**item) for item in value.get("missions", [])),

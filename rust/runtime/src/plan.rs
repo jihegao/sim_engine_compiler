@@ -254,6 +254,8 @@ pub struct ExecutionPlan {
     pub rng_profile: String,
     pub source_inputs_sha256: String,
     pub duration_minutes: i64,
+    #[serde(default)]
+    pub natural_completion_enabled: bool,
     pub phases: Vec<String>,
     #[serde(default)]
     pub aircraft: Vec<AircraftSpec>,
@@ -518,32 +520,30 @@ impl ExecutionPlan {
                 let Some(step) = activity.steps.get(candidate.step_index) else {
                     bail!("resource dispatch index references an invalid work step");
                 };
+                let inventory_route_matches = key.kind == "inventory"
+                    && self.supply_routes.iter().any(|route| {
+                        route.destination_node_index == activity.resource_node_index
+                            && route.source_node_index == key.node_index
+                            && (route.product_id.is_empty()
+                                || Some(route.product_id.as_str()) == key.product_id.as_deref())
+                    });
                 if activity.activity_id != candidate.activity_id
                     || step.code != candidate.step_code
                     || step.source_path != candidate.source_path
-                    || (key.kind != "inventory" && activity.resource_node_index != key.node_index)
-                    || (key.kind == "inventory"
-                        && activity.resource_node_index != key.node_index
-                        && !self.supply_routes.iter().any(|route| {
-                            route.destination_node_index == activity.resource_node_index
-                                && route.source_node_index == key.node_index
-                                && (route.product_id.is_empty()
-                                    || Some(route.product_id.as_str()) == key.product_id.as_deref())
-                        }))
+                    || (activity.resource_node_index != key.node_index && !inventory_route_matches)
                 {
                     bail!("resource dispatch index candidate identity does not match the plan");
                 }
-                if let Some(product_filter) = &candidate.product_filter {
-                    if key.kind != "inventory"
+                if let Some(product_filter) = &candidate.product_filter
+                    && (key.kind != "inventory"
                         || key.product_id.as_deref() != Some(product_filter.as_str())
                         || !self.components.iter().any(|component| {
                             component.repair_activity_index == activity.index as i64
                                 && component.product_type.trim().eq_ignore_ascii_case("LRU")
                                 && component.product_id == *product_filter
-                        })
-                    {
-                        bail!("resource dispatch index has an invalid dynamic spare filter");
-                    }
+                        }))
+                {
+                    bail!("resource dispatch index has an invalid dynamic spare filter");
                 }
                 if !entry.insert(dispatch_candidate_key(candidate)) {
                     bail!("resource dispatch index contains a duplicate candidate rule");

@@ -2,7 +2,10 @@ use std::{fs, path::PathBuf, str::FromStr};
 
 use anyhow::Result;
 use clap::Parser;
-use sim_engine_runtime::{ExecutionPlan, ObservationLevel, Runtime, run_batch_with_observation};
+use sim_engine_runtime::{
+    ExecutionPlan, ObservationLevel, Runtime, decode_plan_cache, is_plan_cache,
+    run_batch_with_observation,
+};
 
 #[derive(Parser)]
 #[command(about = "Execute an aircraft-support Execution Plan with the independent Rust runtime")]
@@ -24,8 +27,14 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
     let bytes = fs::read(&args.plan)?;
-    let (plan, raw) = ExecutionPlan::from_slice(&bytes)?;
-    let fingerprint = ExecutionPlan::fingerprint(&raw)?;
+    let (plan, fingerprint) = if is_plan_cache(&bytes) {
+        let cached = decode_plan_cache(&bytes, None, None, None)?;
+        (cached.plan, cached.plan_fingerprint)
+    } else {
+        let (plan, raw) = ExecutionPlan::from_slice(&bytes)?;
+        let fingerprint = ExecutionPlan::fingerprint(&raw)?;
+        (plan, fingerprint)
+    };
     let observation_level = ObservationLevel::from_str(&args.observation_level)?;
     if let Some(parent) = args.output.parent() {
         fs::create_dir_all(parent)?;

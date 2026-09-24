@@ -63,7 +63,9 @@ python3.12 -m venv .venv
 uv pip install --python .venv/bin/python -e .
 ```
 
-当前可使用编译入口 `scripts/compile_execution_plan.py` 和 MLIR 试点入口 `scripts/compile_mlir_execution_plan.py`；后者要求固定 LLVM/MLIR 23.1.1 插件。`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。Python 侧可调用 `sim_engine_compiler.run_plan(...)` 与 `sim_engine_compiler.run_batch(...)`。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)与[阶段 C 正式分段基准](benchmarks/stage_c/README.md)单独保留；语义验收与性能结论继续分开。
+当前可使用 `scripts/compile_execution_plan.py` 和 MLIR 试点入口 `scripts/compile_mlir_execution_plan.py`；后者要求固定 LLVM/MLIR 23.1.1 插件。`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。Python 侧可调用 `sim_engine_compiler.run_plan(...)`、`sim_engine_compiler.run_batch(...)` 与 `sim_engine_compiler.run_canonical_batch(...)`。最后一个入口只接受上游 Adapter 生成的 canonical `simulation_inputs`，固定执行 `event-time-v2` summary，供 `spare_mvp` 的核心 Monte Carlo 路径使用；它不解释 Project JSON，也不生成分析投影。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)与[阶段 C 正式分段基准](benchmarks/stage_c/README.md)单独保留；语义验收与性能结论继续分开。
+
+MC 分支还提供 `rust/compiler` 的 canonical-input AOT lowering 与版本化二进制 Plan 缓存。AMD128 的 Project→canonical 分段 profile、首次 miss 与 pre-Adapter Project 指纹命中结果见 [冷启动实验](benchmarks/cold_start/README.md)。该实验使用整合前的 v2 缓存；当前 v3 格式需重新测量。它没有实现 Rust Project Adapter；重复模型命中与第一次启动是两条不同的证据边界。
 
 ## 设计来源与证据边界
 

@@ -240,6 +240,9 @@ struct JobState {
     completed_time: Option<i64>,
     reserved_personnel: i64,
     reserved_equipment: i64,
+    personnel_supplier_node_index: Option<usize>,
+    equipment_supplier_node_index: Option<usize>,
+    remote_resources_pending: HashSet<String>,
     component_index: Option<usize>,
     preventive_cycle_index: Option<usize>,
     maintenance_method: Option<String>,
@@ -277,6 +280,26 @@ struct ShipmentState {
     requested_minute: i64,
     arrival_minute: i64,
     route_index: usize,
+}
+
+#[derive(Clone, Debug)]
+struct ResourceTransitState {
+    job_index: usize,
+    step_index: usize,
+    resource_kind: String,
+    quantity: i64,
+    source_node_index: usize,
+    destination_node_index: usize,
+    requested_minute: i64,
+    arrival_minute: i64,
+    route_index: usize,
+    batch_sequence: usize,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ResourceReservationPlan {
+    source_node_index: usize,
+    route_index: Option<usize>,
 }
 
 #[derive(Clone, Debug)]
@@ -319,8 +342,6 @@ struct DispatchCandidate {
 #[derive(Clone, Debug)]
 enum DispatchBlockReason {
     Shortage,
-    Personnel,
-    Equipment,
 }
 
 #[derive(Clone, Debug)]
@@ -457,6 +478,7 @@ pub struct Runtime {
     resources: Vec<ResourceState>,
     preventive_cycles: Vec<PreventiveCycleState>,
     shipments: Vec<ShipmentState>,
+    resource_transits: Vec<ResourceTransitState>,
     job_sequence: usize,
     launched_sorties: i64,
     completed_sorties: i64,
@@ -850,6 +872,7 @@ impl Runtime {
             resources,
             preventive_cycles,
             shipments: vec![],
+            resource_transits: vec![],
             job_sequence: 0,
             launched_sorties: 0,
             completed_sorties: 0,
@@ -1110,6 +1133,9 @@ impl Runtime {
             completed_time: None,
             reserved_personnel: 0,
             reserved_equipment: 0,
+            personnel_supplier_node_index: None,
+            equipment_supplier_node_index: None,
+            remote_resources_pending: HashSet::new(),
             component_index,
             preventive_cycle_index,
             maintenance_method,
@@ -1487,6 +1513,48 @@ impl Runtime {
                 Some(route.source_path),
             );
         }
+
+        let mut arrived_resources = Vec::new();
+        self.resource_transits.retain(|item| {
+            if item.arrival_minute <= self.minute {
+                arrived_resources.push(item.clone());
+                false
+            } else {
+                true
+            }
+        });
+        for transit in arrived_resources {
+            let route = self.plan.supply_routes[transit.route_index].clone();
+            let job_id = self.jobs[transit.job_index].job_id.clone();
+            let trace_transit = transit.clone();
+            self.emit(
+                "organization_resource_arrived",
+                "organization.resource-transport-arrival",
+                job_id,
+                || {
+                    json!({"step_index": trace_transit.step_index,
+                    "resource_kind": trace_transit.resource_kind,
+                    "quantity": trace_transit.quantity,
+                    "source_node_index": trace_transit.source_node_index,
+                    "destination_node_index": trace_transit.destination_node_index,
+                    "batch_sequence": trace_transit.batch_sequence,
+                    "supply_mode": route.supply_mode, "relation_id": route.relation_id,
+                    "requested_minute": trace_transit.requested_minute,
+                    "arrival_minute": trace_transit.arrival_minute})
+                },
+                Some(route.source_path),
+            );
+            let still_pending = self.resource_transits.iter().any(|item| {
+                item.job_index == transit.job_index
+                    && item.step_index == transit.step_index
+                    && item.resource_kind == transit.resource_kind
+            });
+            if !still_pending && self.jobs[transit.job_index].step_index == transit.step_index {
+                self.jobs[transit.job_index]
+                    .remote_resources_pending
+                    .remove(&transit.resource_kind);
+            }
+        }
     }
 
     fn dispatch_remote_spares(
@@ -1591,6 +1659,176 @@ impl Runtime {
                 break;
             }
         }
+    }
+
+    fn available_resource(&self, node_index: usize, resource_kind: &str) -> i64 {
+        match resource_kind {
+            "personnel" => {
+                self.resources[node_index].personnel_capacity
+                    - self.resources[node_index].personnel_in_use
+            }
+            "equipment" => {
+                self.resources[node_index].equipment_capacity
+                    - self.resources[node_index].equipment_in_use
+            }
+            _ => unreachable!("unsupported canonical resource kind"),
+        }
+    }
+
+    fn canonical_resource_plan(
+        &self,
+        destination_node_index: usize,
+        resource_kind: &str,
+        quantity: i64,
+    ) -> Option<ResourceReservationPlan> {
+        if self.available_resource(destination_node_index, resource_kind) >= quantity {
+            return Some(ResourceReservationPlan {
+                source_node_index: destination_node_index,
+                route_index: None,
+            });
+        }
+        self.plan
+            .supply_routes
+            .iter()
+            .find(|route| {
+                route.destination_node_index == destination_node_index
+                    && (matches!(route.product_id.as_str(), "" | "*")
+                        || route.product_id == resource_kind)
+                    && self.available_resource(route.source_node_index, resource_kind) >= quantity
+            })
+            .map(|route| ResourceReservationPlan {
+                source_node_index: route.source_node_index,
+                route_index: Some(route.index),
+            })
+    }
+
+    fn reserve_resource(&mut self, node_index: usize, resource_kind: &str, quantity: i64) {
+        match resource_kind {
+            "personnel" => self.resources[node_index].personnel_in_use += quantity,
+            "equipment" => self.resources[node_index].equipment_in_use += quantity,
+            _ => unreachable!("unsupported canonical resource kind"),
+        }
+    }
+
+    fn ensure_canonical_job_resources(
+        &mut self,
+        job_index: usize,
+        destination_node_index: usize,
+        personnel: i64,
+        equipment: i64,
+        step_index: usize,
+    ) -> bool {
+        if self.jobs[job_index].personnel_supplier_node_index.is_some()
+            && self.jobs[job_index].equipment_supplier_node_index.is_some()
+        {
+            return true;
+        }
+        debug_assert!(
+            self.jobs[job_index].personnel_supplier_node_index.is_none()
+                && self.jobs[job_index].equipment_supplier_node_index.is_none(),
+            "canonical resource reservations must be atomic"
+        );
+
+        let requirements = [("personnel", personnel), ("equipment", equipment)];
+        let mut plans = Vec::with_capacity(requirements.len());
+        for (resource_kind, quantity) in requirements {
+            let Some(plan) =
+                self.canonical_resource_plan(destination_node_index, resource_kind, quantity)
+            else {
+                self.emit(
+                    if resource_kind == "personnel" {
+                        "personnel_delay"
+                    } else {
+                        "equipment_shortage"
+                    },
+                    "organization.resource-capacity",
+                    self.jobs[job_index].job_id.clone(),
+                    || json!({"step_index": step_index, "resource_kind": resource_kind}),
+                    None,
+                );
+                return false;
+            };
+            plans.push((resource_kind, quantity, plan));
+        }
+
+        for (resource_kind, quantity, plan) in &plans {
+            self.reserve_resource(plan.source_node_index, resource_kind, *quantity);
+            match *resource_kind {
+                "personnel" => {
+                    self.jobs[job_index].reserved_personnel = *quantity;
+                    self.jobs[job_index].personnel_supplier_node_index =
+                        Some(plan.source_node_index);
+                }
+                "equipment" => {
+                    self.jobs[job_index].reserved_equipment = *quantity;
+                    self.jobs[job_index].equipment_supplier_node_index =
+                        Some(plan.source_node_index);
+                }
+                _ => unreachable!("unsupported canonical resource kind"),
+            }
+        }
+
+        for (resource_kind, quantity, plan) in plans {
+            let Some(route_index) = plan.route_index else {
+                continue;
+            };
+            let route = self.plan.supply_routes[route_index].clone();
+            let job_id = self.jobs[job_index].job_id.clone();
+            self.emit(
+                "organization_resource_selected",
+                "organization.select-resource-supplier",
+                job_id.clone(),
+                || {
+                    json!({"step_index": step_index, "resource_kind": resource_kind,
+                    "quantity": quantity, "source_node_index": plan.source_node_index,
+                    "destination_node_index": destination_node_index,
+                    "supply_mode": route.supply_mode,
+                    "relation_id": route.relation_id})
+                },
+                Some(route.source_path.clone()),
+            );
+            self.jobs[job_index]
+                .remote_resources_pending
+                .insert(resource_kind.to_owned());
+            let mut remaining = quantity;
+            let mut batch_sequence = 0;
+            while remaining > 0 {
+                batch_sequence += 1;
+                let batch_quantity = remaining.min(route.capacity.max(1));
+                remaining -= batch_quantity;
+                let transit = ResourceTransitState {
+                    job_index,
+                    step_index: self.jobs[job_index].step_index,
+                    resource_kind: resource_kind.to_owned(),
+                    quantity: batch_quantity,
+                    source_node_index: plan.source_node_index,
+                    destination_node_index,
+                    requested_minute: self.minute,
+                    arrival_minute: self.minute + route.transport_minutes.max(1),
+                    route_index: route.index,
+                    batch_sequence,
+                };
+                self.resource_transits.push(transit.clone());
+                self.emit(
+                    "organization_resource_dispatched",
+                    "organization.dispatch-resource",
+                    job_id.clone(),
+                    || {
+                        json!({"step_index": transit.step_index,
+                        "resource_kind": transit.resource_kind,
+                        "quantity": transit.quantity,
+                        "source_node_index": transit.source_node_index,
+                        "destination_node_index": transit.destination_node_index,
+                        "batch_sequence": transit.batch_sequence,
+                        "arrival_minute": transit.arrival_minute,
+                        "supply_mode": route.supply_mode,
+                        "relation_id": route.relation_id})
+                    },
+                    Some(route.source_path.clone()),
+                );
+            }
+        }
+        true
     }
 
     fn return_aircraft(&mut self, aircraft_index: usize, early_return: bool) -> Result<()> {
@@ -1731,15 +1969,21 @@ impl Runtime {
         node_index: usize,
         step_index: usize,
     ) -> Result<()> {
-        self.resources[node_index].personnel_in_use -= self.jobs[job_index].reserved_personnel;
-        self.resources[node_index].equipment_in_use -= self.jobs[job_index].reserved_equipment;
-        if self.resources[node_index].personnel_in_use < 0
-            || self.resources[node_index].equipment_in_use < 0
+        let reserved_personnel = self.jobs[job_index].reserved_personnel;
+        let reserved_equipment = self.jobs[job_index].reserved_equipment;
+        let personnel_node = self.jobs[job_index]
+            .personnel_supplier_node_index
+            .unwrap_or(node_index);
+        let equipment_node = self.jobs[job_index]
+            .equipment_supplier_node_index
+            .unwrap_or(node_index);
+        self.resources[personnel_node].personnel_in_use -= reserved_personnel;
+        self.resources[equipment_node].equipment_in_use -= reserved_equipment;
+        if self.resources[personnel_node].personnel_in_use < 0
+            || self.resources[equipment_node].equipment_in_use < 0
         {
             bail!("resource ledger became negative");
         }
-        let reserved_personnel = self.jobs[job_index].reserved_personnel;
-        let reserved_equipment = self.jobs[job_index].reserved_equipment;
         let personnel_in_use = self.resources[node_index].personnel_in_use;
         let equipment_in_use = self.resources[node_index].equipment_in_use;
         if reserved_personnel != 0 {
@@ -1763,6 +2007,9 @@ impl Runtime {
         );
         self.jobs[job_index].reserved_personnel = 0;
         self.jobs[job_index].reserved_equipment = 0;
+        self.jobs[job_index].personnel_supplier_node_index = None;
+        self.jobs[job_index].equipment_supplier_node_index = None;
+        self.jobs[job_index].remote_resources_pending.clear();
         Ok(())
     }
 
@@ -2133,20 +2380,6 @@ impl Runtime {
                 }
                 match cached.reason {
                     DispatchBlockReason::Shortage => {}
-                    DispatchBlockReason::Personnel => self.emit(
-                        "personnel_delay",
-                        "resource.personnel-capacity",
-                        self.jobs[job_index].job_id.clone(),
-                        || json!({"step_index": step_spec_index}),
-                        None,
-                    ),
-                    DispatchBlockReason::Equipment => self.emit(
-                        "equipment_shortage",
-                        "resource.equipment-capacity",
-                        self.jobs[job_index].job_id.clone(),
-                        || json!({"step_index": step_spec_index}),
-                        None,
-                    ),
                 }
                 continue;
             }
@@ -2236,49 +2469,15 @@ impl Runtime {
                 continue;
             }
             self.jobs[job_index].shortage_signature = None;
-            if self.resources[node_index].personnel_in_use + personnel
-                > self.resources[node_index].personnel_capacity
+            if !self.ensure_canonical_job_resources(
+                job_index,
+                node_index,
+                personnel,
+                equipment,
+                step_spec_index,
+            ) || !self.jobs[job_index].remote_resources_pending.is_empty()
             {
-                self.cache_dispatch_block(
-                    job_index,
-                    activity_index,
-                    step_index,
-                    DispatchBlockReason::Personnel,
-                );
-                self.emit(
-                    "personnel_delay",
-                    "resource.personnel-capacity",
-                    self.jobs[job_index].job_id.clone(),
-                    || json!({"step_index": step_spec_index}),
-                    None,
-                );
                 continue;
-            }
-            if self.resources[node_index].equipment_in_use + equipment
-                > self.resources[node_index].equipment_capacity
-            {
-                self.cache_dispatch_block(
-                    job_index,
-                    activity_index,
-                    step_index,
-                    DispatchBlockReason::Equipment,
-                );
-                self.emit(
-                    "equipment_shortage",
-                    "resource.equipment-capacity",
-                    self.jobs[job_index].job_id.clone(),
-                    || json!({"step_index": step_spec_index}),
-                    None,
-                );
-                continue;
-            }
-            self.resources[node_index].personnel_in_use += personnel;
-            self.resources[node_index].equipment_in_use += equipment;
-            if personnel != 0 {
-                self.invalidate_dispatch_resource("personnel_capacity", node_index, None);
-            }
-            if equipment != 0 {
-                self.invalidate_dispatch_resource("equipment_capacity", node_index, None);
             }
             if !requirements.is_empty()
                 && !self.jobs[job_index]
@@ -2336,8 +2535,6 @@ impl Runtime {
                     );
                 }
             }
-            self.jobs[job_index].reserved_personnel = personnel;
-            self.jobs[job_index].reserved_equipment = equipment;
             self.transition_job_state(job_index, "running");
             if self.jobs[job_index].started_time.is_none() {
                 self.jobs[job_index].started_time = Some(self.minute);
@@ -2471,7 +2668,10 @@ impl Runtime {
             })
             .collect();
         for job_index in targets {
-            if self.jobs[job_index].state == "running" {
+            if self.jobs[job_index].state == "running"
+                || self.jobs[job_index].personnel_supplier_node_index.is_some()
+                || self.jobs[job_index].equipment_supplier_node_index.is_some()
+            {
                 let activity_index = self.jobs[job_index].activity_index;
                 let step_position = self.jobs[job_index].step_index;
                 let activity = &self.prepared.activities[activity_index];
@@ -2483,6 +2683,8 @@ impl Runtime {
             }
             self.transition_job_state(job_index, "cancelled");
             self.jobs[job_index].remaining = 0;
+            self.resource_transits
+                .retain(|transit| transit.job_index != job_index);
         }
         for aircraft in &mut self.aircraft {
             if aircraft.current_mission_index == Some(mission_index)
@@ -2616,6 +2818,44 @@ impl Runtime {
         }
     }
 
+    fn natural_completion_reached(&self) -> bool {
+        if self.plan.missions.is_empty() {
+            return self.minute >= self.plan.duration_minutes;
+        }
+        if self.missions.iter().any(|mission| {
+            !matches!(
+                mission.status.as_str(),
+                "completed" | "failed" | "cancelled"
+            )
+        }) {
+            return false;
+        }
+        if self
+            .jobs
+            .iter()
+            .any(|job| matches!(job.state.as_str(), "waiting" | "running"))
+        {
+            return false;
+        }
+        if !self.shipments.is_empty() || !self.resource_transits.is_empty() {
+            return false;
+        }
+        if self.aircraft.iter().any(|aircraft| {
+            matches!(
+                aircraft.state.as_str(),
+                "flying" | "mission_ready" | "pre_support" | "post_support"
+            ) || aircraft.postflight_required
+        }) {
+            return false;
+        }
+        self.plan
+            .missions
+            .iter()
+            .map(|mission| mission.planned_start)
+            .max()
+            .is_some_and(|last_planned_start| self.minute >= last_planned_start)
+    }
+
     fn execute_minute(&mut self) -> Result<()> {
         for phase_index in 0..self.execution_phases.len() {
             let phase = self.execution_phases[phase_index];
@@ -2657,6 +2897,18 @@ impl Runtime {
                         self.emit(
                             "simulation_stopped",
                             "stop.duration",
+                            "simulation".into(),
+                            || json!({}),
+                            None,
+                        );
+                    } else if self.plan.natural_completion_enabled
+                        && self.natural_completion_reached()
+                    {
+                        self.stop_reason = "natural_complete".into();
+                        self.running = false;
+                        self.emit(
+                            "simulation_stopped",
+                            "stop.natural-complete",
                             "simulation".into(),
                             || json!({}),
                             None,
@@ -2790,7 +3042,11 @@ impl Runtime {
             "failed_count": failed_count, "repairing_count": repairing_count,
             "spare_stock_total": spare_stock_total, "spare_demand_total": self.spare_demand_total,
             "spare_immediately_filled_total": self.spare_immediately_filled_total,
-            "spare_fill_rate": self.spare_immediately_filled_total as f64 / self.spare_demand_total.max(1) as f64,
+            "spare_fill_rate": if self.spare_demand_total == 0 {
+                1.0
+            } else {
+                self.spare_immediately_filled_total as f64 / self.spare_demand_total as f64
+            },
             "spare_consumed_total": self.spare_consumed_total, "shortage_events": self.shortage_events,
             "transport_in_transit_count": self.shipments.len(),
             "transport_replenishment_events": self.transport_replenishment_events,
@@ -2918,6 +3174,20 @@ mod phase_tests {
         let (_, profile) = runtime.run_profiled(Some(1)).unwrap();
 
         assert_eq!(profile.phases["daily_readiness"].calls, 2);
+    }
+
+    #[test]
+    fn defaulted_policy_can_stop_at_natural_completion() {
+        let mut plan = synthetic_plan();
+        plan.duration_minutes = 120;
+        plan.natural_completion_enabled = true;
+        let result = Runtime::new(plan, "natural-completion-test".into(), 0)
+            .unwrap()
+            .run(None)
+            .unwrap();
+
+        assert_eq!(result.stop_reason, "natural_complete");
+        assert!(result.time < 120);
     }
 
     #[test]
@@ -3284,5 +3554,64 @@ mod phase_tests {
                 .iter()
                 .all(|job| job.spare_reservations.is_empty())
         );
+    }
+
+    #[test]
+    fn compiled_route_reserves_remote_capacity_until_resource_arrival_and_release() {
+        let mut plan = synthetic_plan();
+        plan.resource_nodes[0].personnel_capacity = 1;
+        plan.resource_nodes[0].equipment_capacity = 1;
+        let mut parent = plan.resource_nodes[0].clone();
+        parent.index = 1;
+        parent.node_id = "parent-support".into();
+        parent.organization_node_id = "parent-support".into();
+        parent.inventory.clear();
+        plan.resource_nodes.push(parent);
+        plan.supply_routes.push(crate::plan::SupplyRouteSpec {
+            index: 0,
+            route_id: "parent-to-line".into(),
+            source_node_index: 1,
+            destination_node_index: 0,
+            product_id: String::new(),
+            capacity: 1,
+            transport_minutes: 2,
+            supply_mode: "vertical".into(),
+            relation_id: String::new(),
+            source_path: "test.support_network.transport_policies[0]".into(),
+        });
+        let mut runtime = Runtime::new(plan, "test-fingerprint".into(), 0).unwrap();
+        runtime.minute = 1;
+        runtime.phase = "resource_dispatch".into();
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+
+        runtime.phase_start_waiting_jobs().unwrap();
+
+        assert_eq!(runtime.jobs[0].state, "running");
+        assert_eq!(runtime.jobs[1].state, "waiting");
+        assert_eq!(
+            runtime.jobs[1].remote_resources_pending,
+            HashSet::from(["equipment".to_owned(), "personnel".to_owned()])
+        );
+        assert_eq!(runtime.resources[0].personnel_in_use, 1);
+        assert_eq!(runtime.resources[0].equipment_in_use, 1);
+        assert_eq!(runtime.resources[1].personnel_in_use, 1);
+        assert_eq!(runtime.resources[1].equipment_in_use, 1);
+        assert_eq!(runtime.resource_transits.len(), 2);
+
+        runtime.minute = 3;
+        runtime.phase = "transport_arrivals".into();
+        runtime.phase_transport_arrivals();
+        assert!(runtime.jobs[1].remote_resources_pending.is_empty());
+        runtime.phase = "resource_dispatch".into();
+        runtime.phase_start_waiting_jobs().unwrap();
+        assert_eq!(runtime.jobs[1].state, "running");
+
+        runtime.jobs[1].remaining = 1;
+        runtime.minute = 4;
+        runtime.phase = "job_progress_and_completions".into();
+        runtime.phase_job_progress().unwrap();
+        assert_eq!(runtime.resources[1].personnel_in_use, 0);
+        assert_eq!(runtime.resources[1].equipment_in_use, 0);
     }
 }

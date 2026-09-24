@@ -11,3 +11,5 @@
 - `results.py`：指标与 trace 映射，保留缺失/不支持状态，不伪造兼容结果。
 
 生产包不导入 legacy AircraftSupportV1Model。差分工具已在隔离环境中运行旧模型，使用文件交换输入、随机请求、trace 和终态；F35 seeds `0、1、7` 的固定 oracle 已纳入 fixtures。不要从本地数据库取代 canonical 合同，也不假定 Project 与 IR 能双向无损同步。
+
+冷启动实验允许在调用 Adapter 之前仅对 canonical Project JSON 做稳定指纹并查找版本化 Plan 缓存；它不解释 Project 字段。缓存键必须同时包含 Adapter/schema/runtime-config 合同身份、Rust compiler 版本和语义 profile，命中后仍校验 envelope 内的 canonical-input 与 Plan 身份。miss 仍必须通过本文件定义的唯一上游 Adapter 生成 canonical inputs；不得为缓存另建简化 Project 解释器。

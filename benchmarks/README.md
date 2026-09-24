@@ -8,6 +8,10 @@
 分开保存未插桩交错墙钟、内部 phase/计数器和系统采样火焰图；结果表明 trace JSON
 不是当前主要执行瓶颈，逐分钟任务扫描、Plan spec 克隆和树 Map 状态操作才是下一轮重点。
 
+Project export/Adapter profile、Rust AOT Plan compiler 与 pre-Adapter Project 指纹缓存实验见
+[spare_mvp 冷启动实验](cold_start/README.md)。该报告把第一次启动和重复模型缓存命中分开，
+并明确 Rust Project Adapter 尚未实现。
+
 每次报告保存环境、机器、代码/输入/Plan 指纹、profile、seed/样本编号、观测配置、规模、预热和重复次数，以及原始逐次数据。
 
 分别测量 Adapter、冷编译、热缓存加载、RunState 初始化、单样本执行、批量执行、序列化、端到端墙钟时间与峰值内存。报告中位数及分布，明确进程、线程和样本数量；不将仪器化 trace 计时与 summary 计时直接混比。

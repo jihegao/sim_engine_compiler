@@ -45,11 +45,17 @@ trace 事件 JSON，但保留相同随机请求、metrics 与终态。执行热�
 主要成本是逐分钟 mission/job/component 扫描及其 Plan spec/字符串克隆与 Map 操作，
 而不是 trace JSON；证据见 `benchmarks/hot_path/README.md`。
 
+实验分支新增 Rust canonical-input AOT compiler 和版本化 Plan 缓存（整合后格式 `sim-engine-plan-cache/v3`）：五个固定
+fixture 与 Python Plan 结构一致，Project 指纹命中可在 Adapter 前加载 Plan。AMD128 30 次
+中位结果为整合前 v2 缓存命中并执行 O5 summary 的进程墙钟 `88.339 ms`；当前 v3 格式尚未重新测量。第一次启动仍受 Python
+Project export/Adapter 的 `~0.72 s` 主导。证据和未实现的 Rust Adapter 边界见
+`benchmarks/cold_start/README.md`。
+
 ### B5：MLIR 资源依赖索引试点（已完成，opt-in）
 
 采用 LLVM/MLIR 23.1.1，在小型 `sim` Core IR 投影上实现资源依赖分析 pass。Rust 执行器消费可选反向索引，只复用依赖未变化的等待作业阻塞检查；事件顺序和 RNG 行为保持原样。
 
-已完成真实 F35 canonical 输入 → `sim` MLIR pass → Execution Plan → Rust 执行器的链路。三组对照使用 seeds `0、1、7` 各运行三次，full `RunResult` 完全一致。1,005,081 次候选访问中的动态 guard 检查从 1,005,081 降至 42,936，缓存命中 962,145；加上编译、计划加载后九次运行总成本降低 4.26%。完整限制和 raw evidence 见[MLIR 试点记录](mlir-resource-dispatch-pilot.md)。这项结果只对 opt-in F35 路径成立，不代表完整 IR 物化或一般硬件收益；LLVM codegen/JIT/GPU 不在本里程碑。
+整合前的真实 F35 canonical 输入 → `sim` MLIR pass → Execution Plan → Rust 执行器链路已完成三组对照：seeds `0、1、7` 各运行三次，full `RunResult` 完全一致。动态 guard 检查从 1,005,081 降至 42,936，九次运行的编译、加载与执行总成本降低 4.26%。这些数字属于旧计划和旧资源语义；MC 整合后的组合须重新差分和计时。完整限制和 raw evidence 见[MLIR 试点记录](mlir-resource-dispatch-pilot.md)。这项结果不代表完整 IR 物化或一般硬件收益；LLVM codegen/JIT/GPU 不在本里程碑。
 
 ### C1：基于 F35 热路径的优化（O0/O1/O3/O4a/O5a/O6 已验收）
 
