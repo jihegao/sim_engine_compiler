@@ -128,7 +128,11 @@ fn elapsed_ns(started: Instant) -> u64 {
 
 fn cache_file_name(source_inputs_sha256: &str) -> String {
     let compiler = COMPILER_VERSION.rsplit('/').next().unwrap_or("unknown");
-    format!("{source_inputs_sha256}-{compiler}-{SEMANTIC_PROFILE}.seplan")
+    let format = PLAN_CACHE_FORMAT_VERSION
+        .rsplit('/')
+        .next()
+        .unwrap_or("unknown");
+    format!("{source_inputs_sha256}-{compiler}-{SEMANTIC_PROFILE}-{format}.seplan")
 }
 
 fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {

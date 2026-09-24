@@ -7,7 +7,8 @@ domain name.
 
 The CLI defaults to the accepted experimental `event-time-v2` profile and
 writes a versioned binary Plan cache. The integrated cache format is
-`sim-engine-plan-cache/v3`; older v2 files fail closed and must be rebuilt:
+`sim-engine-plan-cache/v3`; the filename includes the format version so older
+v2 files are not loaded and a new v3 entry is built from canonical input:
 
 ```bash
 cargo build --release --manifest-path rust/compiler/Cargo.toml

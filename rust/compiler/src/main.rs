@@ -11,8 +11,8 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use sim_engine_compiler_aot::{COMPILER_VERSION, compile_aircraft_support_with_profile};
 use sim_engine_runtime::{
-    ExecutionPlan, ObservationLevel, Runtime, decode_plan_cache, decode_plan_cache_with_identity,
-    encode_plan_cache_with_identity,
+    ExecutionPlan, ObservationLevel, PLAN_CACHE_FORMAT_VERSION, Runtime, decode_plan_cache,
+    decode_plan_cache_with_identity, encode_plan_cache_with_identity,
 };
 
 #[derive(Parser)]
@@ -91,11 +91,15 @@ fn main() -> Result<()> {
             .as_ref()
             .map(|value| format!("{:x}", Sha256::digest(value.as_bytes())));
         format!(
-            "{}-{}-{}-{}.seplan",
+            "{}-{}-{}-{}-{}.seplan",
             identity,
             adapter_digest.as_deref().unwrap_or("canonical"),
             COMPILER_VERSION.rsplit('/').next().unwrap_or("unknown"),
             args.semantic_profile,
+            PLAN_CACHE_FORMAT_VERSION
+                .rsplit('/')
+                .next()
+                .unwrap_or("unknown"),
         )
     };
     let mut cache_path = source_model_sha256.as_ref().and_then(|identity| {
