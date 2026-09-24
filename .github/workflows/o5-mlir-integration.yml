@@ -29,33 +29,40 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install --yes cmake ninja-build curl ca-certificates gnupg
+          sudo apt-get install --yes cmake ninja-build xz-utils curl
 
-      - name: Install and verify pinned LLVM/MLIR 23.1.2 packages
+      - name: Free runner disk space for pinned LLVM
         run: |
           set -euo pipefail
-          key_ascii="$RUNNER_TEMP/llvm-snapshot.gpg.asc"
-          keyring="/usr/share/keyrings/apt-llvm-org.gpg"
-          curl --fail --location --retry 3 https://apt.llvm.org/llvm-snapshot.gpg.key --output "$key_ascii"
-          fingerprint="$(gpg --show-keys --with-colons "$key_ascii" | awk -F: '$1 == "fpr" { print $10; exit }')"
-          test "$fingerprint" = "6084F3CF814B57C1CF12EFD515CF4D18AF4F7421"
-          sudo gpg --dearmor --output "$keyring" "$key_ascii"
-          echo "deb [signed-by=$keyring] https://apt.llvm.org/noble/ llvm-toolchain-noble-23 main" \
-            | sudo tee /etc/apt/sources.list.d/llvm-23.list
-          sudo apt-get update
+          df -h "$RUNNER_TEMP"
+          sudo rm -rf /usr/local/lib/android /usr/local/share/powershell \
+            /usr/share/dotnet /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/chromium /usr/local/share/vcpkg
+          sudo apt-get clean
+          df -h "$RUNNER_TEMP"
 
-          package_version='1:23.1.2~++20260919103626+4b1925210476-1~exp1~20260919223755.77'
-          sudo apt-get install --no-install-recommends --yes \
-            "llvm-23=$package_version" \
-            "llvm-23-dev=$package_version" \
-            "libmlir-23-dev=$package_version" \
-            "mlir-23-tools=$package_version"
-          test "$(/usr/lib/llvm-23/bin/llvm-config --version)" = "23.1.2"
-          test -x /usr/lib/llvm-23/bin/mlir-opt
-          test -f /usr/lib/llvm-23/lib/cmake/llvm/LLVMConfig.cmake
-          test -f /usr/lib/llvm-23/lib/cmake/mlir/MLIRConfig.cmake
-          echo "MLIR_PREFIX=/usr/lib/llvm-23" >> "$GITHUB_ENV"
-          echo "LD_LIBRARY_PATH=/usr/lib/llvm-23/lib:${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+      - name: Install and verify pinned LLVM/MLIR 23.1.1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/LLVM-23.1.1-Linux-X64.tar.xz"
+          bundle="$archive.jsonl"
+          url="https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.1/LLVM-23.1.1-Linux-X64.tar.xz"
+          curl --fail --location --retry 3 "$url" --output "$archive"
+          curl --fail --location --retry 3 "$url.jsonl" --output "$bundle"
+          gh attestation verify --repo llvm/llvm-project --bundle "$bundle" "$archive"
+
+          llvm_root="$RUNNER_TEMP/llvm-23.1.1"
+          mkdir -p "$llvm_root"
+          tar -xJf "$archive" --directory "$llvm_root" --strip-components=1
+          test "$("$llvm_root/bin/llvm-config" --version)" = "23.1.1"
+          test -x "$llvm_root/bin/mlir-opt"
+          test -f "$llvm_root/lib/cmake/llvm/LLVMConfig.cmake"
+          test -f "$llvm_root/lib/cmake/mlir/MLIRConfig.cmake"
+          echo "MLIR_PREFIX=$llvm_root" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$llvm_root/lib:${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          rm "$archive" "$bundle"
 
       - name: Create validation fingerprint
         env:
@@ -74,7 +81,7 @@ jobs:
             echo "cargo=$(cargo --version)"
             echo "llvm=$($MLIR_PREFIX/bin/llvm-config --version)"
             echo "mlir_opt=$($MLIR_PREFIX/bin/mlir-opt --version | head -n 1)"
-            dpkg-query -W -f='mlir_package=${Version}\n' libmlir-23-dev
+            echo "llvm_release=23.1.1"
             sha256sum scripts/compile_mlir_execution_plan.py
             sha256sum tests/differential/test_mlir_resource_dispatch.py
             sha256sum tools/mlir_dispatch/src/ResourceDispatchPass.cpp
@@ -119,7 +126,7 @@ jobs:
           PYTHONPATH: src
           SIM_ENGINE_REQUIRE_MLIR: "1"
           SIM_ENGINE_MLIR_PLUGIN_DIR: ${{ github.workspace }}/tools/mlir_dispatch/build-unix
-          SIM_ENGINE_MLIR_OPT: /usr/lib/llvm-23/bin/mlir-opt
+          SIM_ENGINE_MLIR_OPT: ${{ runner.temp }}/llvm-23.1.1/bin/mlir-opt
         run: |
           set -euo pipefail
           .venv/bin/python -m unittest discover -s tests/differential \
@@ -142,7 +149,7 @@ jobs:
           PYTHONPATH: src
           SIM_ENGINE_REQUIRE_MLIR: "1"
           SIM_ENGINE_MLIR_PLUGIN_DIR: ${{ github.workspace }}/tools/mlir_dispatch/build-unix
-          SIM_ENGINE_MLIR_OPT: /usr/lib/llvm-23/bin/mlir-opt
+          SIM_ENGINE_MLIR_OPT: ${{ runner.temp }}/llvm-23.1.1/bin/mlir-opt
         run: |
           set -euo pipefail
           .venv/bin/python -m unittest discover -s tests -v 2>&1 \

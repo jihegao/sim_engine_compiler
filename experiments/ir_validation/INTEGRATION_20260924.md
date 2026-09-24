@@ -38,7 +38,7 @@ MLIR pass 现在接受 `legacy-minute-v1` 和 `event-time-v2`，并要求模块�
 
 `test_mlir_resource_dispatch.py` 默认在普通开发环境缺少 MLIR 时会跳过相关测试；验收运行现在可设置 `SIM_ENGINE_REQUIRE_MLIR=1`。在此模式下，缺少基准证据、明确指定的插件目录、插件 `.so` 或 `mlir-opt` 都会导致失败，不会作为通过的 skip。新增 `.github/workflows/o5-mlir-integration.yml` 在干净 Ubuntu 24.04 runner 通过 LLVM 官方签名 APT 仓库安装精确固定的 LLVM/MLIR 23.1.2 包，构建当前 checkout 的插件，再运行 Rust tests、PyO3 tests、六项 MLIR tests（明确要求零 skip）和完整 Python suite。job artifact 保存该次实际 `HEAD`、tree SHA、工具链包版本、关键源码 SHA-256 和测试日志。该工作流须在 PR check 上成功后才满足 Linux 验收门槛。
 
-首次 Linux 工作流尝试因下载并解压完整 LLVM 发行包耗尽 runner 磁盘空间，在任何测试步骤开始前由 GitHub runner 的 `No space left on device` 终止，不能算作代码测试失败或通过。现工作流改为安装官方仓库中的固定版本包以降低空间占用；需等待这一修订的 PR check 完成后再判定 Linux 验收结果。
+首次 Linux 工作流尝试因下载并解压完整 LLVM 发行包耗尽 runner 磁盘空间，在任何测试步骤开始前由 GitHub runner 的 `No space left on device` 终止，不能算作代码测试失败或通过。第二次尝试改用官方签名仓库中固定版本 23.1.2 包后解决了磁盘问题，但仓库 CMake 对 23.1.1 使用 `EXACT` 约束，因而在插件编译前明确拒绝 23.1.2。现工作流保持源码原定 23.1.1，并在下载官方发布包前清理 runner 上与本任务无关的大型预装工具；等待此修订的 PR check 完成后再判定 Linux 验收结果。
 
 ### 手算库存到达交互案例
 
