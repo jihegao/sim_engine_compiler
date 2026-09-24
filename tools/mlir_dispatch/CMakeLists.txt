@@ -12,16 +12,21 @@ include_directories(SYSTEM ${LLVM_INCLUDE_DIRS} ${MLIR_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 function(link_mlir_plugin_runtime target)
-  get_target_property(MLIR_SHARED_LIBRARY MLIR IMPORTED_LOCATION_RELEASE)
-  get_target_property(LLVM_SHARED_LIBRARY LLVM IMPORTED_LOCATION_RELEASE)
-  if(EXISTS "${MLIR_SHARED_LIBRARY}" AND EXISTS "${LLVM_SHARED_LIBRARY}")
-    target_link_libraries(${target} PRIVATE
-      "$<TARGET_LINKER_FILE:MLIR>"
-      "$<TARGET_LINKER_FILE:LLVM>"
-    )
+  if(TARGET MLIR AND TARGET LLVM)
+    get_target_property(MLIR_SHARED_LIBRARY MLIR IMPORTED_LOCATION_RELEASE)
+    get_target_property(LLVM_SHARED_LIBRARY LLVM IMPORTED_LOCATION_RELEASE)
+    if(EXISTS "${MLIR_SHARED_LIBRARY}" AND EXISTS "${LLVM_SHARED_LIBRARY}")
+      target_link_libraries(${target} PRIVATE
+        "$<TARGET_LINKER_FILE:MLIR>"
+        "$<TARGET_LINKER_FILE:LLVM>"
+      )
+    else()
+      message(STATUS
+        "Monolithic MLIR/LLVM shared libraries are unavailable; plugin symbols will resolve from the exporting mlir-opt host")
+    endif()
   else()
     message(STATUS
-      "Monolithic MLIR/LLVM shared libraries are unavailable; plugin symbols will resolve from the exporting mlir-opt host")
+      "Monolithic MLIR/LLVM CMake targets are unavailable; plugin symbols will resolve from the exporting mlir-opt host")
   endif()
 endfunction()
 
