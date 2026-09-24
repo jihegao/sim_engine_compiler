@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仿真引擎 · 交互验证</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f7fa; color: #142033; }
+    body { max-width: 1120px; margin: 0 auto; padding: 32px 20px 80px; }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    h2 { font-size: 19px; margin: 0 0 18px; }
+    p { line-height: 1.55; color: #4b5a6d; }
+    .lead { margin: 0 0 24px; }
+    .card { background: white; border: 1px solid #dce3ea; border-radius: 14px; padding: 24px; margin: 18px 0; box-shadow: 0 2px 12px #14203308; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 16px; }
+    label { display: grid; gap: 7px; font-weight: 600; font-size: 14px; }
+    input, select, button { font: inherit; }
+    input[type=number], select { border: 1px solid #b9c5d3; border-radius: 8px; padding: 10px; background: white; color: #142033; width: 100%; box-sizing: border-box; }
+    .switches { display: flex; gap: 24px; flex-wrap: wrap; margin: 18px 0; }
+    .switches label { display: flex; align-items: center; gap: 8px; }
+    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    button { border: 0; border-radius: 9px; padding: 11px 17px; background: #135ba4; color: white; cursor: pointer; font-weight: 650; }
+    button.secondary { background: #e8edf4; color: #163b61; }
+    button:disabled { opacity: .5; cursor: wait; }
+    .status { min-height: 25px; margin: 14px 0 0; }
+    .good { color: #116a3b; font-weight: 650; }
+    .bad { color: #b33434; font-weight: 650; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 850px; font-variant-numeric: tabular-nums; }
+    th, td { text-align: left; border-bottom: 1px solid #e3e8ed; padding: 10px 9px; font-size: 13px; white-space: nowrap; }
+    th { color: #566478; font-weight: 650; background: #f8fafc; }
+    td:first-child { font-weight: 650; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .chip { background: #edf4fa; color: #244c70; border-radius: 99px; padding: 7px 11px; font-size: 13px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; padding: 15px; border-radius: 9px; font-size: 12px; }
+    small { color: #627084; line-height: 1.5; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <h1>仿真引擎 · 交互验证</h1>
+  <p class="lead">固定 canonical 输入、语义合同、随机流与 full 观测，比较结果和运行代价。每次执行会调用现有 AOT／MLIR 编译器与 Rust 运行时。</p>
+
+  <section class="card">
+    <h2>案例与实验配置</h2>
+    <form id="config">
+      <div class="grid">
+        <label>案例<select name="case"><option>B1</option><option>B3</option><option>F35</option></select></label>
+        <label>起始 seed<input name="seed" type="number" min="0" max="999999999" value="0" required></label>
+        <label>样本数<input name="samples" type="number" min="1" max="8" value="1" required></label>
+        <label>线程数<input name="threads" type="number" min="1" max="8" value="1" required></label>
+        <label>执行方案<select name="profile"><option value="minute">分钟推进</option><option value="O5">O5 事件时间</option></select></label>
+      </div>
+      <div class="switches">
+        <label><input type="checkbox" name="mlir_index">MLIR 资源索引</label>
+        <label><input type="checkbox" name="plan_cache">AOT Plan 缓存</label>
+      </div>
+      <div class="actions">
+        <button id="run" type="submit">开始验证</button>
+        <button id="download" class="secondary" type="button" hidden>下载本次 JSON 记录</button>
+        <small>MLIR 索引和 AOT 缓存当前分别验证，不能同时开启。</small>
+      </div>
+    </form>
+    <p id="status" class="status" role="status"></p>
+  </section>
+
+  <section id="report" hidden>
+    <div class="card">
+      <h2>正确性比较</h2>
+      <div id="identity" class="chips"></div>
+      <div id="correctness"></div>
+    </div>
+    <div class="card">
+      <h2>性能与机制</h2>
+      <div id="ratios" class="chips"></div>
+      <div class="table-wrap"><table id="timings"></table></div>
+      <p id="timing-note"></p>
+    </div>
+    <div class="card">
+      <h2>复核身份</h2>
+      <pre id="metadata"></pre>
+    </div>
+  </section>
+
+  <script>
+    const form = document.querySelector('#config');
+    const status = document.querySelector('#status');
+    const report = document.querySelector('#report');
+    const runButton = document.querySelector('#run');
+    const download = document.querySelector('#download');
+    const mlir = form.elements.mlir_index;
+    const cache = form.elements.plan_cache;
+    let lastReport;
+    mlir.addEventListener('change', () => { if (mlir.checked) cache.checked = false; });
+    cache.addEventListener('change', () => { if (cache.checked) mlir.checked = false; });
+
+    function node(tag, content, className) {
+      const item = document.createElement(tag);
+      item.textContent = String(content);
+      if (className) item.className = className;
+      return item;
+    }
+    function ms(ns) { return (ns / 1e6).toFixed(3); }
+    function ratio(before, after) {
+      return before && after ? `${(before / after).toFixed(2)}×` : '—';
+    }
+    function showComparison(container, title, comparison) {
+      const heading = node('p', `${title}：${comparison.equal ? '结果一致' : '存在分歧'}`, comparison.equal ? 'good' : 'bad');
+      container.append(heading);
+      if (!comparison.equal) {
+        const detail = {
+          sample_index: comparison.sample_index, seed: comparison.seed,
+          first_divergence: comparison.path, rule_id: comparison.rule_id,
+          source_path: comparison.source_path,
+          baseline: comparison.expected, compared: comparison.actual,
+        };
+        container.append(node('pre', JSON.stringify(detail, null, 2)));
+      }
+    }
+    function render(data) {
+      lastReport = data;
+      report.hidden = false;
+      download.hidden = false;
+      const identity = document.querySelector('#identity');
+      identity.replaceChildren();
+      for (const value of [
+        `案例 ${data.case}`, `seeds ${data.seeds.join(', ')}`,
+        `${data.requested_threads} 线程`,
+        `输入 ${data.source_inputs_sha256.slice(0, 14)}…`,
+        `${data.contract.rng_profile} / ${data.contract.observation_level}`,
+      ]) identity.append(node('span', value, 'chip'));
+      const correctness = document.querySelector('#correctness');
+      correctness.replaceChildren();
+      showComparison(correctness, '算法／索引对分钟基线', data.correctness.algorithm);
+      if (data.correctness.cache_cold) showComparison(correctness, '缓存首次生成对算法', data.correctness.cache_cold);
+      if (data.correctness.cache) showComparison(correctness, '缓存命中对算法', data.correctness.cache);
+
+      const ratios = document.querySelector('#ratios');
+      ratios.replaceChildren();
+      const base = data.arms[0], algorithm = data.arms[1];
+      ratios.append(node('span', data.algorithm_changed
+        ? `本次算法批量端到端比值 ${ratio(base.end_to_end_batch_wall_ns, algorithm.end_to_end_batch_wall_ns)}`
+        : '算法方案与分钟基线相同，仅比较一致性', 'chip'));
+      if (data.arms.length > 2) {
+        const cold = data.arms[2], warm = data.arms[3];
+        ratios.append(node('span', `本次缓存编译路径比值 ${ratio(cold.compile_wall_ns, warm.compile_wall_ns)}`, 'chip'));
+        ratios.append(node('span', `本次缓存批量端到端比值 ${ratio(cold.end_to_end_batch_wall_ns, warm.end_to_end_batch_wall_ns)}`, 'chip'));
+      }
+      const table = document.querySelector('#timings');
+      table.replaceChildren();
+      const labels = ['方案', '编译墙钟 ms', '加载 ms', '初始化 ms', '执行 ms', '批量墙钟 ms', '端到端 ms', '候选访问', 'guard 重检', '索引命中'];
+      const thead = document.createElement('thead'), header = document.createElement('tr');
+      for (const label of labels) header.append(node('th', label));
+      thead.append(header); table.append(thead);
+      const tbody = document.createElement('tbody');
+      for (const arm of data.arms) {
+        const row = document.createElement('tr');
+        for (const value of [
+          arm.name, ms(arm.compile_wall_ns), ms(arm.plan_load_ns),
+          ms(arm.initialization_ns), ms(arm.execution_ns), ms(arm.batch_wall_ns),
+          ms(arm.end_to_end_batch_wall_ns), arm.candidate_visits,
+          arm.guard_evaluations, arm.dispatch_cache_hits,
+        ]) row.append(node('td', value));
+        tbody.append(row);
+      }
+      table.append(tbody);
+      document.querySelector('#timing-note').textContent = data.timing_note;
+      document.querySelector('#metadata').textContent = JSON.stringify({
+        engine: data.engine, contract: data.contract, source_inputs_sha256: data.source_inputs_sha256,
+        plans: data.arms.map(({name, semantic_profile, plan_fingerprint, index_checksum, cache_hit}) =>
+          ({name, semantic_profile, plan_fingerprint, index_checksum, cache_hit})),
+      }, null, 2);
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      runButton.disabled = true;
+      report.hidden = true;
+      status.className = 'status';
+      status.textContent = '正在编译并运行固定样本；F35 可能需要较长时间…';
+      const payload = {
+        case: form.elements.case.value,
+        seed: Number(form.elements.seed.value),
+        samples: Number(form.elements.samples.value),
+        threads: Number(form.elements.threads.value),
+        profile: form.elements.profile.value,
+        mlir_index: mlir.checked,
+        plan_cache: cache.checked,
+      };
+      try {
+        const response = await fetch('/api/compare', {
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || '验证失败');
+        render(data);
+        status.textContent = Object.values(data.correctness).every(item => item.equal)
+          ? '验证完成：所有已执行对照结果一致。' : '验证完成：发现结果分歧，详见下方首处分歧。';
+        status.className = Object.values(data.correctness).every(item => item.equal) ? 'status good' : 'status bad';
+      } catch (error) {
+        status.textContent = error.message;
+        status.className = 'status bad';
+      } finally {
+        runButton.disabled = false;
+      }
+    });
+    download.addEventListener('click', () => {
+      if (!lastReport) return;
+      const blob = new Blob([JSON.stringify(lastReport, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `sim-validation-${lastReport.case}-${Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
