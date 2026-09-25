@@ -152,6 +152,14 @@ jobs:
           cargo test --locked --manifest-path rust/runtime/Cargo.toml 2>&1 \
             | tee "$RUNNER_TEMP/o5-mlir-acceptance/cargo-test.log"
 
+      # The AOT crate owns canonical input validation and cache admission.
+      # Its unit tests are not included by rust/runtime's Cargo manifest.
+      - name: Run Rust AOT validation and cache boundary tests
+        run: |
+          set -euo pipefail
+          cargo test --locked --manifest-path rust/compiler/Cargo.toml 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/cargo-compiler-test.log"
+
       - name: Run Python binding tests
         env:
           PYTHONPATH: src

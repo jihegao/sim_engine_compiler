@@ -32,7 +32,7 @@ Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负�
 │   └── adr/0001-layered-ir.md       首个架构决策
 ├── contracts/README.md              合同清单、版本、身份与诊断设计
 ├── src/sim_engine_compiler/
-│   ├── ir/                         Execution Plan 合同；Business/Core IR 待补
+│   ├── ir/                         可持久化 Business/Core IR、Execution Plan 合同
 │   ├── compiler/                   canonical lowering 与索引化 Execution Plan
 │   ├── domains/aircraft_support/    领域插件边界（待从 B1 lowering 提取）
 │   ├── reference/                  独立 SimPy 执行器与首处分歧工具
@@ -44,6 +44,8 @@ Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负�
 │   └── differential/               旧模型 / Python / Rust 首处分歧
 └── benchmarks/                     分段计时、原始数据与环境信息
 ```
+
+当前已补齐 canonical 工作时长与组件引用的 Python/Rust 一致校验，详见[输入校验合同](docs/strict-work-input-validation.md)。MC/O5/MLIR/v3 缓存整合后的新基线使用[独立测量入口](benchmarks/integrated/README.md)；不复用历史性能数值作为本次结论。
 
 ## 从哪里开始
 
@@ -75,3 +77,7 @@ uv pip install --python .venv/bin/python -e .
 ## 设计来源与证据边界
 
 依据 2026-09-20 的讨论：[设计仿真引擎 and IR](chatgpt-conversation://6aaf8dfc-02e0-83ea-8eb1-460c5abf7b5f)。本项目已从上游提交 `5352a0d7757cbac012c75d516d1a7ac4ff15aa2a` 导出固定 canonical 输入，并重新生成 seed `0、1、7` oracle；验收不依赖运行中的上游数据库。
+
+## 三层 IR 与依赖派遣里程碑
+
+Python 与 Rust AOT 的正式链路现为 canonical → Business → symbolic Core → layout → Plan；中间产物可独立重载、校验和修订。MLIR 直接接受持久化 Core，包括 Rust AOT 生成的 Core。详见[三层 IR 合同](docs/three-layer-ir.md)与[依赖派遣验收](docs/dependency-dispatch.md)。候选派遣需显式启用，性能结论按 profile 和观测级别分别报告。

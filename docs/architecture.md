@@ -1,6 +1,6 @@
 # 架构与模块边界
 
-状态：Python reference 与独立 Rust 单样本/批量 runtime 已实现 canonical input → Execution Plan → result，并完成 B1/B2/B3 与 F35 三个 seed 的跨后端验收；批量执行通过 PyO3 暴露给 Python。2026-09-24 已完成一个范围受限的 MLIR 资源依赖索引试点，证据见 [MLIR 试点记录](mlir-resource-dispatch-pilot.md)。Business IR 尚未物化；该试点只投影当前 typed plan 中的相关 Core 语义子集，不代表三层 IR 全部实现。
+状态：Python reference 与独立 Rust 单样本/批量 runtime 已通过 B1/B2/B3 与 F35 跨后端验收。Python 与 Rust AOT 均已接入可持久化 Business → symbolic Core → layout → Plan 主链；MLIR 从实际 Core 生成资源依赖索引。候选实例派遣为显式 opt-in。当前 Core 使用有限的粗粒度兼容操作，尚非通用跨领域指令集；具体边界见[三层 IR](three-layer-ir.md)与[依赖派遣](dependency-dispatch.md)。
 
 ## 模型流转
 
@@ -75,16 +75,16 @@ Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回�
 
 ## MLIR 资源依赖索引试点
 
-`scripts/compile_mlir_execution_plan.py` 沿用现有 canonical `simulation_inputs` 编译入口，在内存中取得类型化的活动、工作步骤、组件和供应路线后，投影出小型 `sim` Core IR 模块。MLIR pass 校验 `legacy-minute-v1` 或 `event-time-v2` profile、canonical 15-phase 顺序、读集合、副作用、稳定身份和依赖完整性，构造资源到候选工作的反向索引；编译器将该派生索引附加到最终 Execution Plan 后导出。这里没有第二套 Project JSON 解析器，也没有持久化一套重复的业务语义。试点没有声称已经物化完整 Business IR 或通用 Core IR。
+`scripts/compile_mlir_execution_plan.py` 接受 canonical、持久化 Business 或持久化 Core；先得到经校验的 Core，再投影到 LLVM/MLIR 23.1.1 的 `sim` 模块，运行依赖分析，最后布局输出 Plan。Python 和 Rust AOT 生成的 Core 全树一致，均可作为入口；不从最终 Plan 反推 Core。索引 v2 增加远端人员/设备供应节点容量依赖，校验器从 Plan 独立重建完整依赖集合。
 
-索引只覆盖当前飞机保障 profile 明确表达的人员/设备容量、本地备件、供应路线源库存和动态 LRU 换件需求。索引不改变调度顺序、事件阶段或 RNG 调用；Rust 执行器仍按原优先级/时间/作业 ID 顺序访问等待作业，只有在依赖资源未变化时才复用阻塞结果，并按原位置重放每分钟容量延迟事件。缺少索引时走原始全检查路径；有索引但版本、校验和、基础计划指纹或完整依赖校验失败时拒绝执行。
+默认仍按优先级/时间/作业 ID 扫描等待者；带索引时复用未失效的缺货检查。`--dependency-dispatch` 显式切换到资源变化唤醒候选实例的路径，要求完整 v2 索引。Full 模式保留原位置的每分钟容量延迟事件重放，Summary 可省略该无业务副作用的重放。静态表属于只读 Plan，每个运行的等待者、缓存、候选集合独立。缺失或不完整依赖不允许静默启用候选模式。
 
 该 pass 只分析静态依赖，不移动或重复执行带副作用的事件操作。O5＋MLIR 组合回归在 F35 seeds `0、1、7` 上比较索引开/关的完整 Rust `RunResult`，结果完全一致；这是组合语义验证，不是新的性能测量。`LLVM/MLIR 23.1.1` 通过 CMake 精确固定。完整 F35 结果、三组对照、编译/加载/运行分段与限制见试点记录；本次从最新 `main` 开始的组合验证另见 [O5＋MLIR 整合报告](../experiments/ir_validation/INTEGRATION_20260924.md)。
 
 ## 创作模式与未来扩展
 
-计划中的 `project-import` 模式以 Project 为真源，并从导入结果派生 Business IR；当前实现尚未物化 Business IR。原 Project 字段修改应回到上游，再重新导入。未来 `ir-native` 模式以 ModelRevision 为真源，显式记录一次性导入来源。
+当前 canonical-import 经上游 Adapter 获取输入，再物化 Business IR。保存的 Business/Core 可离线修改、重新校验并生成新 Plan，lineage 和 revision impact 记录指纹、稳定符号及来源位置。它们不反向同步上游 Project。正式 Agent patch、发布与冲突合并 API 仍属后续阶段。
 
-阶段 D 增加补丁、影响分析、验证、编译与版本发布。正在运行的任务固定模型修订；新补丁生成新修订和新运行。运行中状态迁移另行设计。
+阶段 D 增加补丁 API、正式版本发布及更细的影响分析。正在运行的任务固定模型修订；新补丁生成新修订和新运行。运行中状态迁移另行设计。
 
 当前不拆服务，不接 UI 或数据库。先验证离散事件任务—资产—资源系统；未来物理求解器通过明确接口接入。

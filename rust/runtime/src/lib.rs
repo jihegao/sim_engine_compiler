@@ -10,7 +10,7 @@ mod python;
 pub use batch::{
     BatchResult, BatchSampleResult, IndexedBatchSampleFailure, IndexedBatchSampleResult,
     IndexedPlanBatchResult, IndexedSampleRequest, PlanBatchGroup, run_batch, run_batch_from_slice,
-    run_batch_from_slice_with_observation, run_batch_with_observation,
+    run_batch_from_slice_with_observation, run_batch_with_dispatch, run_batch_with_observation,
     run_indexed_plan_batch_with_observation,
 };
 pub use cache::{

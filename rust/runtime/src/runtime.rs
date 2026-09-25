@@ -127,6 +127,9 @@ pub struct RuntimeProfile {
     pub resource_dispatch_candidate_visits: u64,
     pub resource_dispatch_guard_evaluations: u64,
     pub resource_dispatch_cache_hits: u64,
+    pub resource_dispatch_replay_visits: u64,
+    pub resource_dispatch_queue_updates: u64,
+    pub resource_dispatch_queue_ns: u64,
     pub job_progress_candidate_visits: u64,
     pub waiting_job_indexes_peak: u64,
     pub running_job_indexes_peak: u64,
@@ -342,6 +345,8 @@ struct DispatchCandidate {
 #[derive(Clone, Debug)]
 enum DispatchBlockReason {
     Shortage,
+    Capacity { resource_kind: &'static str },
+    Transport,
 }
 
 #[derive(Clone, Debug)]
@@ -475,6 +480,12 @@ pub struct Runtime {
     waiting_dispatch_jobs: HashMap<(usize, usize), BTreeSet<usize>>,
     running_job_indexes: BTreeSet<usize>,
     dispatch_cache: Vec<Option<CachedDispatchBlock>>,
+    dependency_dispatch: bool,
+    dispatch_candidates: BTreeSet<usize>,
+    dispatch_replays: BTreeSet<usize>,
+    dispatch_invalidated: Vec<usize>,
+    dispatch_epoch: u64,
+    waiting_epoch: Vec<u64>,
     resources: Vec<ResourceState>,
     preventive_cycles: Vec<PreventiveCycleState>,
     shipments: Vec<ShipmentState>,
@@ -502,6 +513,56 @@ pub struct Runtime {
 }
 
 impl Runtime {
+    /// Opt-in candidate-instance dispatch. The index is validated by Plan loading;
+    /// no index or an unsupported dependency contract may silently enable this path.
+    pub fn with_dependency_dispatch(mut self, enabled: bool) -> Result<Self> {
+        if enabled
+            && !self
+                .plan
+                .resource_dispatch_index
+                .as_ref()
+                .is_some_and(|index| index.schema_version == "resource-dispatch-index/v2")
+        {
+            bail!(
+                "dependency dispatch requires a validated resource-dispatch-index/v2 (including remote capacity dependencies)"
+            );
+        }
+        self.dependency_dispatch = enabled;
+        if enabled {
+            self.dispatch_candidates = self.waiting_job_indexes.clone();
+            self.waiting_epoch
+                .resize(self.jobs.len(), self.dispatch_epoch + 1);
+        }
+        Ok(self)
+    }
+
+    fn dispatch_order(&self, index: usize) -> (i64, i64, String, usize) {
+        (
+            self.prepared.activities[self.jobs[index].activity_index].priority,
+            self.jobs[index].started_time.unwrap_or(self.minute),
+            self.jobs[index].job_id.clone(),
+            index,
+        )
+    }
+
+    fn emit_capacity_delay(
+        &mut self,
+        job_index: usize,
+        resource_kind: &'static str,
+        step_index: usize,
+    ) {
+        self.emit(
+            if resource_kind == "personnel" {
+                "personnel_delay"
+            } else {
+                "equipment_shortage"
+            },
+            "organization.resource-capacity",
+            self.jobs[job_index].job_id.clone(),
+            || json!({"step_index": step_index, "resource_kind": resource_kind}),
+            None,
+        );
+    }
     fn count_scan(&mut self, kind: &str, count: usize) {
         if !self.profile_enabled {
             return;
@@ -533,6 +594,14 @@ impl Runtime {
     fn invalidate_dispatch_job_cache(&mut self, job_index: usize) {
         if let Some(cache) = self.dispatch_cache.get_mut(job_index) {
             *cache = None;
+        }
+        if self.dependency_dispatch && self.jobs[job_index].state == "waiting" {
+            self.dispatch_candidates.insert(job_index);
+            self.dispatch_replays.remove(&job_index);
+            self.dispatch_invalidated.push(job_index);
+            if self.profile_enabled {
+                self.profile.resource_dispatch_queue_updates += 1;
+            }
         }
     }
 
@@ -578,6 +647,14 @@ impl Runtime {
         reason: DispatchBlockReason,
     ) {
         if self.plan.resource_dispatch_index.is_some() {
+            if self.dependency_dispatch {
+                self.dispatch_candidates.remove(&job_index);
+                if matches!(reason, DispatchBlockReason::Capacity { .. }) {
+                    self.dispatch_replays.insert(job_index);
+                } else {
+                    self.dispatch_replays.remove(&job_index);
+                }
+            }
             self.dispatch_cache[job_index] = Some(CachedDispatchBlock {
                 activity_index,
                 step_index,
@@ -641,6 +718,16 @@ impl Runtime {
                 debug_assert!(inserted, "running job duplicated in active index");
             }
             _ => {}
+        }
+        if self.dependency_dispatch {
+            if state == "waiting" {
+                self.waiting_epoch[job_index] = self.dispatch_epoch + 1;
+                self.dispatch_candidates.insert(job_index);
+                self.dispatch_invalidated.push(job_index);
+            } else {
+                self.dispatch_candidates.remove(&job_index);
+                self.dispatch_replays.remove(&job_index);
+            }
         }
         self.update_active_job_peaks();
         self.debug_assert_active_job_indexes();
@@ -869,6 +956,12 @@ impl Runtime {
             waiting_dispatch_jobs: HashMap::new(),
             running_job_indexes: BTreeSet::new(),
             dispatch_cache: vec![],
+            dependency_dispatch: false,
+            dispatch_candidates: BTreeSet::new(),
+            dispatch_replays: BTreeSet::new(),
+            dispatch_invalidated: vec![],
+            dispatch_epoch: 0,
+            waiting_epoch: vec![],
             resources,
             preventive_cycles,
             shipments: vec![],
@@ -1148,6 +1241,11 @@ impl Runtime {
         let job_index = self.jobs.len() - 1;
         debug_assert_eq!(job_index, self.dispatch_cache.len());
         self.dispatch_cache.push(None);
+        if self.dependency_dispatch {
+            self.waiting_epoch.push(self.dispatch_epoch + 1);
+            self.dispatch_candidates.insert(job_index);
+            self.dispatch_invalidated.push(job_index);
+        }
         let inserted = self.waiting_job_indexes.insert(job_index);
         debug_assert!(inserted, "new waiting job duplicated in active index");
         self.waiting_dispatch_jobs
@@ -1553,6 +1651,9 @@ impl Runtime {
                 self.jobs[transit.job_index]
                     .remote_resources_pending
                     .remove(&transit.resource_kind);
+                if self.dependency_dispatch {
+                    self.invalidate_dispatch_job_cache(transit.job_index);
+                }
             }
         }
     }
@@ -1708,6 +1809,17 @@ impl Runtime {
             "equipment" => self.resources[node_index].equipment_in_use += quantity,
             _ => unreachable!("unsupported canonical resource kind"),
         }
+        if self.dependency_dispatch && quantity != 0 {
+            self.invalidate_dispatch_resource(
+                if resource_kind == "personnel" {
+                    "personnel_capacity"
+                } else {
+                    "equipment_capacity"
+                },
+                node_index,
+                None,
+            );
+        }
     }
 
     fn ensure_canonical_job_resources(
@@ -1735,17 +1847,15 @@ impl Runtime {
             let Some(plan) =
                 self.canonical_resource_plan(destination_node_index, resource_kind, quantity)
             else {
-                self.emit(
-                    if resource_kind == "personnel" {
-                        "personnel_delay"
-                    } else {
-                        "equipment_shortage"
-                    },
-                    "organization.resource-capacity",
-                    self.jobs[job_index].job_id.clone(),
-                    || json!({"step_index": step_index, "resource_kind": resource_kind}),
-                    None,
-                );
+                self.emit_capacity_delay(job_index, resource_kind, step_index);
+                if self.dependency_dispatch {
+                    self.cache_dispatch_block(
+                        job_index,
+                        self.jobs[job_index].activity_index,
+                        self.jobs[job_index].step_index,
+                        DispatchBlockReason::Capacity { resource_kind },
+                    );
+                }
                 return false;
             };
             plans.push((resource_kind, quantity, plan));
@@ -1987,10 +2097,10 @@ impl Runtime {
         let personnel_in_use = self.resources[node_index].personnel_in_use;
         let equipment_in_use = self.resources[node_index].equipment_in_use;
         if reserved_personnel != 0 {
-            self.invalidate_dispatch_resource("personnel_capacity", node_index, None);
+            self.invalidate_dispatch_resource("personnel_capacity", personnel_node, None);
         }
         if reserved_equipment != 0 {
-            self.invalidate_dispatch_resource("equipment_capacity", node_index, None);
+            self.invalidate_dispatch_resource("equipment_capacity", equipment_node, None);
         }
         self.emit(
             "resources_released",
@@ -2337,18 +2447,81 @@ impl Runtime {
     fn phase_start_waiting_jobs(&mut self) -> Result<()> {
         self.count_scan("job", self.jobs.len());
         self.debug_assert_active_job_indexes();
-        let mut waiting: Vec<_> = self.waiting_job_indexes.iter().copied().collect();
-        if self.profile_enabled {
-            self.profile.resource_dispatch_candidate_visits += waiting.len() as u64;
+        if self.dependency_dispatch {
+            self.dispatch_epoch += 1;
         }
-        waiting.sort_by_key(|index| {
-            (
-                self.prepared.activities[self.jobs[*index].activity_index].priority,
-                self.jobs[*index].started_time.unwrap_or(self.minute),
-                self.jobs[*index].job_id.clone(),
-            )
-        });
-        for job_index in waiting {
+        let queue_started = self.profile_enabled.then(Instant::now);
+        let mut scan = Vec::new();
+        let mut queue: BTreeSet<_> = if self.dependency_dispatch {
+            self.dispatch_invalidated.clear();
+            self.dispatch_candidates
+                .iter()
+                .chain(
+                    self.dispatch_replays
+                        .iter()
+                        .filter(|_| self.observation_level == ObservationLevel::Full),
+                )
+                .map(|index| self.dispatch_order(*index))
+                .collect()
+        } else {
+            if self.profile_enabled {
+                self.profile.resource_dispatch_candidate_visits +=
+                    self.waiting_job_indexes.len() as u64;
+            }
+            scan = self.waiting_job_indexes.iter().copied().collect();
+            scan.sort_by_key(|index| {
+                (
+                    self.prepared.activities[self.jobs[*index].activity_index].priority,
+                    self.jobs[*index].started_time.unwrap_or(self.minute),
+                    self.jobs[*index].job_id.clone(),
+                )
+            });
+            BTreeSet::new()
+        };
+        if let Some(started) = queue_started {
+            self.profile.resource_dispatch_queue_ns += started.elapsed().as_nanos() as u64;
+        }
+        let mut scan = scan.into_iter();
+        let mut last_key = None;
+        loop {
+            // Invalidations later in this phase must wake later waiters now;
+            // already visited/ newly created waiters remain for the next phase.
+            if self.dependency_dispatch && !self.dispatch_invalidated.is_empty() {
+                let started = self.profile_enabled.then(Instant::now);
+                for index in std::mem::take(&mut self.dispatch_invalidated) {
+                    if self.jobs[index].state != "waiting"
+                        || self.waiting_epoch[index] > self.dispatch_epoch
+                    {
+                        continue;
+                    }
+                    let key = self.dispatch_order(index);
+                    if last_key.as_ref().is_none_or(|last| key > *last) {
+                        queue.insert(key);
+                    }
+                }
+                if let Some(started) = started {
+                    self.profile.resource_dispatch_queue_ns += started.elapsed().as_nanos() as u64;
+                }
+            }
+            let next = if self.dependency_dispatch {
+                queue.pop_first().map(|key| {
+                    let index = key.3;
+                    last_key = Some(key);
+                    index
+                })
+            } else {
+                scan.next()
+            };
+            let Some(job_index) = next else {
+                break;
+            };
+            if self.dependency_dispatch && self.profile_enabled {
+                if self.dispatch_cache[job_index].is_some() {
+                    self.profile.resource_dispatch_replay_visits += 1;
+                } else {
+                    self.profile.resource_dispatch_candidate_visits += 1;
+                }
+            }
             let activity_index = self.jobs[job_index].activity_index;
             let step_index = self.jobs[job_index].step_index;
             let prepared_activity = &self.prepared.activities[activity_index];
@@ -2379,7 +2552,10 @@ impl Runtime {
                     self.profile.resource_dispatch_cache_hits += 1;
                 }
                 match cached.reason {
-                    DispatchBlockReason::Shortage => {}
+                    DispatchBlockReason::Shortage | DispatchBlockReason::Transport => {}
+                    DispatchBlockReason::Capacity { resource_kind } => {
+                        self.emit_capacity_delay(job_index, resource_kind, step_spec_index);
+                    }
                 }
                 continue;
             }
@@ -2475,8 +2651,18 @@ impl Runtime {
                 personnel,
                 equipment,
                 step_spec_index,
-            ) || !self.jobs[job_index].remote_resources_pending.is_empty()
-            {
+            ) {
+                continue;
+            }
+            if !self.jobs[job_index].remote_resources_pending.is_empty() {
+                if self.dependency_dispatch {
+                    self.cache_dispatch_block(
+                        job_index,
+                        activity_index,
+                        step_index,
+                        DispatchBlockReason::Transport,
+                    );
+                }
                 continue;
             }
             if !requirements.is_empty()

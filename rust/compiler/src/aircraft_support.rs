@@ -4,13 +4,15 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use anyhow::{Result, bail};
 use serde_json::{Map, Value};
-use sha2::{Digest, Sha256};
 use sim_engine_runtime::plan::{
-    ActivitySpec, AircraftSpec, ComponentSpec, ExecutionPlan, MissionSpec, PLAN_VERSION,
-    PreventiveCycleSpec, ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
+    ActivitySpec, AircraftSpec, ComponentSpec, ExecutionPlan, MissionSpec, PreventiveCycleSpec,
+    ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
 };
 
-pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha2";
+pub mod validation;
+
+// Input acceptance changed: never reuse caches emitted before strict validation.
+pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha5";
 
 const LEGACY_MINUTE_PHASES: &[&str] = &[
     "transport_arrivals",
@@ -53,6 +55,15 @@ fn number(value: Option<&Value>) -> Option<f64> {
         Some(Value::String(value)) => value.parse().ok(),
         Some(Value::Bool(value)) => Some(if *value { 1.0 } else { 0.0 }),
         _ => None,
+    }
+}
+
+fn work_duration(value: Option<&Value>, default: i64) -> i64 {
+    match value {
+        Some(Value::String(raw)) => {
+            positive_i64(Some(&Value::String(raw.trim().to_owned())), default)
+        }
+        _ => positive_i64(value, default),
     }
 }
 
@@ -269,7 +280,7 @@ fn topological_steps(item: &Map<String, Value>, source_path: &str) -> Result<Vec
         .enumerate()
         .map(|(dense, source)| (*source, dense))
         .collect::<HashMap<_, _>>();
-    let default_duration = positive_i64(item.get("duration_minutes"), 30);
+    let default_duration = work_duration(item.get("duration_minutes"), 30);
     Ok(ordered
         .iter()
         .enumerate()
@@ -278,7 +289,7 @@ fn topological_steps(item: &Map<String, Value>, source_path: &str) -> Result<Vec
             WorkStepSpec {
                 index,
                 code: codes[*source].clone(),
-                duration_minutes: positive_i64(
+                duration_minutes: work_duration(
                     step.get("durationMinutes")
                         .or_else(|| step.get("duration_minutes")),
                     default_duration,
@@ -1154,6 +1165,60 @@ pub fn compile_aircraft_support_with_profile(
     inputs: &Value,
     semantic_profile: &str,
 ) -> Result<ExecutionPlan> {
+    let business = crate::layers::import_business(inputs, semantic_profile)?;
+    crate::layers::compile_core(&lower_business(&business)?)
+}
+
+fn core_provenance(business: &crate::layers::Artifact, aircraft: &[AircraftSpec]) -> Result<Value> {
+    let assets = array(business.payload["sections"]["aircraft"]["collections"].get("assets"));
+    let mut origins = serde_json::json!({"aircraft":{}, "preventive_cycles":{}});
+    for (index, spec) in aircraft.iter().enumerate() {
+        let entity = assets.get(index);
+        let path = entity
+            .and_then(|e| e["source_path"].as_str())
+            .unwrap_or("aircraft.fleet_count");
+        origins["aircraft"][&spec.tail_number] = serde_json::json!({"source_path":path});
+        let cycles = entity
+            .map(|e| array(e["definition"].get("preventive_cycles")))
+            .unwrap_or_default();
+        for (cycle_index, raw) in cycles.iter().enumerate() {
+            let Some(cycle) = raw.as_object() else {
+                continue;
+            };
+            let cycle_path = format!("aircraft.assets[{index}].preventive_cycles[{cycle_index}]");
+            let explicit = ["id", "cycle_id"]
+                .iter()
+                .filter_map(|key| cycle.get(*key))
+                .collect::<Vec<_>>();
+            let key = if let Some(first) = explicit.first() {
+                let Some(id) = first.as_str().filter(|v| !v.is_empty()) else {
+                    bail!("{cycle_path}: cycle id must be a nonempty string");
+                };
+                if explicit.iter().any(|v| v.as_str() != Some(id)) {
+                    bail!("{cycle_path}: conflicting cycle ids");
+                }
+                serde_json::json!(["id", id])
+            } else {
+                let Some(equipment) = cycle
+                    .get("equipment_id")
+                    .and_then(Value::as_str)
+                    .filter(|v| !v.is_empty())
+                else {
+                    bail!("{cycle_path}: cycle requires id/cycle_id or stable equipment_id");
+                };
+                serde_json::json!(["equipment", equipment])
+            };
+            origins["preventive_cycles"][cycle_path] = serde_json::json!({
+                "source_path":format!("{path}.preventive_cycles[{cycle_index}]"), "cycle_key":key});
+        }
+    }
+    Ok(origins)
+}
+
+pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layers::Artifact> {
+    let view = crate::layers::canonical_view(business)?;
+    let inputs = &view;
+    let semantic_profile = business.payload["semantic_profile"].as_str().unwrap();
     let Some(inputs) = inputs.as_object() else {
         bail!("canonical inputs must be a JSON object");
     };
@@ -1170,6 +1235,7 @@ pub fn compile_aircraft_support_with_profile(
     if positive_i64(time.get("tick_minutes"), 1) != 1 {
         bail!("{semantic_profile} requires tick_minutes=1");
     }
+    validation::validate_canonical_work(inputs)?;
     let duration_minutes = positive_i64(time.get("duration_minutes"), 1440);
     let stop_policy = object(inputs.get("stop_policy"));
     let stop_conditions = stop_policy
@@ -1205,32 +1271,16 @@ pub fn compile_aircraft_support_with_profile(
     let preventive_cycles = compile_preventive_cycles(inputs, &activities)?;
     let supply_routes = compile_supply_routes(inputs, &resource_nodes);
 
-    let canonical = ExecutionPlan::python_canonical(&Value::Object(inputs.clone()))?;
-    let plan = ExecutionPlan {
-        plan_version: PLAN_VERSION.to_owned(),
-        domain: "aircraft-support".to_owned(),
-        semantic_profile: semantic_profile.to_owned(),
-        work_policy: "stable-topological-serial".to_owned(),
-        rng_profile: "legacy-sequential-v1".to_owned(),
-        source_inputs_sha256: format!("{:x}", Sha256::digest(canonical.as_bytes())),
-        duration_minutes,
-        natural_completion_enabled,
-        phases: LEGACY_MINUTE_PHASES
-            .iter()
-            .map(|value| (*value).to_owned())
-            .collect(),
-        aircraft,
-        missions,
-        activities,
-        resource_nodes,
-        components,
-        preventive_cycles,
-        supply_routes,
-        resource_dispatch_index: None,
-        unsupported_features: Vec::new(),
-    };
-    plan.validate()?;
-    Ok(plan)
+    let provenance = core_provenance(business, &aircraft)?;
+    let records = serde_json::json!({
+        "domain": "aircraft-support", "semantic_profile": semantic_profile,
+        "work_policy": "stable-topological-serial", "rng_profile": "legacy-sequential-v1",
+        "duration_minutes": duration_minutes, "natural_completion_enabled": natural_completion_enabled,
+        "phases": LEGACY_MINUTE_PHASES, "aircraft": aircraft, "missions": missions,
+        "activities": activities, "resource_nodes": resource_nodes, "components": components,
+        "preventive_cycles": preventive_cycles, "supply_routes": supply_routes, "unsupported_features": []
+    });
+    crate::layers::core_from_records(business, records, provenance)
 }
 
 #[cfg(test)]
@@ -1241,6 +1291,60 @@ mod tests {
 
     fn root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
+    }
+
+    #[test]
+    fn shared_python_rust_work_input_contract() {
+        let base: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/b1-daily-operations.json")).unwrap(),
+        )
+        .unwrap();
+        let cases: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/work-input-validation.json")).unwrap(),
+        )
+        .unwrap();
+        for case in cases.as_array().unwrap() {
+            for profile in ["legacy-minute-v1", "event-time-v2"] {
+                let mut inputs = base.clone();
+                let mut target = &mut inputs;
+                let mut path = String::new();
+                for part in case["path"].as_array().unwrap() {
+                    if let Some(index) = part.as_u64() {
+                        target = &mut target[index as usize];
+                        path.push_str(&format!("[{index}]"));
+                    } else {
+                        let key = part.as_str().unwrap();
+                        target = &mut target[key];
+                        if !path.is_empty() {
+                            path.push('.');
+                        }
+                        path.push_str(key);
+                    }
+                }
+                *target = case["value"].clone();
+                let compiled = compile_aircraft_support_with_profile(&inputs, profile);
+                if let Some(expected) = case["error"].as_str() {
+                    let error = compiled.unwrap_err();
+                    let diagnostic = error
+                        .downcast_ref::<validation::CompilationDiagnostic>()
+                        .unwrap();
+                    assert_eq!(diagnostic.code, expected, "{}", case["name"]);
+                    assert_eq!(diagnostic.source_path, path);
+                } else {
+                    let plan = compiled.unwrap();
+                    if let Some(expected) = case["expected_minutes"].as_i64() {
+                        assert_eq!(
+                            plan.activities[0].steps[0].duration_minutes, expected,
+                            "{}",
+                            case["name"]
+                        );
+                    }
+                    if let Some(expected) = case["expected_component"].as_i64() {
+                        assert_eq!(plan.activities[0].equipment_component_index, expected);
+                    }
+                }
+            }
+        }
     }
 
     fn assert_matches_python_fixture(input: &str, expected: &str) {

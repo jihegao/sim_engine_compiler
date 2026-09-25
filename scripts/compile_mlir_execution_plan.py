@@ -15,7 +15,11 @@ import subprocess
 import tempfile
 import time
 
-from sim_engine_compiler.compiler import compile_aircraft_support
+from types import SimpleNamespace
+from sim_engine_compiler.ir.layers import BusinessIR, CoreIR, CORE_VERSION, BUSINESS_VERSION, digest
+from sim_engine_compiler.integrations.spare_mvp.importer import import_business_ir
+from sim_engine_compiler.domains.aircraft_support.lowering import lower_business
+from sim_engine_compiler.compiler.layout import compile_core, layout_core
 
 
 EXPECTED_MLIR_VERSION = "23.1.1"
@@ -50,8 +54,15 @@ def _float(value: float) -> str:
     return text
 
 
-def emit_sim_module(plan: object) -> str:
-    """Represent the supported Core IR slice as generic operations in `sim`."""
+def emit_sim_module(core: CoreIR) -> str:
+    """Project validated symbolic Core through its layout; no Plan is constructed."""
+    layout = layout_core(core)
+    projected = dict(layout)
+    for table in ('activities', 'components', 'supply_routes'):
+        projected[table] = [SimpleNamespace(**row) for row in layout[table]]
+    for activity in projected['activities']:
+        activity.steps = [SimpleNamespace(**step) for step in activity.steps]
+    plan = SimpleNamespace(**projected, fingerprint=digest(layout))
     attrs = [
         'sim.schema = "aircraft-support-core/v1"',
         f"sim.semantic_profile = {_quote(plan.semantic_profile)}",
@@ -241,20 +252,21 @@ def main() -> None:
             plugin_dir = fallback
 
     started = time.perf_counter()
-    plan = compile_aircraft_support(
-        json.loads(args.input.read_text(encoding="utf-8")),
-        semantic_profile=args.semantic_profile,
-    )
+    value = json.loads(args.input.read_text(encoding="utf-8"))
+    if value.get('version') == CORE_VERSION:
+        core = CoreIR.from_dict(value)
+    else:
+        business = BusinessIR.from_dict(value) if value.get('version') == BUSINESS_VERSION else import_business_ir(value, semantic_profile=args.semantic_profile)
+        core = lower_business(business)
     compile_seconds = time.perf_counter() - started
     index, mlir_seconds, mlir_version = run_mlir_pass(
-        plan,
+        core,
         plugin_dir,
         args.mlir_opt,
         build_index=not args.disable_business_pass,
         mlir_output=args.mlir_output,
     )
-    if index is not None:
-        plan = replace(plan, resource_dispatch_index=_with_checksum(index))
+    plan = compile_core(core, resource_dispatch_index=_with_checksum(index) if index is not None else None)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(plan.to_dict(), ensure_ascii=False, indent=2) + "\n",
@@ -264,6 +276,8 @@ def main() -> None:
         json.dumps(
             {
                 "plan_fingerprint": plan.fingerprint,
+                "core_fingerprint": core.fingerprint,
+                "business_fingerprint": core.payload["source"]["business_fingerprint"],
                 "source_inputs_sha256": plan.source_inputs_sha256,
                 "mlir_version": mlir_version,
                 "business_pass_enabled": index is not None,

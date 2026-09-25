@@ -467,8 +467,10 @@ impl ExecutionPlan {
         let Some(index) = &self.resource_dispatch_index else {
             return Ok(());
         };
-        if index.schema_version != "resource-dispatch-index/v1"
-            || index.pass_name != "sim-build-resource-dependency-index"
+        if !matches!(
+            index.schema_version.as_str(),
+            "resource-dispatch-index/v1" | "resource-dispatch-index/v2"
+        ) || index.pass_name != "sim-build-resource-dependency-index"
             || index.mlir_version != "23.1.1"
         {
             bail!("unsupported resource dispatch index contract");
@@ -527,10 +529,26 @@ impl ExecutionPlan {
                             && (route.product_id.is_empty()
                                 || Some(route.product_id.as_str()) == key.product_id.as_deref())
                     });
+                let capacity_route_matches = index.schema_version == "resource-dispatch-index/v2"
+                    && matches!(
+                        key.kind.as_str(),
+                        "personnel_capacity" | "equipment_capacity"
+                    )
+                    && self.supply_routes.iter().any(|route| {
+                        route.destination_node_index == activity.resource_node_index
+                            && route.source_node_index == key.node_index
+                            && (matches!(route.product_id.as_str(), "" | "*")
+                                || (key.kind == "personnel_capacity"
+                                    && route.product_id == "personnel")
+                                || (key.kind == "equipment_capacity"
+                                    && route.product_id == "equipment"))
+                    });
                 if activity.activity_id != candidate.activity_id
                     || step.code != candidate.step_code
                     || step.source_path != candidate.source_path
-                    || (activity.resource_node_index != key.node_index && !inventory_route_matches)
+                    || (activity.resource_node_index != key.node_index
+                        && !inventory_route_matches
+                        && !capacity_route_matches)
                 {
                     bail!("resource dispatch index candidate identity does not match the plan");
                 }
@@ -584,6 +602,30 @@ impl ExecutionPlan {
                         None,
                         candidate.clone(),
                     );
+                }
+                if index.schema_version == "resource-dispatch-index/v2" {
+                    for route in &self.supply_routes {
+                        if route.destination_node_index != activity.resource_node_index {
+                            continue;
+                        }
+                        for (quantity, kind, product) in [
+                            (step.personnel, "personnel_capacity", "personnel"),
+                            (step.equipment, "equipment_capacity", "equipment"),
+                        ] {
+                            if quantity > 0
+                                && (matches!(route.product_id.as_str(), "" | "*")
+                                    || route.product_id == product)
+                            {
+                                add_expected_candidate(
+                                    &mut expected,
+                                    kind,
+                                    route.source_node_index,
+                                    None,
+                                    candidate.clone(),
+                                );
+                            }
+                        }
+                    }
                 }
                 for (product, quantity) in &step.spares {
                     if *quantity > 0 && !product.is_empty() {

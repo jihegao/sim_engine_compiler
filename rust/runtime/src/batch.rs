@@ -126,6 +126,26 @@ pub fn run_batch_with_observation(
     until: Option<i64>,
     observation_level: ObservationLevel,
 ) -> Result<BatchResult> {
+    run_batch_with_dispatch(
+        plan,
+        fingerprint,
+        seeds,
+        worker_threads,
+        until,
+        observation_level,
+        false,
+    )
+}
+
+pub fn run_batch_with_dispatch(
+    plan: Arc<ExecutionPlan>,
+    fingerprint: String,
+    seeds: &[u64],
+    worker_threads: Option<usize>,
+    until: Option<i64>,
+    observation_level: ObservationLevel,
+    dependency_dispatch: bool,
+) -> Result<BatchResult> {
     if seeds.is_empty() {
         bail!("batch request must contain at least one seed");
     }
@@ -156,6 +176,7 @@ pub fn run_batch_with_observation(
                     *seed,
                     observation_level,
                 )?
+                .with_dependency_dispatch(dependency_dispatch)?
                 .run(until)?;
                 Ok(BatchSampleResult {
                     sample_index,

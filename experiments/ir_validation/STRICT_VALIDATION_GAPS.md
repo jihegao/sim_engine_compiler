@@ -1,8 +1,8 @@
 # Strict input validation follow-up
 
-Status: tracked separately from the O5/MLIR integration. These are known gaps in the production aircraft-support compatibility compiler; the integration PR does not change input acceptance or error behavior.
+Status: the three gaps below are now rejected by Python canonical compilation and Rust AOT. See [the scoped validation contract](../../docs/strict-work-input-validation.md). The original experiment results remain historical evidence and are not rewritten.
 
-The three probes below are saved in `legacy_results.json` and are reproducible with `legacy_cases.py --f35`. They currently compile instead of returning explicit validation errors:
+The three probes below are saved in `legacy_results.json` and are reproducible with `legacy_cases.py --f35`. At the time of the original probes they compiled instead of returning explicit validation errors:
 
 | Probe | Invalid input | Required behavior |
 |---|---|---|
