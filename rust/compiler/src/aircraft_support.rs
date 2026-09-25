@@ -4,16 +4,15 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use anyhow::{Result, bail};
 use serde_json::{Map, Value};
-use sha2::{Digest, Sha256};
 use sim_engine_runtime::plan::{
-    ActivitySpec, AircraftSpec, ComponentSpec, ExecutionPlan, MissionSpec, PLAN_VERSION,
+    ActivitySpec, AircraftSpec, ComponentSpec, ExecutionPlan, MissionSpec,
     PreventiveCycleSpec, ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
 };
 
 pub mod validation;
 
 // Input acceptance changed: never reuse caches emitted before strict validation.
-pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha3";
+pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha4";
 
 const LEGACY_MINUTE_PHASES: &[&str] = &[
     "transport_arrivals",
@@ -1160,10 +1159,15 @@ pub fn compile_aircraft_support(inputs: &Value) -> Result<ExecutionPlan> {
     compile_aircraft_support_with_profile(inputs, "legacy-minute-v1")
 }
 
-pub fn compile_aircraft_support_with_profile(
-    inputs: &Value,
-    semantic_profile: &str,
-) -> Result<ExecutionPlan> {
+pub fn compile_aircraft_support_with_profile(inputs: &Value, semantic_profile: &str) -> Result<ExecutionPlan> {
+    let business = crate::layers::import_business(inputs, semantic_profile)?;
+    crate::layers::compile_core(&lower_business(&business)?)
+}
+
+pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layers::Artifact> {
+    let view = crate::layers::canonical_view(business)?;
+    let inputs = &view;
+    let semantic_profile = business.payload["semantic_profile"].as_str().unwrap();
     let Some(inputs) = inputs.as_object() else {
         bail!("canonical inputs must be a JSON object");
     };
@@ -1216,32 +1220,15 @@ pub fn compile_aircraft_support_with_profile(
     let preventive_cycles = compile_preventive_cycles(inputs, &activities)?;
     let supply_routes = compile_supply_routes(inputs, &resource_nodes);
 
-    let canonical = ExecutionPlan::python_canonical(&Value::Object(inputs.clone()))?;
-    let plan = ExecutionPlan {
-        plan_version: PLAN_VERSION.to_owned(),
-        domain: "aircraft-support".to_owned(),
-        semantic_profile: semantic_profile.to_owned(),
-        work_policy: "stable-topological-serial".to_owned(),
-        rng_profile: "legacy-sequential-v1".to_owned(),
-        source_inputs_sha256: format!("{:x}", Sha256::digest(canonical.as_bytes())),
-        duration_minutes,
-        natural_completion_enabled,
-        phases: LEGACY_MINUTE_PHASES
-            .iter()
-            .map(|value| (*value).to_owned())
-            .collect(),
-        aircraft,
-        missions,
-        activities,
-        resource_nodes,
-        components,
-        preventive_cycles,
-        supply_routes,
-        resource_dispatch_index: None,
-        unsupported_features: Vec::new(),
-    };
-    plan.validate()?;
-    Ok(plan)
+    let records = serde_json::json!({
+        "domain": "aircraft-support", "semantic_profile": semantic_profile,
+        "work_policy": "stable-topological-serial", "rng_profile": "legacy-sequential-v1",
+        "duration_minutes": duration_minutes, "natural_completion_enabled": natural_completion_enabled,
+        "phases": LEGACY_MINUTE_PHASES, "aircraft": aircraft, "missions": missions,
+        "activities": activities, "resource_nodes": resource_nodes, "components": components,
+        "preventive_cycles": preventive_cycles, "supply_routes": supply_routes, "unsupported_features": []
+    });
+    crate::layers::core_from_records(business, records)
 }
 
 #[cfg(test)]
