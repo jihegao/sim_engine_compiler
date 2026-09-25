@@ -172,6 +172,8 @@ class CoreIR:
                 if not isinstance(row['attributes'], dict) or row['attributes'].get(TABLE_IDS[name]) != row['id']:
                     reject(f'core.tables.{name}', 'symbol and business identity disagree')
                 require_keys(row['references'], REFERENCES.get(name, {}), f'core.tables.{name}.{row["id"]}.references')
+                if not isinstance(row['steps'], list):
+                    reject(f'core.tables.{name}.steps', 'expected ordered step list')
                 if name != 'activities' and row['steps']:
                     reject(f'core.tables.{name}', 'unexpected nested work steps')
         for name, rows in tables.items():
@@ -190,12 +192,12 @@ class CoreIR:
                     seen = set()
                     for step in row['steps']:
                         require_keys(step, ('id', 'attributes', 'predecessors', 'dependencies'), f'core.steps.{row["id"]}')
-                        if not isinstance(step['id'], str) or step['id'] in seen or step['attributes'].get('code') != step['id']:
+                        validate_attributes(step['attributes'], 'steps', f'core.steps.{step["id"]}.attributes')
+                        if not isinstance(step['id'], str) or not step['id'] or step['id'] in seen or step['attributes'].get('code') != step['id']:
                             reject('core.steps', 'invalid step identity')
-                        if not isinstance(step['predecessors'], list) or any(p not in seen for p in step['predecessors']):
+                        if not isinstance(step['predecessors'], list) or any(not isinstance(p, str) or p not in seen for p in step['predecessors']):
                             reject('core.steps.predecessors', 'expected earlier step symbol; cycles and unknown predecessors are unsupported')
                         seen.add(step['id'])
-                        validate_attributes(step['attributes'], 'steps', f'core.steps.{step["id"]}.attributes')
                         expected = step_dependencies(row, step, tables)
                         if step['dependencies'] != expected:
                             reject('core.steps.dependencies', 'incomplete resource/wakeup dependency contract')

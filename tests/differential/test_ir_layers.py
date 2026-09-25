@@ -89,7 +89,10 @@ class PersistedIRTests(unittest.TestCase):
 
     def test_rejects_resealed_unknown_ops_dependencies_units_references_and_schema(self):
         core=lower_business(import_business_ir(json.loads(CASES[0].read_text())))
-        edits=[lambda p:p['operations'][0].update(operation='unknown/v1'),
+        edits=[lambda p:p['tables']['activities'][0].update(steps=None),
+               lambda p:p['tables']['activities'][0]['steps'][0].update(attributes=[]),
+               lambda p:p['tables']['activities'][0]['steps'][0].update(predecessors=[{}]),
+               lambda p:p['operations'][0].update(operation='unknown/v1'),
                lambda p:p['operations'][0].update(reads=[]),
                lambda p:p['operations'][0].update(backends=[]),
                lambda p:p['tables']['activities'][0]['references'].update(resource_node_index='missing'),
