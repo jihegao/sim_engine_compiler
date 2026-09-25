@@ -28,6 +28,6 @@ PYTHONPATH=src .venv/bin/python benchmarks/dependency_dispatch/compile_cost.py \
   --output benchmarks/dependency_dispatch/results/compile-20260925
 ```
 
-运行前需提交源代码、构建当前 checkout 的 LLVM/MLIR 23.1.1 插件并通过语义验收。基准先做精确结果校验，再独立运行未插桩计时；记录来源、二进制、输入和结果指纹。人工扩大的竞争案例明确标为 synthetic，不代表额外真实上游案例。内存峰值未测，不作内存收益声明。
+运行前需提交源代码、构建当前 checkout 的 LLVM/MLIR 23.1.1 插件并通过语义验收。基准先做精确结果校验，再独立运行未插桩计时；记录来源、二进制、输入和结果指纹。人工扩大的竞争案例明确标为 synthetic，不代表额外真实上游案例。运行期峰值 RSS 由独立 macOS `/usr/bin/time -l` 测量；分配次数和编译峰值内存未测，不作这些方面的收益声明。
 
-测量结果与当前接受边界随本轮证据报告提交。粗粒度 phase operation 的保守读写集合不用于阶段重排；不声称通用 IR VM、持久事件回调执行、Agent patch 服务或运行中迁移已实现。
+本轮[完整证据与采用决定](../benchmarks/dependency_dispatch/results/macos-arm64-20260925/REPORT.md)显示：F35 minute 访问量下降，但 O5 与集中竞争未获稳定端到端收益；维持显式 opt-in，不设为默认。新编译链物化与校验有额外成本，已单独测量。粗粒度 phase operation 的保守读写集合不用于阶段重排；不声称通用 IR VM、持久事件回调执行、Agent patch 服务或运行中迁移已实现。
