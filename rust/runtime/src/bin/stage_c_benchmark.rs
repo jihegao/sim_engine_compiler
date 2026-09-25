@@ -1,6 +1,7 @@
 use std::{
     fs,
     path::{Path, PathBuf},
+    str::FromStr,
     sync::Arc,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
@@ -9,7 +10,7 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-use sim_engine_runtime::{BatchResult, ExecutionPlan, Runtime, run_batch};
+use sim_engine_runtime::{BatchResult, ExecutionPlan, ObservationLevel, Runtime, run_batch_with_observation};
 
 #[derive(Parser)]
 #[command(about = "Segmented Stage C benchmark for the independent Rust runtime")]
@@ -26,6 +27,8 @@ struct Args {
     repeats: usize,
     #[arg(long)]
     until: Option<i64>,
+    #[arg(long, default_value = "full")]
+    observation_level: String,
 }
 
 #[derive(Serialize)]
@@ -74,6 +77,7 @@ struct BenchmarkReport {
     warmups: usize,
     repeats: usize,
     until: Option<i64>,
+    observation_level: ObservationLevel,
     records: Vec<RepeatRecord>,
 }
 
@@ -116,12 +120,14 @@ fn execute_batch(
     seeds: &[u64],
     worker_threads: usize,
     until: Option<i64>,
+    observation_level: ObservationLevel,
 ) -> Result<BatchResult> {
-    run_batch(plan, fingerprint, seeds, Some(worker_threads), until)
+    run_batch_with_observation(plan, fingerprint, seeds, Some(worker_threads), until, observation_level)
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
+    let observation_level = ObservationLevel::from_str(&args.observation_level)?;
     if args.worker_threads == 0 || args.repeats == 0 {
         bail!("worker_threads and repeats must be greater than zero");
     }
@@ -139,6 +145,7 @@ fn main() -> Result<()> {
             &seeds,
             args.worker_threads,
             args.until,
+            observation_level,
         )?;
     }
 
@@ -159,7 +166,7 @@ fn main() -> Result<()> {
         let plan = Arc::new(plan);
 
         let started = Instant::now();
-        let runtime = Runtime::from_shared(plan.clone(), fingerprint.clone(), seeds[0])?;
+        let runtime = Runtime::from_shared_with_observation(plan.clone(), fingerprint.clone(), seeds[0], observation_level)?;
         let run_state_initialization_ns = elapsed_ns(started);
 
         let started = Instant::now();
@@ -171,7 +178,7 @@ fn main() -> Result<()> {
         let single_sample_serialization_ns = elapsed_ns(started);
 
         let started = Instant::now();
-        let batch = execute_batch(plan, fingerprint, &seeds, args.worker_threads, args.until)?;
+        let batch = execute_batch(plan, fingerprint, &seeds, args.worker_threads, args.until, observation_level)?;
         let batch_execution_ns = elapsed_ns(started);
 
         let started = Instant::now();
@@ -192,6 +199,7 @@ fn main() -> Result<()> {
             &seeds,
             args.worker_threads,
             args.until,
+            observation_level,
         )?;
         let end_to_end_json = serde_json::to_vec(&end_to_end_batch)?;
         write_payload(&scratch, &end_to_end_json)?;
@@ -246,6 +254,7 @@ fn main() -> Result<()> {
         warmups: args.warmups,
         repeats: args.repeats,
         until: args.until,
+        observation_level,
         records,
     };
     if let Some(parent) = args.output.parent() {

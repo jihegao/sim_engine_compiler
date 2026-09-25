@@ -1,6 +1,6 @@
 # Aircraft support domain
 
-首个领域包的兼容 lowering 当前实现于 `compiler/aircraft_support.py`，独立 reference 语义实现于 `reference/simpy_runtime.py`。本目录仍是下一步拆分目标：
+首个领域包的兼容 lowering 当前实现于 `compiler/aircraft_support.py`，独立 reference 语义实现于 `reference/simpy_runtime.py`。本目录现已实现 `validation.py` 的工作时长与组件引用校验；其余拆分仍待推进：
 
 - `model.py`：任务模板/实例/名额、飞机、产品/组件位置/实例、保障模板、节点与资源。
 - `validation.py`：领域约束、适用关系、局部 DAG、故障树及可证明的不可满足条件。

@@ -57,6 +57,19 @@ class PythonBindingTests(unittest.TestCase):
         actual = sim_engine_compiler.run_plan(PLAN, seed=0)
         self.assertIsNone(first_divergence(expected, actual))
 
+    def test_canonical_batch_rejects_invalid_work_with_field_path(self):
+        valid = json.loads(CANONICAL_INPUTS.read_text())
+        invalid = copy.deepcopy(valid)
+        invalid["support_activities"]["activities"][0]["jobs"][0]["durationMinutes"] = -3
+        result = sim_engine_compiler.run_canonical_batch([
+            {"sample_index": 0, "seed": 0, "canonical_inputs": invalid},
+            {"sample_index": 1, "seed": 0, "canonical_inputs": valid},
+        ], worker_threads=2)
+        self.assertEqual([row["sample_index"] for row in result["samples"]], [1])
+        self.assertEqual(len(result["failed_samples"]), 1)
+        self.assertEqual(result["failed_samples"][0]["stage"], "compile")
+        self.assertIn("negative_duration at support_activities.activities[0].jobs[0].durationMinutes", result["failed_samples"][0]["error"])
+
     def test_summary_omits_trace_without_changing_business_or_rng_results(self):
         for until in (None, 35):
             with self.subTest(until=until):

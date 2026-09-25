@@ -136,6 +136,7 @@ def main() -> None:
     parser.add_argument("--seeds", default="0,1,7")
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--compile-repeats", type=int, default=3)
+    parser.add_argument("--semantic-profile", choices=("legacy-minute-v1", "event-time-v2"), default="legacy-minute-v1")
     args = parser.parse_args()
     if sys.version_info < (3, 12):
         raise RuntimeError("the pilot requires the repository's Python 3.12+ environment")
@@ -201,6 +202,7 @@ def main() -> None:
             else str(ROOT / "scripts/compile_mlir_execution_plan.py"),
             str(input_path),
             str(destination),
+            "--semantic-profile", args.semantic_profile,
         ]
         if key != "baseline":
             common.extend(("--plugin-dir", str(plugin_dir), "--mlir-opt", str(mlir_opt)))
@@ -352,6 +354,8 @@ def main() -> None:
     )
     report: dict[str, object] = {
         "schema_version": "mlir-resource-dispatch-pilot-evidence/v1",
+        "source_commit": checked(["git", "rev-parse", "HEAD"]).stdout.strip(),
+        "semantic_profile": args.semantic_profile,
         "input_path": str(input_path.relative_to(ROOT))
         if input_path.is_relative_to(ROOT)
         else str(input_path),

@@ -81,6 +81,10 @@ O0–O6 的实现与证据见[热路径报告](../benchmarks/hot_path/README.md)
 
 Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运行中状态；完整 Project 编辑器；LLM 自创新 operation 并即时执行；先设计覆盖所有行业的大型通用语言。
 
+## 当前下一步切片
+
+Issue #4 的输入校验切片已实现：Python 与 Rust AOT 拒绝负工作时长、非法分钟类型/单位和未解析组件引用，保留合法输入 Plan；共享回归用例与旧缓存拒绝测试见[校验合同](strict-work-input-validation.md)。Issue #6 的当前版本基线测量入口见[整合基线](../benchmarks/integrated/README.md)。真实 Business/Core IR 主链及资源变化驱动候选派遣仍未实现。
+
 ## 后续工作
 
 1. C1 的正式优化记录当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。MLIR 资源索引是独立 opt-in 试点，已证明 F35 九次执行下有 4.26% 总成本收益；推广前还要用另一台主机及更稠密、更多样的资源网络测量。完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。

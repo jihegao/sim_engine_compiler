@@ -10,7 +10,10 @@ use sim_engine_runtime::plan::{
     PreventiveCycleSpec, ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
 };
 
-pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha2";
+pub mod validation;
+
+// Input acceptance changed: never reuse caches emitted before strict validation.
+pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha3";
 
 const LEGACY_MINUTE_PHASES: &[&str] = &[
     "transport_arrivals",
@@ -53,6 +56,13 @@ fn number(value: Option<&Value>) -> Option<f64> {
         Some(Value::String(value)) => value.parse().ok(),
         Some(Value::Bool(value)) => Some(if *value { 1.0 } else { 0.0 }),
         _ => None,
+    }
+}
+
+fn work_duration(value: Option<&Value>, default: i64) -> i64 {
+    match value {
+        Some(Value::String(raw)) => positive_i64(Some(&Value::String(raw.trim().to_owned())), default),
+        _ => positive_i64(value, default),
     }
 }
 
@@ -269,7 +279,7 @@ fn topological_steps(item: &Map<String, Value>, source_path: &str) -> Result<Vec
         .enumerate()
         .map(|(dense, source)| (*source, dense))
         .collect::<HashMap<_, _>>();
-    let default_duration = positive_i64(item.get("duration_minutes"), 30);
+    let default_duration = work_duration(item.get("duration_minutes"), 30);
     Ok(ordered
         .iter()
         .enumerate()
@@ -278,7 +288,7 @@ fn topological_steps(item: &Map<String, Value>, source_path: &str) -> Result<Vec
             WorkStepSpec {
                 index,
                 code: codes[*source].clone(),
-                duration_minutes: positive_i64(
+                duration_minutes: work_duration(
                     step.get("durationMinutes")
                         .or_else(|| step.get("duration_minutes")),
                     default_duration,
@@ -1170,6 +1180,7 @@ pub fn compile_aircraft_support_with_profile(
     if positive_i64(time.get("tick_minutes"), 1) != 1 {
         bail!("{semantic_profile} requires tick_minutes=1");
     }
+    validation::validate_canonical_work(inputs)?;
     let duration_minutes = positive_i64(time.get("duration_minutes"), 1440);
     let stop_policy = object(inputs.get("stop_policy"));
     let stop_conditions = stop_policy
@@ -1241,6 +1252,48 @@ mod tests {
 
     fn root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
+    }
+
+    #[test]
+    fn shared_python_rust_work_input_contract() {
+        let base: Value = serde_json::from_slice(&fs::read(root().join(
+            "tests/fixtures/synthetic/b1-daily-operations.json")).unwrap()).unwrap();
+        let cases: Value = serde_json::from_slice(&fs::read(root().join(
+            "tests/fixtures/synthetic/work-input-validation.json")).unwrap()).unwrap();
+        for case in cases.as_array().unwrap() {
+            for profile in ["legacy-minute-v1", "event-time-v2"] {
+                let mut inputs = base.clone();
+                let mut target = &mut inputs;
+                let mut path = String::new();
+                for part in case["path"].as_array().unwrap() {
+                    if let Some(index) = part.as_u64() {
+                        target = &mut target[index as usize];
+                        path.push_str(&format!("[{index}]"));
+                    } else {
+                        let key = part.as_str().unwrap();
+                        target = &mut target[key];
+                        if !path.is_empty() { path.push('.'); }
+                        path.push_str(key);
+                    }
+                }
+                *target = case["value"].clone();
+                let compiled = compile_aircraft_support_with_profile(&inputs, profile);
+                if let Some(expected) = case["error"].as_str() {
+                    let error = compiled.unwrap_err();
+                    let diagnostic = error.downcast_ref::<validation::CompilationDiagnostic>().unwrap();
+                    assert_eq!(diagnostic.code, expected, "{}", case["name"]);
+                    assert_eq!(diagnostic.source_path, path);
+                } else {
+                    let plan = compiled.unwrap();
+                    if let Some(expected) = case["expected_minutes"].as_i64() {
+                        assert_eq!(plan.activities[0].steps[0].duration_minutes, expected, "{}", case["name"]);
+                    }
+                    if let Some(expected) = case["expected_component"].as_i64() {
+                        assert_eq!(plan.activities[0].equipment_component_index, expected);
+                    }
+                }
+            }
+        }
     }
 
     fn assert_matches_python_fixture(input: &str, expected: &str) {

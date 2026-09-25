@@ -7,6 +7,8 @@ import json
 import math
 from typing import Any
 
+from sim_engine_compiler.diagnostics import CompilationError
+from sim_engine_compiler.domains.aircraft_support.validation import validate_canonical_work
 from sim_engine_compiler.ir.plan import (
     PLAN_VERSION,
     LEGACY_MINUTE_PHASES,
@@ -20,10 +22,6 @@ from sim_engine_compiler.ir.plan import (
     SupplyRouteSpec,
     WorkStepSpec,
 )
-
-
-class CompilationError(ValueError):
-    pass
 
 
 def _canonical_digest(value: object) -> str:
@@ -667,6 +665,7 @@ def compile_aircraft_support(
         raise CompilationError(f"unsupported time profile {semantic_profile!r}")
     if _positive_int(time.get("tick_minutes"), 1) != 1:
         raise CompilationError(f"{semantic_profile} requires tick_minutes=1")
+    validate_canonical_work(inputs)
     duration = _positive_int(time.get("duration_minutes"), 1440)
     stop_policy = (
         inputs.get("stop_policy")

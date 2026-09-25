@@ -45,6 +45,8 @@ Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负�
 └── benchmarks/                     分段计时、原始数据与环境信息
 ```
 
+当前已补齐 canonical 工作时长与组件引用的 Python/Rust 一致校验，详见[输入校验合同](docs/strict-work-input-validation.md)。MC/O5/MLIR/v3 缓存整合后的新基线使用[独立测量入口](benchmarks/integrated/README.md)；不复用历史性能数值作为本次结论。
+
 ## 从哪里开始
 
 1. 阅读 [架构](docs/architecture.md) 与 [架构决策](docs/adr/0001-layered-ir.md)。
