@@ -1,6 +1,6 @@
 # 实施路线与验收
 
-当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本与批量执行内核、稳定排序、Python 绑定和正式分段基准。2026-09-24 另完成一个 opt-in MLIR 资源依赖索引试点：F35 三组对照的完整结果一致，9 次运行总成本降低 4.26%。详细证据见 [独立 reference conformance](b1-independent-reference.md)、[阶段 C 基准](../benchmarks/stage_c/README.md)和[MLIR 试点](mlir-resource-dispatch-pilot.md)。完整 Business/Core IR 尚未物化。
+当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本与批量执行内核、稳定排序、Python 绑定和正式分段基准。2026-09-24 另完成一个 opt-in MLIR 资源依赖索引试点：F35 三组对照的完整结果一致，9 次运行总成本降低 4.26%。详细证据见 [独立 reference conformance](b1-independent-reference.md)、[阶段 C 基准](../benchmarks/stage_c/README.md)和[MLIR 试点](mlir-resource-dispatch-pilot.md)。2026-09-25 已接入可持久化 Business/Core IR 主链及 opt-in 候选派遣，见[三层 IR](three-layer-ir.md)与[本轮验收](dependency-dispatch.md)。
 
 ## 阶段路线
 
@@ -22,7 +22,7 @@
 
 模型建议为两架飞机、一个任务名额、一个保障节点、一个维修人员；用固定故障与维修时长触发资源占用、完工、释放和备用机选择。确切时间线由 A1 的语义决定，不在骨架阶段猜测。
 
-已贯通 canonical fixture → Plan → serialized file → independent SimPy → Result/Trace。当前尚未单独物化 Business/Core IR 文件，compiler pass 直接构造 Plan。任务、日保障、稳定串行步骤和容量资源已通过手算案例与旧模型 oracle。
+已贯通 canonical fixture → Plan → serialized file → independent SimPy → Result/Trace。当前 Python 与 Rust AOT 均先物化 Business/Core，再执行布局输出 Plan。任务、日保障、稳定串行步骤和容量资源已通过手算案例与旧模型 oracle。
 
 ### B2：故障、时钟与随机回放
 
@@ -34,7 +34,7 @@
 
 覆盖 daily-v1、稳定串行作业、组织资源分配、库存/运输/取消、时间条件唤醒及指标。建立 read/write 依赖检查，防止状态改变遗漏等待者。兼容覆盖表全部处置后才能宣称指定范围通过。
 
-已完成当前案例范围：本地库存、纵向与横向预编译供应路线、运输到达唤醒、取消预约返还及最终库存账本。通用 read/write 反向依赖表仍属于后续 Core IR 工作。
+已完成当前案例范围：本地库存、纵向与横向预编译供应路线、运输到达唤醒、取消预约返还及最终库存账本。本轮提供精确资源步骤依赖与保守 phase 读写合同；通用跨领域 operation 仍属后续工作。
 
 ### B4：缓存与分段基准
 
@@ -83,11 +83,11 @@ Web 产品、认证与数据库；分布式/GPU 仿真；JIT；自动修改运�
 
 ## 当前下一步切片
 
-Issue #4 的输入校验切片已实现：Python 与 Rust AOT 拒绝负工作时长、非法分钟类型/单位和未解析组件引用，保留合法输入 Plan；共享回归用例与旧缓存拒绝测试见[校验合同](strict-work-input-validation.md)。Issue #6 的当前版本基线测量入口见[整合基线](../benchmarks/integrated/README.md)。真实 Business/Core IR 主链及资源变化驱动候选派遣仍未实现。
+Issue #4 的输入校验切片已实现：Python 与 Rust AOT 拒绝负工作时长、非法分钟类型/单位和未解析组件引用，保留合法输入 Plan；共享回归用例与旧缓存拒绝测试见[校验合同](strict-work-input-validation.md)。Issue #6 的当前版本基线测量入口见[整合基线](../benchmarks/integrated/README.md)。真实 Business/Core IR 主链、Rust Core 到 MLIR 入口、资源变化驱动候选派遣已实现并由独立持久化/完整结果差分验收；性能与采用边界见[候选派遣报告](dependency-dispatch.md)。
 
 ## 后续工作
 
 1. C1 的正式优化记录当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。MLIR 资源索引是独立 opt-in 试点，已证明 F35 九次执行下有 4.26% 总成本收益；推广前还要用另一台主机及更稠密、更多样的资源网络测量。完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。
-2. 将当前直接 lowering 拆成可持久化 Business IR 与 Core Simulation IR，补齐操作读写与唤醒依赖合同。
+2. 在已实现的可持久化三层链基础上，用第二领域验证粗粒度兼容操作边界；正式 Agent patch/version API 另行立项。
 3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；先把已通过实验门槛的 O5d guarded continuous advance 作为独立变更集成/验收，再在 O5 保守跳时基础上重新设计 transition-owned persistent event、owner generation、stale token 与 microstep convergence。当前尚未实现直接事件回调执行。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。

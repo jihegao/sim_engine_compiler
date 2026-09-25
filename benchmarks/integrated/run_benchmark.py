@@ -113,10 +113,9 @@ def main():
                 row = report['records'][0]
                 if row['sample_indexes'] != list(range(len(seeds))) or row['seeds'] != seeds:
                     raise AssertionError('unstable sample identity/order')
-                # Index changes the Plan identity; each arm is independently
-                # checked across threads/repeats. The three-arm benchmark above
-                # already compares complete RunResults with index on/off.
-                key = (observation, arm)
+                # Derived indexes are excluded from semantic Plan identity;
+                # samples must match across index modes as well as threads.
+                key = observation
                 previous = hashes.setdefault(key, row['samples_sha256'])
                 if previous != row['samples_sha256']:
                     raise AssertionError('sample result changed across thread counts/repeats')

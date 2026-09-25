@@ -27,7 +27,7 @@ using namespace mlir;
 
 namespace {
 
-constexpr llvm::StringLiteral kIndexSchema = "resource-dispatch-index/v1";
+constexpr llvm::StringLiteral kIndexSchema = "resource-dispatch-index/v2";
 constexpr llvm::StringLiteral kPassName = "sim-build-resource-dependency-index";
 constexpr llvm::StringLiteral kCanonicalPhaseOrder[] = {
     "transport_arrivals",
@@ -431,6 +431,18 @@ public:
         dependencies[{"personnel_capacity", node, ""}].insert(ref);
       if (equipment > 0)
         dependencies[{"equipment_capacity", node, ""}].insert(ref);
+      // Canonical capacity reservations may choose a route source. Candidate
+      // dispatch must wake on that source's release/reservation as well.
+      for (const auto &route : routes) {
+        if (route.destinationNode != node)
+          continue;
+        if (personnel > 0 && (route.productId.empty() || route.productId == "*" ||
+                              route.productId == "personnel"))
+          dependencies[{"personnel_capacity", route.sourceNode, ""}].insert(ref);
+        if (equipment > 0 && (route.productId.empty() || route.productId == "*" ||
+                              route.productId == "equipment"))
+          dependencies[{"equipment_capacity", route.sourceNode, ""}].insert(ref);
+      }
       auto spares = op->getAttrOfType<ArrayAttr>("spares");
       for (Attribute spareAttr : spares) {
         auto spare = dyn_cast<DictionaryAttr>(spareAttr);

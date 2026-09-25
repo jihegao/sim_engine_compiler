@@ -5,8 +5,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use anyhow::{Result, bail};
 use serde_json::{Map, Value};
 use sim_engine_runtime::plan::{
-    ActivitySpec, AircraftSpec, ComponentSpec, ExecutionPlan, MissionSpec,
-    PreventiveCycleSpec, ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
+    ActivitySpec, AircraftSpec, ComponentSpec, ExecutionPlan, MissionSpec, PreventiveCycleSpec,
+    ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
 };
 
 pub mod validation;
@@ -60,7 +60,9 @@ fn number(value: Option<&Value>) -> Option<f64> {
 
 fn work_duration(value: Option<&Value>, default: i64) -> i64 {
     match value {
-        Some(Value::String(raw)) => positive_i64(Some(&Value::String(raw.trim().to_owned())), default),
+        Some(Value::String(raw)) => {
+            positive_i64(Some(&Value::String(raw.trim().to_owned())), default)
+        }
         _ => positive_i64(value, default),
     }
 }
@@ -1159,7 +1161,10 @@ pub fn compile_aircraft_support(inputs: &Value) -> Result<ExecutionPlan> {
     compile_aircraft_support_with_profile(inputs, "legacy-minute-v1")
 }
 
-pub fn compile_aircraft_support_with_profile(inputs: &Value, semantic_profile: &str) -> Result<ExecutionPlan> {
+pub fn compile_aircraft_support_with_profile(
+    inputs: &Value,
+    semantic_profile: &str,
+) -> Result<ExecutionPlan> {
     let business = crate::layers::import_business(inputs, semantic_profile)?;
     crate::layers::compile_core(&lower_business(&business)?)
 }
@@ -1243,10 +1248,14 @@ mod tests {
 
     #[test]
     fn shared_python_rust_work_input_contract() {
-        let base: Value = serde_json::from_slice(&fs::read(root().join(
-            "tests/fixtures/synthetic/b1-daily-operations.json")).unwrap()).unwrap();
-        let cases: Value = serde_json::from_slice(&fs::read(root().join(
-            "tests/fixtures/synthetic/work-input-validation.json")).unwrap()).unwrap();
+        let base: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/b1-daily-operations.json")).unwrap(),
+        )
+        .unwrap();
+        let cases: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/work-input-validation.json")).unwrap(),
+        )
+        .unwrap();
         for case in cases.as_array().unwrap() {
             for profile in ["legacy-minute-v1", "event-time-v2"] {
                 let mut inputs = base.clone();
@@ -1259,7 +1268,9 @@ mod tests {
                     } else {
                         let key = part.as_str().unwrap();
                         target = &mut target[key];
-                        if !path.is_empty() { path.push('.'); }
+                        if !path.is_empty() {
+                            path.push('.');
+                        }
                         path.push_str(key);
                     }
                 }
@@ -1267,13 +1278,19 @@ mod tests {
                 let compiled = compile_aircraft_support_with_profile(&inputs, profile);
                 if let Some(expected) = case["error"].as_str() {
                     let error = compiled.unwrap_err();
-                    let diagnostic = error.downcast_ref::<validation::CompilationDiagnostic>().unwrap();
+                    let diagnostic = error
+                        .downcast_ref::<validation::CompilationDiagnostic>()
+                        .unwrap();
                     assert_eq!(diagnostic.code, expected, "{}", case["name"]);
                     assert_eq!(diagnostic.source_path, path);
                 } else {
                     let plan = compiled.unwrap();
                     if let Some(expected) = case["expected_minutes"].as_i64() {
-                        assert_eq!(plan.activities[0].steps[0].duration_minutes, expected, "{}", case["name"]);
+                        assert_eq!(
+                            plan.activities[0].steps[0].duration_minutes, expected,
+                            "{}",
+                            case["name"]
+                        );
                     }
                     if let Some(expected) = case["expected_component"].as_i64() {
                         assert_eq!(plan.activities[0].equipment_component_index, expected);

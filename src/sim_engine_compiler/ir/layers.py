@@ -225,7 +225,8 @@ def step_dependencies(activity, step, tables):
     if activity['attributes']['kind'] == 'repair':
         products.update(c['attributes']['product_id'] for c in tables['components']
                         if c['references']['repair_activity_index'] == activity['id'] and c['attributes']['product_type'] == 'LRU' and c['attributes']['product_id'])
-    return {'capacity_node': node, 'inventory_products': sorted(products),
+    capacity_sources = {kind: sorted({node, *(r['references']['source_node_index'] for r in tables['supply_routes'] if r['references']['destination_node_index'] == node and r['attributes']['product_id'] in ('', '*', kind))}) for kind in ('personnel', 'equipment')}
+    return {'capacity_node': node, 'capacity_sources': capacity_sources, 'inventory_products': sorted(products),
             'supply_routes': [r['id'] for r in tables['supply_routes']
                               if r['references']['destination_node_index'] == node and
                               (not r['attributes']['product_id'] or r['attributes']['product_id'] in products)],

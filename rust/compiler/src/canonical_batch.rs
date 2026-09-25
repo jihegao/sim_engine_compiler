@@ -557,22 +557,32 @@ mod tests {
         let cache = temporary_cache();
         let valid = fixture("tests/fixtures/synthetic/b1-daily-operations.json");
         let mut invalid = valid.clone();
-        invalid["support_activities"]["activities"][0]["jobs"][0]["durationMinutes"] = Value::from(-3);
+        invalid["support_activities"]["activities"][0]["jobs"][0]["durationMinutes"] =
+            Value::from(-3);
         // Reconstruct the permissive compiler's old artifact: defaulted plan,
         // but the invalid input identity. Even at the new filename it is refused.
         let mut old_plan = compile_aircraft_support_with_profile(&valid, SEMANTIC_PROFILE).unwrap();
         let canonical = ExecutionPlan::python_canonical(&invalid).unwrap();
         let identity = format!("{:x}", Sha256::digest(canonical.as_bytes()));
         old_plan.source_inputs_sha256 = identity.clone();
-        let fingerprint = ExecutionPlan::fingerprint(&serde_json::to_value(&old_plan).unwrap()).unwrap();
-        let old_bytes = encode_plan_cache(old_plan, "aircraft-support-aot/v1alpha2", &fingerprint).unwrap();
+        let fingerprint =
+            ExecutionPlan::fingerprint(&serde_json::to_value(&old_plan).unwrap()).unwrap();
+        let old_bytes =
+            encode_plan_cache(old_plan, "aircraft-support-aot/v1alpha2", &fingerprint).unwrap();
         fs::create_dir_all(&cache).unwrap();
         fs::write(cache.join(cache_file_name(&identity)), old_bytes).unwrap();
-        let result = run_canonical_batch(vec![request(4, 1, invalid), request(3, 0, valid)], Some(2), Some(&cache)).unwrap();
+        let result = run_canonical_batch(
+            vec![request(4, 1, invalid), request(3, 0, valid)],
+            Some(2),
+            Some(&cache),
+        )
+        .unwrap();
         assert_eq!(result.samples.len(), 1);
         assert_eq!(result.samples[0].sample_index, 3);
         assert_eq!(result.failed_samples.len(), 1);
-        assert!(result.failed_samples[0].error.contains("negative_duration at support_activities.activities[0].jobs[0].durationMinutes"));
+        assert!(result.failed_samples[0].error.contains(
+            "negative_duration at support_activities.activities[0].jobs[0].durationMinutes"
+        ));
         fs::remove_dir_all(cache).unwrap();
     }
 

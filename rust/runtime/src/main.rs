@@ -4,7 +4,7 @@ use anyhow::Result;
 use clap::Parser;
 use sim_engine_runtime::{
     ExecutionPlan, ObservationLevel, Runtime, decode_plan_cache, is_plan_cache,
-    run_batch_with_observation,
+    run_batch_with_dispatch,
 };
 
 #[derive(Parser)]
@@ -25,6 +25,8 @@ struct Args {
     observation_level: String,
     #[arg(long, conflicts_with = "seeds")]
     profile_output: Option<PathBuf>,
+    #[arg(long)]
+    dependency_dispatch: bool,
 }
 
 fn main() -> Result<()> {
@@ -50,13 +52,14 @@ fn main() -> Result<()> {
             .split(',')
             .map(|item| item.trim().parse::<u64>())
             .collect::<std::result::Result<Vec<_>, _>>()?;
-        let result = run_batch_with_observation(
+        let result = run_batch_with_dispatch(
             std::sync::Arc::new(plan),
             fingerprint,
             &seeds,
             args.worker_threads,
             args.until,
             observation_level,
+            args.dependency_dispatch,
         )?;
         fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
         println!(
@@ -76,7 +79,8 @@ fn main() -> Result<()> {
             fingerprint,
             args.seed.unwrap_or(0),
             observation_level,
-        )?;
+        )?
+        .with_dependency_dispatch(args.dependency_dispatch)?;
         let initialization_ns = init_started.elapsed().as_nanos();
         let (result, profile) = if args.profile_output.is_some() {
             let (result, profile) = runtime.run_profiled(args.until)?;
