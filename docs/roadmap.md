@@ -51,6 +51,8 @@ fixture 与 Python Plan 结构一致，Project 指纹命中可在 Adapter 前加
 Project export/Adapter 的 `~0.72 s` 主导。证据和未实现的 Rust Adapter 边界见
 `benchmarks/cold_start/README.md`。
 
+可行性研究可用 SIMLOX 2017 的四个原生示例作为外部效率参照：在 `4700-3` 固定 1000 次重复仿真、8 线程、每案例三次并取中位数。输入指纹、运行参数、两轮计时和异常边界见 [SIMLOX 对照方法](simlox-feasibility-benchmark.md)。这些示例没有与本项目 canonical 输入配对，不构成语义或运行时性能验收。
+
 ### B5：MLIR 资源依赖索引试点（已完成，opt-in）
 
 采用 LLVM/MLIR 23.1.1，在小型 `sim` Core IR 投影上实现资源依赖分析 pass。Rust 执行器消费可选反向索引，只复用依赖未变化的等待作业阻塞检查；事件顺序和 RNG 行为保持原样。
