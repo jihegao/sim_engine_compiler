@@ -12,7 +12,7 @@ use sim_engine_runtime::plan::{
 pub mod validation;
 
 // Input acceptance changed: never reuse caches emitted before strict validation.
-pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha4";
+pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha5";
 
 const LEGACY_MINUTE_PHASES: &[&str] = &[
     "transport_arrivals",
@@ -1169,6 +1169,52 @@ pub fn compile_aircraft_support_with_profile(
     crate::layers::compile_core(&lower_business(&business)?)
 }
 
+fn core_provenance(business: &crate::layers::Artifact, aircraft: &[AircraftSpec]) -> Result<Value> {
+    let assets = array(business.payload["sections"]["aircraft"]["collections"].get("assets"));
+    let mut origins = serde_json::json!({"aircraft":{}, "preventive_cycles":{}});
+    for (index, spec) in aircraft.iter().enumerate() {
+        let entity = assets.get(index);
+        let path = entity
+            .and_then(|e| e["source_path"].as_str())
+            .unwrap_or("aircraft.fleet_count");
+        origins["aircraft"][&spec.tail_number] = serde_json::json!({"source_path":path});
+        let cycles = entity
+            .map(|e| array(e["definition"].get("preventive_cycles")))
+            .unwrap_or_default();
+        for (cycle_index, raw) in cycles.iter().enumerate() {
+            let Some(cycle) = raw.as_object() else {
+                continue;
+            };
+            let cycle_path = format!("aircraft.assets[{index}].preventive_cycles[{cycle_index}]");
+            let explicit = ["id", "cycle_id"]
+                .iter()
+                .filter_map(|key| cycle.get(*key))
+                .collect::<Vec<_>>();
+            let key = if let Some(first) = explicit.first() {
+                let Some(id) = first.as_str().filter(|v| !v.is_empty()) else {
+                    bail!("{cycle_path}: cycle id must be a nonempty string");
+                };
+                if explicit.iter().any(|v| v.as_str() != Some(id)) {
+                    bail!("{cycle_path}: conflicting cycle ids");
+                }
+                serde_json::json!(["id", id])
+            } else {
+                let Some(equipment) = cycle
+                    .get("equipment_id")
+                    .and_then(Value::as_str)
+                    .filter(|v| !v.is_empty())
+                else {
+                    bail!("{cycle_path}: cycle requires id/cycle_id or stable equipment_id");
+                };
+                serde_json::json!(["equipment", equipment])
+            };
+            origins["preventive_cycles"][cycle_path] = serde_json::json!({
+                "source_path":format!("{path}.preventive_cycles[{cycle_index}]"), "cycle_key":key});
+        }
+    }
+    Ok(origins)
+}
+
 pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layers::Artifact> {
     let view = crate::layers::canonical_view(business)?;
     let inputs = &view;
@@ -1225,6 +1271,7 @@ pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layer
     let preventive_cycles = compile_preventive_cycles(inputs, &activities)?;
     let supply_routes = compile_supply_routes(inputs, &resource_nodes);
 
+    let provenance = core_provenance(business, &aircraft)?;
     let records = serde_json::json!({
         "domain": "aircraft-support", "semantic_profile": semantic_profile,
         "work_policy": "stable-topological-serial", "rng_profile": "legacy-sequential-v1",
@@ -1233,7 +1280,7 @@ pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layer
         "activities": activities, "resource_nodes": resource_nodes, "components": components,
         "preventive_cycles": preventive_cycles, "supply_routes": supply_routes, "unsupported_features": []
     });
-    crate::layers::core_from_records(business, records)
+    crate::layers::core_from_records(business, records, provenance)
 }
 
 #[cfg(test)]

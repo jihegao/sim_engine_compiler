@@ -86,41 +86,52 @@ def compile_core(core: CoreIR, *, backend='rust-runtime', resource_dispatch_inde
 
 
 def lineage(business, core, plan):
-    return {'version': 'compiler-lineage/v1', 'business_fingerprint': business.fingerprint,
+    core.validate()
+    return {'version': 'compiler-lineage/v2', 'business_fingerprint': business.fingerprint,
             'core_fingerprint': core.fingerprint, 'plan_fingerprint': plan.fingerprint,
             'canonical_sha256': core.payload['source']['canonical_sha256'],
             'symbols': {name: [{'id': row['id'], 'plan_path': f'{name}[{i}]',
-                               'source_path': row['attributes'].get('source_path', f'aircraft.assets[{i}]')}
+                               'source_path': row['source_path']}
                               for i, row in enumerate(rows)] for name, rows in core.payload['tables'].items()}}
 
 
 def revision_impact(before: CoreIR, after: CoreIR):
-    """Trace changed stable Core symbols to source fields and both Plan layouts."""
+    """Report contract, content and layout changes as distinct revision effects."""
     before.validate()
     after.validate()
     changes = []
+    for section, kind in (('contract', 'contract'), ('source', 'provenance')):
+        old, new = before.payload[section], after.payload[section]
+        for field in sorted(old.keys() | new.keys()):
+            if old.get(field) != new.get(field):
+                changes.append({'kind': kind, 'field': field, 'core_path': f'{section}.{field}',
+                                'before': copy.deepcopy(old.get(field)), 'after': copy.deepcopy(new.get(field))})
+
+    def compare(symbol, left, right, old_path, new_path, source):
+        common = {'core_symbol': symbol, 'source_path': source,
+                  'before_plan_path': old_path, 'after_plan_path': new_path}
+        if left is None or right is None or left != right:
+            changes.append({'kind': 'entity', **common})
+        if left is not None and right is not None and old_path != new_path:
+            changes.append({'kind': 'layout', **common})
+
     for table in TABLE_IDS:
-        old = {row['id']: (i,row) for i,row in enumerate(before.payload['tables'][table])}
-        new = {row['id']: (i,row) for i,row in enumerate(after.payload['tables'][table])}
+        old = {row['id']: (i, row) for i, row in enumerate(before.payload['tables'][table])}
+        new = {row['id']: (i, row) for i, row in enumerate(after.payload['tables'][table])}
         for symbol in sorted(old.keys() | new.keys()):
-            left = old.get(symbol)
-            right = new.get(symbol)
-            if left and right and left[1] == right[1]:
-                continue
-            row = (right or left)[1]
-            changes.append({'core_symbol': f'{table}/{symbol}',
-                            'source_path': row['attributes'].get('source_path'),
-                            'before_plan_path': f'{table}[{left[0]}]' if left else None,
-                            'after_plan_path': f'{table}[{right[0]}]' if right else None})
+            left, right = old.get(symbol), new.get(symbol)
+            a, b = left[1] if left else None, right[1] if right else None
+            old_path = f'{table}[{left[0]}]' if left else None
+            new_path = f'{table}[{right[0]}]' if right else None
+            compare(f'{table}/{symbol}', a, b, old_path, new_path, (b or a)['source_path'])
             if table == 'activities':
-                old_steps = {s['id']:(i,s) for i,s in enumerate(left[1]['steps'])} if left else {}
-                new_steps = {s['id']:(i,s) for i,s in enumerate(right[1]['steps'])} if right else {}
+                old_steps = {s['id']: (i, s) for i, s in enumerate(a['steps'])} if a else {}
+                new_steps = {s['id']: (i, s) for i, s in enumerate(b['steps'])} if b else {}
                 for code in sorted(old_steps.keys() | new_steps.keys()):
-                    a,b = old_steps.get(code),new_steps.get(code)
-                    if a and b and a[1] == b[1]:
-                        continue
-                    changes.append({'core_symbol':f'{table}/{symbol}/steps/{code}',
-                                    'source_path':(b or a)[1]['attributes']['source_path'],
-                                    'before_plan_path':f'{table}[{left[0]}].steps[{a[0]}]' if a else None,
-                                    'after_plan_path':f'{table}[{right[0]}].steps[{b[0]}]' if b else None})
-    return {'version':'compiler-impact/v1','before_core':before.fingerprint,'after_core':after.fingerprint,'changes':changes}
+                    x, y = old_steps.get(code), new_steps.get(code)
+                    compare(f'{table}/{symbol}/steps/{code}', x[1] if x else None, y[1] if y else None,
+                            f'{old_path}.steps[{x[0]}]' if x else None,
+                            f'{new_path}.steps[{y[0]}]' if y else None,
+                            (y or x)[1]['attributes']['source_path'])
+    return {'version': 'compiler-impact/v2', 'before_core': before.fingerprint,
+            'after_core': after.fingerprint, 'changes': changes}

@@ -17,14 +17,14 @@ from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.ir.plan import LEGACY_MINUTE_PHASES
 
 BUSINESS_VERSION = 'aircraft-business-ir/v1'
-CORE_VERSION = 'simulation-core-ir/v1'
+CORE_VERSION = 'simulation-core-ir/v2'
 PROFILES = ('legacy-minute-v1', 'event-time-v2')
 # Stable symbolic references are resolved only by the layout pass. Ordered table
 # membership preserves the compatibility RNG and source tie-breaking order.
 TABLE_IDS = {
     'aircraft': 'tail_number', 'missions': 'mission_id', 'activities': 'activity_id',
     'resource_nodes': 'node_id', 'components': 'component_id',
-    'preventive_cycles': 'source_path', 'supply_routes': 'route_id',
+    'preventive_cycles': None, 'supply_routes': 'route_id',
 }
 REFERENCES = {
     'activities': {'resource_node_index': ('resource_nodes', False),
@@ -164,12 +164,14 @@ class CoreIR:
                 reject(f'core.tables.{name}', 'expected ordered table')
             ids[name] = set()
             for row in rows:
-                require_keys(row, ('id', 'attributes', 'references', 'steps'), f'core.tables.{name}')
+                require_keys(row, ('id', 'attributes', 'references', 'steps', 'source_path') + (('cycle_key',) if name == 'preventive_cycles' else ()), f'core.tables.{name}')
+                if not isinstance(row['source_path'], str) or not row['source_path']:
+                    reject(f'core.tables.{name}.source_path', 'original source path required')
                 if not isinstance(row['id'], str) or not row['id'] or row['id'] in ids[name]:
                     reject(f'core.tables.{name}', 'duplicate or missing symbol')
                 ids[name].add(row['id'])
                 validate_attributes(row['attributes'], name, f'core.tables.{name}.{row["id"]}.attributes')
-                if not isinstance(row['attributes'], dict) or row['attributes'].get(TABLE_IDS[name]) != row['id']:
+                if TABLE_IDS[name] is not None and row['attributes'].get(TABLE_IDS[name]) != row['id']:
                     reject(f'core.tables.{name}', 'symbol and business identity disagree')
                 require_keys(row['references'], REFERENCES.get(name, {}), f'core.tables.{name}.{row["id"]}.references')
                 if not isinstance(row['steps'], list):
@@ -188,6 +190,8 @@ class CoreIR:
                             continue
                         if not isinstance(value, str) or value not in ids[target]:
                             reject(f'core.tables.{name}.{row["id"]}.{field}', f'unresolved {target} symbol {value!r}')
+                if name == 'preventive_cycles' and row['id'] != preventive_symbol(row['references'], row['cycle_key']):
+                    reject('core.preventive_cycles.id', 'cycle symbol does not match stable owner/activity/key')
                 if name == 'activities':
                     seen = set()
                     for step in row['steps']:
@@ -236,7 +240,15 @@ def step_dependencies(activity, step, tables):
             'wakeups': ['resource_change', 'job_change', 'canonical_dispatch_phase']}
 
 
-def core_from_records(*, business, **records):
+def preventive_symbol(references, cycle_key):
+    if (not isinstance(cycle_key, list) or len(cycle_key) != 2
+            or cycle_key[0] not in ('id', 'equipment')
+            or not isinstance(cycle_key[1], str) or not cycle_key[1]):
+        reject('core.preventive_cycles.cycle_key', 'stable explicit ID or equipment identity required')
+    return 'preventive-cycle:' + digest([references['aircraft_index'], references['activity_index'], cycle_key])
+
+
+def core_from_records(*, business, provenance, **records):
     """Seal domain lowering's temporary records as symbol-based Core IR.
 
     No ExecutionPlan is created and no original-input object survives this pass.
@@ -244,7 +256,7 @@ def core_from_records(*, business, **records):
     and compatibility rates; layout below can be run from this artifact alone.
     """
     tables = {}
-    symbol_lists = {name: [getattr(row, field) for row in records[name]] for name, field in TABLE_IDS.items()}
+    symbol_lists = {name: [getattr(row, field) for row in records[name]] if field else [] for name, field in TABLE_IDS.items()}
     for name in TABLE_IDS:
         tables[name] = []
         for record in records.pop(name):
@@ -261,7 +273,13 @@ def core_from_records(*, business, **records):
                 step.pop('index')
                 predecessors = [codes[i] for i in step.pop('predecessors')]
                 core_steps.append({'id': step['code'], 'attributes': step, 'predecessors': predecessors, 'dependencies': {}})
-            tables[name].append({'id': attrs[TABLE_IDS[name]], 'attributes': attrs, 'references': refs, 'steps': core_steps})
+            if name == 'preventive_cycles':
+                origin = provenance[name][attrs['source_path']]
+                identity = preventive_symbol(refs, origin['cycle_key'])
+            else:
+                identity = attrs[TABLE_IDS[name]]
+                origin = provenance.get(name, {}).get(identity, {'source_path': attrs.get('source_path')})
+            tables[name].append({'id': identity, 'attributes': attrs, 'references': refs, 'steps': core_steps, **origin})
     # JSON normalization makes tuple/list transport identical in both backends.
     tables = json.loads(json.dumps(tables))
     for activity in tables['activities']:

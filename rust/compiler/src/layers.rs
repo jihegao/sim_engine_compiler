@@ -7,14 +7,14 @@ use sim_engine_runtime::plan::{EVENT_TIME_V2_PHASES, ExecutionPlan, PLAN_VERSION
 use std::collections::{BTreeMap, HashSet};
 
 pub const BUSINESS_VERSION: &str = "aircraft-business-ir/v1";
-pub const CORE_VERSION: &str = "simulation-core-ir/v1";
+pub const CORE_VERSION: &str = "simulation-core-ir/v2";
 const TABLES: &[(&str, &str)] = &[
     ("aircraft", "tail_number"),
     ("missions", "mission_id"),
     ("activities", "activity_id"),
     ("resource_nodes", "node_id"),
     ("components", "component_id"),
-    ("preventive_cycles", "source_path"),
+    ("preventive_cycles", ""),
     ("supply_routes", "route_id"),
 ];
 fn refs(table: &str) -> Vec<(&'static str, &'static str, bool)> {
@@ -283,15 +283,41 @@ fn dependencies(activity: &Value, step: &Value, tables: &Value) -> Result<Value>
     )
 }
 
-pub fn core_from_records(business: &Artifact, mut records: Value) -> Result<Artifact> {
+fn preventive_symbol(references: &Value, cycle_key: &Value) -> Result<String> {
+    let key = sequence(cycle_key, "core.preventive_cycles.cycle_key")?;
+    if key.len() != 2 || !matches!(key[0].as_str(), Some("id" | "equipment")) {
+        bail!("cycle_key requires explicit id or equipment identity");
+    }
+    symbol(&key[1])?;
+    Ok(format!(
+        "preventive-cycle:{}",
+        digest(&json!([
+            references["aircraft_index"],
+            references["activity_index"],
+            cycle_key
+        ]))?
+    ))
+}
+
+pub fn core_from_records(
+    business: &Artifact,
+    mut records: Value,
+    provenance: Value,
+) -> Result<Artifact> {
     let mut symbols = BTreeMap::new();
     for (name, id) in TABLES {
         symbols.insert(
             *name,
-            sequence(&records[*name], name)?
-                .iter()
-                .map(|r| r[*id].clone())
-                .collect::<Vec<_>>(),
+            if id.is_empty() {
+                // Cycles derive identity from owner/activity symbols below;
+                // no other table refers to a cycle by a lowering index.
+                vec![]
+            } else {
+                sequence(&records[*name], name)?
+                    .iter()
+                    .map(|r| r[*id].clone())
+                    .collect::<Vec<_>>()
+            },
         );
     }
     let mut tables = Map::new();
@@ -345,7 +371,32 @@ pub fn core_from_records(business: &Artifact, mut records: Value) -> Result<Arti
                     .collect::<Vec<_>>();
                 core_steps.push(json!({"id":step["code"],"attributes":fields,"predecessors":predecessors,"dependencies":{}}));
             }
-            output.push(json!({"id":row[*id],"attributes":attrs,"references":references,"steps":core_steps}));
+            let (identity, origin) = if *name == "preventive_cycles" {
+                let origin =
+                    &provenance[*name][row["source_path"].as_str().context("cycle source path")?];
+                (
+                    json!(preventive_symbol(&json!(references), &origin["cycle_key"])?),
+                    origin.clone(),
+                )
+            } else {
+                let origin = &provenance[*name][row[*id].as_str().context("business identity")?];
+                (
+                    row[*id].clone(),
+                    if origin.is_null() {
+                        json!({"source_path": row["source_path"]})
+                    } else {
+                        origin.clone()
+                    },
+                )
+            };
+            let mut record = json!({"id":identity,"attributes":attrs,"references":references,"steps":core_steps});
+            record.as_object_mut().unwrap().extend(
+                origin
+                    .as_object()
+                    .context("missing Core provenance")?
+                    .clone(),
+            );
+            output.push(record);
         }
         tables.insert((*name).into(), Value::Array(output));
     }
@@ -437,10 +488,15 @@ pub fn validate_core(core: &Artifact) -> Result<()> {
     for (name, id) in TABLES {
         let mut set = HashSet::new();
         for row in sequence(&tables[*name], name)? {
-            keys(row, &["id", "attributes", "references", "steps"], name)?;
+            let mut fields = vec!["id", "attributes", "references", "steps", "source_path"];
+            if *name == "preventive_cycles" {
+                fields.push("cycle_key");
+            }
+            keys(row, &fields, name)?;
+            symbol(&row["source_path"])?;
             validate_attributes(&row["attributes"], name)?;
             let identity = symbol(&row["id"])?;
-            if !set.insert(identity) || row["attributes"][*id] != row["id"] {
+            if !set.insert(identity) || (!id.is_empty() && row["attributes"][*id] != row["id"]) {
                 bail!("{name}: duplicate or inconsistent symbol");
             }
             keys(
@@ -448,6 +504,11 @@ pub fn validate_core(core: &Artifact) -> Result<()> {
                 &refs(name).iter().map(|r| r.0).collect::<Vec<_>>(),
                 "core.references",
             )?;
+            if *name == "preventive_cycles"
+                && row["id"] != json!(preventive_symbol(&row["references"], &row["cycle_key"])?)
+            {
+                bail!("cycle symbol does not match stable owner/activity/key");
+            }
             if *name != "activities" && row["steps"] != json!([]) {
                 bail!("unexpected work steps");
             }

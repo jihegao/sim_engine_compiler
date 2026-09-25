@@ -99,6 +99,53 @@ class DependencyDispatchTests(unittest.TestCase):
     def test_dense_capacity_contention_preserves_every_delay_event(self):
         self.assert_three_arms(self.contention())
 
+    def shared_remote_pools(self, kinds):
+        """Two destinations compete for one unit at each actual supplier."""
+        inputs=json.loads((FIXTURES/'b2-preventive-maintenance.json').read_text())
+        asset=inputs['aircraft']['assets'][0]
+        inputs['aircraft']['assets']=[copy.deepcopy(asset),copy.deepcopy(asset)]
+        inputs['aircraft'].update(fleet_count=2,initial_ready=2)
+        activity=inputs['support_activities']['activities'][0]
+        inputs['support_activities']['activities']=[]
+        nodes=[];routes=[]
+        for index,tail in enumerate(('F35-01','F35-02')):
+            destination=f'line-{index}'
+            a=inputs['aircraft']['assets'][index];a['tail_number']=tail
+            a['preventive_cycles'][0]['activity_id']=f'preventive-{tail}'
+            work=copy.deepcopy(activity)
+            work.update(id=f'preventive-{tail}',resource_id=destination)
+            work['jobs'][0].update(durationMinutes=2,personnel=[{'quantity':1}],equipment=[{'quantity':1}])
+            inputs['support_activities']['activities'].append(work)
+            nodes.append({'id':destination,'name':destination,'inventory':{},
+                'personnel_capacity':0 if 'personnel' in kinds else 1,
+                'equipment_capacity':0 if 'equipment' in kinds else 1})
+            for kind in kinds:
+                routes.append({'id':f'{kind}-{destination}',
+                    'from_organization_node_id':f'{kind}-pool',
+                    'to_organization_node_id':destination,'product_id':kind,
+                    'capacity':1,'transport_minutes':1,'priority':1})
+        for kind in kinds:
+            nodes.append({'id':f'{kind}-pool','name':kind,'inventory':{},
+                'personnel_capacity':int(kind=='personnel'),
+                'equipment_capacity':int(kind=='equipment')})
+        inputs['support_network']={'nodes':nodes,'organization_graph':{
+            'runtime_mode':'vertical','nodes':[{'id':n['id']} for n in nodes],
+            'parent_edges':[{'from_node_id':r['from_organization_node_id'],
+                'to_node_id':r['to_organization_node_id']} for r in routes],
+            'lateral_edges':[],'resource_ownership':[],'transport_policies':routes}}
+        return inputs
+
+    def test_shared_suppliers_release_wakes_other_destination(self):
+        for kinds in (('personnel',),('equipment',),('personnel','equipment')):
+            with self.subTest(kinds=kinds):
+                inputs=self.shared_remote_pools(kinds)
+                self.assert_three_arms(inputs,untils=(None,2,3,4,5,6))
+                with tempfile.TemporaryDirectory() as tmp:
+                    tmp=Path(tmp);baseline,indexed=self.compile(inputs,tmp,'legacy-minute-v1')
+                    result,_=self.run_arm(indexed,tmp,0,'full',True)
+                    completed={e['entity'] for e in result['trace'] if e['kind']=='preventive_completed'}
+                    self.assertEqual(len(completed),2)
+
     def test_shortage_candidates_drop_without_hiding_replay_work(self):
         inputs=self.contention(stock=True)
         self.assert_three_arms(inputs)

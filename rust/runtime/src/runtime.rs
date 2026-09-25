@@ -2097,10 +2097,10 @@ impl Runtime {
         let personnel_in_use = self.resources[node_index].personnel_in_use;
         let equipment_in_use = self.resources[node_index].equipment_in_use;
         if reserved_personnel != 0 {
-            self.invalidate_dispatch_resource("personnel_capacity", node_index, None);
+            self.invalidate_dispatch_resource("personnel_capacity", personnel_node, None);
         }
         if reserved_equipment != 0 {
-            self.invalidate_dispatch_resource("equipment_capacity", node_index, None);
+            self.invalidate_dispatch_resource("equipment_capacity", equipment_node, None);
         }
         self.emit(
             "resources_released",

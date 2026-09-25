@@ -646,6 +646,35 @@ def _compile_supply_routes(
     return tuple(routes)
 
 
+def _core_provenance(business, aircraft):
+    """Capture origins before layout and keep cycle identity separate from position."""
+    from sim_engine_compiler.ir.layers import reject
+    assets = business.payload['sections'].get('aircraft', {}).get('collections', {}).get('assets', [])
+    origins = {'aircraft': {}, 'preventive_cycles': {}}
+    for index, spec in enumerate(aircraft):
+        entity = assets[index] if index < len(assets) else None
+        path = entity['source_path'] if entity else 'aircraft.fleet_count'
+        origins['aircraft'][spec.tail_number] = {'source_path': path}
+        cycles = (entity['definition'].get('preventive_cycles') or []) if entity else []
+        for cycle_index, cycle in enumerate(cycles):
+            if not isinstance(cycle, dict):
+                continue
+            cycle_path = f'aircraft.assets[{index}].preventive_cycles[{cycle_index}]'
+            explicit = [cycle[key] for key in ('id', 'cycle_id') if key in cycle]
+            if explicit:
+                if any(not isinstance(v, str) or not v for v in explicit) or len(set(explicit)) != 1:
+                    reject(cycle_path, 'cycle id/cycle_id must be a consistent nonempty string')
+                key = ['id', explicit[0]]
+            else:
+                equipment = cycle.get('equipment_id')
+                if not isinstance(equipment, str) or not equipment:
+                    reject(cycle_path, 'cycle requires id/cycle_id or stable equipment_id')
+                key = ['equipment', equipment]
+            origins['preventive_cycles'][cycle_path] = {
+                'source_path': f'{path}.preventive_cycles[{cycle_index}]', 'cycle_key': key}
+    return origins
+
+
 def lower_business(business):
     from sim_engine_compiler.ir.layers import core_from_records
     inputs = business.canonical_view()
@@ -693,6 +722,7 @@ def lower_business(business):
 
     return core_from_records(
         business=business,
+        provenance=_core_provenance(business, aircraft),
         domain="aircraft-support",
         semantic_profile=semantic_profile,
         work_policy="stable-topological-serial",
