@@ -1,0 +1,290 @@
+{
+  "version": "aircraft-business-ir/v1",
+  "fingerprint": "58bc6d1abdc3339a071e387bd359ce92d7f22e57204182e30d991fc0e6b1e0de",
+  "payload": {
+    "semantic_profile": "legacy-minute-v1",
+    "source": {
+      "schema_version": "aircraft-support-v1-input-v1",
+      "canonical_sha256": "59c6397c9529fcd6582221deab72744cd4d5788c9b7b5e0fc945e9c15cdf8e5c"
+    },
+    "sections": {
+      "project_identity": {
+        "properties": {
+          "project_id": "synthetic-b1-daily-operations",
+          "project_version": "1",
+          "scenario_id": "scenario-1",
+          "source_import_id": "hand-calculable"
+        },
+        "collections": {}
+      },
+      "mission_profile": {
+        "properties": {
+          "profile_id": "b1-profile",
+          "name": "Two same-day sorties",
+          "duration_minutes": 60
+        },
+        "collections": {
+          "basic_missions": [
+            {
+              "business_id": "basic-sortie",
+              "source_path": "mission_profile.basic_missions[0]",
+              "definition": {
+                "id": "basic-sortie",
+                "missionId": "basic-sortie",
+                "name": "Sortie",
+                "advanceNoticeMinutes": 10,
+                "cancelMinutes": 5,
+                "equipmentQuantity": 1,
+                "equipmentType": "F35",
+                "minRequiredSorties": 1,
+                "successPoint": 0.75,
+                "taskDurationMinutes": 10
+              }
+            }
+          ],
+          "composite_tasks": [
+            {
+              "business_id": "daily-sorties",
+              "source_path": "mission_profile.composite_tasks[0]",
+              "definition": {
+                "id": "daily-sorties",
+                "name": "Daily sorties",
+                "priority": 1,
+                "taskItems": [
+                  {
+                    "id": "sortie-a",
+                    "basicMissionId": "basic-sortie",
+                    "basicTaskName": "Sortie A",
+                    "firstWaveTime": "00:20",
+                    "dailyRepeatCount": 1,
+                    "equipmentType": "F35",
+                    "operations_plan_group_id": "f35-daily"
+                  },
+                  {
+                    "id": "sortie-b",
+                    "basicMissionId": "basic-sortie",
+                    "basicTaskName": "Sortie B",
+                    "firstWaveTime": "00:40",
+                    "dailyRepeatCount": 1,
+                    "equipmentType": "F35",
+                    "operations_plan_group_id": "f35-daily"
+                  }
+                ]
+              }
+            }
+          ],
+          "mission_calendar": [
+            {
+              "business_id": "mission_profile.mission_calendar[0]",
+              "source_path": "mission_profile.mission_calendar[0]",
+              "definition": {
+                "day_index": 1,
+                "composite_task_id": "daily-sorties"
+              }
+            }
+          ],
+          "mission_phases": [],
+          "airports": []
+        }
+      },
+      "aircraft": {
+        "properties": {
+          "fleet_count": 2,
+          "initial_ready": 2,
+          "models": [
+            "F35"
+          ]
+        },
+        "collections": {
+          "assets": [
+            {
+              "business_id": "F35-01",
+              "source_path": "aircraft.assets[0]",
+              "definition": {
+                "tail_number": "F35-01",
+                "aircraft_type": "F35",
+                "model": "F35",
+                "initial_state": "available"
+              }
+            },
+            {
+              "business_id": "F35-02",
+              "source_path": "aircraft.assets[1]",
+              "definition": {
+                "tail_number": "F35-02",
+                "aircraft_type": "F35",
+                "model": "F35",
+                "initial_state": "available"
+              }
+            }
+          ]
+        }
+      },
+      "equipment_tree": {
+        "properties": {
+          "root_component_id": "f35"
+        },
+        "collections": {
+          "components": [
+            {
+              "business_id": "f35",
+              "source_path": "equipment_tree.components[0]",
+              "definition": {
+                "id": "f35",
+                "name": "F35",
+                "parent_id": "",
+                "aircraft_model": "F35",
+                "quantity": 1
+              }
+            }
+          ]
+        }
+      },
+      "support_network": {
+        "properties": {},
+        "collections": {
+          "nodes": [
+            {
+              "business_id": "flight-line",
+              "source_path": "support_network.nodes[0]",
+              "definition": {
+                "id": "flight-line",
+                "name": "Flight line",
+                "personnel_capacity": 1,
+                "equipment_capacity": 1,
+                "inventory": {}
+              }
+            }
+          ]
+        }
+      },
+      "support_activities": {
+        "properties": {},
+        "collections": {
+          "activities": [
+            {
+              "business_id": "f35-daily-preflight",
+              "source_path": "support_activities.activities[0]",
+              "definition": {
+                "id": "f35-daily-preflight",
+                "name": "Preflight",
+                "operations_phase": "preflight",
+                "plan_group_id": "f35-daily",
+                "aircraft_model": "F35",
+                "resource_id": "flight-line",
+                "priority": 1,
+                "jobs": [
+                  {
+                    "activityCode": "PRE-1",
+                    "durationMinutes": 3,
+                    "personnel": [
+                      {
+                        "professional": "crew",
+                        "quantity": 1
+                      }
+                    ],
+                    "equipment": [
+                      {
+                        "model": "cart",
+                        "quantity": 1
+                      }
+                    ],
+                    "spare": [],
+                    "predecessors": []
+                  }
+                ]
+              }
+            },
+            {
+              "business_id": "f35-daily-relaunch",
+              "source_path": "support_activities.activities[1]",
+              "definition": {
+                "id": "f35-daily-relaunch",
+                "name": "Relaunch",
+                "operations_phase": "relaunch",
+                "plan_group_id": "f35-daily",
+                "aircraft_model": "F35",
+                "resource_id": "flight-line",
+                "priority": 1,
+                "jobs": []
+              }
+            },
+            {
+              "business_id": "f35-daily-postflight",
+              "source_path": "support_activities.activities[2]",
+              "definition": {
+                "id": "f35-daily-postflight",
+                "name": "Postflight",
+                "operations_phase": "postflight",
+                "plan_group_id": "f35-daily",
+                "aircraft_model": "F35",
+                "resource_id": "flight-line",
+                "priority": 1,
+                "jobs": [
+                  {
+                    "activityCode": "POST-1",
+                    "durationMinutes": 2,
+                    "personnel": [
+                      {
+                        "professional": "crew",
+                        "quantity": 1
+                      }
+                    ],
+                    "equipment": [
+                      {
+                        "model": "cart",
+                        "quantity": 1
+                      }
+                    ],
+                    "spare": [],
+                    "predecessors": []
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "time": {
+        "properties": {
+          "duration_minutes": 60,
+          "tick_minutes": 1,
+          "sample_every_minutes": 30,
+          "max_state_frames_single": 2000,
+          "requested_steps": 60
+        },
+        "collections": {}
+      },
+      "monte_carlo": {
+        "properties": {
+          "sample_count": 1,
+          "sweep": {}
+        },
+        "collections": {}
+      },
+      "stop_policy": {
+        "properties": {
+          "schema_version": "stop-policy-v1",
+          "mode": "or",
+          "conditions": [
+            {
+              "type": "duration",
+              "duration_minutes": 60
+            }
+          ],
+          "defaulted": false
+        },
+        "collections": {}
+      },
+      "$root": {
+        "properties": {
+          "schema_version": "aircraft-support-v1-input-v1",
+          "operations_support_policy": "daily-v1",
+          "seed": 0,
+          "disable_visualization_frames": true
+        },
+        "collections": {}
+      }
+    }
+  }
+}

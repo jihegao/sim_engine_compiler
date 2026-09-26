@@ -1,0 +1,919 @@
+{
+  "version": "simulation-core-ir/v2",
+  "fingerprint": "9a72979cebdb0bd03d9188e1033f81c3e6384cce12a465567a33eb6fe9b0f864",
+  "payload": {
+    "source": {
+      "business_fingerprint": "58bc6d1abdc3339a071e387bd359ce92d7f22e57204182e30d991fc0e6b1e0de",
+      "canonical_sha256": "59c6397c9529fcd6582221deab72744cd4d5788c9b7b5e0fc945e9c15cdf8e5c",
+      "origin_canonical_sha256": "59c6397c9529fcd6582221deab72744cd4d5788c9b7b5e0fc945e9c15cdf8e5c"
+    },
+    "contract": {
+      "domain": "aircraft-support",
+      "semantic_profile": "legacy-minute-v1",
+      "work_policy": "stable-topological-serial",
+      "rng_profile": "legacy-sequential-v1",
+      "duration_minutes": 60,
+      "natural_completion_enabled": false,
+      "phases": [
+        "transport_arrivals",
+        "mission_returns",
+        "job_progress_and_completions",
+        "failures",
+        "operations_postflight_before_preparation",
+        "preventive_generation",
+        "preflight_generation",
+        "resource_dispatch",
+        "mission_dispatch",
+        "operations_postflight_after_dispatch",
+        "mission_success",
+        "daily_readiness",
+        "operational_availability",
+        "downtime",
+        "stop"
+      ],
+      "unsupported_features": []
+    },
+    "operations": [
+      {
+        "operation": "aircraft.transport_arrivals/v1",
+        "phase": "transport_arrivals",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.mission_returns/v1",
+        "phase": "mission_returns",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.job_progress_and_completions/v1",
+        "phase": "job_progress_and_completions",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.failures/v1",
+        "phase": "failures",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.operations_postflight_before_preparation/v1",
+        "phase": "operations_postflight_before_preparation",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.preventive_generation/v1",
+        "phase": "preventive_generation",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.preflight_generation/v1",
+        "phase": "preflight_generation",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.resource_dispatch/v1",
+        "phase": "resource_dispatch",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.mission_dispatch/v1",
+        "phase": "mission_dispatch",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.operations_postflight_after_dispatch/v1",
+        "phase": "operations_postflight_after_dispatch",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.mission_success/v1",
+        "phase": "mission_success",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.daily_readiness/v1",
+        "phase": "daily_readiness",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.operational_availability/v1",
+        "phase": "operational_availability",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.downtime/v1",
+        "phase": "downtime",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      },
+      {
+        "operation": "aircraft.stop/v1",
+        "phase": "stop",
+        "reads": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "writes": [
+          "aircraft",
+          "missions",
+          "jobs",
+          "components",
+          "capacity",
+          "inventory",
+          "reservations",
+          "shipments",
+          "clocks",
+          "metrics",
+          "termination",
+          "trace",
+          "rng"
+        ],
+        "random": true,
+        "time": "canonical-phase-at-wakeup",
+        "backends": [
+          "python-reference",
+          "rust-runtime"
+        ],
+        "effect_precision": "conservative-phase; exact-resource-guards-in-step-dependencies"
+      }
+    ],
+    "tables": {
+      "aircraft": [
+        {
+          "id": "F35-01",
+          "attributes": {
+            "tail_number": "F35-01",
+            "aircraft_type": "F35",
+            "model": "F35",
+            "initial_state": "available",
+            "airport": "",
+            "airport_id": "",
+            "initial_calendar_days": 0,
+            "initial_flight_hours": 0.0,
+            "initial_cycles": 0
+          },
+          "references": {},
+          "steps": [],
+          "source_path": "aircraft.assets[0]"
+        },
+        {
+          "id": "F35-02",
+          "attributes": {
+            "tail_number": "F35-02",
+            "aircraft_type": "F35",
+            "model": "F35",
+            "initial_state": "available",
+            "airport": "",
+            "airport_id": "",
+            "initial_calendar_days": 0,
+            "initial_flight_hours": 0.0,
+            "initial_cycles": 0
+          },
+          "references": {},
+          "steps": [],
+          "source_path": "aircraft.assets[1]"
+        }
+      ],
+      "missions": [
+        {
+          "id": "sortie-a-d1-w1",
+          "attributes": {
+            "mission_id": "sortie-a-d1-w1",
+            "name": "Sortie A",
+            "planned_start": 20,
+            "preparation_start": 10,
+            "duration_minutes": 10,
+            "required_aircraft": 1,
+            "min_required_aircraft": 1,
+            "priority": 1,
+            "cancel_minutes": 5,
+            "success_point": 0.75,
+            "required_aircraft_type": "F35",
+            "operations_plan_group_id": "f35-daily",
+            "source_path": "mission_profile.composite_tasks[0].taskItems[0]"
+          },
+          "references": {},
+          "steps": [],
+          "source_path": "mission_profile.composite_tasks[0].taskItems[0]"
+        },
+        {
+          "id": "sortie-b-d1-w1",
+          "attributes": {
+            "mission_id": "sortie-b-d1-w1",
+            "name": "Sortie B",
+            "planned_start": 40,
+            "preparation_start": 30,
+            "duration_minutes": 10,
+            "required_aircraft": 1,
+            "min_required_aircraft": 1,
+            "priority": 1,
+            "cancel_minutes": 5,
+            "success_point": 0.75,
+            "required_aircraft_type": "F35",
+            "operations_plan_group_id": "f35-daily",
+            "source_path": "mission_profile.composite_tasks[0].taskItems[1]"
+          },
+          "references": {},
+          "steps": [],
+          "source_path": "mission_profile.composite_tasks[0].taskItems[1]"
+        }
+      ],
+      "activities": [
+        {
+          "id": "f35-daily-preflight",
+          "attributes": {
+            "activity_id": "f35-daily-preflight",
+            "name": "Preflight",
+            "phase": "preflight",
+            "plan_group_id": "f35-daily",
+            "aircraft_model": "F35",
+            "priority": 1,
+            "kind": "preflight",
+            "maintenance_methods": [],
+            "replacement_ratio": 0.0,
+            "source_path": "support_activities.activities[0]"
+          },
+          "references": {
+            "resource_node_index": "flight-line",
+            "equipment_component_index": null
+          },
+          "steps": [
+            {
+              "id": "PRE-1",
+              "attributes": {
+                "code": "PRE-1",
+                "duration_minutes": 3,
+                "personnel": 1,
+                "equipment": 1,
+                "spares": [],
+                "source_path": "support_activities.activities[0].jobs[0]"
+              },
+              "predecessors": [],
+              "dependencies": {
+                "capacity_node": "flight-line",
+                "capacity_sources": {
+                  "personnel": [
+                    "flight-line"
+                  ],
+                  "equipment": [
+                    "flight-line"
+                  ]
+                },
+                "inventory_products": [],
+                "supply_routes": [],
+                "dynamic_state": [
+                  "job_reservations",
+                  "active_shipment",
+                  "job_step",
+                  "job_status"
+                ],
+                "wakeups": [
+                  "resource_change",
+                  "job_change",
+                  "canonical_dispatch_phase"
+                ]
+              }
+            }
+          ],
+          "source_path": "support_activities.activities[0]"
+        },
+        {
+          "id": "f35-daily-relaunch",
+          "attributes": {
+            "activity_id": "f35-daily-relaunch",
+            "name": "Relaunch",
+            "phase": "relaunch",
+            "plan_group_id": "f35-daily",
+            "aircraft_model": "F35",
+            "priority": 1,
+            "kind": "relaunch",
+            "maintenance_methods": [],
+            "replacement_ratio": 0.0,
+            "source_path": "support_activities.activities[1]"
+          },
+          "references": {
+            "resource_node_index": "flight-line",
+            "equipment_component_index": null
+          },
+          "steps": [],
+          "source_path": "support_activities.activities[1]"
+        },
+        {
+          "id": "f35-daily-postflight",
+          "attributes": {
+            "activity_id": "f35-daily-postflight",
+            "name": "Postflight",
+            "phase": "postflight",
+            "plan_group_id": "f35-daily",
+            "aircraft_model": "F35",
+            "priority": 1,
+            "kind": "postflight",
+            "maintenance_methods": [],
+            "replacement_ratio": 0.0,
+            "source_path": "support_activities.activities[2]"
+          },
+          "references": {
+            "resource_node_index": "flight-line",
+            "equipment_component_index": null
+          },
+          "steps": [
+            {
+              "id": "POST-1",
+              "attributes": {
+                "code": "POST-1",
+                "duration_minutes": 2,
+                "personnel": 1,
+                "equipment": 1,
+                "spares": [],
+                "source_path": "support_activities.activities[2].jobs[0]"
+              },
+              "predecessors": [],
+              "dependencies": {
+                "capacity_node": "flight-line",
+                "capacity_sources": {
+                  "personnel": [
+                    "flight-line"
+                  ],
+                  "equipment": [
+                    "flight-line"
+                  ]
+                },
+                "inventory_products": [],
+                "supply_routes": [],
+                "dynamic_state": [
+                  "job_reservations",
+                  "active_shipment",
+                  "job_step",
+                  "job_status"
+                ],
+                "wakeups": [
+                  "resource_change",
+                  "job_change",
+                  "canonical_dispatch_phase"
+                ]
+              }
+            }
+          ],
+          "source_path": "support_activities.activities[2]"
+        }
+      ],
+      "resource_nodes": [
+        {
+          "id": "flight-line",
+          "attributes": {
+            "node_id": "flight-line",
+            "personnel_capacity": 1,
+            "equipment_capacity": 1,
+            "inventory": [],
+            "organization_node_id": "flight-line",
+            "source_path": "support_network.nodes[0]"
+          },
+          "references": {},
+          "steps": [],
+          "source_path": "support_network.nodes[0]"
+        }
+      ],
+      "components": [
+        {
+          "id": "f35",
+          "attributes": {
+            "component_id": "f35",
+            "name": "F35",
+            "product_id": "",
+            "product_type": "",
+            "quantity": 1,
+            "failure_rate_per_hour": 0.0,
+            "failure_threshold": 1,
+            "repair_duration_minutes": 0,
+            "source_path": "equipment_tree.components[0]"
+          },
+          "references": {
+            "parent_index": null,
+            "aircraft_indexes": [
+              "F35-01",
+              "F35-02"
+            ],
+            "repair_activity_index": null
+          },
+          "steps": [],
+          "source_path": "equipment_tree.components[0]"
+        }
+      ],
+      "preventive_cycles": [],
+      "supply_routes": []
+    }
+  }
+}
