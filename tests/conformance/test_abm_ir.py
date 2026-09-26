@@ -93,6 +93,21 @@ class AbmIrContractTests(unittest.TestCase):
             "address": None,
         }]
         mutations.append(unknown_death)
+        unknown_child_move = base_spec()
+        unknown_child_move["phases"][0]["target"] = "agents"
+        unknown_child_move["phases"][0]["operations"] = [{
+            "op": "birth", "guard": None, "kind": "agent", "count": 1,
+            "vars": {}, "address": "birth", "child_move": {
+                "mode": "teleport", "heading": None, "address": None, "distance": 1,
+            },
+        }]
+        mutations.append(unknown_child_move)
+        reversed_uniform = base_spec()
+        reversed_uniform["phases"][0]["operations"][0]["value"] = {
+            "op": "random", "distribution": "uniform", "address": "bad-bounds",
+            "args": [1.0, 1.0],
+        }
+        mutations.append(reversed_uniform)
 
         for invalid in mutations:
             with self.subTest(invalid=invalid):
@@ -130,6 +145,18 @@ class AbmIrContractTests(unittest.TestCase):
 
         with self.assertRaisesRegex(CompilationError, "signed 64-bit"):
             compile_model(spec)
+
+    def test_huge_grid_is_rejected_without_materializing_cartesian_coordinates(self):
+        for width, height, message in (
+            (2**62, 4, "signed 64-bit"),
+            (1_000_001, 1, "executable limit"),
+        ):
+            with self.subTest(width=width, height=height):
+                spec = base_spec()
+                spec["topology"] = {"kind": "finite", "width": width, "height": height}
+                spec["initial_state"]["patches"] = []
+                with self.assertRaisesRegex(CompilationError, message):
+                    compile_model(spec)
 
 
 if __name__ == "__main__":

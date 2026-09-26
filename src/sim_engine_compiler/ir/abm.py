@@ -31,6 +31,7 @@ EXPRESSION_NAMES = frozenset({"get", "binary", "unary", "count", "random"})
 NEIGHBORHOODS = frozenset({"moore", "von_neumann"})
 I64_MIN = -(2**63)
 I64_MAX = 2**63 - 1
+MAX_GRID_CELLS = 1_000_000
 
 
 def canonical_digest(value: Any) -> str:
@@ -131,8 +132,20 @@ def validate_expression(value: Any, path: str) -> None:
         _identifier(value["address"], f"{path}.address")
         if not isinstance(value["args"], list) or not value["args"]:
             _reject(f"{path}.args", "random distribution arguments required")
+        expected_args = {"uniform": 2, "integer": 2, "bernoulli": 1, "choice": 1}
+        if len(value["args"]) != expected_args[value["distribution"]]:
+            _reject(f"{path}.args", f"{value['distribution']} has invalid argument count")
         for index, argument in enumerate(value["args"]):
             validate_expression(argument, f"{path}.args[{index}]")
+        if value["distribution"] == "uniform" and all(
+            type(argument) in (int, float) and not isinstance(argument, bool)
+            for argument in value["args"]
+        ) and value["args"][1] <= value["args"][0]:
+            _reject(f"{path}.args", "uniform requires increasing bounds", "unsupported_random")
+        if value["distribution"] == "integer" and all(type(argument) is int for argument in value["args"]):
+            low, high = value["args"]
+            if high <= low or high - low > I64_MAX:
+                _reject(f"{path}.args", "integer requires representable increasing bounds", "unsupported_random")
 
 
 def validate_operation(value: Any, path: str) -> None:
@@ -184,10 +197,18 @@ def validate_operation(value: Any, path: str) -> None:
             _identifier(field, f"{path}.vars")
             validate_expression(expression, f"{path}.vars.{field}")
         if value["child_move"] is not None:
-            movement = _object(value["child_move"], {"heading", "address", "distance"}, f"{path}.child_move")
-            validate_expression(movement["heading"], f"{path}.child_move.heading")
+            movement = _object(value["child_move"], {"mode", "heading", "address", "distance"}, f"{path}.child_move")
             validate_expression(movement["distance"], f"{path}.child_move.distance")
-            _identifier(movement["address"], f"{path}.child_move.address")
+            if movement["mode"] == "random_uniform":
+                if movement["heading"] is None:
+                    _reject(f"{path}.child_move.heading", "random_uniform requires heading range")
+                validate_expression(movement["heading"], f"{path}.child_move.heading")
+                _identifier(movement["address"], f"{path}.child_move.address")
+            elif movement["mode"] == "inherit_heading":
+                if movement["heading"] is not None or movement["address"] is not None:
+                    _reject(path, "inherit_heading requires null heading and address")
+            else:
+                _reject(f"{path}.child_move.mode", "unsupported child movement mode", "unsupported_operation")
     else:
         _object(value, common | {"mode", "agent_kind", "address"}, path)
         if value["mode"] not in {"self", "random_agent_here"}:
@@ -215,6 +236,11 @@ def validate_payload(payload: Any, *, layer: str) -> None:
     if (type(topology["width"]) is not int or type(topology["height"]) is not int
             or not 0 < topology["width"] <= I64_MAX or not 0 < topology["height"] <= I64_MAX):
         _reject(f"{layer}.topology", "positive integer dimensions required")
+    if topology["width"] > I64_MAX // topology["height"]:
+        _reject(f"{layer}.topology", "grid area exceeds signed 64-bit range")
+    grid_area = topology["width"] * topology["height"]
+    if grid_area > MAX_GRID_CELLS:
+        _reject(f"{layer}.topology", f"grid exceeds executable limit of {MAX_GRID_CELLS} patches")
     if type(payload["max_ticks"]) is not int or not 0 < payload["max_ticks"] <= I64_MAX:
         _reject(f"{layer}.max_ticks", "positive integer tick limit required")
 
@@ -238,8 +264,7 @@ def validate_payload(payload: Any, *, layer: str) -> None:
         _json_value(patch["vars"], f"{path}.vars")
         patch_ids.add(identity)
         coordinates.add((patch["x"], patch["y"]))
-    expected = {(x, y) for x in range(topology["width"]) for y in range(topology["height"])}
-    if coordinates != expected:
+    if len(coordinates) != grid_area:
         _reject(f"{layer}.initial_state.patches", "one patch per grid coordinate required")
 
     agent_ids: set[str] = set()

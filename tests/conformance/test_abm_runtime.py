@@ -326,7 +326,8 @@ class WolfSheepLifecycleTests(unittest.TestCase):
                     "op": "birth", "guard": binary(">", get("self", "energy"), 5),
                     "kind": "wolf", "count": 1, "vars": {"energy": 1},
                     "address": "wolf.reproduce",
-                    "child_move": {"heading": 360.0, "address": "wolf.child-heading", "distance": 0.2},
+                    "child_move": {"mode": "random_uniform", "heading": 360.0,
+                                   "address": "wolf.child-heading", "distance": 0.2},
                 }],
             },
             {
@@ -373,6 +374,179 @@ class WolfSheepLifecycleTests(unittest.TestCase):
             [item["address"] for item in result["random_requests"]],
             ["wolf.turn-right", "wolf.turn-left", "wolf.choose-prey", "wolf.child-heading"],
         )
+
+    def test_hatch_inherits_heading_moves_only_child_and_consumes_no_randomness(self):
+        spec = base_spec(width=3, height=3, topology="torus")
+        spec["initial_state"]["agents"] = [{
+            "id": "sheep-parent", "kind": "sheep", "x": 1.0, "y": 1.0,
+            "vars": {"energy": 5, "heading": 90.0},
+        }]
+        spec["phases"] = [{
+            "id": "hatch", "target": "agents", "agent_kind": "sheep",
+            "read_view": "current", "commit_mode": "immediate", "traversal": "stable",
+            "random_address": None,
+            "operations": [{
+                "op": "birth", "guard": None, "kind": "sheep", "count": 1,
+                "vars": {"energy": 2}, "address": "sheep.hatch",
+                "child_move": {"mode": "inherit_heading", "heading": None,
+                               "address": None, "distance": 1.0},
+            }],
+        }]
+
+        result = run_abm_plan(compile_model(spec).plan, seed=99)
+
+        agents = {item["id"]: item for item in result["state"]["agents"]}
+        parent = agents["sheep-parent"]
+        child = agents["sheep-parent::sheep.hatch::0::0"]
+        self.assertEqual((parent["x"], parent["y"], parent["vars"]["heading"]),
+                         (1.0, 1.0, 90.0))
+        self.assertAlmostEqual(child["x"], 2.0)
+        self.assertAlmostEqual(child["y"], 1.0)
+        self.assertEqual(child["vars"]["heading"], 90.0)
+        self.assertEqual(result["random_requests"], [])
+
+
+class CrossBackendRuntimeGuardTests(unittest.TestCase):
+    def test_random_count_predicate_is_stable_under_initial_agent_reordering(self):
+        spec = base_spec()
+        agents = [
+            {"id": "business-b", "kind": "agent", "x": 0.0, "y": 0.0, "vars": {}},
+            {"id": "business-a", "kind": "agent", "x": 0.0, "y": 0.0, "vars": {}},
+        ]
+        spec["initial_state"]["agents"] = agents
+        spec["phases"][0]["operations"] = [{
+            "op": "set", "guard": None, "target": "globals", "field": "sampled_count",
+            "value": count("agents", where={
+                "op": "random", "distribution": "bernoulli",
+                "address": "count.sample", "args": [0.5],
+            }),
+        }]
+        reordered = copy.deepcopy(spec)
+        reordered["initial_state"]["agents"] = list(reversed(agents))
+
+        left = run_abm_plan(compile_model(spec).plan, seed=5)
+        right = run_abm_plan(compile_model(reordered).plan, seed=5)
+
+        self.assertEqual(left, right)
+        self.assertEqual([item["entity_id"] for item in left["random_requests"]],
+                         ["business-a", "business-b"])
+
+    def test_typed_json_equality_excludes_bool_numeric_and_float_rounding(self):
+        spec = base_spec()
+        spec["phases"][0]["operations"] = [
+            {"op": "set", "guard": None, "target": "globals", "field": "bool_number",
+             "value": binary("==", True, 1)},
+            {"op": "set", "guard": None, "target": "globals", "field": "nested_bool_number",
+             "value": binary("==", [True], [1])},
+            {"op": "set", "guard": None, "target": "globals", "field": "unsafe_mixed",
+             "value": binary("==", 9_007_199_254_740_993, float(9_007_199_254_740_993))},
+            {"op": "set", "guard": None, "target": "globals", "field": "safe_mixed",
+             "value": binary("==", 42, 42.0)},
+        ]
+
+        result = run_abm_plan(compile_model(spec).plan)
+
+        self.assertEqual(result["state"]["globals"], {
+            "bool_number": False, "nested_bool_number": False,
+            "unsafe_mixed": False, "safe_mixed": True,
+        })
+
+    def test_metric_reducer_reads_top_level_fields_and_rejects_unknown_field(self):
+        spec = base_spec(width=2)
+        spec["initial_state"]["agents"] = [
+            {"id": "a", "kind": "person", "x": 0.0, "y": 0.0, "vars": {}},
+            {"id": "b", "kind": "person", "x": 1.0, "y": 0.0, "vars": {}},
+        ]
+        spec["metrics"] = [{
+            "id": "mean_x", "reducer": "mean", "source": "agents", "field": "x",
+            "where": None, "expression": None,
+        }]
+        result = run_abm_plan(compile_model(spec).plan)
+        self.assertEqual(result["metrics"]["mean_x"], 0.5)
+
+        invalid = copy.deepcopy(spec)
+        invalid["metrics"][0]["field"] = "missing"
+        with self.assertRaisesRegex(AbmRuntimeError, "unknown state field"):
+            run_abm_plan(compile_model(invalid).plan)
+
+    def test_birth_variable_random_expressions_use_sorted_field_order(self):
+        spec = base_spec()
+        spec["initial_state"]["agents"] = [{
+            "id": "parent", "kind": "agent", "x": 0.0, "y": 0.0, "vars": {},
+        }]
+        spec["phases"] = [{
+            "id": "birth", "target": "agents", "agent_kind": None,
+            "read_view": "current", "commit_mode": "immediate", "traversal": "stable",
+            "random_address": None,
+            "operations": [{
+                "op": "birth", "guard": None, "kind": "agent", "count": 1,
+                "vars": {
+                    "z_value": {"op": "random", "distribution": "uniform",
+                                "address": "birth.value", "args": [0.0, 1.0]},
+                    "a_value": {"op": "random", "distribution": "uniform",
+                                "address": "birth.value", "args": [0.0, 1.0]},
+                },
+                "address": "birth.child", "child_move": None,
+            }],
+        }]
+
+        result = run_abm_plan(compile_model(spec).plan, seed=12)
+
+        draws = [item["value"] for item in result["random_requests"]]
+        child = next(item for item in result["state"]["agents"] if item["id"] != "parent")
+        self.assertEqual(child["vars"]["a_value"], draws[0])
+        self.assertEqual(child["vars"]["z_value"], draws[1])
+
+    def test_dynamic_uniform_non_increasing_bounds_fail_explicitly(self):
+        spec = base_spec()
+        spec["initial_state"]["globals"] = {"low": 2.0, "high": 1.0}
+        spec["phases"][0]["operations"][0]["guard"] = None
+        spec["phases"][0]["operations"][0]["value"] = {
+            "op": "random", "distribution": "uniform", "address": "invalid.uniform",
+            "args": [get("globals", "low"), get("globals", "high")],
+        }
+
+        with self.assertRaisesRegex(AbmRuntimeError, "increasing numeric bounds"):
+            run_abm_plan(compile_model(spec).plan)
+
+    def test_metric_random_draw_uses_run_context_and_is_in_returned_ledger(self):
+        spec = base_spec()
+        spec["metrics"] = [{
+            "id": "random_metric", "reducer": "expression", "source": "globals",
+            "field": None, "where": None,
+            "expression": {"op": "random", "distribution": "uniform",
+                           "address": "metric.draw", "args": [0.0, 1.0]},
+        }]
+
+        result = run_abm_plan(compile_model(spec).plan, seed=44)
+
+        self.assertEqual(len(result["random_requests"]), 1)
+        request = result["random_requests"][0]
+        self.assertEqual((request["tick"], request["phase"], request["entity_id"]),
+                         (1, "metrics", "$global"))
+        self.assertEqual(result["metrics"]["random_metric"], request["value"])
+        self.assertEqual(result, run_abm_plan(compile_model(spec).plan, seed=44))
+
+    def test_increment_and_metric_sum_reject_signed_i64_overflow(self):
+        increment = base_spec()
+        increment["initial_state"]["globals"] = {"value": 2**63 - 1}
+        increment["phases"][0]["operations"] = [{
+            "op": "increment", "guard": None, "target": "globals", "field": "value",
+            "value": 1,
+        }]
+        with self.assertRaisesRegex(AbmRuntimeError, "signed 64-bit overflow"):
+            run_abm_plan(compile_model(increment).plan)
+
+        aggregate = base_spec(width=2)
+        aggregate["initial_state"]["patches"] = [
+            patch(0, 0, value=2**63 - 1), patch(1, 0, value=1),
+        ]
+        aggregate["metrics"] = [{
+            "id": "total", "reducer": "sum", "source": "patches", "field": "value",
+            "where": None, "expression": None,
+        }]
+        with self.assertRaisesRegex(AbmRuntimeError, "signed 64-bit overflow"):
+            run_abm_plan(compile_model(aggregate).plan)
 
 
 if __name__ == "__main__":

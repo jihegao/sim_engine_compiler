@@ -19,6 +19,46 @@ class AbmRuntimeError(ValueError):
     pass
 
 
+def _checked_i64(value: int, context: str) -> int:
+    if not I64_MIN <= value <= I64_MAX:
+        raise AbmRuntimeError(f"signed 64-bit overflow in {context}")
+    return value
+
+
+def _checked_numeric(value: Any, context: str) -> Any:
+    if type(value) is int:
+        return _checked_i64(value, context)
+    if type(value) is float and not math.isfinite(value):
+        raise AbmRuntimeError(f"non-finite numeric result in {context}")
+    return value
+
+
+def _json_equal(left: Any, right: Any) -> bool:
+    if left is None or right is None:
+        return left is None and right is None
+    if type(left) is bool or type(right) is bool:
+        return type(left) is bool and type(right) is bool and left == right
+    if type(left) is int and type(right) is int:
+        return left == right
+    if type(left) is float and type(right) is float:
+        return left == right
+    if type(left) is int and type(right) is float:
+        return (math.isfinite(right) and right.is_integer() and I64_MIN <= right <= I64_MAX
+                and left == int(right))
+    if type(left) is float and type(right) is int:
+        return _json_equal(right, left)
+    if isinstance(left, str) or isinstance(right, str):
+        return type(left) is str and type(right) is str and left == right
+    if isinstance(left, list) or isinstance(right, list):
+        return (isinstance(left, list) and isinstance(right, list) and len(left) == len(right)
+                and all(_json_equal(a, b) for a, b in zip(left, right)))
+    if isinstance(left, dict) or isinstance(right, dict):
+        return (isinstance(left, dict) and isinstance(right, dict)
+                and set(left) == set(right)
+                and all(_json_equal(left[key], right[key]) for key in left))
+    return False
+
+
 class AbmTickRuntime:
     def __init__(self, plan: AbmTickPlan | dict[str, Any], *, seed: int = 0):
         self.plan = plan if isinstance(plan, AbmTickPlan) else AbmTickPlan.from_dict(plan)
@@ -106,13 +146,16 @@ class AbmTickRuntime:
         if distribution == "traversal_key":
             value = unit
         elif distribution == "uniform":
-            if len(args) != 2 or not all(type(item) in (int, float) and not isinstance(item, bool) for item in args):
-                raise AbmRuntimeError("uniform requires two numeric arguments")
-            value = args[0] + (args[1] - args[0]) * unit
+            if (len(args) != 2
+                    or not all(type(item) in (int, float) and not isinstance(item, bool) for item in args)
+                    or not args[1] > args[0]):
+                raise AbmRuntimeError("uniform requires increasing numeric bounds")
+            value = _checked_numeric(args[0] + (args[1] - args[0]) * unit, "uniform draw")
         elif distribution == "integer":
-            if len(args) != 2 or not all(type(item) is int for item in args) or args[1] <= args[0]:
-                raise AbmRuntimeError("integer requires integer [low, high) bounds")
-            value = args[0] + int(unit * (args[1] - args[0]))
+            if (len(args) != 2 or not all(type(item) is int for item in args)
+                    or args[1] <= args[0] or args[1] - args[0] > I64_MAX):
+                raise AbmRuntimeError("integer requires representable integer [low, high) bounds")
+            value = _checked_i64(args[0] + int(unit * (args[1] - args[0])), "integer draw")
         elif distribution == "bernoulli":
             if len(args) != 1 or type(args[0]) not in (int, float) or isinstance(args[0], bool) or not 0 <= args[0] <= 1:
                 raise AbmRuntimeError("bernoulli requires probability in [0, 1]")
@@ -163,7 +206,7 @@ class AbmTickRuntime:
                 return not value
             if type(value) not in (int, float) or isinstance(value, bool):
                 raise AbmRuntimeError("neg requires number")
-            return -value
+            return _checked_numeric(-value, "unary negation")
         if op == "binary":
             left = self._eval(expression["left"], actor, state, outer)
             right = self._eval(expression["right"], actor, state, outer)
@@ -175,12 +218,14 @@ class AbmTickRuntime:
             if symbol in {"+", "-", "*", "/", "%", "<", "<=", ">", ">="}:
                 if any(type(value) not in (int, float) or isinstance(value, bool) for value in (left, right)):
                     raise AbmRuntimeError(f"{symbol} requires numbers")
+            if symbol in {"==", "!="}:
+                equal = _json_equal(left, right)
+                return equal if symbol == "==" else not equal
             functions = {"+": operator.add, "-": operator.sub, "*": operator.mul,
-                         "/": operator.truediv, "%": operator.mod, "==": operator.eq,
-                         "!=": operator.ne, "<": operator.lt, "<=": operator.le,
+                         "/": operator.truediv, "%": operator.mod, "<": operator.lt, "<=": operator.le,
                          ">": operator.gt, ">=": operator.ge}
             try:
-                return functions[symbol](left, right)
+                return _checked_numeric(functions[symbol](left, right), f"binary {symbol}")
             except ZeroDivisionError as exc:
                 raise AbmRuntimeError("division or modulo by zero") from exc
         if op == "random":
@@ -216,6 +261,7 @@ class AbmTickRuntime:
                     candidates = [item for item in state["agents"].values()
                                   if (expression["agent_kind"] == "*" or item["kind"] == expression["agent_kind"])
                                   and self._patch_coordinate(item) in coordinates]
+            candidates.sort(key=lambda item: item["id"])
             where = expression["where"]
             if where is None:
                 return len(candidates)
@@ -255,7 +301,7 @@ class AbmTickRuntime:
     def _add(before: Any, delta: Any) -> Any:
         if any(type(value) not in (int, float) or isinstance(value, bool) for value in (before, delta)):
             raise AbmRuntimeError("increment requires existing numeric field and numeric value")
-        return before + delta
+        return _checked_numeric(before + delta, "increment")
 
     def _apply_action(self, action: tuple[Any, ...]) -> bool:
         kind = action[0]
@@ -327,17 +373,24 @@ class AbmTickRuntime:
                 ordinal = self._birth_occurrences.get(key, 0)
                 self._birth_occurrences[key] = ordinal + 1
                 identity = f"{actor['id']}::{operation['address']}::{self.tick}::{ordinal}"
-                variables = {field: self._eval(expr, actor, state) for field, expr in operation["vars"].items()}
+                variables = {field: self._eval(operation["vars"][field], actor, state)
+                             for field in sorted(operation["vars"])}
                 x, y = actor["x"], actor["y"]
                 movement = operation["child_move"]
                 if movement is not None:
-                    heading_max = self._eval(movement["heading"], actor, state)
                     distance = self._eval(movement["distance"], actor, state)
-                    if (type(heading_max) not in (int, float) or isinstance(heading_max, bool)
-                            or heading_max <= 0 or type(distance) not in (int, float)
-                            or isinstance(distance, bool)):
-                        raise AbmRuntimeError("child movement requires positive heading range and numeric distance")
-                    heading = self._random(movement["address"], actor["id"], "uniform", [0, heading_max])
+                    if type(distance) not in (int, float) or isinstance(distance, bool):
+                        raise AbmRuntimeError("child movement requires numeric distance")
+                    if movement["mode"] == "random_uniform":
+                        heading_max = self._eval(movement["heading"], actor, state)
+                        if (type(heading_max) not in (int, float) or isinstance(heading_max, bool)
+                                or heading_max <= 0):
+                            raise AbmRuntimeError("random child movement requires positive heading range")
+                        heading = self._random(movement["address"], actor["id"], "uniform", [0, heading_max])
+                    else:
+                        heading = self._field(actor, "heading")
+                        if type(heading) not in (int, float) or isinstance(heading, bool):
+                            raise AbmRuntimeError("inherit_heading requires numeric parent heading")
                     variables["heading"] = heading
                     radians = math.radians(heading)
                     x, y = self._normalize_position(x + distance * math.sin(radians),
@@ -370,7 +423,12 @@ class AbmTickRuntime:
                 raise AbmRuntimeError("heading_step requires heading, positive integer turn bounds, and numeric distance")
             right = self._random(step["right_address"], actor["id"], "integer", [0, right_max])
             left = self._random(step["left_address"], actor["id"], "integer", [0, left_max])
-            heading = (heading + right - left) % 360
+            if type(heading) is int:
+                turned = _checked_i64(heading + right, "heading right turn")
+                turned = _checked_i64(turned - left, "heading left turn")
+            else:
+                turned = _checked_numeric(heading + right - left, "heading turn")
+            heading = turned % 360
             radians = math.radians(heading)
             x, y = self._normalize_position(actor["x"] + distance * math.sin(radians),
                                             actor["y"] + distance * math.cos(radians))
@@ -438,7 +496,9 @@ class AbmTickRuntime:
                 return condition["id"]
         return None
 
-    def _metrics(self) -> dict[str, Any]:
+    def _metrics(self, completed_ticks: int) -> dict[str, Any]:
+        self.tick = completed_ticks
+        self.phase = "metrics"
         state = self._state_copy()
         result = {}
         for metric in self.payload["metrics"]:
@@ -462,15 +522,20 @@ class AbmTickRuntime:
             if reducer == "count":
                 value = len(candidates)
             else:
-                values = [candidate["vars"].get(metric["field"]) for candidate in candidates]
+                values = [self._field(candidate, metric["field"]) for candidate in candidates]
                 if reducer == "value":
                     value = values[0] if values else None
                 elif not values:
                     value = 0 if reducer == "sum" else None
                 elif reducer == "sum":
-                    value = sum(values)
+                    value = 0
+                    for item in values:
+                        value = _checked_numeric(value + item, "metric sum")
                 elif reducer == "mean":
-                    value = sum(values) / len(values)
+                    total = 0
+                    for item in values:
+                        total = _checked_numeric(total + item, "metric mean sum")
+                    value = _checked_numeric(total / len(values), "metric mean")
                 elif reducer == "min":
                     value = min(values)
                 else:
@@ -498,6 +563,7 @@ class AbmTickRuntime:
                     self._event("stopped", stopped, {})
                     reason = f"condition:{stopped}"
                     break
+        metrics = self._metrics(completed)
         state = {
             "globals": copy.deepcopy(self.globals),
             "patches": [copy.deepcopy(self.patches[key]) for key in sorted(self.patches)],
@@ -505,7 +571,7 @@ class AbmTickRuntime:
         }
         return {"profile": ABM_PROFILE, "seed": self.seed, "ticks": completed,
                 "stop_reason": reason, "state": state, "events": copy.deepcopy(self.events),
-                "random_requests": copy.deepcopy(self.random_requests), "metrics": self._metrics()}
+                "random_requests": copy.deepcopy(self.random_requests), "metrics": metrics}
 
 
 def run_abm_plan(plan: AbmTickPlan | dict[str, Any], *, seed: int = 0) -> dict[str, Any]:
