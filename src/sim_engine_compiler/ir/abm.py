@@ -6,7 +6,7 @@ without importing model authoring code.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import copy
 import hashlib
 import json
@@ -140,8 +140,10 @@ def validate_expression(value: Any, path: str) -> None:
         if value["distribution"] == "uniform" and all(
             type(argument) in (int, float) and not isinstance(argument, bool)
             for argument in value["args"]
-        ) and value["args"][1] <= value["args"][0]:
-            _reject(f"{path}.args", "uniform requires increasing bounds", "unsupported_random")
+        ):
+            low, high = (float(argument) for argument in value["args"])
+            if not math.isfinite(low) or not math.isfinite(high) or high <= low:
+                _reject(f"{path}.args", "uniform requires representable increasing bounds", "unsupported_random")
         if value["distribution"] == "integer" and all(type(argument) is int for argument in value["args"]):
             low, high = value["args"]
             if high <= low or high - low > I64_MAX:
@@ -254,6 +256,8 @@ def validate_payload(payload: Any, *, layer: str) -> None:
         path = f"{layer}.initial_state.patches[{index}]"
         _object(patch, {"id", "x", "y", "vars"}, path)
         identity = _identifier(patch["id"], f"{path}.id")
+        if identity == "$global":
+            _reject(f"{path}.id", "reserved entity ID")
         if (identity in patch_ids or type(patch["x"]) is not int or type(patch["y"]) is not int
                 or not I64_MIN <= patch["x"] <= I64_MAX or not I64_MIN <= patch["y"] <= I64_MAX):
             _reject(path, "duplicate patch ID or non-integer coordinate")
@@ -272,8 +276,8 @@ def validate_payload(payload: Any, *, layer: str) -> None:
         path = f"{layer}.initial_state.agents[{index}]"
         _object(agent, {"id", "kind", "x", "y", "vars"}, path)
         identity = _identifier(agent["id"], f"{path}.id")
-        if identity in agent_ids:
-            _reject(path, "duplicate stable agent business ID")
+        if identity == "$global" or identity in patch_ids or identity in agent_ids:
+            _reject(path, "reserved or duplicate global entity business ID")
         _identifier(agent["kind"], f"{path}.kind")
         _number(agent["x"], f"{path}.x")
         _number(agent["y"], f"{path}.y")
@@ -310,8 +314,8 @@ def validate_payload(payload: Any, *, layer: str) -> None:
             _reject(f"{path}.operations", "phase operations required")
         for op_index, operation in enumerate(phase["operations"]):
             validate_operation(operation, f"{path}.operations[{op_index}]")
-            if phase["target"] == "patches" and operation["op"] in {"move", "death"}:
-                _reject(f"{path}.operations[{op_index}]", "patch phases cannot move or die")
+            if phase["target"] == "patches" and operation["op"] in {"move", "birth", "death"}:
+                _reject(f"{path}.operations[{op_index}]", "patch phases cannot move, birth, or die")
         phase_ids.add(identity)
 
     stop_ids: set[str] = set()
@@ -336,8 +340,9 @@ def validate_payload(payload: Any, *, layer: str) -> None:
         if metric["reducer"] == "value" and metric["source"] != "globals":
             _reject(path, "value reducer is only defined for globals")
         if metric["reducer"] == "expression":
-            if metric["field"] is not None or metric["where"] is not None:
-                _reject(path, "expression metric does not accept field or where")
+            if (metric["source"] != "globals" or metric["field"] is not None
+                    or metric["where"] is not None):
+                _reject(path, "expression metric requires globals source and no field or where")
             validate_expression(metric["expression"], f"{path}.expression")
         elif metric["expression"] is not None:
             _reject(f"{path}.expression", "expression only applies to expression reducer")
@@ -349,9 +354,15 @@ def validate_payload(payload: Any, *, layer: str) -> None:
 @dataclass(frozen=True)
 class _Envelope:
     payload: dict[str, Any]
+    _sealed_fingerprint: str = field(init=False, repr=False, compare=False)
 
     VERSION = ""
     LAYER = "artifact"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "_sealed_fingerprint", canonical_digest({
+            "version": self.VERSION, "payload": self.payload,
+        }))
 
     @classmethod
     def create(cls, payload: dict[str, Any]):
@@ -361,10 +372,13 @@ class _Envelope:
 
     @property
     def fingerprint(self) -> str:
-        return canonical_digest({"version": self.VERSION, "payload": self.payload})
+        return self._sealed_fingerprint
 
     def to_dict(self) -> dict[str, Any]:
         validate_payload(self.payload, layer=self.LAYER)
+        current = canonical_digest({"version": self.VERSION, "payload": self.payload})
+        if current != self.fingerprint:
+            _reject(f"{self.LAYER}.fingerprint", f"{self.LAYER} object mutated after sealing")
         return {"version": self.VERSION, "fingerprint": self.fingerprint, "payload": copy.deepcopy(self.payload)}
 
     @classmethod

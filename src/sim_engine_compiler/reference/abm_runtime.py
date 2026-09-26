@@ -33,6 +33,12 @@ def _checked_numeric(value: Any, context: str) -> Any:
     return value
 
 
+def _require_number(value: Any, context: str) -> int | float:
+    if type(value) not in (int, float) or isinstance(value, bool):
+        raise AbmRuntimeError(f"{context} requires finite numeric values")
+    return _checked_numeric(value, context)
+
+
 def _json_equal(left: Any, right: Any) -> bool:
     if left is None or right is None:
         return left is None and right is None
@@ -59,9 +65,15 @@ def _json_equal(left: Any, right: Any) -> bool:
     return False
 
 
+def _unit_from_digest(digest: bytes) -> float:
+    if len(digest) < 8:
+        raise AbmRuntimeError("random digest must contain at least eight bytes")
+    return (int.from_bytes(digest[:8], "big") >> 11) / 2**53
+
+
 class AbmTickRuntime:
     def __init__(self, plan: AbmTickPlan | dict[str, Any], *, seed: int = 0):
-        self.plan = plan if isinstance(plan, AbmTickPlan) else AbmTickPlan.from_dict(plan)
+        self.plan = AbmTickPlan.from_dict(plan.to_dict()) if isinstance(plan, AbmTickPlan) else AbmTickPlan.from_dict(plan)
         if type(seed) is not int or not I64_MIN <= seed <= I64_MAX:
             raise AbmRuntimeError("seed must be a signed 64-bit integer")
         self.seed = seed
@@ -70,6 +82,9 @@ class AbmTickRuntime:
         self.globals = initial["globals"]
         self.patches = {item["id"]: item for item in initial["patches"]}
         self.patch_at = {(item["x"], item["y"]): item["id"] for item in initial["patches"]}
+        for item in initial["agents"]:
+            item["x"] = float(item["x"])
+            item["y"] = float(item["y"])
         self.agents = {item["id"]: item for item in initial["agents"]}
         self.eligible_tick = {identity: 0 for identity in self.agents}
         self.events: list[dict[str, Any]] = []
@@ -142,15 +157,17 @@ class AbmTickRuntime:
         self._random_occurrences[key] = occurrence + 1
         identity = [self.seed, self.tick, self.phase, address, entity_id, occurrence]
         raw = hashlib.sha256(json.dumps(identity, ensure_ascii=False, separators=(",", ":")).encode()).digest()
-        unit = int.from_bytes(raw[:8], "big") / 2**64
+        unit = _unit_from_digest(raw)
         if distribution == "traversal_key":
             value = unit
         elif distribution == "uniform":
             if (len(args) != 2
-                    or not all(type(item) in (int, float) and not isinstance(item, bool) for item in args)
-                    or not args[1] > args[0]):
-                raise AbmRuntimeError("uniform requires increasing numeric bounds")
-            value = _checked_numeric(args[0] + (args[1] - args[0]) * unit, "uniform draw")
+                    or not all(type(item) in (int, float) and not isinstance(item, bool) for item in args)):
+                raise AbmRuntimeError("uniform requires representable increasing numeric bounds")
+            low, high = (float(item) for item in args)
+            if not math.isfinite(low) or not math.isfinite(high) or high <= low:
+                raise AbmRuntimeError("uniform requires representable increasing numeric bounds")
+            value = _checked_numeric(low + (high - low) * unit, "uniform draw")
         elif distribution == "integer":
             if (len(args) != 2 or not all(type(item) is int for item in args)
                     or args[1] <= args[0] or args[1] - args[0] > I64_MAX):
@@ -506,9 +523,10 @@ class AbmTickRuntime:
                 result[metric["id"]] = self._eval(metric["expression"], None, state)
                 continue
             if metric["source"] == "globals":
-                candidates = [{"id": "$global", "vars": state["globals"]}]
+                candidates = [None]
             else:
                 candidates = list(state[metric["source"]].values())
+                candidates.sort(key=lambda item: item["id"])
             if metric["where"] is not None:
                 selected = []
                 for candidate in candidates:
@@ -522,7 +540,12 @@ class AbmTickRuntime:
             if reducer == "count":
                 value = len(candidates)
             else:
-                values = [self._field(candidate, metric["field"]) for candidate in candidates]
+                if metric["source"] == "globals":
+                    if metric["field"] not in state["globals"]:
+                        raise AbmRuntimeError(f"unknown global {metric['field']!r}")
+                    values = [state["globals"][metric["field"]]]
+                else:
+                    values = [self._field(candidate, metric["field"]) for candidate in candidates]
                 if reducer == "value":
                     value = values[0] if values else None
                 elif not values:
@@ -530,16 +553,18 @@ class AbmTickRuntime:
                 elif reducer == "sum":
                     value = 0
                     for item in values:
+                        item = _require_number(item, "metric sum")
                         value = _checked_numeric(value + item, "metric sum")
                 elif reducer == "mean":
                     total = 0
                     for item in values:
+                        item = _require_number(item, "metric mean")
                         total = _checked_numeric(total + item, "metric mean sum")
                     value = _checked_numeric(total / len(values), "metric mean")
                 elif reducer == "min":
-                    value = min(values)
+                    value = min(_require_number(item, "metric min") for item in values)
                 else:
-                    value = max(values)
+                    value = max(_require_number(item, "metric max") for item in values)
             result[metric["id"]] = value
         return result
 
@@ -590,6 +615,8 @@ def run_abm_batch(plan: AbmTickPlan | dict[str, Any], requests: list[dict[str, i
         raise AbmRuntimeError("workers must be a positive integer")
     if not isinstance(requests, list):
         raise AbmRuntimeError("batch requests must be a list")
+    if not requests:
+        raise AbmRuntimeError("batch requests must not be empty")
     normalized = []
     seen = set()
     for index, request in enumerate(requests):

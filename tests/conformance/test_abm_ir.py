@@ -158,6 +158,44 @@ class AbmIrContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(CompilationError, message):
                     compile_model(spec)
 
+    def test_entity_ids_are_global_and_reserved_identity_is_rejected(self):
+        collision = base_spec()
+        collision["initial_state"]["agents"] = [
+            {"id": "patch:0:0", "kind": "agent", "x": 0.0, "y": 0.0, "vars": {}},
+        ]
+        reserved = base_spec()
+        reserved["initial_state"]["patches"][0]["id"] = "$global"
+
+        for invalid in (collision, reserved):
+            with self.assertRaises(CompilationError):
+                compile_model(invalid)
+
+    def test_patch_phase_birth_and_non_global_expression_metric_are_rejected(self):
+        patch_birth = base_spec()
+        patch_birth["phases"][0]["operations"] = [{
+            "op": "birth", "guard": None, "kind": "agent", "count": 1,
+            "vars": {}, "address": "birth", "child_move": None,
+        }]
+        bad_metric = base_spec()
+        bad_metric["metrics"] = [{
+            "id": "bad", "reducer": "expression", "source": "agents",
+            "field": None, "where": None, "expression": 1,
+        }]
+
+        for invalid in (patch_birth, bad_metric):
+            with self.assertRaises(CompilationError):
+                compile_model(invalid)
+
+    def test_uniform_bounds_must_remain_distinct_after_f64_conversion(self):
+        spec = base_spec()
+        spec["phases"][0]["operations"][0]["value"] = {
+            "op": "random", "distribution": "uniform", "address": "uniform.large",
+            "args": [2**53, 2**53 + 1],
+        }
+
+        with self.assertRaisesRegex(CompilationError, "representable increasing"):
+            compile_model(spec)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,7 +4,9 @@ import copy
 import unittest
 
 from sim_engine_compiler import compile_model, run_abm_batch, run_abm_plan
+from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.reference import AbmRuntimeError
+from sim_engine_compiler.reference.abm_runtime import _unit_from_digest
 
 from tests.conformance.test_abm_ir import base_spec, patch
 
@@ -407,6 +409,97 @@ class WolfSheepLifecycleTests(unittest.TestCase):
 
 
 class CrossBackendRuntimeGuardTests(unittest.TestCase):
+    def test_positions_are_canonical_floats_and_empty_batch_is_rejected(self):
+        spec = base_spec()
+        spec["initial_state"]["agents"] = [
+            {"id": "agent", "kind": "agent", "x": 0, "y": 0, "vars": {}},
+        ]
+        result = run_abm_plan(compile_model(spec).plan)
+        self.assertIs(type(result["state"]["agents"][0]["x"]), float)
+        self.assertIs(type(result["state"]["agents"][0]["y"]), float)
+        with self.assertRaisesRegex(AbmRuntimeError, "must not be empty"):
+            run_abm_batch(compile_model(spec).plan, [])
+
+    def test_global_metric_field_reads_real_global_not_synthetic_identity(self):
+        spec = base_spec()
+        spec["initial_state"]["globals"] = {"id": "business-global"}
+        spec["metrics"] = [{
+            "id": "global_id", "reducer": "value", "source": "globals", "field": "id",
+            "where": None, "expression": None,
+        }]
+        self.assertEqual(run_abm_plan(compile_model(spec).plan)["metrics"]["global_id"],
+                         "business-global")
+
+        missing = copy.deepcopy(spec)
+        missing["initial_state"]["globals"] = {}
+        with self.assertRaisesRegex(AbmRuntimeError, "unknown global"):
+            run_abm_plan(compile_model(missing).plan)
+
+    def test_rng_unit_mapping_is_strictly_below_one_at_u64_max(self):
+        self.assertEqual(_unit_from_digest(bytes(8)), 0.0)
+        self.assertLess(_unit_from_digest(bytes([255]) * 8), 1.0)
+
+    def test_mutated_plan_object_is_rejected_at_runtime_boundary(self):
+        plan = compile_model(base_spec()).plan
+        plan.payload["max_ticks"] = 2
+
+        with self.assertRaisesRegex(CompilationError, "mutated after sealing"):
+            run_abm_plan(plan)
+
+    def test_metric_random_predicate_is_stable_under_input_reordering(self):
+        spec = base_spec()
+        agents = [
+            {"id": "b", "kind": "agent", "x": 0.0, "y": 0.0, "vars": {"value": 1}},
+            {"id": "a", "kind": "agent", "x": 0.0, "y": 0.0, "vars": {"value": 2}},
+        ]
+        spec["initial_state"]["agents"] = agents
+        spec["metrics"] = [{
+            "id": "selected", "reducer": "count", "source": "agents", "field": None,
+            "where": {"op": "random", "distribution": "bernoulli",
+                      "address": "metric.where", "args": [0.5]}, "expression": None,
+        }]
+        reordered = copy.deepcopy(spec)
+        reordered["initial_state"]["agents"] = list(reversed(agents))
+
+        left = run_abm_plan(compile_model(spec).plan, seed=7)
+        right = run_abm_plan(compile_model(reordered).plan, seed=7)
+
+        self.assertEqual(left, right)
+        self.assertEqual([item["entity_id"] for item in left["random_requests"]], ["a", "b"])
+
+    def test_numeric_metric_reducers_reject_non_numeric_values(self):
+        spec = base_spec()
+        spec["initial_state"]["patches"][0]["vars"]["label"] = "tree"
+        spec["metrics"] = [{
+            "id": "bad_min", "reducer": "min", "source": "patches", "field": "label",
+            "where": None, "expression": None,
+        }]
+
+        with self.assertRaisesRegex(AbmRuntimeError, "finite numeric"):
+            run_abm_plan(compile_model(spec).plan)
+
+    def test_ordering_is_mathematically_exact_for_i64_and_mixed_numeric_types(self):
+        exact = base_spec()
+        cases = {
+            "large_exact": binary(">", 9_007_199_254_740_993, float(9_007_199_254_740_993)),
+            "positive_fraction": binary(">", 2, 1.5),
+            "negative_fraction": binary("<", -2, -1.5),
+            "i64_upper_rounding": binary(">", 2**63 - 1, float(2**63 - 1)),
+            "i64_lower_exact": binary("<", -(2**63), float(-(2**63))),
+        }
+        exact["phases"][0]["operations"] = [
+            {"op": "set", "guard": None, "target": "globals", "field": field, "value": value}
+            for field, value in cases.items()
+        ]
+        result = run_abm_plan(compile_model(exact).plan)["state"]["globals"]
+        self.assertEqual(result, {
+            "large_exact": True,
+            "positive_fraction": True,
+            "negative_fraction": True,
+            "i64_upper_rounding": False,
+            "i64_lower_exact": False,
+        })
+
     def test_random_count_predicate_is_stable_under_initial_agent_reordering(self):
         spec = base_spec()
         agents = [
