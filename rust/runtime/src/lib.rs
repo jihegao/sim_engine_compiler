@@ -11,7 +11,7 @@ pub use batch::{
     BatchResult, BatchSampleResult, IndexedBatchSampleFailure, IndexedBatchSampleResult,
     IndexedPlanBatchResult, IndexedSampleRequest, PlanBatchGroup, run_batch, run_batch_from_slice,
     run_batch_from_slice_with_observation, run_batch_with_dispatch, run_batch_with_observation,
-    run_indexed_plan_batch_with_observation,
+    run_indexed_plan_batch_with_observation, run_prepared_batch,
 };
 pub use cache::{
     CachedExecutionPlan, PLAN_CACHE_FORMAT_VERSION, decode_plan_cache,
@@ -19,6 +19,6 @@ pub use cache::{
     is_plan_cache,
 };
 pub use plan::ExecutionPlan;
-pub use runtime::{ObservationLevel, RunResult, Runtime, RuntimeProfile};
+pub use runtime::{ObservationLevel, PreparedBatchPlan, RunResult, Runtime, RuntimeProfile};
 
 pub const RUNTIME_VERSION: &str = env!("CARGO_PKG_VERSION");
