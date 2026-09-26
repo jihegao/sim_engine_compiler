@@ -49,6 +49,9 @@ checks exact sample output hashes.
 After applying the patches to separate checkouts and building their CLI
 binaries, `run_diagnostic.py` records the phase counters, patch/binary hashes,
 and identical full results for 32/256 samples at one thread.
+`run_hot.py` drives the uninstrumented `prepared_batch_benchmark` across the
+same F35 batch sizes and worker counts; its reports retain six paired calls,
+one-time preparation, serialization and whole-process peak RSS.
 
 ## Reproduction on AMD128
 
