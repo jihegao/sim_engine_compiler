@@ -1,0 +1,84 @@
+{
+  "roots": {
+    "baseline": "/home/g/apps/sim-engine-batch-prep-20260926-baseline",
+    "candidate": "/home/g/apps/sim-engine-batch-prep-20260926-candidate"
+  },
+  "plan_scope": "new process, Plan-file load; one per-configuration warmup; OS page cache not flushed; no canonical compile",
+  "cases": [
+    "synthetic-capacity-16",
+    "synthetic-remote-16",
+    "shared-remote-pools"
+  ],
+  "arms": [
+    "scan",
+    "cache",
+    "candidates"
+  ],
+  "levels": [
+    "summary",
+    "full"
+  ],
+  "counts": [
+    1,
+    32,
+    256
+  ],
+  "threads": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "repeats": 6,
+  "run_order": "paired baseline/candidate, reversed on odd repeats",
+  "platform": "Linux-6.8.0-124-generic-x86_64-with-glibc2.35",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "cpu_topology": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           43 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  128\nOn-line CPU(s) list:                     0-127\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen Threadripper PRO 3995WX 64-Cores\nCPU family:                              23\nModel:                                   49\nThread(s) per core:                      2\nCore(s) per socket:                      64\nSocket(s):                               1\nStepping:                                0\nFrequency boost:                         enabled\nCPU max MHz:                             4308.3979\nCPU min MHz:                             2200.0000\nBogoMIPS:                                5389.42\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd amd_ppin arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sev sev_es ibpb_exit_to_user\nVirtualization:                          AMD-V\nL1d cache:                               2 MiB (64 instances)\nL1i cache:                               2 MiB (64 instances)\nL2 cache:                                32 MiB (64 instances)\nL3 cache:                                256 MiB (16 instances)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-127\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; untrained return thunk; SMT enabled with STIBP protection\nVulnerability Spec rstack overflow:      Mitigation; Safe RET\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "artifacts": {
+    "baseline": {
+      "commit": "e9b6391fffd918e0f6e742bd1ef0e1312921b769",
+      "binary_sha256": "8cb8388037c4a031dc51e0f430717206438c7cd73e67dd5f2a0650e2bd13826f",
+      "plans": {
+        "synthetic-capacity-16/scan": "a675aafb0865f92b5a8ee3c5c5b0a13edd506dbba219a93df5db057cc9c662da",
+        "synthetic-capacity-16/cache": "176e93cf3aadb669e28e53c41792966bc2104883e78e04aa8ca499618657b401",
+        "synthetic-remote-16/scan": "e0810d92b6d5c83353d0296d29c15b274b4ecddcaec870bdcf7b20cf8d1efdaf",
+        "synthetic-remote-16/cache": "155fa0518ff90f33f00bccbd7b9ca8951b8d6a4f64d4903d80ae7f7fab102adf",
+        "shared-remote-pools/scan": "cc5174d4177017399c37cd331ea0939620a15eb909aa8eef2f62dabd17c0904e",
+        "shared-remote-pools/cache": "6fcd035d4b4773c2d9751c0ed71fbd26b9f4979561c36310fd7d1ede1a4bfd35"
+      },
+      "inputs": {
+        "synthetic-capacity-16": "9a87bf99d0cdb5b52bd0d05ae84851825bbb32ff04d8c5f72592e6f48eaabc7c",
+        "synthetic-remote-16": "334422b2402e592e1a41f52806c0d6e50d42e1557ce8570b36bf8f547e5c060b",
+        "shared-remote-pools": "bb8f489073bd5db622c2663bec259f30da194c25e4a63f0c0e1d9c3e1f03d8f9"
+      }
+    },
+    "candidate": {
+      "commit": "d4c18e8a5fdd3be46e9862bcd0df1eb1cf29eaaa",
+      "binary_sha256": "9c6a8800ef0f0b5f4c801235d52e7bb0a101d1b528eea512f6b0f61d3f04a03b",
+      "plans": {
+        "synthetic-capacity-16/scan": "a675aafb0865f92b5a8ee3c5c5b0a13edd506dbba219a93df5db057cc9c662da",
+        "synthetic-capacity-16/cache": "176e93cf3aadb669e28e53c41792966bc2104883e78e04aa8ca499618657b401",
+        "synthetic-remote-16/scan": "e0810d92b6d5c83353d0296d29c15b274b4ecddcaec870bdcf7b20cf8d1efdaf",
+        "synthetic-remote-16/cache": "155fa0518ff90f33f00bccbd7b9ca8951b8d6a4f64d4903d80ae7f7fab102adf",
+        "shared-remote-pools/scan": "cc5174d4177017399c37cd331ea0939620a15eb909aa8eef2f62dabd17c0904e",
+        "shared-remote-pools/cache": "6fcd035d4b4773c2d9751c0ed71fbd26b9f4979561c36310fd7d1ede1a4bfd35"
+      },
+      "inputs": {
+        "synthetic-capacity-16": "9a87bf99d0cdb5b52bd0d05ae84851825bbb32ff04d8c5f72592e6f48eaabc7c",
+        "synthetic-remote-16": "334422b2402e592e1a41f52806c0d6e50d42e1557ce8570b36bf8f547e5c060b",
+        "shared-remote-pools": "bb8f489073bd5db622c2663bec259f30da194c25e4a63f0c0e1d9c3e1f03d8f9"
+      }
+    }
+  },
+  "load_before": [
+    2.181640625,
+    2.6220703125,
+    2.26611328125
+  ],
+  "load_after": [
+    1.8359375,
+    2.0654296875,
+    2.1142578125
+  ]
+}

@@ -4,7 +4,7 @@ use anyhow::{Result, bail};
 use rayon::prelude::*;
 use serde::Serialize;
 
-use crate::runtime::PreparedRuntimePlan;
+use crate::runtime::PreparedBatchPlan;
 use crate::{ExecutionPlan, ObservationLevel, RunResult, Runtime};
 
 #[derive(Debug, Serialize)]
@@ -89,15 +89,14 @@ pub fn run_batch_from_slice_with_observation(
     until: Option<i64>,
     observation_level: ObservationLevel,
 ) -> Result<BatchResult> {
-    let (plan, raw) = ExecutionPlan::from_slice(plan_bytes)?;
-    let fingerprint = ExecutionPlan::fingerprint(&raw)?;
-    run_batch_with_observation(
-        Arc::new(plan),
-        fingerprint,
+    let prepared = Arc::new(PreparedBatchPlan::from_slice(plan_bytes)?);
+    run_prepared_batch(
+        prepared,
         seeds,
         worker_threads,
         until,
         observation_level,
+        false,
     )
 }
 
@@ -152,8 +151,38 @@ pub fn run_batch_with_dispatch(
     if worker_threads == Some(0) {
         bail!("worker_threads must be greater than zero");
     }
-    plan.validate()?;
-    let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
+    let prepared = Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
+        plan,
+        fingerprint,
+    )?);
+    run_prepared_batch(
+        prepared,
+        seeds,
+        worker_threads,
+        until,
+        observation_level,
+        dependency_dispatch,
+    )
+}
+
+/// Run another batch against the same validated, immutable prepared Plan.
+pub fn run_prepared_batch(
+    prepared: Arc<PreparedBatchPlan>,
+    seeds: &[u64],
+    worker_threads: Option<usize>,
+    until: Option<i64>,
+    observation_level: ObservationLevel,
+    dependency_dispatch: bool,
+) -> Result<BatchResult> {
+    if seeds.is_empty() {
+        bail!("batch request must contain at least one seed");
+    }
+    if worker_threads == Some(0) {
+        bail!("worker_threads must be greater than zero");
+    }
+    if dependency_dispatch {
+        prepared.ensure_dependency_dispatch_supported()?;
+    }
 
     let available = thread::available_parallelism()
         .map(NonZeroUsize::get)
@@ -169,14 +198,12 @@ pub fn run_batch_with_dispatch(
             .par_iter()
             .enumerate()
             .map(|(sample_index, seed)| {
-                let result = Runtime::from_shared_prepared_with_observation(
-                    plan.clone(),
+                let result = Runtime::from_prepared_with_observation(
                     prepared.clone(),
-                    fingerprint.clone(),
                     *seed,
                     observation_level,
                 )?
-                .with_dependency_dispatch(dependency_dispatch)?
+                .with_validated_dependency_dispatch(dependency_dispatch)
                 .run(until)?;
                 Ok(BatchSampleResult {
                     sample_index,
@@ -191,7 +218,7 @@ pub fn run_batch_with_dispatch(
     samples.sort_by_key(|sample| sample.sample_index);
 
     Ok(BatchResult {
-        plan_fingerprint: fingerprint,
+        plan_fingerprint: prepared.fingerprint().to_owned(),
         sample_count: samples.len(),
         worker_threads,
         until,
@@ -230,7 +257,6 @@ pub fn run_indexed_plan_batch_with_observation(
         if group.samples.is_empty() {
             bail!("plan group {} contains no samples", group.group_index);
         }
-        group.plan.validate()?;
         for sample in &group.samples {
             if !sample_indexes.insert(sample.sample_index) {
                 bail!("duplicate sample_index {}", sample.sample_index);
@@ -240,30 +266,29 @@ pub fn run_indexed_plan_batch_with_observation(
 
     struct PreparedGroup {
         group_index: usize,
-        plan: Arc<ExecutionPlan>,
-        prepared: Arc<PreparedRuntimePlan>,
-        plan_fingerprint: String,
+        prepared: Arc<PreparedBatchPlan>,
         samples: Vec<IndexedSampleRequest>,
     }
 
     let prepare_started = Instant::now();
     let prepared_groups = groups
         .into_iter()
-        .map(|group| PreparedGroup {
-            group_index: group.group_index,
-            prepared: Arc::new(PreparedRuntimePlan::from_plan(&group.plan)),
-            plan: group.plan,
-            plan_fingerprint: group.plan_fingerprint,
-            samples: group.samples,
+        .map(|group| -> Result<PreparedGroup> {
+            Ok(PreparedGroup {
+                group_index: group.group_index,
+                prepared: Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
+                    group.plan,
+                    group.plan_fingerprint,
+                )?),
+                samples: group.samples,
+            })
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
     let prepare_ns = elapsed_ns(prepare_started);
 
     struct WorkItem {
         group_index: usize,
-        plan: Arc<ExecutionPlan>,
-        prepared: Arc<PreparedRuntimePlan>,
-        plan_fingerprint: String,
+        prepared: Arc<PreparedBatchPlan>,
         sample: IndexedSampleRequest,
     }
 
@@ -272,9 +297,7 @@ pub fn run_indexed_plan_batch_with_observation(
         .flat_map(|group| {
             group.samples.into_iter().map(move |sample| WorkItem {
                 group_index: group.group_index,
-                plan: group.plan.clone(),
                 prepared: group.prepared.clone(),
-                plan_fingerprint: group.plan_fingerprint.clone(),
                 sample,
             })
         })
@@ -298,10 +321,8 @@ pub fn run_indexed_plan_batch_with_observation(
     let outcomes = pool.install(|| {
         work.par_iter()
             .map(|item| {
-                let run = Runtime::from_shared_prepared_with_observation(
-                    item.plan.clone(),
+                let run = Runtime::from_prepared_with_observation(
                     item.prepared.clone(),
-                    item.plan_fingerprint.clone(),
                     item.sample.seed,
                     observation_level,
                 )
@@ -344,4 +365,189 @@ pub fn run_indexed_plan_batch_with_observation(
         samples,
         failed_samples,
     })
+}
+
+#[cfg(test)]
+mod prepared_batch_tests {
+    use super::*;
+
+    const INDEXED_PLAN: &[u8] = include_bytes!(
+        "../../../benchmarks/dependency_dispatch/results/macos-arm64-20260925/synthetic-capacity-16/event-time-v2/indexed-plan.json"
+    );
+
+    #[test]
+    fn public_prepared_handle_derives_identity_from_its_plan() {
+        let (plan, raw) = ExecutionPlan::from_slice(INDEXED_PLAN).unwrap();
+        let expected = ExecutionPlan::fingerprint(&serde_json::to_value(&plan).unwrap()).unwrap();
+        let prepared = PreparedBatchPlan::from_plan(Arc::new(plan)).unwrap();
+        assert_eq!(prepared.fingerprint(), expected);
+
+        // Byte loading keeps the existing fingerprint of the original JSON,
+        // including fields that the public ExecutionPlan does not represent.
+        let mut raw_with_extra = raw;
+        raw_with_extra["ignored_extension"] = true.into();
+        let bytes_with_extra = serde_json::to_vec(&raw_with_extra).unwrap();
+        let from_slice = PreparedBatchPlan::from_slice(&bytes_with_extra).unwrap();
+        assert_eq!(
+            from_slice.fingerprint(),
+            ExecutionPlan::fingerprint(&raw_with_extra).unwrap()
+        );
+        assert_ne!(from_slice.fingerprint(), prepared.fingerprint());
+    }
+
+    #[test]
+    fn reused_prepared_plan_preserves_results_and_duplicate_seed_order() {
+        let prepared = Arc::new(PreparedBatchPlan::from_slice(INDEXED_PLAN).unwrap());
+        let seeds = [7, 7, 0, 1];
+        for observation in [ObservationLevel::Full, ObservationLevel::Summary] {
+            for dependency_dispatch in [false, true] {
+                let serial = run_prepared_batch(
+                    prepared.clone(),
+                    &seeds,
+                    Some(1),
+                    None,
+                    observation,
+                    dependency_dispatch,
+                )
+                .unwrap();
+                let parallel = run_prepared_batch(
+                    prepared.clone(),
+                    &seeds,
+                    Some(4),
+                    None,
+                    observation,
+                    dependency_dispatch,
+                )
+                .unwrap();
+                let old_entry = run_batch_with_dispatch(
+                    Arc::new(ExecutionPlan::from_slice(INDEXED_PLAN).unwrap().0),
+                    prepared.fingerprint().to_owned(),
+                    &seeds,
+                    Some(4),
+                    None,
+                    observation,
+                    dependency_dispatch,
+                )
+                .unwrap();
+                assert_eq!(
+                    serde_json::to_value(&serial.samples).unwrap(),
+                    serde_json::to_value(&parallel.samples).unwrap()
+                );
+                assert_eq!(
+                    serde_json::to_value(&parallel.samples).unwrap(),
+                    serde_json::to_value(&old_entry.samples).unwrap()
+                );
+                assert_eq!(
+                    parallel
+                        .samples
+                        .iter()
+                        .map(|sample| sample.sample_index)
+                        .collect::<Vec<_>>(),
+                    vec![0, 1, 2, 3]
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn prepared_entry_rejects_invalid_plan_and_index_before_running() {
+        let mut raw: serde_json::Value = serde_json::from_slice(INDEXED_PLAN).unwrap();
+        raw["resource_dispatch_index"]["checksum"] = "invalid".into();
+        let corrupt_index = serde_json::to_vec(&raw).unwrap();
+        assert!(PreparedBatchPlan::from_slice(&corrupt_index).is_err());
+        let plan: ExecutionPlan = serde_json::from_slice(&corrupt_index).unwrap();
+        assert!(PreparedBatchPlan::from_plan(Arc::new(plan)).is_err());
+
+        let mut raw: serde_json::Value = serde_json::from_slice(INDEXED_PLAN).unwrap();
+        raw["activities"][0]["resource_node_index"] = usize::MAX.into();
+        raw.as_object_mut()
+            .unwrap()
+            .remove("resource_dispatch_index");
+        assert!(PreparedBatchPlan::from_slice(&serde_json::to_vec(&raw).unwrap()).is_err());
+
+        let mut raw: serde_json::Value = serde_json::from_slice(INDEXED_PLAN).unwrap();
+        raw.as_object_mut()
+            .unwrap()
+            .remove("resource_dispatch_index");
+        let prepared =
+            Arc::new(PreparedBatchPlan::from_slice(&serde_json::to_vec(&raw).unwrap()).unwrap());
+        assert!(
+            run_prepared_batch(
+                prepared,
+                &[0],
+                Some(1),
+                None,
+                ObservationLevel::Summary,
+                true
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn indexed_groups_prepare_each_plan_and_keep_global_sample_indexes() {
+        let plan = Arc::new(ExecutionPlan::from_slice(INDEXED_PLAN).unwrap().0);
+        let fingerprint = PreparedBatchPlan::from_slice(INDEXED_PLAN)
+            .unwrap()
+            .fingerprint()
+            .to_owned();
+        let groups = vec![
+            PlanBatchGroup {
+                group_index: 4,
+                plan: plan.clone(),
+                plan_fingerprint: fingerprint.clone(),
+                samples: vec![IndexedSampleRequest {
+                    sample_index: 8,
+                    seed: 7,
+                }],
+            },
+            PlanBatchGroup {
+                group_index: 9,
+                plan: plan.clone(),
+                plan_fingerprint: fingerprint.clone(),
+                samples: vec![
+                    IndexedSampleRequest {
+                        sample_index: 2,
+                        seed: 0,
+                    },
+                    IndexedSampleRequest {
+                        sample_index: 5,
+                        seed: 7,
+                    },
+                ],
+            },
+        ];
+        let indexed = run_indexed_plan_batch_with_observation(
+            groups,
+            Some(3),
+            None,
+            ObservationLevel::Summary,
+        )
+        .unwrap();
+        assert!(indexed.failed_samples.is_empty());
+        assert_eq!(indexed.sample_count, 3);
+        assert_eq!(
+            indexed
+                .samples
+                .iter()
+                .map(|sample| (sample.group_index, sample.sample_index, sample.seed))
+                .collect::<Vec<_>>(),
+            vec![(9, 2, 0), (9, 5, 7), (4, 8, 7)]
+        );
+        let expected = run_prepared_batch(
+            Arc::new(PreparedBatchPlan::from_plan(plan).unwrap()),
+            &[0, 7, 7],
+            Some(1),
+            None,
+            ObservationLevel::Summary,
+            false,
+        )
+        .unwrap();
+        for (actual, reference) in indexed.samples.iter().zip(expected.samples.iter()) {
+            assert_eq!(
+                serde_json::to_value(&actual.result).unwrap(),
+                serde_json::to_value(&reference.result).unwrap()
+            );
+        }
+    }
 }

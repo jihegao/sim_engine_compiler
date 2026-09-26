@@ -1,0 +1,363 @@
+{
+  "plan_version": "aircraft-support-plan/v1alpha2",
+  "domain": "aircraft-support",
+  "semantic_profile": "event-time-v2",
+  "work_policy": "stable-topological-serial",
+  "rng_profile": "legacy-sequential-v1",
+  "source_inputs_sha256": "654cb0feb58b2d08b366c6b924c30450816727a3079015fc9f4953de0a898df9",
+  "duration_minutes": 10,
+  "natural_completion_enabled": false,
+  "phases": [
+    "transport_arrivals",
+    "mission_returns",
+    "job_progress_and_completions",
+    "failures",
+    "operations_postflight_before_preparation",
+    "preventive_generation",
+    "preflight_generation",
+    "resource_dispatch",
+    "mission_dispatch",
+    "operations_postflight_after_dispatch",
+    "mission_success",
+    "daily_readiness",
+    "operational_availability",
+    "downtime",
+    "stop"
+  ],
+  "aircraft": [
+    {
+      "index": 0,
+      "tail_number": "F35-01",
+      "aircraft_type": "F35",
+      "model": "F35",
+      "initial_state": "available",
+      "airport": "",
+      "airport_id": "",
+      "initial_calendar_days": 1,
+      "initial_flight_hours": 2.0,
+      "initial_cycles": 3
+    },
+    {
+      "index": 1,
+      "tail_number": "F35-02",
+      "aircraft_type": "F35",
+      "model": "F35",
+      "initial_state": "available",
+      "airport": "",
+      "airport_id": "",
+      "initial_calendar_days": 1,
+      "initial_flight_hours": 2.0,
+      "initial_cycles": 3
+    }
+  ],
+  "missions": [],
+  "activities": [
+    {
+      "index": 0,
+      "activity_id": "preventive-F35-01",
+      "name": "Calendar inspection",
+      "phase": "",
+      "plan_group_id": "",
+      "aircraft_model": "F35",
+      "resource_node_index": 0,
+      "priority": 1,
+      "kind": "preventive",
+      "equipment_component_index": 0,
+      "maintenance_methods": [
+        "non_replacement"
+      ],
+      "replacement_ratio": 0.0,
+      "steps": [
+        {
+          "index": 0,
+          "code": "PM-1",
+          "duration_minutes": 2,
+          "personnel": 1,
+          "equipment": 1,
+          "spares": [],
+          "predecessors": [],
+          "source_path": "support_activities.activities[0].jobs[0]"
+        }
+      ],
+      "source_path": "support_activities.activities[0]"
+    },
+    {
+      "index": 1,
+      "activity_id": "preventive-F35-02",
+      "name": "Calendar inspection",
+      "phase": "",
+      "plan_group_id": "",
+      "aircraft_model": "F35",
+      "resource_node_index": 1,
+      "priority": 1,
+      "kind": "preventive",
+      "equipment_component_index": 0,
+      "maintenance_methods": [
+        "non_replacement"
+      ],
+      "replacement_ratio": 0.0,
+      "steps": [
+        {
+          "index": 0,
+          "code": "PM-1",
+          "duration_minutes": 2,
+          "personnel": 1,
+          "equipment": 1,
+          "spares": [],
+          "predecessors": [],
+          "source_path": "support_activities.activities[1].jobs[0]"
+        }
+      ],
+      "source_path": "support_activities.activities[1]"
+    }
+  ],
+  "resource_nodes": [
+    {
+      "index": 0,
+      "node_id": "line-0",
+      "personnel_capacity": 0,
+      "equipment_capacity": 0,
+      "inventory": [],
+      "organization_node_id": "line-0",
+      "source_path": "support_network.nodes[0]"
+    },
+    {
+      "index": 1,
+      "node_id": "line-1",
+      "personnel_capacity": 0,
+      "equipment_capacity": 0,
+      "inventory": [],
+      "organization_node_id": "line-1",
+      "source_path": "support_network.nodes[1]"
+    },
+    {
+      "index": 2,
+      "node_id": "personnel-pool",
+      "personnel_capacity": 1,
+      "equipment_capacity": 0,
+      "inventory": [],
+      "organization_node_id": "personnel-pool",
+      "source_path": "support_network.nodes[2]"
+    },
+    {
+      "index": 3,
+      "node_id": "equipment-pool",
+      "personnel_capacity": 0,
+      "equipment_capacity": 1,
+      "inventory": [],
+      "organization_node_id": "equipment-pool",
+      "source_path": "support_network.nodes[3]"
+    }
+  ],
+  "components": [
+    {
+      "index": 0,
+      "component_id": "f35",
+      "name": "F35",
+      "parent_index": -1,
+      "aircraft_indexes": [
+        0,
+        1
+      ],
+      "product_id": "",
+      "product_type": "",
+      "quantity": 1,
+      "failure_rate_per_hour": 0.0,
+      "failure_threshold": 1,
+      "repair_activity_index": -1,
+      "repair_duration_minutes": 0,
+      "source_path": "equipment_tree.components[0]"
+    }
+  ],
+  "preventive_cycles": [
+    {
+      "index": 0,
+      "aircraft_index": 0,
+      "activity_index": 0,
+      "calendar_days": 1,
+      "flight_hours": 5.0,
+      "landing_cycles": 0,
+      "initial_calendar_days": 1,
+      "initial_flight_hours": 2.0,
+      "initial_landing_cycles": 3,
+      "source_path": "aircraft.assets[0].preventive_cycles[0]"
+    },
+    {
+      "index": 1,
+      "aircraft_index": 1,
+      "activity_index": 1,
+      "calendar_days": 1,
+      "flight_hours": 5.0,
+      "landing_cycles": 0,
+      "initial_calendar_days": 1,
+      "initial_flight_hours": 2.0,
+      "initial_landing_cycles": 3,
+      "source_path": "aircraft.assets[1].preventive_cycles[0]"
+    }
+  ],
+  "supply_routes": [
+    {
+      "index": 0,
+      "route_id": "personnel-line-0",
+      "source_node_index": 2,
+      "destination_node_index": 0,
+      "product_id": "personnel",
+      "capacity": 1,
+      "transport_minutes": 1,
+      "supply_mode": "vertical",
+      "relation_id": "",
+      "source_path": "support_network.organization_graph.transport_policies[0]"
+    },
+    {
+      "index": 1,
+      "route_id": "equipment-line-0",
+      "source_node_index": 3,
+      "destination_node_index": 0,
+      "product_id": "equipment",
+      "capacity": 1,
+      "transport_minutes": 1,
+      "supply_mode": "vertical",
+      "relation_id": "",
+      "source_path": "support_network.organization_graph.transport_policies[1]"
+    },
+    {
+      "index": 2,
+      "route_id": "personnel-line-1",
+      "source_node_index": 2,
+      "destination_node_index": 1,
+      "product_id": "personnel",
+      "capacity": 1,
+      "transport_minutes": 1,
+      "supply_mode": "vertical",
+      "relation_id": "",
+      "source_path": "support_network.organization_graph.transport_policies[2]"
+    },
+    {
+      "index": 3,
+      "route_id": "equipment-line-1",
+      "source_node_index": 3,
+      "destination_node_index": 1,
+      "product_id": "equipment",
+      "capacity": 1,
+      "transport_minutes": 1,
+      "supply_mode": "vertical",
+      "relation_id": "",
+      "source_path": "support_network.organization_graph.transport_policies[3]"
+    }
+  ],
+  "unsupported_features": [],
+  "resource_dispatch_index": {
+    "base_plan_fingerprint": "be13b205590507a5136b16319c1dd00708dabc64e288ca9b3bc0fb9184d7002b",
+    "candidate_rule_count": 8,
+    "dependencies": [
+      {
+        "candidates": [
+          {
+            "activity_id": "preventive-F35-01",
+            "activity_index": 0,
+            "source_path": "support_activities.activities[0].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          }
+        ],
+        "key": {
+          "kind": "equipment_capacity",
+          "node_index": 0
+        }
+      },
+      {
+        "candidates": [
+          {
+            "activity_id": "preventive-F35-02",
+            "activity_index": 1,
+            "source_path": "support_activities.activities[1].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          }
+        ],
+        "key": {
+          "kind": "equipment_capacity",
+          "node_index": 1
+        }
+      },
+      {
+        "candidates": [
+          {
+            "activity_id": "preventive-F35-01",
+            "activity_index": 0,
+            "source_path": "support_activities.activities[0].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          },
+          {
+            "activity_id": "preventive-F35-02",
+            "activity_index": 1,
+            "source_path": "support_activities.activities[1].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          }
+        ],
+        "key": {
+          "kind": "equipment_capacity",
+          "node_index": 3
+        }
+      },
+      {
+        "candidates": [
+          {
+            "activity_id": "preventive-F35-01",
+            "activity_index": 0,
+            "source_path": "support_activities.activities[0].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          }
+        ],
+        "key": {
+          "kind": "personnel_capacity",
+          "node_index": 0
+        }
+      },
+      {
+        "candidates": [
+          {
+            "activity_id": "preventive-F35-02",
+            "activity_index": 1,
+            "source_path": "support_activities.activities[1].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          }
+        ],
+        "key": {
+          "kind": "personnel_capacity",
+          "node_index": 1
+        }
+      },
+      {
+        "candidates": [
+          {
+            "activity_id": "preventive-F35-01",
+            "activity_index": 0,
+            "source_path": "support_activities.activities[0].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          },
+          {
+            "activity_id": "preventive-F35-02",
+            "activity_index": 1,
+            "source_path": "support_activities.activities[1].jobs[0]",
+            "step_code": "PM-1",
+            "step_index": 0
+          }
+        ],
+        "key": {
+          "kind": "personnel_capacity",
+          "node_index": 2
+        }
+      }
+    ],
+    "mlir_version": "23.1.1",
+    "pass_name": "sim-build-resource-dependency-index",
+    "schema_version": "resource-dispatch-index/v2",
+    "checksum": "d59305ad8e08fea83f1e1edf178ab85647844d186da98925e5d18a72244300f9"
+  }
+}
