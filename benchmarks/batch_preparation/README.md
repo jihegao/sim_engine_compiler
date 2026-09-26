@@ -38,7 +38,9 @@ Use their results for attribution, not timing comparisons with the unpatched
 binaries. The baseline patch counts batch validation/static preparation and
 sample validation/static preparation/total initialization. The candidate patch
 counts one preparation validation/static build and sample initialization.
-Compile, loading, serialization, and write times come from the uninstrumented
+Both patches also split JSON Plan read, parse, validation, and fingerprint in
+the CLI loader; this diagnostic branch applies to Plan JSON rather than binary
+Plan caches. Compile, serialization, and write times come from the uninstrumented
 Stage C report. The hot benchmark compares repeated public calls with repeated
 calls against one `PreparedBatchPlan` in the candidate binary; each pair
 checks exact sample output hashes.
