@@ -165,26 +165,49 @@ Stage C runs its phases sequentially
 with cache effects, so phase values should not be added to recreate the
 separate end-to-end pass.
 
-## Reused prepared handle
+## Reused prepared handle: corrected serialization boundary
 
-The [hot Rust benchmark](hot/records.json) holds one validated J35 indexed
-Plan in a process and runs six paired public-batch and prepared-handle calls
-per configuration, with identical sample hashes. One-time preparation takes
-8.5–8.7 ms. At 256 samples the 1/2/4/8-thread paired median `run_ns`
-gains are +0.004%, -0.136%, +0.894% and +1.219% (respectively 3/6, 2/6,
-4/6 and 4/6 positive pairs); process peak RSS is about 2.98–3.00 GiB.
-At 32 samples the gains range from +0.35% to +4.39%, but do not persist at
-256 samples. A single-sample call improves by about 11.6%, consistent with
-the fixed 8.6 ms preparation being a large part of an approximately 82 ms
-public call. The hot `run_ns` boundary excludes output serialization; these
-figures are separate from the cold CLI end-to-end ratios.
+The [v2 hot records](hot-v2/records.json) were rerun on AMD128 from
+`6b8a6b7fcf4c7f43df20b4d137b31b97f5fe64d8`, with benchmark binary SHA-256
+`d9ab88001949e4dcc89fb55213e9dbd3ab15ae53d94e3331039b303d6df8c8fd`.
+The same frozen J35 indexed Plan and `rustc 1.98.1` were used; the
+[identity](hot-v2/identity.json) and [environment](hot-v2/environment.json)
+record the source, toolchain, command and Plan hash. All nine configurations
+(1 sample at one thread, and 32/256 samples at 1/2/4/8 threads) warmed once
+and then ran six alternating public/prepared pairs: 108 measured rows.
+Every sample hash and complete-output byte count matches the historical run.
+The [summary](hot-v2/summary.json) retains the per-cell medians and paired gains.
 
-The subsequent PR review tightened the new public `PreparedBatchPlan::from_plan`
-constructor so it derives the fingerprint from its in-memory Plan. The hot
-records above belong to the pinned candidate commit and do not measure this
-constructor's additional one-time fingerprint calculation. The measured
-`run_ns` excludes preparation. The original JSON loading, cold CLI, Python
-binding and legacy public-batch paths retain their fingerprint contracts.
+`serialize_ns` now measures exactly one complete `BatchResult` serialization.
+The sample-only serialization and hash for equivalence checks occur after
+that timer. Historical [v1 hot records](hot/README.md) include both
+serializations in `serialize_ns`; that field cannot represent one output's
+serialization cost. Their independently timed `run_ns` and the formal cold
+CLI matrix are unaffected by this accounting error.
+
+At 256 samples, medians for the public call and reused prepared handle are:
+
+| Threads | Public / prepared run (s) | Paired run gain (positive pairs) | Public / prepared serialization (ms) | Process peak RSS (GiB) |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 19.1911 / 19.0632 | +0.471% (6/6) | 1026.286 / 1020.156 | 2.679 |
+| 2 | 9.7187 / 9.6681 | +0.384% (3/6) | 1033.383 / 1031.691 | 2.678 |
+| 4 | 4.8854 / 4.8529 | +0.569% (6/6) | 1037.534 / 1035.615 | 2.681 |
+| 8 | 2.4966 / 2.5117 | -0.717% (2/6) | 1038.565 / 1035.054 | 2.678 |
+
+At 32 samples, paired `run_ns` gains are +0.591%, +0.406%, +1.611% and
++3.711%, with 6/6, 6/6, 5/6 and 5/6 positive pairs. Single-sample public and
+prepared medians are 90.6/71.4 ms, with a paired gain of 21.225% (6/6).
+One-time preparation is 13.6–13.9 ms across these processes, now including
+the public `from_plan` constructor's fingerprint calculation introduced by
+the preceding review fix.
+
+The complete-output buffer is released before creating the sample-check
+buffer. Whole-process RSS includes benchmark validation and allocation
+behavior; its difference from v1 is not evidence of a runtime memory
+optimization. Likewise, before/after `run_ns` differences across measurement
+sessions are not attributed to the serialization correction. These paired
+public/prepared measurements still show no stable material extra gain at
+256 samples. They do not change the separate cold-CLI default-path decision.
 
 ## Python binding boundary
 
