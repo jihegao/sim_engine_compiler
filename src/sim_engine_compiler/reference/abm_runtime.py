@@ -12,11 +12,19 @@ from typing import Any
 # imported directly instead of through the package root.
 from sim_engine_compiler.compiler import compile_model as _compile_model  # noqa: F401
 from sim_engine_compiler.compiler.registry import register_runtime
-from sim_engine_compiler.ir.abm import ABM_PROFILE, I64_MAX, I64_MIN, AbmTickPlan
+from sim_engine_compiler.ir.abm import (
+    ABM_PROFILE,
+    ABM_RANDOM_TAPE_VERSION,
+    I64_MAX,
+    I64_MIN,
+    AbmTickPlan,
+)
 
 
 class AbmRuntimeError(ValueError):
-    pass
+    def __init__(self, message: str, *, code: str = "abm_runtime_error"):
+        super().__init__(message)
+        self.code = code
 
 
 def _checked_i64(value: int, context: str) -> int:
@@ -72,7 +80,8 @@ def _unit_from_digest(digest: bytes) -> float:
 
 
 class AbmTickRuntime:
-    def __init__(self, plan: AbmTickPlan | dict[str, Any], *, seed: int = 0):
+    def __init__(self, plan: AbmTickPlan | dict[str, Any], *, seed: int = 0,
+                 random_tape: dict[str, Any] | None = None):
         self.plan = AbmTickPlan.from_dict(plan.to_dict()) if isinstance(plan, AbmTickPlan) else AbmTickPlan.from_dict(plan)
         if type(seed) is not int or not I64_MIN <= seed <= I64_MAX:
             raise AbmRuntimeError("seed must be a signed 64-bit integer")
@@ -91,8 +100,51 @@ class AbmTickRuntime:
         self.random_requests: list[dict[str, Any]] = []
         self._random_occurrences: dict[tuple[Any, ...], int] = {}
         self._birth_occurrences: dict[tuple[Any, ...], int] = {}
+        self._random_tape = self._validate_random_tape(random_tape)
+        self._random_tape_index = 0
         self.tick = 0
         self.phase = "initial"
+
+    @staticmethod
+    def _validate_random_tape(random_tape: dict[str, Any] | None) -> list[dict[str, Any]] | None:
+        if random_tape is None:
+            return None
+        if (not isinstance(random_tape, dict)
+                or set(random_tape) != {"schema_version", "requests"}
+                or random_tape.get("schema_version") != ABM_RANDOM_TAPE_VERSION
+                or not isinstance(random_tape.get("requests"), list)):
+            raise AbmRuntimeError("invalid random tape envelope", code="invalid_random_tape")
+        try:
+            json.dumps(random_tape, allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise AbmRuntimeError("random tape must contain finite JSON values", code="invalid_random_tape") from exc
+        fields = {"tick", "phase", "address", "entity_id", "occurrence", "distribution", "args", "value"}
+        requests = copy.deepcopy(random_tape["requests"])
+        for index, request in enumerate(requests):
+            if (not isinstance(request, dict) or set(request) != fields
+                    or type(request["tick"]) is not int
+                    or not I64_MIN <= request["tick"] <= I64_MAX
+                    or not isinstance(request["phase"], str) or not request["phase"]
+                    or not isinstance(request["address"], str) or not request["address"]
+                    or not isinstance(request["entity_id"], str) or not request["entity_id"]
+                    or type(request["occurrence"]) is not int
+                    or not 0 <= request["occurrence"] <= I64_MAX
+                    or request["distribution"] not in {"traversal_key", "uniform", "integer", "bernoulli", "choice"}
+                    or not isinstance(request["args"], list)):
+                raise AbmRuntimeError(
+                    f"invalid random tape request at index {index}", code="invalid_random_tape"
+                )
+            try:
+                AbmTickRuntime._validate_random_value(
+                    request["distribution"], request["args"], request["value"]
+                )
+            except AbmRuntimeError as exc:
+                if exc.code == "random_tape_mismatch":
+                    raise
+                raise AbmRuntimeError(
+                    f"invalid random tape request at index {index}", code="invalid_random_tape"
+                ) from exc
+        return requests
 
     def _state_copy(self) -> dict[str, Any]:
         return {
@@ -155,9 +207,85 @@ class AbmTickRuntime:
         key = (self.tick, self.phase, address, entity_id)
         occurrence = self._random_occurrences.get(key, 0)
         self._random_occurrences[key] = occurrence + 1
-        identity = [self.seed, self.tick, self.phase, address, entity_id, occurrence]
-        raw = hashlib.sha256(json.dumps(identity, ensure_ascii=False, separators=(",", ":")).encode()).digest()
-        unit = _unit_from_digest(raw)
+        expected = {
+            "tick": self.tick,
+            "phase": self.phase,
+            "address": address,
+            "entity_id": entity_id,
+            "occurrence": occurrence,
+            "distribution": distribution,
+            "args": copy.deepcopy(args),
+        }
+        if self._random_tape is not None:
+            if self._random_tape_index >= len(self._random_tape):
+                raise AbmRuntimeError(
+                    f"random tape is missing request {expected!r}", code="random_tape_missing"
+                )
+            supplied = self._random_tape[self._random_tape_index]
+            actual = {key: supplied[key] for key in expected}
+            if not _json_equal(expected, actual):
+                raise AbmRuntimeError(
+                    f"random tape request mismatch: expected {expected!r}, got {actual!r}",
+                    code="random_tape_mismatch",
+                )
+            value = copy.deepcopy(supplied["value"])
+            self._validate_random_value(distribution, args, value)
+            self._random_tape_index += 1
+        else:
+            identity = [self.seed, self.tick, self.phase, address, entity_id, occurrence]
+            raw = hashlib.sha256(json.dumps(identity, ensure_ascii=False, separators=(",", ":")).encode()).digest()
+            unit = _unit_from_digest(raw)
+            value = self._random_value_from_unit(distribution, args, unit)
+        self.random_requests.append({
+            "sequence": len(self.random_requests),
+            "tick": self.tick,
+            "phase": self.phase,
+            "address": address,
+            "entity_id": entity_id,
+            "distribution": distribution,
+            "args": copy.deepcopy(args),
+            "value": copy.deepcopy(value),
+        })
+        return value
+
+    @staticmethod
+    def _validate_random_value(distribution: str, args: list[Any], value: Any) -> None:
+        if distribution == "traversal_key":
+            if args:
+                raise AbmRuntimeError("traversal_key requires no arguments")
+            valid = type(value) in (int, float) and not isinstance(value, bool) and 0 <= value < 1
+        elif distribution == "uniform":
+            if (len(args) != 2
+                    or not all(type(item) in (int, float) and not isinstance(item, bool) for item in args)):
+                raise AbmRuntimeError("uniform requires representable increasing numeric bounds")
+            low, high = (float(item) for item in args)
+            if not math.isfinite(low) or not math.isfinite(high) or high <= low:
+                raise AbmRuntimeError("uniform requires representable increasing numeric bounds")
+            valid = (type(value) in (int, float) and not isinstance(value, bool)
+                     and math.isfinite(value) and low <= value < high)
+        elif distribution == "integer":
+            if (len(args) != 2 or not all(type(item) is int for item in args)
+                    or args[1] <= args[0] or args[1] - args[0] > I64_MAX):
+                raise AbmRuntimeError("integer requires representable integer [low, high) bounds")
+            valid = type(value) is int and args[0] <= value < args[1]
+        elif distribution == "bernoulli":
+            if len(args) != 1 or type(args[0]) not in (int, float) or isinstance(args[0], bool) or not 0 <= args[0] <= 1:
+                raise AbmRuntimeError("bernoulli requires probability in [0, 1]")
+            valid = type(value) is bool
+        elif distribution == "choice":
+            if len(args) != 1 or not isinstance(args[0], list) or not args[0]:
+                raise AbmRuntimeError("choice requires one non-empty list argument")
+            valid = any(_json_equal(value, candidate) for candidate in args[0])
+        else:
+            raise AbmRuntimeError(f"unsupported random distribution {distribution!r}")
+        if not valid:
+            raise AbmRuntimeError(
+                f"random tape value {value!r} is outside {distribution} domain",
+                code="random_tape_mismatch",
+            )
+
+    @classmethod
+    def _random_value_from_unit(cls, distribution: str, args: list[Any], unit: float) -> Any:
         if distribution == "traversal_key":
             value = unit
         elif distribution == "uniform":
@@ -174,7 +302,8 @@ class AbmTickRuntime:
                 raise AbmRuntimeError("integer requires representable integer [low, high) bounds")
             value = _checked_i64(args[0] + int(unit * (args[1] - args[0])), "integer draw")
         elif distribution == "bernoulli":
-            if len(args) != 1 or type(args[0]) not in (int, float) or isinstance(args[0], bool) or not 0 <= args[0] <= 1:
+            if (len(args) != 1 or type(args[0]) not in (int, float)
+                    or isinstance(args[0], bool) or not 0 <= args[0] <= 1):
                 raise AbmRuntimeError("bernoulli requires probability in [0, 1]")
             value = unit < args[0]
         elif distribution == "choice":
@@ -183,11 +312,6 @@ class AbmTickRuntime:
             value = copy.deepcopy(args[0][min(int(unit * len(args[0])), len(args[0]) - 1)])
         else:
             raise AbmRuntimeError(f"unsupported random distribution {distribution!r}")
-        self.random_requests.append({
-            "sequence": len(self.random_requests), "tick": self.tick, "phase": self.phase,
-            "address": address, "entity_id": entity_id, "distribution": distribution,
-            "args": copy.deepcopy(args), "value": copy.deepcopy(value),
-        })
         return value
 
     def _eval(self, expression: Any, actor: dict[str, Any] | None,
@@ -232,9 +356,10 @@ class AbmTickRuntime:
                 if type(left) is not bool or type(right) is not bool:
                     raise AbmRuntimeError(f"{symbol} requires booleans")
                 return left and right if symbol == "and" else left or right
-            if symbol in {"+", "-", "*", "/", "%", "<", "<=", ">", ">="}:
-                if any(type(value) not in (int, float) or isinstance(value, bool) for value in (left, right)):
-                    raise AbmRuntimeError(f"{symbol} requires numbers")
+            if (symbol in {"+", "-", "*", "/", "%", "<", "<=", ">", ">="}
+                    and any(type(value) not in (int, float) or isinstance(value, bool)
+                            for value in (left, right))):
+                raise AbmRuntimeError(f"{symbol} requires numbers")
             if symbol in {"==", "!="}:
                 equal = _json_equal(left, right)
                 return equal if symbol == "==" else not equal
@@ -244,7 +369,9 @@ class AbmTickRuntime:
             try:
                 return _checked_numeric(functions[symbol](left, right), f"binary {symbol}")
             except ZeroDivisionError as exc:
-                raise AbmRuntimeError("division or modulo by zero") from exc
+                code = "metric_zero_denominator" if self.phase == "metrics" else "abm_runtime_error"
+                message = "division by zero" if symbol == "/" else "modulo by zero"
+                raise AbmRuntimeError(message, code=code) from exc
         if op == "random":
             if actor is None:
                 entity_id = "$global"
@@ -344,6 +471,14 @@ class AbmTickRuntime:
             self.eligible_tick[child["id"]] = self.tick + 1
             self._event("born", child["id"], {"parent": parent_id, "kind": child["kind"],
                                                "x": child["x"], "y": child["y"]})
+        elif kind == "sprout":
+            _, child, patch_id = action
+            if child["id"] in self.agents:
+                raise AbmRuntimeError(f"duplicate sprout identity {child['id']}")
+            self.agents[child["id"]] = child
+            self.eligible_tick[child["id"]] = 0
+            self._event("born", child["id"], {"parent": patch_id, "kind": child["kind"],
+                                               "x": child["x"], "y": child["y"]})
         elif kind == "death":
             _, actor_id, killer = action
             if self.agents.pop(actor_id, None) is None:
@@ -363,6 +498,28 @@ class AbmTickRuntime:
         if op in {"set", "increment"}:
             value = self._eval(operation["value"], actor, state)
             return [(op, operation["target"], actor["id"], operation["field"], value, actor)]
+        if op == "sprout":
+            raw_count = self._eval(operation["count"], actor, state)
+            if type(raw_count) is not int or raw_count < 0:
+                raise AbmRuntimeError("sprout count must be a nonnegative integer")
+            result = []
+            for _ in range(raw_count):
+                key = (self.phase, actor["id"], operation["address"])
+                ordinal = self._birth_occurrences.get(key, 0)
+                self._birth_occurrences[key] = ordinal + 1
+                identity = f"{actor['id']}::{operation['address']}::init::{self.phase}::{ordinal}"
+                variables = {
+                    field: self._eval(operation["vars"][field], actor, state)
+                    for field in sorted(operation["vars"])
+                }
+                result.append(("sprout", {
+                    "id": identity,
+                    "kind": operation["kind"],
+                    "x": float(actor["x"]),
+                    "y": float(actor["y"]),
+                    "vars": variables,
+                }, actor["id"]))
+            return result
         if op == "death":
             if actor["id"] in self.patches:
                 raise AbmRuntimeError("patches cannot die")
@@ -427,6 +584,8 @@ class AbmTickRuntime:
                 x, y = actor["x"] + x, actor["y"] + y
             x, y = self._normalize_position(x, y)
             return [("move", actor["id"], x, y, None)]
+        if mode == "local_rejection":
+            return self._local_rejection_move(operation, actor)
         if mode == "heading_step":
             step = operation["heading_step"]
             heading = self._field(actor, "heading")
@@ -467,14 +626,77 @@ class AbmTickRuntime:
         x, y = coordinates[choice]
         return [("move", actor["id"], x, y, None)]
 
-    def _run_phase(self, phase: dict[str, Any]) -> None:
+    def _local_rejection_move(self, operation: dict[str, Any], actor: dict[str, Any]) -> list[tuple[Any, ...]]:
+        live = self.agents.get(actor["id"])
+        if live is None:
+            return []
+        heading = self._field(live, "heading")
+        if type(heading) not in (int, float) or isinstance(heading, bool):
+            raise AbmRuntimeError("local rejection requires numeric heading")
+        movement = operation["local_rejection"]
+        for ordinal in range(movement["attempt_budget"]):
+            before = [live["x"], live["y"]]
+            heading_before = heading
+            turn = self._random(
+                movement["turn_address"], live["id"], "uniform", movement["turn_bounds"]
+            )
+            distance = self._random(
+                movement["distance_address"], live["id"], "uniform", movement["distance_bounds"]
+            )
+            heading = _checked_numeric((heading + turn) % 360, "local rejection heading")
+            radians = math.radians(heading)
+            x, y = self._normalize_position(
+                live["x"] + distance * math.sin(radians),
+                live["y"] + distance * math.cos(radians),
+            )
+            live["x"], live["y"] = x, y
+            live["vars"]["heading"] = heading
+            patch = self._patch_coordinate(live)
+            accepted = not any(
+                other["id"] != live["id"] and self._patch_coordinate(other) == patch
+                for other in self.agents.values()
+            )
+            trial = [live["x"], live["y"]]
+            self._event("move_attempt", live["id"], {
+                "ordinal": ordinal,
+                "turn": turn,
+                "distance": distance,
+                "from": before,
+                "trial_position": trial,
+                "patch": [patch[0], patch[1]],
+                "accepted": accepted,
+                "heading_before": heading_before,
+                "heading_after": heading,
+            })
+            if accepted:
+                live["x"], live["y"] = float(patch[0]), float(patch[1])
+                self._event("moved", live["id"], {
+                    "from": trial,
+                    "to": [live["x"], live["y"]],
+                })
+                return []
+        raise AbmRuntimeError(
+            f"local rejection attempt budget exhausted for {live['id']!r}",
+            code="random_attempt_budget_exhausted",
+        )
+
+    def _run_phase(self, phase: dict[str, Any], *, initialization: bool = False) -> None:
         self.phase = phase["id"]
         snapshot = self._state_copy()
         table = snapshot[phase["target"]]
         actors = [item for item in table.values()
                   if phase["target"] == "patches" or
-                  (self.eligible_tick.get(item["id"], self.tick + 1) <= self.tick and
+                  ((initialization or self.eligible_tick.get(item["id"], self.tick + 1) <= self.tick) and
                    (phase["agent_kind"] is None or item["kind"] == phase["agent_kind"]))]
+        if "where" in phase:
+            selected = []
+            for actor in actors:
+                keep = self._eval(phase["where"], actor, snapshot)
+                if type(keep) is not bool:
+                    raise AbmRuntimeError("phase selector must be boolean")
+                if keep:
+                    selected.append(actor)
+            actors = selected
         actors.sort(key=lambda item: item["id"])
         if phase["traversal"] == "random":
             actors.sort(key=lambda item: (self._random(phase["random_address"], item["id"],
@@ -569,6 +791,33 @@ class AbmTickRuntime:
         return result
 
     def run(self) -> dict[str, Any]:
+        source_semantics = self.payload.get("source_semantics")
+        if source_semantics is not None:
+            self.tick = -1
+            for phase in source_semantics["initialization"]:
+                self._run_phase(phase, initialization=True)
+            result = self._run_before_tick()
+        else:
+            result = self._run_legacy()
+        if self._random_tape is not None and self._random_tape_index != len(self._random_tape):
+            raise AbmRuntimeError(
+                f"random tape has {len(self._random_tape) - self._random_tape_index} unused requests",
+                code="random_tape_unused",
+            )
+        return result
+
+    def _result(self, completed: int, reason: str) -> dict[str, Any]:
+        metrics = self._metrics(completed)
+        state = {
+            "globals": copy.deepcopy(self.globals),
+            "patches": [copy.deepcopy(self.patches[key]) for key in sorted(self.patches)],
+            "agents": [copy.deepcopy(self.agents[key]) for key in sorted(self.agents)],
+        }
+        return {"profile": ABM_PROFILE, "seed": self.seed, "ticks": completed,
+                "stop_reason": reason, "state": state, "events": copy.deepcopy(self.events),
+                "random_requests": copy.deepcopy(self.random_requests), "metrics": metrics}
+
+    def _run_legacy(self) -> dict[str, Any]:
         stopped = self._stop_condition()
         completed = 0
         if stopped is not None:
@@ -588,22 +837,32 @@ class AbmTickRuntime:
                     self._event("stopped", stopped, {})
                     reason = f"condition:{stopped}"
                     break
-        metrics = self._metrics(completed)
-        state = {
-            "globals": copy.deepcopy(self.globals),
-            "patches": [copy.deepcopy(self.patches[key]) for key in sorted(self.patches)],
-            "agents": [copy.deepcopy(self.agents[key]) for key in sorted(self.agents)],
-        }
-        return {"profile": ABM_PROFILE, "seed": self.seed, "ticks": completed,
-                "stop_reason": reason, "state": state, "events": copy.deepcopy(self.events),
-                "random_requests": copy.deepcopy(self.random_requests), "metrics": metrics}
+        return self._result(completed, reason)
+
+    def _run_before_tick(self) -> dict[str, Any]:
+        completed = 0
+        reason = "max_ticks"
+        for tick in range(self.payload["max_ticks"]):
+            self.tick = tick
+            self.phase = "before_tick"
+            stopped = self._stop_condition()
+            if stopped is not None:
+                self.phase = "stop"
+                self._event("stopped", stopped, {})
+                reason = f"condition:{stopped}"
+                break
+            for phase in self.payload["phases"]:
+                self._run_phase(phase)
+            completed += 1
+        return self._result(completed, reason)
 
 
-def run_abm_plan(plan: AbmTickPlan | dict[str, Any], *, seed: int = 0) -> dict[str, Any]:
-    return AbmTickRuntime(plan, seed=seed).run()
+def run_abm_plan(plan: AbmTickPlan | dict[str, Any], *, seed: int = 0,
+                 random_tape: dict[str, Any] | None = None) -> dict[str, Any]:
+    return AbmTickRuntime(plan, seed=seed, random_tape=random_tape).run()
 
 
-def run_abm_batch(plan: AbmTickPlan | dict[str, Any], requests: list[dict[str, int]],
+def run_abm_batch(plan: AbmTickPlan | dict[str, Any], requests: list[dict[str, Any]],
                   *, workers: int = 1) -> list[dict[str, Any]]:
     """Run isolated samples and return stable ``sample_index`` order.
 
@@ -620,17 +879,19 @@ def run_abm_batch(plan: AbmTickPlan | dict[str, Any], requests: list[dict[str, i
     normalized = []
     seen = set()
     for index, request in enumerate(requests):
-        if not isinstance(request, dict) or set(request) != {"sample_index", "seed"}:
+        if (not isinstance(request, dict)
+                or set(request) not in ({"sample_index", "seed"}, {"sample_index", "seed", "random_tape"})):
             raise AbmRuntimeError(f"invalid batch request at index {index}")
         sample_index, seed = request["sample_index"], request["seed"]
         if (type(sample_index) is not int or not 0 <= sample_index <= I64_MAX
                 or sample_index in seen or type(seed) is not int or not I64_MIN <= seed <= I64_MAX):
             raise AbmRuntimeError(f"invalid or duplicate sample identity at index {index}")
         seen.add(sample_index)
-        normalized.append((sample_index, seed))
+        normalized.append((sample_index, seed, request.get("random_tape")))
     sealed = plan if isinstance(plan, AbmTickPlan) else AbmTickPlan.from_dict(plan)
-    results = [{"sample_index": sample_index, "result": AbmTickRuntime(sealed, seed=seed).run()}
-               for sample_index, seed in normalized]
+    results = [{"sample_index": sample_index,
+                "result": AbmTickRuntime(sealed, seed=seed, random_tape=random_tape).run()}
+               for sample_index, seed, random_tape in normalized]
     return sorted(results, key=lambda item: item["sample_index"])
 
 

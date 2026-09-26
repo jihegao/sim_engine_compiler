@@ -9,10 +9,13 @@ pub mod runtime;
 #[cfg(feature = "python")]
 mod python;
 
-pub use abm_plan::{ABM_PLAN_VERSION, ABM_PROFILE, AbmPlan, AbmPlanEnvelope};
+pub use abm_plan::{
+    ABM_PLAN_VERSION, ABM_PROFILE, ABM_SOURCE_SEMANTICS_VERSION, AbmPlan, AbmPlanEnvelope,
+};
 pub use abm_runtime::{
-    AbmBatchSampleResult, AbmEvent, AbmRandomRequest, AbmRunResult, AbmSampleRequest,
-    run_abm_batch, run_abm_plan, run_abm_plan_from_slice,
+    AbmBatchSampleResult, AbmEvent, AbmRandomRequest, AbmRandomTape, AbmRandomTapeEntry,
+    AbmRunResult, AbmSampleRequest, run_abm_batch, run_abm_plan, run_abm_plan_from_slice,
+    run_abm_plan_from_slice_with_random_tape, run_abm_plan_with_random_tape,
 };
 pub use batch::{
     BatchResult, BatchSampleResult, IndexedBatchSampleFailure, IndexedBatchSampleResult,
