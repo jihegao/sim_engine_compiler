@@ -78,3 +78,9 @@ It records extension/Plan hashes and measures native parsing, batch execution,
 result transfer and Python JSON decoding inside the call. Plan file reading and
 Python process startup are excluded; candidate dispatch is not exposed by this
 Python API, so the binding comparison uses scan or v2 cache mode.
+
+`run_compile.py` records current canonical-to-three-layer-to-MLIR Plan
+compilation on the macOS host with the pinned LLVM 23.1.1 plugin. It asserts
+that regenerated Plans are byte-identical to the frozen runtime inputs. Its
+process-wall numbers are a separate one-time cost and must not be divided into
+AMD128 runtime numbers or presented as an AMD128 compiler measurement.
