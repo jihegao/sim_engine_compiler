@@ -47,6 +47,12 @@ def main() -> None:
         memory_before = [pair["baseline"]["peak_rss_bytes"] for pair in pairs]
         memory_after = [pair["candidate"]["peak_rss_bytes"] for pair in pairs]
         memory_ratio = [candidate / baseline for baseline, candidate in zip(memory_before, memory_after)]
+        baseline_median = statistics.median(before)
+        candidate_median = statistics.median(after)
+        baseline_mad_percent = 100 * statistics.median(
+            abs(value - baseline_median) for value in before) / baseline_median
+        candidate_mad_percent = 100 * statistics.median(
+            abs(value - candidate_median) for value in after) / candidate_median
         phases = {}
         if phase_report:
             phases = {
@@ -60,8 +66,10 @@ def main() -> None:
             "case": key[0], "arm": key[1], "level": key[2],
             "samples": key[3], "threads": key[4], "pairs": len(pairs),
             "metric_name": metric_name,
-            "baseline_median_end_to_end_ns": statistics.median(before),
-            "candidate_median_end_to_end_ns": statistics.median(after),
+            "baseline_median_end_to_end_ns": baseline_median,
+            "candidate_median_end_to_end_ns": candidate_median,
+            "baseline_relative_mad_percent": baseline_mad_percent,
+            "candidate_relative_mad_percent": candidate_mad_percent,
             "paired_gain_percent": [100 * gain for gain in gains],
             "median_paired_gain_percent": 100 * statistics.median(gains),
             "positive_pairs": sum(gain > 0 for gain in gains),
