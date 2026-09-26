@@ -58,3 +58,10 @@ candidate dispatch off/on. No dispatch algorithm changes are part of this
 experiment. Preserve the JSONL records, Stage C reports, identities, toolchain
 versions, binary/input/Plan hashes, and diagnostic patch hashes with the final
 report. Report Python binding timing separately from Rust CLI timing.
+
+Run `python3 benchmarks/batch_preparation/summarize.py
+/path/to/evidence/records.jsonl --output /path/to/evidence/summary.json` to retain
+every paired gain and RSS ratio. A row passes the predefined adoption gate only
+with at least six pairs, positive gains in every pair, median gain of at least
+5%, and no repeated peak RSS increase above 5%. Report all thread counts and
+cases even if only the F35 O5 + Summary rows determine default-path adoption.
