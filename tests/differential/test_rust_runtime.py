@@ -157,6 +157,11 @@ class RustRuntimeConformanceTests(unittest.TestCase):
                     )
                 )
 
+    def test_aircraft_cli_preserves_full_unsigned_seed_range(self):
+        plan_path = ROOT / "tests" / "fixtures" / "synthetic" / "b1-execution-plan.json"
+        result = self._run_rust(plan_path, 2**64 - 1, "summary")
+        self.assertEqual(result["seed"], 2**64 - 1)
+
     def test_f35_summary_preserves_business_results_and_random_trajectory(self):
         plan_path = F35 / "execution-plan.json"
         for seed in (0, 1, 7):

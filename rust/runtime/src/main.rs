@@ -3,8 +3,8 @@ use std::{fs, path::PathBuf, str::FromStr, time::Instant};
 use anyhow::Result;
 use clap::Parser;
 use sim_engine_runtime::{
-    ExecutionPlan, ObservationLevel, Runtime, decode_plan_cache, is_plan_cache,
-    run_batch_with_dispatch,
+    AbmPlanEnvelope, AbmSampleRequest, ExecutionPlan, ObservationLevel, Runtime, decode_plan_cache,
+    is_plan_cache, run_abm_batch, run_abm_plan, run_batch_with_dispatch,
 };
 
 #[derive(Parser)]
@@ -14,7 +14,7 @@ struct Args {
     plan: PathBuf,
     output: PathBuf,
     #[arg(long, conflicts_with = "seeds")]
-    seed: Option<u64>,
+    seed: Option<String>,
     #[arg(long, value_name = "SEED,...", conflicts_with = "seed")]
     seeds: Option<String>,
     #[arg(long, requires = "seeds")]
@@ -34,6 +34,12 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let load_started = Instant::now();
     let bytes = fs::read(&args.plan)?;
+    if !is_plan_cache(&bytes)
+        && serde_json::from_slice::<serde_json::Value>(&bytes)?["version"]
+            == sim_engine_runtime::ABM_PLAN_VERSION
+    {
+        return run_abm_cli(args, &bytes);
+    }
     let (plan, fingerprint) = if is_plan_cache(&bytes) {
         let cached = decode_plan_cache(&bytes, None, None, None)?;
         (cached.plan, cached.plan_fingerprint)
@@ -77,7 +83,7 @@ fn main() -> Result<()> {
         let runtime = Runtime::new_with_observation(
             plan,
             fingerprint,
-            args.seed.unwrap_or(0),
+            args.seed.as_deref().unwrap_or("0").parse::<u64>()?,
             observation_level,
         )?
         .with_dependency_dispatch(args.dependency_dispatch)?;
@@ -112,6 +118,58 @@ fn main() -> Result<()> {
             serde_json::to_string(&serde_json::json!({
                 "plan_fingerprint": result.plan_fingerprint, "time": result.time,
                 "stop_reason": result.stop_reason, "events": result.trace.len(),
+            }))?
+        );
+    }
+    Ok(())
+}
+
+fn run_abm_cli(args: Args, bytes: &[u8]) -> Result<()> {
+    if args.until.is_some()
+        || args.profile_output.is_some()
+        || args.dependency_dispatch
+        || args.observation_level != "full"
+    {
+        anyhow::bail!(
+            "ABM Plan does not support aircraft-only until, profile, dependency-dispatch, or observation options"
+        );
+    }
+    let plan = std::sync::Arc::new(AbmPlanEnvelope::from_slice(bytes)?);
+    if let Some(parent) = args.output.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    if let Some(raw_seeds) = args.seeds {
+        let requests = raw_seeds
+            .split(',')
+            .enumerate()
+            .map(|(sample_index, item)| {
+                Ok(AbmSampleRequest {
+                    sample_index: i64::try_from(sample_index)?,
+                    seed: item.trim().parse::<i64>()?,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        let result = run_abm_batch(plan, &requests, args.worker_threads)?;
+        fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
+        println!(
+            "{}",
+            serde_json::to_string(&serde_json::json!({
+                "profile": sim_engine_runtime::ABM_PROFILE,
+                "sample_count": result.len(),
+                "sample_indexes": result.iter().map(|item| item.sample_index).collect::<Vec<_>>(),
+            }))?
+        );
+    } else {
+        let seed = args.seed.as_deref().unwrap_or("0").parse::<i64>()?;
+        let result = run_abm_plan(&plan, seed)?;
+        fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
+        println!(
+            "{}",
+            serde_json::to_string(&serde_json::json!({
+                "profile": result.profile,
+                "ticks": result.ticks,
+                "stop_reason": result.stop_reason,
+                "events": result.events.len(),
             }))?
         );
     }
