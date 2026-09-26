@@ -1,0 +1,374 @@
+{
+  "catalog_version": "1.0.0",
+  "source_issue": "#18",
+  "case_count": 26,
+  "scope": "A01/A02 native CLI normal path verified, GUI publication pending; A03-F04 planned; no J35 equivalence",
+  "cases": [
+    {
+      "case_id": "A01",
+      "title": "one aircraft, one mission",
+      "version": "1.0.0",
+      "parent_case": null,
+      "delta": "basic mission generation/start/completion",
+      "requires": [],
+      "status": "cli_behavior_verified_gui_pending",
+      "verified_features": [
+        "one-aircraft mission notice, launch, completion and ready return"
+      ],
+      "cross_engine_status": "unverified",
+      "artifact_ref": "A01-single-aircraft-single-mission"
+    },
+    {
+      "case_id": "A02",
+      "title": "one aircraft, repeated missions",
+      "version": "1.0.0",
+      "parent_case": "A01@1.0.0",
+      "delta": "non-overlapping repetition and recovery",
+      "requires": [
+        "A01"
+      ],
+      "status": "cli_behavior_verified_gui_pending",
+      "verified_features": [
+        "same stable aircraft reused for three non-overlapping scheduled missions"
+      ],
+      "cross_engine_status": "unverified",
+      "artifact_ref": "A02-single-aircraft-repeated-missions"
+    },
+    {
+      "case_id": "A03",
+      "title": "multi-aircraft formation",
+      "version": null,
+      "parent_case": "A02",
+      "delta": "required aircraft and sorties",
+      "requires": [
+        "A02"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "A04",
+      "title": "multi-day waves and minimum launch count",
+      "version": null,
+      "parent_case": "A03",
+      "delta": "generation and unmet demand",
+      "requires": [
+        "A03"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "B01",
+      "title": "fixed pre-mission preparation",
+      "version": null,
+      "parent_case": "A01",
+      "delta": "preparation trigger",
+      "requires": [
+        "A01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "B02",
+      "title": "serial preparation steps",
+      "version": null,
+      "parent_case": "B01",
+      "delta": "work sequence and duration",
+      "requires": [
+        "B01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "B03",
+      "title": "first and repeat sortie preparation",
+      "version": null,
+      "parent_case": "B02",
+      "delta": "different preparation triggers",
+      "requires": [
+        "B02"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "B04",
+      "title": "turnaround and cross-day work",
+      "version": null,
+      "parent_case": "B03",
+      "delta": "post-flight and day boundary",
+      "requires": [
+        "B03"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "C01",
+      "title": "personnel specialty and quantity",
+      "version": null,
+      "parent_case": "B02",
+      "delta": "personnel demand",
+      "requires": [
+        "B02"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "C02",
+      "title": "equipment and personnel",
+      "version": null,
+      "parent_case": "C01",
+      "delta": "joint resource demand",
+      "requires": [
+        "C01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "C03",
+      "title": "shared resource competition",
+      "version": null,
+      "parent_case": "C02",
+      "delta": "waiting and release",
+      "requires": [
+        "C02"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "C04",
+      "title": "delay, cancellation and release",
+      "version": null,
+      "parent_case": "C03",
+      "delta": "deadline and cancellation accounting",
+      "requires": [
+        "C03"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "D01",
+      "title": "one component failure and repair",
+      "version": null,
+      "parent_case": "A01",
+      "delta": "fault and repair",
+      "requires": [
+        "A01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "D02",
+      "title": "flight and calendar fault clocks",
+      "version": null,
+      "parent_case": "D01",
+      "delta": "exposure clock",
+      "requires": [
+        "D01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "D03",
+      "title": "calendar preventive maintenance",
+      "version": null,
+      "parent_case": "D01",
+      "delta": "calendar PM",
+      "requires": [
+        "D01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "D04",
+      "title": "flight-hour preventive maintenance",
+      "version": null,
+      "parent_case": "D03",
+      "delta": "flying-hour PM",
+      "requires": [
+        "D03"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "D05",
+      "title": "fault, PM and mission competition",
+      "version": null,
+      "parent_case": "D04",
+      "delta": "same-time priority and mission impact",
+      "requires": [
+        "D04"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "E01",
+      "title": "local spare replacement",
+      "version": null,
+      "parent_case": "D01",
+      "delta": "stock demand and consumption",
+      "requires": [
+        "D01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "E02",
+      "title": "zero stock and backorder",
+      "version": null,
+      "parent_case": "E01",
+      "delta": "backorder and aircraft waiting",
+      "requires": [
+        "E01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "E03",
+      "title": "two aircraft sharing one spare",
+      "version": null,
+      "parent_case": "E02",
+      "delta": "unique stock allocation",
+      "requires": [
+        "E02"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "E04",
+      "title": "upstream transport",
+      "version": null,
+      "parent_case": "E03",
+      "delta": "supply route and transit",
+      "requires": [
+        "E03"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "E05",
+      "title": "repair return and reuse",
+      "version": null,
+      "parent_case": "E04",
+      "delta": "return of repaired physical item",
+      "requires": [
+        "E04"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "F01",
+      "title": "nested components and repair levels",
+      "version": null,
+      "parent_case": "E05",
+      "delta": "physical replacement boundary",
+      "requires": [
+        "E05"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "F02",
+      "title": "multi-aircraft multi-cycle support",
+      "version": null,
+      "parent_case": "F01",
+      "delta": "combined support mechanisms",
+      "requires": [
+        "F01"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "F03",
+      "title": "multiple bases",
+      "version": null,
+      "parent_case": "F02",
+      "delta": "site-specific capacity and supply",
+      "requires": [
+        "F02"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    },
+    {
+      "case_id": "F04",
+      "title": "eight aircraft, 43 days",
+      "version": null,
+      "parent_case": "F03",
+      "delta": "full combined long-horizon case",
+      "requires": [
+        "F03"
+      ],
+      "status": "planned",
+      "verified_features": [],
+      "cross_engine_status": "unverified",
+      "artifact_ref": null
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "contract_id": "simlox-air-support-a01-a02-pairing-v1",
+  "status": "cross_engine_unverified",
+  "authority": "teaching-case business contract; no change to existing Python/J35 defaults",
+  "inputs": {
+    "aircraft_business_id": "TEACH-AIR-01",
+    "base_business_id": "BASE-01",
+    "mission_business_id": "BASIC-MISSION",
+    "aircraft_count": 1,
+    "required_aircraft_per_wave": 1,
+    "mission_duration_minutes": 120,
+    "notice_lead_minutes": 60,
+    "delay_window_minutes": 20,
+    "planned_start_minutes": {"A01": [480], "A02": [480, 1200, 1920]},
+    "observation_start_minutes": 0,
+    "observation_end_minutes": 2160,
+    "disabled_mechanisms": ["preparation", "fault", "PM", "CM", "stock", "resource_capacity_constraint"]
+  },
+  "events_to_compare": ["mission_notice", "planned_wave", "launch", "mission_complete", "aircraft_ready"],
+  "metrics_to_compare": ["planned_waves", "launched_waves", "sorties", "completed_waves", "cancelled_waves", "unfinished_at_horizon", "mission_operation_hours_from_actual_start_end"],
+  "native_metric_boundary": "SystemResults.FTMO times interval width integrates to 2/6 mission-operation hours in the normal A01/A02 runs. This is separate from an independently clipped observation-window duration, and is not assumed to be a native cumulative OPHOURS counter.",
+  "window_boundary_status": "36-hour normal missions finish before the end. SIMPE boundary probes near mission return are rejected by native #204; result-collection-only probes are separate evidence. No cross-engine terminal cutoff equivalence is claimed.",
+  "identity_rule": "Use stable business IDs; native one-SID/QTYPS=1 ordinal only identifies the sole instance in these cases, not a general tail mapping.",
+  "time_rule": "SIMLOX ENLOG prints decimal hours of limited precision; compare exact model schedule and integers, and state a narrow precision bound for observed hours. Do not treat printed ties as internal scheduler priority.",
+  "raw_fingerprints": {"A01_native_input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7", "A02_native_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8"},
+  "acceptance": "Independent AMD128 implementation and native first-sample evidence must both satisfy this same contract; matching seeds are not pairing evidence. No cross-engine status is claimed in this slice."
+}
