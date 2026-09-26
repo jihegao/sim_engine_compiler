@@ -33,4 +33,16 @@ A second matrix keeps `SIMPE=36` and varies only `Control.RCEND` and `ResultColl
 
 ## Acceptance boundary
 
+The original normal/replay runs lacked pre-launch binding and are historical
+read-only evidence. Publication review found exact-identity, interval-profile,
+mixed-bundle and cached-validation false positives. The [review follow-up](publication-review.md)
+records each repair and negative regression. Four **new** normal/replay runs
+have pre-launch invocation records and post-launch raw-artifact closures; the
+per-case manifests and indexes now point to those runs. Fresh strict validation
+passes for both A01 and A02 and both independent replays. The five old
+collection-window runs were reanalysed read-only in
+[`collection-window-review-v2.json`](collection-window-review-v2.json): the
+7.5 h state is notified-pending, not in flight. All original raw and
+validation files remain unchanged.
+
 Machine-readable [A01](A01-single-aircraft-single-mission/acceptance.json) and [A02](A02-single-aircraft-repeated-missions/acceptance.json) states separate CLI model validity, CLI behavior, independent replay, GUI calibration/review, publication and cross-engine pairing. CLI normal-path behavior is verified. GUI access still awaits a private handoff; GUI-first ordering did not occur, and neither case has unqualified reusable publication acceptance. A02 is only a provisional CLI derivation of A01. The minimal [AMD128 pairing contract](pairing-contract.json) states units, identities, events, counts, observation and raw fingerprints, but AMD128 pairing is unverified. A01/A02 cannot resolve J35 wave-20 cancellation or the 403 nested-LRU physical replacement boundary.
