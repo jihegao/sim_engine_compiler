@@ -57,6 +57,11 @@ and identical full results for 32/256 samples at one thread.
 `run_hot.py` drives the uninstrumented `prepared_batch_benchmark` across the
 same batch sizes and worker counts; its reports retain six paired calls,
 one-time preparation, serialization and whole-process peak RSS.
+Reports with `prepared-batch-benchmark/v2` time exactly one complete
+`BatchResult` serialization. The additional sample serialization and hash used
+for equivalence checks run after that timer. Historical v1 `serialize_ns`
+includes both serializations and must not be used as single-output cost;
+its separately timed `run_ns` and the formal CLI matrix are unaffected.
 
 ## Reproduction on AMD128
 

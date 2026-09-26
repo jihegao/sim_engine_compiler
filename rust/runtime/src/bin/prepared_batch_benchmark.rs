@@ -115,9 +115,12 @@ fn main() -> Result<()> {
             let result = run(mode)?;
             let run_ns = elapsed_ns(started);
             let started = Instant::now();
-            let sample_json = serde_json::to_vec(&result.samples)?;
-            let result_bytes = serde_json::to_vec(&result)?.len();
+            let result_json = serde_json::to_vec(&result)?;
             let serialize_ns = elapsed_ns(started);
+            let result_bytes = result_json.len();
+            drop(result_json);
+            // Equivalence checking is separate from the single-output timer.
+            let sample_json = serde_json::to_vec(&result.samples)?;
             let sample_sha256 = format!("{:x}", Sha256::digest(sample_json));
             if let Some(expected) = &expected {
                 assert_eq!(expected, &sample_sha256, "public/prepared result mismatch");
@@ -135,7 +138,7 @@ fn main() -> Result<()> {
         }
     }
     let report = Report {
-        schema_version: "prepared-batch-benchmark/v1",
+        schema_version: "prepared-batch-benchmark/v2",
         plan_sha256: format!("{:x}", Sha256::digest(&bytes)),
         plan_fingerprint: fingerprint,
         seeds,

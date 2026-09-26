@@ -33,6 +33,8 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     identity = {
         "boundary": "one process and one validated PreparedBatchPlan; repeated public vs prepared calls, run and serialization reported separately",
+        "report_schema_version": "prepared-batch-benchmark/v2",
+        "serialize_ns_boundary": "one complete BatchResult serialization; sample serialization and hashing excluded",
         "source_commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=root,
                                         text=True, capture_output=True, check=True).stdout.strip(),
         "binary_sha256": file_sha256(binary), "plan_sha256": file_sha256(plan),
@@ -55,6 +57,8 @@ def main() -> None:
             if process.returncode:
                 raise RuntimeError(f"{command}: {process.stderr}")
             data = json.loads(report.read_text())
+            if data["schema_version"] != identity["report_schema_version"]:
+                raise AssertionError(f"obsolete serialization timing boundary: {report}")
             hashes = {row["sample_sha256"] for row in data["rows"]}
             if len(hashes) != 1 or len(data["rows"]) != args.repeats * 2:
                 raise AssertionError(f"hot result mismatch: {report}")
