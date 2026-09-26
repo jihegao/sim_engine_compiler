@@ -12,11 +12,18 @@ cases are not SIMLOX equivalence claims.
 
 ## Measurement boundaries
 
-`run_benchmark.py` uses the unchanged `stage-c-benchmark` binary in two clean
-checkouts. Each invocation warms once and measures one repeat. Six paired
-repeats reverse baseline/candidate order on alternating rounds. The script
-requires identical Plan and input hashes and compares complete serialized
-sample results across all arms, threads, repeats, and builds. Its
+`run_cold.py` is the formal, uninstrumented end-to-end comparison: it warms
+each configuration once, then launches a new `sim-engine-runtime` process for
+each of six paired repeats and reverses A/B order on alternating rounds. Its
+process wall includes startup, Plan-file read/validation, execution and pretty
+JSON output. The OS page cache is not flushed. It hashes and removes each
+large output after checking the full result bytes across arms, threads, repeats
+and builds.
+
+`run_benchmark.py` uses the unchanged `stage-c-benchmark` binary for segmented
+diagnostics in two clean checkouts. Each invocation warms once and measures
+one repeat. It requires identical Plan and input hashes and compares complete
+serialized sample results across all arms, threads, repeats, and builds. Its
 `end_to_end_batch_ns` includes Plan read/parse/validation, batch work,
 serialization, and file write; process startup and compilation are excluded.
 `batch_execution_ns` begins after Plan load and includes per-call preparation,
@@ -41,10 +48,10 @@ Create isolated checkouts of `e9b6391` and the candidate commit from Git
 bundles or the remote repository; do not benchmark an older AMD128 checkout.
 Build each with `cargo build --offline --locked --release --manifest-path
 rust/runtime/Cargo.toml --bin stage-c-benchmark --bin sim-engine-runtime`.
-Then run from the candidate checkout:
+Run the formal matrix from the candidate checkout:
 
 ```bash
-python3 benchmarks/batch_preparation/run_benchmark.py \
+python3 benchmarks/batch_preparation/run_cold.py \
   --baseline-root /path/to/e9b6391 \
   --candidate-root /path/to/candidate \
   --shared-plan-dir /path/to/candidate/benchmarks/batch_preparation/fixtures/shared-remote-pools \
@@ -59,18 +66,21 @@ experiment. Preserve the JSONL records, Stage C reports, identities, toolchain
 versions, binary/input/Plan hashes, and diagnostic patch hashes with the final
 report. Report Python binding timing separately from Rust CLI timing.
 
-Run `python3 benchmarks/batch_preparation/summarize.py
-/path/to/evidence/records.jsonl --output /path/to/evidence/summary.json` to retain
-every paired gain and RSS ratio. A row passes the predefined adoption gate only
+Run:
+
+```bash
+python3 benchmarks/batch_preparation/summarize.py \
+  /path/to/evidence/records.jsonl --output /path/to/evidence/summary.json
+```
+
+This retains every paired gain and RSS ratio. A row passes the predefined adoption gate only
 with at least six pairs, positive gains in every pair, median gain of at least
 5%, and no repeated peak RSS increase above 5%. Report all thread counts and
 cases even if only the F35 O5 + Summary rows determine default-path adoption.
 
-For cold-process latency, run `run_cold.py` with the same two checkouts and
-shared Plan directory. It starts a new `sim-engine-runtime` process for every
-pair, includes process startup, Plan-file read/validation, execution and pretty
-JSON output, and deletes each large result after hashing it. The OS page cache
-is not flushed. Canonical-to-Plan compilation remains a separate measurement.
+Canonical-to-Plan compilation remains a separate measurement. Use
+`run_benchmark.py` for stage timing on representative cells and
+`prepared_batch_benchmark` for repeated use of one prepared Plan handle.
 
 After building and installing each checkout's Linux PyO3 extension into its
 own `.venv`, use `run_binding.py` for paired `run_batch(plan_bytes, seeds)` calls.

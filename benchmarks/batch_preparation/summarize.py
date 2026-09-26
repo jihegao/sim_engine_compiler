@@ -24,23 +24,29 @@ def main() -> None:
         pairs = [repeats[index] for index in sorted(repeats)]
         if any(set(pair) != {"baseline", "candidate"} for pair in pairs):
             raise ValueError(f"incomplete pair: {key}")
-        before = [pair["baseline"]["phases"]["end_to_end_batch_ns"] for pair in pairs]
-        after = [pair["candidate"]["phases"]["end_to_end_batch_ns"] for pair in pairs]
+        phase_report = "phases" in pairs[0]["baseline"]
+        metric_name = "end_to_end_batch_ns" if phase_report else "process_wall_ns"
+        def metric(row: dict) -> int:
+            return row["phases"][metric_name] if phase_report else row[metric_name]
+        before = [metric(pair["baseline"]) for pair in pairs]
+        after = [metric(pair["candidate"]) for pair in pairs]
         gains = [1 - candidate / baseline for baseline, candidate in zip(before, after)]
         memory_before = [pair["baseline"]["peak_rss_bytes"] for pair in pairs]
         memory_after = [pair["candidate"]["peak_rss_bytes"] for pair in pairs]
         memory_ratio = [candidate / baseline for baseline, candidate in zip(memory_before, memory_after)]
-        phase_names = pairs[0]["baseline"]["phases"]
-        phases = {
-            name: {
-                "baseline_median_ns": statistics.median(pair["baseline"]["phases"][name] for pair in pairs),
-                "candidate_median_ns": statistics.median(pair["candidate"]["phases"][name] for pair in pairs),
+        phases = {}
+        if phase_report:
+            phases = {
+                name: {
+                    "baseline_median_ns": statistics.median(pair["baseline"]["phases"][name] for pair in pairs),
+                    "candidate_median_ns": statistics.median(pair["candidate"]["phases"][name] for pair in pairs),
+                }
+                for name in pairs[0]["baseline"]["phases"]
             }
-            for name in phase_names
-        }
         summary.append({
             "case": key[0], "arm": key[1], "level": key[2],
             "samples": key[3], "threads": key[4], "pairs": len(pairs),
+            "metric_name": metric_name,
             "baseline_median_end_to_end_ns": statistics.median(before),
             "candidate_median_end_to_end_ns": statistics.median(after),
             "paired_gain_percent": [100 * gain for gain in gains],

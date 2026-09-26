@@ -9,11 +9,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import platform
 import subprocess
+import sys
 import time
 
-from run_benchmark import ARMS, CASES, LEVELS, plan_path, seeds, write_json
+from run_benchmark import ARMS, CASES, LEVELS, input_path, plan_path, seeds, write_json
 
 
 def file_sha256(path: Path) -> str:
@@ -55,11 +58,11 @@ def main() -> None:
     parser.add_argument("--candidate-root", type=Path, required=True)
     parser.add_argument("--shared-plan-dir", type=Path)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--cases", default="f35")
+    parser.add_argument("--cases", default=",".join(CASES))
     parser.add_argument("--arms", default="scan,cache,candidates")
     parser.add_argument("--levels", default="summary,full")
     parser.add_argument("--counts", default="1,32,256")
-    parser.add_argument("--threads", default="1,8")
+    parser.add_argument("--threads", default="1,2,4,8")
     parser.add_argument("--repeats", type=int, default=6)
     args = parser.parse_args()
     cases = args.cases.split(",")
@@ -76,10 +79,35 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "scratch").mkdir(exist_ok=True)
     identity = {"roots": {label: str(root) for label, root in roots.items()},
-                "plan_scope": "new process, Plan-file load; OS page cache not flushed; no canonical compile",
+                "plan_scope": "new process, Plan-file load; one per-configuration warmup; OS page cache not flushed; no canonical compile",
                 "cases": cases, "arms": arms, "levels": levels, "counts": counts,
                 "threads": threads, "repeats": args.repeats,
                 "run_order": "paired baseline/candidate, reversed on odd repeats"}
+    identity["platform"] = platform.platform()
+    identity["python"] = sys.version
+    identity["cpu_topology"] = subprocess.run(["lscpu"], text=True,
+                                               capture_output=True, check=True).stdout.strip()
+    identity["rustc"] = subprocess.run([str(Path.home() / ".cargo/bin/rustc"), "--version"],
+                                       text=True, capture_output=True, check=True).stdout.strip()
+    identity["artifacts"] = {}
+    for variant, root in roots.items():
+        if subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"],
+                          cwd=root, text=True, capture_output=True, check=True).stdout:
+            raise RuntimeError(f"tracked source changes in {root}")
+        binary = root / "rust/runtime/target/release/sim-engine-runtime"
+        identity["artifacts"][variant] = {
+            "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=root,
+                                     text=True, capture_output=True, check=True).stdout.strip(),
+            "binary_sha256": file_sha256(binary),
+            "plans": {f"{case}/{arm}": file_sha256(plan_path(root, case, arm, shared_plan_dir))
+                      for case in cases for arm in ("scan", "cache")},
+            "inputs": {case: file_sha256(input_path(root, case, shared_plan_dir))
+                       for case in cases},
+        }
+    if (identity["artifacts"]["baseline"]["plans"] != identity["artifacts"]["candidate"]["plans"]
+        or identity["artifacts"]["baseline"]["inputs"] != identity["artifacts"]["candidate"]["inputs"]):
+        raise AssertionError("cold A/B inputs or Plans differ")
+    identity["load_before"] = list(os.getloadavg())
     write_json(args.output / "identity.json", identity)
     expected: dict[tuple[str, str, int, int], str] = {}
     with (args.output / "records.jsonl").open("w") as records:
@@ -90,6 +118,10 @@ def main() -> None:
                         for workers in ([1] if count == 1 else threads):
                             if workers > count:
                                 continue
+                            for variant, root in roots.items():
+                                run_one(root, plan_path(root, case, arm, shared_plan_dir),
+                                        args.output, case, arm, level, count, workers,
+                                        -1, variant)
                             for repeat in range(args.repeats):
                                 order = list(roots)
                                 if repeat % 2:
@@ -107,6 +139,8 @@ def main() -> None:
                                     records.flush()
                                     print(case, arm, level, count, workers, repeat, variant,
                                           round(row["process_wall_ns"] / 1e6, 3), flush=True)
+    identity["load_after"] = list(os.getloadavg())
+    write_json(args.output / "identity.json", identity)
 
 
 if __name__ == "__main__":

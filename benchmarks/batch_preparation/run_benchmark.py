@@ -40,6 +40,13 @@ def plan_path(root: Path, case: str, arm: str, shared_plan_dir: Path | None) -> 
     return root / "benchmarks/dependency_dispatch/results/macos-arm64-20260925" / case / "event-time-v2" / ("scan-plan.json" if arm == "scan" else "indexed-plan.json")
 
 
+def input_path(root: Path, case: str, shared_plan_dir: Path | None) -> Path:
+    if case == "shared-remote-pools":
+        directory = shared_plan_dir or root / "benchmarks/batch_preparation/fixtures/shared-remote-pools"
+        return directory / "inputs.json"
+    return root / "benchmarks/dependency_dispatch/results/macos-arm64-20260925" / case / "inputs.json"
+
+
 def identity(root: Path, cases: list[str], shared_plan_dir: Path | None) -> dict:
     binary = root / "rust/runtime/target/release/stage-c-benchmark"
     if git(root, "status", "--porcelain", "--untracked-files=no"):
@@ -50,13 +57,7 @@ def identity(root: Path, cases: list[str], shared_plan_dir: Path | None) -> dict
         "binary_sha256": sha256(binary),
         "plans": {f"{case}/{arm}": sha256(plan_path(root, case, arm, shared_plan_dir))
                   for case in cases for arm in ("scan", "cache")},
-        "inputs": {
-            case: sha256(shared_plan_dir / "inputs.json" if case == "shared-remote-pools" and shared_plan_dir
-                         else root / "benchmarks/batch_preparation/fixtures/shared-remote-pools/inputs.json"
-                         if case == "shared-remote-pools"
-                         else root / "benchmarks/dependency_dispatch/results/macos-arm64-20260925" / case / "inputs.json")
-            for case in cases
-        },
+        "inputs": {case: sha256(input_path(root, case, shared_plan_dir)) for case in cases},
     }
     return result
 
