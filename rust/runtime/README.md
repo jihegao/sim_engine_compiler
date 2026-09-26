@@ -50,6 +50,18 @@ cargo run --release --manifest-path rust/runtime/Cargo.toml -- \
   --seeds 7,0,7,1 --worker-threads 3
 ```
 
+Rust 调用方可用 `PreparedBatchPlan::from_slice` 或 `from_plan` 建立已验证的
+不可变句柄，并多次调用 `run_prepared_batch`。构建句柄时严格校验 Plan 和
+可选资源索引，且只构建一次飞机故障槽、活动分组、组件子节点、phase 表和
+资源反向索引；每个样本仍独立初始化 RNG、飞机、资源与作业状态。原有
+`run_batch*`、CLI 和 Python 绑定入口内部也使用同一准备路径。缓存解码器
+自身的校验与公开批量入口的校验可能仍各发生一次，这是固定加载成本，
+不随样本数重复。
+
+准备成本的诊断与 AMD128 批量前后对照位于
+`benchmarks/batch_preparation/`。重复调用的热路径可运行
+`prepared_batch_benchmark`，分别计入已准备句柄与公开批量入口的运行成本。
+
 Python 绑定通过项目根目录的 Maturin 配置构建：
 
 ```bash

@@ -177,6 +177,9 @@ pub fn run_prepared_batch(
     if worker_threads == Some(0) {
         bail!("worker_threads must be greater than zero");
     }
+    if dependency_dispatch {
+        prepared.ensure_dependency_dispatch_supported()?;
+    }
 
     let available = thread::available_parallelism()
         .map(NonZeroUsize::get)
@@ -197,7 +200,7 @@ pub fn run_prepared_batch(
                     *seed,
                     observation_level,
                 )?
-                .with_dependency_dispatch(dependency_dispatch)?
+                .with_validated_dependency_dispatch(dependency_dispatch)
                 .run(until)?;
                 Ok(BatchSampleResult {
                     sample_index,
@@ -438,5 +441,23 @@ mod prepared_batch_tests {
             .unwrap()
             .remove("resource_dispatch_index");
         assert!(PreparedBatchPlan::from_slice(&serde_json::to_vec(&raw).unwrap()).is_err());
+
+        let mut raw: serde_json::Value = serde_json::from_slice(INDEXED_PLAN).unwrap();
+        raw.as_object_mut()
+            .unwrap()
+            .remove("resource_dispatch_index");
+        let prepared =
+            Arc::new(PreparedBatchPlan::from_slice(&serde_json::to_vec(&raw).unwrap()).unwrap());
+        assert!(
+            run_prepared_batch(
+                prepared,
+                &[0],
+                Some(1),
+                None,
+                ObservationLevel::Summary,
+                true
+            )
+            .is_err()
+        );
     }
 }

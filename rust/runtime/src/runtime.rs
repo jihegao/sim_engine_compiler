@@ -367,6 +367,20 @@ impl PreparedBatchPlan {
     pub fn fingerprint(&self) -> &str {
         &self.fingerprint
     }
+
+    pub(crate) fn ensure_dependency_dispatch_supported(&self) -> Result<()> {
+        if self
+            .plan
+            .resource_dispatch_index
+            .as_ref()
+            .is_none_or(|index| index.schema_version != "resource-dispatch-index/v2")
+        {
+            bail!(
+                "dependency dispatch requires a validated resource-dispatch-index/v2 (including remote capacity dependencies)"
+            );
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -590,7 +604,7 @@ pub struct Runtime {
 impl Runtime {
     /// Opt-in candidate-instance dispatch. The index is validated by Plan loading;
     /// no index or an unsupported dependency contract may silently enable this path.
-    pub fn with_dependency_dispatch(mut self, enabled: bool) -> Result<Self> {
+    pub fn with_dependency_dispatch(self, enabled: bool) -> Result<Self> {
         if enabled
             && self
                 .plan
@@ -602,13 +616,17 @@ impl Runtime {
                 "dependency dispatch requires a validated resource-dispatch-index/v2 (including remote capacity dependencies)"
             );
         }
+        Ok(self.with_validated_dependency_dispatch(enabled))
+    }
+
+    pub(crate) fn with_validated_dependency_dispatch(mut self, enabled: bool) -> Self {
         self.dependency_dispatch = enabled;
         if enabled {
             self.dispatch_candidates = self.waiting_job_indexes.clone();
             self.waiting_epoch
                 .resize(self.jobs.len(), self.dispatch_epoch + 1);
         }
-        Ok(self)
+        self
     }
 
     fn dispatch_order(&self, index: usize) -> (i64, i64, String, usize) {
