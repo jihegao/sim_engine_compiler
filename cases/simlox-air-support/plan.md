@@ -9,3 +9,11 @@ Source: main `595cb5eee9987324b19a8c3566f201f937e05f15`; issue #18 is the 26-cas
 5. **Delivery gate.** Commit narrow artifacts and evidence summary. A02 may be a provisional CLI derivation of A01 while GUI acceptance is pending. No Rust/default J35 changes, 1000-sample campaign or speed ratio. Bundle this branch for coordinator PR against main; never merge.
 
 Stop conditions: any conversion error, 4-byte/absent SXO, missing report/log, unexplained warning, or changed parent field outside A02's declared delta prevents behavioral acceptance. Native CLI success does not satisfy the GUI publication gate. Do not infer equivalence to J35 from these teaching cases.
+
+## Execution status (2026-09-27)
+
+- Contracts, 26-entry catalog, A01/A02 generators, checked native inputs and parent diff: **implemented**, commit `891ac7c`.
+- Native runner and pure validators: **implemented**. A01/A02 final and fresh independent replay: **CLI behavior verified** in four immutable runs. Initial zero-duration preparation-row candidates failed the no-preparation contract and were preserved.
+- Observation probes: SIMPE-shortening matrix **rejected** by converter `#204` with 4-byte SXO in all five early cells; 10.5/12 h positive controls **valid**. RCEND-only matrix **verified** native report clipping in five cells. This does not establish simulation-stop semantics.
+- GUI calibration/review: **pending private handoff**. A01/A02 publication stays provisional; A02 has only a provisional CLI parent. AMD128 cross-engine pairing: **unverified**.
+- A03-F04, full J35 equivalence, 1000-sample comparison and equivalent speed ratio: **outside this slice / not performed**.

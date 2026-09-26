@@ -10,6 +10,8 @@ import re
 from build_horizon_variants import ENDS, SOURCE
 from validate_native import compare_roundtrip, parse_log, remove_trailing_commas, table_rows
 
+ACCEPTED_VARIANTS = {**ENDS, "margin_10p5": 10.5, "margin_12": 12.0}
+
 
 def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -46,7 +48,7 @@ def validate(run: Path, variant: str, *, write: bool = True) -> dict:
                "ResultCollection[0].RCEND", "ResultCollection[1].RCEND"}
     if set(changed) != allowed:
         raise ValueError(f"unexpected input changes: {changed}")
-    end = ENDS[variant]
+    end = ACCEPTED_VARIANTS[variant]
     if any(row[field] != end for table, field in (("Control", "SIMPE"), ("Control", "RCEND"),
                                                   ("ResultCollection", "RCEND")) for row in rows(input_model, table)):
         raise ValueError("observation end does not match variant")
@@ -112,7 +114,7 @@ def validate(run: Path, variant: str, *, write: bool = True) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
-    parser.add_argument("--variant", choices=sorted(ENDS), required=True)
+    parser.add_argument("--variant", choices=sorted(ACCEPTED_VARIANTS), required=True)
     parser.add_argument("--read-only", action="store_true")
     args = parser.parse_args()
     result = validate(args.run_dir, args.variant, write=not args.read_only)

@@ -28,6 +28,7 @@ catalog = module("build_catalog")
 delta = module("diff_native")
 validator = module("validate_native")
 collection = module("validate_collection")
+margin = module("validate_horizon")
 
 
 class CaseLibraryTests(unittest.TestCase):
@@ -123,6 +124,22 @@ class CaseLibraryTests(unittest.TestCase):
                 self.assertEqual((run / "model.sxo").stat().st_size, 4)
                 self.assertIn("(error #204)", (run / "run.log").read_text(encoding="utf-8"))
                 self.assertTrue(validator.compare_roundtrip(run / "input.json", run / "roundtrip-raw.json")["all_equal"])
+
+    def test_native_positive_simulation_margin_controls_if_available(self):
+        base = REPO / "data/local/simlox-case-library/v1/simpe-margin-runs"
+        names = ("margin_10p5", "margin_12")
+        if not all((base / f"a01-simpe-{name.replace('_', '-')}-20260927-01/validation.json").exists() for name in names):
+            self.skipTest("native SIMPE positive controls are local to 4700-3")
+        for name, end in (("margin_10p5", 10.5), ("margin_12", 12)):
+            with self.subTest(variant=name):
+                run = base / f"a01-simpe-{name.replace('_', '-')}-20260927-01"
+                result = margin.validate(run, name, write=False)
+                self.assertEqual(result["status"], "native_probe_recorded")
+                self.assertEqual(result["conversion"]["errors"], 0)
+                self.assertEqual(result["observation"]["native_summary_window_hours"], [0, end])
+                self.assertEqual(result["observation"]["starts_hours_printed"], [8])
+                self.assertEqual(result["observation"]["completions_hours_printed"], [10])
+                self.assertGreater((run / "model.sxo").stat().st_size, 4)
 
     def test_roundtrip_detects_one_business_field_mutation(self):
         source = LIB / "A01-single-aircraft-single-mission/native-input.json"

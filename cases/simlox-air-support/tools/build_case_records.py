@@ -59,6 +59,8 @@ def build(case_id: str) -> dict[str, dict]:
                    "native_schema_sha256": sha256(ROOT / "native-schema.json")},
         "tool": {"simlox_version_from_prior_source_record": "2017.0.0.0",
                  "simlox_exe_sha256": SIMLOX_SHA,
+                 "isolated_python_version": "3.12.14",
+                 "isolated_python_exe_sha256": "2204195cec25879507d958a8b6949add67091244b8b4da9cf3672f993548fa49",
                  "generator_at_native_run_sha256": GENERATOR_AT_RUN_SHA,
                  "generator_current_sha256": sha256(ROOT / "tools/generate_native.py"),
                  "native_runner_sha256": sha256(ROOT / "tools/run_native.ps1"),
