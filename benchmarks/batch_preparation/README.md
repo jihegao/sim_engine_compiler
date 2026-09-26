@@ -46,6 +46,9 @@ Plan caches. Compile, serialization, and write times come from the uninstrumente
 Stage C report. The hot benchmark compares repeated public calls with repeated
 calls against one `PreparedBatchPlan` in the candidate binary; each pair
 checks exact sample output hashes.
+After applying the patches to separate checkouts and building their CLI
+binaries, `run_diagnostic.py` records the phase counters, patch/binary hashes,
+and identical full results for 32/256 samples at one thread.
 
 ## Reproduction on AMD128
 
