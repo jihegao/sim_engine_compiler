@@ -109,7 +109,7 @@ def main() -> None:
         })
     args.output.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
     for row in summary:
-        if row["case"] == "f35" and row["level"] == "summary":
+        if row["level"] == "summary":
             print(row["case"], row["arm"], row["samples"], row["threads"],
                   f"{row['median_paired_gain_percent']:.2f}%",
                   f"{row['positive_pairs']}/{row['pairs']}",

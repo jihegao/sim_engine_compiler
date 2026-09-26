@@ -16,7 +16,7 @@ import subprocess
 import sys
 import time
 
-from run_benchmark import ARMS, CASES, LEVELS, input_path, plan_path, seeds, write_json
+from run_benchmark import ARMS, CASES, KNOWN_CASES, LEVELS, input_path, plan_path, seeds, write_json
 
 
 def file_sha256(path: Path) -> str:
@@ -86,7 +86,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--baseline-root", type=Path, required=True)
     parser.add_argument("--candidate-root", type=Path, required=True)
-    parser.add_argument("--shared-plan-dir", type=Path)
+    parser.add_argument("--shared-plan-dir", "--case-dir", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cases", default=",".join(CASES))
     parser.add_argument("--arms", default="scan,cache,candidates")
@@ -100,8 +100,10 @@ def main() -> None:
     levels = args.levels.split(",")
     counts = [int(value) for value in args.counts.split(",")]
     threads = [int(value) for value in args.threads.split(",")]
-    if any(value not in CASES for value in cases) or any(value not in ARMS for value in arms) or any(value not in LEVELS for value in levels):
+    if any(value not in KNOWN_CASES for value in cases) or any(value not in ARMS for value in arms) or any(value not in LEVELS for value in levels):
         parser.error("unknown case, arm or level")
+    if "j35" in cases and args.shared_plan_dir is None:
+        parser.error("J35 requires --case-dir with frozen inputs.json and Plans")
     if args.repeats < 1 or any(value < 1 for value in counts + threads):
         parser.error("repeats, sample counts and threads must be positive")
     roots = {"baseline": args.baseline_root.resolve(), "candidate": args.candidate_root.resolve()}
@@ -110,7 +112,8 @@ def main() -> None:
     (args.output / "scratch").mkdir(exist_ok=True)
     identity = {"roots": {label: str(root) for label, root in roots.items()},
                 "plan_scope": "new process, Plan-file load; one per-configuration warmup; OS page cache not flushed; no canonical compile",
-                "cases": cases, "arms": arms, "levels": levels, "counts": counts,
+                "cases": cases, "case_dir": str(shared_plan_dir) if shared_plan_dir else None,
+                "arms": arms, "levels": levels, "counts": counts,
                 "threads": threads, "repeats": args.repeats,
                 "run_order": "paired baseline/candidate, reversed on odd repeats"}
     identity["platform"] = platform.platform()

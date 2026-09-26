@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 import subprocess
 
-from run_benchmark import plan_path, seeds, write_json
+from run_benchmark import KNOWN_CASES, plan_path, seeds, write_json
 from run_cold import file_sha256
 
 
@@ -26,6 +26,8 @@ def main() -> None:
     parser.add_argument("--baseline-root", type=Path, required=True)
     parser.add_argument("--candidate-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--case", choices=KNOWN_CASES, default="f35")
+    parser.add_argument("--case-dir", type=Path)
     parser.add_argument("--counts", default="32,256")
     parser.add_argument("--arms", default="scan,cache")
     args = parser.parse_args()
@@ -33,10 +35,13 @@ def main() -> None:
     arms = args.arms.split(",")
     if any(count < 1 for count in counts) or any(arm not in ("scan", "cache") for arm in arms):
         parser.error("counts must be positive and arms must be scan or cache")
+    if args.case == "j35" and args.case_dir is None:
+        parser.error("J35 requires --case-dir")
     roots = {"baseline": args.baseline_root.resolve(),
              "candidate": args.candidate_root.resolve()}
     args.output.mkdir(parents=True, exist_ok=True)
     identity = {"boundary": "instrumented JSON Plan CLI; phase counters only, excluded from formal timing",
+                "case": args.case, "case_dir": str(args.case_dir) if args.case_dir else None,
                 "counts": counts, "arms": arms, "worker_threads": 1,
                 "roots": {variant: str(root) for variant, root in roots.items()},
                 "artifacts": {}}
@@ -49,7 +54,7 @@ def main() -> None:
                 ["git", "diff", "--binary"], cwd=root, capture_output=True,
                 check=True).stdout).hexdigest(),
             "binary_sha256": file_sha256(binary),
-            "plans": {arm: file_sha256(plan_path(root, "f35", arm, None))
+            "plans": {arm: file_sha256(plan_path(root, args.case, arm, args.case_dir))
                       for arm in arms},
         }
     write_json(args.output / "identity.json", identity)
@@ -60,7 +65,7 @@ def main() -> None:
             for variant, root in roots.items():
                 output = args.output / f"scratch-{variant}-{arm}-{count}.json"
                 command = [str(root / "rust/runtime/target/release/sim-engine-runtime"),
-                           str(plan_path(root, "f35", arm, None)), str(output),
+                           str(plan_path(root, args.case, arm, args.case_dir)), str(output),
                            "--seeds", ",".join(map(str, seeds(count))),
                            "--worker-threads", "1", "--observation-level", "summary"]
                 process = subprocess.run(command, cwd=root,

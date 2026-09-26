@@ -16,6 +16,8 @@ import subprocess
 import sys
 
 CASES = ("f35", "synthetic-capacity-16", "synthetic-remote-16", "shared-remote-pools")
+EXTERNAL_CASES = ("j35",)
+KNOWN_CASES = CASES + EXTERNAL_CASES
 ARMS = ("scan", "cache", "candidates")
 LEVELS = ("summary", "full")
 SEED_CYCLE = (0, 1, 7, 7)
@@ -34,14 +36,18 @@ def git(root: Path, *arguments: str) -> str:
 
 
 def plan_path(root: Path, case: str, arm: str, shared_plan_dir: Path | None) -> Path:
-    if case == "shared-remote-pools":
+    if case in ("shared-remote-pools", "j35"):
+        if case == "j35" and shared_plan_dir is None:
+            raise ValueError("J35 requires a frozen --case-dir")
         directory = shared_plan_dir or root / "benchmarks/batch_preparation/fixtures/shared-remote-pools"
         return directory / ("scan-plan.json" if arm == "scan" else "indexed-plan.json")
     return root / "benchmarks/dependency_dispatch/results/macos-arm64-20260925" / case / "event-time-v2" / ("scan-plan.json" if arm == "scan" else "indexed-plan.json")
 
 
 def input_path(root: Path, case: str, shared_plan_dir: Path | None) -> Path:
-    if case == "shared-remote-pools":
+    if case in ("shared-remote-pools", "j35"):
+        if case == "j35" and shared_plan_dir is None:
+            raise ValueError("J35 requires a frozen --case-dir")
         directory = shared_plan_dir or root / "benchmarks/batch_preparation/fixtures/shared-remote-pools"
         return directory / "inputs.json"
     return root / "benchmarks/dependency_dispatch/results/macos-arm64-20260925" / case / "inputs.json"
@@ -108,8 +114,8 @@ def main() -> None:
     parser.add_argument("--arms", default=",".join(ARMS))
     parser.add_argument("--counts", default="1,32,256")
     parser.add_argument("--threads", default="1,2,4,8")
-    parser.add_argument("--shared-plan-dir", type=Path,
-                        help="frozen shared-remote-pools Plans, also used by the baseline checkout")
+    parser.add_argument("--shared-plan-dir", "--case-dir", dest="shared_plan_dir", type=Path,
+                        help="frozen shared-remote-pools or J35 inputs and Plans, used by both checkouts")
     args = parser.parse_args()
     if args.repeats < 1:
         parser.error("repeats must be positive")
@@ -118,7 +124,7 @@ def main() -> None:
     arms = args.arms.split(",")
     counts = [int(value) for value in args.counts.split(",")]
     threads = [int(value) for value in args.threads.split(",")]
-    if any(value not in CASES for value in cases) or any(value not in LEVELS for value in levels) or any(value not in ARMS for value in arms):
+    if any(value not in KNOWN_CASES for value in cases) or any(value not in LEVELS for value in levels) or any(value not in ARMS for value in arms):
         parser.error("unknown case, level or arm")
     if any(value < 1 for value in counts + threads):
         parser.error("counts and threads must be positive")
@@ -128,8 +134,10 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "runs").mkdir(exist_ok=True)
     shared_plan_dir = args.shared_plan_dir.resolve() if args.shared_plan_dir else None
+    if "j35" in cases and shared_plan_dir is None:
+        parser.error("--case-dir is required for J35")
     if "shared-remote-pools" in cases and len(variants) == 2 and shared_plan_dir is None:
-        parser.error("--shared-plan-dir is required for paired shared-remote-pools runs")
+        parser.error("--case-dir is required for paired shared-remote-pools runs")
     metadata = {"variants": {name: identity(root, cases, shared_plan_dir) for name, root in variants.items()},
                 "platform": platform.platform(), "python": sys.version,
                 "logical_cpus": os.cpu_count(), "repeats": args.repeats,

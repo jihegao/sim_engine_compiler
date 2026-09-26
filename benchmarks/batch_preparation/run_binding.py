@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 
-from run_benchmark import plan_path, seeds, write_json
+from run_benchmark import KNOWN_CASES, plan_path, seeds, write_json
 
 
 def worker(args: argparse.Namespace) -> None:
@@ -48,6 +48,8 @@ def main() -> None:
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--level", choices=("summary", "full"), default="summary")
     parser.add_argument("--arm", choices=("scan", "cache"), default="cache")
+    parser.add_argument("--case", choices=KNOWN_CASES, default="f35")
+    parser.add_argument("--case-dir", type=Path)
     parser.add_argument("--repeats", type=int, default=6)
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--plan", type=Path)
@@ -62,12 +64,14 @@ def main() -> None:
         return
     if not args.baseline_root or not args.candidate_root or not args.output:
         parser.error("paired run needs --baseline-root, --candidate-root and --output")
+    if args.case == "j35" and args.case_dir is None:
+        parser.error("J35 requires --case-dir")
     roots = {"baseline": args.baseline_root.resolve(), "candidate": args.candidate_root.resolve()}
     args.output.mkdir(parents=True, exist_ok=True)
     artifacts = {}
     for name, root in roots.items():
         extension = root / "src/sim_engine_compiler/_runtime.abi3.so"
-        plan = plan_path(root, "f35", args.arm, None)
+        plan = plan_path(root, args.case, args.arm, args.case_dir)
         artifacts[name] = {
             "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=root,
                                       text=True, capture_output=True, check=True).stdout.strip(),
@@ -80,7 +84,9 @@ def main() -> None:
                 "artifacts": artifacts,
                 "boundary": "Python run_batch(bytes) call: native Plan parse/validation, runtime, JSON transfer and decode; Plan file read and process startup excluded",
                 "samples": args.samples, "threads": args.threads, "level": args.level,
-                "arm": args.arm, "repeats": args.repeats,
+                "arm": args.arm, "case": args.case,
+                "case_dir": str(args.case_dir) if args.case_dir else None,
+                "repeats": args.repeats,
                 "run_order": "paired baseline/candidate, reversed on odd repeats"}
     write_json(args.output / "identity.json", identity)
     expected = None
@@ -93,7 +99,7 @@ def main() -> None:
                 root = roots[variant]
                 report = args.output / f"{variant}-{repeat}.json"
                 command = [str(root / ".venv/bin/python"), str(Path(__file__).resolve()),
-                           "--worker", "--plan", str(plan_path(root, "f35", args.arm, None)),
+                           "--worker", "--plan", str(plan_path(root, args.case, args.arm, args.case_dir)),
                            "--report", str(report), "--samples", str(args.samples),
                            "--threads", str(args.threads), "--level", args.level]
                 environment = dict(os.environ, PYTHONPATH=str(root / "src"))

@@ -35,10 +35,21 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--plugin-dir", type=Path, required=True)
     parser.add_argument("--mlir-opt", type=Path, required=True)
+    parser.add_argument("--case-dir", type=Path,
+                        help="frozen J35 inputs.json and indexed-plan.json")
+    parser.add_argument("--cases", help="comma-separated cases; defaults to built-in cases")
     parser.add_argument("--repeats", type=int, default=6)
     args = parser.parse_args()
     if args.repeats < 1:
         parser.error("repeats must be positive")
+    cases = dict(CASES)
+    if args.case_dir:
+        case_dir = args.case_dir.resolve()
+        cases["j35"] = (case_dir / "inputs.json", case_dir / "indexed-plan.json")
+    selected = args.cases.split(",") if args.cases else list(CASES)
+    if any(name not in cases for name in selected):
+        parser.error("unknown case or J35 requires --case-dir")
+    cases = {name: cases[name] for name in selected}
     plugin = args.plugin_dir.resolve() / "SimResourceDispatchPass.so"
     mlir_opt = args.mlir_opt.resolve()
     identity = {
@@ -50,14 +61,14 @@ def main() -> None:
         "warmups": 1, "repeats": args.repeats,
         "boundary": "compiler Python process wall includes canonical read, three-layer lowering, MLIR pass and Plan write; excludes plugin/binary build",
         "cases": {name: {"input_sha256": digest(source), "plan_sha256": digest(frozen)}
-                  for name, (source, frozen) in CASES.items()},
+                  for name, (source, frozen) in cases.items()},
     }
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "identity.json").write_text(json.dumps(identity, indent=2) + "\n")
     rows = []
     with tempfile.TemporaryDirectory(prefix="sim-batch-prep-compile-") as temporary:
         plan = Path(temporary) / "plan.json"
-        for name, (source, frozen) in CASES.items():
+        for name, (source, frozen) in cases.items():
             for repeat in range(-1, args.repeats):
                 command = [sys.executable, str(ROOT / "scripts/compile_mlir_execution_plan.py"),
                            str(source), str(plan), "--semantic-profile", "event-time-v2",
