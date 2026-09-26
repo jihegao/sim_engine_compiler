@@ -12,13 +12,20 @@ import json
 from pathlib import Path
 import re
 
+from native_binding import verify as verify_binding
+
 ROOT = Path(__file__).resolve().parents[1]
 CASE_DIRS = {"A01": ROOT / "A01-single-aircraft-single-mission",
              "A02": ROOT / "A02-single-aircraft-repeated-missions"}
 TIME = re.compile(r"^Time: ([0-9.e+\-]+) (.*)$")
 KINDS = {
     "notification": " mission ordered:",
+    "created": " mission created:",
+    "activated": " mission activated, systems requested:",
+    "allocation": " mission allocates system:",
     "start": " mission starting, duration:",
+    "task_start": " task starting:",
+    "task_completion": " task completed:",
     "success": " mission success:",
     "completion": " mission completed:",
     "cancel": " mission cancelled:",
@@ -26,12 +33,20 @@ KINDS = {
     "ready": " System ready <",
     "ready_decreased": " nbr ready decreased at unit:",
     "ready_increased": " nbr ready increased at unit:",
+    "systems_ready": " systems ready:",
+    "soon_ready": " System soon ready <",
     "fault": " critical random failure added",
     "pm": " PM task ",
     "repair": " repair task ",
     "preparation_start": " preparation started,",
     "preparation_end": " preparation ended,",
 }
+ZERO_SYSTEM_FIELDS = (
+    "NSYMC", "NSYMP", "NSYMT", "NSYMS", "NSYUA", "NSYAL", "NSYRP", "NSYPM",
+    "NSYTP", "NSYWR", "NSYWI", "NSYLA", "NSYUH", "NREPT", "NPMT", "NFAIL",
+    "NDAM", "NPMS", "NROBT", "NRCFG", "STREQ", "STF", "STLOW",
+    "SYDTU", "NSYDT", "NSYSW", "NPSTA", "NPSUC",
+)
 
 
 def sha256(path: Path) -> str:
@@ -123,7 +138,7 @@ def parse_log(path: Path) -> list[dict]:
         for kind, needle in KINDS.items():
             if needle in match.group(2):
                 events.append({"line": line_number, "kind": kind,
-                               "time_hours_printed": match.group(1), "text": line})
+                               "time_hours_printed": match.group(1), "body": match.group(2).strip(), "text": line})
                 break
     return events
 
@@ -131,8 +146,13 @@ def parse_log(path: Path) -> list[dict]:
 def expected_behavior(events: list[dict], contract: dict, report: dict) -> dict:
     hand = contract["hand_expected"]
     by_kind = {kind: [event for event in events if event["kind"] == kind] for kind in KINDS}
-    exact = {"notification": hand["notification_hours"], "start": hand["actual_start_hours"],
-             "success": hand["actual_end_hours"], "completion": hand["actual_end_hours"]}
+    task_start = [start + contract["mission"]["duration_hours"] * .25 for start in hand["actual_start_hours"]]
+    task_end = [end - contract["mission"]["duration_hours"] * .25 for end in hand["actual_end_hours"]]
+    exact = {"notification": hand["notification_hours"], "created": hand["notification_hours"],
+             "activated": hand["notification_hours"], "allocation": hand["notification_hours"],
+             "start": hand["actual_start_hours"], "task_start": task_start,
+             "task_completion": task_end, "success": hand["actual_end_hours"],
+             "completion": hand["actual_end_hours"]}
     differences = []
     if not events or any(float(later["time_hours_printed"]) < float(earlier["time_hours_printed"])
                          for earlier, later in zip(events, events[1:])):
@@ -161,23 +181,57 @@ def expected_behavior(events: list[dict], contract: dict, report: dict) -> dict:
     completed = len(by_kind["completion"])
     sid = contract["aircraft"][0]["native_sid"]
     mission_id = contract["mission"]["business_id"]
-    mission_tags = {}
-    for kind in ("start", "success", "completion"):
-        mission_tags[kind] = []
-        for event in by_kind[kind]:
-            match = re.search(rf"<{re.escape(mission_id)},[^>]*,0,0,(\d+)>", event["text"])
-            mission_tags[kind].append(int(match[1]) if match else None)
-        if mission_tags[kind] != list(range(hand["planned_waves"])):
-            differences.append({"field": f"{kind}_wave_identity", "actual": mission_tags[kind]})
-    if any(mission_id not in event["text"] for event in by_kind["notification"]):
-        differences.append({"field": "notification_mission_identity"})
-    for kind in ("start", "completion"):
-        if any(sid not in event["text"] or mission_id not in event["text"] for event in by_kind[kind]):
-            differences.append({"field": f"{kind}_identity", "expected_sid": sid, "expected_mission": mission_id})
+    unit = contract["aircraft"][0].get("unit", "TEACH-UNIT")
+    base = contract["aircraft"][0]["base"]
+    aircraft = f"<{sid},0>"
+    for index in range(hand["planned_waves"]):
+        tag = f"<{mission_id},{unit},0,0,{index}>"
+        expected_body = {
+            "notification": f"<{unit}> mission ordered: {mission_id}",
+            "created": f"{tag} mission created:",
+            "activated": f"{tag} mission activated, systems requested: 1",
+            "allocation": f"{tag} mission allocates system: {aircraft}",
+            "task_start": f"{tag} task starting: {aircraft}",
+            "task_completion": f"{tag} task completed: {aircraft}",
+            "success": f"{tag} mission success:",
+            "completion": f"{tag} mission completed: {aircraft}",
+        }
+        for kind, body in expected_body.items():
+            if len(by_kind[kind]) <= index or by_kind[kind][index]["body"] != body:
+                differences.append({"field": f"{kind}_identity", "wave": index,
+                                    "expected": body, "actual": by_kind[kind][index]["body"] if len(by_kind[kind]) > index else None})
+        if len(by_kind["start"]) <= index or not re.fullmatch(
+                rf"{re.escape(tag)} mission starting, duration: {contract['mission']['duration_hours']}(?:\.0)? : {re.escape(aircraft)}",
+                by_kind["start"][index]["body"]):
+            differences.append({"field": "start_identity", "wave": index,
+                                "actual": by_kind["start"][index]["body"] if len(by_kind["start"]) > index else None})
+        ordered = ("notification", "created", "activated", "allocation", "start", "success", "completion")
+        if all(len(by_kind[kind]) > index for kind in ordered):
+            lines = [by_kind[kind][index]["line"] for kind in ordered]
+            if lines != sorted(lines):
+                differences.append({"field": "mission_lifecycle_order", "wave": index, "lines": lines})
     decreased = [float(event["time_hours_printed"]) for event in by_kind["ready_decreased"]]
     increased = [float(event["time_hours_printed"]) for event in by_kind["ready_increased"]]
-    if any(sid not in event["text"] for kind in ("ready_decreased", "ready_increased") for event in by_kind[kind]):
-        differences.append({"field": "aircraft_ready_identity", "expected_sid": sid})
+    for kind in ("ready_decreased", "ready_increased"):
+        body = f"{aircraft} nbr ready {'decreased' if kind == 'ready_decreased' else 'increased'} at unit: <{unit} at <{base},0>>"
+        if any(event["body"] != body for event in by_kind[kind]):
+            differences.append({"field": "aircraft_ready_identity", "kind": kind, "expected": body})
+    expected_systems_ready = f"<{unit} at <{base},0>> systems ready: 1 :{aircraft}"
+    if (len(by_kind["systems_ready"]) != 1 + hand["planned_waves"] or
+            any(event["body"] != expected_systems_ready for event in by_kind["systems_ready"])):
+        differences.append({"field": "systems_ready_identity", "expected": expected_systems_ready})
+    expected_ready = f"<{sid},{base},0> System ready {aircraft}"
+    if (len(by_kind["ready"]) != 2 * hand["planned_waves"] or
+            any(event["body"] != expected_ready for event in by_kind["ready"])):
+        differences.append({"field": "system_ready_identity", "expected": expected_ready})
+    expected_soon_ready = f"<{sid},{base},0> System soon ready {aircraft}, estimated remaining time: 0"
+    if any(event["body"] != expected_soon_ready for event in by_kind["soon_ready"]):
+        differences.append({"field": "system_soon_ready_identity", "expected": expected_soon_ready})
+    for kind in ("preparation_start", "preparation_end"):
+        expected_prep = [f"{aircraft} preparation {'started' if kind == 'preparation_start' else 'ended'}, mission: <{mission_id},{unit},0,0,{i}>"
+                         for i in range(hand["planned_waves"])]
+        if [event["body"] for event in by_kind[kind]] != expected_prep:
+            differences.append({"field": f"{kind}_identity", "expected": expected_prep})
     if decreased != hand["notification_hours"] or increased != [0] + hand["ready_after_hours"]:
         differences.append({"field": "aircraft_ready_state", "decreased_hours": decreased, "increased_hours": increased})
     flight_hours_from_mission_intervals = sum(float(end["time_hours_printed"]) - float(start["time_hours_printed"])
@@ -189,23 +243,47 @@ def expected_behavior(events: list[dict], contract: dict, report: dict) -> dict:
     horizon = contract["observation"]["end_hours"]
     if len(system) != round(horizon / interval):
         differences.append({"field": "system_result_intervals", "actual_count": len(system)})
-    flight_hours_from_system_results = 0.0
-    ready_hours_from_system_results = 0.0
+    integrals = {field: 0.0 for field in ("FTMO", "NSYMO", "NSYMA", "NSYMR", "NSYRY")}
     for index, row in enumerate(system):
         start, end = float(row["STINT"]), float(row["ETINT"])
         if abs(start - index * interval) > 1e-8 or abs(end - (index + 1) * interval) > 1e-8:
             differences.append({"field": "system_interval", "index": index, "start": start, "end": end})
             break
-        flight_hours_from_system_results += float(row["FTMO"]) * (end - start)
-        ready_hours_from_system_results += float(row["NSYRY"]) * (end - start)
-        expected_ready = int(not any(notice <= start < finish for notice, finish in zip(hand["notification_hours"], hand["actual_end_hours"])))
-        if row["NSYRY"] != expected_ready:
-            differences.append({"field": "system_ready_interval", "index": index, "expected": expected_ready, "actual": row["NSYRY"]})
-            break
-    if abs(flight_hours_from_system_results - hand["flight_hours_integral"]) > 1e-8:
-        differences.append({"field": "system_report_flight_hours", "actual": flight_hours_from_system_results})
-    if any(row["NFAIL"] or row["NPMT"] for row in system):
-        differences.append({"field": "unintended_fault_or_pm_report"})
+        if row.get("UNID") != "Total over all Units" or row.get("SID") != "Total over all Systems":
+            differences.append({"field": "system_report_scope", "index": index})
+        span = end - start
+        def fraction(windows):
+            return sum(max(0.0, min(end, right) - max(start, left)) for left, right in windows) / span
+        mission_windows = list(zip(hand["actual_start_hours"], hand["actual_end_hours"]))
+        allocated_windows = list(zip(hand["notification_hours"], hand["actual_end_hours"]))
+        reserved_windows = list(zip(hand["notification_hours"], hand["actual_start_hours"]))
+        allocated, flying, reserved = fraction(allocated_windows), fraction(mission_windows), fraction(reserved_windows)
+        expected_profile = {"FTMO": flying, "NSYMO": flying, "NSYMA": allocated,
+                            "NSYMR": reserved, "NSYRY": 1 - allocated}
+        for field, expected_value in expected_profile.items():
+            if field not in row or abs(float(row[field]) - expected_value) > 1e-8:
+                differences.append({"field": "system_interval_profile", "index": index,
+                                    "metric": field, "expected": expected_value, "actual": row.get(field)})
+            if field in row:
+                integrals[field] += float(row[field]) * span
+        if row.get("NSYA") != 1:
+            differences.append({"field": "system_count_interval", "index": index, "metric": "NSYA", "actual": row.get("NSYA")})
+        for field in ZERO_SYSTEM_FIELDS:
+            if field not in row or row[field] != 0:
+                differences.append({"field": "unintended_mechanism_interval", "index": index,
+                                    "metric": field, "expected": 0, "actual": row.get(field)})
+        if row.get("SYDT", "missing") is not None:
+            differences.append({"field": "system_interval_not_applicable", "index": index,
+                                "metric": "SYDT", "expected": None, "actual": row.get("SYDT", "missing")})
+    flight_hours_from_system_results = integrals["FTMO"]
+    ready_hours_from_system_results = integrals["NSYRY"]
+    expected_integrals = {"FTMO": hand["flight_hours_integral"], "NSYMO": hand["flight_hours_integral"],
+                          "NSYMA": hand["planned_waves"] * 3, "NSYMR": hand["planned_waves"],
+                          "NSYRY": hand["ready_hours_integral"]}
+    for field, expected_value in expected_integrals.items():
+        if abs(integrals[field] - expected_value) > 1e-8:
+            differences.append({"field": "system_integral", "metric": field,
+                                "expected": expected_value, "actual": integrals[field]})
     native_preparations_started = sum(int(row["NPSTA"]) for row in system)
     if native_preparations_started != 0:
         differences.append({"field": "unintended_native_preparation_count", "expected": 0,
@@ -221,11 +299,15 @@ def expected_behavior(events: list[dict], contract: dict, report: dict) -> dict:
             "flight_hours_from_mission_intervals": flight_hours_from_mission_intervals,
             "flight_hours_from_system_results": flight_hours_from_system_results,
             "ready_hours_from_system_results": ready_hours_from_system_results,
+            "system_interval_integrals_aircraft_hours": integrals,
             "native_zero_duration_preparation_count": native_preparations_started,
             "result_summary": {key: summary[key] for key in ("NREP", "RTILW", "RTIUP", "MSTF", "MSUF") if key in summary}}
 
 
-def validate(run_dir: Path, case_id: str, *, write: bool = True) -> dict:
+def validate(run_dir: Path, case_id: str, *, write: bool = True, require_binding: bool = True) -> dict:
+    if not require_binding and write:
+        raise ValueError("legacy unsealed analysis is read-only and cannot be accepted")
+    binding = verify_binding(run_dir, case_id) if require_binding else None
     case_dir = CASE_DIRS[case_id]
     contract = json.loads((case_dir / "contract.json").read_text(encoding="utf-8"))
     required = {name: run_dir / name for name in ("input.json", "model.sxi", "model.sxo", "roundtrip-raw.json", "report-raw.json", "run.log", "model.log", "steps.json")}
@@ -235,7 +317,7 @@ def validate(run_dir: Path, case_id: str, *, write: bool = True) -> dict:
     checked_input = case_dir / "native-input.json"
     if sha256(required["input.json"]) != sha256(checked_input):
         raise ValueError("native run input differs from checked case input")
-    if not write and (run_dir / "validation.json").is_file():
+    if not write and (run_dir / "validation.json").is_file() and require_binding:
         frozen = json.loads((run_dir / "validation.json").read_text(encoding="utf-8-sig"))
         for name, record in frozen.get("artifacts", {}).items():
             if name in required and sha256(required[name]) != record["sha256"]:
@@ -276,7 +358,9 @@ def validate(run_dir: Path, case_id: str, *, write: bool = True) -> dict:
         "normalized_report": {"path": str(normalized_path), "bytes": len(normalized),
                               "sha256": hashlib.sha256(normalized).hexdigest()},
         "event_index": events,
-        "status": "cli_behavior_verified" if behavior["passed"] else "cli_behavior_mismatch",
+        "binding": binding,
+        "status": ("cli_behavior_verified" if behavior["passed"] else "cli_behavior_mismatch") if require_binding
+                  else "legacy_unsealed_reanalysis",
         "gui_status": "pending",
     }
     if write:
@@ -292,12 +376,14 @@ def main() -> None:
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--case", choices=sorted(CASE_DIRS), required=True)
     parser.add_argument("--read-only", action="store_true", help="recheck an immutable prior run without writing artifacts")
+    parser.add_argument("--legacy-read-only", action="store_true", help="analyze old unsealed runs without acceptance attribution")
     args = parser.parse_args()
-    result = validate(args.run_dir, args.case, write=not args.read_only)
+    result = validate(args.run_dir, args.case, write=not (args.read_only or args.legacy_read_only),
+                      require_binding=not args.legacy_read_only)
     print(json.dumps({"status": result["status"], "behavior": result["behavior"],
                       "raw_report_sha256": result["artifacts"]["report-raw.json"]["sha256"],
                       "normalized_report_sha256": result["normalized_report"]["sha256"]}))
-    if result["status"] != "cli_behavior_verified":
+    if result["status"] != "cli_behavior_verified" and not args.legacy_read_only:
         raise SystemExit(1)
 
 

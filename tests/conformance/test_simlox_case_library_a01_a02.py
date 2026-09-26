@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import importlib.util
 import copy
+import hashlib
 import json
 from pathlib import Path
 import shutil
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 REPO = Path(__file__).resolve().parents[2]
 LIB = REPO / "cases/simlox-air-support"
@@ -29,6 +31,8 @@ delta = module("diff_native")
 validator = module("validate_native")
 collection = module("validate_collection")
 margin = module("validate_horizon")
+binding = module("native_binding")
+records = module("build_case_records")
 
 
 class CaseLibraryTests(unittest.TestCase):
@@ -77,6 +81,20 @@ class CaseLibraryTests(unittest.TestCase):
             self.assertEqual((hand["planned_waves"], hand["sorties"], hand["unfinished_at_horizon"]),
                              (len(starts), len(starts), 0))
 
+    def test_pairing_contract_binds_full_case_contracts_and_ready_states(self):
+        pairing = json.loads((LIB / "pairing-contract.json").read_text(encoding="utf-8"))
+        for case_id, expected in (("A01", (33, 3, 1, 2)), ("A02", (27, 9, 3, 6))):
+            with self.subTest(case_id=case_id):
+                record = pairing["full_case_contracts"][case_id]
+                path = LIB / record["relative_path"]
+                raw = path.read_bytes()
+                self.assertEqual(record["sha256"], hashlib.sha256(raw).hexdigest())
+                self.assertEqual(record["content"], json.loads(raw))
+                timeline = pairing["per_case_timeline_hours"][case_id]
+                integrals = timeline["integrals_aircraft_hours"]
+                self.assertEqual((integrals["NSYRY"], integrals["NSYMA"],
+                                  integrals["NSYMR"], integrals["FTMO"]), expected)
+
     def test_generated_bytes_reproduce_frozen_native_inputs(self):
         for case_id, directory in generator.DIRS.items():
             parameters = json.loads((directory / "parameters.json").read_text(encoding="utf-8"))
@@ -93,13 +111,13 @@ class CaseLibraryTests(unittest.TestCase):
 
     def test_native_collection_window_matrix_if_available(self):
         base = REPO / "data/local/simlox-case-library/v1/collection-runs"
-        expected = {"before_launch": (0, 1, 0, 0, 0), "in_flight": (1, 0, 1, 0, 1),
-                    "before_completion": (1.9999, 0, 1, 0, 1),
-                    "printed_tie": (2, 0, 0, 1, 1), "after_completion": (2, 0, 0, 1, 1)}
+        expected = {"before_launch": (0, 1, 1, 0, 0, 0), "in_flight": (1, 0, 0, 1, 0, 1),
+                    "before_completion": (1.9999, 0, 0, 1, 0, 1),
+                    "printed_tie": (2, 0, 0, 0, 1, 1), "after_completion": (2, 0, 0, 0, 1, 1)}
         if not all((base / f"a01-collection-{name.replace('_', '-')}-20260927-01/validation.json").exists()
                    for name in expected):
             self.skipTest("native collection-window evidence is local to 4700-3")
-        for name, (hours, unlaunched, in_flight, completed, summary_fraction) in expected.items():
+        for name, (hours, unlaunched, pending, in_flight, completed, summary_fraction) in expected.items():
             with self.subTest(variant=name):
                 run = base / f"a01-collection-{name.replace('_', '-')}-20260927-01"
                 result = collection.validate(run, name, write=False)
@@ -108,10 +126,32 @@ class CaseLibraryTests(unittest.TestCase):
                 self.assertAlmostEqual(obs["flight_hours_clipped_from_events"], hours, places=5)
                 self.assertAlmostEqual(obs["native_ftmo_interval_integral_hours"], hours, places=5)
                 self.assertEqual((obs["planned_unlaunched_at_collection_end"],
+                                  obs["notified_pending_at_collection_end"],
                                   obs["in_flight_at_collection_end"], obs["completed_by_collection_end"]),
-                                 (unlaunched, in_flight, completed))
+                                 (unlaunched, pending, in_flight, completed))
                 self.assertEqual(obs["native_summary_window_hours"], [0, 36])
                 self.assertEqual(obs["native_summary_mstf_msuf"], [summary_fraction, summary_fraction])
+
+    def test_corrected_collection_review_is_read_only_and_fingerprinted(self):
+        artifact = LIB / "collection-window-review-v2.json"
+        if not artifact.exists():
+            self.skipTest("corrected collection review not available")
+        document = json.loads(artifact.read_text(encoding="utf-8"))
+        self.assertEqual(document["analyzer_sha256"], hashlib.sha256((TOOLS / "validate_collection.py").read_bytes()).hexdigest())
+        self.assertTrue(document["read_only"])
+        self.assertFalse(document["raw_native_files_changed"])
+        self.assertEqual(len(document["runs"]), 5)
+        for run in document["runs"]:
+            folder = Path(run["run_dir"])
+            if not folder.is_dir():
+                self.skipTest("original collection raw is local to 4700-3")
+            for key, name in (("original_validation_sha256", "validation.json"),
+                              ("raw_input_sha256", "input.json"),
+                              ("raw_report_sha256", "report-raw.json"),
+                              ("raw_enlog_sha256", "model.log")):
+                self.assertEqual(run[key], hashlib.sha256((folder / name).read_bytes()).hexdigest())
+            observed = collection.validate(folder, run["variant"], write=False)["observation"]
+            self.assertEqual(run["observation"], observed)
 
     def test_native_short_simulation_period_is_invalid_if_available(self):
         base = REPO / "data/local/simlox-case-library/v1/horizon-runs"
@@ -171,7 +211,7 @@ class CaseLibraryTests(unittest.TestCase):
                 self.assertFalse(behavior["passed"])
                 self.assertEqual(behavior["flight_hours_from_system_results"], 2 if case_id == "A01" else 6)
                 self.assertEqual(behavior["native_zero_duration_preparation_count"], 1 if case_id == "A01" else 3)
-                self.assertEqual(behavior["differences"][0]["field"], "unintended_native_preparation_count")
+                self.assertIn("unintended_native_preparation_count", [d["field"] for d in behavior["differences"]])
 
     def test_final_native_cases_and_independent_replays_if_available(self):
         base = REPO / "data/local/simlox-case-library/v1"
@@ -183,8 +223,9 @@ class CaseLibraryTests(unittest.TestCase):
             signatures = []
             for run_name in runs:
                 run = base / case_id / run_name
-                result = validator.validate(run, case_id, write=False)
-                self.assertEqual(result["status"], "cli_behavior_verified")
+                result = validator.validate(run, case_id, write=False, require_binding=False)
+                self.assertEqual(result["status"], "legacy_unsealed_reanalysis")
+                self.assertTrue(result["behavior"]["passed"])
                 self.assertEqual(result["behavior"]["native_zero_duration_preparation_count"], 0)
                 self.assertEqual(result["artifacts"]["input.json"]["sha256"], generator.sha256(generator.DIRS[case_id] / "native-input.json"))
                 signatures.append([(event["kind"], event["time_hours_printed"], event["text"])
@@ -202,7 +243,7 @@ class CaseLibraryTests(unittest.TestCase):
             log = (target / "run.log").read_text(encoding="utf-8")
             (target / "run.log").write_text(log.replace("Errors: 0", "Errors: 1"), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "native conversion/roundtrip invalid"):
-                validator.validate(target, "A01", write=False)
+                validator.validate(target, "A01", write=False, require_binding=False)
 
     def test_native_missing_short_and_mixed_artifacts_are_rejected(self):
         source = REPO / "data/local/simlox-case-library/v1/A01/a01-final-20260927-01"
@@ -215,11 +256,11 @@ class CaseLibraryTests(unittest.TestCase):
                     shutil.copy2(path, target / path.name)
             (target / "model.sxo").write_bytes(b"ABCD")
             with self.assertRaisesRegex(ValueError, "missing/invalid native artifact"):
-                validator.validate(target, "A01", write=False)
+                validator.validate(target, "A01", write=False, require_binding=False)
             shutil.copy2(source / "model.sxo", target / "model.sxo")
             shutil.copy2(REPO / "data/local/simlox-case-library/v1/A02/a02-final-20260927-01/input.json", target / "input.json")
             with self.assertRaisesRegex(ValueError, "input differs from checked"):
-                validator.validate(target, "A01", write=False)
+                validator.validate(target, "A01", write=False, require_binding=False)
 
     def test_native_duplicate_event_wrong_identity_and_truncation_are_rejected(self):
         source = REPO / "data/local/simlox-case-library/v1/A01/a01-final-20260927-01"
@@ -239,9 +280,123 @@ class CaseLibraryTests(unittest.TestCase):
             for name, (log, field) in cases.items():
                 with self.subTest(name=name):
                     (target / "model.log").write_text(log, encoding="utf-8")
-                    result = validator.validate(target, "A01", write=False)
-                    self.assertEqual(result["status"], "cli_behavior_mismatch")
+                    result = validator.validate(target, "A01", write=False, require_binding=False)
+                    self.assertFalse(result["behavior"]["passed"])
                     self.assertIn(field, [difference["field"] for difference in result["behavior"]["differences"]])
+
+    def test_exact_lifecycle_and_ready_identity_reproducers(self):
+        source = REPO / "data/local/simlox-case-library/v1/A01/a01-final-20260927-01"
+        if not (source / "model.log").exists():
+            self.skipTest("retained native ENLOG is local to 4700-3")
+        contract = json.loads((generator.DIRS["A01"] / "contract.json").read_text(encoding="utf-8"))
+        report = json.loads(validator.remove_trailing_commas((source / "report-raw.json").read_bytes()))
+        original = validator.parse_log(source / "model.log")
+        self.assertTrue(validator.expected_behavior(original, contract, report)["passed"])
+        mutations = (
+            ("notification", "TEACH-UNIT", "OTHER-UNIT", "notification_identity"),
+            ("allocation", "TEACH-AIR-01,0", "TEACH-AIR-010,0", "allocation_identity"),
+            ("start", "TEACH-AIR-01,0", "TEACH-AIR-01,1", "start_identity"),
+            ("success", "BASIC-MISSION,TEACH-UNIT,0,0,0", "BASIC-MISSION,TEACH-UNIT,0,0,999", "success_identity"),
+            ("completion", "BASIC-MISSION,TEACH-UNIT,0,0,0", "BASIC-MISSION,TEACH-UNIT,0,0,999", "completion_identity"),
+            ("ready", "TEACH-AIR-01,0", "OTHER-AIRCRAFT,0", "system_ready_identity"),
+            ("ready_increased", "TEACH-AIR-01,0", "OTHER-AIRCRAFT,0", "aircraft_ready_identity"),
+        )
+        for kind, old, new, field in mutations:
+            with self.subTest(kind=kind):
+                changed = copy.deepcopy(original)
+                event = next(e for e in changed if e["kind"] == kind)
+                event["body"] = event["body"].replace(old, new)
+                self.assertNotEqual(event["body"], next(e for e in original if e["kind"] == kind)["body"])
+                result = validator.expected_behavior(changed, contract, report)
+                self.assertFalse(result["passed"])
+                self.assertIn(field, [d["field"] for d in result["differences"]])
+
+    def test_per_interval_state_and_mechanism_mutations_rejected(self):
+        source = REPO / "data/local/simlox-case-library/v1/A01/a01-final-20260927-01"
+        if not (source / "model.log").exists():
+            self.skipTest("retained native report is local to 4700-3")
+        contract = json.loads((generator.DIRS["A01"] / "contract.json").read_text(encoding="utf-8"))
+        events = validator.parse_log(source / "model.log")
+        report = json.loads(validator.remove_trailing_commas((source / "report-raw.json").read_bytes()))
+        self.assertTrue(validator.expected_behavior(events, contract, report)["passed"])
+        table = next(t for t in report["report"]["tables"] if t["name"] == "SystemResults")
+        columns = [c["name"] for c in table["columns"]]
+        rows = table["instances"][0]["rows"]
+        for mutation in ("shift_ftmo", "zero_nsymo", "repair_every_interval"):
+            with self.subTest(mutation=mutation):
+                changed = copy.deepcopy(report)
+                target = next(t for t in changed["report"]["tables"] if t["name"] == "SystemResults")["instances"][0]["rows"]
+                if mutation == "shift_ftmo":
+                    col = columns.index("FTMO")
+                    for row in target:
+                        row[col] = 1 if 0 <= float(row[columns.index("STINT")]) < 2 else 0
+                    self.assertEqual(sum(row[col] for row in target), sum(row[col] for row in rows))
+                    expected_field = "system_interval_profile"
+                elif mutation == "zero_nsymo":
+                    for row in target:
+                        row[columns.index("NSYMO")] = 0
+                    expected_field = "system_interval_profile"
+                else:
+                    for row in target:
+                        row[columns.index("NREPT")] = 1
+                    expected_field = "unintended_mechanism_interval"
+                outcome = validator.expected_behavior(events, contract, changed)
+                self.assertFalse(outcome["passed"])
+                self.assertIn(expected_field, [d["field"] for d in outcome["differences"]])
+
+    def test_old_cached_pass_cannot_be_attributed_to_current_validator(self):
+        source = REPO / "data/local/simlox-case-library/v1/A01/a01-final-20260927-01"
+        if not (source / "validation.json").exists():
+            self.skipTest("retained native pass is local to 4700-3")
+        with self.assertRaisesRegex(ValueError, "missing pre-run invocation"):
+            validator.validate(source, "A01", write=False)
+        with mock.patch.dict(records.RUNS, {"A01": (records.RUNS["A01"][0], source.name, source.name)}):
+            with self.assertRaisesRegex(ValueError, "missing pre-run invocation"):
+                records.build("A01")
+
+    def test_binding_rejects_tampered_pre_closure_and_mixed_raw(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = root / "A01" / "synthetic-unit-run"
+            run.mkdir(parents=True)
+            checked = generator.DIRS["A01"] / "native-input.json"
+            shutil.copy2(checked, run / "input.json")
+            fake_exe = root / "dummy-simlox.bin"
+            fake_exe.write_bytes(b"synthetic executable for pure binding unit test")
+            with (mock.patch.object(binding, "expected_run", return_value=run.resolve()),
+                  mock.patch.object(binding, "EXE", fake_exe),
+                  mock.patch.object(binding, "EXE_SHA", binding.sha(fake_exe))):
+                with self.assertRaisesRegex(ValueError, "missing pre-run invocation"):
+                    binding.verify(run, "A01")
+                pre = binding.prepare(run, "A01", run.name, binding.sha(checked))
+                for name in binding.RAW_NAMES:
+                    if name not in {"input.json", "steps.json"}:
+                        (run / name).write_bytes(("synthetic " + name).encode("utf-8"))
+                steps = [{"name": name, "invocation_id": pre["invocation_id"], "executable": str(fake_exe),
+                          "working_directory": str(binding.WORKING_DIR), "arguments": pre["planned_arguments"][name],
+                          "exit_code": 0} for name in binding.STEPS]
+                (run / "steps.json").write_text(json.dumps(steps), encoding="utf-8")
+                binding.seal(run)
+                self.assertEqual(binding.verify(run, "A01")["invocation_id"], pre["invocation_id"])
+                pre_bytes = (run / "invocation.json").read_bytes()
+                (run / "invocation.json").write_bytes(pre_bytes.replace(b'"run_id": "synthetic-unit-run"', b'"run_id": "wrong-run"'))
+                with self.assertRaises(ValueError):
+                    binding.verify(run, "A01")
+                (run / "invocation.json").write_bytes(pre_bytes)
+                closure_bytes = (run / "closure.json").read_bytes()
+                (run / "closure.json").write_bytes(closure_bytes.replace(b'"run_id": "synthetic-unit-run"', b'"run_id": "wrong-run"'))
+                with self.assertRaises(ValueError):
+                    binding.verify(run, "A01")
+                (run / "closure.json").write_bytes(closure_bytes)
+                (run / "input.json").write_bytes(b"synthetic changed input")
+                (run / "roundtrip-raw.json").write_bytes(b"synthetic changed roundtrip")
+                with self.assertRaisesRegex(ValueError, "raw artifact binding mismatch"):
+                    binding.verify(run, "A01")
+                shutil.copy2(checked, run / "input.json")
+                (run / "roundtrip-raw.json").write_bytes(b"synthetic roundtrip-raw.json")
+                with mock.patch.object(binding, "source_hashes", return_value={**pre["source_hashes"], "validator": "0" * 64}):
+                    with self.assertRaisesRegex(ValueError, "source/validator/runner fingerprint changed"):
+                        binding.verify(run, "A01")
 
 
 if __name__ == "__main__":

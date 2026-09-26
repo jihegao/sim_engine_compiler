@@ -80,6 +80,7 @@ def validate(run: Path, variant: str, *, write: bool = True) -> dict:
     if len(by_kind["notification"]) != 1 or float(by_kind["notification"][0]["time_hours_printed"]) != 7:
         raise ValueError("A01 notification missing/mismatched")
     starts = [float(event["time_hours_printed"]) for event in by_kind["start"]]
+    notices = [float(event["time_hours_printed"]) for event in by_kind["notification"]]
     completes = [float(event["time_hours_printed"]) for event in by_kind["completion"]]
     if len(starts) > 1 or len(completes) > 1 or (completes and not starts):
         raise ValueError("unexpected duplicate/unpaired mission events")
@@ -96,9 +97,12 @@ def validate(run: Path, variant: str, *, write: bool = True) -> dict:
                 "abort_hours_printed": [e["time_hours_printed"] for e in by_kind["abort"]],
                 "flight_hours_clipped_from_events": clip,
                 "native_ftmo_interval_integral_hours": ftmo,
+                "notified_pending_at_collection_end": int(bool(notices) and notices[0] <= end and
+                                                          (not starts or starts[0] > end)),
                 "planned_unlaunched_at_collection_end": int(bool(starts) and starts[0] > end),
                 "in_flight_at_collection_end": int(bool(starts) and starts[0] <= end and (not completes or completes[0] > end)),
                 "completed_by_collection_end": int(bool(completes) and completes[0] <= end),
+                "printed_time_boundary_policy": "notified <= end < launch is pending; launch <= end < completion is in flight; completion <= end is complete; printed ties do not prove internal priority",
                 "completion_after_requested_end": bool(completes and completes[0] > end),
                 "selected_events": [e for e in events if e["kind"] in {"notification", "start", "completion", "success", "cancel", "abort", "ready_increased"}]}
     result = {"variant": variant, "status": "native_probe_recorded", "changed_fields": changed,

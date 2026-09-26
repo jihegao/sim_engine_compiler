@@ -5,18 +5,16 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from native_binding import verify as verify_binding
+from validate_native import validate
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parents[1]
 SOURCE_SHA = "1b01a20111aed6c6fc96339c512147c862178967c01e67421eb380379b45f8d0"
 SIMLOX_SHA = "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
-GENERATOR_AT_RUN_SHA = "34d0c0c66d13b3820c076ea8b5e60954d045dee40a41fe16f1046a69ba676a87"
-VALIDATOR_AT_RUN_SHA = "d1b9d838cbcf5d264d0874e9c46496f9bd6c97481d786193392dcbbdada5399f"
-CONTRACT_AT_RUN_SHA = {"A01": "e076f65e42798abd681f3d73a487fb903bd72bb0ddff99ddfe679dda092058ca",
-                       "A02": "accce87ec239e143c0a42220048256a10f6e735dfaa0cabfbdc5aaa4c79b50f0"}
 RUNS = {
-    "A01": ("A01-single-aircraft-single-mission", "a01-final-20260927-01", "a01-replay-20260927-02"),
-    "A02": ("A02-single-aircraft-repeated-missions", "a02-final-20260927-01", "a02-replay-20260927-02"),
+    "A01": ("A01-single-aircraft-single-mission", "a01-bound-final-20260927-03", "a01-bound-replay-20260927-04"),
+    "A02": ("A02-single-aircraft-repeated-missions", "a02-bound-final-20260927-03", "a02-bound-replay-20260927-04"),
 }
 SIGNATURE_KINDS = {"notification", "start", "success", "completion", "ready_decreased", "ready_increased"}
 
@@ -40,7 +38,12 @@ def build(case_id: str) -> dict[str, dict]:
     folder, first_id, replay_id = RUNS[case_id]
     case = ROOT / folder
     first, replay = (REPO / "data/local/simlox-case-library/v1" / case_id / run_id for run_id in (first_id, replay_id))
-    documents = [json.loads((run / "validation.json").read_text(encoding="utf-8-sig")) for run in (first, replay)]
+    bindings = [verify_binding(run, case_id) for run in (first, replay)]
+    documents = [validate(run, case_id, write=False, require_binding=True) for run in (first, replay)]
+    for run, fresh in zip((first, replay), documents):
+        cached = json.loads((run / "validation.json").read_text(encoding="utf-8-sig"))
+        if cached != fresh:
+            raise ValueError(f"cached validation disagrees with fresh validator: {run}")
     if any(doc["status"] != "cli_behavior_verified" or not doc["behavior"]["passed"] for doc in documents):
         raise ValueError("both runs must pass the native behavior validator")
     if any(doc["artifacts"]["input.json"]["sha256"] != sha256(case / "native-input.json") for doc in documents):
@@ -61,18 +64,20 @@ def build(case_id: str) -> dict[str, dict]:
                  "simlox_exe_sha256": SIMLOX_SHA,
                  "isolated_python_version": "3.12.14",
                  "isolated_python_exe_sha256": "2204195cec25879507d958a8b6949add67091244b8b4da9cf3672f993548fa49",
-                 "generator_at_native_run_sha256": GENERATOR_AT_RUN_SHA,
+                 "generator_at_native_run_sha256": bindings[0]["source_hashes"]["generator"],
                  "generator_current_sha256": sha256(ROOT / "tools/generate_native.py"),
-                 "native_runner_sha256": sha256(ROOT / "tools/run_native.ps1"),
-                 "validator_at_native_run_sha256": VALIDATOR_AT_RUN_SHA,
+                 "native_runner_sha256": bindings[0]["source_hashes"]["runner"],
+                 "binding_tool_sha256": bindings[0]["source_hashes"]["binding"],
+                 "validator_at_native_run_sha256": bindings[0]["source_hashes"]["validator"],
                  "validator_current_sha256": sha256(ROOT / "tools/validate_native.py")},
         "input": {"path": str((case / "native-input.json").resolve()),
                   "sha256": sha256(case / "native-input.json"),
-                  "contract_at_native_run_sha256": CONTRACT_AT_RUN_SHA[case_id],
+                  "contract_at_native_run_sha256": bindings[0]["source_hashes"]["contract"],
                   "contract_sha256": sha256(case / "contract.json"),
                   "parameters_sha256": sha256(case / "parameters.json")},
         "repetition_count": 1, "threads": 1, "observation_hours": [0, 36],
-        "run_ids": [first_id, replay_id], "gui_status": "pending_private_handoff",
+        "run_ids": [first_id, replay_id], "run_bindings": bindings,
+        "gui_status": "pending_private_handoff",
         "cross_engine_status": "unverified",
     }
     if case_id == "A02":
@@ -95,6 +100,7 @@ def build(case_id: str) -> dict[str, dict]:
         "case_id": case_id, "version": contract["version"],
         "retrieval_command": f"Get-ChildItem -Recurse -LiteralPath '{str((REPO / 'data/local/simlox-case-library/v1' / case_id).resolve())}'",
         "runs": [{"run_id": run.name, "directory": str(run.resolve()), "artifacts": file_index(run)} for run in (first, replay)],
+        "run_bindings": bindings,
         "first_run_selected_event_replay_equal": True,
         "source_history": "Initial zero-duration MissionPreparation-row runs and the A01 no-row diagnostic are retained separately under the same ignored v1 evidence tree.",
     }
@@ -116,14 +122,18 @@ def build(case_id: str) -> dict[str, dict]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=sorted(RUNS), required=True)
+    parser.add_argument("--refresh", action="store_true", help="replace only tracked derived records after fresh sealed validation")
     args = parser.parse_args()
     folder = ROOT / RUNS[args.case][0]
     records = build(args.case)
     for name in records:
-        if (folder / name).exists():
+        if (folder / name).exists() and not args.refresh:
             raise FileExistsError(folder / name)
     for name, value in records.items():
-        write_new(folder / name, value)
+        if args.refresh:
+            (folder / name).write_bytes((json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+        else:
+            write_new(folder / name, value)
     print(json.dumps({"case_id": args.case, "created": list(records)}))
 
 
