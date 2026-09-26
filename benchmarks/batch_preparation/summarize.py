@@ -78,8 +78,7 @@ def main() -> None:
             "memory_regression_pairs": sum(ratio > 1.05 for ratio in memory_ratio),
             "adoption_gate": len(pairs) >= 6 and all(gain > 0 for gain in gains)
                              and statistics.median(gains) >= 0.05
-                             and not (statistics.median(memory_ratio) > 1.05
-                                      and sum(ratio > 1.05 for ratio in memory_ratio) >= 5),
+                             and statistics.median(memory_ratio) <= 1.05,
             "phases": phases,
         })
     args.output.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
