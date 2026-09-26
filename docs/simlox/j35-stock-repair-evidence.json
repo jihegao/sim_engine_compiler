@@ -1,0 +1,1429 @@
+{
+  "scope": "native first-sample mechanism; no shared Rust RNG or complete physical ledger",
+  "repeat_checks": [
+    {
+      "original": "p2c-one-repair",
+      "repeat": "p2c-one-repair-repeat",
+      "input_sha256_equal": true,
+      "selected_events_equal": true
+    },
+    {
+      "original": "p2c-two-repair",
+      "repeat": "p2c-two-repair-repeat",
+      "input_sha256_equal": true,
+      "selected_events_equal": true
+    }
+  ],
+  "cases": [
+    {
+      "case": "p2c-one-no-repair",
+      "input_sha256": "e04253aacf4cca71fbe81088518917746126f84875b0c328d5d9605074d71a95",
+      "enlog_sha256": "f74811005c7f1c42dacb186c664221577dac39da94ee30a3b1a279069eb4f998",
+      "sxo_sha256": "b78c2929a12bcf14d2fd0a03af83b07ea010e0991a6229097a158429e3ddfc14",
+      "system_count": 1,
+      "repair_enabled": false,
+      "validation": {
+        "sxo_bytes": 575484,
+        "conversion_errors": 0,
+        "roundtrip_all_equal": true
+      },
+      "counts": {
+        "fault": 2,
+        "mission_started": 2,
+        "mission_cancelled": 1,
+        "mission_success": 0,
+        "stock_initiated": 4,
+        "demand_arrived": 6,
+        "stock_taken": 1,
+        "stock_returned": 0,
+        "backorder_added": 5,
+        "backorder_removed": 0,
+        "repair_started": 2,
+        "repair_finished": 0,
+        "replacement_arrived": 0,
+        "failed_item_arrived": 6,
+        "replacement_received": 1,
+        "direct_repair_duration": 0,
+        "system_ready": 1
+      },
+      "events": [
+        {
+          "line": 573,
+          "time_hours_printed": "8.14122",
+          "kind": "fault",
+          "text": "Time: 8.14122 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 593,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 595,
+          "time_hours_printed": "8.28243",
+          "kind": "stock_taken",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,0> from stock "
+        },
+        {
+          "line": 597,
+          "time_hours_printed": "8.28243",
+          "kind": "replacement_received",
+          "text": "Time: 8.28243  system SURP task 1 on <J35,0> subitem received <B-TOP-PRU,0,0>"
+        },
+        {
+          "line": 641,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 643,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 679,
+          "time_hours_printed": "11.2824",
+          "kind": "demand_arrived",
+          "text": "Time: 11.2824 <B-SECOND-SPRU,0,DEPOT,0> Item demand arrives from pos <B-SECOND-SPRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 681,
+          "time_hours_printed": "11.2824",
+          "kind": "backorder_added",
+          "text": "Time: 11.2824 <B-SECOND-SPRU,0,DEPOT,0> Backorder added "
+        },
+        {
+          "line": 1140,
+          "time_hours_printed": "32.2478",
+          "kind": "fault",
+          "text": "Time: 32.2478 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 1161,
+          "time_hours_printed": "32.4957",
+          "kind": "demand_arrived",
+          "text": "Time: 32.4957 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1163,
+          "time_hours_printed": "32.4957",
+          "kind": "backorder_added",
+          "text": "Time: 32.4957 <B-TOP-PRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1197,
+          "time_hours_printed": "33.9957",
+          "kind": "demand_arrived",
+          "text": "Time: 33.9957 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1199,
+          "time_hours_printed": "33.9957",
+          "kind": "backorder_added",
+          "text": "Time: 33.9957 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1216,
+          "time_hours_printed": "35.4957",
+          "kind": "demand_arrived",
+          "text": "Time: 35.4957 <B-SECOND-SPRU,0,DEPOT,0> Item demand arrives from pos <B-SECOND-SPRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1218,
+          "time_hours_printed": "35.4957",
+          "kind": "backorder_added",
+          "text": "Time: 35.4957 <B-SECOND-SPRU,0,DEPOT,0> Backorder added "
+        },
+        {
+          "line": 1302,
+          "time_hours_printed": "53.9667",
+          "kind": "mission_cancelled",
+          "text": "Time: 53.9667 <BM-J35-43D,J35_UNIT,0,0,2> mission cancelled: "
+        }
+      ]
+    },
+    {
+      "case": "p2c-one-repair",
+      "input_sha256": "9d1ff44fbb5a0a49ee430489e0ceace53d8f9e1d1189eac3d2a197067a001d9f",
+      "enlog_sha256": "89d41fe582c811a5ad8f005a8ece85008ac454d3499aa20823b47634b02751ab",
+      "sxo_sha256": "e1e7723617c79d1bbcd299cdfe61ae22687b6ce967c7935994985f731874e1ad",
+      "system_count": 1,
+      "repair_enabled": true,
+      "validation": {
+        "sxo_bytes": 575668,
+        "conversion_errors": 0,
+        "roundtrip_all_equal": true
+      },
+      "counts": {
+        "fault": 3,
+        "mission_started": 3,
+        "mission_cancelled": 0,
+        "mission_success": 0,
+        "stock_initiated": 4,
+        "demand_arrived": 6,
+        "stock_taken": 3,
+        "stock_returned": 3,
+        "backorder_added": 3,
+        "backorder_removed": 3,
+        "repair_started": 6,
+        "repair_finished": 6,
+        "replacement_arrived": 6,
+        "failed_item_arrived": 6,
+        "replacement_received": 3,
+        "direct_repair_duration": 3,
+        "system_ready": 3
+      },
+      "events": [
+        {
+          "line": 573,
+          "time_hours_printed": "8.14122",
+          "kind": "fault",
+          "text": "Time: 8.14122 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 593,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 595,
+          "time_hours_printed": "8.28243",
+          "kind": "stock_taken",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,0> from stock "
+        },
+        {
+          "line": 597,
+          "time_hours_printed": "8.28243",
+          "kind": "replacement_received",
+          "text": "Time: 8.28243  system SURP task 1 on <J35,0> subitem received <B-TOP-PRU,0,0>"
+        },
+        {
+          "line": 641,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 643,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 698,
+          "time_hours_printed": "13.2824",
+          "kind": "repair_finished",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 699,
+          "time_hours_printed": "13.2824",
+          "kind": "replacement_arrived",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 700,
+          "time_hours_printed": "13.2824",
+          "kind": "backorder_removed",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 728,
+          "time_hours_printed": "14.7824",
+          "kind": "repair_finished",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 729,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_arrived",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 730,
+          "time_hours_printed": "14.7824",
+          "kind": "stock_returned",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,1> to stock "
+        },
+        {
+          "line": 1171,
+          "time_hours_printed": "32.2092",
+          "kind": "fault",
+          "text": "Time: 32.2092 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 1194,
+          "time_hours_printed": "32.4184",
+          "kind": "demand_arrived",
+          "text": "Time: 32.4184 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1196,
+          "time_hours_printed": "32.4184",
+          "kind": "stock_taken",
+          "text": "Time: 32.4184 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,1> from stock "
+        },
+        {
+          "line": 1198,
+          "time_hours_printed": "32.4184",
+          "kind": "replacement_received",
+          "text": "Time: 32.4184  system SURP task 5 on <J35,0> subitem received <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1242,
+          "time_hours_printed": "33.9184",
+          "kind": "demand_arrived",
+          "text": "Time: 33.9184 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1244,
+          "time_hours_printed": "33.9184",
+          "kind": "backorder_added",
+          "text": "Time: 33.9184 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1299,
+          "time_hours_printed": "37.4184",
+          "kind": "repair_finished",
+          "text": "Time: 37.4184 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1300,
+          "time_hours_printed": "37.4184",
+          "kind": "replacement_arrived",
+          "text": "Time: 37.4184 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1301,
+          "time_hours_printed": "37.4184",
+          "kind": "backorder_removed",
+          "text": "Time: 37.4184 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1329,
+          "time_hours_printed": "38.9184",
+          "kind": "repair_finished",
+          "text": "Time: 38.9184 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1330,
+          "time_hours_printed": "38.9184",
+          "kind": "replacement_arrived",
+          "text": "Time: 38.9184 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1331,
+          "time_hours_printed": "38.9184",
+          "kind": "stock_returned",
+          "text": "Time: 38.9184 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,3> to stock "
+        },
+        {
+          "line": 1772,
+          "time_hours_printed": "57.201",
+          "kind": "fault",
+          "text": "Time: 57.201 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 1793,
+          "time_hours_printed": "58.402",
+          "kind": "demand_arrived",
+          "text": "Time: 58.402 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 1795,
+          "time_hours_printed": "58.402",
+          "kind": "stock_taken",
+          "text": "Time: 58.402 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,3> from stock "
+        },
+        {
+          "line": 1797,
+          "time_hours_printed": "58.402",
+          "kind": "replacement_received",
+          "text": "Time: 58.402  system SURP task 9 on <J35,0> subitem received <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1841,
+          "time_hours_printed": "59.902",
+          "kind": "demand_arrived",
+          "text": "Time: 59.902 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 1843,
+          "time_hours_printed": "59.902",
+          "kind": "backorder_added",
+          "text": "Time: 59.902 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1898,
+          "time_hours_printed": "63.402",
+          "kind": "repair_finished",
+          "text": "Time: 63.402 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 1899,
+          "time_hours_printed": "63.402",
+          "kind": "replacement_arrived",
+          "text": "Time: 63.402 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 1900,
+          "time_hours_printed": "63.402",
+          "kind": "backorder_removed",
+          "text": "Time: 63.402 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1928,
+          "time_hours_printed": "64.902",
+          "kind": "repair_finished",
+          "text": "Time: 64.902 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 1929,
+          "time_hours_printed": "64.902",
+          "kind": "replacement_arrived",
+          "text": "Time: 64.902 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 1930,
+          "time_hours_printed": "64.902",
+          "kind": "stock_returned",
+          "text": "Time: 64.902 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,5> to stock "
+        }
+      ]
+    },
+    {
+      "case": "p2c-one-repair-repeat",
+      "input_sha256": "9d1ff44fbb5a0a49ee430489e0ceace53d8f9e1d1189eac3d2a197067a001d9f",
+      "enlog_sha256": "89d41fe582c811a5ad8f005a8ece85008ac454d3499aa20823b47634b02751ab",
+      "sxo_sha256": "6d39dd7bd6e7486be17fc92526dec97aad9e98115c74afc0fe028c7d1f92a300",
+      "system_count": 1,
+      "repair_enabled": true,
+      "validation": {
+        "sxo_bytes": 575696,
+        "conversion_errors": 0,
+        "roundtrip_all_equal": true
+      },
+      "counts": {
+        "fault": 3,
+        "mission_started": 3,
+        "mission_cancelled": 0,
+        "mission_success": 0,
+        "stock_initiated": 4,
+        "demand_arrived": 6,
+        "stock_taken": 3,
+        "stock_returned": 3,
+        "backorder_added": 3,
+        "backorder_removed": 3,
+        "repair_started": 6,
+        "repair_finished": 6,
+        "replacement_arrived": 6,
+        "failed_item_arrived": 6,
+        "replacement_received": 3,
+        "direct_repair_duration": 3,
+        "system_ready": 3
+      },
+      "events": [
+        {
+          "line": 573,
+          "time_hours_printed": "8.14122",
+          "kind": "fault",
+          "text": "Time: 8.14122 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 593,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 595,
+          "time_hours_printed": "8.28243",
+          "kind": "stock_taken",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,0> from stock "
+        },
+        {
+          "line": 597,
+          "time_hours_printed": "8.28243",
+          "kind": "replacement_received",
+          "text": "Time: 8.28243  system SURP task 1 on <J35,0> subitem received <B-TOP-PRU,0,0>"
+        },
+        {
+          "line": 641,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 643,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 698,
+          "time_hours_printed": "13.2824",
+          "kind": "repair_finished",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 699,
+          "time_hours_printed": "13.2824",
+          "kind": "replacement_arrived",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 700,
+          "time_hours_printed": "13.2824",
+          "kind": "backorder_removed",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 728,
+          "time_hours_printed": "14.7824",
+          "kind": "repair_finished",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 729,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_arrived",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 730,
+          "time_hours_printed": "14.7824",
+          "kind": "stock_returned",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,1> to stock "
+        },
+        {
+          "line": 1171,
+          "time_hours_printed": "32.2092",
+          "kind": "fault",
+          "text": "Time: 32.2092 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 1194,
+          "time_hours_printed": "32.4184",
+          "kind": "demand_arrived",
+          "text": "Time: 32.4184 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1196,
+          "time_hours_printed": "32.4184",
+          "kind": "stock_taken",
+          "text": "Time: 32.4184 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,1> from stock "
+        },
+        {
+          "line": 1198,
+          "time_hours_printed": "32.4184",
+          "kind": "replacement_received",
+          "text": "Time: 32.4184  system SURP task 5 on <J35,0> subitem received <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1242,
+          "time_hours_printed": "33.9184",
+          "kind": "demand_arrived",
+          "text": "Time: 33.9184 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1244,
+          "time_hours_printed": "33.9184",
+          "kind": "backorder_added",
+          "text": "Time: 33.9184 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1299,
+          "time_hours_printed": "37.4184",
+          "kind": "repair_finished",
+          "text": "Time: 37.4184 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1300,
+          "time_hours_printed": "37.4184",
+          "kind": "replacement_arrived",
+          "text": "Time: 37.4184 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1301,
+          "time_hours_printed": "37.4184",
+          "kind": "backorder_removed",
+          "text": "Time: 37.4184 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1329,
+          "time_hours_printed": "38.9184",
+          "kind": "repair_finished",
+          "text": "Time: 38.9184 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1330,
+          "time_hours_printed": "38.9184",
+          "kind": "replacement_arrived",
+          "text": "Time: 38.9184 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1331,
+          "time_hours_printed": "38.9184",
+          "kind": "stock_returned",
+          "text": "Time: 38.9184 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,3> to stock "
+        },
+        {
+          "line": 1772,
+          "time_hours_printed": "57.201",
+          "kind": "fault",
+          "text": "Time: 57.201 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 1793,
+          "time_hours_printed": "58.402",
+          "kind": "demand_arrived",
+          "text": "Time: 58.402 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 1795,
+          "time_hours_printed": "58.402",
+          "kind": "stock_taken",
+          "text": "Time: 58.402 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,3> from stock "
+        },
+        {
+          "line": 1797,
+          "time_hours_printed": "58.402",
+          "kind": "replacement_received",
+          "text": "Time: 58.402  system SURP task 9 on <J35,0> subitem received <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1841,
+          "time_hours_printed": "59.902",
+          "kind": "demand_arrived",
+          "text": "Time: 59.902 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 1843,
+          "time_hours_printed": "59.902",
+          "kind": "backorder_added",
+          "text": "Time: 59.902 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1898,
+          "time_hours_printed": "63.402",
+          "kind": "repair_finished",
+          "text": "Time: 63.402 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 1899,
+          "time_hours_printed": "63.402",
+          "kind": "replacement_arrived",
+          "text": "Time: 63.402 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 1900,
+          "time_hours_printed": "63.402",
+          "kind": "backorder_removed",
+          "text": "Time: 63.402 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1928,
+          "time_hours_printed": "64.902",
+          "kind": "repair_finished",
+          "text": "Time: 64.902 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 1929,
+          "time_hours_printed": "64.902",
+          "kind": "replacement_arrived",
+          "text": "Time: 64.902 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 1930,
+          "time_hours_printed": "64.902",
+          "kind": "stock_returned",
+          "text": "Time: 64.902 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,5> to stock "
+        }
+      ]
+    },
+    {
+      "case": "p2c-two-no-repair",
+      "input_sha256": "ba61fc7c7687b4326609c89690ae3b48947b439136764efa48b61305fb2ad748",
+      "enlog_sha256": "13f40e15d4b89036e3bdb62a4439099f669043327d49ae097a86c68f7d82255e",
+      "sxo_sha256": "ca4a02684db12fdfacad4388070f3da18ad384ef0258ac08c614c13384d5b45a",
+      "system_count": 2,
+      "repair_enabled": false,
+      "validation": {
+        "sxo_bytes": 575461,
+        "conversion_errors": 0,
+        "roundtrip_all_equal": true
+      },
+      "counts": {
+        "fault": 2,
+        "mission_started": 1,
+        "mission_cancelled": 2,
+        "mission_success": 0,
+        "stock_initiated": 4,
+        "demand_arrived": 6,
+        "stock_taken": 1,
+        "stock_returned": 0,
+        "backorder_added": 5,
+        "backorder_removed": 0,
+        "repair_started": 2,
+        "repair_finished": 0,
+        "replacement_arrived": 0,
+        "failed_item_arrived": 6,
+        "replacement_received": 1,
+        "direct_repair_duration": 0,
+        "system_ready": 5
+      },
+      "events": [
+        {
+          "line": 976,
+          "time_hours_printed": "8.14122",
+          "kind": "fault",
+          "text": "Time: 8.14122 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 982,
+          "time_hours_printed": "8.23494",
+          "kind": "fault",
+          "text": "Time: 8.23494 <J35,1> critical random failure added, now "
+        },
+        {
+          "line": 1010,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1012,
+          "time_hours_printed": "8.28243",
+          "kind": "stock_taken",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,0> from stock "
+        },
+        {
+          "line": 1014,
+          "time_hours_printed": "8.28243",
+          "kind": "replacement_received",
+          "text": "Time: 8.28243  system SURP task 2 on <J35,0> subitem received <B-TOP-PRU,0,0>"
+        },
+        {
+          "line": 1031,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1033,
+          "time_hours_printed": "8.28243",
+          "kind": "backorder_added",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1096,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1098,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1115,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1117,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1154,
+          "time_hours_printed": "11.2824",
+          "kind": "demand_arrived",
+          "text": "Time: 11.2824 <B-SECOND-SPRU,0,DEPOT,0> Item demand arrives from pos <B-SECOND-SPRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1156,
+          "time_hours_printed": "11.2824",
+          "kind": "backorder_added",
+          "text": "Time: 11.2824 <B-SECOND-SPRU,0,DEPOT,0> Backorder added "
+        },
+        {
+          "line": 1175,
+          "time_hours_printed": "11.2824",
+          "kind": "demand_arrived",
+          "text": "Time: 11.2824 <B-SECOND-SPRU,0,DEPOT,0> Item demand arrives from pos <B-SECOND-SPRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1177,
+          "time_hours_printed": "11.2824",
+          "kind": "backorder_added",
+          "text": "Time: 11.2824 <B-SECOND-SPRU,0,DEPOT,0> Backorder added "
+        },
+        {
+          "line": 1466,
+          "time_hours_printed": "29.9667",
+          "kind": "mission_cancelled",
+          "text": "Time: 29.9667 <BM-J35-43D,J35_UNIT,0,0,1> mission cancelled: "
+        },
+        {
+          "line": 1767,
+          "time_hours_printed": "53.9667",
+          "kind": "mission_cancelled",
+          "text": "Time: 53.9667 <BM-J35-43D,J35_UNIT,0,0,2> mission cancelled: "
+        }
+      ]
+    },
+    {
+      "case": "p2c-two-repair",
+      "input_sha256": "c75e169feffb952d1a920e979c5aa6b85b0731102bb4c9e9c20b48f4881e77b3",
+      "enlog_sha256": "5cd19ee7cb1f6c095c4a81afbbb78483e07284df77b81807e90737335dd41000",
+      "sxo_sha256": "f068d8f3fc4d9108f56ee7044dccc31a05dfcac32688296bb51dfcb2962213c2",
+      "system_count": 2,
+      "repair_enabled": true,
+      "validation": {
+        "sxo_bytes": 575725,
+        "conversion_errors": 0,
+        "roundtrip_all_equal": true
+      },
+      "counts": {
+        "fault": 4,
+        "mission_started": 3,
+        "mission_cancelled": 0,
+        "mission_success": 0,
+        "stock_initiated": 4,
+        "demand_arrived": 8,
+        "stock_taken": 3,
+        "stock_returned": 3,
+        "backorder_added": 5,
+        "backorder_removed": 5,
+        "repair_started": 8,
+        "repair_finished": 8,
+        "replacement_arrived": 8,
+        "failed_item_arrived": 8,
+        "replacement_received": 4,
+        "direct_repair_duration": 4,
+        "system_ready": 8
+      },
+      "events": [
+        {
+          "line": 976,
+          "time_hours_printed": "8.14122",
+          "kind": "fault",
+          "text": "Time: 8.14122 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 982,
+          "time_hours_printed": "8.23494",
+          "kind": "fault",
+          "text": "Time: 8.23494 <J35,1> critical random failure added, now "
+        },
+        {
+          "line": 1010,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1012,
+          "time_hours_printed": "8.28243",
+          "kind": "stock_taken",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,0> from stock "
+        },
+        {
+          "line": 1014,
+          "time_hours_printed": "8.28243",
+          "kind": "replacement_received",
+          "text": "Time: 8.28243  system SURP task 2 on <J35,0> subitem received <B-TOP-PRU,0,0>"
+        },
+        {
+          "line": 1031,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1033,
+          "time_hours_printed": "8.28243",
+          "kind": "backorder_added",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1096,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1098,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1115,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1117,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1194,
+          "time_hours_printed": "13.2824",
+          "kind": "repair_finished",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1195,
+          "time_hours_printed": "13.2824",
+          "kind": "replacement_arrived",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1196,
+          "time_hours_printed": "13.2824",
+          "kind": "backorder_removed",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1202,
+          "time_hours_printed": "13.2824",
+          "kind": "repair_finished",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1203,
+          "time_hours_printed": "13.2824",
+          "kind": "replacement_arrived",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1204,
+          "time_hours_printed": "13.2824",
+          "kind": "backorder_removed",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1244,
+          "time_hours_printed": "14.7824",
+          "kind": "repair_finished",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1245,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_arrived",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1246,
+          "time_hours_printed": "14.7824",
+          "kind": "backorder_removed",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Backorder removed, waiting time was 6.5"
+        },
+        {
+          "line": 1249,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_received",
+          "text": "Time: 14.7824  system SURP task 3 on <J35,1> subitem received <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1263,
+          "time_hours_printed": "14.7824",
+          "kind": "repair_finished",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1264,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_arrived",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1265,
+          "time_hours_printed": "14.7824",
+          "kind": "stock_returned",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,3> to stock "
+        },
+        {
+          "line": 2137,
+          "time_hours_printed": "32.1292",
+          "kind": "fault",
+          "text": "Time: 32.1292 <J35,1> critical random failure added, now "
+        },
+        {
+          "line": 2171,
+          "time_hours_printed": "32.2584",
+          "kind": "demand_arrived",
+          "text": "Time: 32.2584 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 2173,
+          "time_hours_printed": "32.2584",
+          "kind": "stock_taken",
+          "text": "Time: 32.2584 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,3> from stock "
+        },
+        {
+          "line": 2175,
+          "time_hours_printed": "32.2584",
+          "kind": "replacement_received",
+          "text": "Time: 32.2584  system SURP task 10 on <J35,1> subitem received <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 2219,
+          "time_hours_printed": "33.7584",
+          "kind": "demand_arrived",
+          "text": "Time: 33.7584 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 2221,
+          "time_hours_printed": "33.7584",
+          "kind": "backorder_added",
+          "text": "Time: 33.7584 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 2276,
+          "time_hours_printed": "37.2584",
+          "kind": "repair_finished",
+          "text": "Time: 37.2584 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 2277,
+          "time_hours_printed": "37.2584",
+          "kind": "replacement_arrived",
+          "text": "Time: 37.2584 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 2278,
+          "time_hours_printed": "37.2584",
+          "kind": "backorder_removed",
+          "text": "Time: 37.2584 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 2306,
+          "time_hours_printed": "38.7584",
+          "kind": "repair_finished",
+          "text": "Time: 38.7584 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 2307,
+          "time_hours_printed": "38.7584",
+          "kind": "replacement_arrived",
+          "text": "Time: 38.7584 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 2308,
+          "time_hours_printed": "38.7584",
+          "kind": "stock_returned",
+          "text": "Time: 38.7584 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,5> to stock "
+        },
+        {
+          "line": 3150,
+          "time_hours_printed": "56.1195",
+          "kind": "fault",
+          "text": "Time: 56.1195 <J35,1> critical random failure added, now "
+        },
+        {
+          "line": 3183,
+          "time_hours_printed": "56.239",
+          "kind": "demand_arrived",
+          "text": "Time: 56.239 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,7>"
+        },
+        {
+          "line": 3185,
+          "time_hours_printed": "56.239",
+          "kind": "stock_taken",
+          "text": "Time: 56.239 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,5> from stock "
+        },
+        {
+          "line": 3187,
+          "time_hours_printed": "56.239",
+          "kind": "replacement_received",
+          "text": "Time: 56.239  system SURP task 15 on <J35,1> subitem received <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 3231,
+          "time_hours_printed": "57.739",
+          "kind": "demand_arrived",
+          "text": "Time: 57.739 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,8>"
+        },
+        {
+          "line": 3233,
+          "time_hours_printed": "57.739",
+          "kind": "backorder_added",
+          "text": "Time: 57.739 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 3288,
+          "time_hours_printed": "61.239",
+          "kind": "repair_finished",
+          "text": "Time: 61.239 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,8>"
+        },
+        {
+          "line": 3289,
+          "time_hours_printed": "61.239",
+          "kind": "replacement_arrived",
+          "text": "Time: 61.239 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,8>"
+        },
+        {
+          "line": 3290,
+          "time_hours_printed": "61.239",
+          "kind": "backorder_removed",
+          "text": "Time: 61.239 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 3318,
+          "time_hours_printed": "62.739",
+          "kind": "repair_finished",
+          "text": "Time: 62.739 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,7>"
+        },
+        {
+          "line": 3319,
+          "time_hours_printed": "62.739",
+          "kind": "replacement_arrived",
+          "text": "Time: 62.739 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,7>"
+        },
+        {
+          "line": 3320,
+          "time_hours_printed": "62.739",
+          "kind": "stock_returned",
+          "text": "Time: 62.739 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,7> to stock "
+        }
+      ]
+    },
+    {
+      "case": "p2c-two-repair-repeat",
+      "input_sha256": "c75e169feffb952d1a920e979c5aa6b85b0731102bb4c9e9c20b48f4881e77b3",
+      "enlog_sha256": "5cd19ee7cb1f6c095c4a81afbbb78483e07284df77b81807e90737335dd41000",
+      "sxo_sha256": "74bd2b3ca44a9cb31c3d4790f395f932bb2956bfd8fee8bba6f6a6d5d8a762c6",
+      "system_count": 2,
+      "repair_enabled": true,
+      "validation": {
+        "sxo_bytes": 575753,
+        "conversion_errors": 0,
+        "roundtrip_all_equal": true
+      },
+      "counts": {
+        "fault": 4,
+        "mission_started": 3,
+        "mission_cancelled": 0,
+        "mission_success": 0,
+        "stock_initiated": 4,
+        "demand_arrived": 8,
+        "stock_taken": 3,
+        "stock_returned": 3,
+        "backorder_added": 5,
+        "backorder_removed": 5,
+        "repair_started": 8,
+        "repair_finished": 8,
+        "replacement_arrived": 8,
+        "failed_item_arrived": 8,
+        "replacement_received": 4,
+        "direct_repair_duration": 4,
+        "system_ready": 8
+      },
+      "events": [
+        {
+          "line": 976,
+          "time_hours_printed": "8.14122",
+          "kind": "fault",
+          "text": "Time: 8.14122 <J35,0> critical random failure added, now "
+        },
+        {
+          "line": 982,
+          "time_hours_printed": "8.23494",
+          "kind": "fault",
+          "text": "Time: 8.23494 <J35,1> critical random failure added, now "
+        },
+        {
+          "line": 1010,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1012,
+          "time_hours_printed": "8.28243",
+          "kind": "stock_taken",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,0> from stock "
+        },
+        {
+          "line": 1014,
+          "time_hours_printed": "8.28243",
+          "kind": "replacement_received",
+          "text": "Time: 8.28243  system SURP task 2 on <J35,0> subitem received <B-TOP-PRU,0,0>"
+        },
+        {
+          "line": 1031,
+          "time_hours_printed": "8.28243",
+          "kind": "demand_arrived",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1033,
+          "time_hours_printed": "8.28243",
+          "kind": "backorder_added",
+          "text": "Time: 8.28243 <B-TOP-PRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1096,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1098,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1115,
+          "time_hours_printed": "9.78243",
+          "kind": "demand_arrived",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1117,
+          "time_hours_printed": "9.78243",
+          "kind": "backorder_added",
+          "text": "Time: 9.78243 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 1194,
+          "time_hours_printed": "13.2824",
+          "kind": "repair_finished",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1195,
+          "time_hours_printed": "13.2824",
+          "kind": "replacement_arrived",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,2>"
+        },
+        {
+          "line": 1196,
+          "time_hours_printed": "13.2824",
+          "kind": "backorder_removed",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1202,
+          "time_hours_printed": "13.2824",
+          "kind": "repair_finished",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1203,
+          "time_hours_printed": "13.2824",
+          "kind": "replacement_arrived",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,4>"
+        },
+        {
+          "line": 1204,
+          "time_hours_printed": "13.2824",
+          "kind": "backorder_removed",
+          "text": "Time: 13.2824 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 1244,
+          "time_hours_printed": "14.7824",
+          "kind": "repair_finished",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1245,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_arrived",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1246,
+          "time_hours_printed": "14.7824",
+          "kind": "backorder_removed",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Backorder removed, waiting time was 6.5"
+        },
+        {
+          "line": 1249,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_received",
+          "text": "Time: 14.7824  system SURP task 3 on <J35,1> subitem received <B-TOP-PRU,0,1>"
+        },
+        {
+          "line": 1263,
+          "time_hours_printed": "14.7824",
+          "kind": "repair_finished",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1264,
+          "time_hours_printed": "14.7824",
+          "kind": "replacement_arrived",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 1265,
+          "time_hours_printed": "14.7824",
+          "kind": "stock_returned",
+          "text": "Time: 14.7824 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,3> to stock "
+        },
+        {
+          "line": 2137,
+          "time_hours_printed": "32.1292",
+          "kind": "fault",
+          "text": "Time: 32.1292 <J35,1> critical random failure added, now "
+        },
+        {
+          "line": 2171,
+          "time_hours_printed": "32.2584",
+          "kind": "demand_arrived",
+          "text": "Time: 32.2584 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 2173,
+          "time_hours_printed": "32.2584",
+          "kind": "stock_taken",
+          "text": "Time: 32.2584 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,3> from stock "
+        },
+        {
+          "line": 2175,
+          "time_hours_printed": "32.2584",
+          "kind": "replacement_received",
+          "text": "Time: 32.2584  system SURP task 10 on <J35,1> subitem received <B-TOP-PRU,0,3>"
+        },
+        {
+          "line": 2219,
+          "time_hours_printed": "33.7584",
+          "kind": "demand_arrived",
+          "text": "Time: 33.7584 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 2221,
+          "time_hours_printed": "33.7584",
+          "kind": "backorder_added",
+          "text": "Time: 33.7584 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 2276,
+          "time_hours_printed": "37.2584",
+          "kind": "repair_finished",
+          "text": "Time: 37.2584 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 2277,
+          "time_hours_printed": "37.2584",
+          "kind": "replacement_arrived",
+          "text": "Time: 37.2584 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,6>"
+        },
+        {
+          "line": 2278,
+          "time_hours_printed": "37.2584",
+          "kind": "backorder_removed",
+          "text": "Time: 37.2584 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 2306,
+          "time_hours_printed": "38.7584",
+          "kind": "repair_finished",
+          "text": "Time: 38.7584 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 2307,
+          "time_hours_printed": "38.7584",
+          "kind": "replacement_arrived",
+          "text": "Time: 38.7584 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 2308,
+          "time_hours_printed": "38.7584",
+          "kind": "stock_returned",
+          "text": "Time: 38.7584 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,5> to stock "
+        },
+        {
+          "line": 3150,
+          "time_hours_printed": "56.1195",
+          "kind": "fault",
+          "text": "Time: 56.1195 <J35,1> critical random failure added, now "
+        },
+        {
+          "line": 3183,
+          "time_hours_printed": "56.239",
+          "kind": "demand_arrived",
+          "text": "Time: 56.239 <B-TOP-PRU,0,BASE,0> Item demand arrives from pos <J35,BASE,0> item requiring maintenance is <B-TOP-PRU,0,7>"
+        },
+        {
+          "line": 3185,
+          "time_hours_printed": "56.239",
+          "kind": "stock_taken",
+          "text": "Time: 56.239 <B-TOP-PRU,0,BASE,0> Take replacement item <B-TOP-PRU,0,5> from stock "
+        },
+        {
+          "line": 3187,
+          "time_hours_printed": "56.239",
+          "kind": "replacement_received",
+          "text": "Time: 56.239  system SURP task 15 on <J35,1> subitem received <B-TOP-PRU,0,5>"
+        },
+        {
+          "line": 3231,
+          "time_hours_printed": "57.739",
+          "kind": "demand_arrived",
+          "text": "Time: 57.739 <B-SECOND-SPRU,0,BASE,0> Item demand arrives from pos <B-TOP-PRU,0,BASE,0> item requiring maintenance is <B-SECOND-SPRU,0,8>"
+        },
+        {
+          "line": 3233,
+          "time_hours_printed": "57.739",
+          "kind": "backorder_added",
+          "text": "Time: 57.739 <B-SECOND-SPRU,0,BASE,0> Backorder added "
+        },
+        {
+          "line": 3288,
+          "time_hours_printed": "61.239",
+          "kind": "repair_finished",
+          "text": "Time: 61.239 <B-SECOND-SPRU,0,BASE,0> Finished repair of item <B-SECOND-SPRU,0,8>"
+        },
+        {
+          "line": 3289,
+          "time_hours_printed": "61.239",
+          "kind": "replacement_arrived",
+          "text": "Time: 61.239 <B-SECOND-SPRU,0,BASE,0> Replacement item arrives <B-SECOND-SPRU,0,8>"
+        },
+        {
+          "line": 3290,
+          "time_hours_printed": "61.239",
+          "kind": "backorder_removed",
+          "text": "Time: 61.239 <B-SECOND-SPRU,0,BASE,0> Backorder removed, waiting time was 3.5"
+        },
+        {
+          "line": 3318,
+          "time_hours_printed": "62.739",
+          "kind": "repair_finished",
+          "text": "Time: 62.739 <B-TOP-PRU,0,BASE,0> Finished repair of item <B-TOP-PRU,0,7>"
+        },
+        {
+          "line": 3319,
+          "time_hours_printed": "62.739",
+          "kind": "replacement_arrived",
+          "text": "Time: 62.739 <B-TOP-PRU,0,BASE,0> Replacement item arrives <B-TOP-PRU,0,7>"
+        },
+        {
+          "line": 3320,
+          "time_hours_printed": "62.739",
+          "kind": "stock_returned",
+          "text": "Time: 62.739 <B-TOP-PRU,0,BASE,0> Put back replacement item <B-TOP-PRU,0,7> to stock "
+        }
+      ]
+    }
+  ]
+}

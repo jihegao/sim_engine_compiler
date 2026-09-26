@@ -7,13 +7,15 @@ code zero without a nonempty export is a failure, as seen on 4700-3 in P1.
 from __future__ import annotations
 
 import hashlib
+import argparse
 import json
 from pathlib import Path
 import subprocess
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "data/local/j35-contract-probes/preflight-direct"
+DEFAULT_OUT = ROOT / "data/local/j35-contract-probes/preflight-direct"
+NATIVE_WORKDIR = Path("C:/Users/user/Documents/Codex/2026-09-26/simlox-j35-event-parity/workspace")
 EXE = Path("C:/Program Files/Systecon/SIMLOX/Simlox.exe")
 EXE_SHA = "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
 SOURCE = Path("C:/Users/user/Documents/Codex/2026-09-26/simlox-j35-event-parity/workspace/evidence/phase7/sid8-pm-first20/sid8-pm-first20.sxi")
@@ -25,25 +27,33 @@ def sha256(path: Path) -> str:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUT)
+    args = parser.parse_args()
+    out = args.output_dir.resolve()
+    allowed = (ROOT / "data/local/j35-contract-probes").resolve()
+    if allowed not in out.parents:
+        raise ValueError("Output directory must be below ignored data/local/j35-contract-probes")
     if sha256(EXE) != EXE_SHA or sha256(SOURCE) != SOURCE_SHA:
         raise ValueError("SIMLOX executable or known-good source SXI fingerprint changed")
     process_list = subprocess.run(["tasklist", "/FI", "IMAGENAME eq Simlox.exe"], capture_output=True, text=True, check=True)
     if "Simlox.exe" in process_list.stdout:
         raise RuntimeError("A SIMLOX process is already running; leave it untouched")
-    OUT.mkdir(parents=True, exist_ok=True)
-    export = OUT / "known-good-roundtrip.json"
-    log = OUT / "known-good-export.log"
-    result_path = OUT / "result.json"
+    out.mkdir(parents=True, exist_ok=True)
+    export = out / "known-good-roundtrip.json"
+    log = out / "known-good-export.log"
+    result_path = out / "result.json"
     for path in (export, log, result_path):
         if path.exists():
             raise FileExistsError(path)
     command = [str(EXE), str(SOURCE), "-silent", "-jexport", str(export), "-log", str(log), "-close"]
     began = time.perf_counter()
-    completed = subprocess.run(command, capture_output=True, text=True, timeout=120)
+    completed = subprocess.run(command, cwd=NATIVE_WORKDIR, capture_output=True, text=True, timeout=120)
     result = {
         "command": command,
         "source_sha256": SOURCE_SHA,
         "executable_sha256": EXE_SHA,
+        "working_directory": str(NATIVE_WORKDIR),
         "exit_code": completed.returncode,
         "wall_seconds": time.perf_counter() - began,
         "stdout": completed.stdout,

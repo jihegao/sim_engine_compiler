@@ -7,6 +7,7 @@ $full=[IO.Path]::GetFullPath($dir)
 $allowed=[IO.Path]::GetFullPath($base)+[IO.Path]::DirectorySeparatorChar
 if(-not $full.StartsWith($allowed,[StringComparison]::OrdinalIgnoreCase)){throw 'Probe path escapes data/local/j35-contract-probes'}
 $exe='C:\Program Files\Systecon\SIMLOX\Simlox.exe'
+$nativeWorkingDirectory='C:\Users\user\Documents\Codex\2026-09-26\simlox-j35-event-parity\workspace'
 $expected='fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0'
 if((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected){throw 'SIMLOX binary fingerprint changed'}
 $input=Join-Path $dir ($Stem+'.json')
@@ -29,7 +30,7 @@ $records=@()
 foreach($step in $steps){
  if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX process appeared; leave it untouched'}
  $watch=[Diagnostics.Stopwatch]::StartNew()
- $proc=Start-Process -FilePath $exe -ArgumentList $step.args -WindowStyle Hidden -PassThru -Wait
+ $proc=Start-Process -FilePath $exe -ArgumentList $step.args -WorkingDirectory $nativeWorkingDirectory -WindowStyle Hidden -PassThru -Wait
  $watch.Stop()
  $records += [pscustomobject]@{name=$step.name;executable=$exe;arguments=$step.args;exit_code=$proc.ExitCode;wall_seconds=$watch.Elapsed.TotalSeconds}
  $records|ConvertTo-Json -Depth 6|Set-Content -LiteralPath (Join-Path $dir 'steps.json') -Encoding UTF8
@@ -53,7 +54,7 @@ if(!$valid){throw "$Stem invalid conversion or 4-byte SXO"}
 if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX process appeared; leave it untouched'}
 $args='"{0}" -silent -jsonreport "{1}" -log "{2}" -close' -f $sxo,$report,(Join-Path $dir 'report-export.log')
 $watch=[Diagnostics.Stopwatch]::StartNew()
-$proc=Start-Process -FilePath $exe -ArgumentList $args -WindowStyle Hidden -PassThru -Wait
+$proc=Start-Process -FilePath $exe -ArgumentList $args -WorkingDirectory $nativeWorkingDirectory -WindowStyle Hidden -PassThru -Wait
 $watch.Stop()
 $records += [pscustomobject]@{name='jsonreport';executable=$exe;arguments=$args;exit_code=$proc.ExitCode;wall_seconds=$watch.Elapsed.TotalSeconds}
 $records|ConvertTo-Json -Depth 6|Set-Content -LiteralPath (Join-Path $dir 'steps.json') -Encoding UTF8

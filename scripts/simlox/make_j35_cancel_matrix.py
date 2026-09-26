@@ -56,7 +56,7 @@ def field_diff(before: dict, after: dict) -> dict:
 
 def make(stem: str, *, pmt: float, dtim: float = 20 / 60, stim: float = 56, personnel: int = 40,
          equipment: int = 60, prep: bool = True, next_wave: bool = False,
-         step_shorten: int = 0) -> None:
+         step_shorten: int = 0, pm_step_duration: float | None = None) -> None:
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     model = copy.deepcopy(source)
     mission = table(model, "MissionType")
@@ -67,6 +67,9 @@ def make(stem: str, *, pmt: float, dtim: float = 20 / 60, stim: float = 56, pers
     set_field(preparation, "DURN", duration)
     set_field(preparation, "TID", "MISSION_PREP" if prep else None)
     set_field(table(model, "PMLocation"), "PMT", pmt)
+    if pm_step_duration is not None:
+        set_field(table(model, "TaskBreakDown"), "DURN", pm_step_duration,
+                  lambda r: r["TID"] == "PM_25H" and r["SEQ"] == 1)
     set_field(table(model, "OperationProfile"), "DTIM", dtim)
     set_field(table(model, "OperationProfile"), "STIM", stim)
     if next_wave:
@@ -98,7 +101,8 @@ def make(stem: str, *, pmt: float, dtim: float = 20 / 60, stim: float = 56, pers
         "source": str(SOURCE), "source_sha256": SOURCE_SHA,
         "input": str(path), "input_sha256": sha256(path),
         "changes_from_source": field_diff(source, model),
-        "probe_parameters": {"pmt_hours_after_24h_start": pmt, "dtim_hours": dtim, "stim_hours": stim,
+        "probe_parameters": {"pm_location_pmt_hours": pmt, "pm_step_duration_hours": pm_step_duration,
+                             "dtim_hours": dtim, "stim_hours": stim,
                              "prep_minutes": 142 - step_shorten if prep else 0,
                              "personnel_capacity": personnel, "equipment_capacity": equipment,
                              "next_wave": next_wave},
@@ -128,6 +132,16 @@ def main() -> None:
         ("p1-next-wave", dict(pmt=29.983333333333334, next_wave=True)),
         ("p1-stim-earlier", dict(pmt=29.95, stim=55.5)),
         ("p1-stim-later", dict(pmt=29.95, stim=56.5)),
+        # V1 PMLocation.PMT did not move the observed PM completion from 48h.
+        # V2 changes the actual PM TaskBreakDown step from its 24h source.
+        ("p1v2-pm-before", dict(pmt=24, pm_step_duration=29.95)),
+        ("p1v2-pm-tie", dict(pmt=24, pm_step_duration=30 - 2 / 60)),
+        ("p1v2-pm-after", dict(pmt=24, pm_step_duration=29.983333333333334)),
+        ("p1v2-pm-dtim40-before", dict(pmt=24, pm_step_duration=30.2, dtim=40 / 60)),
+        ("p1v2-pm-dtim40-after", dict(pmt=24, pm_step_duration=30.4, dtim=40 / 60)),
+        ("p1v2-pm-step-short", dict(pmt=24, pm_step_duration=30.2, step_shorten=20)),
+        ("p1v2-zero-before", dict(pmt=24, pm_step_duration=32.31666666666667, prep=False)),
+        ("p1v2-zero-after", dict(pmt=24, pm_step_duration=32.35, prep=False)),
     ]:
         if args.stem is None or args.stem == stem:
             make(stem, **options)
