@@ -1,3 +1,5 @@
+pub mod abm_plan;
+pub mod abm_runtime;
 pub mod batch;
 pub mod cache;
 pub mod plan;
@@ -7,6 +9,11 @@ pub mod runtime;
 #[cfg(feature = "python")]
 mod python;
 
+pub use abm_plan::{ABM_PLAN_VERSION, ABM_PROFILE, AbmPlan, AbmPlanEnvelope};
+pub use abm_runtime::{
+    AbmBatchSampleResult, AbmEvent, AbmRandomRequest, AbmRunResult, AbmSampleRequest,
+    run_abm_batch, run_abm_plan, run_abm_plan_from_slice,
+};
 pub use batch::{
     BatchResult, BatchSampleResult, IndexedBatchSampleFailure, IndexedBatchSampleResult,
     IndexedPlanBatchResult, IndexedSampleRequest, PlanBatchGroup, run_batch, run_batch_from_slice,
