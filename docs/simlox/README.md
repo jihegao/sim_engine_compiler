@@ -1,5 +1,7 @@
 # SIMLOX 与 canonical 输入的配对检查
 
+后续的 F35 原生候选模型及其已验证范围见 [F35 候选模型](f35-candidate.md)。该模型可运行，但仍有明确的语义缺口，不能用于效率对比。
+
 状态（2026-09-26）：**四个 SIMLOX 示例各自的模型与既有结果已在来源主机上配对；尚无一个示例与本仓库的 canonical `simulation_inputs` 配对。** 本记录是从 `e9b6391fffd918e0f6e742bd1ef0e1312921b769` 创建的独立工作树中的证据提交，与 #6 的测量和修改分开。没有运行新的仿真或性能基准。
 
 4700-3 的 Codex 在 `C:\Users\user\Documents\Codex\2026-09-26\simlox-alignment-evidence` 采集了 12 份原始导出（四个原 Demo 模型、四个既有 `run1` 模型、四个既有结果）。本仓库仅保存[来源 manifest](source-manifest.json)、[来源与导出方法](source-provenance.md)、[SIMLOX 表关系与实际行](source-relations.md)和[原机状态](source-status.md)；原始导出保留在该 Windows 目录，并复制到本工作树被 Git 忽略的 `data/local/simlox-alignment/`。来源笔记中的 `raw/` 均指 Windows 采集目录下的 `raw/`，不属于 Git 跟踪内容。 Windows Codex CLI 采集会话为 `01a0db9d-ac52-7470-a616-b9a3dcccb620`。`source-manifest.json` 的 `baseline_verified=false` 只表示原机没有本仓库 checkout；本工作树已用 `git rev-parse e9b6391^{commit}` 核对基点。
