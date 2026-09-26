@@ -160,6 +160,8 @@ def build(template: dict, project: dict, canonical: dict, plan: dict) -> tuple[d
     basic = canonical["mission_profile"]["basic_missions"][0]
     if len(mission) != 1 or len({spec["duration_minutes"] for spec in plan["missions"]}) != 1:
         raise ValueError("J35 missions cannot use one SIMLOX mission type")
+    if basic["cancelMinutes"] != 20 or {spec["cancel_minutes"] for spec in plan["missions"]} != {20}:
+        raise ValueError("J35 mission deferment window changed")
     phase_ratios = [phase["phaseRatio"] for phase in basic["missionPhases"]]
     if len(phase_ratios) != 3 or abs(sum(phase_ratios) - 1) > 1e-9:
         raise ValueError("unexpected J35 mission phase ratios")
@@ -177,6 +179,7 @@ def build(template: dict, project: dict, canonical: dict, plan: dict) -> tuple[d
         raise ValueError("J35 schedule differs from template")
     for row in schedule:
         row["SPRID"] = basic["id"]
+        row["DTIM"] = basic["cancelMinutes"] / 60
     set_rows(table(model, "OperationProfile"), schedule)
     control = rows(table(model, "Control"))
     control[0].update(APID="J35", NREPS=1, RSEED="1", SIMPE=1032, RCEND=1032)
@@ -424,7 +427,7 @@ def build(template: dict, project: dict, canonical: dict, plan: dict) -> tuple[d
         "steps": step_mapping,
         "semantic_gaps": [
             "SIMLOX seed 0 rejected; candidate uses seed 1 with different RNG stream",
-            "daily-v1 relaunch/postflight/dispatch/cancel rules absent; same preflight runs before each SIMLOX mission",
+            "20-minute SIMLOX mission deferment is mapped, but daily-v1 relaunch/postflight/dispatch/cancellation rules are not yet shown equivalent; same preflight runs before each SIMLOX mission",
             "page-declared oxygen truck on J35-USE-003 is excluded because it has no source supportResource; Plan pooled DEVICE demand remains",
             "typed requirements are additional to Plan's pooled 1+1 demands; no semantic parity claim",
             "PM 7-calendar-day OR 25-flight-hour trigger and per-tail initial lives not represented",

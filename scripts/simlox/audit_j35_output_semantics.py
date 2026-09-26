@@ -16,9 +16,9 @@ from pathlib import Path
 
 EXPECTED_SHA256 = {
     "canonical": "30c20086cbf400dd35e132f71498c1d05c256d74a1384355b703ccc713601559",
-    "model": "88033e3c83ed039c4ffff32da1f5c3b2ef91cd3a25318adac3020f30caece5c5",
+    "model": "db9d658f2fe2581613a1a4d1538902623a7823266dd62ae8ee2e6ee3dbc81057",
     "plan": "44cfed9a8006b002369e7934cbef02fabf797003b3db39f3169b306a4f3b42eb",
-    "simlox": "2f066cecd9f56036638469e680078dab095161d10504abc7cbbda28f99fbf5ab",
+    "simlox": "8485b98ce8f13edb6cd7cefaa3168e64991be7d07263b08af87dd8d20ff76e1e",
     "reference_seed0": "804ddceff79884f6b8c56b89870691c7c1a7ab22f9317593a691b36fb7825bf1",
     "reference_seed1": "686edd86b7cba086c1f11be42ddc10d31202a0a1272a5974da45ac93d9b3fc87",
 }
@@ -105,6 +105,8 @@ def main() -> None:
         raise ValueError("SIMLOX result period or sample count changed")
     if (control["SIMPE"], control["RCINT"], len(profile), mission_type["MSUCPT"]) != (1032, 0.5, 104, 0.75):
         raise ValueError("SIMLOX mission or collection settings changed")
+    if {row["DTIM"] for row in profile} != {20 / 60}:
+        raise ValueError("SIMLOX mission deferment window changed")
     if (plan["duration_minutes"] != horizon_hours * 60 or len(plan["missions"]) != 104
             or canonical["time"]["duration_minutes"] != horizon_hours * 60
             or canonical["time"]["sample_every_minutes"] != 30):

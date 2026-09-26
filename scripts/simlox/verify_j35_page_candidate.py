@@ -10,10 +10,10 @@ from pathlib import Path
 
 
 EXPECTED = {
-    "candidate": "88033e3c83ed039c4ffff32da1f5c3b2ef91cd3a25318adac3020f30caece5c5",
-    "native": "a057b235615cc8db05a148c7bc2ed14509997c4c0d796aafa292c37d385f11e8",
-    "roundtrip": "b2ff4b6acf8a9b3a14802abe460484956561da7f85a7bd91c915cb0f1d427901",
-    "result": "2f066cecd9f56036638469e680078dab095161d10504abc7cbbda28f99fbf5ab",
+    "candidate": "db9d658f2fe2581613a1a4d1538902623a7823266dd62ae8ee2e6ee3dbc81057",
+    "native": "1a8ab2f76171df4ca51a59879d06cd61ee8bd5aa9298a8761f6525a7308a9716",
+    "roundtrip": "1f72431cc01120b369bfd0d6e96eb56f21f0e9c8642029ad225caf35c51aa603",
+    "result": "8485b98ce8f13edb6cd7cefaa3168e64991be7d07263b08af87dd8d20ff76e1e",
 }
 
 
@@ -49,6 +49,7 @@ def main() -> None:
     assert len(records(candidate, "Item")) == 423
     assert records(candidate, "SystemDeployment")[0]["QTYPS"] == 8
     assert len(records(candidate, "OperationProfile")) == 104
+    assert {row["DTIM"] for row in records(candidate, "OperationProfile")} == {20 / 60}
     assert len(records(candidate, "TaskBreakDown")) == 30
     assert len(records(candidate, "StockAllocation")) == 806
     assert sum(row["STSIZ"] for row in records(candidate, "StockAllocation")) == 501
