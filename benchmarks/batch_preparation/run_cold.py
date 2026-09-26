@@ -47,10 +47,16 @@ def run_one(root: Path, plan: Path, output: Path, case: str, arm: str,
     rss = next((int(line.rsplit(":", 1)[1].strip()) * 1024
                 for line in process.stderr.splitlines()
                 if "Maximum resident set size (kbytes):" in line), None)
+    payload_data = json.loads(payload.read_bytes())
+    samples_sha256 = hashlib.sha256(
+        json.dumps(payload_data["samples"], sort_keys=True,
+                   separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
     row = {"variant": variant, "case": case, "arm": arm, "level": level,
            "samples": count, "threads": threads, "repeat": repeat,
            "process_wall_ns": wall_ns, "peak_rss_bytes": rss,
-           "result_sha256": file_sha256(payload), "result_bytes": payload.stat().st_size}
+           "result_sha256": file_sha256(payload),
+           "samples_sha256": samples_sha256, "result_bytes": payload.stat().st_size}
     payload.unlink()
     return row
 
@@ -112,7 +118,8 @@ def main() -> None:
         raise AssertionError("cold A/B inputs or Plans differ")
     identity["load_before"] = list(os.getloadavg())
     write_json(args.output / "identity.json", identity)
-    expected: dict[tuple[str, str, int, int], str] = {}
+    expected_samples: dict[tuple[str, str, int, int], str] = {}
+    expected_result: dict[tuple[str, str, str, int, int], str] = {}
     with (args.output / "records.jsonl").open("w") as records:
         for count in counts:
             for case in cases:
@@ -135,8 +142,12 @@ def main() -> None:
                                     row = run_one(root, plan, args.output, case, arm, level,
                                                   count, workers, repeat, variant)
                                     key = (case, level, count, workers)
-                                    reference = expected.setdefault(key, row["result_sha256"])
-                                    if row["result_sha256"] != reference:
+                                    reference = expected_samples.setdefault(key, row["samples_sha256"])
+                                    result_key = (case, arm, level, count, workers)
+                                    result_reference = expected_result.setdefault(
+                                        result_key, row["result_sha256"])
+                                    if (row["samples_sha256"] != reference
+                                            or row["result_sha256"] != result_reference):
                                         raise AssertionError(f"result changed: {row}")
                                     records.write(json.dumps(row) + "\n")
                                     records.flush()
