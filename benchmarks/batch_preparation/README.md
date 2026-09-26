@@ -17,9 +17,11 @@ each configuration once, then launches a new `sim-engine-runtime` process for
 each of six paired repeats and reverses A/B order on alternating rounds. Its
 process wall includes startup, Plan-file read/validation, execution and pretty
 JSON output. The OS page cache is not flushed. It hashes and removes each
-large output. Complete batch bytes must match for the same Plan and thread
-count across repeats and builds; sample results must also match across the
-three dispatch arms, whose Plan fingerprints differ.
+large output. Complete batch bytes must match across dispatch arms, repeats,
+and builds for each worker count; sample results must also match across worker
+counts. Resource indexes do not change the semantic Plan fingerprint.
+The CLI's final `samples` JSON field is hashed as a byte range, so Full
+results can be checked without loading multi-gigabyte output into Python.
 
 `run_benchmark.py` uses the unchanged `stage-c-benchmark` binary for segmented
 diagnostics in two clean checkouts. Each invocation warms once and measures

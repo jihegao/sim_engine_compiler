@@ -27,6 +27,31 @@ def file_sha256(path: Path) -> str:
     return hasher.hexdigest()
 
 
+def samples_sha256(path: Path) -> str:
+    """Hash serde's final `samples` field without loading multi-GB Full JSON."""
+    marker = b'\n  "samples": '
+    hasher = hashlib.sha256()
+    with path.open("rb") as stream:
+        prefix = stream.read(512)
+        if prefix.count(marker) != 1:
+            raise ValueError(f"unexpected batch JSON header: {path}")
+        start = prefix.index(marker) + len(marker)
+        stream.seek(0, os.SEEK_END)
+        size = stream.tell()
+        stream.seek(-3, os.SEEK_END)
+        if stream.read(3) != b"]\n}":
+            raise ValueError(f"unexpected batch JSON footer: {path}")
+        remaining = size - 2 - start
+        stream.seek(start)
+        while remaining:
+            chunk = stream.read(min(1024 * 1024, remaining))
+            if not chunk:
+                raise ValueError(f"truncated batch JSON: {path}")
+            hasher.update(chunk)
+            remaining -= len(chunk)
+    return hasher.hexdigest()
+
+
 def run_one(root: Path, plan: Path, output: Path, case: str, arm: str,
             level: str, count: int, threads: int, repeat: int, variant: str) -> dict:
     payload = output / "scratch" / f"{case}-{arm}-{level}-{count}-{threads}-{repeat}-{variant}.json"
@@ -47,16 +72,12 @@ def run_one(root: Path, plan: Path, output: Path, case: str, arm: str,
     rss = next((int(line.rsplit(":", 1)[1].strip()) * 1024
                 for line in process.stderr.splitlines()
                 if "Maximum resident set size (kbytes):" in line), None)
-    payload_data = json.loads(payload.read_bytes())
-    samples_sha256 = hashlib.sha256(
-        json.dumps(payload_data["samples"], sort_keys=True,
-                   separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-    ).hexdigest()
+    sample_digest = samples_sha256(payload)
     row = {"variant": variant, "case": case, "arm": arm, "level": level,
            "samples": count, "threads": threads, "repeat": repeat,
            "process_wall_ns": wall_ns, "peak_rss_bytes": rss,
            "result_sha256": file_sha256(payload),
-           "samples_sha256": samples_sha256, "result_bytes": payload.stat().st_size}
+           "samples_sha256": sample_digest, "result_bytes": payload.stat().st_size}
     payload.unlink()
     return row
 
@@ -119,7 +140,7 @@ def main() -> None:
     identity["load_before"] = list(os.getloadavg())
     write_json(args.output / "identity.json", identity)
     expected_samples: dict[tuple[str, str, int], str] = {}
-    expected_result: dict[tuple[str, str, str, int, int], str] = {}
+    expected_result: dict[tuple[str, str, int, int], str] = {}
     with (args.output / "records.jsonl").open("w") as records:
         for count in counts:
             for case in cases:
@@ -143,7 +164,7 @@ def main() -> None:
                                                   count, workers, repeat, variant)
                                     key = (case, level, count)
                                     reference = expected_samples.setdefault(key, row["samples_sha256"])
-                                    result_key = (case, arm, level, count, workers)
+                                    result_key = (case, level, count, workers)
                                     result_reference = expected_result.setdefault(
                                         result_key, row["result_sha256"])
                                     if (row["samples_sha256"] != reference

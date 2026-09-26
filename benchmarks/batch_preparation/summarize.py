@@ -16,15 +16,14 @@ def main() -> None:
     args = parser.parse_args()
     rows = [json.loads(line) for line in args.records.read_text().splitlines() if line]
     semantic_hashes: dict[tuple[str, str, int], str] = {}
-    exact_hashes: dict[tuple[str, str, str, int, int], str] = {}
+    exact_hashes: dict[tuple[str, str, int, int], str] = {}
     for row in rows:
         semantic_key = (row["case"], row["level"], row["samples"])
         reference = semantic_hashes.setdefault(semantic_key, row["samples_sha256"])
         if row["samples_sha256"] != reference:
             raise ValueError(f"sample result differs across dispatch arms or workers: {semantic_key}")
         if "result_sha256" in row:
-            exact_key = (row["case"], row["arm"], row["level"],
-                         row["samples"], row["threads"])
+            exact_key = (row["case"], row["level"], row["samples"], row["threads"])
             exact_reference = exact_hashes.setdefault(exact_key, row["result_sha256"])
             if row["result_sha256"] != exact_reference:
                 raise ValueError(f"complete result differs within a configuration: {exact_key}")
