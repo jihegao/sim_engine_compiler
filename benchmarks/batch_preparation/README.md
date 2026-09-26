@@ -65,3 +65,16 @@ every paired gain and RSS ratio. A row passes the predefined adoption gate only
 with at least six pairs, positive gains in every pair, median gain of at least
 5%, and no repeated peak RSS increase above 5%. Report all thread counts and
 cases even if only the F35 O5 + Summary rows determine default-path adoption.
+
+For cold-process latency, run `run_cold.py` with the same two checkouts and
+shared Plan directory. It starts a new `sim-engine-runtime` process for every
+pair, includes process startup, Plan-file read/validation, execution and pretty
+JSON output, and deletes each large result after hashing it. The OS page cache
+is not flushed. Canonical-to-Plan compilation remains a separate measurement.
+
+After building and installing each checkout's Linux PyO3 extension into its
+own `.venv`, use `run_binding.py` for paired `run_batch(plan_bytes, seeds)` calls.
+It records extension/Plan hashes and measures native parsing, batch execution,
+result transfer and Python JSON decoding inside the call. Plan file reading and
+Python process startup are excluded; candidate dispatch is not exposed by this
+Python API, so the binding comparison uses scan or v2 cache mode.
