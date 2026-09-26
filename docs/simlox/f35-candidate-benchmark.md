@@ -1,6 +1,6 @@
 # 4700-3 SIMLOX F35 candidate timing
 
-**Measured 2026-09-26. Status: candidate-only efficiency evidence.** The [model mapping](f35-candidate-mapping.md) still has unresolved mission, failure, repair, resource, inventory and output semantics. These times are not a `spare_mvp` or Rust speedup, and the 1000-replication run is not paired with 1000 canonical oracle samples.
+**Measured 2026-09-26. Status: historical timing of an underloaded original candidate.** The original model omitted SIMLOX `FRT`'s ×1,000,000 failure-rate unit conversion, and its one- and 1000-replication result reports were identical except for `NREP`. These measured times remain valid for those exact saved bytes, but they do **not** measure the corrected [F35 workflow candidate](f35-workflow-candidate.md) or a correctly scaled F35 failure workload. The [model mapping](f35-candidate-mapping.md) also has unresolved mission, repair, resource, inventory and output semantics. No `spare_mvp` or Rust speedup can be derived from these timings.
 
 ## Model, host and protocol
 
@@ -17,7 +17,7 @@
 | 1 replication, 1 thread | 0.17 / 0.17 / 0.17 / 0.17 / 0.17 | 0.17 | 0.23 | 2.033 |
 | 1000 replications, 8 threads | 1.73 / 1.74 / 1.72 | 1.73 | 1.80 | 2.636 |
 
-The batch median is **578 SIMLOX replications per simulation second** (`1000 / 1.73`) for this candidate and these settings. Using full process wall time instead gives **379 replications per wall second** (`1000 / 2.636`). These are SIMLOX-only throughput descriptions; the single- and batch-replication configurations have different thread counts and cannot isolate parallel scaling.
+The batch median is **578 SIMLOX replications per simulation second** (`1000 / 1.73`) for this **underloaded original candidate** and these settings. Using full process wall time instead gives **379 replications per wall second** (`1000 / 2.636`). These are historical SIMLOX-only throughput descriptions; the single- and batch-replication configurations have different thread counts and cannot isolate parallel scaling.
 
 ## Result interpretation
 
