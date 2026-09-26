@@ -126,6 +126,25 @@ if projection.get("events"):
 
 `selected_sequences` filters original trace sequences and `truncated=True`
 declares already incomplete evidence; these options do not change a simulation.
+The observed result end `time` must be finite, nonnegative and no greater than
+the requested horizon. Every event must lie between zero and that end time
+(and within the horizon). A missing result time permits only partial evidence;
+it is not inferred from the last event. Earlier natural completion is allowed:
+equality with the requested horizon is not required. The projection retains
+`evidence_binding.time_binding` (`request_horizon`, nullable `result_time`) so
+the resolver can recheck these bounds. This checks temporal compatibility, not
+whether an unobserved stop condition actually held: `stop_reason` is not
+cross-validated against model termination rules in this offline slice.
+
+A complete full trace has sequences `1..N` in original order (including an
+empty trace when no events were recorded). Gaps or a non-1 starting sequence
+produce `trace_sequence_incomplete`; reordering produces
+`trace_sequence_reordered`. Both downgrade coverage to partial, with diagnostics,
+without renumbering or sorting events. Explicit filtering cannot upgrade an
+already incomplete trace, and the resolver independently checks any complete
+coverage claim. A removed suffix without a gap cannot be detected from these
+unauthenticated inputs alone; callers must declare truncation.
+
 The contract cannot detect a caller who forges every raw input and digest. It
 validates internal consistency and reports observable binding limits, rather
 than granting provenance based on an unauthenticated report's `status` field.

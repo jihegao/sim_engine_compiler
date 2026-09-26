@@ -46,6 +46,11 @@ def _sha256(value: Any) -> bool:
             and all(character in "0123456789abcdef" for character in value))
 
 
+def _nonnegative_time(value: Any) -> bool:
+    return (type(value) in (int, float) and value >= 0
+            and (type(value) is int or value < float("inf")))
+
+
 def _plan(value: Any) -> tuple[ExecutionPlan | None, dict[str, Any] | None]:
     if isinstance(value, ExecutionPlan):
         raw = json.loads(json.dumps(value.to_dict(), ensure_ascii=False, allow_nan=False))
@@ -365,6 +370,20 @@ def project_event_references(run_identity: Any, result: Any, *,
             "result omits required self-reported Plan or seed binding",
             stage="run_identity", path="result", severity="warning",
         ))
+    result_time = raw_result.get("time")
+    if "time" in raw_result and not _nonnegative_time(result_time):
+        return _projection_invalid("invalid_result_time",
+                                   "result time must be finite and nonnegative",
+                                   path="result.time")
+    if result_time is not None and result_time > request["horizon"]:
+        return _projection_invalid("result_horizon_mismatch",
+                                   "result time exceeds the requested horizon",
+                                   path="result.time")
+    if result_time is None:
+        diagnostics.append(diagnostic(
+            "result_time_missing", "result omits its observed end time",
+            stage="run_identity", path="result.time", severity="warning",
+        ))
     binding_value = {
         "plan_fingerprint": contract["plan_fingerprint"],
         "verified_result_fields": sorted(
@@ -374,6 +393,8 @@ def project_event_references(run_identity: Any, result: Any, *,
         "binding_strength": ("result_self_report_cross_checked"
                              if not missing_bindings else "caller_asserted"),
         "proves_runtime_consumed_plan": False,
+        "time_binding": {"request_horizon": request["horizon"],
+                         "result_time": result_time},
     }
     if request["observation"] != "full":
         return _report(EVENT_REFERENCES_VERSION, "partial",
@@ -445,6 +466,14 @@ def project_event_references(run_identity: Any, result: Any, *,
             return _projection_invalid("unparseable_trace",
                                        "event time must be a finite number",
                                        path=f"result.trace[{index}].time")
+        if time < 0 or time > request["horizon"]:
+            return _projection_invalid("event_horizon_mismatch",
+                                       "event time is outside the requested horizon",
+                                       path=f"result.trace[{index}].time")
+        if result_time is not None and time > result_time:
+            return _projection_invalid("event_result_time_mismatch",
+                                       "event time exceeds the observed result end time",
+                                       path=f"result.trace[{index}].time")
         for field in ("phase", "kind"):
             if type(event.get(field)) is not str or not event[field]:
                 return _projection_invalid("unparseable_trace",
@@ -467,6 +496,20 @@ def project_event_references(run_identity: Any, result: Any, *,
             "trigger_relation": {"status": "unknown", "event_ids": [],
                                  "reason": "runtime_did_not_record_direct_trigger"},
         })
+    sequences = [event["recorded_sequence"] for event in all_events]
+    sequence_reason = None
+    if sorted(sequences) != list(range(1, len(sequences) + 1)):
+        sequence_reason = "trace_sequence_incomplete"
+        diagnostics.append(diagnostic(
+            sequence_reason, "recorded sequences expose missing trace events",
+            stage="run_identity", path="result.trace", severity="warning",
+        ))
+    if sequences != sorted(sequences):
+        sequence_reason = "trace_sequence_reordered"
+        diagnostics.append(diagnostic(
+            sequence_reason, "recorded trace is not in original sequence order",
+            stage="run_identity", path="result.trace", severity="warning",
+        ))
     if selected is not None and not selected <= seen:
         return _projection_invalid("event_reference_unresolved",
                                    "selected sequence was not present in the recorded trace")
@@ -486,9 +529,11 @@ def project_event_references(run_identity: Any, result: Any, *,
                                       "trace is declared truncated; omitted events are unknown",
                                       stage="run_identity", path="result.trace",
                                       severity="warning"))
-    status = ("partial" if truncated or omitted or missing_bindings
+    incomplete = (truncated or omitted or missing_bindings
+                  or result_time is None or sequence_reason is not None)
+    status = ("partial" if incomplete
               or inspected["status"] == "partial" else "valid")
-    level = "partial" if truncated or omitted or missing_bindings else "complete"
+    level = "partial" if incomplete else "complete"
     return _report(EVENT_REFERENCES_VERSION, status, diagnostics,
                    run_identity={"run_id": identity["run_id"],
                                  "sample_index": identity["sample_index"],
@@ -496,7 +541,9 @@ def project_event_references(run_identity: Any, result: Any, *,
                    evidence_binding=binding_value,
                    coverage={"level": level,
                              "reason": ("trace_truncated" if truncated else
+                                        sequence_reason if sequence_reason else
                                         "result_binding_incomplete" if missing_bindings else
+                                        "result_time_missing" if result_time is None else
                                         "event_filter" if omitted else "full_trace"),
                              "recorded_event_count": len(all_events),
                              "projected_event_count": len(included)},
@@ -556,7 +603,7 @@ def resolve_event_reference(projection: Any, event_id: str) -> dict[str, Any]:
             or not isinstance(evidence_binding, dict)
             or set(evidence_binding) != {"plan_fingerprint", "verified_result_fields",
                                          "binding_strength",
-                                         "proves_runtime_consumed_plan"}
+                                         "proves_runtime_consumed_plan", "time_binding"}
             or not _sha256(evidence_binding.get("plan_fingerprint"))
             or not isinstance(evidence_binding.get("verified_result_fields"), list)
             or any(field not in {"plan_fingerprint", "seed", "sample_index",
@@ -571,6 +618,17 @@ def resolve_event_reference(projection: Any, event_id: str) -> dict[str, Any]:
     verified_fields = evidence_binding["verified_result_fields"]
     required_fields = ["plan_fingerprint", "sample_index", "seed", "semantic_profile"]
     complete_binding = verified_fields == required_fields
+    time_binding = evidence_binding["time_binding"]
+    if (not isinstance(time_binding, dict)
+            or set(time_binding) != {"request_horizon", "result_time"}
+            or type(time_binding.get("request_horizon")) is not int
+            or not 0 <= time_binding["request_horizon"] <= I64_MAX
+            or (time_binding.get("result_time") is not None
+                and (not _nonnegative_time(time_binding["result_time"])
+                     or time_binding["result_time"] > time_binding["request_horizon"]))):
+        return _invalid(EVENT_RESOLUTION_VERSION, "invalid_event_projection",
+                        "projection time binding is invalid")
+    result_time = time_binding["result_time"]
     if (verified_fields != sorted(set(verified_fields))
             or (evidence_binding["binding_strength"] == "result_self_report_cross_checked")
             != complete_binding
@@ -581,12 +639,16 @@ def resolve_event_reference(projection: Any, event_id: str) -> dict[str, Any]:
                      or events or omitted))
             or (coverage["level"] == "complete"
                 and (coverage["reason"] != "full_trace" or omitted
-                     or not complete_binding))
+                     or not complete_binding or result_time is None))
             or (coverage["level"] == "partial"
                 and coverage["reason"] not in {"trace_truncated", "event_filter",
-                                               "result_binding_incomplete"})
+                                               "result_binding_incomplete",
+                                               "result_time_missing",
+                                               "trace_sequence_incomplete",
+                                               "trace_sequence_reordered"})
             or (coverage["reason"] == "event_filter" and not omitted)
             or (coverage["reason"] == "result_binding_incomplete" and complete_binding)
+            or (coverage["reason"] == "result_time_missing" and result_time is not None)
             or (coverage["level"] != "complete" and raw["status"] != "partial")):
         return _invalid(EVENT_RESOLUTION_VERSION, "invalid_event_projection",
                         "projection coverage exceeds or contradicts recorded evidence")
@@ -623,6 +685,8 @@ def resolve_event_reference(projection: Any, event_id: str) -> dict[str, Any]:
                         or type(time) not in (int, float) or type(time) is bool
                         or (type(time) is float
                             and not -float("inf") < time < float("inf"))
+                        or time < 0 or time > time_binding["request_horizon"]
+                        or (result_time is not None and time > result_time)
                         or type(event.get("phase")) is not str or not event["phase"]
                         or type(event.get("kind")) is not str or not event["kind"]
                         or not isinstance(references, dict)
@@ -644,6 +708,11 @@ def resolve_event_reference(projection: Any, event_id: str) -> dict[str, Any]:
                                     "invalid_event_projection",
                                     "projected event content exceeds recorded evidence",
                                     path=f"{path}[{index}]")
+    if (coverage["level"] == "complete"
+            and [event["recorded_sequence"] for event in events]
+            != list(range(1, len(events) + 1))):
+        return _invalid(EVENT_RESOLUTION_VERSION, "invalid_event_projection",
+                        "complete trace must contain sequences 1 through N in order")
     omitted_ids = [item["event_id"] for item in omitted]
     if raw.get("omitted_event_ids") != omitted_ids:
         return _invalid(EVENT_RESOLUTION_VERSION, "invalid_event_projection",

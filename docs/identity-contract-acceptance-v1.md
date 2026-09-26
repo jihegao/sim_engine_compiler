@@ -7,6 +7,13 @@ versioned reports, persisted B1/F35 fixtures and adversarial controls.
 
 ## Results
 
+This section preserves the initial local acceptance at `7758554`. It is not
+current-head remote acceptance: PR #20 CI run `36277878129` subsequently failed
+because unittest discovery lacked pytest and omitted function-style tests.
+The horizon/sequence review findings also supersede the initial no-blocker
+conclusion. See [the repair record](identity-pr20-repair-v1.md); the original
+review receipt below binds only the initial files, not the repaired revision.
+
 | Check | Result |
 |---|---|
 | Frozen full Python suite, `PYTHONPATH=src .venv/bin/python -m pytest -q` | 242 passed, 14 skipped, 101.02 seconds |
