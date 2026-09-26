@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-a01-a02-gui-checklist-v1",
+  "status": "pending_private_user_handoff",
+  "connection_observation": "Windows App showed saved 4700-3 in Connection Center and no active remote desktop in Window menu; no authenticated GUI was available.",
+  "user_action": "Open Windows App > Devices > 4700-3 and complete connection privately. Do not give credentials to this artifact or agent.",
+  "order_disclosure": "CLI evidence preceded GUI calibration; GUI-first order was not achieved.",
+  "navigation_status": "table names below are native-schema references; exact GUI menu routes remain unobserved",
+  "native_launch_policy": "After private connection, inspect the retained SXI and SXO. Prefer opening existing results; do not recalculate or change source models for this review.",
+  "cases": {
+    "A01": {
+      "sxi_path_windows": "C:\\Users\\user\\Documents\\Codex\\2026-09-27\\simlox-case-library-a01-a02-v1\\repo\\data\\local\\simlox-case-library\\v1\\A01\\a01-bound-final-20260927-03\\model.sxi",
+      "sxi_sha256": "47cc6f3b7026affa210f17a9c77989ba661796cce5a1e09f0c4759ca2929d003",
+      "sxo_path_windows": "C:\\Users\\user\\Documents\\Codex\\2026-09-27\\simlox-case-library-a01-a02-v1\\repo\\data\\local\\simlox-case-library\\v1\\A01\\a01-bound-final-20260927-03\\model.sxo",
+      "sxo_sha256": "b22e832c44c5780ecd6b3e10ef0d4cedcafbd2ae66a02df70d6b75ba302876bf",
+      "table_fields_to_confirm": {
+        "Control": {"NREPS": 1, "SIMPE_hours": 36, "RCSTA_hours": 0, "RCEND_hours": 36, "RCINT_hours": 0.5, "RSEED_text": "1", "ENLOG": "Y"},
+        "System": {"SID": "TEACH-AIR-01", "FRT": 0, "OPID": "OPHOURS"},
+        "SystemDeployment": {"SID": "TEACH-AIR-01", "USTID": "TEACH-UNIT", "QTYPS": 1},
+        "Unit": {"UNID": "TEACH-UNIT", "STID": "BASE-01"},
+        "Station": {"STID": "BASE-01", "QTY": 1},
+        "MissionType": {"MTID": "BASIC-MISSION", "NOS": 1, "MNOS": 1, "DURN_hours": 2, "MSUCPT": 1, "TFOUT": 0.25, "TFRET": 0.25},
+        "OperationProfile": {"STIM_hours": [8], "IQTY": [1], "DTIM_hours": 0.3333333333333333},
+        "MissionPreparation": {"nonempty_business_rows": 0},
+        "ResultCollection": {"types": ["MISSION", "SYSTEM"], "RCINT_hours": 0.5, "RCEND_hours": 36},
+        "Item/PM/TaskResource/StockAllocation": {"nonempty_business_rows": 0}
+      },
+      "retained_result_checks": {"one_notification_hours": 7, "one_launch_hours": 8, "one_completion_hours": 10, "SystemResults_intervals": 72, "FTMO_integral_hours": 2, "NSYRY_integral_aircraft_hours": 33, "NPSTA": 0},
+      "screenshots_needed": ["connected session and SIMLOX About/version dialog", "opened SXI model identity and System/Deployment/Unit/Station table views", "Control, MissionType, OperationProfile and empty preparation/item/resource/stock views", "opened retained SXO result summary and SystemResults around 7-10 h"]
+    },
+    "A02": {
+      "sxi_path_windows": "C:\\Users\\user\\Documents\\Codex\\2026-09-27\\simlox-case-library-a01-a02-v1\\repo\\data\\local\\simlox-case-library\\v1\\A02\\a02-bound-final-20260927-03\\model.sxi",
+      "sxi_sha256": "ce9ee98d1ef08e5e02d8c0ac381cbcff55b21cf1c2cc71dfb67c9fe6b1875fa1",
+      "sxo_path_windows": "C:\\Users\\user\\Documents\\Codex\\2026-09-27\\simlox-case-library-a01-a02-v1\\repo\\data\\local\\simlox-case-library\\v1\\A02\\a02-bound-final-20260927-03\\model.sxo",
+      "sxo_sha256": "960c917c8846fab038d088493e6da35092dbcaf6ef3a3ad31fb1ae54ce7f546a",
+      "table_fields_to_confirm": {
+        "System/SystemDeployment/Unit/Station/MissionType/Control": "same values as A01; inspect rather than assume from GUI",
+        "OperationProfile": {"STIM_hours": [8, 20, 32], "IQTY": [1, 1, 1], "DTIM_hours_each": 0.3333333333333333},
+        "MissionPreparation/Item/PM/TaskResource/StockAllocation": {"nonempty_business_rows": 0}
+      },
+      "retained_result_checks": {"notifications_hours": [7, 19, 31], "launches_hours": [8, 20, 32], "completions_hours": [10, 22, 34], "SystemResults_intervals": 72, "FTMO_integral_hours": 6, "NSYRY_integral_aircraft_hours": 27, "NPSTA": 0},
+      "screenshots_needed": ["opened A02 SXI model identity and three OperationProfile rows", "same sole aircraft/deployment and no preparation/item/resource rows", "opened retained SXO result summary and SystemResults around each ready/allocated/flying transition"]
+    }
+  },
+  "evidence_recording": ["record screenshot file hashes and capture time only after GUI is actually observed", "record exact menu path discovered, program About/version, field values and any discrepancy", "do not infer GUI review from CLI artifacts or mark accepted without captured evidence"]
+}
