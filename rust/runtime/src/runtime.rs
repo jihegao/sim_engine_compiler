@@ -344,7 +344,21 @@ pub struct PreparedBatchPlan {
 }
 
 impl PreparedBatchPlan {
-    pub fn from_plan(plan: Arc<ExecutionPlan>, fingerprint: String) -> Result<Self> {
+    /// Prepare a public in-memory Plan and derive its fingerprint from the
+    /// serialized Plan. Use `from_slice` when the original JSON fingerprint
+    /// must be retained, since parsing can discard unknown JSON fields.
+    pub fn from_plan(plan: Arc<ExecutionPlan>) -> Result<Self> {
+        plan.validate()?;
+        let fingerprint = ExecutionPlan::fingerprint(&serde_json::to_value(plan.as_ref())?)?;
+        Ok(Self::from_validated_plan(plan, fingerprint))
+    }
+
+    // Existing Runtime and batch APIs accept a caller-supplied fingerprint.
+    // Preserve that contract while keeping it out of the new public handle API.
+    pub(crate) fn from_plan_with_fingerprint(
+        plan: Arc<ExecutionPlan>,
+        fingerprint: String,
+    ) -> Result<Self> {
         plan.validate()?;
         Ok(Self::from_validated_plan(plan, fingerprint))
     }
@@ -880,7 +894,10 @@ impl Runtime {
         seed: u64,
         observation_level: ObservationLevel,
     ) -> Result<Self> {
-        let prepared = Arc::new(PreparedBatchPlan::from_plan(plan, fingerprint)?);
+        let prepared = Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
+            plan,
+            fingerprint,
+        )?);
         Self::from_prepared_config(prepared, seed, observation_level, false)
     }
 
@@ -890,7 +907,10 @@ impl Runtime {
         seed: u64,
         observation_level: ObservationLevel,
     ) -> Result<Self> {
-        let prepared = Arc::new(PreparedBatchPlan::from_plan(plan, fingerprint)?);
+        let prepared = Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
+            plan,
+            fingerprint,
+        )?);
         Self::from_prepared_config(prepared, seed, observation_level, true)
     }
 

@@ -179,6 +179,13 @@ the fixed 8.6 ms preparation being a large part of an approximately 82 ms
 public call. The hot `run_ns` boundary excludes output serialization; these
 figures are separate from the cold CLI end-to-end ratios.
 
+The subsequent PR review tightened the new public `PreparedBatchPlan::from_plan`
+constructor so it derives the fingerprint from its in-memory Plan. The hot
+records above belong to the pinned candidate commit and do not measure this
+constructor's additional one-time fingerprint calculation. The measured
+`run_ns` excludes preparation. The original JSON loading, cold CLI, Python
+binding and legacy public-batch paths retain their fingerprint contracts.
+
 ## Python binding boundary
 
 Each checkout has its own Linux PyO3 extension; their hashes and the common

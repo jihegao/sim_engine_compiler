@@ -58,6 +58,10 @@ Rust 调用方可用 `PreparedBatchPlan::from_slice` 或 `from_plan` 建立已�
 自身的校验与公开批量入口的校验可能仍各发生一次，这是固定加载成本，
 不随样本数重复。
 
+`from_slice` 保留原始 Plan JSON 的既有指纹口径；`from_plan` 从内存中的
+`ExecutionPlan` 推导指纹，不接收调用方提供的指纹。若需保留原始 JSON
+中的额外字段对应的指纹，应使用 `from_slice`。
+
 准备成本的诊断与 AMD128 批量前后对照位于
 `benchmarks/batch_preparation/`。重复调用的热路径可运行
 `prepared_batch_benchmark`，分别计入已准备句柄与公开批量入口的运行成本。

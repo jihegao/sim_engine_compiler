@@ -151,7 +151,10 @@ pub fn run_batch_with_dispatch(
     if worker_threads == Some(0) {
         bail!("worker_threads must be greater than zero");
     }
-    let prepared = Arc::new(PreparedBatchPlan::from_plan(plan, fingerprint)?);
+    let prepared = Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
+        plan,
+        fingerprint,
+    )?);
     run_prepared_batch(
         prepared,
         seeds,
@@ -273,7 +276,7 @@ pub fn run_indexed_plan_batch_with_observation(
         .map(|group| -> Result<PreparedGroup> {
             Ok(PreparedGroup {
                 group_index: group.group_index,
-                prepared: Arc::new(PreparedBatchPlan::from_plan(
+                prepared: Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
                     group.plan,
                     group.plan_fingerprint,
                 )?),
@@ -373,6 +376,26 @@ mod prepared_batch_tests {
     );
 
     #[test]
+    fn public_prepared_handle_derives_identity_from_its_plan() {
+        let (plan, raw) = ExecutionPlan::from_slice(INDEXED_PLAN).unwrap();
+        let expected = ExecutionPlan::fingerprint(&serde_json::to_value(&plan).unwrap()).unwrap();
+        let prepared = PreparedBatchPlan::from_plan(Arc::new(plan)).unwrap();
+        assert_eq!(prepared.fingerprint(), expected);
+
+        // Byte loading keeps the existing fingerprint of the original JSON,
+        // including fields that the public ExecutionPlan does not represent.
+        let mut raw_with_extra = raw;
+        raw_with_extra["ignored_extension"] = true.into();
+        let bytes_with_extra = serde_json::to_vec(&raw_with_extra).unwrap();
+        let from_slice = PreparedBatchPlan::from_slice(&bytes_with_extra).unwrap();
+        assert_eq!(
+            from_slice.fingerprint(),
+            ExecutionPlan::fingerprint(&raw_with_extra).unwrap()
+        );
+        assert_ne!(from_slice.fingerprint(), prepared.fingerprint());
+    }
+
+    #[test]
     fn reused_prepared_plan_preserves_results_and_duplicate_seed_order() {
         let prepared = Arc::new(PreparedBatchPlan::from_slice(INDEXED_PLAN).unwrap());
         let seeds = [7, 7, 0, 1];
@@ -433,7 +456,7 @@ mod prepared_batch_tests {
         let corrupt_index = serde_json::to_vec(&raw).unwrap();
         assert!(PreparedBatchPlan::from_slice(&corrupt_index).is_err());
         let plan: ExecutionPlan = serde_json::from_slice(&corrupt_index).unwrap();
-        assert!(PreparedBatchPlan::from_plan(Arc::new(plan), "unused".into()).is_err());
+        assert!(PreparedBatchPlan::from_plan(Arc::new(plan)).is_err());
 
         let mut raw: serde_json::Value = serde_json::from_slice(INDEXED_PLAN).unwrap();
         raw["activities"][0]["resource_node_index"] = usize::MAX.into();
@@ -512,7 +535,7 @@ mod prepared_batch_tests {
             vec![(9, 2, 0), (9, 5, 7), (4, 8, 7)]
         );
         let expected = run_prepared_batch(
-            Arc::new(PreparedBatchPlan::from_plan(plan, fingerprint).unwrap()),
+            Arc::new(PreparedBatchPlan::from_plan(plan).unwrap()),
             &[0, 7, 7],
             Some(1),
             None,

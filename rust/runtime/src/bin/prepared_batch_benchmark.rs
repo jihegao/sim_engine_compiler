@@ -73,10 +73,7 @@ fn main() -> Result<()> {
     let fingerprint = ExecutionPlan::fingerprint(&raw)?;
     let plan = Arc::new(plan);
     let started = Instant::now();
-    let prepared = Arc::new(PreparedBatchPlan::from_plan(
-        plan.clone(),
-        fingerprint.clone(),
-    )?);
+    let prepared = Arc::new(PreparedBatchPlan::from_plan(plan.clone())?);
     let preparation_ns = elapsed_ns(started);
 
     let run = |mode| {
