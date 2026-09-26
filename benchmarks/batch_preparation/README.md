@@ -86,7 +86,8 @@ python3 benchmarks/batch_preparation/summarize.py \
 
 This retains every paired gain and RSS ratio. A row passes the predefined adoption gate only
 with at least six pairs, positive gains in every pair, median gain of at least
-5%, and no repeated peak RSS increase above 5%. Report all thread counts and
+5% and greater than either arm's relative median absolute deviation, and no
+repeated peak RSS increase above 5%. Report all thread counts and
 cases even if only the F35 O5 + Summary rows determine default-path adoption.
 
 Canonical-to-Plan compilation remains a separate measurement. Use

@@ -460,4 +460,71 @@ mod prepared_batch_tests {
             .is_err()
         );
     }
+
+    #[test]
+    fn indexed_groups_prepare_each_plan_and_keep_global_sample_indexes() {
+        let plan = Arc::new(ExecutionPlan::from_slice(INDEXED_PLAN).unwrap().0);
+        let fingerprint = PreparedBatchPlan::from_slice(INDEXED_PLAN)
+            .unwrap()
+            .fingerprint()
+            .to_owned();
+        let groups = vec![
+            PlanBatchGroup {
+                group_index: 4,
+                plan: plan.clone(),
+                plan_fingerprint: fingerprint.clone(),
+                samples: vec![IndexedSampleRequest {
+                    sample_index: 8,
+                    seed: 7,
+                }],
+            },
+            PlanBatchGroup {
+                group_index: 9,
+                plan: plan.clone(),
+                plan_fingerprint: fingerprint.clone(),
+                samples: vec![
+                    IndexedSampleRequest {
+                        sample_index: 2,
+                        seed: 0,
+                    },
+                    IndexedSampleRequest {
+                        sample_index: 5,
+                        seed: 7,
+                    },
+                ],
+            },
+        ];
+        let indexed = run_indexed_plan_batch_with_observation(
+            groups,
+            Some(3),
+            None,
+            ObservationLevel::Summary,
+        )
+        .unwrap();
+        assert!(indexed.failed_samples.is_empty());
+        assert_eq!(indexed.sample_count, 3);
+        assert_eq!(
+            indexed
+                .samples
+                .iter()
+                .map(|sample| (sample.group_index, sample.sample_index, sample.seed))
+                .collect::<Vec<_>>(),
+            vec![(9, 2, 0), (9, 5, 7), (4, 8, 7)]
+        );
+        let expected = run_prepared_batch(
+            Arc::new(PreparedBatchPlan::from_plan(plan, fingerprint).unwrap()),
+            &[0, 7, 7],
+            Some(1),
+            None,
+            ObservationLevel::Summary,
+            false,
+        )
+        .unwrap();
+        for (actual, reference) in indexed.samples.iter().zip(expected.samples.iter()) {
+            assert_eq!(
+                serde_json::to_value(&actual.result).unwrap(),
+                serde_json::to_value(&reference.result).unwrap()
+            );
+        }
+    }
 }

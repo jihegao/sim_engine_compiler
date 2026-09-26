@@ -74,6 +74,7 @@ def main() -> None:
             abs(value - baseline_median) for value in before) / baseline_median
         candidate_mad_percent = 100 * statistics.median(
             abs(value - candidate_median) for value in after) / candidate_median
+        noise_floor_percent = max(baseline_mad_percent, candidate_mad_percent)
         phases = {}
         if phase_report:
             phases = {
@@ -91,6 +92,7 @@ def main() -> None:
             "candidate_median_end_to_end_ns": candidate_median,
             "baseline_relative_mad_percent": baseline_mad_percent,
             "candidate_relative_mad_percent": candidate_mad_percent,
+            "noise_floor_percent": noise_floor_percent,
             "paired_gain_percent": [100 * gain for gain in gains],
             "median_paired_gain_percent": 100 * statistics.median(gains),
             "positive_pairs": sum(gain > 0 for gain in gains),
@@ -100,7 +102,9 @@ def main() -> None:
             "memory_regression_pairs": sum(ratio > 1.05 for ratio in memory_ratio),
             "adoption_gate": len(pairs) >= 6 and all(gain > 0 for gain in gains)
                              and statistics.median(gains) >= 0.05
-                             and statistics.median(memory_ratio) <= 1.05,
+                             and 100 * statistics.median(gains) > noise_floor_percent
+                             and statistics.median(memory_ratio) <= 1.05
+                             and sum(ratio > 1.05 for ratio in memory_ratio) < 2,
             "phases": phases,
         })
     args.output.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
