@@ -39,3 +39,5 @@ Plan 共 13 个活动；本候选的 10 个 SIMLOX `Tasks` 对应上述 1 个使
 原容量 40/60 下 `ResourceResults.NRW` 的非零区间行为 0。另以完全相同候选 JSON 只改两处 `ResourceAllocation.RQTY` 为 1/1，作为**独立容量探针**运行；该探针 JSON SHA-256 `8e4ea141cf4b1d2618e0d996a0291802582a0ec80c68a7a9af3dd60adbd6faad`，原生转换仍为 0 错误/警告/提示，`NRW` 非零区间行为 286。原始探针证据在 4700-3 的 `C:\Users\user\Documents\Codex\2026-09-26\simlox-f35-workflow-capacity1\`，本机镜像 `data/local/simlox-f35-steps/capacity1/`。这验证 `SubTaskResource` 在 SIMLOX 中产生资源等待；探针改变了负载执行，不用于 canonical 结果或效率比较。
 
 早期尝试保留在忽略目录：`STANDARD` 类别资源触发 SIMLOX #495 警告并被忽略；未换算 `FRT` 的版本无故障；缺少终点站 `SystemRepair` 的版本触发 #242 警告。v4 修复这些原生建模问题。仍需任务派遣、PM 复合触发、换件库存、随机流、资源排队顺序和输出分母的独立语义验收，之后才能对这个新模型测量并比较效率。
+
+后续只增加上级库存并建立站点关系的独立变体见[备件调运探针](f35-depot-stock-probe.md)。该变体已通过原生回导和运行，但 SIMLOX 汇总结果尚未证明备件实际调运。
