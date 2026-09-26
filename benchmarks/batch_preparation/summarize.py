@@ -15,6 +15,28 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     rows = [json.loads(line) for line in args.records.read_text().splitlines() if line]
+    identity_path = args.records.with_name("identity.json")
+    if identity_path.exists():
+        identity = json.loads(identity_path.read_text())
+        if all(key in identity for key in ("cases", "arms", "levels", "counts", "threads", "repeats")):
+            expected_rows = {
+                (case, arm, level, count, workers, repeat, variant)
+                for case in identity["cases"]
+                for arm in identity["arms"]
+                for level in identity["levels"]
+                for count in identity["counts"]
+                for workers in ([1] if count == 1 else identity["threads"])
+                if workers <= count
+                for repeat in range(identity["repeats"])
+                for variant in ("baseline", "candidate")
+            }
+            observed_rows = {
+                (row["case"], row["arm"], row["level"], row["samples"],
+                 row["threads"], row["repeat"], row["variant"])
+                for row in rows
+            }
+            if len(rows) != len(expected_rows) or observed_rows != expected_rows:
+                raise ValueError("benchmark matrix is incomplete or contains duplicate rows")
     semantic_hashes: dict[tuple[str, str, int], str] = {}
     exact_hashes: dict[tuple[str, str, int, int], str] = {}
     for row in rows:
