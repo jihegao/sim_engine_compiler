@@ -118,7 +118,7 @@ def main() -> None:
         raise AssertionError("cold A/B inputs or Plans differ")
     identity["load_before"] = list(os.getloadavg())
     write_json(args.output / "identity.json", identity)
-    expected_samples: dict[tuple[str, str, int, int], str] = {}
+    expected_samples: dict[tuple[str, str, int], str] = {}
     expected_result: dict[tuple[str, str, str, int, int], str] = {}
     with (args.output / "records.jsonl").open("w") as records:
         for count in counts:
@@ -141,7 +141,7 @@ def main() -> None:
                                     plan = plan_path(root, case, arm, shared_plan_dir)
                                     row = run_one(root, plan, args.output, case, arm, level,
                                                   count, workers, repeat, variant)
-                                    key = (case, level, count, workers)
+                                    key = (case, level, count)
                                     reference = expected_samples.setdefault(key, row["samples_sha256"])
                                     result_key = (case, arm, level, count, workers)
                                     result_reference = expected_result.setdefault(
