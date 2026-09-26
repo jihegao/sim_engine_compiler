@@ -107,6 +107,10 @@ def build(case_id: str) -> dict[str, dict]:
     acceptance = {
         "case_id": case_id, "version": contract["version"],
         "cli_model_valid": True, "cli_behavior_verified": True,
+        "binding_status": "pre_launch_invocation_and_post_launch_raw_closure_verified",
+        "strict_validator_sha256": bindings[0]["source_hashes"]["validator"],
+        "run_ids": [first_id, replay_id],
+        "invocation_ids": [item["invocation_id"] for item in bindings],
         "gui_calibration": "pending", "gui_review": "pending", "reusable_publication": "provisional_not_accepted",
         "parent_gate": "A01 CLI behavior verified; A01 GUI publication pending" if case_id == "A02" else None,
         "independent_replay": "selected event signature and expected outputs match exactly",

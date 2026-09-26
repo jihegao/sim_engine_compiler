@@ -16,6 +16,24 @@ Large raw evidence lives on 4700-3 under `repo/data/local/simlox-case-library/v1
 
 The runner refuses existing run directories and any active SIMLOX process. It checks the executable and input SHA, verifies import/export nonempty business rows, conversion errors, SXI/SXO size, parsed report and ENLOG before acceptance. On this host native execution has succeeded from the coordinator's SSH PowerShell launch context; direct Codex child processes had returned exit 0 without artifacts. The task-local runner retains the previously successful native working directory. Do not invoke parallel native batches or close a user's GUI.
 
+Publication review found false positives in the first validator. The corrected
+`tools/run_native_bound.ps1` writes `invocation.json` **before** the first native
+process, including the case/run/input, schema, contract, parameters, generator,
+validator, runner, binding module, executable and working-directory hashes or
+identities. After import/export/calc/report it writes `closure.json` with exact
+raw-artifact hashes and the invocation SHA. `tools/validate_native.py` requires
+both bindings, verifies every artifact and step, then checks full aircraft and
+mission-instance event identities and each 30-minute system-state interval.
+Old runs can be reanalysed read-only with `--legacy-read-only`; they cannot gain
+new acceptance attribution. The corrected collection-window analysis is
+`collection-window-review-v2.json`, derived from unchanged old raw evidence.
+
 ## Publication gate
 
-A01 and A02 reached `cli_behavior_verified` in separate final and fresh replay runs. They remain **provisional** until GUI calibration and GUI review are evidenced. A02 depends on A01 CLI behavior and may be a provisional CLI derivation; it is not described as a published child of a GUI-accepted A01. Future A03–F04 entries stay planned.
+The earlier A01/A02 final and replay runs passed historical CLI checks but lack
+pre-run binding. Four new normal/replay runs have independent invocation IDs,
+sealed raw files and strict read-only validation passes. They restore CLI
+behavior acceptance for these two teaching cases. GUI calibration and review
+remain pending private handoff. A02 is a provisional CLI child of A01; it is
+not a published child of a GUI-accepted A01.
+Future A03–F04 entries stay planned.

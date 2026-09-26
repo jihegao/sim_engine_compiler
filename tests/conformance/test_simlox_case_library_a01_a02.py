@@ -94,6 +94,11 @@ class CaseLibraryTests(unittest.TestCase):
                 integrals = timeline["integrals_aircraft_hours"]
                 self.assertEqual((integrals["NSYRY"], integrals["NSYMA"],
                                   integrals["NSYMR"], integrals["FTMO"]), expected)
+                evidence = pairing["native_evidence"][case_id]
+                run = REPO / "data/local/simlox-case-library/v1" / case_id / evidence["run_id"]
+                if run.is_dir():
+                    for name, digest in evidence["hashes_sha256"].items():
+                        self.assertEqual(hashlib.sha256((run / name).read_bytes()).hexdigest(), digest)
 
     def test_generated_bytes_reproduce_frozen_native_inputs(self):
         for case_id, directory in generator.DIRS.items():
@@ -353,6 +358,32 @@ class CaseLibraryTests(unittest.TestCase):
         with mock.patch.dict(records.RUNS, {"A01": (records.RUNS["A01"][0], source.name, source.name)}):
             with self.assertRaisesRegex(ValueError, "missing pre-run invocation"):
                 records.build("A01")
+
+    def test_record_builder_recomputes_validation_before_attribution_if_available(self):
+        run_id = records.RUNS["A01"][1]
+        run = REPO / "data/local/simlox-case-library/v1/A01" / run_id
+        if not (run / "closure.json").exists():
+            self.skipTest("fresh bound native run is pending coordinator execution")
+        original_validate = records.validate
+        def changed_fresh_result(*args, **kwargs):
+            result = original_validate(*args, **kwargs)
+            result["behavior"]["passed"] = False
+            return result
+        with mock.patch.object(records, "validate", side_effect=changed_fresh_result):
+            with self.assertRaisesRegex(ValueError, "cached validation disagrees with fresh validator"):
+                records.build("A01")
+
+    def test_all_four_fresh_bound_runs_and_replay_record_if_available(self):
+        if not all((REPO / "data/local/simlox-case-library/v1" / case / run / "closure.json").exists()
+                   for case, (_, *runs) in records.RUNS.items() for run in runs):
+            self.skipTest("four coordinator sealed runs are local to 4700-3")
+        for case_id in ("A01", "A02"):
+            built = records.build(case_id)
+            self.assertEqual(built["acceptance.json"]["binding_status"],
+                             "pre_launch_invocation_and_post_launch_raw_closure_verified")
+            self.assertEqual(built["acceptance.json"]["gui_review"], "pending")
+            self.assertEqual(len(set(built["acceptance.json"]["invocation_ids"])), 2)
+            self.assertTrue(built["results-summary.json"]["event_replay_exact"])
 
     def test_binding_rejects_tampered_pre_closure_and_mixed_raw(self):
         with tempfile.TemporaryDirectory() as temporary:

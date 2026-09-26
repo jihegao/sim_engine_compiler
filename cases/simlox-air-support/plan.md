@@ -12,6 +12,18 @@ Stop conditions: any conversion error, 4-byte/absent SXO, missing report/log, un
 
 ## Execution status (2026-09-27)
 
+Publication review follow-up: the four prior normal/replay runs are retained as
+**legacy unsealed** evidence. A corrected validator now checks full mission and
+aircraft instance identities, each 30-minute FTMO/NSYMO/NSYMA/NSYMR/NSYRY
+interval and explicit zero unrelated mechanism counters. A new runner writes an
+invocation before launch and seals raw hashes afterward. The coordinator ran
+four fresh immutable normal/replay runs serially; all four passed fresh strict
+validation, and manifest/acceptance/evidence records were rebuilt from those
+results. Each run has a distinct invocation ID and raw-artifact closure.
+The five existing collection-window runs were reanalysed read-only in
+`collection-window-review-v2.json`: at 7.5 h the mission is notified and
+pending, not in flight. Original validation and raw exports were preserved.
+
 - Contracts, 26-entry catalog, A01/A02 generators, checked native inputs and parent diff: **implemented**, commit `891ac7c`.
 - Native runner and pure validators: **implemented**. A01/A02 final and fresh independent replay: **CLI behavior verified** in four immutable runs. Initial zero-duration preparation-row candidates failed the no-preparation contract and were preserved.
 - Observation probes: SIMPE-shortening matrix **rejected** by converter `#204` with 4-byte SXO in all five early cells; 10.5/12 h positive controls **valid**. RCEND-only matrix **verified** native report clipping in five cells. This does not establish simulation-stop semantics.
