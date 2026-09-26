@@ -3,8 +3,9 @@ use std::{fs, path::PathBuf, str::FromStr, time::Instant};
 use anyhow::Result;
 use clap::Parser;
 use sim_engine_runtime::{
-    AbmPlanEnvelope, AbmSampleRequest, ExecutionPlan, ObservationLevel, Runtime, decode_plan_cache,
-    is_plan_cache, run_abm_batch, run_abm_plan, run_batch_with_dispatch,
+    AbmPlanEnvelope, AbmRandomTape, AbmSampleRequest, ExecutionPlan, ObservationLevel, Runtime,
+    decode_plan_cache, is_plan_cache, run_abm_batch, run_abm_plan_with_random_tape,
+    run_batch_with_dispatch,
 };
 
 #[derive(Parser)]
@@ -27,6 +28,8 @@ struct Args {
     profile_output: Option<PathBuf>,
     #[arg(long)]
     dependency_dispatch: bool,
+    #[arg(long, value_name = "PATH", conflicts_with = "seeds")]
+    random_tape: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -39,6 +42,9 @@ fn main() -> Result<()> {
             == sim_engine_runtime::ABM_PLAN_VERSION
     {
         return run_abm_cli(args, &bytes);
+    }
+    if args.random_tape.is_some() {
+        anyhow::bail!("random tape is only supported for ABM Plans");
     }
     let (plan, fingerprint) = if is_plan_cache(&bytes) {
         let cached = decode_plan_cache(&bytes, None, None, None)?;
@@ -146,6 +152,7 @@ fn run_abm_cli(args: Args, bytes: &[u8]) -> Result<()> {
                 Ok(AbmSampleRequest {
                     sample_index: i64::try_from(sample_index)?,
                     seed: item.trim().parse::<i64>()?,
+                    random_tape: None,
                 })
             })
             .collect::<Result<Vec<_>>>()?;
@@ -161,7 +168,17 @@ fn run_abm_cli(args: Args, bytes: &[u8]) -> Result<()> {
         );
     } else {
         let seed = args.seed.as_deref().unwrap_or("0").parse::<i64>()?;
-        let result = run_abm_plan(&plan, seed)?;
+        let random_tape = args
+            .random_tape
+            .as_ref()
+            .map(fs::read)
+            .transpose()?
+            .map(|bytes| {
+                serde_json::from_slice::<AbmRandomTape>(&bytes)
+                    .map_err(|error| anyhow::anyhow!("invalid_random_tape: {error}"))
+            })
+            .transpose()?;
+        let result = run_abm_plan_with_random_tape(&plan, seed, random_tape)?;
         fs::write(&args.output, serde_json::to_vec_pretty(&result)?)?;
         println!(
             "{}",

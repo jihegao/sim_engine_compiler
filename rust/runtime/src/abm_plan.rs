@@ -15,6 +15,7 @@ use crate::plan::ExecutionPlan;
 
 pub const ABM_PLAN_VERSION: &str = "abm-tick-plan/v1";
 pub const ABM_PROFILE: &str = "abm-tick-v1";
+pub const ABM_SOURCE_SEMANTICS_VERSION: &str = "abm-source-semantics/v1";
 pub const MAX_GRID_CELLS: i64 = 1_000_000;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -36,6 +37,22 @@ pub struct AbmPlan {
     pub stop_conditions: Vec<StopCondition>,
     pub metrics: Vec<Metric>,
     pub max_ticks: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_semantics: Option<SourceSemantics>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SourceSemantics {
+    pub schema_version: String,
+    pub initialization: Vec<Phase>,
+    pub stop_timing: StopTiming,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StopTiming {
+    BeforeTick,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -91,6 +108,8 @@ pub struct Phase {
     pub traversal: Traversal,
     pub random_address: Option<String>,
     pub operations: Vec<Operation>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r#where: Option<Value>,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -144,6 +163,8 @@ pub enum Operation {
         neighborhood: Option<Neighborhood>,
         address: Option<String>,
         heading_step: Option<HeadingStep>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        local_rejection: Option<LocalRejection>,
     },
     Birth {
         guard: Option<Value>,
@@ -159,6 +180,23 @@ pub enum Operation {
         agent_kind: Option<String>,
         address: Option<String>,
     },
+    Sprout {
+        guard: Option<Value>,
+        kind: String,
+        count: Value,
+        vars: BTreeMap<String, Value>,
+        address: String,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct LocalRejection {
+    pub turn_address: String,
+    pub distance_address: String,
+    pub turn_bounds: [Value; 2],
+    pub distance_bounds: [Value; 2],
+    pub attempt_budget: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -213,6 +251,7 @@ pub enum MoveMode {
     RandomEmpty,
     RandomGlobalEmpty,
     HeadingStep,
+    LocalRejection,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -382,41 +421,25 @@ impl AbmPlan {
         }
 
         let mut phase_ids = BTreeSet::new();
+        if let Some(source) = &self.source_semantics {
+            if source.schema_version != ABM_SOURCE_SEMANTICS_VERSION {
+                bail!(
+                    "unsupported ABM source semantics version {:?}",
+                    source.schema_version
+                );
+            }
+            for phase in &source.initialization {
+                validate_phase(phase, true, true, &self.topology, &mut phase_ids)?;
+            }
+        }
         for phase in &self.phases {
-            identifier(&phase.id, "payload.phases[].id")?;
-            if !phase_ids.insert(&phase.id) {
-                bail!("duplicate ABM phase ID {:?}", phase.id);
-            }
-            if phase.target == Target::Patches && phase.agent_kind.is_some() {
-                bail!("ABM patch phase cannot filter agent kind");
-            }
-            if let Some(kind) = &phase.agent_kind {
-                identifier(kind, "payload.phases[].agent_kind")?;
-            }
-            match phase.traversal {
-                Traversal::Stable if phase.random_address.is_some() => {
-                    bail!("stable ABM traversal cannot declare a random address")
-                }
-                Traversal::Random => identifier(
-                    phase.random_address.as_deref().unwrap_or_default(),
-                    "payload.phases[].random_address",
-                )?,
-                Traversal::Stable => {}
-            }
-            if phase.operations.is_empty() {
-                bail!("ABM phase operations must not be empty");
-            }
-            for operation in &phase.operations {
-                operation.validate()?;
-                if phase.target == Target::Patches
-                    && matches!(
-                        operation,
-                        Operation::Move { .. } | Operation::Birth { .. } | Operation::Death { .. }
-                    )
-                {
-                    bail!("ABM patch phases cannot contain move, birth, or death operations");
-                }
-            }
+            validate_phase(
+                phase,
+                false,
+                self.source_semantics.is_some(),
+                &self.topology,
+                &mut phase_ids,
+            )?;
         }
 
         let mut stop_ids = BTreeSet::new();
@@ -426,6 +449,9 @@ impl AbmPlan {
                 bail!("duplicate ABM stop condition ID {:?}", condition.id);
             }
             validate_expression(&condition.when)?;
+            if self.source_semantics.is_some() && expression_contains_random(&condition.when) {
+                bail!("ABM source stop condition must be a pure expression");
+            }
         }
         let mut metric_ids = BTreeSet::new();
         for metric in &self.metrics {
@@ -461,6 +487,106 @@ impl AbmPlan {
     }
 }
 
+fn validate_phase<'a>(
+    phase: &'a Phase,
+    initialization: bool,
+    source_enabled: bool,
+    topology: &Topology,
+    phase_ids: &mut BTreeSet<&'a String>,
+) -> Result<()> {
+    identifier(&phase.id, "payload.phases[].id")?;
+    if !phase_ids.insert(&phase.id) {
+        bail!("duplicate ABM phase ID {:?}", phase.id);
+    }
+    if initialization
+        && (phase.read_view != ReadView::Current || phase.commit_mode != CommitMode::Immediate)
+    {
+        bail!("ABM initialization phases require current read view and immediate commit");
+    }
+    if phase.target == Target::Patches && phase.agent_kind.is_some() {
+        bail!("ABM patch phase cannot filter agent kind");
+    }
+    if let Some(kind) = &phase.agent_kind {
+        identifier(kind, "payload.phases[].agent_kind")?;
+    }
+    if let Some(selector) = &phase.r#where {
+        if !source_enabled {
+            bail!("ABM phase selector requires versioned source semantics");
+        }
+        if selector.is_null() {
+            bail!("ABM phase selector must be omitted rather than null");
+        }
+        validate_expression(selector)?;
+        if expression_contains_random(selector) {
+            bail!("ABM phase selector must be a pure expression");
+        }
+    }
+    match phase.traversal {
+        Traversal::Stable if phase.random_address.is_some() => {
+            bail!("stable ABM traversal cannot declare a random address")
+        }
+        Traversal::Random => identifier(
+            phase.random_address.as_deref().unwrap_or_default(),
+            "payload.phases[].random_address",
+        )?,
+        Traversal::Stable => {}
+    }
+    if phase.operations.is_empty() {
+        bail!("ABM phase operations must not be empty");
+    }
+    for operation in &phase.operations {
+        operation.validate()?;
+        if initialization
+            && !matches!(
+                operation,
+                Operation::Set { .. } | Operation::Increment { .. } | Operation::Sprout { .. }
+            )
+        {
+            bail!("ABM initialization phases only support set, increment, and sprout");
+        }
+        if matches!(operation, Operation::Sprout { .. })
+            && (!initialization || phase.target != Target::Patches)
+        {
+            bail!("ABM sprout is only supported in patch-target initialization phases");
+        }
+        if phase.target == Target::Patches
+            && matches!(
+                operation,
+                Operation::Move { .. } | Operation::Birth { .. } | Operation::Death { .. }
+            )
+        {
+            bail!("ABM patch phases cannot contain move, birth, or death operations");
+        }
+        if let Operation::Move {
+            mode: MoveMode::LocalRejection,
+            ..
+        } = operation
+            && (!source_enabled
+                || initialization
+                || topology.kind != TopologyKind::Torus
+                || phase.target != Target::Agents
+                || phase.read_view != ReadView::Current
+                || phase.commit_mode != CommitMode::Immediate)
+        {
+            bail!(
+                "ABM local rejection movement requires a torus agent phase with current immediate semantics"
+            );
+        }
+    }
+    Ok(())
+}
+
+fn expression_contains_random(expression: &Value) -> bool {
+    match expression {
+        Value::Array(items) => items.iter().any(expression_contains_random),
+        Value::Object(items) => {
+            items.get("op").and_then(Value::as_str) == Some("random")
+                || items.values().any(expression_contains_random)
+        }
+        _ => false,
+    }
+}
+
 impl Operation {
     fn validate(&self) -> Result<()> {
         match self {
@@ -488,6 +614,7 @@ impl Operation {
                 neighborhood,
                 address,
                 heading_step,
+                local_rejection,
             } => {
                 validate_optional_expression(guard)?;
                 match mode {
@@ -497,6 +624,7 @@ impl Operation {
                             || neighborhood.is_some()
                             || address.is_some()
                             || heading_step.is_some()
+                            || local_rejection.is_some()
                         {
                             bail!("position/offset movement requires x and y only");
                         }
@@ -509,6 +637,7 @@ impl Operation {
                             || neighborhood.is_none()
                             || address.as_deref().unwrap_or_default().is_empty()
                             || heading_step.is_some()
+                            || local_rejection.is_some()
                         {
                             bail!("random movement requires neighborhood and address only");
                         }
@@ -518,13 +647,18 @@ impl Operation {
                             || y.is_some()
                             || neighborhood.is_some()
                             || heading_step.is_some()
+                            || local_rejection.is_some()
                             || address.as_deref().unwrap_or_default().is_empty()
                         {
                             bail!("global empty movement requires a random address only");
                         }
                     }
                     MoveMode::HeadingStep => {
-                        if x.is_some() || y.is_some() || neighborhood.is_some() || address.is_some()
+                        if x.is_some()
+                            || y.is_some()
+                            || neighborhood.is_some()
+                            || address.is_some()
+                            || local_rejection.is_some()
                         {
                             bail!("heading movement only accepts heading_step");
                         }
@@ -536,6 +670,39 @@ impl Operation {
                         validate_expression(&step.distance)?;
                         identifier(&step.right_address, "operation.heading_step.right_address")?;
                         identifier(&step.left_address, "operation.heading_step.left_address")?;
+                    }
+                    MoveMode::LocalRejection => {
+                        if x.is_some()
+                            || y.is_some()
+                            || neighborhood.is_some()
+                            || address.is_some()
+                            || heading_step.is_some()
+                        {
+                            bail!("local rejection movement only accepts local_rejection");
+                        }
+                        let local = local_rejection
+                            .as_ref()
+                            .context("local rejection movement requires local_rejection")?;
+                        identifier(
+                            &local.turn_address,
+                            "operation.local_rejection.turn_address",
+                        )?;
+                        identifier(
+                            &local.distance_address,
+                            "operation.local_rejection.distance_address",
+                        )?;
+                        validate_bounds(&local.turn_bounds, "turn_bounds")?;
+                        validate_bounds(&local.distance_bounds, "distance_bounds")?;
+                        if local.turn_bounds != [json!(0), json!(360)]
+                            || local.distance_bounds != [json!(0), json!(10)]
+                        {
+                            bail!(
+                                "local rejection movement requires source bounds [0,360] and [0,10]"
+                            );
+                        }
+                        if local.attempt_budget == 0 || local.attempt_budget > i64::MAX as u64 {
+                            bail!("local rejection attempt_budget must be in signed i64 range");
+                        }
                     }
                 }
             }
@@ -602,9 +769,34 @@ impl Operation {
                     DeathMode::Self_ => {}
                 }
             }
+            Self::Sprout {
+                guard,
+                kind,
+                count,
+                vars,
+                address,
+            } => {
+                validate_optional_expression(guard)?;
+                identifier(kind, "operation.kind")?;
+                identifier(address, "operation.address")?;
+                validate_expression(count)?;
+                for (field, expression) in vars {
+                    identifier(field, "operation.vars field")?;
+                    validate_expression(expression)?;
+                }
+            }
         }
         Ok(())
     }
+}
+
+fn validate_bounds(bounds: &[Value; 2], name: &str) -> Result<()> {
+    let low = finite_number(&bounds[0], name)?;
+    let high = finite_number(&bounds[1], name)?;
+    if low >= high {
+        bail!("{name} requires increasing finite bounds");
+    }
+    Ok(())
 }
 
 fn validate_optional_expression(expression: &Option<Value>) -> Result<()> {

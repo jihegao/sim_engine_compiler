@@ -6,20 +6,21 @@ without importing model authoring code.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import copy
 import hashlib
 import json
 import math
+from dataclasses import dataclass, field
 from typing import Any
 
 from sim_engine_compiler.diagnostics import CompilationError
-
 
 ABM_BUSINESS_VERSION = "abm-business-ir/v1"
 ABM_CORE_VERSION = "abm-core-ir/v1"
 ABM_PLAN_VERSION = "abm-tick-plan/v1"
 ABM_PROFILE = "abm-tick-v1"
+ABM_SOURCE_SEMANTICS_VERSION = "abm-source-semantics/v1"
+ABM_RANDOM_TAPE_VERSION = "abm-random-tape/v1"
 
 TOPOLOGIES = frozenset({"finite", "torus"})
 TARGETS = frozenset({"patches", "agents"})
@@ -150,8 +151,17 @@ def validate_expression(value: Any, path: str) -> None:
                 _reject(f"{path}.args", "integer requires representable increasing bounds", "unsupported_random")
 
 
-def validate_operation(value: Any, path: str) -> None:
-    if not isinstance(value, dict) or value.get("op") not in OPERATION_NAMES:
+def _contains_random(value: Any) -> bool:
+    if isinstance(value, dict):
+        return value.get("op") == "random" or any(_contains_random(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_random(item) for item in value)
+    return False
+
+
+def validate_operation(value: Any, path: str, *, source_extended: bool = False) -> None:
+    allowed_operations = OPERATION_NAMES | ({"sprout"} if source_extended else set())
+    if not isinstance(value, dict) or value.get("op") not in allowed_operations:
         _reject(path, "unknown ABM operation", "unsupported_operation")
     op = value["op"]
     common = {"op", "guard"}
@@ -162,8 +172,14 @@ def validate_operation(value: Any, path: str) -> None:
         _identifier(value["field"], f"{path}.field")
         validate_expression(value["value"], f"{path}.value")
     elif op == "move":
-        _object(value, common | {"mode", "x", "y", "neighborhood", "address", "heading_step"}, path)
-        if value["mode"] not in {"position", "offset", "random_neighbor", "random_empty", "random_global_empty", "heading_step"}:
+        legacy_fields = common | {"mode", "x", "y", "neighborhood", "address", "heading_step"}
+        if value.get("mode") == "local_rejection":
+            if not source_extended:
+                _reject(path, "local rejection requires source semantics", "unsupported_operation")
+            _object(value, legacy_fields | {"local_rejection"}, path)
+        else:
+            _object(value, legacy_fields, path)
+        if value["mode"] not in {"position", "offset", "random_neighbor", "random_empty", "random_global_empty", "heading_step", "local_rejection"}:
             _reject(f"{path}.mode", "unsupported movement mode", "unsupported_operation")
         if value["mode"] in {"position", "offset"}:
             if (value["x"] is None or value["y"] is None or value["neighborhood"] is not None
@@ -180,7 +196,7 @@ def validate_operation(value: Any, path: str) -> None:
             if any(value[key] is not None for key in ("x", "y", "neighborhood", "heading_step")):
                 _reject(path, "global empty movement only accepts a random address")
             _identifier(value["address"], f"{path}.address")
-        else:
+        elif value["mode"] == "heading_step":
             if any(value[key] is not None for key in ("x", "y", "neighborhood", "address")):
                 _reject(path, "heading movement only accepts heading_step")
             step = _object(value["heading_step"], {"right_max", "left_max", "distance", "right_address", "left_address"}, f"{path}.heading_step")
@@ -188,6 +204,38 @@ def validate_operation(value: Any, path: str) -> None:
                 validate_expression(step[field], f"{path}.heading_step.{field}")
             _identifier(step["right_address"], f"{path}.heading_step.right_address")
             _identifier(step["left_address"], f"{path}.heading_step.left_address")
+        else:
+            if any(value[key] is not None for key in ("x", "y", "neighborhood", "address", "heading_step")):
+                _reject(path, "local rejection movement only accepts local_rejection")
+            movement = _object(
+                value["local_rejection"],
+                {"turn_address", "distance_address", "turn_bounds", "distance_bounds", "attempt_budget"},
+                f"{path}.local_rejection",
+            )
+            _identifier(movement["turn_address"], f"{path}.local_rejection.turn_address")
+            _identifier(movement["distance_address"], f"{path}.local_rejection.distance_address")
+            if (not isinstance(movement["turn_bounds"], list)
+                    or len(movement["turn_bounds"]) != 2
+                    or any(type(item) is not int for item in movement["turn_bounds"])
+                    or movement["turn_bounds"] != [0, 360]
+                    or not isinstance(movement["distance_bounds"], list)
+                    or len(movement["distance_bounds"]) != 2
+                    or any(type(item) is not int for item in movement["distance_bounds"])
+                    or movement["distance_bounds"] != [0, 10]):
+                _reject(path, "local rejection requires turn [0,360) and distance [0,10) bounds")
+            if (type(movement["attempt_budget"]) is not int
+                    or not 0 < movement["attempt_budget"] <= I64_MAX):
+                _reject(f"{path}.local_rejection.attempt_budget", "positive integer attempt budget required")
+    elif op == "sprout":
+        _object(value, common | {"kind", "count", "vars", "address"}, path)
+        _identifier(value["kind"], f"{path}.kind")
+        validate_expression(value["count"], f"{path}.count")
+        _identifier(value["address"], f"{path}.address")
+        if not isinstance(value["vars"], dict):
+            _reject(f"{path}.vars", "expected variable expression map")
+        for field, expression in value["vars"].items():
+            _identifier(field, f"{path}.vars")
+            validate_expression(expression, f"{path}.vars.{field}")
     elif op == "birth":
         _object(value, common | {"kind", "count", "vars", "address", "child_move"}, path)
         _identifier(value["kind"], f"{path}.kind")
@@ -228,7 +276,22 @@ def validate_operation(value: Any, path: str) -> None:
 
 def validate_payload(payload: Any, *, layer: str) -> None:
     fields = {"model_id", "profile", "topology", "initial_state", "phases", "stop_conditions", "metrics", "max_ticks"}
-    _object(payload, fields, layer)
+    if not isinstance(payload, dict) or set(payload) not in (fields, fields | {"source_semantics"}):
+        _reject(layer, f"expected fields {sorted(fields)} or source-semantics extension")
+    has_source_semantics = "source_semantics" in payload
+    source_semantics = payload.get("source_semantics")
+    if has_source_semantics:
+        _object(
+            source_semantics,
+            {"schema_version", "initialization", "stop_timing"},
+            f"{layer}.source_semantics",
+        )
+        if source_semantics["schema_version"] != ABM_SOURCE_SEMANTICS_VERSION:
+            _reject(f"{layer}.source_semantics.schema_version", "unsupported source semantics version", "unsupported_profile")
+        if source_semantics["stop_timing"] != "before_tick":
+            _reject(f"{layer}.source_semantics.stop_timing", "unsupported source stop timing", "unsupported_operation")
+        if not isinstance(source_semantics["initialization"], list):
+            _reject(f"{layer}.source_semantics.initialization", "initialization phases must be a list")
     _identifier(payload["model_id"], f"{layer}.model_id")
     if payload["profile"] != ABM_PROFILE:
         _reject(f"{layer}.profile", "unsupported ABM profile", "unsupported_profile")
@@ -294,9 +357,12 @@ def validate_payload(payload: Any, *, layer: str) -> None:
     if not isinstance(payload["phases"], list) or not isinstance(payload["stop_conditions"], list) or not isinstance(payload["metrics"], list):
         _reject(layer, "phases, stop_conditions, and metrics must be lists")
     phase_ids: set[str] = set()
-    for index, phase in enumerate(payload["phases"]):
-        path = f"{layer}.phases[{index}]"
-        _object(phase, {"id", "target", "agent_kind", "read_view", "commit_mode", "traversal", "random_address", "operations"}, path)
+
+    def validate_phase(phase: Any, path: str, *, initialization: bool) -> None:
+        base_fields = {"id", "target", "agent_kind", "read_view", "commit_mode", "traversal", "random_address", "operations"}
+        allowed_fields = (base_fields, base_fields | {"where"}) if has_source_semantics else (base_fields,)
+        if not isinstance(phase, dict) or set(phase) not in allowed_fields:
+            _reject(path, f"expected phase fields {sorted(base_fields)} with optional source selector")
         identity = _identifier(phase["id"], f"{path}.id")
         if identity in phase_ids:
             _reject(path, "duplicate phase ID")
@@ -310,13 +376,37 @@ def validate_payload(payload: Any, *, layer: str) -> None:
             _identifier(phase["random_address"], f"{path}.random_address")
         elif phase["random_address"] is not None:
             _reject(f"{path}.random_address", "stable traversal has no random address")
+        if "where" in phase:
+            if phase["where"] is None:
+                _reject(f"{path}.where", "phase selector must be a non-null boolean expression")
+            validate_expression(phase["where"], f"{path}.where")
+            if _contains_random(phase["where"]):
+                _reject(f"{path}.where", "phase selector must not draw random values", "unsupported_random")
+        if initialization and (phase["read_view"] != "current" or phase["commit_mode"] != "immediate"):
+            _reject(path, "initialization phases require current reads and immediate commits")
         if not isinstance(phase["operations"], list) or not phase["operations"]:
             _reject(f"{path}.operations", "phase operations required")
         for op_index, operation in enumerate(phase["operations"]):
-            validate_operation(operation, f"{path}.operations[{op_index}]")
+            operation_path = f"{path}.operations[{op_index}]"
+            validate_operation(operation, operation_path, source_extended=has_source_semantics)
             if phase["target"] == "patches" and operation["op"] in {"move", "birth", "death"}:
                 _reject(f"{path}.operations[{op_index}]", "patch phases cannot move, birth, or die")
+            if operation["op"] == "sprout" and (not initialization or phase["target"] != "patches"):
+                _reject(operation_path, "sprout is only supported in patch initialization phases")
+            if initialization and operation["op"] not in {"set", "increment", "sprout"}:
+                _reject(operation_path, "operation is unsupported during initialization", "unsupported_operation")
+            if (operation["op"] == "move" and operation["mode"] == "local_rejection"
+                    and (initialization or phase["target"] != "agents"
+                         or phase["read_view"] != "current" or phase["commit_mode"] != "immediate"
+                         or payload["topology"]["kind"] != "torus")):
+                _reject(operation_path, "local rejection requires an ordinary immediate/current agent phase on a torus")
         phase_ids.add(identity)
+
+    if has_source_semantics:
+        for index, phase in enumerate(source_semantics["initialization"]):
+            validate_phase(phase, f"{layer}.source_semantics.initialization[{index}]", initialization=True)
+    for index, phase in enumerate(payload["phases"]):
+        validate_phase(phase, f"{layer}.phases[{index}]", initialization=False)
 
     stop_ids: set[str] = set()
     for index, condition in enumerate(payload["stop_conditions"]):
@@ -326,6 +416,12 @@ def validate_payload(payload: Any, *, layer: str) -> None:
         if identity in stop_ids:
             _reject(path, "duplicate stop condition ID")
         validate_expression(condition["when"], f"{path}.when")
+        if has_source_semantics and _contains_random(condition["when"]):
+            _reject(
+                f"{path}.when",
+                "source stop conditions must not draw random values",
+                "unsupported_random",
+            )
         stop_ids.add(identity)
 
     metric_ids: set[str] = set()

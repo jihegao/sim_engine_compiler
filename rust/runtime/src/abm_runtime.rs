@@ -10,21 +10,21 @@ use std::{
 
 use anyhow::{Context, Result, bail};
 use rayon::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value, json};
 use sha2::{Digest, Sha256};
 
 use crate::abm_plan::{
     ABM_PROFILE, AbmPlan, AbmPlanEnvelope, AbmState, Agent, ChildMoveMode, CommitMode, DeathMode,
-    MetricSource, MoveMode, Neighborhood, Operation, Patch, ReadView, Reducer, Target,
-    TopologyKind, Traversal, WriteTarget,
+    LocalRejection, MetricSource, MoveMode, Neighborhood, Operation, Patch, ReadView, Reducer,
+    StopTiming, Target, TopologyKind, Traversal, WriteTarget,
 };
 use crate::plan::ExecutionPlan;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct AbmRandomRequest {
     pub sequence: u64,
-    pub tick: u64,
+    pub tick: i64,
     pub phase: String,
     pub address: String,
     pub entity_id: String,
@@ -36,7 +36,7 @@ pub struct AbmRandomRequest {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct AbmEvent {
     pub sequence: u64,
-    pub tick: u64,
+    pub tick: i64,
     pub phase: String,
     pub kind: String,
     pub entity: String,
@@ -61,10 +61,33 @@ pub struct AbmBatchSampleResult {
     pub result: AbmRunResult,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct AbmSampleRequest {
     pub sample_index: i64,
     pub seed: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub random_tape: Option<AbmRandomTape>,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AbmRandomTape {
+    pub schema_version: String,
+    pub requests: Vec<AbmRandomTapeEntry>,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AbmRandomTapeEntry {
+    pub tick: i64,
+    pub phase: String,
+    pub address: String,
+    pub entity_id: String,
+    pub occurrence: i64,
+    pub distribution: String,
+    pub args: Vec<Value>,
+    pub value: Value,
 }
 
 #[derive(Clone, Debug)]
@@ -74,7 +97,7 @@ struct RuntimeAgent {
     x: f64,
     y: f64,
     vars: BTreeMap<String, Value>,
-    eligible_tick: u64,
+    eligible_tick: i64,
 }
 
 #[derive(Clone, Debug)]
@@ -138,8 +161,10 @@ struct Runtime<'a> {
     state: RuntimeState,
     events: Vec<AbmEvent>,
     random_requests: Vec<AbmRandomRequest>,
-    occurrences: BTreeMap<(u64, String, String, String), u64>,
-    birth_ordinals: BTreeMap<(u64, String, String, String), u64>,
+    occurrences: BTreeMap<(i64, String, String, String), u64>,
+    birth_ordinals: BTreeMap<(i64, String, String, String), u64>,
+    random_tape: Option<AbmRandomTape>,
+    tape_cursor: usize,
 }
 
 #[derive(Clone)]
@@ -147,18 +172,35 @@ struct EvalContext<'a> {
     state: &'a RuntimeState,
     actor: Actor,
     outer: Option<Actor>,
-    tick: u64,
+    tick: i64,
     phase: &'a str,
 }
 
 pub fn run_abm_plan(plan: &AbmPlanEnvelope, seed: i64) -> Result<AbmRunResult> {
+    run_abm_plan_with_random_tape(plan, seed, None)
+}
+
+pub fn run_abm_plan_with_random_tape(
+    plan: &AbmPlanEnvelope,
+    seed: i64,
+    random_tape: Option<AbmRandomTape>,
+) -> Result<AbmRunResult> {
     plan.validate()?;
-    Runtime::new(&plan.payload, seed)?.run()
+    Runtime::new(&plan.payload, seed, random_tape)?.run()
 }
 
 pub fn run_abm_plan_from_slice(bytes: &[u8], seed: i64) -> Result<AbmRunResult> {
     let plan = AbmPlanEnvelope::from_slice(bytes)?;
     run_abm_plan(&plan, seed)
+}
+
+pub fn run_abm_plan_from_slice_with_random_tape(
+    bytes: &[u8],
+    seed: i64,
+    random_tape: Option<AbmRandomTape>,
+) -> Result<AbmRunResult> {
+    let plan = AbmPlanEnvelope::from_slice(bytes)?;
+    run_abm_plan_with_random_tape(&plan, seed, random_tape)
 }
 
 pub fn run_abm_batch(
@@ -200,7 +242,11 @@ pub fn run_abm_batch(
             .map(|request| {
                 Ok(AbmBatchSampleResult {
                     sample_index: request.sample_index,
-                    result: run_abm_plan(&plan, request.seed)?,
+                    result: run_abm_plan_with_random_tape(
+                        &plan,
+                        request.seed,
+                        request.random_tape.clone(),
+                    )?,
                 })
             })
             .collect()
@@ -260,7 +306,34 @@ impl RuntimeState {
 }
 
 impl<'a> Runtime<'a> {
-    fn new(plan: &'a AbmPlan, seed: i64) -> Result<Self> {
+    fn new(plan: &'a AbmPlan, seed: i64, random_tape: Option<AbmRandomTape>) -> Result<Self> {
+        if let Some(tape) = &random_tape
+            && tape.schema_version != "abm-random-tape/v1"
+        {
+            bail!(
+                "invalid_random_tape: unsupported random tape version {:?}",
+                tape.schema_version
+            );
+        }
+        if let Some(tape) = &random_tape {
+            for (index, request) in tape.requests.iter().enumerate() {
+                if request.phase.is_empty()
+                    || request.address.is_empty()
+                    || request.entity_id.is_empty()
+                    || request.occurrence < 0
+                    || !matches!(
+                        request.distribution.as_str(),
+                        "traversal_key" | "uniform" | "integer" | "bernoulli" | "choice"
+                    )
+                {
+                    bail!("invalid_random_tape: invalid request at index {index}");
+                }
+                if let Err(error) = validate_random_args(&request.distribution, &request.args) {
+                    bail!("invalid_random_tape: invalid request at index {index}: {error}");
+                }
+                validate_random_value(&request.distribution, &request.args, &request.value)?;
+            }
+        }
         Ok(Self {
             plan,
             seed,
@@ -269,27 +342,65 @@ impl<'a> Runtime<'a> {
             random_requests: Vec::new(),
             occurrences: BTreeMap::new(),
             birth_ordinals: BTreeMap::new(),
+            random_tape,
+            tape_cursor: 0,
         })
     }
 
     fn run(mut self) -> Result<AbmRunResult> {
-        if let Some(reason) = self.stop_reason(0, "initial")? {
+        if let Some(source) = &self.plan.source_semantics {
+            for phase in &source.initialization {
+                self.run_phase(-1, phase, true)?;
+            }
+        }
+        let initial_stop_phase = if self.plan.source_semantics.is_some() {
+            "before_tick"
+        } else {
+            "initial"
+        };
+        if let Some(reason) = self.stop_reason(0, initial_stop_phase)? {
             self.emit(0, "stop", "stopped", reason.clone(), json!({}));
             return self.finish(0, format!("condition:{reason}"));
         }
         for tick in 0..self.plan.max_ticks {
+            if self
+                .plan
+                .source_semantics
+                .as_ref()
+                .is_some_and(|source| source.stop_timing == StopTiming::BeforeTick)
+                && tick > 0
+            {
+                if let Some(reason) = self.stop_reason(i64::try_from(tick)?, "before_tick")? {
+                    self.emit(
+                        i64::try_from(tick)?,
+                        "stop",
+                        "stopped",
+                        reason.clone(),
+                        json!({}),
+                    );
+                    return self.finish(tick, format!("condition:{reason}"));
+                }
+            }
             for phase in &self.plan.phases {
-                self.run_phase(tick, phase)?;
+                self.run_phase(i64::try_from(tick)?, phase, false)?;
             }
             let completed = tick + 1;
-            let stop_phase = self
-                .plan
-                .phases
-                .last()
-                .map_or("initial", |phase| phase.id.as_str());
-            if let Some(reason) = self.stop_reason(tick, stop_phase)? {
-                self.emit(tick, "stop", "stopped", reason.clone(), json!({}));
-                return self.finish(completed, format!("condition:{reason}"));
+            if self.plan.source_semantics.is_none() {
+                let stop_phase = self
+                    .plan
+                    .phases
+                    .last()
+                    .map_or("initial", |phase| phase.id.as_str());
+                if let Some(reason) = self.stop_reason(i64::try_from(tick)?, stop_phase)? {
+                    self.emit(
+                        i64::try_from(tick)?,
+                        "stop",
+                        "stopped",
+                        reason.clone(),
+                        json!({}),
+                    );
+                    return self.finish(completed, format!("condition:{reason}"));
+                }
             }
         }
         let max_ticks = self.plan.max_ticks;
@@ -298,6 +409,15 @@ impl<'a> Runtime<'a> {
 
     fn finish(mut self, ticks: u64, stop_reason: String) -> Result<AbmRunResult> {
         let metrics = self.evaluate_metrics(ticks)?;
+        if let Some(tape) = &self.random_tape
+            && self.tape_cursor != tape.requests.len()
+        {
+            bail!(
+                "random_tape_unused: {} unused request(s) starting at index {}",
+                tape.requests.len() - self.tape_cursor,
+                self.tape_cursor
+            );
+        }
         Ok(AbmRunResult {
             profile: ABM_PROFILE.to_owned(),
             seed: self.seed,
@@ -319,13 +439,19 @@ impl<'a> Runtime<'a> {
                     state: &state,
                     actor: Actor::Global,
                     outer: None,
-                    tick: ticks,
+                    tick: i64::try_from(ticks)?,
                     phase: "metrics",
                 };
-                output.insert(
-                    metric.id.clone(),
-                    self.eval(metric.expression.as_ref().unwrap(), &context)?,
-                );
+                let value = self
+                    .eval(metric.expression.as_ref().unwrap(), &context)
+                    .map_err(|error| {
+                        if error.to_string() == "division or modulo by zero" {
+                            anyhow::anyhow!("metric_zero_denominator: division or modulo by zero")
+                        } else {
+                            error
+                        }
+                    })?;
+                output.insert(metric.id.clone(), value);
                 continue;
             }
             let actors = match metric.source {
@@ -345,7 +471,7 @@ impl<'a> Runtime<'a> {
                     state: &state,
                     actor,
                     outer: None,
-                    tick: ticks,
+                    tick: i64::try_from(ticks)?,
                     phase: "metrics",
                 };
                 if let Some(filter) = &metric.r#where
@@ -399,7 +525,7 @@ impl<'a> Runtime<'a> {
         Ok(output)
     }
 
-    fn stop_reason(&mut self, tick: u64, phase: &str) -> Result<Option<String>> {
+    fn stop_reason(&mut self, tick: i64, phase: &str) -> Result<Option<String>> {
         for condition in &self.plan.stop_conditions {
             let state = self.state.clone();
             let context = EvalContext {
@@ -417,7 +543,12 @@ impl<'a> Runtime<'a> {
         Ok(None)
     }
 
-    fn run_phase(&mut self, tick: u64, phase: &crate::abm_plan::Phase) -> Result<()> {
+    fn run_phase(
+        &mut self,
+        tick: i64,
+        phase: &crate::abm_plan::Phase,
+        initialization: bool,
+    ) -> Result<()> {
         let phase_start = self.state.clone();
         let mut actors = match phase.target {
             Target::Patches => phase_start
@@ -430,7 +561,7 @@ impl<'a> Runtime<'a> {
                 .agents
                 .values()
                 .filter(|agent| {
-                    agent.eligible_tick <= tick
+                    (initialization || agent.eligible_tick <= tick)
                         && phase
                             .agent_kind
                             .as_ref()
@@ -439,6 +570,22 @@ impl<'a> Runtime<'a> {
                 .map(|agent| Actor::Agent(agent.id.clone()))
                 .collect(),
         };
+        if let Some(selector) = &phase.r#where {
+            let mut selected = Vec::with_capacity(actors.len());
+            for actor in actors {
+                let context = EvalContext {
+                    state: &phase_start,
+                    actor: actor.clone(),
+                    outer: None,
+                    tick,
+                    phase: &phase.id,
+                };
+                if boolean(&self.eval(selector, &context)?, "phase selector")? {
+                    selected.push(actor);
+                }
+            }
+            actors = selected;
+        }
         if phase.traversal == Traversal::Random {
             let address = phase.random_address.as_deref().unwrap();
             let mut keyed = Vec::with_capacity(actors.len());
@@ -511,7 +658,8 @@ impl<'a> Runtime<'a> {
             | Operation::Increment { guard, .. }
             | Operation::Move { guard, .. }
             | Operation::Birth { guard, .. }
-            | Operation::Death { guard, .. } => guard,
+            | Operation::Death { guard, .. }
+            | Operation::Sprout { guard, .. } => guard,
         };
         if let Some(guard) = guard
             && !boolean(&self.eval(guard, context)?, "operation guard")?
@@ -556,6 +704,7 @@ impl<'a> Runtime<'a> {
                 neighborhood,
                 address,
                 heading_step,
+                local_rejection,
                 ..
             } => {
                 let Actor::Agent(id) = &context.actor else {
@@ -624,6 +773,13 @@ impl<'a> Runtime<'a> {
                             to,
                             heading: Some(number_value(heading)),
                         }]);
+                    }
+                    MoveMode::LocalRejection => {
+                        return self.local_rejection_move(
+                            context,
+                            id,
+                            local_rejection.as_ref().unwrap(),
+                        );
                     }
                     MoveMode::RandomNeighbor
                     | MoveMode::RandomEmpty
@@ -818,10 +974,155 @@ impl<'a> Runtime<'a> {
                     killer: Some(id.clone()),
                 }])
             }
+            Operation::Sprout {
+                kind,
+                count,
+                vars,
+                address,
+                ..
+            } => {
+                let Actor::Patch(patch_id) = &context.actor else {
+                    bail!("ABM sprout operation requires a patch actor");
+                };
+                let count = integer(&self.eval(count, context)?, "sprout count")?;
+                if count < 0 {
+                    bail!("sprout count must be non-negative");
+                }
+                let (x, y) = actor_position(self.plan, context)?;
+                let mut children = Vec::with_capacity(usize::try_from(count)?);
+                for _ in 0..count {
+                    let mut child_vars = BTreeMap::new();
+                    for (field, expression) in vars {
+                        child_vars.insert(field.clone(), self.eval(expression, context)?);
+                    }
+                    let key = (
+                        context.tick,
+                        context.phase.to_owned(),
+                        patch_id.clone(),
+                        address.clone(),
+                    );
+                    let ordinal = self.birth_ordinals.entry(key).or_insert(0);
+                    let child_id = format!(
+                        "{}::{}::init::{}::{}",
+                        patch_id, address, context.phase, *ordinal
+                    );
+                    *ordinal += 1;
+                    children.push(RuntimeAgent {
+                        id: child_id,
+                        kind: kind.clone(),
+                        x,
+                        y,
+                        vars: child_vars,
+                        eligible_tick: 0,
+                    });
+                }
+                Ok(vec![Effect::BirthMany {
+                    parent: patch_id.clone(),
+                    children,
+                }])
+            }
         }
     }
 
-    fn commit(&mut self, tick: u64, phase: &str, effect: Effect) -> Result<()> {
+    fn local_rejection_move(
+        &mut self,
+        context: &EvalContext<'_>,
+        id: &str,
+        local: &LocalRejection,
+    ) -> Result<Vec<Effect>> {
+        for ordinal in 0..local.attempt_budget {
+            let (from, old_heading) = {
+                let agent = self
+                    .state
+                    .agents
+                    .get(id)
+                    .context("ABM local rejection actor is unavailable")?;
+                let heading = agent
+                    .vars
+                    .get("heading")
+                    .context("ABM local rejection requires agent heading")?;
+                ((agent.x, agent.y), number(heading, "agent heading")?)
+            };
+            let turn = number(
+                &self.draw(
+                    context.tick,
+                    context.phase,
+                    &local.turn_address,
+                    id,
+                    "uniform",
+                    local.turn_bounds.to_vec(),
+                )?,
+                "local rejection turn",
+            )?;
+            let distance = number(
+                &self.draw(
+                    context.tick,
+                    context.phase,
+                    &local.distance_address,
+                    id,
+                    "uniform",
+                    local.distance_bounds.to_vec(),
+                )?,
+                "local rejection distance",
+            )?;
+            let heading = strict_add(old_heading, turn).rem_euclid(360.0);
+            let radians = heading.to_radians();
+            let trial = normalize_position(
+                self.plan,
+                strict_add(from.0, strict_mul(distance, c_sin(radians))),
+                strict_add(from.1, strict_mul(distance, c_cos(radians))),
+            )?;
+            {
+                let agent = self
+                    .state
+                    .agents
+                    .get_mut(id)
+                    .context("ABM local rejection actor is unavailable")?;
+                agent.x = trial.0;
+                agent.y = trial.1;
+                agent
+                    .vars
+                    .insert("heading".to_owned(), number_value(heading));
+            }
+            let patch = patch_coordinate(self.plan, trial.0, trial.1)?;
+            let accepted = !self.state.agents.values().any(|candidate| {
+                candidate.id != id
+                    && patch_coordinate(self.plan, candidate.x, candidate.y)
+                        .is_ok_and(|coordinate| coordinate == patch)
+            });
+            self.emit(
+                context.tick,
+                context.phase,
+                "move_attempt",
+                id.to_owned(),
+                json!({
+                    "ordinal": ordinal,
+                    "turn": turn,
+                    "distance": distance,
+                    "from": [from.0, from.1],
+                    "heading_before": old_heading,
+                    "heading_after": heading,
+                    "trial_position": [trial.0, trial.1],
+                    "patch": [patch.0, patch.1],
+                    "accepted": accepted,
+                }),
+            );
+            if accepted {
+                return Ok(vec![Effect::Move {
+                    entity: id.to_owned(),
+                    to: (patch.0 as f64, patch.1 as f64),
+                    heading: None,
+                }]);
+            }
+        }
+        bail!(
+            "random_attempt_budget_exhausted: actor {id:?} exhausted {} attempt(s) in phase {:?}",
+            local.attempt_budget,
+            context.phase
+        )
+    }
+
+    fn commit(&mut self, tick: i64, phase: &str, effect: Effect) -> Result<()> {
         match effect {
             Effect::Write {
                 target,
@@ -912,7 +1213,7 @@ impl<'a> Runtime<'a> {
         Ok(())
     }
 
-    fn emit(&mut self, tick: u64, phase: &str, kind: &str, entity: String, details: Value) {
+    fn emit(&mut self, tick: i64, phase: &str, kind: &str, entity: String, details: Value) {
         self.events.push(AbmEvent {
             sequence: self.events.len() as u64,
             tick,
@@ -1013,7 +1314,7 @@ impl<'a> Runtime<'a> {
 
     fn draw(
         &mut self,
-        tick: u64,
+        tick: i64,
         phase: &str,
         address: &str,
         entity_id: &str,
@@ -1027,72 +1328,49 @@ impl<'a> Runtime<'a> {
             entity_id.to_owned(),
         );
         let occurrence = self.occurrences.entry(key).or_insert(0);
-        let canonical = ExecutionPlan::python_canonical(&json!([
-            self.seed,
-            tick,
-            phase,
-            address,
-            entity_id,
-            *occurrence
-        ]))?;
+        let current_occurrence = *occurrence;
         *occurrence += 1;
-        let digest = Sha256::digest(canonical.as_bytes());
-        let random_bits = u64::from_be_bytes(digest[..8].try_into().unwrap()) >> 11;
-        let uniform = random_bits as f64 / 9_007_199_254_740_992.0;
-        let value = match distribution {
-            "traversal_key" => number_value(uniform),
-            "uniform" => {
-                if args.len() != 2 {
-                    bail!("uniform random requires [low, high]");
-                }
-                let low = number(&args[0], "uniform low")?;
-                let high = number(&args[1], "uniform high")?;
-                if low >= high {
-                    bail!("uniform random requires low < high");
-                }
-                number_value(low + uniform * (high - low))
+        validate_random_args(distribution, &args)?;
+        let value = if let Some(tape) = &self.random_tape {
+            let Some(entry) = tape.requests.get(self.tape_cursor) else {
+                bail!(
+                    "random_tape_missing: request index {} for tick {tick}, phase {phase:?}, address {address:?}, entity {entity_id:?}, occurrence {current_occurrence}",
+                    self.tape_cursor
+                );
+            };
+            if entry.tick != tick
+                || entry.phase != phase
+                || entry.address != address
+                || entry.entity_id != entity_id
+                || entry.occurrence != i64::try_from(current_occurrence)?
+                || entry.distribution != distribution
+                || !equal(
+                    &Value::Array(entry.args.clone()),
+                    &Value::Array(args.clone()),
+                )
+            {
+                bail!(
+                    "random_tape_mismatch: request index {} does not match tick {tick}, phase {phase:?}, address {address:?}, entity {entity_id:?}, occurrence {current_occurrence}, distribution {distribution:?}, args {}",
+                    self.tape_cursor,
+                    Value::Array(args.clone())
+                );
             }
-            "integer" => {
-                if args.len() != 2 {
-                    bail!("integer random requires [low, high]");
-                }
-                let low = integer(&args[0], "integer low")?;
-                let high = integer(&args[1], "integer high")?;
-                if low >= high {
-                    bail!("integer random requires low < high");
-                }
-                let span = high
-                    .checked_sub(low)
-                    .context("integer random range overflow")?;
-                let offset = (uniform * span as f64).floor() as i64;
-                Value::Number(Number::from(
-                    low.checked_add(offset)
-                        .context("integer random result overflow")?,
-                ))
-            }
-            "bernoulli" => {
-                if args.len() != 1 {
-                    bail!("bernoulli random requires [probability]");
-                }
-                let probability = number(&args[0], "bernoulli probability")?;
-                if !(0.0..=1.0).contains(&probability) {
-                    bail!("bernoulli probability must be in [0, 1]");
-                }
-                Value::Bool(uniform < probability)
-            }
-            "choice" => {
-                if args.len() != 1 {
-                    bail!("choice random requires one list argument");
-                }
-                let choices = args[0]
-                    .as_array()
-                    .context("choice argument must be a list")?;
-                if choices.is_empty() {
-                    bail!("choice random requires a non-empty list");
-                }
-                choices[(uniform * choices.len() as f64).floor() as usize].clone()
-            }
-            _ => bail!("unsupported ABM random distribution {distribution:?}"),
+            validate_random_value(distribution, &args, &entry.value)?;
+            self.tape_cursor += 1;
+            entry.value.clone()
+        } else {
+            let canonical = ExecutionPlan::python_canonical(&json!([
+                self.seed,
+                tick,
+                phase,
+                address,
+                entity_id,
+                current_occurrence
+            ]))?;
+            let digest = Sha256::digest(canonical.as_bytes());
+            let random_bits = u64::from_be_bytes(digest[..8].try_into().unwrap()) >> 11;
+            let uniform = random_bits as f64 / 9_007_199_254_740_992.0;
+            generated_random_value(distribution, &args, uniform)?
         };
         self.random_requests.push(AbmRandomRequest {
             sequence: self.random_requests.len() as u64,
@@ -1106,6 +1384,124 @@ impl<'a> Runtime<'a> {
         });
         Ok(value)
     }
+}
+
+fn validate_random_args(distribution: &str, args: &[Value]) -> Result<()> {
+    match distribution {
+        "traversal_key" if args.is_empty() => Ok(()),
+        "uniform" => {
+            if args.len() != 2 {
+                bail!("uniform random requires [low, high]");
+            }
+            let low = number(&args[0], "uniform low")?;
+            let high = number(&args[1], "uniform high")?;
+            if low >= high {
+                bail!("uniform random requires low < high");
+            }
+            Ok(())
+        }
+        "integer" => {
+            if args.len() != 2 {
+                bail!("integer random requires [low, high]");
+            }
+            let low = integer(&args[0], "integer low")?;
+            let high = integer(&args[1], "integer high")?;
+            if low >= high || high.checked_sub(low).is_none() {
+                bail!("integer random requires low < high");
+            }
+            Ok(())
+        }
+        "bernoulli" => {
+            if args.len() != 1 {
+                bail!("bernoulli random requires [probability]");
+            }
+            let probability = number(&args[0], "bernoulli probability")?;
+            if !(0.0..=1.0).contains(&probability) {
+                bail!("bernoulli probability must be in [0, 1]");
+            }
+            Ok(())
+        }
+        "choice" => {
+            if args.len() != 1 {
+                bail!("choice random requires one list argument");
+            }
+            let choices = args[0]
+                .as_array()
+                .context("choice argument must be a list")?;
+            if choices.is_empty() {
+                bail!("choice random requires a non-empty list");
+            }
+            Ok(())
+        }
+        _ => bail!("unsupported ABM random distribution {distribution:?}"),
+    }
+}
+
+fn validate_random_value(distribution: &str, args: &[Value], value: &Value) -> Result<()> {
+    let valid = match distribution {
+        "traversal_key" => value
+            .as_f64()
+            .is_some_and(|item| item.is_finite() && (0.0..1.0).contains(&item)),
+        "uniform" => {
+            let low = number(&args[0], "uniform low")?;
+            let high = number(&args[1], "uniform high")?;
+            value
+                .as_f64()
+                .is_some_and(|item| item.is_finite() && item >= low && item < high)
+        }
+        "integer" => {
+            let low = integer(&args[0], "integer low")?;
+            let high = integer(&args[1], "integer high")?;
+            value
+                .as_i64()
+                .is_some_and(|item| item >= low && item < high)
+        }
+        "bernoulli" => value.is_boolean(),
+        "choice" => args[0]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|candidate| equal(candidate, value)),
+        _ => unreachable!("random args validated before value"),
+    };
+    if !valid {
+        bail!("random_tape_mismatch: supplied value is outside the requested distribution domain");
+    }
+    Ok(())
+}
+
+fn generated_random_value(distribution: &str, args: &[Value], uniform: f64) -> Result<Value> {
+    Ok(match distribution {
+        "traversal_key" => number_value(uniform),
+        "uniform" => {
+            let low = number(&args[0], "uniform low")?;
+            let high = number(&args[1], "uniform high")?;
+            number_value(low + uniform * (high - low))
+        }
+        "integer" => {
+            let low = integer(&args[0], "integer low")?;
+            let high = integer(&args[1], "integer high")?;
+            let span = high
+                .checked_sub(low)
+                .context("integer random range overflow")?;
+            let offset = (uniform * span as f64).floor() as i64;
+            Value::Number(Number::from(
+                low.checked_add(offset)
+                    .context("integer random result overflow")?,
+            ))
+        }
+        "bernoulli" => {
+            let probability = number(&args[0], "bernoulli probability")?;
+            Value::Bool(uniform < probability)
+        }
+        "choice" => {
+            let choices = args[0]
+                .as_array()
+                .context("choice argument must be a list")?;
+            choices[(uniform * choices.len() as f64).floor() as usize].clone()
+        }
+        _ => unreachable!("random args validated before generation"),
+    })
 }
 
 fn write_target_name(target: WriteTarget) -> &'static str {
@@ -1734,6 +2130,64 @@ mod tests {
         })
     }
 
+    fn source_move_payload() -> Value {
+        json!({
+            "model_id":"source-batch-isolation",
+            "profile":"abm-tick-v1",
+            "topology":{"kind":"torus","width":1,"height":1},
+            "initial_state":{"globals":{},"patches":[
+                {"id":"p0","x":0,"y":0,"vars":{}}
+            ],"agents":[
+                {"id":"M","kind":"person","x":0,"y":0,"vars":{"heading":0,"happy":false}}
+            ]},
+            "phases":[{
+                "id":"move-unhappy","target":"agents","agent_kind":"person",
+                "read_view":"current","commit_mode":"immediate","traversal":"stable",
+                "random_address":null,"operations":[{
+                    "op":"move","guard":null,"mode":"local_rejection","x":null,"y":null,
+                    "neighborhood":null,"address":null,"heading_step":null,
+                    "local_rejection":{
+                        "turn_address":"schelling.turn","distance_address":"schelling.distance",
+                        "turn_bounds":[0,360],"distance_bounds":[0,10],"attempt_budget":2
+                    }
+                }]
+            }],
+            "stop_conditions":[],"metrics":[],"max_ticks":1,
+            "source_semantics":{
+                "schema_version":"abm-source-semantics/v1",
+                "initialization":[],"stop_timing":"before_tick"
+            }
+        })
+    }
+
+    fn source_move_tape(turn: f64, distance: f64) -> AbmRandomTape {
+        AbmRandomTape {
+            schema_version: "abm-random-tape/v1".to_owned(),
+            requests: vec![
+                AbmRandomTapeEntry {
+                    tick: 0,
+                    phase: "move-unhappy".to_owned(),
+                    address: "schelling.turn".to_owned(),
+                    entity_id: "M".to_owned(),
+                    occurrence: 0,
+                    distribution: "uniform".to_owned(),
+                    args: vec![json!(0), json!(360)],
+                    value: json!(turn),
+                },
+                AbmRandomTapeEntry {
+                    tick: 0,
+                    phase: "move-unhappy".to_owned(),
+                    address: "schelling.distance".to_owned(),
+                    entity_id: "M".to_owned(),
+                    occurrence: 0,
+                    distribution: "uniform".to_owned(),
+                    args: vec![json!(0), json!(10)],
+                    value: json!(distance),
+                },
+            ],
+        }
+    }
+
     #[test]
     fn buffered_phase_start_spreads_one_cell_per_tick() {
         let result = run_abm_plan(&plan(fire_payload()), 7).unwrap();
@@ -1751,18 +2205,22 @@ mod tests {
             AbmSampleRequest {
                 sample_index: 7,
                 seed: 9,
+                random_tape: None,
             },
             AbmSampleRequest {
                 sample_index: 2,
                 seed: 9,
+                random_tape: None,
             },
             AbmSampleRequest {
                 sample_index: 8,
                 seed: 2,
+                random_tape: None,
             },
             AbmSampleRequest {
                 sample_index: 1,
                 seed: 7,
+                random_tape: None,
             },
         ];
         let serial = run_abm_batch(plan.clone(), &requests, Some(1)).unwrap();
@@ -1777,6 +2235,46 @@ mod tests {
                 .map(|item| item.sample_index)
                 .collect::<Vec<_>>(),
             vec![1, 2, 7, 8]
+        );
+    }
+
+    #[test]
+    fn source_batch_isolates_tapes_and_is_stable_across_order_and_threads() {
+        let plan = Arc::new(plan(source_move_payload()));
+        let requests = vec![
+            AbmSampleRequest {
+                sample_index: 7,
+                seed: 5,
+                random_tape: Some(source_move_tape(0.0, 0.1)),
+            },
+            AbmSampleRequest {
+                sample_index: 0,
+                seed: 5,
+                random_tape: Some(source_move_tape(90.0, 0.2)),
+            },
+            AbmSampleRequest {
+                sample_index: 3,
+                seed: 9,
+                random_tape: Some(source_move_tape(180.0, 0.3)),
+            },
+        ];
+        let serial = run_abm_batch(plan.clone(), &requests, Some(1)).unwrap();
+        let mut reversed = requests.clone();
+        reversed.reverse();
+        let parallel = run_abm_batch(plan, &reversed, Some(4)).unwrap();
+
+        assert_eq!(serial, parallel);
+        assert_eq!(
+            serial
+                .iter()
+                .map(|sample| sample.sample_index)
+                .collect::<Vec<_>>(),
+            vec![0, 3, 7]
+        );
+        assert_eq!(serial[0].result.seed, serial[2].result.seed);
+        assert_ne!(
+            serial[0].result.random_requests,
+            serial[2].result.random_requests
         );
     }
 
@@ -1812,7 +2310,7 @@ mod tests {
         }]);
         let result = run_abm_plan(&plan(payload), 17).unwrap();
         let request = result.random_requests.last().unwrap();
-        assert_eq!(request.tick, result.ticks);
+        assert_eq!(request.tick, i64::try_from(result.ticks).unwrap());
         assert_eq!(request.phase, "metrics");
         assert_eq!(request.address, "metric.sample");
         assert_eq!(result.metrics["sample"], request.value);

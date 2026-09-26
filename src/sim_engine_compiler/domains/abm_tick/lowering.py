@@ -31,6 +31,11 @@ def compile_abm_tick(spec: dict[str, Any]) -> AbmCompilation:
     for index, phase in enumerate(plan.payload["phases"]):
         symbols.append({"id": phase["id"], "plan_path": f"phases[{index}]",
                         "source_path": f"phases[{index}]"})
+    source_semantics = plan.payload.get("source_semantics")
+    if source_semantics is not None:
+        for index, phase in enumerate(source_semantics["initialization"]):
+            path = f"source_semantics.initialization[{index}]"
+            symbols.append({"id": phase["id"], "plan_path": path, "source_path": path})
     lineage = {
         "version": "abm-compiler-lineage/v1",
         "business_fingerprint": business.fingerprint,
