@@ -1,0 +1,110 @@
+diff --git a/rust/runtime/src/batch.rs b/rust/runtime/src/batch.rs
+index 0095291..ccd1e89 100644
+--- a/rust/runtime/src/batch.rs
++++ b/rust/runtime/src/batch.rs
+@@ -152,8 +152,12 @@ pub fn run_batch_with_dispatch(
+     if worker_threads == Some(0) {
+         bail!("worker_threads must be greater than zero");
+     }
++    let validate_started = Instant::now();
+     plan.validate()?;
++    let batch_validate_ns = elapsed_ns(validate_started);
++    let static_started = Instant::now();
+     let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
++    let batch_static_ns = elapsed_ns(static_started);
+ 
+     let available = thread::available_parallelism()
+         .map(NonZeroUsize::get)
+@@ -190,6 +194,14 @@ pub fn run_batch_with_dispatch(
+     // The output contract is independent of Rayon scheduling and completion order.
+     samples.sort_by_key(|sample| sample.sample_index);
+ 
++    if std::env::var_os("SIM_PREP_DIAGNOSTIC").is_some() {
++        eprintln!("SIM_PREP_DIAGNOSTIC {}", serde_json::json!({
++            "batch_validate_ns": batch_validate_ns,
++            "batch_static_ns": batch_static_ns,
++            "samples": crate::runtime::preparation_diagnostics(),
++        }));
++    }
++
+     Ok(BatchResult {
+         plan_fingerprint: fingerprint,
+         sample_count: samples.len(),
+diff --git a/rust/runtime/src/runtime.rs b/rust/runtime/src/runtime.rs
+index e581c1c..2062398 100644
+--- a/rust/runtime/src/runtime.rs
++++ b/rust/runtime/src/runtime.rs
+@@ -2,6 +2,7 @@ use std::{
+     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+     str::FromStr,
+     sync::Arc,
++    sync::atomic::{AtomicU64, Ordering},
+     time::Instant,
+ };
+ 
+@@ -15,6 +16,20 @@ use crate::rng::PythonRandom;
+ 
+ mod event_time;
+ 
++static DIAG_SAMPLE_VALIDATE_NS: AtomicU64 = AtomicU64::new(0);
++static DIAG_SAMPLE_VALIDATE_CALLS: AtomicU64 = AtomicU64::new(0);
++static DIAG_SAMPLE_STATIC_NS: AtomicU64 = AtomicU64::new(0);
++static DIAG_SAMPLE_INIT_NS: AtomicU64 = AtomicU64::new(0);
++
++pub fn preparation_diagnostics() -> Value {
++    json!({
++        "sample_validate_ns": DIAG_SAMPLE_VALIDATE_NS.load(Ordering::Relaxed),
++        "sample_validate_calls": DIAG_SAMPLE_VALIDATE_CALLS.load(Ordering::Relaxed),
++        "sample_static_ns": DIAG_SAMPLE_STATIC_NS.load(Ordering::Relaxed),
++        "sample_init_total_ns": DIAG_SAMPLE_INIT_NS.load(Ordering::Relaxed),
++    })
++}
++
+ #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+ #[serde(rename_all = "snake_case")]
+ pub enum ObservationLevel {
+@@ -840,7 +855,12 @@ impl Runtime {
+         observation_level: ObservationLevel,
+         profile_enabled: bool,
+     ) -> Result<Self> {
++        let init_started = Instant::now();
++        let validate_started = Instant::now();
+         plan.validate()?;
++        DIAG_SAMPLE_VALIDATE_NS.fetch_add(elapsed_ns(validate_started), Ordering::Relaxed);
++        DIAG_SAMPLE_VALIDATE_CALLS.fetch_add(1, Ordering::Relaxed);
++        let static_started = Instant::now();
+         let failure_components_by_aircraft: Vec<Vec<usize>> = (0..plan.aircraft.len())
+             .map(|aircraft_index| {
+                 plan.components
+@@ -853,6 +873,7 @@ impl Runtime {
+                     .collect()
+             })
+             .collect();
++        DIAG_SAMPLE_STATIC_NS.fetch_add(elapsed_ns(static_started), Ordering::Relaxed);
+         let aircraft = plan
+             .aircraft
+             .iter()
+@@ -910,6 +931,7 @@ impl Runtime {
+                 last_preventive_minute: -item.initial_calendar_days * 1440,
+             })
+             .collect();
++        let static_started = Instant::now();
+         let mut activity_by_group_phase: HashMap<(String, String), Vec<usize>> = HashMap::new();
+         for activity in &plan.activities {
+             if !activity.phase.is_empty() {
+@@ -932,6 +954,7 @@ impl Runtime {
+             .enumerate()
+             .map(|(index, name)| ExecutionPhase::from_name(index, name))
+             .collect();
++        DIAG_SAMPLE_STATIC_NS.fetch_add(elapsed_ns(static_started), Ordering::Relaxed);
+         let mission_count = plan.missions.len();
+         let mut runtime = Self {
+             plan,
+@@ -988,6 +1011,7 @@ impl Runtime {
+             failure_components_by_aircraft,
+         };
+         runtime.initialize_failure_timers();
++        DIAG_SAMPLE_INIT_NS.fetch_add(elapsed_ns(init_started), Ordering::Relaxed);
+         Ok(runtime)
+     }
+ 
