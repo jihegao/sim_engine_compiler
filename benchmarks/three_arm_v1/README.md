@@ -24,6 +24,9 @@ actual logs and the build/semantic receipt; passing an empty status marker is
 not admission. The final report records exact commands and artifact hashes.
 
 ```sh
+.venv/bin/python benchmarks/three_arm_v1/verify.py \
+  --plugin-dir tools/mlir_dispatch/build-issue6 \
+  --mlir-opt /tmp/issue6-llvm-23.1.1/bin/mlir-opt
 PYTHONPATH=src .venv/bin/python benchmarks/three_arm_v1/admission.py \
   --output runs/three-arm-v1/admission \
   --regression-receipt runs/three-arm-v1/regression-receipt.json \
