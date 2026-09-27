@@ -8,8 +8,8 @@ process-UTF-8 conditional pass remain unchanged in the versioned
 
 The machine-readable [receipt](receipt.json) cites immutable raw evidence under
 `C:\Users\user\Documents\Codex\2026-09-27\simlox-pr22-default-gbk-retest-9e5020e-v1`.
-Its `raw-artifact-manifest-v2.json` holds absolute retrieval paths, byte lengths,
-and SHA-256 for 127 files. Exact command arguments, cwd, process selectors,
+Its `raw-artifact-manifest-v3.json` holds absolute retrieval paths, byte lengths,
+and SHA-256 for 130 files. Exact command arguments, cwd, process selectors,
 start/end times, exit status and raw stdout/stderr are in each `*-tests.json`,
 `*-run.json`, `.stdout`, and `.stderr` record. All three output directories were
 fresh and independent.
@@ -40,6 +40,9 @@ c97/5289 evidence, Plan and canonical bindings, four original native runs,
 72 half-hour rows × five fields per case, full identities/event times,
 integrals, terminal counts and four semantic negatives. It never starts SIMLOX.
 `provenance_negatives.py` changes actual files only in disposable Git trees.
+The coordinator independently rechecked all three actual Windows output trees
+and command streams; the supplied `coordinator-three-mode-review.json` is
+retained separately from this line's native comparison.
 
 Each real outer Python process had `utf8_mode=0`, `locale.getencoding()=cp936`,
 Python 3.12.14 and SimPy 4.1.1. Ordinary, controlled LF and controlled CRLF
