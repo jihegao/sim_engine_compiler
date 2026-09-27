@@ -145,7 +145,7 @@ jobs:
           set -euo pipefail
           python -m venv .venv
           .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/python -m pip install -e .
+          .venv/bin/python -m pip install -e '.[test]'
           PYTHONPATH=src .venv/bin/python -c \
             'from sim_engine_compiler import native_available; assert native_available(), "PyO3 extension failed to load"'
 
@@ -203,8 +203,25 @@ jobs:
           SIM_ENGINE_MLIR_OPT: ${{ runner.temp }}/llvm-23.1.1/bin/mlir-opt
         run: |
           set -euo pipefail
-          .venv/bin/python -m unittest discover -s tests -v 2>&1 \
+          .venv/bin/python -m pytest --collect-only -q tests 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/python-collection.log"
+          .venv/bin/python -m pytest -v \
+            --junitxml="$RUNNER_TEMP/o5-mlir-acceptance/python-full-suite.xml" \
+            tests 2>&1 \
             | tee "$RUNNER_TEMP/o5-mlir-acceptance/python-full-suite.log"
+          .venv/bin/python scripts/verify_identity_test_execution.py \
+            --collection "$RUNNER_TEMP/o5-mlir-acceptance/python-collection.log" \
+            --junit "$RUNNER_TEMP/o5-mlir-acceptance/python-full-suite.xml" \
+            --require-module tests/conformance/test_identity_artifacts.py \
+            --require-module tests/conformance/test_identity_cli.py \
+            --require-module tests/conformance/test_identity_common.py \
+            --require-module tests/conformance/test_identity_fixture_manifest.py \
+            --require-module tests/conformance/test_identity_negative_controls.py \
+            --require-module tests/conformance/test_identity_review_repairs.py \
+            --require-module tests/conformance/test_identity_runs.py \
+            --require-module tests/test_verify_identity_test_execution.py \
+            --output "$RUNNER_TEMP/o5-mlir-acceptance/python-test-evidence.json" \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/python-test-evidence.log"
 
       - name: Upload test logs and source fingerprint
         if: always()

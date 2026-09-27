@@ -129,7 +129,7 @@ class SimloxPairingEncodingTests(unittest.TestCase):
         self.assertEqual(decoded, value)
         self.assertIn(bytes("飞机配对", "utf-8"), raw)
 
-    def test_original_32_regressions_pass_with_utf8_mode_off_and_cp936_default(self):
+    def test_original_33_regressions_pass_with_utf8_mode_off_and_cp936_default(self):
         sitecustomize = textwrap.dedent(
             """
             import io
@@ -185,7 +185,7 @@ class SimloxPairingEncodingTests(unittest.TestCase):
             }}
             print("CP936_RESULT=" + json.dumps(payload, sort_keys=True))
             raise SystemExit(0 if payload["successful"] and not payload["skipped"]
-                             and payload["collected"] == payload["executed"] == 32 else 1)
+                             and payload["collected"] == payload["executed"] == 33 else 1)
             """
         )
         with tempfile.TemporaryDirectory() as directory:
@@ -218,8 +218,8 @@ class SimloxPairingEncodingTests(unittest.TestCase):
         result = json.loads(marker)
         self.assertEqual(result["utf8_mode"], 0)
         self.assertEqual(result["preferred_encoding"].lower(), "cp936")
-        self.assertEqual(result["collected"], 32)
-        self.assertEqual(result["executed"], 32)
+        self.assertEqual(result["collected"], 33)
+        self.assertEqual(result["executed"], 33)
         self.assertEqual(result["skipped"], 0)
         self.assertEqual(result["failures"], 0)
         self.assertEqual(result["errors"], 0)
