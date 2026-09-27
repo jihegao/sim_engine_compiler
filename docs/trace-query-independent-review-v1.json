@@ -1,0 +1,83 @@
+{
+  "schema_version": "trace-query-independent-review/v1",
+  "review_status": "pass_local_remote_ci_pending",
+  "task": "engine-trace-query-issue11-1a1e329-v1",
+  "reviewed_dependency": {
+    "commit": "1a1e329ca4e7c38a7550ac9de15c699fccfb99ef",
+    "tree": "4ae0cd4a120725eacefb39f7f5ff4df64d4d0b12",
+    "pull_request": 23,
+    "merge_status": "unmerged",
+    "stacked_base": "codex/review-data-v1"
+  },
+  "scope": {
+    "issue": 11,
+    "slice": "offline persisted Python reference result and request trace query",
+    "implementation_changed_by_reviewer": false,
+    "runtime_or_rng_semantics_changed": false,
+    "rust_or_o5_collection_accepted": false,
+    "remote_ci_status_at_review": "pending"
+  },
+  "reviewed_artifacts": {
+    ".github/workflows/o5-mlir-integration.yml": "e3eb2a1d538fa8e7f1465925af6c367912dde9655b6c9b7851f708c5773c9812",
+    "README.md": "dbed59fcc015d09abc705bc27f1473569f141711e0eae17a3fc39eea330c3665",
+    "docs/trace-query-v1.md": "3fc8d60e12a574456c69c967e218d614c91e7fd1674d5e3a34f623eab35c2d5a",
+    "src/sim_engine_compiler/identity/runs.py": "8e24fb210d6d95d5daebbdd78c3430b66c885dbfb8e92e4a4b37d8d0e5389a0a",
+    "src/sim_engine_compiler/trace_query/__init__.py": "c0e6ccf516db95362ef5c37a0c22cec3eee5bbbd27fd908823c2156c2463fbfc",
+    "src/sim_engine_compiler/trace_query/__main__.py": "252556632f749f07d5c66e5b7396dfcc7ea171d00e55eb62dc85e4be89f52e33",
+    "src/sim_engine_compiler/trace_query/facts.py": "d503889ef8252fedf35b29ef68fee13a1c2133f813541477612951eaff191626",
+    "src/sim_engine_compiler/trace_query/query.py": "78faef03202e31287748dd8823c406a06a656851a20acf2f1e76dfc86ff5e1d7",
+    "tests/conformance/test_trace_query_cli.py": "3eae570d527c6d7c3177a929ea2cbbabf4a80c427c3b4c3013302d4785601654",
+    "tests/conformance/test_trace_query_controls.py": "94db6e017affcd99d0f5220891acb3ceb195731151be80597a34c8c5019a2656",
+    "tests/conformance/test_trace_query_facts.py": "520368ac3bbf2aee48bdf2d9d89b48fb51485191b71970f475c6ae3c147e6a7b",
+    "tests/conformance/test_trace_query_runtime.py": "06588955e3d9c292fe624eee3519eb4e1f314cfb7c9f98aa93acc4a3e20d24be"
+  },
+  "verification": [
+    {
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/conformance/test_trace_query_cli.py tests/conformance/test_trace_query_controls.py tests/conformance/test_trace_query_facts.py tests/conformance/test_trace_query_runtime.py",
+      "result": "65 passed in 39.38s",
+      "status": "pass"
+    },
+    {
+      "command": "uvx ruff check src/sim_engine_compiler/trace_query src/sim_engine_compiler/identity/runs.py tests/conformance/test_trace_query_cli.py tests/conformance/test_trace_query_controls.py tests/conformance/test_trace_query_facts.py tests/conformance/test_trace_query_runtime.py",
+      "result": "All checks passed",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean",
+      "status": "pass"
+    }
+  ],
+  "resolved_findings": [
+    "a legacy result without a recorded Plan fingerprint can no longer authorize event-to-design links from a different validated revision",
+    "the stale-revision control uses real B1 events with both the matching B1 bundle and a different valid F35 bundle and requires unavailable design links",
+    "duplicate, reordered, internally deleted and unsigned-tail-deleted event sequences retain distinct fail-closed or partial outcomes",
+    "unknown event kinds remain capability-limited and never acquire inferred process or causal semantics",
+    "process-reference conflicts remain unknown instead of selecting one recorded value",
+    "event output byte budgets preserve a canonical prefix and do not claim to limit collection, input, CPU, memory or the total envelope"
+  ],
+  "accepted_claims": [
+    "the API and CLI query persisted inputs without invoking a simulation runtime or mutating result, request, Plan, fixture or raw bundle content",
+    "run and sample event identities remain stable across filters, pages and output budgets while duplicate seeds remain separate by sample identity",
+    "result-recorded Plan, seed, sample and profile fields are cross-checked when present and missing bindings remain explicit caller assertions",
+    "event-to-design links require both a result-recorded matching Plan fingerprint and a raw complete bundle revalidated through the public identity and review authorities",
+    "verified design links mean static exact recorded symbol or source-path matches and do not prove runtime Plan consumption, trigger, guard or causality",
+    "Summary and missing-trace inputs return no event evidence rather than synthesizing traces",
+    "real B1 and B3 executions preserve recorded launch, wait, shortage, transport, consumption and cancellation evidence without inventing wakeup causes",
+    "real F35 Python reference seeds 0, 1 and 7 are queried without changing complete in-memory result digests or fixed source artifact hashes",
+    "the identity omitted-event rewrite uses the existing validated unique sequence set and preserves projected values and ordering",
+    "the CI workflow retains Rust, PyO3 and mandatory MLIR gates and requires all four trace-query modules in collection and execution evidence"
+  ],
+  "remaining_limits": [
+    "remote exact-head CI has not yet been run or read back for this slice",
+    "the full repository regression result is not part of this independent receipt",
+    "run, sample and backend assignment remains caller asserted when the unsigned persisted result omits those fields",
+    "a result-recorded Plan fingerprint is cross-checked but does not authenticate that the runtime consumed the Plan",
+    "unsigned continuous tail deletion is undetectable when retained event sequences remain contiguous",
+    "the byte budget applies only to the canonical selected events array and is not a hostile-input sandbox or total output limit",
+    "the finite event vocabulary exposes recorded facts only; missing candidate, cache, guard, resource, inventory, cancellation and trigger evidence remains unknown",
+    "Rust results, event-time-v2, indexed Plans, other domains, runtime collection budgets and collection overhead are unsupported or outside this slice",
+    "issue 11 remains open for later collection, authenticated run provenance, richer causal semantics and broader backend acceptance"
+  ],
+  "conclusion": "No remaining local blocker was found in the frozen bounded trace-query slice. It is suitable for stacked-PR review after the full regression and exact-head remote CI are independently confirmed; this receipt does not claim either pending gate."
+}

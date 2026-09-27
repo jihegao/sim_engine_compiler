@@ -96,6 +96,10 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
                 "src/sim_engine_compiler/review/__main__.py",
                 "src/sim_engine_compiler/review/exporter.py",
                 "src/sim_engine_compiler/review/views.py",
+                "src/sim_engine_compiler/trace_query/__init__.py",
+                "src/sim_engine_compiler/trace_query/__main__.py",
+                "src/sim_engine_compiler/trace_query/facts.py",
+                "src/sim_engine_compiler/trace_query/query.py",
             },
         )
         self.assertTrue(identity["checkout_source_membership_fingerprint"])

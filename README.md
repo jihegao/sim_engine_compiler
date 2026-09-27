@@ -101,4 +101,12 @@ Python 与 Rust AOT 的正式链路现为 canonical → Business → symbolic Co
 已校验的 IR 导出版本化设计审阅 JSON。它复用 PR20 的身份与 bundle 校验，
 不执行模型、不猜测独立 Core 的原始 Business，也不实现 SysML 渲染。
 支持矩阵、来源限制及离线 API/CLI 示例见[审阅数据合同](docs/review-data-v1.md)。
-身份合同已随 PR20 合入 `main`；完整规则语义与 SysML 仍未交付。
+身份与审阅数据合同已随 PR20、PR23 合入 `main`；完整规则语义与 SysML 仍未交付。
+
+## 离线运行追溯（#11 有界切片）
+
+`python -m sim_engine_compiler.trace_query <result.json> --request <request.json>
+--plan <plan.json>` 只查询已保存事件，支持筛选、分页、事件输出预算和稳定 ID
+解析。设计关联复用原始 bundle 的身份与 #10 审阅校验；缺失原因保持未知。
+本切片仅验收 Python reference 分钟 profile，明确不代表 Rust/O5 采集验收或
+完整因果诊断。支持矩阵、证据限制和离线示例见[查询合同](docs/trace-query-v1.md)。
