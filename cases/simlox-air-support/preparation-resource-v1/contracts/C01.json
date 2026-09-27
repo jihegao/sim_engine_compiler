@@ -1,0 +1,69 @@
+{
+  "schema": "simlox-preparation-resource-contract/v1",
+  "case_id": "C01",
+  "version": "1.0.1-plan",
+  "status": "planned_native_unverified",
+  "artifact_binding": {"manifest": "../native/manifest.json", "candidate_revision": "1.0.1", "parameter_path": "../parameters/C01.json", "rule": "before execution, resolve this case and variant in the generated manifest, require candidate_revision 1.0.1, and require its input_sha256 to equal the invocation source hash; failed candidates are never selectable"},
+  "acceptance_policy": {"conversion_errors": 0, "allowed_warnings": [{"number": "108", "condition": "Control.ENLOG=Y", "explanation": "ENLOG intentionally records the first repetition"}, {"number": "126", "condition": "the teaching aircraft has no Item child rows", "explanation": "the item-free deterministic case intentionally contains no fault-bearing children"}], "reject_unlisted_warnings": true, "roundtrip_required": true, "nonempty_sxi_sxo_enlog_required": true, "native_artifact_hashes_required": true},
+  "title": "personnel specialty and quantity",
+  "parent_case": "B02",
+  "requires": ["B02"],
+  "source": {
+    "method_id": "M-C01",
+    "manual_source_id": "SIMLOX-2017-USERS-REFERENCE",
+    "pdf_pages": [[397, 399], [407, 414]]
+  },
+  "business_contract": {
+    "time_unit": "minute",
+    "mission": {"id": "MISSION-01", "notice": 450, "planned_launch": 480, "latest_launch": 540},
+    "task": {"id": "PREP-PERSONNEL", "duration": 30, "resource_demands": [{"resource_id": "P-CREW", "specialty": "CREW-A", "quantity": 2}]},
+    "resource_policy": {
+      "acquisition": "all required quantity before work starts",
+      "release": "all acquired units at task completion",
+      "wrong_specialty": "cannot satisfy demand",
+      "partial_capacity": "no partial work and no partial lease"
+    }
+  },
+  "native_mapping": {
+    "tables": {
+      "Resource": ["RID", "TYPE"],
+      "ResourceAllocation": ["POINT", "RID", "STID", "RQTY"],
+      "TaskResource": ["TID", "RID", "QTY"],
+      "MissionPreparation": ["MTID", "SID", "STID", "DURN", "TID"]
+    },
+    "expected_rows": {
+      "Resource": {"RID": "P-CREW", "TYPE": "SPECIAL"},
+      "MissionPreparation": {"MTID": "MISSION-BASIC", "SID": "AIR-TYPE", "STID": "BASE-01", "DURN": 0.5, "TID": "PREP-PERSONNEL"},
+      "TaskResource": {"TID": "PREP-PERSONNEL", "RID": "P-CREW", "QTY": 2},
+      "ResourceAllocation": [{"POINT": "AIR_BASIC", "RID": "P-CREW", "STID": "BASE-01"}, {"POINT": "AIR_BASIC", "RID": "P-OTHER", "STID": "BASE-01"}]
+    },
+    "mapping_note": "personnel specialty is the business meaning of RID; SPECIAL is the native resource type; ResourceAllocation.POINT must equal Control.APID (AIR_BASIC)"
+  },
+  "variants": [
+    {"variant_id": "capacity-2", "P-CREW": 2, "expected_work": [450, 480], "expected_launch": 480},
+    {"variant_id": "capacity-1", "P-CREW": 1, "expected_state": "waiting_no_work_through_latest_launch"},
+    {"variant_id": "capacity-0", "P-CREW": 0, "expected_state": "waiting_no_work_through_latest_launch"},
+    {"variant_id": "wrong-specialty", "P-CREW": 0, "P-OTHER": 2, "expected_state": "waiting_no_work_through_latest_launch"}
+  ],
+  "failed_candidate_revisions": [
+    {
+      "candidate_revision": "1.0.0",
+      "variant_ids": ["capacity-2", "capacity-1", "capacity-0", "wrong-specialty"],
+      "status": "native_conversion_failed",
+      "failure": {"error_number": "167", "form": "MissionPreparation", "message": "All required resources are not available at station (STID): BASE-01", "sxo_bytes": 4},
+      "source_evidence": {"source_id": "SIMLOX-2017-TABLE-DICTIONARY", "locator": "Control column 4 and ResourceAllocation column 1", "excerpt": "APID: Allocation Point Identifier; related fields include ResourceAllocation POINT", "native_comparator": "working J35 probe has Control.APID=J35 and every ResourceAllocation.POINT=J35"},
+      "diagnosis": "the failed inputs used Control.APID=AIR_BASIC but ResourceAllocation.POINT=AIR-TYPE",
+      "retention_rule": "retain every v1.0.0 input and hash as immutable failed evidence; never select it for acceptance"
+    }
+  ],
+  "expected_assertions": [
+    {"id": "C01-A1", "assert": "the request identity is P-CREW and quantity is exactly 2"},
+    {"id": "C01-A2", "assert": "capacity 2 acquires two units at 450, works 30 minutes, releases both at 480 and launches at 480"},
+    {"id": "C01-A3", "assert": "capacity 1 and 0 do not start partial work"},
+    {"id": "C01-A4", "assert": "two units of P-OTHER do not satisfy P-CREW"},
+    {"id": "C01-A5", "assert": "capacity-2 personnel integral is 60 person-minutes; blocked variants consume zero"},
+    {"id": "C01-A6", "assert": "native deadline/cancellation status for blocked variants is reported from evidence, not assumed"}
+  ],
+  "acceptance_evidence": ["resource request and lease identity", "capacity before/after snapshots", "wait/start/release events", "person-minute ledger", "blocked end state and native deadline result"],
+  "limitations": ["STANDARD and ENABLER are not used for capacity", "This case does not test resource substitution or shifts"]
+}

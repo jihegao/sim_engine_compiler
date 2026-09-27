@@ -1,0 +1,126 @@
+{
+  "schema": "simlox-preparation-resource-contract/v1",
+  "case_id": "C03",
+  "version": "1.0.2-plan",
+  "status": "planned_native_unverified",
+  "artifact_binding": {"manifest": "../native/manifest.json", "candidate_revision": "1.0.1", "parameter_path": "../parameters/C03.json", "rule": "before execution, resolve this case and variant in the generated manifest, require candidate_revision 1.0.1, and require its input_sha256 to equal the invocation source hash; failed candidates are never selectable"},
+  "contract_revisions": [
+    {
+      "from": "1.0.1-plan",
+      "to": "1.0.2-plan",
+      "scope": "staffing-0 acceptance wording only; native input, schedule, capacity and generator are unchanged",
+      "superseded_expectation": "both preparations remain waiting through the 540-minute latest-launch bound and perform no preparation",
+      "observed_native_behavior": "both owners request at 450 and receive failed availability; neither receives a grant or performs work; the mission cancels and both waits stop at 510",
+      "evidence": {"path": "data/local/issue18-native/f8b2face730d/v1/C03/staffing-0/probe-c03-staffing0-v101-f8b2face/model.log", "sha256": "dd69445bbf204b0f7bcd75df6de0ab7308fc907df837599a97e697b56e48318e"},
+      "boundary": "this corrects the fixed-profile observation only; it does not generalize the native cancellation rule or close C04"
+    }
+  ],
+  "acceptance_policy": {"conversion_errors": 0, "allowed_warnings": [{"number": "108", "condition": "Control.ENLOG=Y", "explanation": "ENLOG intentionally records the first repetition"}, {"number": "126", "condition": "the teaching aircraft has no Item child rows", "explanation": "the item-free deterministic case intentionally contains no fault-bearing children"}], "reject_unlisted_warnings": true, "roundtrip_required": true, "nonempty_sxi_sxo_enlog_required": true, "native_artifact_hashes_required": true},
+  "title": "two-aircraft formation sharing personnel",
+  "parent_case": "C02",
+  "requires": ["C02", "A03"],
+  "source": {
+    "method_id": "M-C03",
+    "manual_source_id": "SIMLOX-2017-USERS-REFERENCE",
+    "pdf_pages": [[180, 184], [286, 294], [397, 399]],
+    "issue": 18
+  },
+  "business_contract": {
+    "time_unit": "minute",
+    "formation_mission": {
+      "id": "FORMATION-01",
+      "mission_type": "FORMATION-TWO",
+      "required_aircraft": 2,
+      "minimum_aircraft": 2,
+      "notice": 450,
+      "planned_launch": 480,
+      "latest_launch": 540,
+      "flight_duration": 60
+    },
+    "aircraft": ["AIR-01", "AIR-02"],
+    "aircraft_roles": ["FORMATION-MEMBER-A", "FORMATION-MEMBER-B"],
+    "per_aircraft_preparation": {"task_id": "PREP-FORMATION", "duration": 30, "demands": {"P-CREW": 1}},
+    "resource_policy": {
+      "pool": "one site-level P-CREW pool shared by both aircraft",
+      "queue": "when both requests occur together, either aircraft may be granted first; the observed native tie-break must be recorded and remain stable on replay",
+      "release": "release at each aircraft preparation completion",
+      "formation_gate": "launch only after both aircraft preparations complete",
+      "no_partial_launch": "minimum equals required quantity"
+    }
+  },
+  "native_mapping": {
+    "tables": {
+      "MissionType": ["MTID", "NOS", "MNOS", "DURN", "NOPER"],
+      "MissionPreparation": ["MTID", "SID", "STID", "DURN", "TID"],
+      "Resource": ["RID", "TYPE"],
+      "ResourceAllocation": ["POINT", "RID", "STID", "RQTY"],
+      "SubTaskResource": ["TID", "SEQ", "RID", "QTY"]
+    },
+    "expected_rows": {
+      "MissionType": {"MTID": "FORMATION-TWO", "NOS": 2, "MNOS": 2, "NOPER": 0.5},
+      "MissionPreparation": {"MTID": "FORMATION-TWO", "SID": "AIR-TYPE", "STID": "BASE-01", "DURN": 0.5, "TID": "PREP-FORMATION"},
+      "Resource": {"RID": "P-CREW", "TYPE": "SPECIAL"},
+      "ResourceAllocation": {"POINT": "AIR_BASIC", "RID": "P-CREW", "STID": "BASE-01"},
+      "SubTaskResource": {"TID": "PREP-FORMATION", "SEQ": 1, "RID": "P-CREW", "QTY": 1}
+    },
+    "mapping_gate": "ResourceAllocation.POINT must equal Control.APID (AIR_BASIC); prove that one ResourceAllocation row is a shared pool for both selected aircraft; per-aircraft duplicate supply is forbidden"
+  },
+  "observability": {
+    "known_visible_from_prior_cases": ["mission creation", "aircraft allocation", "mission launch", "mission completion", "ready-state transitions", "preparation lifecycle markers"],
+    "unconfirmed_for_this_case": ["per-aircraft personnel request", "queue entry and exit", "lease owner and quantity", "resource grant and release micro-order", "formation-wide readiness gate"],
+    "acceptance_gate": "each assertion that depends on an unconfirmed field remains unverified until raw ENLOG/report output exposes it or a controlled capacity intervention uniquely distinguishes it",
+    "derived_evidence_rule": "a reconstructed ledger must be labeled derived, cite raw rows/events and cannot replace missing owner-level native evidence",
+    "failure_rule": "if staffing 2/1/0 changes launch time but request, wait, ownership or release cannot be observed, accept only the bounded launch-delay behavior and keep the resource-transaction assertions blocked"
+  },
+  "variants": [
+    {
+      "variant_id": "staffing-2",
+      "P-CREW": 2,
+      "expected_ledger": [
+        {"aircraft_role": "one_of_two_distinct_aircraft", "request": 450, "grant": 450, "release": 480},
+        {"aircraft_role": "the_other_distinct_aircraft", "request": 450, "grant": 450, "release": 480}
+      ],
+      "expected_launch": 480,
+      "expected_person_minutes": 60
+    },
+    {
+      "variant_id": "staffing-1",
+      "P-CREW": 1,
+      "expected_ledger": [
+        {"aircraft_role": "native_first_grant", "request": 450, "grant": 450, "release": 480},
+        {"aircraft_role": "native_second_grant", "request": 450, "grant": 480, "release": 510, "wait": 30}
+      ],
+      "expected_launch": 510,
+      "expected_person_minutes": 60
+    },
+    {
+      "variant_id": "staffing-0",
+      "P-CREW": 0,
+      "accepted_native_observation": "both owners request P-CREW at 450 and remain blocked without a grant, performing work, lease or launch; the native mission cancels and both waits stop at 510",
+      "latest_launch_bound": 540,
+      "cancellation_scope": "510 is accepted only as the observed result of this fixed profile; the general deadline rule remains C04"
+    }
+  ],
+  "failed_candidate_revisions": [
+    {
+      "candidate_revision": "1.0.0",
+      "variant_ids": ["staffing-2", "staffing-1", "staffing-0"],
+      "status": "native_conversion_failed",
+      "failure": {"error_number": "167", "form": "MissionPreparation", "message": "All required resources are not available at station (STID): BASE-01", "sxo_bytes": 4},
+      "source_evidence": {"source_id": "SIMLOX-2017-TABLE-DICTIONARY", "locator": "Control column 4 and ResourceAllocation column 1", "excerpt": "APID: Allocation Point Identifier; related fields include ResourceAllocation POINT", "native_comparator": "working J35 probe has Control.APID=J35 and every ResourceAllocation.POINT=J35"},
+      "diagnosis": "the failed inputs used Control.APID=AIR_BASIC but ResourceAllocation.POINT=AIR-TYPE",
+      "retention_rule": "retain every v1.0.0 input and hash as immutable failed evidence; never select it for acceptance"
+    }
+  ],
+  "expected_assertions": [
+    {"id": "C03-A1", "assert": "exactly two distinct aircraft are bound to one formation mission and both request P-CREW at 450"},
+    {"id": "C03-A2", "assert": "staffing-2 prepares both aircraft in parallel [450,480) and launches one wave/two sorties at 480"},
+    {"id": "C03-A3", "assert": "staffing-1 grants either one of the two bound aircraft at 450, queues the other without a lease, regrants after release at 480, and launches one wave/two sorties at 510; the observed tie-break identity is recorded, not predetermined"},
+    {"id": "C03-A4", "assert": "staffing-0 gives both distinct owners failed P-CREW availability at 450, performs no resource-backed work, grants no lease and launches no aircraft; the observed mission cancellation and both stopped waits occur at 510"},
+    {"id": "C03-A5", "assert": "capacity is changed by one ResourceAllocation quantity field only; schedules, tasks and identities are byte-equivalent after normalized comparison"},
+    {"id": "C03-A6", "assert": "all variants conserve personnel and have no lease after completion or terminal cancellation"},
+    {"id": "C03-A7", "assert": "event evidence includes request, wait, acquire, release, preparation completion and launch; final completion rate alone fails acceptance"}
+  ],
+  "acceptance_evidence": ["full aircraft and mission bijection", "per-aircraft request/wait/lease ledger", "left/right snapshots at 480 and 510", "one-wave/two-sortie result", "capacity-only parent diff", "raw and normalized native artifacts", "independent replay"],
+  "limitations": ["The staffing-2 and staffing-1 launch times require sealed native evidence before publication", "An existing staggered equipment-contention probe cannot satisfy this case", "The staffing-0 cancellation at 510 is a fixed-profile observation before the 540 latest-launch bound; its general deadline/cancellation rule remains a separate C04 capability"]
+}

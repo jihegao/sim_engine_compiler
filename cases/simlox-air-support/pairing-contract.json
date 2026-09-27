@@ -1,0 +1,399 @@
+{
+  "contract_id": "simlox-air-support-a01-a02-pairing-v1",
+  "status": "cross_engine_unverified",
+  "authority": "teaching-case business contract; no change to existing Python/J35 defaults",
+  "inputs": {
+    "aircraft_business_id": "TEACH-AIR-01",
+    "base_business_id": "BASE-01",
+    "mission_business_id": "BASIC-MISSION",
+    "aircraft_count": 1,
+    "required_aircraft_per_wave": 1,
+    "mission_duration_minutes": 120,
+    "notice_lead_minutes": 60,
+    "delay_window_minutes": 20,
+    "planned_start_minutes": {
+      "A01": [
+        480
+      ],
+      "A02": [
+        480,
+        1200,
+        1920
+      ]
+    },
+    "observation_start_minutes": 0,
+    "observation_end_minutes": 2160,
+    "disabled_mechanisms": [
+      "preparation",
+      "fault",
+      "PM",
+      "CM",
+      "stock",
+      "resource_capacity_constraint"
+    ]
+  },
+  "events_to_compare": [
+    "mission_notice",
+    "mission_created",
+    "mission_activated",
+    "aircraft_allocation",
+    "ready_decreased",
+    "launch",
+    "mission_success",
+    "mission_complete",
+    "ready_increased"
+  ],
+  "metrics_to_compare": [
+    "planned_waves",
+    "launched_waves",
+    "sorties",
+    "completed_waves",
+    "cancelled_waves",
+    "unfinished_at_horizon",
+    "mission_operation_hours_from_actual_start_end",
+    "per_interval_FTMO_NSYMO_NSYMA_NSYMR_NSYRY",
+    "allocation_ready_transitions"
+  ],
+  "native_metric_boundary": "SystemResults.FTMO times interval width integrates to 2/6 mission-operation hours in the normal A01/A02 runs. This is separate from an independently clipped observation-window duration, and is not assumed to be a native cumulative OPHOURS counter.",
+  "window_boundary_status": "36-hour normal missions finish before the end. Five early SIMPE boundary probes are rejected by native #204, while 10.5/12-hour controls run successfully; exact native validity threshold and crossing-stop behavior remain unknown. Five valid RCEND-only probes show SystemResults.FTMO clipping while the full ENLOG continues; ResultSummary and SystemResults use different boundaries. No cross-engine terminal cutoff equivalence is claimed.",
+  "identity_rule": "Use stable business IDs; native one-SID/QTYPS=1 ordinal only identifies the sole instance in these cases, not a general tail mapping.",
+  "time_rule": "SIMLOX ENLOG prints decimal hours of limited precision; compare exact model schedule and integers, and state a narrow precision bound for observed hours. Do not treat printed ties as internal scheduler priority.",
+  "raw_fingerprints": {
+    "A01_native_input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "A02_native_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8"
+  },
+  "acceptance": "Independent AMD128 implementation and native first-sample evidence must both satisfy this same contract; matching seeds are not pairing evidence. No cross-engine status is claimed in this slice.",
+  "full_case_contracts": {
+    "A01": {
+      "relative_path": "A01-single-aircraft-single-mission/contract.json",
+      "sha256": "29d81aeadc5b138b07a3e6242fec8df74a768998c71d3ee0e5e4ca0bf45c7cb6",
+      "content": {
+        "case_id": "A01",
+        "version": "1.0.0",
+        "parent_case": null,
+        "delta": "baseline single scheduled mission",
+        "requires": [],
+        "time_unit_native": "hour",
+        "time_unit_pairing": "minute",
+        "hours_to_minutes": 60,
+        "aircraft": [
+          {
+            "business_id": "TEACH-AIR-01",
+            "native_sid": "TEACH-AIR-01",
+            "qtyps": 1,
+            "base": "BASE-01",
+            "initial_state": "ready"
+          }
+        ],
+        "mechanisms": {
+          "preparation": false,
+          "fault": false,
+          "pm": false,
+          "cm": false,
+          "stock": false,
+          "resource_constraint": false
+        },
+        "native_inert_rows": {
+          "MissionPreparation": "no business row; native ENLOG still emits same-time lifecycle markers but NPSTA=0 and no resource work",
+          "System": "FRT=0 with no Item rows; warning #126 is expected and must be explained",
+          "Control": "ENLOG=Y intentionally produces warning #108"
+        },
+        "mission": {
+          "business_id": "BASIC-MISSION",
+          "planned_wave_count": 1,
+          "required_aircraft_per_wave": 1,
+          "duration_hours": 2,
+          "notice_lead_hours": 1,
+          "delay_window_minutes": 20,
+          "schedule_hours": [
+            8
+          ],
+          "success_if": "one aircraft launches and completes the full two-hour mission without a fault"
+        },
+        "observation": {
+          "start_hours": 0,
+          "end_hours": 36,
+          "interval_minutes": 30,
+          "end_semantics": "the normal case finishes before the end; native crossing-end behavior is a separate measured probe, and derived clipped-window exposure is distinct from native FTMO"
+        },
+        "hand_expected": {
+          "notification_hours": [
+            7
+          ],
+          "planned_start_hours": [
+            8
+          ],
+          "actual_start_hours": [
+            8
+          ],
+          "actual_end_hours": [
+            10
+          ],
+          "reserved_not_ready_intervals_hours": [
+            [
+              7,
+              8
+            ]
+          ],
+          "flight_intervals_hours": [
+            [
+              8,
+              10
+            ]
+          ],
+          "ready_after_hours": [
+            10
+          ],
+          "flight_hours_integral": 2,
+          "ready_hours_integral": 33,
+          "native_preparation_started_count": 0,
+          "planned_waves": 1,
+          "launched_waves": 1,
+          "sorties": 1,
+          "completed_waves": 1,
+          "cancelled_waves": 0,
+          "unfinished_at_horizon": 0
+        },
+        "cutoff_boundary": {
+          "deadline_hours": 8.333333333333334,
+          "before_tie_after_status": "not exercised by this always-ready no-preparation case; no native priority claim from printed decimals"
+        }
+      }
+    },
+    "A02": {
+      "relative_path": "A02-single-aircraft-repeated-missions/contract.json",
+      "sha256": "f192c22de44ec20cf8581e2652ce8b4a44fc315acb7998624be340cb5a42a465",
+      "content": {
+        "case_id": "A02",
+        "version": "1.0.0",
+        "parent_case": "A01@1.0.0",
+        "delta": "add two non-overlapping OperationProfile rows at 20h and 32h; all other business fields unchanged",
+        "requires": [
+          "A01 CLI behavior verified; GUI acceptance is a separate publication gate"
+        ],
+        "time_unit_native": "hour",
+        "time_unit_pairing": "minute",
+        "hours_to_minutes": 60,
+        "aircraft": [
+          {
+            "business_id": "TEACH-AIR-01",
+            "native_sid": "TEACH-AIR-01",
+            "qtyps": 1,
+            "base": "BASE-01",
+            "initial_state": "ready"
+          }
+        ],
+        "mechanisms": {
+          "preparation": false,
+          "fault": false,
+          "pm": false,
+          "cm": false,
+          "stock": false,
+          "resource_constraint": false
+        },
+        "native_inert_rows": {
+          "MissionPreparation": "no business row; native ENLOG still emits same-time lifecycle markers but NPSTA=0 and no resource work",
+          "System": "FRT=0 with no Item rows; warning #126 is expected and must be explained",
+          "Control": "ENLOG=Y intentionally produces warning #108"
+        },
+        "mission": {
+          "business_id": "BASIC-MISSION",
+          "planned_wave_count": 3,
+          "required_aircraft_per_wave": 1,
+          "duration_hours": 2,
+          "notice_lead_hours": 1,
+          "delay_window_minutes": 20,
+          "schedule_hours": [
+            8,
+            20,
+            32
+          ],
+          "success_if": "one aircraft launches and completes each full two-hour mission without a fault"
+        },
+        "observation": {
+          "start_hours": 0,
+          "end_hours": 36,
+          "interval_minutes": 30,
+          "end_semantics": "all three missions finish before the end; native crossing-end behavior is a separate measured probe, and derived clipped-window exposure is distinct from native FTMO"
+        },
+        "hand_expected": {
+          "notification_hours": [
+            7,
+            19,
+            31
+          ],
+          "planned_start_hours": [
+            8,
+            20,
+            32
+          ],
+          "actual_start_hours": [
+            8,
+            20,
+            32
+          ],
+          "actual_end_hours": [
+            10,
+            22,
+            34
+          ],
+          "reserved_not_ready_intervals_hours": [
+            [
+              7,
+              8
+            ],
+            [
+              19,
+              20
+            ],
+            [
+              31,
+              32
+            ]
+          ],
+          "flight_intervals_hours": [
+            [
+              8,
+              10
+            ],
+            [
+              20,
+              22
+            ],
+            [
+              32,
+              34
+            ]
+          ],
+          "ready_after_hours": [
+            10,
+            22,
+            34
+          ],
+          "flight_hours_integral": 6,
+          "ready_hours_integral": 27,
+          "native_preparation_started_count": 0,
+          "planned_waves": 3,
+          "launched_waves": 3,
+          "sorties": 3,
+          "completed_waves": 3,
+          "cancelled_waves": 0,
+          "unfinished_at_horizon": 0
+        },
+        "cutoff_boundary": {
+          "deadline_hours": [
+            8.333333333333334,
+            20.333333333333332,
+            32.333333333333336
+          ],
+          "before_tie_after_status": "not exercised by this always-ready no-preparation case; no native priority claim from printed decimals"
+        }
+      }
+    }
+  },
+  "native_instance_identity": {
+    "aircraft": "<TEACH-AIR-01,0>",
+    "mission_instance_tags": {
+      "A01": [
+        "<BASIC-MISSION,TEACH-UNIT,0,0,0>"
+      ],
+      "A02": [
+        "<BASIC-MISSION,TEACH-UNIT,0,0,0>",
+        "<BASIC-MISSION,TEACH-UNIT,0,0,1>",
+        "<BASIC-MISSION,TEACH-UNIT,0,0,2>"
+      ]
+    }
+  },
+  "per_case_timeline_hours": {
+    "A01": {
+      "notice_allocation_ready_drop": [
+        7
+      ],
+      "launch": [
+        8
+      ],
+      "completion_ready_restore": [
+        10
+      ],
+      "reserved_intervals": [
+        [
+          7,
+          8
+        ]
+      ],
+      "integrals_aircraft_hours": {
+        "FTMO": 2,
+        "NSYMO": 2,
+        "NSYMA": 3,
+        "NSYMR": 1,
+        "NSYRY": 33
+      }
+    },
+    "A02": {
+      "notice_allocation_ready_drop": [
+        7,
+        19,
+        31
+      ],
+      "launch": [
+        8,
+        20,
+        32
+      ],
+      "completion_ready_restore": [
+        10,
+        22,
+        34
+      ],
+      "reserved_intervals": [
+        [
+          7,
+          8
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          31,
+          32
+        ]
+      ],
+      "integrals_aircraft_hours": {
+        "FTMO": 6,
+        "NSYMO": 6,
+        "NSYMA": 9,
+        "NSYMR": 3,
+        "NSYRY": 27
+      }
+    }
+  },
+  "native_evidence": {
+    "A01": {
+      "run_id": "a01-bound-final-20260927-03",
+      "hashes_sha256": {
+        "invocation.json": "6e5d18919d34b36455384cb833d49efc69d06fc11645f167b4badb92d0d62d90",
+        "closure.json": "7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e",
+        "input.json": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+        "model.sxi": "47cc6f3b7026affa210f17a9c77989ba661796cce5a1e09f0c4759ca2929d003",
+        "model.sxo": "b22e832c44c5780ecd6b3e10ef0d4cedcafbd2ae66a02df70d6b75ba302876bf",
+        "model.log": "6337dc631e574eb9fab1eb24c45b4a3e1568d7e645282051c234a032591887ed",
+        "report-raw.json": "b9b7d970e7f12763f0098eb2d2c546cc2ed2b68792840e74f2175fcd4ca14099",
+        "validation.json": "efb890ce63254fc80d4ca26b8367b825451bd872df13c2528712dd08c7a14839"
+      }
+    },
+    "A02": {
+      "run_id": "a02-bound-final-20260927-03",
+      "hashes_sha256": {
+        "invocation.json": "45a5b918d2429476399ddbde9a2e166815b6ba8e9a09d8906b3ef13ecbb3e87d",
+        "closure.json": "fc0cc2d0578d2e8d126e79886ab2ba72238a725aea86c361ede6d48dadc6a69a",
+        "input.json": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+        "model.sxi": "ce9ee98d1ef08e5e02d8c0ac381cbcff55b21cf1c2cc71dfb67c9fe6b1875fa1",
+        "model.sxo": "960c917c8846fab038d088493e6da35092dbcaf6ef3a3ad31fb1ae54ce7f546a",
+        "model.log": "5101ef9157f941627a2851774d884f9ec5abe92af894af0c177221749eca66ba",
+        "report-raw.json": "a7227687988841c074b28b524792af7d856cd674840169bf15c210f2d2cd4739",
+        "validation.json": "d4b1e7c5b6f3d8cd968b1640643d19fffbe48c72e6e5dddf1a3f6b34f115cba4"
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "simlox-preparation-resource-contract/v1",
+  "case_id": "B02",
+  "version": "1.0.1-native-input-plan",
+  "status": "planned_native_unverified",
+  "artifact_binding": {"manifest": "../native/manifest.json", "candidate_revision": "1.0.1", "parameter_path": "../parameters/B02-v1.0.1.json", "rule": "before execution, resolve the unique active case_id and variant_id candidate, require candidate_revision 1.0.1, and require its input_sha256 to equal the invocation source hash; failed_candidates and superseded revisions are never selectable"},
+  "acceptance_policy": {"conversion_errors": 0, "allowed_warnings": [{"number": "108", "condition": "Control.ENLOG=Y", "explanation": "ENLOG intentionally records the first repetition"}, {"number": "126", "condition": "the teaching aircraft has no Item child rows", "explanation": "the item-free deterministic case intentionally contains no fault-bearing children"}], "reject_unlisted_warnings": true, "roundtrip_required": true, "nonempty_sxi_sxo_enlog_required": true, "native_artifact_hashes_required": true},
+  "title": "serial preparation steps",
+  "parent_case": "B01",
+  "requires": ["B01"],
+  "source": {
+    "method_id": "M-B02",
+    "manual_source_id": "SIMLOX-2017-USERS-REFERENCE",
+    "pdf_pages": [[294, 297], [400, 405]]
+  },
+  "business_contract": {
+    "time_unit": "minute",
+    "mission": {"id": "MISSION-01", "notice": 420, "planned_launch": 480},
+    "preparation": {
+      "task_id": "PREP-SERIAL",
+      "scalar_duration": 45,
+      "effective_duration": 30,
+      "steps": [
+        {"sequence": 1, "step_id": "INSPECT", "duration": 10},
+        {"sequence": 2, "step_id": "SERVICE", "duration": 20}
+      ]
+    },
+    "rules": [
+      "steps execute strictly in ascending SEQ order",
+      "SERVICE cannot start before INSPECT completes",
+      "MissionPreparation.DURN is deliberately 45 minutes; TaskBreakDown must determine the effective 30-minute work and must not add to it"
+    ]
+  },
+  "native_mapping": {
+    "time_unit": "hour",
+    "tables": {
+      "MissionPreparation": ["MTID", "SID", "STID", "DURN", "TID"],
+      "Tasks": ["TID"],
+      "SubTaskType": ["SUTID"],
+      "TaskBreakDown": ["TID", "SEQ", "SUTID", "DURN", "DURND"]
+    },
+    "expected_rows": {
+      "MissionType": {"MTID": "MISSION-BASIC", "NOPER": 1.0},
+      "MissionPreparation": {"MTID": "MISSION-BASIC", "SID": "AIR-TYPE", "STID": "BASE-01", "TID": "PREP-SERIAL", "DURN": 0.75},
+      "TaskBreakDown": [
+        {"TID": "PREP-SERIAL", "SEQ": 1, "SUTID": "INSPECT", "DURN": 0.16666666666666666},
+        {"TID": "PREP-SERIAL", "SEQ": 2, "SUTID": "SERVICE", "DURN": 0.3333333333333333}
+      ]
+    }
+  },
+  "variants": [
+    {"variant_id": "serial-10m-20m", "candidate_revision": "1.0.1", "notice_lead_minutes": 60, "step_durations": [10, 20]}
+  ],
+  "failed_candidate_revisions": [
+    {
+      "candidate_revision": "1.0.0",
+      "variant_id": "serial-10m-20m",
+      "notice_lead_minutes": 30,
+      "status": "native_conversion_failed",
+      "failure": {"error_number": "200", "message": "Preparation duration (DURN) is longer than or equal to the notice period (NOPER) of the mission type", "sxo_bytes": 4, "closure_present": false},
+      "retention_rule": "retain the original input and hash as immutable failed evidence; never select it for acceptance"
+    }
+  ],
+  "deferred_variants": [
+    {"variant_id": "no-breakdown-control", "status": "deferred_not_generated_in_v1", "step_durations": [], "scalar_duration": 30},
+    {"variant_id": "zero-first-step", "status": "deferred_not_generated_in_v1", "step_durations": [0, 20], "purpose": "test zero-time serial transition"}
+  ],
+  "expected_assertions": [
+    {"id": "B02-A1", "assert": "revision 1.0.1 notifies at 420; INSPECT runs [420,430) and SERVICE runs [430,450)"},
+    {"id": "B02-A2", "assert": "step starts and completions preserve SEQ 1 then 2"},
+    {"id": "B02-A3", "assert": "preparation completes at 450; the deliberately different 45-minute scalar DURN is overridden by, and not added to, the 30-minute breakdown"},
+    {"id": "B02-A4", "assert": "aircraft remains prepared until planned launch at 480; launch occurs no earlier than 480"},
+    {"id": "B02-A5", "assert": "per-step work is observable or the case remains blocked rather than inferred from total duration"}
+  ],
+  "acceptance_evidence": ["B01 parent comparison", "TaskBreakDown roundtrip", "per-step event timeline", "preparation and launch events", "first discrepancy report"],
+  "limitations": ["TaskBreakDown establishes strict serial work only; it does not establish arbitrary parallel task graphs"]
+}

@@ -1,0 +1,6068 @@
+{
+  "schema": "simlox-manual-coverage/v2",
+  "method_count": 108,
+  "input_table_count": 133,
+  "meaning": "目录覆盖表示已指派最小案例、选项与验收计划；不表示模型可运行或行为已验收",
+  "methods": [
+    {
+      "method_id": "M-A01",
+      "title": "单机、单任务、忽略保障与故障",
+      "primary_case_id": "A01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          179,
+          183
+        ],
+        [
+          261,
+          267
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "OperationProfile",
+        "Operations",
+        "SystemDeployment"
+      ],
+      "checked_fields": [
+        "MissionType.MPAT",
+        "MissionType.DURN",
+        "MissionType.MSUCPT",
+        "MissionType.TFOUT",
+        "MissionType.TFRET"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "TFOUT/TFRET 为零或和为一",
+        "MSUCPT 前/打印同刻/后退出",
+        "确定/随机 DURN 分开验证",
+        "终点未完成与采集窗口结束分开"
+      ],
+      "limitations": [
+        "既有 A01 GUI 校准与发布待完成；新变体全部待原生验证",
+        "成功点仅影响统计；不得由成功率推断完成或持续可用"
+      ]
+    },
+    {
+      "method_id": "M-A02",
+      "title": "单机、多次非重叠任务",
+      "primary_case_id": "A02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          179,
+          183
+        ],
+        [
+          270,
+          275
+        ]
+      ],
+      "input_tables": [
+        "OperationProfile",
+        "MissionType"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "任务间隔刚好足够/不足",
+        "重复任务与采集终点关系",
+        "同刻重复另立竞争变体"
+      ],
+      "limitations": [
+        "既有 A02 为 CLI 临时派生；父例及本例 GUI 发布门槛仍待完成"
+      ]
+    },
+    {
+      "method_id": "M-A03",
+      "title": "多机编队任务与数量要求",
+      "primary_case_id": "A03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          184,
+          188
+        ],
+        [
+          262,
+          265
+        ],
+        [
+          302,
+          304
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "MissionSystem",
+        "SystemDeployment"
+      ],
+      "checked_fields": [
+        "MissionType.NOS",
+        "MissionType.MNOS",
+        "MissionType.MNOSA"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "可用数量为零/少于最低/恰好最低/满足期望",
+        "起飞下限与继续下限不同",
+        "混合机型扩展见 A11"
+      ],
+      "limitations": [
+        "自然语言编队不自动表示使用原生 Formation 表；显式编队另由 A11 验收"
+      ]
+    },
+    {
+      "method_id": "M-A04",
+      "title": "多日、多波次与最低出动数量",
+      "primary_case_id": "A04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          179,
+          188
+        ],
+        [
+          270,
+          276
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "OperationProfile",
+        "Operations"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "日末返航/跨日返航",
+        "需求恰好满足/不足",
+        "重复曲线与显式任务行对照",
+        "终点尚有任务待执行"
+      ],
+      "limitations": [
+        "A04 不代表连续、可延长、再生和随机启动机制已经验收"
+      ]
+    },
+    {
+      "method_id": "M-A05",
+      "title": "连续任务、暂停与补机恢复",
+      "primary_case_id": "A05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          179,
+          183
+        ],
+        [
+          265,
+          266
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "OperationProfile",
+        "MissionSystem"
+      ],
+      "checked_fields": [
+        "MissionType.MPAT",
+        "MissionType.MNOS",
+        "MissionType.MNOSA"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "初始不足",
+        "中途损失与补机",
+        "MNOSA 小于 MNOS",
+        "恢复要求与继续要求不同",
+        "终点仍暂停"
+      ],
+      "limitations": [
+        "完整方法尚未原生验证；随机中断须保留实际事件，不能按种子预设故障时刻"
+      ]
+    },
+    {
+      "method_id": "M-A06",
+      "title": "可延长任务与有效任务时间",
+      "primary_case_id": "A06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          179,
+          183
+        ],
+        [
+          265,
+          266
+        ]
+      ],
+      "input_tables": [
+        "MissionType"
+      ],
+      "checked_fields": [
+        "MissionType.MPAT",
+        "MissionType.DURN"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "无中断",
+        "单次/多次中断",
+        "暂停跨统计窗口",
+        "延长后超过仿真终点"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-A07",
+      "title": "再生任务与持续巡逻接替",
+      "primary_case_id": "A07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          179,
+          182
+        ],
+        [
+          187,
+          187
+        ],
+        [
+          270,
+          275
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "OperationProfile"
+      ],
+      "checked_fields": [
+        "OperationProfile.ITYPE",
+        "OperationProfile.IPER",
+        "MissionType.TFOUT",
+        "MissionType.TFRET"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "足够/不足飞机",
+        "在站时间为零",
+        "再生期间不足以到达任务区",
+        "子任务失败提前接替",
+        "末尾残余区间"
+      ],
+      "limitations": [
+        "REGENERATIVE 的 IQTY/IQTYD 无效组合必须拒绝",
+        "退化配置可能产生密集同刻任务，运行前需明确事件和资源界限"
+      ]
+    },
+    {
+      "method_id": "M-A08",
+      "title": "随机任务数量与启动时间",
+      "primary_case_id": "A08",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          179,
+          180
+        ],
+        [
+          271,
+          275
+        ]
+      ],
+      "input_tables": [
+        "OperationProfile",
+        "IntegerDistributions"
+      ],
+      "checked_fields": [
+        "OperationProfile.IQTY",
+        "OperationProfile.IQTYD",
+        "OperationProfile.IDISP"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "固定数量/随机时刻",
+        "随机数量/等间隔",
+        "随机数量/随机时刻",
+        "IPER=0 同刻启动",
+        "IQTYD=<POISSON> 或整数分布",
+        "非法 Scheduled+IQTYD"
+      ],
+      "limitations": [
+        "固定种子不保证外部引擎相同随机流",
+        "ITYPE 和 MPAT 属于不同维度；组合许可范围仍须转换及运行确认"
+      ]
+    },
+    {
+      "method_id": "M-A09",
+      "title": "层次任务曲线与重复子曲线",
+      "primary_case_id": "A09",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          270,
+          276
+        ]
+      ],
+      "input_tables": [
+        "OperationProfile",
+        "Operations"
+      ],
+      "checked_fields": [
+        "OperationProfile.PRID",
+        "OperationProfile.SPRID",
+        "OperationProfile.STIM",
+        "OperationProfile.IQTY",
+        "OperationProfile.IPER"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单层/多层子曲线",
+        "IQTY>1 且 IPER=0",
+        "正 IPER 等间隔",
+        "同键多行与 IQTY 对照",
+        "子曲线非法 Random/Regenerative",
+        "缺引用/循环引用"
+      ],
+      "limitations": [
+        "普通表的唯一键规则不能直接套用于 OperationProfile；重复键会影响某些数据库交换路径"
+      ]
+    },
+    {
+      "method_id": "M-A10",
+      "title": "默认任务曲线与平均使用量",
+      "primary_case_id": "A10",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          194,
+          196
+        ],
+        [
+          276,
+          280
+        ]
+      ],
+      "input_tables": [
+        "SystemDeployment",
+        "SystemDeploymentUtilization",
+        "Operations",
+        "Control"
+      ],
+      "checked_fields": [
+        "SystemDeployment.UTIL",
+        "SystemDeployment.QTYPS",
+        "SystemDeploymentUtilization.OPID",
+        "SystemDeploymentUtilization.UTIL"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单/多机",
+        "无任务率/显式任务率",
+        "尾部非整数周期",
+        "显式曲线覆盖",
+        "默认保留标识冲突"
+      ],
+      "limitations": [
+        "p194 的 mclen 比较条件与 p195 示例有冲突，列为能力探针；不能未经校准将推断公式写为通过标准",
+        "默认曲线不在 Profile View 直接绘制，需核对 explorer 与事件"
+      ]
+    },
+    {
+      "method_id": "M-A11",
+      "title": "混合机型与显式编队备选",
+      "primary_case_id": "A11",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          184,
+          188
+        ],
+        [
+          281,
+          294
+        ],
+        [
+          302,
+          304
+        ]
+      ],
+      "input_tables": [
+        "MissionSystem",
+        "Formation",
+        "FormationSystem",
+        "MissionFormation"
+      ],
+      "checked_fields": [
+        "FormationSystem.NOS",
+        "MissionFormation.PRI",
+        "MissionFormation.ALOAA",
+        "MissionSystem.PRI"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "期望/最低/继续数量分开",
+        "高优先编队缺一架",
+        "同优先级非法配置",
+        "ALOAA=Y 退化编队",
+        "连续任务升级编队",
+        "类型/子系统/组引用限制"
+      ],
+      "limitations": [
+        "同一 MissionSystem 的 NOS/MNOS 可空性在正文与字段说明间不一致，需回导和转换探针"
+      ]
+    },
+    {
+      "method_id": "M-A12",
+      "title": "飞机分配、任务优先级与改派",
+      "primary_case_id": "A12",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          184,
+          188
+        ],
+        [
+          266,
+          267
+        ],
+        [
+          302,
+          307
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "MissionSystem",
+        "MissionPreparation",
+        "MissionTurnround"
+      ],
+      "checked_fields": [
+        "MissionType.PRI",
+        "MissionType.NOPER"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "同/不同 PRI",
+        "就绪来源与机型偏好冲突",
+        "活动维修与缺件等待区别",
+        "预分配/准备中/准备完成改派",
+        "相同优先级只收回超额",
+        "重构中不可抢占",
+        "非关键故障飞机选择"
+      ],
+      "limitations": [
+        "打印同刻不证明内部优先级；J35 取消合同差异独立保留"
+      ]
+    },
+    {
+      "method_id": "M-A13",
+      "title": "任务成功与返航前置依赖",
+      "primary_case_id": "A13",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          188,
+          188
+        ],
+        [
+          287,
+          289
+        ]
+      ],
+      "input_tables": [
+        "MissionDependence",
+        "MissionType",
+        "OperationProfile"
+      ],
+      "checked_fields": [
+        "MissionDependence.DTYPE",
+        "MissionDependence.DUNID",
+        "MissionDependence.PUNID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单/多个前置",
+        "跨单位/单位组",
+        "先准备后等待",
+        "失败与未完成",
+        "重复任务身份歧义",
+        "Fixed 前置/非 Fixed 前置"
+      ],
+      "limitations": [
+        "p287 角色措辞与 p188/289/292 冲突；按前置/后继各自模式设计判别探针"
+      ]
+    },
+    {
+      "method_id": "M-A14",
+      "title": "并行任务依赖、互依与依赖曲线",
+      "primary_case_id": "A14",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          188,
+          188
+        ],
+        [
+          287,
+          292
+        ]
+      ],
+      "input_tables": [
+        "MissionDependence",
+        "MissionDependenceProfile",
+        "OperationProfile"
+      ],
+      "checked_fields": [
+        "MissionDependence.MUTD",
+        "MissionDependence.DTTOL",
+        "MissionDependenceProfile.PRID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "DTYPE=CONTINUOUS",
+        "DTTOL 前/打印同刻/后",
+        "连续/再生间隙与 Fixed 前置区别",
+        "MUTD=Y",
+        "两条普通相向依赖反例",
+        "层次重复依赖",
+        "叶任务 IQTY>1 负例"
+      ],
+      "limitations": [
+        "互依并非任意循环依赖；同刻行为需实际事件证据"
+      ]
+    },
+    {
+      "method_id": "M-A15",
+      "title": "自定义使用量与多种暴露参数",
+      "primary_case_id": "A15",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          183,
+          184
+        ],
+        [
+          267,
+          270
+        ],
+        [
+          279,
+          280
+        ]
+      ],
+      "input_tables": [
+        "OperationParameter",
+        "MissionTypeUtilization",
+        "SystemDeploymentUtilization"
+      ],
+      "checked_fields": [
+        "OperationParameter.OPID",
+        "MissionTypeUtilization.UTIL",
+        "MissionTypeUtilization.UTILU"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "OPHOURS/CALHOURS/MISSIONS 的适用表",
+        "自定义里程/循环量",
+        "小时率/任务率",
+        "多参数同时累计",
+        "未完成任务",
+        "非法重定义预定义 OPID"
+      ],
+      "limitations": [
+        "自定义任务使用量连续均摊；不能当作精确发生在返航时刻的一次着陆事件"
+      ]
+    },
+    {
+      "method_id": "M-A16",
+      "title": "任务驱动的飞机构型转换",
+      "primary_case_id": "A16",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          178,
+          189
+        ]
+      ],
+      "input_tables": [
+        "System",
+        "ItemStructure",
+        "MissionSystem",
+        "ItemReplacement",
+        "SystemRepair",
+        "TaskBreakDown"
+      ],
+      "checked_fields": [
+        "System.CBSID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "基础到构型/构型到构型",
+        "缺一个附加件",
+        "资源不足",
+        "并行拆装",
+        "重构期间高优先任务到达",
+        "连续任务暂停期间限制"
+      ],
+      "limitations": [
+        "附加物只能是传统模型主件；子系统/ASSY 及显式 failure-mode/CM 附加件不在该方法允许范围"
+      ]
+    },
+    {
+      "method_id": "M-A17",
+      "title": "显式单位、单位组与选机顺序",
+      "primary_case_id": "A17",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          178,
+          178
+        ],
+        [
+          184,
+          185
+        ],
+        [
+          196,
+          196
+        ],
+        [
+          307,
+          314
+        ]
+      ],
+      "input_tables": [
+        "Unit",
+        "UnitGroup",
+        "UnitGroupMember",
+        "SystemDeployment",
+        "Operations"
+      ],
+      "checked_fields": [
+        "UnitGroup.UNPR1",
+        "UnitGroupMember.PRI",
+        "UnitGroupMember.XTIME"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "多个单位同站",
+        "混合机型",
+        "同优先级循环",
+        "不同 PRI",
+        "UNPR1=Y/N",
+        "XTIME 非零",
+        "对称站点组",
+        "向单位组直接部署负例"
+      ],
+      "limitations": [
+        "XTIME 为结果延迟修正，不是实际飞行时间；地图坐标也不定义地理运动"
+      ]
+    },
+    {
+      "method_id": "M-A18",
+      "title": "备用单位与整项任务转交",
+      "primary_case_id": "A18",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          187,
+          187
+        ],
+        [
+          307,
+          308
+        ]
+      ],
+      "input_tables": [
+        "AlternateUnit",
+        "Control",
+        "Operations"
+      ],
+      "checked_fields": [
+        "AlternateUnit.USTID",
+        "AlternateUnit.AUNID",
+        "AlternateUnit.PRI",
+        "Control.ENALU"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "首选可用/次选可用/全不可用",
+        "初次后变为可用",
+        "ENALU=Y/N",
+        "单位组与显式编队不适用负例"
+      ],
+      "limitations": [
+        "p187 仅首次检查与 p308 后续重试描述冲突，当前能力未确认"
+      ]
+    },
+    {
+      "method_id": "M-B01",
+      "title": "每次任务前固定准备",
+      "primary_case_id": "B01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          181,
+          182
+        ],
+        [
+          294,
+          297
+        ]
+      ],
+      "input_tables": [
+        "MissionPreparation",
+        "MissionType"
+      ],
+      "checked_fields": [
+        "MissionPreparation.DURN",
+        "MissionPreparation.TID",
+        "MissionType.NOPER"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "零/正准备时长",
+        "NOPER 恰好足够/不足",
+        "不同任务/机型/站点映射",
+        "标量随机时长另立变体"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-B02",
+      "title": "多道串行保障工序",
+      "primary_case_id": "B02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          294,
+          297
+        ],
+        [
+          400,
+          405
+        ]
+      ],
+      "input_tables": [
+        "Tasks",
+        "TaskBreakDown",
+        "SubTaskType",
+        "SubTaskResource",
+        "MissionPreparation"
+      ],
+      "checked_fields": [
+        "TaskBreakDown.SEQ",
+        "TaskBreakDown.SUTID",
+        "TaskBreakDown.DURN",
+        "TaskBreakDown.DURND"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "零时长工序",
+        "工序间等待",
+        "自定义子工序",
+        "预定义必需工序合法性",
+        "各步分布与 <MAINDIST>",
+        "无分解对照"
+      ],
+      "limitations": [
+        "TaskBreakDown 为严格串行，不能据此宣称支持任意并行工序图"
+      ]
+    },
+    {
+      "method_id": "M-B03",
+      "title": "显式任务类型的冷启动首波与热出动保障差异",
+      "primary_case_id": "B03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          181,
+          183
+        ],
+        [
+          226,
+          226
+        ],
+        [
+          294,
+          297
+        ],
+        [
+          305,
+          307
+        ],
+        [
+          400,
+          404
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "MissionPreparation",
+        "OperationProfile",
+        "Tasks",
+        "TaskBreakDown"
+      ],
+      "checked_fields": [
+        "MissionType.MTID",
+        "MissionPreparation.MTID",
+        "MissionPreparation.TID",
+        "OperationProfile.MTID",
+        "Tasks.TID",
+        "TaskBreakDown.TID",
+        "TaskBreakDown.SEQ"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "COLD-FIRST 首波冷启动工序",
+        "HOT-SORTIE 后续热出动工序",
+        "同一 MTID 按历史出动序号自动切换的独立能力探针"
+      ],
+      "limitations": [
+        "explicit-mission-type-v1 是经确认可接受的业务替代合同，不声称 SIMLOX 能按出动历史自动识别首次与再次出动",
+        "同一 MTID 按历史出动序号自动切换仍未确认；加油状态相关省略仍由 B05 独立验证",
+        "首批显式任务类型模型不使用 MissionTurnround，不产生返航保障能力证据"
+      ]
+    },
+    {
+      "method_id": "M-B04",
+      "title": "返航保障与跨日任务衔接",
+      "primary_case_id": "B04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          181,
+          183
+        ],
+        [
+          305,
+          307
+        ]
+      ],
+      "input_tables": [
+        "MissionTurnround",
+        "MissionType",
+        "OperationProfile"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "日界前/同刻/后完成",
+        "无资源/资源充足",
+        "下一任务通知早于保障完成",
+        "返航后需要修理",
+        "主时长与子工序覆盖"
+      ],
+      "limitations": [
+        "跨日衔接可独立验证；通用首次/再次差异仍依 B03 探针"
+      ]
+    },
+    {
+      "method_id": "M-B05",
+      "title": "加油、装载与预定义子工序",
+      "primary_case_id": "B05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          226,
+          226
+        ],
+        [
+          400,
+          404
+        ]
+      ],
+      "input_tables": [
+        "SubTaskType",
+        "TaskBreakDown",
+        "MissionPreparation",
+        "MissionTurnround"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "<REFUELLING>",
+        "<PAYLOADING>/<UNLOADING>",
+        "<INSPECT>",
+        "<REMOVE>/<REPLACE> 的顺序与适用任务",
+        "直接修理的 <REPAIR>",
+        "普通自定义 SUTID"
+      ],
+      "limitations": [
+        "自定义子任务不能定义与预定义子任务相同的任意内置约束",
+        "改派变体需先验收 A12；原生名包含尖括号"
+      ]
+    },
+    {
+      "method_id": "M-C01",
+      "title": "人员专业及数量要求",
+      "primary_case_id": "C01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          397,
+          399
+        ],
+        [
+          407,
+          414
+        ]
+      ],
+      "input_tables": [
+        "Resource",
+        "ResourceAllocation",
+        "Tasks",
+        "TaskResource"
+      ],
+      "checked_fields": [
+        "Resource.TYPE",
+        "TaskResource.QTY",
+        "ResourceAllocation.RQTY"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "专业匹配/不匹配",
+        "容量等于需求/不足/为零"
+      ],
+      "limitations": [
+        "人员是业务含义；原生资源类型使用SPECIAL，ENABLER和STANDARD在该版本被忽略"
+      ]
+    },
+    {
+      "method_id": "M-C02",
+      "title": "人员与设备联合需求",
+      "primary_case_id": "C02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          397,
+          400
+        ],
+        [
+          407,
+          410
+        ]
+      ],
+      "input_tables": [
+        "TaskResource",
+        "SubTaskResource",
+        "ResourceAllocation"
+      ],
+      "checked_fields": [
+        "SubTaskResource.TID",
+        "SubTaskResource.SEQ",
+        "SubTaskResource.RID",
+        "SubTaskResource.QTY"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "人员不足",
+        "设备不足",
+        "两者充足",
+        "子工序漏列一种资源的反例"
+      ],
+      "limitations": [
+        "不能把主工序与子工序资源按字段自动合并"
+      ]
+    },
+    {
+      "method_id": "M-C03",
+      "title": "同一编队两机争用人员",
+      "primary_case_id": "C03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          180,
+          184
+        ],
+        [
+          277,
+          277
+        ],
+        [
+          286,
+          294
+        ],
+        [
+          397,
+          399
+        ]
+      ],
+      "input_tables": [
+        "MissionPreparation",
+        "MissionType",
+        "SystemDeployment",
+        "SubTaskResource",
+        "ResourceAllocation"
+      ],
+      "checked_fields": [
+        "MissionType.NOS",
+        "MissionType.MNOS",
+        "SystemDeployment.QTYPS",
+        "MissionPreparation.TID",
+        "SubTaskResource.RID",
+        "SubTaskResource.QTY",
+        "ResourceAllocation.RQTY"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "人员2/1/0",
+        "同刻释放与后续开工",
+        "截止前/同刻/后"
+      ],
+      "limitations": [
+        "设备争用且错开任务的既有模型仅为另名探针，不能替代本案例",
+        "上述08:00/08:30是设计预期，非运行事实",
+        "首批最小模型以 MissionType.NOS/MNOS 与 SystemDeployment.QTYPS=2 表达两机同编队门槛，不使用 MissionFormation 编队备选表；后者仍由 A11/C04 的独立变体覆盖"
+      ]
+    },
+    {
+      "method_id": "M-C04",
+      "title": "缺机、缺资源与取消结算",
+      "primary_case_id": "C04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          180,
+          187
+        ],
+        [
+          286,
+          294
+        ]
+      ],
+      "input_tables": [
+        "MissionType",
+        "MissionPreparation",
+        "MissionFormation",
+        "TaskResource"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "缺机/缺资源",
+        "截止前/同刻/后",
+        "部分准备完成",
+        "仿真终点仍在等待"
+      ],
+      "limitations": [
+        "不得用SIMLOX局部取消结论覆盖J35取消合同差异"
+      ]
+    },
+    {
+      "method_id": "M-C05",
+      "title": "任务全程占用的资源",
+      "primary_case_id": "C05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          300,
+          302
+        ],
+        [
+          412,
+          416
+        ]
+      ],
+      "input_tables": [
+        "MissionResource",
+        "Resource",
+        "ResourceAllocation"
+      ],
+      "checked_fields": [
+        "MissionResource.MTID",
+        "MissionResource.SID",
+        "MissionResource.RID",
+        "MissionResource.QTY"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "容量2/1/0",
+        "两类任务资源",
+        "不同系统构型需求"
+      ],
+      "limitations": [
+        "远程资源借用不适用于任务资源"
+      ]
+    },
+    {
+      "method_id": "M-C06",
+      "title": "替代资源与概率资源需求",
+      "primary_case_id": "C06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          397,
+          400
+        ],
+        [
+          407,
+          410
+        ]
+      ],
+      "input_tables": [
+        "TaskResource",
+        "SubTaskResource"
+      ],
+      "checked_fields": [
+        "TaskResource.RPROB",
+        "TaskResource.ARID",
+        "TaskResource.ARTF"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "主资源可用/不可用",
+        "ARTF=1/大于1",
+        "多个替代系数",
+        "RPROB=0/1/中间值"
+      ],
+      "limitations": [
+        "PDF把RPROB描述为整数但字典列为浮点；中间概率须由原生导入和行为确认"
+      ]
+    },
+    {
+      "method_id": "M-C07",
+      "title": "班次、跨班作业与离班可用性",
+      "primary_case_id": "C07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          227,
+          227
+        ],
+        [
+          417,
+          423
+        ]
+      ],
+      "input_tables": [
+        "Shift",
+        "ShiftProfile",
+        "ShiftResource",
+        "ResourceStationData",
+        "Control"
+      ],
+      "checked_fields": [
+        "ResourceStationData.SHPID",
+        "ShiftResource.QTY",
+        "Control.DRAOS"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "DRAOS=Y/N",
+        "班内资源缺行",
+        "跨日/周末",
+        "重复与嵌套曲线",
+        "重叠/容量超限反例"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-C08",
+      "title": "资源每日及班次使用上限",
+      "primary_case_id": "C08",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          414,
+          414
+        ],
+        [
+          416,
+          417
+        ],
+        [
+          422,
+          423
+        ]
+      ],
+      "input_tables": [
+        "Resource",
+        "ResourceStationData",
+        "ShiftResource"
+      ],
+      "checked_fields": [
+        "Resource.MUTILF",
+        "ResourceStationData.MUTILF",
+        "ShiftResource.MAXUT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "MUTILF=0/有限/1",
+        "MAXUT未设/有限",
+        "资源池部分忙碌",
+        "上限与完工同刻"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-C09",
+      "title": "跨站借用保障资源",
+      "primary_case_id": "C09",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          399,
+          400
+        ],
+        [
+          414,
+          416
+        ]
+      ],
+      "input_tables": [
+        "ResourceRemoteSupport",
+        "TaskResource",
+        "SubTaskResource",
+        "ResourceAllocation"
+      ],
+      "checked_fields": [
+        "ResourceRemoteSupport.TFRS",
+        "ResourceRemoteSupport.TTRS",
+        "ResourceRemoteSupport.TTRSS",
+        "TaskResource.ENRMS"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "本地等待与TFRS三种关系",
+        "出借站短缺",
+        "立即连续复用",
+        "ENRMS=Y/N"
+      ],
+      "limitations": [
+        "仅支持直接作用于系统的主要维护；不适用于任务资源和次级物品维修"
+      ]
+    },
+    {
+      "method_id": "M-C10",
+      "title": "资源自身故障与恢复",
+      "primary_case_id": "C10",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          221,
+          221
+        ],
+        [
+          412,
+          417
+        ]
+      ],
+      "input_tables": [
+        "ResourceStationData",
+        "MissionResource",
+        "ResourceAllocation"
+      ],
+      "checked_fields": [
+        "ResourceStationData.RMTBF",
+        "ResourceStationData.RFTT",
+        "ResourceStationData.RMDT",
+        "ResourceStationData.RMDTD"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "RFTT=CALENDAR/OPERATION",
+        "有/无闲置备用",
+        "有离班备用",
+        "固定/分布停机",
+        "任务资源故障"
+      ],
+      "limitations": [
+        "RMTBF/RFTT/RMDT/RMDTD字段由本机字典补充；资源修复不消耗其他维修资源"
+      ]
+    },
+    {
+      "method_id": "M-D01",
+      "title": "单部件故障与直接修理",
+      "primary_case_id": "D01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          190,
+          192
+        ],
+        [
+          211,
+          213
+        ],
+        [
+          337,
+          343
+        ],
+        [
+          349,
+          354
+        ]
+      ],
+      "input_tables": [
+        "Item",
+        "ItemStructure",
+        "SystemRepair",
+        "ItemRepair"
+      ],
+      "checked_fields": [
+        "Item.FRT",
+        "SystemRepair.DIRPT",
+        "ItemRepair.DIRPT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "零故障对照",
+        "本地直接维修",
+        "终点仍在修理"
+      ],
+      "limitations": [
+        "固定种子不保证指定故障时刻"
+      ]
+    },
+    {
+      "method_id": "M-D02",
+      "title": "飞行暴露与日历故障时钟",
+      "primary_case_id": "D02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          190,
+          192
+        ],
+        [
+          245,
+          247
+        ],
+        [
+          355,
+          358
+        ],
+        [
+          364,
+          369
+        ]
+      ],
+      "input_tables": [
+        "Item",
+        "ItemFailureRate",
+        "FailureMode",
+        "FailureModeFrequency",
+        "CMLocation",
+        "OperationParameter"
+      ],
+      "checked_fields": [
+        "ItemFailureRate.OPID",
+        "ItemFailureRate.FRT",
+        "FailureMode.OPID",
+        "FailureMode.FRQ",
+        "FailureModeFrequency.OPID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "传统OPHOURS",
+        "FailureMode的OPHOURS/CALHOURS",
+        "长停放",
+        "维修跨任务",
+        "零暴露对照",
+        "传统物品表CALHOURS/MISSIONS非法输入"
+      ],
+      "limitations": [
+        "传统Item/ItemFailureRate不接受CALHOURS或MISSIONS；日历能力来自独立FailureMode分支",
+        "D06先完成最小故障模式配置，再执行本例日历变体；不假定两种建模方法或跨引擎随机流等价"
+      ]
+    },
+    {
+      "method_id": "M-D03",
+      "title": "日历周期预防性维修",
+      "primary_case_id": "D03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          202,
+          204
+        ],
+        [
+          370,
+          375
+        ],
+        [
+          387,
+          389
+        ],
+        [
+          402,
+          404
+        ]
+      ],
+      "input_tables": [
+        "MaterielPM",
+        "PMLocation",
+        "Control",
+        "TaskBreakDown"
+      ],
+      "checked_fields": [
+        "MaterielPM.PMINT",
+        "MaterielPM.OPID",
+        "PMLocation.PMT",
+        "Control.ENPM"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单周期/多周期",
+        "无任务/任务冲突",
+        "配置PMT与工序合计不同"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D04",
+      "title": "飞行小时预防性维修",
+      "primary_case_id": "D04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          202,
+          204
+        ],
+        [
+          370,
+          376
+        ]
+      ],
+      "input_tables": [
+        "MaterielPM",
+        "PMLocation",
+        "MissionType"
+      ],
+      "checked_fields": [
+        "MaterielPM.OPID",
+        "MaterielPM.PMINT",
+        "MissionType.SYACP"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "阈值前/等于/越过",
+        "长期停放",
+        "固定任务/持续任务"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D05",
+      "title": "故障、PM与任务竞争",
+      "primary_case_id": "D05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          190,
+          193
+        ],
+        [
+          211,
+          218
+        ],
+        [
+          370,
+          375
+        ]
+      ],
+      "input_tables": [
+        "MaterielPM",
+        "PMLocation",
+        "SystemRepair",
+        "TaskResource",
+        "MissionType"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "资源充足/不足",
+        "PM与故障同刻",
+        "任务截止与维修完成同刻",
+        "终点在修/待修"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D06",
+      "title": "显式故障模式与维修任务",
+      "primary_case_id": "D06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          191,
+          192
+        ],
+        [
+          337,
+          337
+        ],
+        [
+          354,
+          369
+        ]
+      ],
+      "input_tables": [
+        "FailureMode",
+        "FailureModeFrequency",
+        "MaterielPosition",
+        "MaterielStructure",
+        "CMLocation",
+        "CMReplacement"
+      ],
+      "checked_fields": [
+        "FailureMode.FRQ",
+        "FailureMode.OPID",
+        "CMLocation.CMT",
+        "CMReplacement.CMRF",
+        "CMReplacement.CMRQ",
+        "CMReplacement.CMRQD"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "同件不同位置",
+        "多故障模式",
+        "CMRF=0/1/中间值",
+        "CMRQ整数/非整数",
+        "CMRQD覆盖"
+      ],
+      "limitations": [
+        "PDF出现的TTYPE不在当前字典中，采用OPID并记录版本差异",
+        "不能据本例推断支持传统冗余或拆借"
+      ]
+    },
+    {
+      "method_id": "M-D07",
+      "title": "多运行参数驱动的传统故障率",
+      "primary_case_id": "D07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          245,
+          247
+        ],
+        [
+          257,
+          259
+        ]
+      ],
+      "input_tables": [
+        "ItemFailureRate",
+        "SystemFailureRate",
+        "OperationParameter",
+        "Item",
+        "System"
+      ],
+      "checked_fields": [
+        "ItemFailureRate.OPID",
+        "ItemFailureRate.FRT",
+        "SystemFailureRate.OPID",
+        "SystemFailureRate.FRT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单OPID对照",
+        "双OPID",
+        "重复定义覆盖",
+        "母子FRT不一致反例"
+      ],
+      "limitations": [
+        "不得把任务次数自动当作可接受的故障率OPID，需按对应表定义验证"
+      ]
+    },
+    {
+      "method_id": "M-D08",
+      "title": "任务类型影响故障与关键性",
+      "primary_case_id": "D08",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          190,
+          193
+        ],
+        [
+          284,
+          286
+        ],
+        [
+          297,
+          300
+        ],
+        [
+          366,
+          368
+        ]
+      ],
+      "input_tables": [
+        "MissionReliability",
+        "MissionReliabilityFailureMode",
+        "MissionCriticalityItem",
+        "MissionCriticalityFailureMode",
+        "MissionType"
+      ],
+      "checked_fields": [
+        "MissionReliability.MFF",
+        "MissionReliability.PFF",
+        "MissionCriticalityItem.CRIT",
+        "MissionType.SYACF"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "MFF默认/个别覆盖",
+        "PFF=0/正值",
+        "CRIT或CRITF=0/1",
+        "SYACF各文档选项"
+      ],
+      "limitations": [
+        "日历故障不受任务/准备因子影响的范围须原生核验"
+      ]
+    },
+    {
+      "method_id": "M-D09",
+      "title": "非关键故障升级与维修暂停",
+      "primary_case_id": "D09",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          190,
+          190
+        ],
+        [
+          212,
+          213
+        ],
+        [
+          367,
+          368
+        ]
+      ],
+      "input_tables": [
+        "Item",
+        "FailureMode",
+        "System"
+      ],
+      "checked_fields": [
+        "Item.NCFTL",
+        "Item.NCFTT",
+        "FailureMode.NCFTL",
+        "System.MAXNC"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "NCFTT日历/工作时间",
+        "容忍时间未设/有限",
+        "MAXNC数量阈值",
+        "升级时缺件/缺人"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D10",
+      "title": "按架次及多个计数器触发PM",
+      "primary_case_id": "D10",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          202,
+          204
+        ],
+        [
+          370,
+          376
+        ]
+      ],
+      "input_tables": [
+        "MaterielPM",
+        "MaterielPMInterval"
+      ],
+      "checked_fields": [
+        "MaterielPMInterval.PMINT",
+        "MaterielPMInterval.OPID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "MISSIONS单计数",
+        "OPHOURS+CALHOURS",
+        "三计数器",
+        "同刻到达阈值"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D11",
+      "title": "PM提前、宽限、周期保持与次数上限",
+      "primary_case_id": "D11",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          204,
+          204
+        ],
+        [
+          372,
+          375
+        ]
+      ],
+      "input_tables": [
+        "MaterielPM"
+      ],
+      "checked_fields": [
+        "MaterielPM.ATIM",
+        "MaterielPM.DTIM",
+        "MaterielPM.ENREG",
+        "MaterielPM.MNOCC"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ATIM=0/有限/1",
+        "DTIM=0/有限/1",
+        "ENREG=Y/N",
+        "MNOCC=0/1/2"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D12",
+      "title": "大小PM关联与维护优先顺序",
+      "primary_case_id": "D12",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          203,
+          204
+        ],
+        [
+          217,
+          218
+        ],
+        [
+          370,
+          375
+        ]
+      ],
+      "input_tables": [
+        "MaterielPM",
+        "PMLocation"
+      ],
+      "checked_fields": [
+        "MaterielPM.PMRID",
+        "MaterielPM.ENFNC"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "小PM未启动/已启动",
+        "两层/三层关联",
+        "ENFNC=Y/N",
+        "小PM在另一基地"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D13",
+      "title": "PM分时启停与同时维护数量",
+      "primary_case_id": "D13",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          209,
+          209
+        ],
+        [
+          376,
+          385
+        ]
+      ],
+      "input_tables": [
+        "PMActivation",
+        "PMActivationProfile",
+        "MaxPMProfile",
+        "Unit",
+        "Control"
+      ],
+      "checked_fields": [
+        "PMActivation.ENPM",
+        "PMActivation.CRIT",
+        "Unit.MAXPM",
+        "Unit.MAXPMP",
+        "MaxPMProfile.MAXPM"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ENPM时段开/关",
+        "CRIT=Y/N",
+        "MAXPM=0/1/2",
+        "临界PM绕过限额",
+        "重复/嵌套曲线"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-D14",
+      "title": "个体监控物品PM",
+      "primary_case_id": "D14",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          210,
+          211
+        ],
+        [
+          370,
+          374
+        ],
+        [
+          390,
+          393
+        ]
+      ],
+      "input_tables": [
+        "MaterielPM",
+        "MaterielStructure",
+        "PMReplacement",
+        "StockAllocation"
+      ],
+      "checked_fields": [
+        "MaterielPM.MONIT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "MONIT=Y/N",
+        "零初龄在机/库存",
+        "换件后再领用",
+        "位置对象MONIT非法反例",
+        "差异初龄扩展转G11"
+      ],
+      "limitations": [
+        "MONIT=Y不能用传统ItemStructure/FRT CM；位置对象不允许MONIT",
+        "本例不引入Prelife；差异初始年龄在G11单独建模和验收"
+      ]
+    },
+    {
+      "method_id": "M-D15",
+      "title": "PM换件与检查发现故障",
+      "primary_case_id": "D15",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          203,
+          203
+        ],
+        [
+          217,
+          218
+        ],
+        [
+          385,
+          393
+        ]
+      ],
+      "input_tables": [
+        "PMReplacement",
+        "PMLocation",
+        "PMFailureMode",
+        "CMReplacement"
+      ],
+      "checked_fields": [
+        "PMReplacement.SCHED",
+        "PMReplacement.PMRF",
+        "PMReplacement.PMRQ",
+        "PMReplacement.DISC",
+        "PMFailureMode.FMIQ",
+        "PMFailureMode.FMDP"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "计划换件确定/概率",
+        "PMRQ多件/PMRQD",
+        "SCHED=Y/N",
+        "FMIQ=1/多件",
+        "FMDP=0/1/中间值"
+      ],
+      "limitations": [
+        "PMRF<1不能表示每n次PM更换；SCHED=N时DISC被忽略"
+      ]
+    },
+    {
+      "method_id": "M-D16",
+      "title": "远程CM与PM专用保障路线",
+      "primary_case_id": "D16",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          192,
+          192
+        ],
+        [
+          217,
+          218
+        ],
+        [
+          361,
+          364
+        ],
+        [
+          387,
+          397
+        ]
+      ],
+      "input_tables": [
+        "CMStationStructure",
+        "PMStationStructure",
+        "CMLocation",
+        "PMLocation",
+        "StationStructure"
+      ],
+      "checked_fields": [
+        "CMStationStructure.FMID",
+        "PMStationStructure.PMID",
+        "CMStationStructure.TFRMS",
+        "CMStationStructure.TTOMS"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "默认路线",
+        "FMID专用路线",
+        "PMID专用路线",
+        "系统/拆下物品",
+        "多个远程PM"
+      ],
+      "limitations": [
+        "系统运输订货策略固定为SLOW"
+      ]
+    },
+    {
+      "method_id": "M-E01",
+      "title": "本地现货换件",
+      "primary_case_id": "E01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          210,
+          213
+        ],
+        [
+          346,
+          349
+        ],
+        [
+          402,
+          404
+        ]
+      ],
+      "input_tables": [
+        "ItemReplacement",
+        "SystemRepair",
+        "StockAllocation",
+        "TaskBreakDown"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "隐式拆装比例/显式子工序",
+        "单件/多数量",
+        "库存恰好满足"
+      ],
+      "limitations": [
+        "不覆盖403个嵌套LRU的物理换件边界问题"
+      ]
+    },
+    {
+      "method_id": "M-E02",
+      "title": "零库存与欠交",
+      "primary_case_id": "E02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          210,
+          213
+        ],
+        [
+          218,
+          220
+        ],
+        [
+          338,
+          343
+        ]
+      ],
+      "input_tables": [
+        "StockAllocation",
+        "ItemReplacement",
+        "ItemRepair"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "有货/零库存",
+        "修复回流在下一任务截止前/同刻/后",
+        "终点仍在本地修理尚未回流"
+      ],
+      "limitations": [
+        "LRU供应来自本地ItemRepair修理回流，不能使用ItemReorder外购补充"
+      ]
+    },
+    {
+      "method_id": "M-E03",
+      "title": "两机争用一件共享备件",
+      "primary_case_id": "E03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          218,
+          220
+        ]
+      ],
+      "input_tables": [
+        "StockAllocation",
+        "ItemReplacement",
+        "Control"
+      ],
+      "checked_fields": [
+        "Control.ENBOP"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单需求/竞争",
+        "不同需求时间/同刻",
+        "ENBOP=Y/N"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-E04",
+      "title": "上级库存向基层调运",
+      "primary_case_id": "E04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          218,
+          221
+        ],
+        [
+          363,
+          364
+        ]
+      ],
+      "input_tables": [
+        "StationStructure",
+        "ItemStationStructure",
+        "StockAllocation"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "FAST/SLOW",
+        "上级有货/缺货",
+        "零/非零运输时间",
+        "期末在途"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-E05",
+      "title": "坏件修理、回库与再次领用",
+      "primary_case_id": "E05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          210,
+          213
+        ],
+        [
+          218,
+          220
+        ],
+        [
+          338,
+          343
+        ]
+      ],
+      "input_tables": [
+        "ItemRepair",
+        "ItemReplacement",
+        "StockAllocation"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "修复时有/无欠交",
+        "第二需求在修复前/同刻/后",
+        "本地修理立即开始/等待资源"
+      ],
+      "limitations": [
+        "本例严格限定本地修理回流；远程与分级扩展见E06、D16、F01，不作为本例变体或前置"
+      ]
+    },
+    {
+      "method_id": "M-E06",
+      "title": "累计维修能力与部分报废",
+      "primary_case_id": "E06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          214,
+          218
+        ],
+        [
+          340,
+          345
+        ],
+        [
+          357,
+          358
+        ]
+      ],
+      "input_tables": [
+        "ItemRepair",
+        "ItemReplacement",
+        "CMLocation",
+        "ItemReorder"
+      ],
+      "checked_fields": [
+        "ItemRepair.DIRPF",
+        "ItemRepair.SURPF",
+        "CMLocation.CMF",
+        "ItemReorder.DISCF"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "比例0/1/中间值",
+        "多基层汇入",
+        "DU/PRU/LRU类别边界",
+        "报废发生在外部维修之前"
+      ],
+      "limitations": [
+        "中间比例需基于原生随机样本验收；不能拿单次路线证明比例正确"
+      ]
+    },
+    {
+      "method_id": "M-E07",
+      "title": "专用保障路线与 FAST/SLOW 订货",
+      "primary_case_id": "E07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          176,
+          178
+        ],
+        [
+          316,
+          319
+        ],
+        [
+          327,
+          333
+        ]
+      ],
+      "input_tables": [
+        "Station",
+        "StationStructure",
+        "ItemStationStructure",
+        "SystemStationStructure",
+        "CMStationStructure",
+        "PMStationStructure"
+      ],
+      "checked_fields": [
+        "StationStructure.OPOL",
+        "StationStructure.DFRAC",
+        "ItemStationStructure.IID",
+        "SystemStationStructure.SID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "FAST/SLOW",
+        "物项/机型/组覆盖",
+        "FM/PM 路线优先",
+        "多上级 DFRAC=0/1/混合",
+        "不同上下行时长",
+        "断开子树/非法循环",
+        "WS/DEPOT/STORE/OP"
+      ],
+      "limitations": [
+        "系统远程修理固定 SLOW 且不能用备份系统替换；报废件不向上运送",
+        "专用路线按整行覆盖；不是逐字段继承",
+        "随机分流比例用样本精度检验，不要求每次精确比例"
+      ]
+    },
+    {
+      "method_id": "M-E08",
+      "title": "横向保障与延迟借件",
+      "primary_case_id": "E08",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          232,
+          232
+        ],
+        [
+          314,
+          321
+        ],
+        [
+          325,
+          327
+        ]
+      ],
+      "input_tables": [
+        "LateralSupport",
+        "ItemLateralSupport",
+        "StationLateralSupport",
+        "Station",
+        "Control"
+      ],
+      "checked_fields": [
+        "Control.ENLAT",
+        "LateralSupport.LSRUL",
+        "LateralSupport.DLAYL",
+        "LateralSupport.TLAT",
+        "StationLateralSupport.TFRLS",
+        "StationLateralSupport.TTOLS"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "Control.ENLAT=Y/N：关闭时所有横向配置不生效",
+        "LSRUL 三种策略",
+        "DLAYL=Y/N",
+        "横向当前有货/未来有货",
+        "普通在途更快",
+        "空 LGID 移除成员",
+        "物项/站点组优先级",
+        "TFRLS/TTOLS 不同"
+      ],
+      "limitations": [
+        "TLAT 与普通运输时长约束必须转换验证；方向性字段有易混措辞，须实物事件确认"
+      ]
+    },
+    {
+      "method_id": "M-E09",
+      "title": "欠交紧急程度与分配顺序",
+      "primary_case_id": "E09",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          234,
+          234
+        ],
+        [
+          322,
+          324
+        ]
+      ],
+      "input_tables": [
+        "Station",
+        "Control"
+      ],
+      "checked_fields": [
+        "Station.BOPRI",
+        "Control.ENBOP"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ENBOP=Y 且 BOPRI=N：FIFO",
+        "ENBOP=Y 且 BOPRI=Y：紧急需求优先",
+        "ENBOP=N 且 BOPRI=Y：优先设置被忽略",
+        "两个都欠交",
+        "仅普通补货",
+        "与横向组独立/组合"
+      ],
+      "limitations": [
+        "Control.ENBOP 默认 N；只配置 Station.BOPRI=Y 不会启用优先服务",
+        "最终完成率不足以证明分配顺序，必须核对逐项需求及发运事件"
+      ]
+    },
+    {
+      "method_id": "M-E10",
+      "title": "运输曲线、批运与运输时间变化",
+      "primary_case_id": "E10",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          317,
+          319
+        ],
+        [
+          327,
+          336
+        ]
+      ],
+      "input_tables": [
+        "TransportPolicyProfile",
+        "StationStructure",
+        "ItemStationStructure",
+        "SystemStationStructure"
+      ],
+      "checked_fields": [
+        "TransportPolicyProfile.STPRID",
+        "TransportPolicyProfile.MINBS",
+        "TransportPolicyProfile.TPTIM",
+        "TransportPolicyProfile.TPTIMD"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "FIXED/ONDEM",
+        "空队列发运取消",
+        "无保障窗口",
+        "上/下行不同",
+        "嵌套与 IQTY/IINT",
+        "MINBS 单件/混合件",
+        "TPTIM/TPTIMD",
+        "子曲线行无效字段",
+        "窗口重叠负例"
+      ],
+      "limitations": [
+        "混批范围依共享运输数据定义；不是全网运输池",
+        "有分布时固定输入和种子只用于原生重跑"
+      ]
+    },
+    {
+      "method_id": "M-E11",
+      "title": "自主站点与脱离上级保障",
+      "primary_case_id": "E11",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          193,
+          194
+        ],
+        [
+          323,
+          323
+        ],
+        [
+          334,
+          336
+        ]
+      ],
+      "input_tables": [
+        "Station",
+        "StationStructure",
+        "TransportPolicyProfile"
+      ],
+      "checked_fields": [
+        "Station.TYPE",
+        "StationStructure.PFRMS",
+        "StationStructure.PTOMS"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "本地件足够/耗尽",
+        "脱离前/同刻/后需求",
+        "重新连接",
+        "非零普通运时",
+        "专用运输表反例"
+      ],
+      "limitations": [
+        "AUTOM 不能支撑其他站点或参加横向组，且必须关联运输政策；不能等同普通运输禁运窗口"
+      ]
+    },
+    {
+      "method_id": "M-E12",
+      "title": "对称站点、站点组与局部覆盖",
+      "primary_case_id": "E12",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          311,
+          314
+        ],
+        [
+          316,
+          319
+        ],
+        [
+          322,
+          324
+        ],
+        [
+          328,
+          333
+        ]
+      ],
+      "input_tables": [
+        "Station",
+        "StationStructure",
+        "ItemStationStructure",
+        "SystemStationStructure",
+        "UnitGroupMember"
+      ],
+      "checked_fields": [
+        "Station.QTY",
+        "Station.GSTID",
+        "Station.LEVL",
+        "Station.LINDX"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "QTY=1/2",
+        "组级默认",
+        "个别站点覆盖",
+        "物项与站点组交叉覆盖",
+        "不同资源或库存方案",
+        "LEVL/LINDX 仅报告布局"
+      ],
+      "limitations": [
+        "QTY 产生独立实例而非共用库存，输入压缩不能直接声称计算性能提升"
+      ]
+    },
+    {
+      "method_id": "M-E13",
+      "title": "停机飞机之间临时拆借",
+      "primary_case_id": "E13",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          223,
+          223
+        ]
+      ],
+      "input_tables": [
+        "Item",
+        "Control",
+        "ItemReplacement",
+        "TaskBreakDown"
+      ],
+      "checked_fields": [
+        "Item.ENROB",
+        "Control.ENROB"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "有/无时间收益",
+        "供体会/不会延误",
+        "拆除资源不足",
+        "ENROB开/关"
+      ],
+      "limitations": [
+        "只覆盖传统关键换件维修；故障模式CM不支持",
+        "永久拆解不再恢复的供体不属于手册支持的拆借"
+      ]
+    },
+    {
+      "method_id": "M-E14",
+      "title": "额外拆换与未发现故障",
+      "primary_case_id": "E14",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          224,
+          225
+        ],
+        [
+          247,
+          253
+        ]
+      ],
+      "input_tables": [
+        "ItemStructure",
+        "ItemRepair",
+        "ItemReplacement",
+        "Control"
+      ],
+      "checked_fields": [
+        "ItemStructure.RRF",
+        "ItemStructure.NFFF",
+        "ItemStructure.NFFT",
+        "Control.RRFIM"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "RRF=1/大于1",
+        "NFFF=1/大于1且不超过RRF",
+        "重复拆同一位置",
+        "NFFF=0非法负例",
+        "NFFF>RRF非法负例"
+      ],
+      "limitations": [
+        "NFFF最小值及默认值均为1，不是0到1的概率",
+        "RRF系统层未实现；显式故障模式CM用另一套多件更换方法",
+        "MRINC出现在PDF但不在当前输入字典，不能直接写入"
+      ]
+    },
+    {
+      "method_id": "M-E15",
+      "title": "按库存点及固定周期订货",
+      "primary_case_id": "E15",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          216,
+          218
+        ],
+        [
+          343,
+          346
+        ],
+        [
+          445,
+          447
+        ]
+      ],
+      "input_tables": [
+        "ItemReorder",
+        "StockAllocation"
+      ],
+      "checked_fields": [
+        "ItemReorder.ROINT",
+        "ItemReorder.LEADT",
+        "ItemReorder.LEADTD",
+        "StockAllocation.STSIZ",
+        "StockAllocation.ROSIZ",
+        "StockAllocation.AINST",
+        "StockAllocation.ISTOH"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ROINT=0/正值",
+        "零/非零交货期",
+        "多个在订批次",
+        "随机LEADTD",
+        "期末未到货",
+        "AINST=0/正值",
+        "ISTOH缺省/显式且高于名义",
+        "库存策略ISTOH等于/低于订货点",
+        "周期策略ISTOH等于/低于STSIZ",
+        "ROSIZ超过STSIZ+1负例"
+      ],
+      "limitations": [
+        "只用于DU/PRU/DP/SPRU；计划参数变更不能切换这两类策略",
+        "AINST/ISTOH仅适用于订货位置；初始实物可高于STSIZ，不能从名义水平直接推断在手量"
+      ]
+    },
+    {
+      "method_id": "M-F01",
+      "title": "多层部件与分级维修",
+      "primary_case_id": "F01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          175,
+          177
+        ],
+        [
+          237,
+          260
+        ],
+        [
+          336,
+          354
+        ],
+        [
+          439,
+          442
+        ]
+      ],
+      "input_tables": [
+        "Item",
+        "ItemStructure",
+        "MaterielStructure",
+        "SystemStructure",
+        "ItemRepair",
+        "ItemReplacement",
+        "MaintenanceAllocation"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "两层/三层",
+        "ASSY 中间层",
+        "传统/显式 CM 各自组合",
+        "一级/二级维修"
+      ],
+      "limitations": [
+        "既有 403 嵌套 LRU 的物理换件问题仍须独立验收；结构图完整不证明实物语义"
+      ]
+    },
+    {
+      "method_id": "M-F02",
+      "title": "多机、多周期、共享保障",
+      "primary_case_id": "F02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          173,
+          227
+        ]
+      ],
+      "input_tables": [],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "确定性组合",
+        "逐项开启随机机制",
+        "冲突/无冲突",
+        "期末在修/在途/预留"
+      ],
+      "limitations": [
+        "组合验收仅覆盖实际启用的版本化方法，不自动覆盖全部专项方法"
+      ]
+    },
+    {
+      "method_id": "M-F03",
+      "title": "多基地与保障方案对照",
+      "primary_case_id": "F03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          176,
+          178
+        ],
+        [
+          307,
+          336
+        ],
+        [
+          439,
+          447
+        ]
+      ],
+      "input_tables": [
+        "Unit",
+        "UnitGroup",
+        "Station",
+        "StationStructure",
+        "StockAllocation",
+        "ResourceAllocation"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "资源配置对照",
+        "库存配置对照",
+        "需求位置对照",
+        "另行启用已验收的横向/自主站方法"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-F04",
+      "title": "8 架飞机、43 天综合教学案例",
+      "primary_case_id": "F04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          229,
+          235
+        ],
+        [
+          523,
+          537
+        ],
+        [
+          550,
+          762
+        ]
+      ],
+      "input_tables": [
+        "Control",
+        "ResultCollection"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "无随机回归",
+        "随机统计稳定性",
+        "短窗口对照",
+        "期末未完成",
+        "不同保障配置"
+      ],
+      "limitations": [
+        "真实 F35/J35 必须另建应用案例并固定业务来源；教学模型的成功不关闭 J35 取消合同差异"
+      ]
+    },
+    {
+      "method_id": "M-G01",
+      "title": "传统维修结构、物项类型与数量",
+      "primary_case_id": "G01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          238,
+          250
+        ],
+        [
+          253,
+          258
+        ]
+      ],
+      "input_tables": [
+        "Item",
+        "ItemStructure",
+        "System",
+        "ItemRepair",
+        "ItemReplacement"
+      ],
+      "checked_fields": [
+        "Item.TYPE",
+        "Item.NSIMI",
+        "Item.AFFRT",
+        "ItemStructure.QTYPM",
+        "ItemStructure.ENVF"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "LRU/SRU 可修",
+        "PRU/SPRU 部分可修",
+        "DU/DP 消耗",
+        "ASSY 仅结构",
+        "QTYPM=1/2",
+        "NSIMI=1/2",
+        "同 IID 多母体",
+        "AFFRT 与沿路径 ENVF",
+        "FRT 缺省/残差/子率超母率",
+        "0.01% 率检查容差边界",
+        "类型默认与显式值"
+      ],
+      "limitations": [
+        "NSIMI>1 不得有子项，SGID 在 SIMLOX 不执行",
+        "ItemStructure 描述维修替换关系；结构存在不能证明任意物理嵌套 LRU 的替换语义",
+        "ASSY 只有标识和描述有效，其他数据的警告必须保留"
+      ]
+    },
+    {
+      "method_id": "M-G02",
+      "title": "显式物料位置与任务频率传播",
+      "primary_case_id": "G02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          250,
+          253
+        ]
+      ],
+      "input_tables": [
+        "MaterielPosition",
+        "MaterielStructure",
+        "FailureMode",
+        "MaterielPM"
+      ],
+      "checked_fields": [
+        "MaterielPosition.MPID",
+        "MaterielStructure.MID",
+        "MaterielStructure.MMID",
+        "MaterielStructure.QTYPM",
+        "MaterielStructure.ENVF"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "同件不同位置",
+        "单层/多层频率传播",
+        "QTYPM 与 ENVF 分别变化",
+        "位置特定 PM",
+        "无效引用"
+      ],
+      "limitations": [
+        "MaterielStructure 用于传播频率和数量，不自动决定实物拆装；任务型物项不得再次通过 ItemStructure 重复计入"
+      ]
+    },
+    {
+      "method_id": "M-G03",
+      "title": "基型继承与型号变体",
+      "primary_case_id": "G03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          253,
+          257
+        ]
+      ],
+      "input_tables": [
+        "System",
+        "ItemStructure"
+      ],
+      "checked_fields": [
+        "System.BSID",
+        "ItemStructure.QTYPM"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "增加物项",
+        "QTYPM=0 排除物项",
+        "基型/变体同时部署",
+        "多层基型引用与错误引用"
+      ],
+      "limitations": [
+        "CBSID 的任务构型与 BSID 静态变体不同；任务换装由 A16 单独验收"
+      ]
+    },
+    {
+      "method_id": "M-G04",
+      "title": "串联、主动并联与嵌套可靠性框图",
+      "primary_case_id": "G04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          196,
+          198
+        ],
+        [
+          448,
+          450
+        ],
+        [
+          454,
+          459
+        ],
+        [
+          767,
+          771
+        ]
+      ],
+      "input_tables": [
+        "Control",
+        "OperationalModes",
+        "MaterielOperationalModes",
+        "MissionOperationalModes",
+        "RBDSeries",
+        "RBDSeriesStructure",
+        "RBDParallel",
+        "RBDParallelStructure"
+      ],
+      "checked_fields": [
+        "Control.RELOP",
+        "RBDParallel.NBREQ",
+        "RBDParallel.NBOP",
+        "RBDSeriesStructure.QTYPB",
+        "RBDParallelStructure.QTYPB"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "串联",
+        "主动 1/n 与 k/n",
+        "QTYPB 重数",
+        "串并联嵌套",
+        "未入 RBD 项默认串联",
+        "ASSY 本级 RBD"
+      ],
+      "limitations": [
+        "文档描述不构成可控制任意故障时刻的证明；随机故障组合须保存实际事件与重复证据"
+      ]
+    },
+    {
+      "method_id": "M-G05",
+      "title": "被动备用、切换时间与支路选择",
+      "primary_case_id": "G05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          197,
+          200
+        ],
+        [
+          455,
+          458
+        ]
+      ],
+      "input_tables": [
+        "RBDParallel",
+        "RBDParallelStructure"
+      ],
+      "checked_fields": [
+        "RBDParallel.NBOP",
+        "RBDParallel.TSWOV",
+        "RBDParallelStructure.PRIO"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "TSWOV=0/正值",
+        "NBREQ 边界",
+        "PRIO 顺序",
+        "优先备用支路不可用",
+        "多个切换重叠",
+        "嵌套切换状态"
+      ],
+      "limitations": [
+        "p199 说激活支路切换完成后生成故障，p456 说切换开始时；该语义在原生判明前为能力未确认"
+      ]
+    },
+    {
+      "method_id": "M-G06",
+      "title": "并联块在任务期间在线维修",
+      "primary_case_id": "G06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          198,
+          199
+        ],
+        [
+          455,
+          457
+        ]
+      ],
+      "input_tables": [
+        "RBDParallel",
+        "SystemRepair",
+        "ItemReplacement"
+      ],
+      "checked_fields": [
+        "RBDParallel.ONLM"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ONLM=Y/N",
+        "物项更换/子系统直接修理",
+        "连续/可延长任务",
+        "普通固定任务反例",
+        "本地充分/缺件/缺资源",
+        "异地维修",
+        "整个并联块失效",
+        "返航时维修已开工/未开工"
+      ],
+      "limitations": [
+        "在线维修限连续和可延长任务；需要系统本基地的维修位置、备件与资源",
+        "系统 item/resource waiting 结果与基地停机条件有关，不能由统计缺项认定没有等待"
+      ]
+    },
+    {
+      "method_id": "M-G07",
+      "title": "五块桥式可靠性结构",
+      "primary_case_id": "G07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          197,
+          200
+        ],
+        [
+          451,
+          453
+        ]
+      ],
+      "input_tables": [
+        "RBDBridge"
+      ],
+      "checked_fields": [
+        "RBDBridge.ULBID",
+        "RBDBridge.LLBID",
+        "RBDBridge.BRBID",
+        "RBDBridge.URBID",
+        "RBDBridge.LRBID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "四条唯一通路",
+        "所有路径断开",
+        "桥块故障而直通路径有效",
+        "不同物料操作模式",
+        "内嵌子 RBD"
+      ],
+      "limitations": [
+        "桥式结构自身不提供 ONLM 在线维修"
+      ]
+    },
+    {
+      "method_id": "M-G08",
+      "title": "树式可靠性与有效根叶路径数量",
+      "primary_case_id": "G08",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          198,
+          200
+        ],
+        [
+          460,
+          462
+        ]
+      ],
+      "input_tables": [
+        "RBDTree",
+        "RBDTreeStructure"
+      ],
+      "checked_fields": [
+        "RBDTree.NBREQ",
+        "RBDTreeStructure.MRBID",
+        "RBDTreeStructure.SRBID",
+        "RBDTreeStructure.MBOPM",
+        "RBDTreeStructure.SBOPM",
+        "RBDTreeStructure.QTYPM"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单根/多根",
+        "公共母块故障",
+        "NBREQ 边界",
+        "重复子块",
+        "MBOPM/SBOPM",
+        "嵌套切换"
+      ],
+      "limitations": [
+        "NBREQ 不能只数自身完好的叶子；树结构自身不提供 ONLM 在线维修"
+      ]
+    },
+    {
+      "method_id": "M-G09",
+      "title": "任务相关运行模式、非关键集合与使用率",
+      "primary_case_id": "G09",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          196,
+          200
+        ],
+        [
+          448,
+          454
+        ]
+      ],
+      "input_tables": [
+        "OperationalModes",
+        "MaterielOperationalModes",
+        "MissionOperationalModes",
+        "RBDNonCriticalSet",
+        "RBDNonCriticalSetItems"
+      ],
+      "checked_fields": [
+        "MaterielOperationalModes.USERT",
+        "RBDNonCriticalSetItems.QTYNC",
+        "RBDNonCriticalSetItems.USERT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "任务不同 RBD",
+        "默认模式",
+        "NCID/QTYNC",
+        "USERT=0/<1/1/>1",
+        "沿层次使用率乘法",
+        "非关键集合自身 USERT",
+        "运行相关 PM 计数"
+      ],
+      "limitations": [
+        "USERT 改变暴露量，不能用改基础 FRT 的近似配置冒充该方法"
+      ]
+    },
+    {
+      "method_id": "M-G10",
+      "title": "传统系统冗余与串联冗余链",
+      "primary_case_id": "G10",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          201,
+          202
+        ],
+        [
+          462,
+          466
+        ]
+      ],
+      "input_tables": [
+        "Control",
+        "Redundancy",
+        "RedundancyLink"
+      ],
+      "checked_fields": [
+        "Control.RELOP",
+        "Redundancy.NRL",
+        "Redundancy.NRLRQ",
+        "Redundancy.ACPA",
+        "Redundancy.TSWOV",
+        "RedundancyLink.QTYPL"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单项链/多项串联链",
+        "ACTIVE/PASSIVE",
+        "NRLRQ 边界",
+        "TSWOV=0/正值",
+        "ACTIVE 的 TSWOV 忽略",
+        "在线修理条件",
+        "返航时首子工序开始/未开始",
+        "总项数超结构数量负例"
+      ],
+      "limitations": [
+        "只支持传统 FRT 的系统直接可换项，不能使用 FailureMode/显式 CM 项",
+        "不接受系统组或复合系统 SID；MaintenanceAllocation 下同链项须同任务类别或均无类别"
+      ]
+    },
+    {
+      "method_id": "M-G11",
+      "title": "系统、安装件与库存件初龄",
+      "primary_case_id": "G11",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          204,
+          208
+        ],
+        [
+          445,
+          447
+        ],
+        [
+          466,
+          475
+        ],
+        [
+          763,
+          767
+        ]
+      ],
+      "input_tables": [
+        "Prelife",
+        "PrelifeData",
+        "PrelifeDataAge",
+        "PrelifeStructure",
+        "SystemDeployment",
+        "StockAllocation"
+      ],
+      "checked_fields": [
+        "PrelifeData.TYPE",
+        "PrelifeData.QTY",
+        "PrelifeData.OPID",
+        "PrelifeDataAge.OPID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "FIXED",
+        "EQUIDIST 右对齐",
+        "RANDOM 均匀初龄",
+        "INHERIT",
+        "一个空 QTY 分配剩余",
+        "顶层未指定为零/子项继承",
+        "初龄小于/等于/大于周期",
+        "顶层 MID=*",
+        "两同型母体不同子龄",
+        "ASSY/MPID 中间继承",
+        "库存领出次序",
+        "多 OPID 初龄覆盖与随机相关性",
+        "多空 QTY/超配/缺中间层负例"
+      ],
+      "limitations": [
+        "预龄影响 PM 计数，不是指数故障的可靠性老化；item 需 MONIT=Y",
+        "子预龄禁止 MID=*；初龄结构必须匹配物料结构且数量不超部署/安装/库存",
+        "PrelifeData 行序具有库存领取语义，不能用排序后的 JSON 代替原始输入"
+      ]
+    },
+    {
+      "method_id": "M-G12",
+      "title": "系统层级与最低层子系统维修",
+      "primary_case_id": "G12",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          259,
+          260
+        ]
+      ],
+      "input_tables": [
+        "SystemStructure",
+        "System",
+        "SystemRepair",
+        "MaterielPM"
+      ],
+      "checked_fields": [
+        "SystemStructure.SID",
+        "SystemStructure.MSID",
+        "SystemStructure.QTYPM",
+        "SystemStructure.ENVF"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "两子系统",
+        "子系统数量/环境因子",
+        "最低层维修/PM",
+        "错误顶层维修/PM",
+        "子系统独立部署"
+      ],
+      "limitations": [
+        "子系统仅在顶层结构使用；ASSY 可在其他层级使用",
+        "系统内子系统不是 OPUS10 中独立运行的复合系统；未独立部署的子系统没有独立结果"
+      ]
+    },
+    {
+      "method_id": "M-H01",
+      "title": "任务损伤概率与损伤速率",
+      "primary_case_id": "H01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          192,
+          193
+        ],
+        [
+          423,
+          427
+        ],
+        [
+          436,
+          439
+        ]
+      ],
+      "input_tables": [
+        "DamageType",
+        "MissionDamage",
+        "DamageItem"
+      ],
+      "checked_fields": [
+        "MissionDamage.DAMP",
+        "MissionDamage.DAMRT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "DAMP=0/1/中间值",
+        "DAMRT速率",
+        "持续任务",
+        "多架飞机独立损伤"
+      ],
+      "limitations": [
+        "DAMP=1只固定是否发生，不能固定发生时刻"
+      ]
+    },
+    {
+      "method_id": "M-H02",
+      "title": "物品及机体损伤与修复路线",
+      "primary_case_id": "H02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          192,
+          193
+        ],
+        [
+          425,
+          437
+        ]
+      ],
+      "input_tables": [
+        "DamageItem",
+        "DamageRepair",
+        "DamageReplacement",
+        "ItemReplacement",
+        "SystemRepair"
+      ],
+      "checked_fields": [
+        "DamageItem.PROB",
+        "DamageItem.REPF",
+        "DamageItem.OPID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "主件/机体损伤",
+        "多件独立后果",
+        "REPF=0/1/中间值",
+        "专用维修缺省回退"
+      ],
+      "limitations": [
+        "DamageItem的物品须直接属于系统；SID不能为子系统"
+      ]
+    },
+    {
+      "method_id": "M-H03",
+      "title": "故障模式损伤与整机减员",
+      "primary_case_id": "H03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          192,
+          193
+        ],
+        [
+          424,
+          427
+        ]
+      ],
+      "input_tables": [
+        "DamageFailureMode",
+        "DamageItem",
+        "CMLocation",
+        "CMReplacement"
+      ],
+      "checked_fields": [
+        "DamageFailureMode.PROB",
+        "DamageItem.IID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "故障模式后果",
+        "同物品多个故障模式",
+        "整机ATTRITION",
+        "损失后后续任务"
+      ],
+      "limitations": [
+        "故障模式必须属于该顶层系统或其物料结构；SID不能引用子系统"
+      ]
+    },
+    {
+      "method_id": "M-I01",
+      "title": "库存、资源、维修方案点与站点变体",
+      "primary_case_id": "I01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          330,
+          331
+        ],
+        [
+          439,
+          447
+        ]
+      ],
+      "input_tables": [
+        "Control",
+        "MaintenanceAllocation",
+        "ResourceAllocation",
+        "StockAllocation",
+        "TaskCategory",
+        "TaskLevel",
+        "Tasks",
+        "StationVariant"
+      ],
+      "checked_fields": [
+        "Control.APID",
+        "MaintenanceAllocation.TCID",
+        "MaintenanceAllocation.TLID",
+        "StationVariant.STVID"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "两个 POINT",
+        "APID 为空",
+        "按类别/级别/站点选择",
+        "无任务引用记录",
+        "STID=<NONE> 覆盖同类级其他站",
+        "StationVariant 维修替代方案",
+        "漏配方案/错误引用"
+      ],
+      "limitations": [
+        "StationVariant 只在声明支持的表中配合任务标识使用，不是独立物理基地",
+        "STANDARD/ENABLER 共用资源类型在 SIMLOX 被忽略；容量方案需采用 SPECIAL"
+      ]
+    },
+    {
+      "method_id": "M-I02",
+      "title": "备件计划加入、退出与基地间迁移",
+      "primary_case_id": "I02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          225,
+          225
+        ],
+        [
+          445,
+          447
+        ],
+        [
+          476,
+          478
+        ]
+      ],
+      "input_tables": [
+        "ItemTransfer",
+        "StockAllocation"
+      ],
+      "checked_fields": [
+        "ItemTransfer.STFID",
+        "ItemTransfer.STTID",
+        "ItemTransfer.TFTIME",
+        "ItemTransfer.TFQTY",
+        "ItemTransfer.TFDT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "IN",
+        "OUT",
+        "BETWEEN",
+        "TFDT=0/正值",
+        "充足/不足/零",
+        "分批迁移",
+        "迁移与普通需求竞争",
+        "横向站有货但迁移不借件",
+        "名义库存随分批实际更新",
+        "目标有欠交/无欠交",
+        "IN 延迟",
+        "OUT 忽略延迟",
+        "终点在途/欠迁",
+        "两端 OUTSIDE 负例"
+      ],
+      "limitations": [
+        "手册总述多写 BETWEEN 延迟，TFDT 字段说明也允许 IN，须以原生探针确认",
+        "ItemTransfer 与 E04 的需求触发补给分属不同机制，不得互相替代验收"
+      ]
+    },
+    {
+      "method_id": "M-I03",
+      "title": "人员设备计划增减与迁移",
+      "primary_case_id": "I03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          225,
+          226
+        ],
+        [
+          476,
+          476
+        ],
+        [
+          478,
+          479
+        ]
+      ],
+      "input_tables": [
+        "ResourceTransfer"
+      ],
+      "checked_fields": [
+        "ResourceTransfer.TFTIME",
+        "ResourceTransfer.TFQTY",
+        "ResourceTransfer.TFDT"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "IN/OUT/BETWEEN",
+        "闲置/忙碌/零可用",
+        "分批迁移",
+        "迁移欠交优先级",
+        "零/正运输时间",
+        "IN 延迟与 OUT 忽略延迟",
+        "班次限制",
+        "使用上限已达但资源未占用",
+        "迁入资源的充分休息状态",
+        "迁出后数量减少影响使用预算",
+        "终点仍在途"
+      ],
+      "limitations": [
+        "最大使用量与班次是不同限制；迁移后的名义数量、可用容量和累计使用预算须分别验收"
+      ]
+    },
+    {
+      "method_id": "M-I04",
+      "title": "飞机计划加入、退出与转场部署",
+      "primary_case_id": "I04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          196,
+          196
+        ],
+        [
+          225,
+          225
+        ],
+        [
+          479,
+          481
+        ]
+      ],
+      "input_tables": [
+        "SystemTransfer",
+        "SystemDeployment",
+        "Unit",
+        "Station"
+      ],
+      "checked_fields": [
+        "SystemTransfer.UFID",
+        "SystemTransfer.UTID",
+        "SystemTransfer.TFTIME",
+        "SystemTransfer.TFQTY",
+        "SystemTransfer.TFDT",
+        "SystemTransfer.TFPRI"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "IN/OUT/BETWEEN",
+        "显式/隐式 unit",
+        "任务中/闲置",
+        "缺机分批",
+        "零/正运输时间",
+        "维护/返航保障完成后先迁移",
+        "转场与新任务同刻",
+        "非关键故障/非关键 PM",
+        "迁入后继续转场/执行任务",
+        "终点仍在途",
+        "unit group/system group/subsystem 负例"
+      ],
+      "limitations": [
+        "TFPRI 在 2017 手册中明确未使用，不能列为可设置有效优先级",
+        "不允许两端均 OUTSIDE，也不接受 unit group、system group 或子系统迁移"
+      ]
+    },
+    {
+      "method_id": "M-I05",
+      "title": "预定维护、准备及返航工序参数变更",
+      "primary_case_id": "I05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          226,
+          226
+        ],
+        [
+          481,
+          494
+        ],
+        [
+          500,
+          523
+        ]
+      ],
+      "input_tables": [
+        "ChangesCMLocation",
+        "ChangesDamageRepair",
+        "ChangesDamageReplacement",
+        "ChangesItemRepair",
+        "ChangesItemReplacement",
+        "ChangesMissionPreparation",
+        "ChangesMissionTurnround",
+        "ChangesPMLocation",
+        "ChangesSystemRepair",
+        "ChangesTaskBreakDown"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ChangesCMLocation：CMT/CMTD 与显式 CM",
+        "ChangesDamageRepair：DIRPT/SURPT、DIRPD/SURPD、DIRPF/SURPF",
+        "ChangesDamageReplacement：SURPT/SURPD/SURPF",
+        "ChangesItemRepair：直接/子项修理参数，明细 ItemReplacement 不随总表变化",
+        "ChangesItemReplacement：指定母子关系的 SURPT/SURPD/SURPF",
+        "ChangesMissionPreparation：DURN/DURND 与 NOPER 边界",
+        "ChangesMissionTurnround：DURN/DURND 与跨日未完",
+        "ChangesPMLocation：PMT/PMTD，不改变 PM 周期",
+        "ChangesSystemRepair：DIRPT/SURPT、分布与累计分配比例",
+        "ChangesTaskBreakDown：DURN/DURND 与 MAINDIST",
+        "初 SURPF=0 改正值负例",
+        "已有/不存在数据对象",
+        "同刻开工与单项/组交叉覆盖",
+        "同一主任务的当前步骤/后续步骤",
+        "已暂停的非关键维修子步骤恢复"
+      ],
+      "limitations": [
+        "预定变更限已有数据对象及声明字段；不能创建任意规则或运行中改工序结构",
+        "每个表变体必须等待其对应 CM、damage、PM 或更换父例验收；本主例一次只引入一个变化"
+      ]
+    },
+    {
+      "method_id": "M-I06",
+      "title": "预定可靠性变化与生效边界",
+      "primary_case_id": "I06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          481,
+          482
+        ],
+        [
+          494,
+          497
+        ]
+      ],
+      "input_tables": [
+        "ChangesItemReliability",
+        "ChangesFailureModeReliability"
+      ],
+      "checked_fields": [
+        "ChangesItemReliability.FRTCF",
+        "ChangesFailureModeReliability.FRQCF"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ChangesItemReliability：FRTCF 与传统主项",
+        "ChangesFailureModeReliability：FRQCF 与系统/子项/位置故障模式",
+        "多个系数对初值",
+        "准备中/运行中/停机期间",
+        "AFFRT/ENVF/SCFRT/MFF/PFF 组合",
+        "子项/ASSY/任务型 ItemReliability 反例",
+        "系统残差故障率"
+      ],
+      "limitations": [
+        "FRTCF 只允许传统主项；FRQCF 不受主项限制",
+        "不能由手册推断原生采样具体重算方式；故障事件和随机重复证据必须单独取得"
+      ]
+    },
+    {
+      "method_id": "M-I07",
+      "title": "预定采购周期、交付与补订批量变更",
+      "primary_case_id": "I07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          445,
+          447
+        ],
+        [
+          481,
+          482
+        ],
+        [
+          497,
+          500
+        ],
+        [
+          515,
+          517
+        ]
+      ],
+      "input_tables": [
+        "ChangesItemReorder",
+        "ChangesStockAllocation"
+      ],
+      "checked_fields": [
+        "ChangesItemReorder.ROINT",
+        "ChangesItemReorder.DISCF",
+        "ChangesStockAllocation.ROSIZ"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "ChangesItemReorder：LEADT/LEADTD/ROINT/DISCF",
+        "ChangesStockAllocation：ROSIZ",
+        "旧订单未完",
+        "旧周期未结束",
+        "ROSIZ 改变但无新需求",
+        "下一需求/迁移触发",
+        "同刻 ROSIZ 与迁移",
+        "部分可修报废比例",
+        "stock-based/time-based 互换负例",
+        "非补订项忽略诊断"
+      ],
+      "limitations": [
+        "不允许改变补订策略种类；StockAllocation 变更不提供 STSIZ 修改，库存调整采用 ItemTransfer",
+        "需先完成库存补订、时间补订及部分可修件相应变体，再执行该变更变体"
+      ]
+    },
+    {
+      "method_id": "M-J01",
+      "title": "时间分布：确定值与随机工时",
+      "primary_case_id": "J01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          541,
+          545
+        ]
+      ],
+      "input_tables": [
+        "TimeDistributions"
+      ],
+      "checked_fields": [
+        "TimeDistributions.BASED",
+        "TimeDistributions.PARAM1",
+        "TimeDistributions.PARAM2",
+        "TimeDistributions.PARAM3"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "DETERM",
+        "RECT",
+        "TRIANG",
+        "EXP",
+        "LOGNORM",
+        "NORMAL 截断于零",
+        "GAMMA"
+      ],
+      "limitations": [
+        "PDF 的 TRIANGULAR/LOGNORMAL/NEGEXP 等写法与字典枚举不同；不得静态认定别名可互换"
+      ]
+    },
+    {
+      "method_id": "M-J02",
+      "title": "整数分布：随机需求数量",
+      "primary_case_id": "J02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          541,
+          543
+        ]
+      ],
+      "input_tables": [
+        "IntegerDistributions"
+      ],
+      "checked_fields": [
+        "IntegerDistributions.BASED",
+        "IntegerDistributions.PFAC"
+      ],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "DETERM",
+        "IRECT",
+        "POISSON",
+        "零需求与大需求"
+      ],
+      "limitations": [
+        "IntegerDistributions PDF 的分布清单与字典不一致；以字典候选逐项原生验证"
+      ]
+    },
+    {
+      "method_id": "M-J03",
+      "title": "分布混合、嵌套与离散经验表",
+      "primary_case_id": "J03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          541,
+          545
+        ]
+      ],
+      "input_tables": [
+        "TimeDistributions",
+        "IntegerDistributions"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "两点经验表",
+        "时间混合",
+        "整数混合",
+        "嵌套引用",
+        "概率和不为一",
+        "循环引用负例"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-J04",
+      "title": "重复数、种子与统计停止",
+      "primary_case_id": "J04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          229,
+          235
+        ],
+        [
+          550,
+          559
+        ]
+      ],
+      "input_tables": [
+        "Control"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "TCLEV=0 固定重复数",
+        "RSMTMF < TCLEV 连续满足 10 次重复",
+        "达到 NREPS 上限",
+        "不同线程的原生重现性"
+      ],
+      "limitations": [
+        "TCLEV针对手册指定的总任务时间指标，不能代替所有输出指标的精度要求",
+        "ENLOG只记录第一次重复；NREPS>1不产生每个样本的完整事件日志"
+      ]
+    },
+    {
+      "method_id": "M-J05",
+      "title": "结果窗口、区间积分与快照",
+      "primary_case_id": "J05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          230,
+          231
+        ],
+        [
+          531,
+          537
+        ]
+      ],
+      "input_tables": [
+        "Control",
+        "ResultCollection",
+        "ResultCollectionProfile",
+        "SnapshotResultTimes"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "全局窗口",
+        "按结果类型覆盖",
+        "CONTINUOUS/SNAPSHOT 混合",
+        "嵌套重复采集曲线",
+        "SIMPE 与 RCEND 分别变化"
+      ],
+      "limitations": [
+        "A01 既有窗口探针只证明其限定观察范围；本目录不扩大其验收范围"
+      ]
+    },
+    {
+      "method_id": "M-J06",
+      "title": "逐次结果与分位数",
+      "primary_case_id": "J06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          523,
+          531
+        ],
+        [
+          546,
+          550
+        ]
+      ],
+      "input_tables": [
+        "PercentileLevels",
+        "ReplicationResultControlItem",
+        "ReplicationResultControlMission",
+        "ReplicationResultControlResource",
+        "ReplicationResultControlStockTotal",
+        "ReplicationResultControlSystem"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "五类实体逐项开启",
+        "TOTAL/TIME/SNAPS",
+        "不同 PERCL",
+        "样本不足",
+        "未 TRACK 的 item"
+      ],
+      "limitations": [
+        "百分位含义和方向必须依手册指标验证；不能把一次运行或均值当分位证据"
+      ]
+    },
+    {
+      "method_id": "M-J07",
+      "title": "任务、编队与飞机结果口径",
+      "primary_case_id": "J07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          549,
+          554
+        ],
+        [
+          560,
+          681
+        ]
+      ],
+      "input_tables": [],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单机对照",
+        "同编队多机",
+        "部分成功",
+        "任务尚未完成已达成功点",
+        "按 unit/group/type 汇总"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-J08",
+      "title": "库存、欠交、等待与资源结果口径",
+      "primary_case_id": "J08",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          233,
+          234
+        ],
+        [
+          681,
+          762
+        ]
+      ],
+      "input_tables": [
+        "Item",
+        "Control"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "有货/欠交/到货",
+        "需求零分母",
+        "资源闲置/工作/离班/故障",
+        "期末未完成"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-J09",
+      "title": "尺度因子与单参数敏感性",
+      "primary_case_id": "J09",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          236,
+          237
+        ]
+      ],
+      "input_tables": [
+        "ScaleFactors"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "SCFRT",
+        "SCRPT",
+        "SCLDT",
+        "SCPMI",
+        "SCPMT",
+        "SCTRT",
+        "零与一倍对照"
+      ],
+      "limitations": [
+        "全局倍率不保证覆盖自定义工序时长；依适用字段逐项检查"
+      ]
+    },
+    {
+      "method_id": "M-K01",
+      "title": "表视图、模型视图、曲线视图与模板",
+      "primary_case_id": "K01",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          52,
+          99
+        ]
+      ],
+      "input_tables": [
+        "ProblemDescription"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "Table/Model/Profile",
+        "RBD 视图",
+        "自建模板含/不含数据",
+        "父子模型差分"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-K02",
+      "title": "JSON 原生导入与回导",
+      "primary_case_id": "K02",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          152,
+          154
+        ],
+        [
+          164,
+          165
+        ],
+        [
+          167,
+          168
+        ]
+      ],
+      "input_tables": [],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "整数/浮点/文本",
+        "非 ASCII 标识",
+        "空值与默认值",
+        "多表实例与停用行"
+      ],
+      "limitations": [
+        "原始字节与规范化派生物分别保存；RSEED 回导类型保留为独立探针"
+      ]
+    },
+    {
+      "method_id": "M-K03",
+      "title": "文本、剪贴板与 Excel XML 交换",
+      "primary_case_id": "K03",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          149,
+          152
+        ],
+        [
+          164,
+          166
+        ]
+      ],
+      "input_tables": [],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "分隔符文本",
+        "固定宽度文本",
+        "剪贴板选区",
+        "Excel XML 仅输出"
+      ],
+      "limitations": [
+        "手册不支持直接导入 Excel XML；Excel 输入属于 ODBC 路径"
+      ]
+    },
+    {
+      "method_id": "M-K04",
+      "title": "IncludeFiles 与模型模块复用",
+      "primary_case_id": "K04",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          537,
+          538
+        ]
+      ],
+      "input_tables": [
+        "IncludeFiles"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "单层/嵌套",
+        "相对路径/工作目录",
+        "缺文件",
+        "重复 Control 与键冲突"
+      ],
+      "limitations": []
+    },
+    {
+      "method_id": "M-K05",
+      "title": "ODBC 输入、输出及直接 include",
+      "primary_case_id": "K05",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          154,
+          157
+        ],
+        [
+          162,
+          164
+        ],
+        [
+          537,
+          538
+        ]
+      ],
+      "input_tables": [
+        "IncludeFiles"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "别名和排序",
+        "空值合并",
+        "无效值",
+        "输入/报告输出",
+        "运行时 include"
+      ],
+      "limitations": [
+        "依赖可用 ODBC 驱动及自建授权数据源；案例包只保存生成说明与脱敏索引，不保存本地数据库"
+      ]
+    },
+    {
+      "method_id": "M-K06",
+      "title": "OPUS10 输入、方案点与阶段方案",
+      "primary_case_id": "K06",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          55,
+          57
+        ],
+        [
+          157,
+          162
+        ]
+      ],
+      "input_tables": [
+        "Control",
+        "MaintenanceAllocation",
+        "ResourceAllocation",
+        "StockAllocation",
+        "SystemTransfer",
+        "ItemTransfer",
+        "ChangesStockAllocation"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "OPI/SXI 合并",
+        "单个/多个方案点",
+        "LORA 结果",
+        "Phase Scenario",
+        "旧版转换负例"
+      ],
+      "limitations": [
+        "须取得兼容 OPUS10 输入/输出或工具；原生导入不保证完整业务等价"
+      ]
+    },
+    {
+      "method_id": "M-K07",
+      "title": "原生数据检查、CLI 与结果封存",
+      "primary_case_id": "K07",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          109,
+          113
+        ],
+        [
+          166,
+          172
+        ],
+        [
+          774,
+          870
+        ]
+      ],
+      "input_tables": [],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "GUI Test",
+        "silent/calc/report",
+        "convert 在副本上",
+        "线程参数",
+        "错误/警告/备注分类"
+      ],
+      "limitations": [
+        "须使用已验证的本机原生启动上下文；运行前检查进程且不关闭用户窗口"
+      ]
+    },
+    {
+      "method_id": "M-K08",
+      "title": "Game Mode 与地理显示校准",
+      "primary_case_id": "K08",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          100,
+          109
+        ],
+        [
+          538,
+          541
+        ]
+      ],
+      "input_tables": [
+        "GeoMap",
+        "GeoMapLayer"
+      ],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "组织图/地图",
+        "时间步进",
+        "各类 detail 窗口",
+        "交互场景分支"
+      ],
+      "limitations": [
+        "地图显示不构成距离/运输时间模型；交互变更不自动成为可复用案例"
+      ]
+    },
+    {
+      "method_id": "M-K09",
+      "title": "报告设置、比较与脱敏交付",
+      "primary_case_id": "K09",
+      "source_id": "SIMLOX-2017-USERS-REFERENCE",
+      "pdf_pages": [
+        [
+          113,
+          149
+        ],
+        [
+          164,
+          166
+        ]
+      ],
+      "input_tables": [],
+      "checked_fields": [],
+      "coverage_state": "mapped_to_acceptance_plan",
+      "native_scope_state": "unverified_for_full_method",
+      "options_to_verify": [
+        "SXS 固定设置",
+        "结果并列",
+        "报告 JSON",
+        "标识脱敏及 include 递归"
+      ],
+      "limitations": [
+        "脱敏只按原生工具实际处理范围验收，不能由文件名推断已去除敏感信息"
+      ]
+    }
+  ],
+  "input_table_inventory": [
+    {
+      "table": "AlternateUnit",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "AlternateUnit",
+      "manual_page": 307,
+      "method_ids": [
+        "M-A18"
+      ]
+    },
+    {
+      "table": "CMLocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "CMLocation",
+      "manual_page": 355,
+      "method_ids": [
+        "M-D02",
+        "M-D06",
+        "M-D16",
+        "M-E06",
+        "M-H03"
+      ]
+    },
+    {
+      "table": "CMReplacement",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "CMReplacement",
+      "manual_page": 359,
+      "method_ids": [
+        "M-D06",
+        "M-D15",
+        "M-H03"
+      ]
+    },
+    {
+      "table": "CMStationStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "CMStationStructure",
+      "manual_page": 361,
+      "method_ids": [
+        "M-D16",
+        "M-E07"
+      ]
+    },
+    {
+      "table": "ChangesCMLocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesCMLocation",
+      "manual_page": 482,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesDamageRepair",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesDamageRepair",
+      "manual_page": 485,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesDamageReplacement",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesDamageReplacement",
+      "manual_page": 489,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesFailureModeReliability",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesFailureModeReliability",
+      "manual_page": 494,
+      "method_ids": [
+        "M-I06"
+      ]
+    },
+    {
+      "table": "ChangesItemReliability",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesItemReliability",
+      "manual_page": 496,
+      "method_ids": [
+        "M-I06"
+      ]
+    },
+    {
+      "table": "ChangesItemReorder",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesItemReorder",
+      "manual_page": 497,
+      "method_ids": [
+        "M-I07"
+      ]
+    },
+    {
+      "table": "ChangesItemRepair",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesItemRepair",
+      "manual_page": 500,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesItemReplacement",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesItemReplacement",
+      "manual_page": 504,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesMissionPreparation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesMissionPreparation",
+      "manual_page": 509,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesMissionTurnround",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesMissionTurnround",
+      "manual_page": 511,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesPMLocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesPMLocation",
+      "manual_page": 513,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesStockAllocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesStockAllocation",
+      "manual_page": 515,
+      "method_ids": [
+        "M-I07",
+        "M-K06"
+      ]
+    },
+    {
+      "table": "ChangesSystemRepair",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesSystemRepair",
+      "manual_page": 517,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "ChangesTaskBreakDown",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ChangesTaskBreakDown",
+      "manual_page": 521,
+      "method_ids": [
+        "M-I05"
+      ]
+    },
+    {
+      "table": "Control",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Control",
+      "manual_page": 229,
+      "method_ids": [
+        "M-A10",
+        "M-A18",
+        "M-C07",
+        "M-D03",
+        "M-D13",
+        "M-E03",
+        "M-E08",
+        "M-E09",
+        "M-E13",
+        "M-E14",
+        "M-F04",
+        "M-G04",
+        "M-G10",
+        "M-I01",
+        "M-J04",
+        "M-J05",
+        "M-J08",
+        "M-K06"
+      ]
+    },
+    {
+      "table": "DamageFailureMode",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "DamageFailureMode",
+      "manual_page": 424,
+      "method_ids": [
+        "M-H03"
+      ]
+    },
+    {
+      "table": "DamageItem",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "DamageItem",
+      "manual_page": 425,
+      "method_ids": [
+        "M-H01",
+        "M-H02",
+        "M-H03"
+      ]
+    },
+    {
+      "table": "DamageRepair",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "DamageRepair",
+      "manual_page": 428,
+      "method_ids": [
+        "M-H02"
+      ]
+    },
+    {
+      "table": "DamageReplacement",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "DamageReplacement",
+      "manual_page": 432,
+      "method_ids": [
+        "M-H02"
+      ]
+    },
+    {
+      "table": "DamageType",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "DamageType",
+      "manual_page": 436,
+      "method_ids": [
+        "M-H01"
+      ]
+    },
+    {
+      "table": "FailureMode",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "FailureMode",
+      "manual_page": 364,
+      "method_ids": [
+        "M-D02",
+        "M-D06",
+        "M-D09",
+        "M-G02"
+      ]
+    },
+    {
+      "table": "FailureModeFrequency",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "FailureModeFrequency",
+      "manual_page": 368,
+      "method_ids": [
+        "M-D02",
+        "M-D06"
+      ]
+    },
+    {
+      "table": "Formation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Formation",
+      "manual_page": 281,
+      "method_ids": [
+        "M-A11"
+      ]
+    },
+    {
+      "table": "FormationSystem",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "FormationSystem",
+      "manual_page": 282,
+      "method_ids": [
+        "M-A11"
+      ]
+    },
+    {
+      "table": "GeoMap",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "GeoMap",
+      "manual_page": 538,
+      "method_ids": [
+        "M-K08"
+      ]
+    },
+    {
+      "table": "GeoMapLayer",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "GeoMapLayer",
+      "manual_page": 540,
+      "method_ids": [
+        "M-K08"
+      ]
+    },
+    {
+      "table": "IncludeFiles",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "IncludeFiles",
+      "manual_page": 537,
+      "method_ids": [
+        "M-K04",
+        "M-K05"
+      ]
+    },
+    {
+      "table": "IntegerDistributions",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "IntegerDistributions",
+      "manual_page": 541,
+      "method_ids": [
+        "M-A08",
+        "M-J02",
+        "M-J03"
+      ]
+    },
+    {
+      "table": "Item",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Item",
+      "manual_page": 238,
+      "method_ids": [
+        "M-D01",
+        "M-D02",
+        "M-D07",
+        "M-D09",
+        "M-E13",
+        "M-F01",
+        "M-G01",
+        "M-J08"
+      ]
+    },
+    {
+      "table": "ItemFailureRate",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemFailureRate",
+      "manual_page": 245,
+      "method_ids": [
+        "M-D02",
+        "M-D07"
+      ]
+    },
+    {
+      "table": "ItemLateralSupport",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemLateralSupport",
+      "manual_page": 314,
+      "method_ids": [
+        "M-E08"
+      ]
+    },
+    {
+      "table": "ItemReorder",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemReorder",
+      "manual_page": 343,
+      "method_ids": [
+        "M-E06",
+        "M-E15"
+      ]
+    },
+    {
+      "table": "ItemRepair",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemRepair",
+      "manual_page": 338,
+      "method_ids": [
+        "M-D01",
+        "M-E02",
+        "M-E05",
+        "M-E06",
+        "M-E14",
+        "M-F01",
+        "M-G01"
+      ]
+    },
+    {
+      "table": "ItemReplacement",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemReplacement",
+      "manual_page": 346,
+      "method_ids": [
+        "M-A16",
+        "M-E01",
+        "M-E02",
+        "M-E03",
+        "M-E05",
+        "M-E06",
+        "M-E13",
+        "M-E14",
+        "M-F01",
+        "M-G01",
+        "M-G06",
+        "M-H02"
+      ]
+    },
+    {
+      "table": "ItemStationStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemStationStructure",
+      "manual_page": 316,
+      "method_ids": [
+        "M-E04",
+        "M-E07",
+        "M-E10",
+        "M-E12"
+      ]
+    },
+    {
+      "table": "ItemStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemStructure",
+      "manual_page": 247,
+      "method_ids": [
+        "M-A16",
+        "M-D01",
+        "M-E14",
+        "M-F01",
+        "M-G01",
+        "M-G03"
+      ]
+    },
+    {
+      "table": "ItemTransfer",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ItemTransfer",
+      "manual_page": 476,
+      "method_ids": [
+        "M-I02",
+        "M-K06"
+      ]
+    },
+    {
+      "table": "LateralSupport",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "LateralSupport",
+      "manual_page": 319,
+      "method_ids": [
+        "M-E08"
+      ]
+    },
+    {
+      "table": "MaintenanceAllocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MaintenanceAllocation",
+      "manual_page": 439,
+      "method_ids": [
+        "M-F01",
+        "M-I01",
+        "M-K06"
+      ]
+    },
+    {
+      "table": "MaterielOperationalModes",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MaterielOperationalModes",
+      "manual_page": 448,
+      "method_ids": [
+        "M-G04",
+        "M-G09"
+      ]
+    },
+    {
+      "table": "MaterielPM",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MaterielPM",
+      "manual_page": 370,
+      "method_ids": [
+        "M-D03",
+        "M-D04",
+        "M-D05",
+        "M-D10",
+        "M-D11",
+        "M-D12",
+        "M-D14",
+        "M-G02",
+        "M-G12"
+      ]
+    },
+    {
+      "table": "MaterielPMInterval",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MaterielPMInterval",
+      "manual_page": 375,
+      "method_ids": [
+        "M-D10"
+      ]
+    },
+    {
+      "table": "MaterielPosition",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MaterielPosition",
+      "manual_page": 250,
+      "method_ids": [
+        "M-D06",
+        "M-G02"
+      ]
+    },
+    {
+      "table": "MaterielStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MaterielStructure",
+      "manual_page": 251,
+      "method_ids": [
+        "M-D06",
+        "M-D14",
+        "M-F01",
+        "M-G02"
+      ]
+    },
+    {
+      "table": "MaxPMProfile",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MaxPMProfile",
+      "manual_page": 376,
+      "method_ids": [
+        "M-D13"
+      ]
+    },
+    {
+      "table": "MissionCriticalityFailureMode",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionCriticalityFailureMode",
+      "manual_page": 284,
+      "method_ids": [
+        "M-D08"
+      ]
+    },
+    {
+      "table": "MissionCriticalityItem",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionCriticalityItem",
+      "manual_page": 285,
+      "method_ids": [
+        "M-D08"
+      ]
+    },
+    {
+      "table": "MissionDamage",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionDamage",
+      "manual_page": 437,
+      "method_ids": [
+        "M-H01"
+      ]
+    },
+    {
+      "table": "MissionDependence",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionDependence",
+      "manual_page": 287,
+      "method_ids": [
+        "M-A13",
+        "M-A14"
+      ]
+    },
+    {
+      "table": "MissionDependenceProfile",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionDependenceProfile",
+      "manual_page": 289,
+      "method_ids": [
+        "M-A14"
+      ]
+    },
+    {
+      "table": "MissionFormation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionFormation",
+      "manual_page": 292,
+      "method_ids": [
+        "M-A11",
+        "M-C04"
+      ]
+    },
+    {
+      "table": "MissionOperationalModes",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionOperationalModes",
+      "manual_page": 449,
+      "method_ids": [
+        "M-G04",
+        "M-G09"
+      ]
+    },
+    {
+      "table": "MissionPreparation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionPreparation",
+      "manual_page": 294,
+      "method_ids": [
+        "M-A12",
+        "M-B01",
+        "M-B02",
+        "M-B03",
+        "M-B05",
+        "M-C03",
+        "M-C04"
+      ]
+    },
+    {
+      "table": "MissionReliability",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionReliability",
+      "manual_page": 297,
+      "method_ids": [
+        "M-D08"
+      ]
+    },
+    {
+      "table": "MissionReliabilityFailureMode",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionReliabilityFailureMode",
+      "manual_page": 299,
+      "method_ids": [
+        "M-D08"
+      ]
+    },
+    {
+      "table": "MissionResource",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionResource",
+      "manual_page": 300,
+      "method_ids": [
+        "M-C05",
+        "M-C10"
+      ]
+    },
+    {
+      "table": "MissionSystem",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionSystem",
+      "manual_page": 302,
+      "method_ids": [
+        "M-A03",
+        "M-A05",
+        "M-A11",
+        "M-A12",
+        "M-A16"
+      ]
+    },
+    {
+      "table": "MissionTurnround",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionTurnround",
+      "manual_page": 305,
+      "method_ids": [
+        "M-A12",
+        "M-B04",
+        "M-B05"
+      ]
+    },
+    {
+      "table": "MissionType",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionType",
+      "manual_page": 261,
+      "method_ids": [
+        "M-A01",
+        "M-A02",
+        "M-A03",
+        "M-A04",
+        "M-A05",
+        "M-A06",
+        "M-A07",
+        "M-A12",
+        "M-A13",
+        "M-B01",
+        "M-B03",
+        "M-B04",
+        "M-C03",
+        "M-C04",
+        "M-D04",
+        "M-D05",
+        "M-D08"
+      ]
+    },
+    {
+      "table": "MissionTypeUtilization",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "MissionTypeUtilization",
+      "manual_page": 267,
+      "method_ids": [
+        "M-A15"
+      ]
+    },
+    {
+      "table": "OperationParameter",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "OperationParameter",
+      "manual_page": 269,
+      "method_ids": [
+        "M-A15",
+        "M-D02",
+        "M-D07"
+      ]
+    },
+    {
+      "table": "OperationProfile",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "OperationalProfile",
+      "manual_page": 270,
+      "method_ids": [
+        "M-A01",
+        "M-A02",
+        "M-A04",
+        "M-A05",
+        "M-A07",
+        "M-A08",
+        "M-A09",
+        "M-A13",
+        "M-A14",
+        "M-B03",
+        "M-B04"
+      ]
+    },
+    {
+      "table": "OperationalModes",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "OperationalModes",
+      "manual_page": 450,
+      "method_ids": [
+        "M-G04",
+        "M-G09"
+      ]
+    },
+    {
+      "table": "Operations",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Operations",
+      "manual_page": 276,
+      "method_ids": [
+        "M-A01",
+        "M-A04",
+        "M-A09",
+        "M-A10",
+        "M-A17",
+        "M-A18"
+      ]
+    },
+    {
+      "table": "PMActivation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PMActivation",
+      "manual_page": 379,
+      "method_ids": [
+        "M-D13"
+      ]
+    },
+    {
+      "table": "PMActivationProfile",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PMActivationProfile",
+      "manual_page": 382,
+      "method_ids": [
+        "M-D13"
+      ]
+    },
+    {
+      "table": "PMFailureMode",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PMFailureMode",
+      "manual_page": 385,
+      "method_ids": [
+        "M-D15"
+      ]
+    },
+    {
+      "table": "PMLocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PMLocation",
+      "manual_page": 387,
+      "method_ids": [
+        "M-D03",
+        "M-D04",
+        "M-D05",
+        "M-D12",
+        "M-D15",
+        "M-D16"
+      ]
+    },
+    {
+      "table": "PMReplacement",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PMReplacement",
+      "manual_page": 390,
+      "method_ids": [
+        "M-D14",
+        "M-D15"
+      ]
+    },
+    {
+      "table": "PMStationStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PMStationStructure",
+      "manual_page": 393,
+      "method_ids": [
+        "M-D16",
+        "M-E07"
+      ]
+    },
+    {
+      "table": "PercentileLevels",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PercentileLevels",
+      "manual_page": 523,
+      "method_ids": [
+        "M-J06"
+      ]
+    },
+    {
+      "table": "Prelife",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Prelife",
+      "manual_page": 466,
+      "method_ids": [
+        "M-G11"
+      ]
+    },
+    {
+      "table": "PrelifeData",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PrelifeData",
+      "manual_page": 468,
+      "method_ids": [
+        "M-G11"
+      ]
+    },
+    {
+      "table": "PrelifeDataAge",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PrelifeDataAge",
+      "manual_page": 473,
+      "method_ids": [
+        "M-G11"
+      ]
+    },
+    {
+      "table": "PrelifeStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "PrelifeStructure",
+      "manual_page": 474,
+      "method_ids": [
+        "M-G11"
+      ]
+    },
+    {
+      "table": "ProblemDescription",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ProblemDescription",
+      "manual_page": 235,
+      "method_ids": [
+        "M-K01"
+      ]
+    },
+    {
+      "table": "RBDBridge",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDBridge",
+      "manual_page": 451,
+      "method_ids": [
+        "M-G07"
+      ]
+    },
+    {
+      "table": "RBDNonCriticalSet",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDNonCriticalSet",
+      "manual_page": 453,
+      "method_ids": [
+        "M-G09"
+      ]
+    },
+    {
+      "table": "RBDNonCriticalSetItems",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDNonCriticalSetItems",
+      "manual_page": 454,
+      "method_ids": [
+        "M-G09"
+      ]
+    },
+    {
+      "table": "RBDParallel",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDParallel",
+      "manual_page": 454,
+      "method_ids": [
+        "M-G04",
+        "M-G05",
+        "M-G06"
+      ]
+    },
+    {
+      "table": "RBDParallelStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDParallelStructure",
+      "manual_page": 457,
+      "method_ids": [
+        "M-G04",
+        "M-G05"
+      ]
+    },
+    {
+      "table": "RBDSeries",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDSeries",
+      "manual_page": 458,
+      "method_ids": [
+        "M-G04"
+      ]
+    },
+    {
+      "table": "RBDSeriesStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDSeriesStructure",
+      "manual_page": 459,
+      "method_ids": [
+        "M-G04"
+      ]
+    },
+    {
+      "table": "RBDTree",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDTree",
+      "manual_page": 460,
+      "method_ids": [
+        "M-G08"
+      ]
+    },
+    {
+      "table": "RBDTreeStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RBDTreeStructure",
+      "manual_page": 461,
+      "method_ids": [
+        "M-G08"
+      ]
+    },
+    {
+      "table": "Redundancy",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Redundancy",
+      "manual_page": 462,
+      "method_ids": [
+        "M-G10"
+      ]
+    },
+    {
+      "table": "RedundancyLink",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "RedundancyLink",
+      "manual_page": 465,
+      "method_ids": [
+        "M-G10"
+      ]
+    },
+    {
+      "table": "ReplicationResultControlItem",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ReplicationResultControlItem",
+      "manual_page": 524,
+      "method_ids": [
+        "M-J06"
+      ]
+    },
+    {
+      "table": "ReplicationResultControlMission",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ReplicationResultControlMission",
+      "manual_page": 526,
+      "method_ids": [
+        "M-J06"
+      ]
+    },
+    {
+      "table": "ReplicationResultControlResource",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ReplicationResultControlResource",
+      "manual_page": 527,
+      "method_ids": [
+        "M-J06"
+      ]
+    },
+    {
+      "table": "ReplicationResultControlStockTotal",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ReplicationResultControlStockTotal",
+      "manual_page": 529,
+      "method_ids": [
+        "M-J06"
+      ]
+    },
+    {
+      "table": "ReplicationResultControlSystem",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ReplicationResultControlSystem",
+      "manual_page": 530,
+      "method_ids": [
+        "M-J06"
+      ]
+    },
+    {
+      "table": "Resource",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Resource",
+      "manual_page": 412,
+      "method_ids": [
+        "M-C01",
+        "M-C05",
+        "M-C08"
+      ]
+    },
+    {
+      "table": "ResourceAllocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ResourceAllocation",
+      "manual_page": 442,
+      "method_ids": [
+        "M-C01",
+        "M-C02",
+        "M-C03",
+        "M-C05",
+        "M-C09",
+        "M-C10",
+        "M-F03",
+        "M-I01",
+        "M-K06"
+      ]
+    },
+    {
+      "table": "ResourceRemoteSupport",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ResourceRemoteSupport",
+      "manual_page": 414,
+      "method_ids": [
+        "M-C09"
+      ]
+    },
+    {
+      "table": "ResourceStationData",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ResourceStationData",
+      "manual_page": 416,
+      "method_ids": [
+        "M-C07",
+        "M-C08",
+        "M-C10"
+      ]
+    },
+    {
+      "table": "ResourceTransfer",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ResourceTransfer",
+      "manual_page": 478,
+      "method_ids": [
+        "M-I03"
+      ]
+    },
+    {
+      "table": "ResultCollection",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ResultCollection",
+      "manual_page": 531,
+      "method_ids": [
+        "M-F04",
+        "M-J05"
+      ]
+    },
+    {
+      "table": "ResultCollectionProfile",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ResultCollectionProfile",
+      "manual_page": 533,
+      "method_ids": [
+        "M-J05"
+      ]
+    },
+    {
+      "table": "ScaleFactors",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ScaleFactors",
+      "manual_page": 236,
+      "method_ids": [
+        "M-J09"
+      ]
+    },
+    {
+      "table": "Shift",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Shift",
+      "manual_page": 417,
+      "method_ids": [
+        "M-C07"
+      ]
+    },
+    {
+      "table": "ShiftProfile",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ShiftProfile",
+      "manual_page": 418,
+      "method_ids": [
+        "M-C07"
+      ]
+    },
+    {
+      "table": "ShiftResource",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "ShiftResource",
+      "manual_page": 421,
+      "method_ids": [
+        "M-C07",
+        "M-C08"
+      ]
+    },
+    {
+      "table": "SnapshotResultTimes",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SnapshotResultTimes",
+      "manual_page": 536,
+      "method_ids": [
+        "M-J05"
+      ]
+    },
+    {
+      "table": "Station",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Station",
+      "manual_page": 321,
+      "method_ids": [
+        "M-E07",
+        "M-E08",
+        "M-E09",
+        "M-E11",
+        "M-E12",
+        "M-F03",
+        "M-I04"
+      ]
+    },
+    {
+      "table": "StationLateralSupport",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "StationLateralSupport",
+      "manual_page": 325,
+      "method_ids": [
+        "M-E08"
+      ]
+    },
+    {
+      "table": "StationStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "StationStructure",
+      "manual_page": 327,
+      "method_ids": [
+        "M-D16",
+        "M-E04",
+        "M-E07",
+        "M-E10",
+        "M-E11",
+        "M-E12",
+        "M-F03"
+      ]
+    },
+    {
+      "table": "StationVariant",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "StationVariant",
+      "manual_page": 330,
+      "method_ids": [
+        "M-I01"
+      ]
+    },
+    {
+      "table": "StockAllocation",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "StockAllocation",
+      "manual_page": 444,
+      "method_ids": [
+        "M-D14",
+        "M-E01",
+        "M-E02",
+        "M-E03",
+        "M-E04",
+        "M-E05",
+        "M-E15",
+        "M-F03",
+        "M-G11",
+        "M-I01",
+        "M-I02",
+        "M-K06"
+      ]
+    },
+    {
+      "table": "SubTaskResource",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SubTaskResource",
+      "manual_page": 397,
+      "method_ids": [
+        "M-B02",
+        "M-C02",
+        "M-C03",
+        "M-C06",
+        "M-C09"
+      ]
+    },
+    {
+      "table": "SubTaskType",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SubTaskType",
+      "manual_page": 400,
+      "method_ids": [
+        "M-B02",
+        "M-B05"
+      ]
+    },
+    {
+      "table": "System",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "System",
+      "manual_page": 253,
+      "method_ids": [
+        "M-A16",
+        "M-D07",
+        "M-D09",
+        "M-G01",
+        "M-G03",
+        "M-G12"
+      ]
+    },
+    {
+      "table": "SystemDeployment",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SystemDeployment",
+      "manual_page": 277,
+      "method_ids": [
+        "M-A01",
+        "M-A03",
+        "M-A10",
+        "M-A17",
+        "M-C03",
+        "M-G11",
+        "M-I04"
+      ]
+    },
+    {
+      "table": "SystemDeploymentUtilization",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SystemDeploymentUtilization",
+      "manual_page": 279,
+      "method_ids": [
+        "M-A10",
+        "M-A15"
+      ]
+    },
+    {
+      "table": "SystemFailureRate",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SystemFailureRate",
+      "manual_page": 257,
+      "method_ids": [
+        "M-D07"
+      ]
+    },
+    {
+      "table": "SystemRepair",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SystemRepair",
+      "manual_page": 349,
+      "method_ids": [
+        "M-A16",
+        "M-D01",
+        "M-D05",
+        "M-E01",
+        "M-G06",
+        "M-G12",
+        "M-H02"
+      ]
+    },
+    {
+      "table": "SystemStationStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SystemStationStructure",
+      "manual_page": 331,
+      "method_ids": [
+        "M-E07",
+        "M-E10",
+        "M-E12"
+      ]
+    },
+    {
+      "table": "SystemStructure",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SystemStructure",
+      "manual_page": 259,
+      "method_ids": [
+        "M-F01",
+        "M-G12"
+      ]
+    },
+    {
+      "table": "SystemTransfer",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "SystemTransfer",
+      "manual_page": 479,
+      "method_ids": [
+        "M-I04",
+        "M-K06"
+      ]
+    },
+    {
+      "table": "TaskBreakDown",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "TaskBreakDown",
+      "manual_page": 402,
+      "method_ids": [
+        "M-A16",
+        "M-B02",
+        "M-B03",
+        "M-B05",
+        "M-D03",
+        "M-E01",
+        "M-E13"
+      ]
+    },
+    {
+      "table": "TaskCategory",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "TaskCategory",
+      "manual_page": 405,
+      "method_ids": [
+        "M-I01"
+      ]
+    },
+    {
+      "table": "TaskLevel",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "TaskLevel",
+      "manual_page": 406,
+      "method_ids": [
+        "M-I01"
+      ]
+    },
+    {
+      "table": "TaskResource",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "TaskResource",
+      "manual_page": 407,
+      "method_ids": [
+        "M-C01",
+        "M-C02",
+        "M-C04",
+        "M-C06",
+        "M-C09",
+        "M-D05"
+      ]
+    },
+    {
+      "table": "Tasks",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Tasks",
+      "manual_page": 410,
+      "method_ids": [
+        "M-B02",
+        "M-B03",
+        "M-C01",
+        "M-I01"
+      ]
+    },
+    {
+      "table": "TimeDistributions",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "TimeDistributions",
+      "manual_page": 543,
+      "method_ids": [
+        "M-J01",
+        "M-J03"
+      ]
+    },
+    {
+      "table": "TransportPolicyProfile",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "TransportPolicyProfile",
+      "manual_page": 334,
+      "method_ids": [
+        "M-E10",
+        "M-E11"
+      ]
+    },
+    {
+      "table": "Unit",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "Unit",
+      "manual_page": 308,
+      "method_ids": [
+        "M-A17",
+        "M-D13",
+        "M-F03",
+        "M-I04"
+      ]
+    },
+    {
+      "table": "UnitGroup",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "UnitGroup",
+      "manual_page": 310,
+      "method_ids": [
+        "M-A17",
+        "M-F03"
+      ]
+    },
+    {
+      "table": "UnitGroupMember",
+      "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+      "manual_heading_alias": "UnitGroupMember",
+      "manual_page": 312,
+      "method_ids": [
+        "M-A17",
+        "M-E12"
+      ]
+    }
+  ],
+  "scenario_concept_inventory": [
+    {
+      "title": "Model Overview",
+      "pdf_page": 174,
+      "case_ids": [
+        "A01",
+        "F02"
+      ]
+    },
+    {
+      "title": "Systems and Items",
+      "pdf_page": 175,
+      "case_ids": [
+        "G01",
+        "G02",
+        "G12"
+      ]
+    },
+    {
+      "title": "The Support Organization",
+      "pdf_page": 176,
+      "case_ids": [
+        "E07",
+        "E12"
+      ]
+    },
+    {
+      "title": "Systems and Operational Units",
+      "pdf_page": 178,
+      "case_ids": [
+        "A17"
+      ]
+    },
+    {
+      "title": "Missions",
+      "pdf_page": 179,
+      "case_ids": [
+        "A01",
+        "A05",
+        "A06",
+        "A07",
+        "A08"
+      ]
+    },
+    {
+      "title": "Operation Parameters",
+      "pdf_page": 183,
+      "case_ids": [
+        "A15",
+        "D07",
+        "D10"
+      ]
+    },
+    {
+      "title": "System Assignment to Mission",
+      "pdf_page": 184,
+      "case_ids": [
+        "A03",
+        "A11",
+        "A12",
+        "A17",
+        "A18"
+      ]
+    },
+    {
+      "title": "Mission Dependencies",
+      "pdf_page": 188,
+      "case_ids": [
+        "A13",
+        "A14"
+      ]
+    },
+    {
+      "title": "System Reconfiguration",
+      "pdf_page": 189,
+      "case_ids": [
+        "A16"
+      ]
+    },
+    {
+      "title": "Failures",
+      "pdf_page": 189,
+      "case_ids": [
+        "D01",
+        "D02",
+        "D06",
+        "D07",
+        "D08",
+        "D09"
+      ]
+    },
+    {
+      "title": "Corrective Maintenance",
+      "pdf_page": 191,
+      "case_ids": [
+        "D01",
+        "D06",
+        "E01"
+      ]
+    },
+    {
+      "title": "Damage and Attrition",
+      "pdf_page": 192,
+      "case_ids": [
+        "H01",
+        "H02",
+        "H03"
+      ]
+    },
+    {
+      "title": "Autonomous Mission",
+      "pdf_page": 193,
+      "case_ids": [
+        "E11"
+      ]
+    },
+    {
+      "title": "Default operational profile",
+      "pdf_page": 194,
+      "case_ids": [
+        "A10"
+      ]
+    },
+    {
+      "title": "Implicit units",
+      "pdf_page": 196,
+      "case_ids": [
+        "A17"
+      ]
+    },
+    {
+      "title": "Reliability Block Modeling",
+      "pdf_page": 196,
+      "case_ids": [
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09"
+      ]
+    },
+    {
+      "title": "Redundancies",
+      "pdf_page": 201,
+      "case_ids": [
+        "G10"
+      ]
+    },
+    {
+      "title": "Preventive Maintenance",
+      "pdf_page": 202,
+      "case_ids": [
+        "D03",
+        "D04",
+        "D10",
+        "D11",
+        "D12",
+        "D13",
+        "D14",
+        "D15",
+        "G11"
+      ]
+    },
+    {
+      "title": "Items",
+      "pdf_page": 210,
+      "case_ids": [
+        "G01",
+        "D14"
+      ]
+    },
+    {
+      "title": "Maintenance Tasks in General",
+      "pdf_page": 211,
+      "case_ids": [
+        "B02",
+        "B05",
+        "I01"
+      ]
+    },
+    {
+      "title": "Repair Tasks",
+      "pdf_page": 211,
+      "case_ids": [
+        "D01",
+        "D06",
+        "E01",
+        "E05"
+      ]
+    },
+    {
+      "title": "Repair Fractions",
+      "pdf_page": 214,
+      "case_ids": [
+        "E06"
+      ]
+    },
+    {
+      "title": "Reorders",
+      "pdf_page": 216,
+      "case_ids": [
+        "E15"
+      ]
+    },
+    {
+      "title": "Incoming Demands",
+      "pdf_page": 218,
+      "case_ids": [
+        "E02",
+        "E07",
+        "E09"
+      ]
+    },
+    {
+      "title": "Arrival of Faulty Items",
+      "pdf_page": 219,
+      "case_ids": [
+        "E05",
+        "E06",
+        "E07"
+      ]
+    },
+    {
+      "title": "Arrival of Replacement Items",
+      "pdf_page": 219,
+      "case_ids": [
+        "E03",
+        "E04",
+        "E15"
+      ]
+    },
+    {
+      "title": "Transportation",
+      "pdf_page": 220,
+      "case_ids": [
+        "E04",
+        "E10",
+        "D16"
+      ]
+    },
+    {
+      "title": "Resources",
+      "pdf_page": 221,
+      "case_ids": [
+        "C01",
+        "C02",
+        "C05",
+        "C06",
+        "C09",
+        "C10"
+      ]
+    },
+    {
+      "title": "Lateral Support",
+      "pdf_page": 221,
+      "case_ids": [
+        "E08"
+      ]
+    },
+    {
+      "title": "Robbing",
+      "pdf_page": 223,
+      "case_ids": [
+        "E13"
+      ]
+    },
+    {
+      "title": "Removal Rate Factor and No Fault Found",
+      "pdf_page": 224,
+      "case_ids": [
+        "E14"
+      ]
+    },
+    {
+      "title": "Transfer of Assets",
+      "pdf_page": 225,
+      "case_ids": [
+        "I02",
+        "I03",
+        "I04"
+      ]
+    },
+    {
+      "title": "Payloading and Refueling",
+      "pdf_page": 226,
+      "case_ids": [
+        "B05"
+      ]
+    },
+    {
+      "title": "Scheduled Data Changes",
+      "pdf_page": 226,
+      "case_ids": [
+        "I05",
+        "I06",
+        "I07"
+      ]
+    },
+    {
+      "title": "Tasks",
+      "pdf_page": 226,
+      "case_ids": [
+        "B02",
+        "B05"
+      ]
+    },
+    {
+      "title": "Shifts",
+      "pdf_page": 227,
+      "case_ids": [
+        "C07",
+        "C08"
+      ]
+    }
+  ],
+  "official_example_inventory": [
+    {
+      "title": "Prelifing of Systems",
+      "pdf_pages": [
+        763,
+        765
+      ],
+      "case_ids": [
+        "G11"
+      ]
+    },
+    {
+      "title": "Prelifing of Individual Items",
+      "pdf_pages": [
+        765,
+        767
+      ],
+      "case_ids": [
+        "G11",
+        "D14"
+      ]
+    },
+    {
+      "title": "Reliability Block Modeling",
+      "pdf_pages": [
+        767,
+        771
+      ],
+      "case_ids": [
+        "G04",
+        "G09"
+      ]
+    },
+    {
+      "title": "Using Multiple Operation Parameters",
+      "pdf_pages": [
+        771,
+        773
+      ],
+      "case_ids": [
+        "A15",
+        "D07",
+        "D10"
+      ]
+    }
+  ]
+}

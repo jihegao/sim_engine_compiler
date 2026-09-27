@@ -1,0 +1,17 @@
+{
+  "case_id": "A01",
+  "version": "1.0.0",
+  "parent_case": null,
+  "delta": "baseline single scheduled mission",
+  "requires": [],
+  "time_unit_native": "hour",
+  "time_unit_pairing": "minute",
+  "hours_to_minutes": 60,
+  "aircraft": [{"business_id": "TEACH-AIR-01", "native_sid": "TEACH-AIR-01", "qtyps": 1, "base": "BASE-01", "initial_state": "ready"}],
+  "mechanisms": {"preparation": false, "fault": false, "pm": false, "cm": false, "stock": false, "resource_constraint": false},
+  "native_inert_rows": {"MissionPreparation": "no business row; native ENLOG still emits same-time lifecycle markers but NPSTA=0 and no resource work", "System": "FRT=0 with no Item rows; warning #126 is expected and must be explained", "Control": "ENLOG=Y intentionally produces warning #108"},
+  "mission": {"business_id": "BASIC-MISSION", "planned_wave_count": 1, "required_aircraft_per_wave": 1, "duration_hours": 2, "notice_lead_hours": 1, "delay_window_minutes": 20, "schedule_hours": [8], "success_if": "one aircraft launches and completes the full two-hour mission without a fault"},
+  "observation": {"start_hours": 0, "end_hours": 36, "interval_minutes": 30, "end_semantics": "the normal case finishes before the end; native crossing-end behavior is a separate measured probe, and derived clipped-window exposure is distinct from native FTMO"},
+  "hand_expected": {"notification_hours": [7], "planned_start_hours": [8], "actual_start_hours": [8], "actual_end_hours": [10], "reserved_not_ready_intervals_hours": [[7, 8]], "flight_intervals_hours": [[8, 10]], "ready_after_hours": [10], "flight_hours_integral": 2, "ready_hours_integral": 33, "native_preparation_started_count": 0, "planned_waves": 1, "launched_waves": 1, "sorties": 1, "completed_waves": 1, "cancelled_waves": 0, "unfinished_at_horizon": 0},
+  "cutoff_boundary": {"deadline_hours": 8.333333333333334, "before_tie_after_status": "not exercised by this always-ready no-preparation case; no native priority claim from printed decimals"}
+}
