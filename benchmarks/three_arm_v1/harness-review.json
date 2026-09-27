@@ -1,0 +1,43 @@
+{
+  "schema_version": "three-arm-harness-review/v1",
+  "task_id": "engine-issue6-three-arm-9737822-v1",
+  "review_role": "independent-read-only-harness-review",
+  "status": "approved",
+  "source_head_before_freeze": "9737822b22b1ab4d8617b999a132440b1ffd90a0",
+  "host": "g-1503-amd128",
+  "reviewed_files": {
+    "benchmarks/three_arm_v1/driver.py": "d5503815e3c5de49e99215d1cda90d25c38f8a25c598dae6b69ed72f63b5646d",
+    "tests/conformance/test_three_arm_driver.py": "f0f5d1b7c0a90fc7f5757dd2bcb8726b4b0f185a0287c297221544d15c884682",
+    "benchmarks/three_arm_v1/PROTOCOL.md": "b8ab0804a918e66e4a12c56a99a56c8b8d98f94fa6a543e43d47bdd54647e8dd"
+  },
+  "resolved_findings": [
+    "scan and indexed Plans are identical except for a required resource-dispatch-index/v2",
+    "ten canonical inputs and eleven ordered timing groups are content- and source-identity-bound",
+    "the timed stage-c executable, semantic runtime, plans, gate, raw evidence, source and Rust toolchain are hash-bound",
+    "the gate requires exactly 240 semantic checks and exactly 60 unmeasured profile records",
+    "the once-only state, per-cell timeout, process-group cleanup and 1200-second deadline fail closed",
+    "host process overlap monitoring excludes owned descendants and records unavailable namespaces as evidence"
+  ],
+  "validation": {
+    "command": ".venv/bin/python -m pytest -q tests/conformance/test_three_arm_driver.py tests/conformance/test_three_arm_admission.py",
+    "passed": 23,
+    "failed": 0,
+    "driver_tests_independently_observed": 11,
+    "git_diff_check": "passed"
+  },
+  "real_host_read_only_preflight": {
+    "formal_measurement_started": false,
+    "state_created": false,
+    "visible_pid_count": 1504,
+    "maximum_visible_pid": 3358795,
+    "normalized_load_1m": 0.00431060791015625,
+    "affinity": "0-127",
+    "matched_heavy_processes": 0,
+    "self_pid_namespace": "pid:[4026531836]",
+    "pid_1_namespace": {
+      "status": "unavailable",
+      "error_type": "PermissionError"
+    }
+  },
+  "review_conclusion": "No remaining blocker found in the formal harness scope. Formal timing was not run."
+}

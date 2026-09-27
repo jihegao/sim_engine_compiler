@@ -1,0 +1,182 @@
+{
+  "schema_version": "three-arm-source-audit/v1",
+  "task_id": "engine-issue6-three-arm-9737822-v1",
+  "audit_date": "2026-09-27",
+  "audit_role": "independent-read-only-source-audit",
+  "host": "g-1503-amd128",
+  "engine_checkout": {
+    "path": "/home/g/apps/sim-engine-issue6-cpu-baseline-v1",
+    "branch": "codex/issue6-three-arm-9737822-v1",
+    "head": "9737822b22b1ab4d8617b999a132440b1ffd90a0"
+  },
+  "scope": {
+    "database_accessed": false,
+    "build_executed": false,
+    "timing_executed": false,
+    "upstream_source_files_modified": false,
+    "engine_files_modified_by_audit": [
+      "benchmarks/three_arm_v1/source-audit.json"
+    ],
+    "temporary_output_only": true
+  },
+  "upstream": {
+    "path": "/home/g/Models/spare_mvp",
+    "head": "0e709bdcc2d692d9cfed49b9037c76ef71aefe33",
+    "branch_status": "## main...origin/main",
+    "tracked_or_untracked_changes": [],
+    "selected_paths_diff_against_head_exit": 0,
+    "selected_git_objects": {
+      "exports/project-case-large.json": "a32d3defc478fba50bddc929cdfa6a2bf387ae8b",
+      "contracts/aircraft_support_v1_project.schema.json": "98f0d0edacaa7119e383b64e3b1aa652eaa57d03",
+      "contracts/aircraft_support_v1_input.schema.json": "bf25d3ca859df388d9bed13b69434cf42d503243",
+      "contracts/scenario.schema.json": "429edc149b9112eca971020738a98547e19cef49",
+      "src/spare_mvp_contract/adapter.py": "f78ea525ed8a2e631204bea1914e368befcae8b1",
+      "src/spare_mvp_backend/project_payload.py": "c35c6660fa4c0d5dcdd59130ef8bb09b56dc5a1c"
+    }
+  },
+  "source_identity": {
+    "source_kind": "committed spare_mvp Project JSON via official SimulationAdapter",
+    "project_path": "/home/g/Models/spare_mvp/exports/project-case-large.json",
+    "project_id": "project-case-large",
+    "project_schema_version": "project-v0",
+    "project_file_sha256": "dd37321d012145b3b1554f23f58bca4d70843bfd49cc22233d4969be2f247569",
+    "project_schema_path": "/home/g/Models/spare_mvp/contracts/aircraft_support_v1_project.schema.json",
+    "project_schema_sha256": "ac33186709dce50a252f2153273cab4be5f6f8e57dcd2b8f515eb08e4d3f4b4c",
+    "project_exporter_object_equal": true,
+    "adapter_entrypoint": "src.spare_mvp_contract.adapter.SimulationAdapter.compile_scenario",
+    "adapter_git_blob": "f78ea525ed8a2e631204bea1914e368befcae8b1",
+    "input_schema_path": "/home/g/Models/spare_mvp/contracts/aircraft_support_v1_input.schema.json",
+    "input_schema_sha256": "bd8d6acca8e4fb678bf0b536d257fae41811f44e3c841b13cabdc32c2fe3f694",
+    "scenario_schema_path": "/home/g/Models/spare_mvp/contracts/scenario.schema.json",
+    "scenario_schema_sha256": "44a267afdcbe4e9290efd041e14ef3037e55cdae80d4be814434b0e6f962b255"
+  },
+  "canonical_identity": {
+    "checked_in_path": "benchmarks/batch_preparation/results/amd128-j35-20260926/source/simulation-inputs.json",
+    "checked_in_manifest_path": "benchmarks/batch_preparation/results/amd128-j35-20260926/source/manifest.json",
+    "canonical_file_sha256": "ff830e6c021b74491bb58fd902a46ed5bc852e7170f27300ff40c028e33e2793",
+    "manifest_file_sha256": "f486e1f9c6a390bffb867547781a5e68a44564fa30c27fc4eba77b6e4d85b175",
+    "canonical_semantic_digest": "faf7c801351fd1cd3817fe3f03fe2b7e95056a7c1d9733e5863b291fddc2a689",
+    "semantic_digest_encoding": "json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()",
+    "hash_boundary_note": "canonical_file_sha256 hashes the indented file bytes; ExecutionPlan.source_inputs_sha256 uses canonical_semantic_digest",
+    "runtime_overrides_after_schema_validation": {
+      "disable_visualization_frames": true
+    },
+    "shape": {
+      "aircraft": 8,
+      "components": 424,
+      "support_activities": 13,
+      "support_nodes": 2,
+      "duration_minutes": 61920
+    }
+  },
+  "reproduction": {
+    "temporary_export_directory": "/tmp/j35-source-audit.EFbuAx",
+    "command": "python3 benchmarks/batch_preparation/export_spare_mvp_case.py --spare-mvp-root /home/g/Models/spare_mvp --project-json /home/g/Models/spare_mvp/exports/project-case-large.json --output-dir /tmp/j35-source-audit.EFbuAx",
+    "temporary_files": {
+      "/tmp/j35-source-audit.EFbuAx/simulation-inputs.json": {
+        "bytes": 634544,
+        "sha256": "ff830e6c021b74491bb58fd902a46ed5bc852e7170f27300ff40c028e33e2793"
+      },
+      "/tmp/j35-source-audit.EFbuAx/manifest.json": {
+        "bytes": 739,
+        "sha256": "f486e1f9c6a390bffb867547781a5e68a44564fa30c27fc4eba77b6e4d85b175"
+      }
+    },
+    "comparisons": {
+      "canonical_cmp_exit": 0,
+      "manifest_cmp_exit": 0,
+      "canonical_byte_identical": true,
+      "manifest_byte_identical": true
+    },
+    "verification_commands": [
+      "git -C /home/g/Models/spare_mvp status --short --branch",
+      "git -C /home/g/Models/spare_mvp rev-parse HEAD",
+      "git -C /home/g/Models/spare_mvp ls-tree HEAD exports/project-case-large.json contracts/aircraft_support_v1_project.schema.json contracts/aircraft_support_v1_input.schema.json contracts/scenario.schema.json src/spare_mvp_contract/adapter.py src/spare_mvp_backend/project_payload.py",
+      "sha256sum /home/g/Models/spare_mvp/exports/project-case-large.json /home/g/Models/spare_mvp/contracts/aircraft_support_v1_project.schema.json /home/g/Models/spare_mvp/contracts/aircraft_support_v1_input.schema.json /home/g/Models/spare_mvp/contracts/scenario.schema.json",
+      "cmp -s /tmp/j35-source-audit.EFbuAx/simulation-inputs.json benchmarks/batch_preparation/results/amd128-j35-20260926/source/simulation-inputs.json",
+      "cmp -s /tmp/j35-source-audit.EFbuAx/manifest.json benchmarks/batch_preparation/results/amd128-j35-20260926/source/manifest.json"
+    ]
+  },
+  "adapter_contract": {
+    "project_exporter": "ProjectJsonExporter(target='aircraft_support_v1')",
+    "project_exporter_schema": "contracts/aircraft_support_v1_project.schema.json",
+    "project_exporter_object_equal_result": true,
+    "scenario_compiler": "SimulationAdapter.compile_scenario",
+    "scenario_model_family": "aircraft_support_v1",
+    "canonical_schema": "contracts/aircraft_support_v1_input.schema.json",
+    "canonical_export_result": "byte-identical",
+    "parallel_project_interpreter_created": false
+  },
+  "dispatch_reuse": {
+    "common_batch_path": [
+      "run_batch_with_dispatch",
+      "PreparedBatchPlan::from_plan_with_fingerprint",
+      "run_prepared_batch",
+      "Runtime::from_prepared_with_observation"
+    ],
+    "scan": "unindexed Plan, dependency_dispatch=false; sort and visit the complete waiting set",
+    "cache": "indexed Plan, dependency_dispatch=false; preserve complete waiting-set scan and reuse indexed blocked-guard cache entries",
+    "candidates": "same indexed Plan, dependency_dispatch=true; reverse-dependency wakeup plus deterministic candidate/replay/invalidation merge",
+    "candidate_capability_boundary": "validated resource-dispatch-index/v2 is required; absence or unsupported schema rejects explicitly",
+    "prepared_plan_sharing": "immutable PreparedBatchPlan is shared across samples; mutable Runtime state is created per sample"
+  },
+  "float_tolerance_audit": {
+    "protocol_path": "benchmarks/three_arm_v1/PROTOCOL.md",
+    "admission_path": "benchmarks/three_arm_v1/admission.py",
+    "current_reference_whitelist": [
+      {
+        "path_pattern": "root.sample_requests[*].value_minutes",
+        "relative_tolerance": 2e-15,
+        "absolute_tolerance": 1e-12,
+        "mathematical_reason": "CPython random.expovariate and Rust PythonRandom::expovariate both evaluate -log(1-random())/rate, but the language runtimes may use different platform logarithm implementations; the sampled value is then multiplied by 60"
+      }
+    ],
+    "reject_nonfinite": true,
+    "rust_to_rust_tolerance_paths": [],
+    "likely_additional_paths_required_before_execution": [],
+    "reviewed_raw_float_paths": [
+      {
+        "path_pattern": "root.sample_requests[*].rate_per_hour",
+        "decision": "exact",
+        "reason": "copied directly from the same immutable Execution Plan"
+      },
+      {
+        "path_pattern": "root.terminal_state.aircraft[*].flight_hours",
+        "decision": "exact",
+        "reason": "both runtimes derive each increment from the same integer minute difference divided by 60 and accumulate in the same aircraft/mission order"
+      },
+      {
+        "path_pattern": "root.metrics.mission_success_rate",
+        "decision": "exact",
+        "reason": "single division of identical integer successful and executable mission counts"
+      },
+      {
+        "path_pattern": "root.metrics.avg_departure_delay",
+        "decision": "exact",
+        "reason": "single division of identical integer delay and sortie counters"
+      },
+      {
+        "path_pattern": "root.metrics.spare_fill_rate",
+        "decision": "exact",
+        "reason": "constant 1.0 for zero demand or one division of identical integer demand counters"
+      },
+      {
+        "path_pattern": "root.metrics.mean_transport_delay",
+        "decision": "exact",
+        "reason": "single division of identical integer delay and replenishment counters"
+      }
+    ],
+    "admission_rule": "Any mismatch outside the existing value_minutes whitelist blocks semantic admission; this audit does not widen the whitelist"
+  },
+  "limitations": [
+    "The historical source manifest records the canonical input schema hash but not the clean Project schema, adapter blob, or exporter blob; the upstream commit binds those objects and this audit records them explicitly.",
+    "The temporary directory is reproducibility evidence under /tmp and is not a committed source snapshot.",
+    "This audit establishes source and contract provenance only; it is not simulation conformance or performance evidence."
+  ],
+  "result": {
+    "j35_source_provenance_verified": true,
+    "canonical_export_byte_reproducible": true,
+    "source_blocker": null,
+    "float_whitelist_blocker_before_execution": null
+  }
+}

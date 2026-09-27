@@ -124,12 +124,32 @@ pub struct RuntimeProfile {
     pub mission_scan_items: u64,
     pub aircraft_scan_items: u64,
     pub job_scan_items: u64,
+    /// Resource-dispatch phase invocations sampled while profiling is enabled.
+    pub resource_dispatch_phase_calls: u64,
+    /// Sum of the waiting-set size observed at the start of each dispatch phase.
+    pub resource_dispatch_waiting_jobs_observed: u64,
     pub resource_dispatch_candidate_visits: u64,
     pub resource_dispatch_guard_evaluations: u64,
     pub resource_dispatch_cache_hits: u64,
     pub resource_dispatch_replay_visits: u64,
+    /// Reverse dependency-index keys probed after a resource change.
+    pub resource_dispatch_index_lookups: u64,
+    /// Dependency rules traversed after reverse-index hits.
+    pub resource_dispatch_index_candidate_visits: u64,
+    /// Waiting jobs traversed through dependency-rule activity/step buckets.
+    pub resource_dispatch_index_waiter_visits: u64,
+    /// Job transitions that add or remove an entry from the waiting-job indexes.
+    pub resource_dispatch_waiting_index_updates: u64,
+    /// Items ordered by the full-scan arm's stable sort.
+    pub resource_dispatch_sort_items: u64,
+    /// Candidate/replay/invalidation items offered to the candidate queue.
+    pub resource_dispatch_merge_inputs: u64,
+    /// Offered items newly inserted into the candidate queue after deduplication.
+    pub resource_dispatch_merge_insertions: u64,
     pub resource_dispatch_queue_updates: u64,
     pub resource_dispatch_queue_ns: u64,
+    /// Trace events attempted while the current phase is resource dispatch.
+    pub resource_dispatch_event_attempts: u64,
     pub job_progress_candidate_visits: u64,
     pub waiting_job_indexes_peak: u64,
     pub running_job_indexes_peak: u64,
@@ -723,15 +743,24 @@ impl Runtime {
             node_index,
             product_id: product_id.map(str::to_owned),
         };
+        if self.profile_enabled {
+            self.profile.resource_dispatch_index_lookups += 1;
+        }
         let Some(candidates) = self.prepared.resource_dispatch_reverse.get(&key).cloned() else {
             return;
         };
+        if self.profile_enabled {
+            self.profile.resource_dispatch_index_candidate_visits += candidates.len() as u64;
+        }
         for candidate in candidates {
             let waiting = self
                 .waiting_dispatch_jobs
                 .get(&(candidate.activity_index, candidate.step_index))
                 .cloned()
                 .unwrap_or_default();
+            if self.profile_enabled {
+                self.profile.resource_dispatch_index_waiter_visits += waiting.len() as u64;
+            }
             for job_index in waiting {
                 let product_matches = candidate.product_filter.as_ref().is_none_or(|product| {
                     self.jobs[job_index]
@@ -789,6 +818,9 @@ impl Runtime {
             "waiting" => {
                 let removed = self.waiting_job_indexes.remove(&job_index);
                 debug_assert!(removed, "waiting job missing from active index");
+                if self.profile_enabled && removed {
+                    self.profile.resource_dispatch_waiting_index_updates += 1;
+                }
                 let key = (
                     self.jobs[job_index].activity_index,
                     self.jobs[job_index].step_index,
@@ -812,6 +844,9 @@ impl Runtime {
             "waiting" => {
                 let inserted = self.waiting_job_indexes.insert(job_index);
                 debug_assert!(inserted, "waiting job duplicated in active index");
+                if self.profile_enabled && inserted {
+                    self.profile.resource_dispatch_waiting_index_updates += 1;
+                }
                 self.waiting_dispatch_jobs
                     .entry((
                         self.jobs[job_index].activity_index,
@@ -1114,6 +1149,9 @@ impl Runtime {
     {
         if self.profile_enabled {
             self.profile.trace_events_attempted += 1;
+            if self.phase == "resource_dispatch" {
+                self.profile.resource_dispatch_event_attempts += 1;
+            }
         }
         if self.observation_level == ObservationLevel::Summary {
             return;
@@ -1304,6 +1342,9 @@ impl Runtime {
         }
         let inserted = self.waiting_job_indexes.insert(job_index);
         debug_assert!(inserted, "new waiting job duplicated in active index");
+        if self.profile_enabled && inserted {
+            self.profile.resource_dispatch_waiting_index_updates += 1;
+        }
         self.waiting_dispatch_jobs
             .entry((activity_index, 0))
             .or_default()
@@ -2507,6 +2548,11 @@ impl Runtime {
     fn phase_start_waiting_jobs(&mut self) -> Result<()> {
         self.count_scan("job", self.jobs.len());
         self.debug_assert_active_job_indexes();
+        if self.profile_enabled {
+            self.profile.resource_dispatch_phase_calls += 1;
+            self.profile.resource_dispatch_waiting_jobs_observed +=
+                self.waiting_job_indexes.len() as u64;
+        }
         if self.dependency_dispatch {
             self.dispatch_epoch += 1;
         }
@@ -2514,7 +2560,16 @@ impl Runtime {
         let mut scan = Vec::new();
         let mut queue: BTreeSet<_> = if self.dependency_dispatch {
             self.dispatch_invalidated.clear();
-            self.dispatch_candidates
+            let merge_inputs = self.profile_enabled.then(|| {
+                self.dispatch_candidates.len()
+                    + if self.observation_level == ObservationLevel::Full {
+                        self.dispatch_replays.len()
+                    } else {
+                        0
+                    }
+            });
+            let queue: BTreeSet<_> = self
+                .dispatch_candidates
                 .iter()
                 .chain(
                     self.dispatch_replays
@@ -2522,11 +2577,17 @@ impl Runtime {
                         .filter(|_| self.observation_level == ObservationLevel::Full),
                 )
                 .map(|index| self.dispatch_order(*index))
-                .collect()
+                .collect();
+            if let Some(merge_inputs) = merge_inputs {
+                self.profile.resource_dispatch_merge_inputs += merge_inputs as u64;
+                self.profile.resource_dispatch_merge_insertions += queue.len() as u64;
+            }
+            queue
         } else {
             if self.profile_enabled {
                 self.profile.resource_dispatch_candidate_visits +=
                     self.waiting_job_indexes.len() as u64;
+                self.profile.resource_dispatch_sort_items += self.waiting_job_indexes.len() as u64;
             }
             scan = self.waiting_job_indexes.iter().copied().collect();
             scan.sort_by_key(|index| {
@@ -2556,7 +2617,13 @@ impl Runtime {
                     }
                     let key = self.dispatch_order(index);
                     if last_key.as_ref().is_none_or(|last| key > *last) {
-                        queue.insert(key);
+                        if self.profile_enabled {
+                            self.profile.resource_dispatch_merge_inputs += 1;
+                        }
+                        let inserted = queue.insert(key);
+                        if self.profile_enabled && inserted {
+                            self.profile.resource_dispatch_merge_insertions += 1;
+                        }
                     }
                 }
                 if let Some(started) = started {
@@ -3578,6 +3645,8 @@ mod phase_tests {
         assert!(runtime.waiting_job_indexes.is_empty());
         assert!(runtime.running_job_indexes.is_empty());
 
+        let historical_waiting_index_updates =
+            runtime.profile.resource_dispatch_waiting_index_updates;
         let first_waiting = runtime.jobs.len();
         runtime.create_job(0, 0, "test", None, None, None).unwrap();
         runtime.jobs[first_waiting].job_id = "zz-tied-job".into();
@@ -3617,6 +3686,21 @@ mod phase_tests {
             ]
         );
         assert_eq!(runtime.profile.resource_dispatch_candidate_visits, 4);
+        assert_eq!(runtime.profile.resource_dispatch_phase_calls, 1);
+        assert_eq!(runtime.profile.resource_dispatch_waiting_jobs_observed, 4);
+        assert_eq!(runtime.profile.resource_dispatch_sort_items, 4);
+        assert_eq!(runtime.profile.resource_dispatch_merge_inputs, 0);
+        assert_eq!(runtime.profile.resource_dispatch_merge_insertions, 0);
+        assert_eq!(
+            runtime.profile.resource_dispatch_waiting_index_updates
+                - historical_waiting_index_updates,
+            8
+        );
+        assert!(runtime.profile.resource_dispatch_event_attempts > 0);
+        assert!(
+            runtime.profile.resource_dispatch_event_attempts
+                <= runtime.profile.trace_events_attempted
+        );
         assert_eq!(runtime.profile.waiting_job_indexes_peak, 4);
         assert_eq!(runtime.profile.job_scan_items, runtime.jobs.len() as u64);
         assert!(runtime.waiting_job_indexes.is_empty());
@@ -3664,6 +3748,64 @@ mod phase_tests {
         );
         assert!(runtime.waiting_job_indexes.is_empty());
         assert!(runtime.running_job_indexes.is_empty());
+    }
+
+    #[test]
+    fn dispatch_workload_counters_are_opt_in() {
+        let mut runtime = Runtime::new(synthetic_plan(), "test-fingerprint".into(), 0).unwrap();
+        runtime.minute = 10;
+        runtime.phase = "resource_dispatch".into();
+        runtime.create_job(0, 0, "test", None, None, None).unwrap();
+
+        runtime.phase_start_waiting_jobs().unwrap();
+
+        assert_eq!(runtime.profile.resource_dispatch_phase_calls, 0);
+        assert_eq!(runtime.profile.resource_dispatch_waiting_jobs_observed, 0);
+        assert_eq!(runtime.profile.resource_dispatch_candidate_visits, 0);
+        assert_eq!(runtime.profile.resource_dispatch_guard_evaluations, 0);
+        assert_eq!(runtime.profile.resource_dispatch_index_lookups, 0);
+        assert_eq!(runtime.profile.resource_dispatch_index_candidate_visits, 0);
+        assert_eq!(runtime.profile.resource_dispatch_index_waiter_visits, 0);
+        assert_eq!(runtime.profile.resource_dispatch_waiting_index_updates, 0);
+        assert_eq!(runtime.profile.resource_dispatch_sort_items, 0);
+        assert_eq!(runtime.profile.resource_dispatch_merge_inputs, 0);
+        assert_eq!(runtime.profile.resource_dispatch_merge_insertions, 0);
+        assert_eq!(runtime.profile.resource_dispatch_event_attempts, 0);
+    }
+
+    #[test]
+    fn candidate_dispatch_profiles_index_and_merge_workloads() {
+        let bytes = include_bytes!(
+            "../../../benchmarks/dependency_dispatch/results/macos-arm64-20260925/\
+             synthetic-capacity-16/legacy-minute-v1/indexed-plan.json"
+        );
+        let plan = ExecutionPlan::from_slice(bytes).unwrap().0;
+        let runtime = Runtime::from_shared_profiled(
+            Arc::new(plan),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Full,
+        )
+        .unwrap()
+        .with_dependency_dispatch(true)
+        .unwrap();
+
+        let (_, profile) = runtime.run_profiled(None).unwrap();
+
+        assert!(profile.resource_dispatch_phase_calls > 0);
+        assert!(profile.resource_dispatch_waiting_jobs_observed > 0);
+        assert_eq!(profile.resource_dispatch_sort_items, 0);
+        assert!(profile.resource_dispatch_merge_inputs > 0);
+        assert!(
+            profile.resource_dispatch_merge_insertions <= profile.resource_dispatch_merge_inputs
+        );
+        assert!(profile.resource_dispatch_index_lookups > 0);
+        assert!(profile.resource_dispatch_index_candidate_visits > 0);
+        assert!(profile.resource_dispatch_index_waiter_visits > 0);
+        assert!(profile.resource_dispatch_waiting_index_updates > 0);
+        assert!(profile.resource_dispatch_candidate_visits > 0);
+        assert!(profile.resource_dispatch_guard_evaluations > 0);
+        assert!(profile.resource_dispatch_event_attempts > 0);
     }
 
     #[test]
