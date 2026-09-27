@@ -246,9 +246,9 @@ def run_semantic_gate(
     event_summary = sim_engine_compiler.run_batch(
         plan_bytes, required_seeds, worker_threads=1, observation_level="summary"
     )
-    _validate_batch(legacy_full, required_seeds)
-    _validate_batch(event_full, required_seeds)
-    _validate_batch(event_summary, required_seeds)
+    _validate_batch(legacy_full, required_seeds, worker_threads=1)
+    _validate_batch(event_full, required_seeds, worker_threads=1)
+    _validate_batch(event_summary, required_seeds, worker_threads=1)
 
     reference_exact_divergences: list[Any] = []
     reference_accepted_divergences: list[Any] = []
@@ -301,7 +301,7 @@ def run_semantic_gate(
                 )
             )
 
-    duplicate_seeds = [7, 0, 7, 1]
+    duplicate_seeds = [7, 0, 7, 1] * 2
     duplicate_runs: dict[str, dict[str, Any]] = {}
     duplicate_results: dict[tuple[str, int], dict[str, Any]] = {}
     for observation in ("full", "summary"):
@@ -312,7 +312,7 @@ def run_semantic_gate(
                 worker_threads=workers,
                 observation_level=observation,
             )
-            _validate_batch(value, duplicate_seeds)
+            _validate_batch(value, duplicate_seeds, worker_threads=workers)
             duplicate_results[(observation, workers)] = value
             duplicate_runs[f"{observation}-w{workers}"] = _batch_proof(
                 value, duplicate_seeds

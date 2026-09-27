@@ -29,6 +29,20 @@ def _write_json(path: Path, value: object) -> None:
     )
 
 
+def _gate_batch(seeds: list[int], workers: int) -> dict[str, object]:
+    return {
+        "plan_fingerprint": "synthetic-plan",
+        "sample_count": len(seeds),
+        "worker_threads": min(workers, len(seeds)),
+        "until": None,
+        "samples": [
+            {"sample_index": index, "seed": seed,
+             "result": {"trace": [], "plan_fingerprint": "synthetic-plan"}}
+            for index, seed in enumerate(seeds)
+        ],
+    }
+
+
 def _synthetic_plan_identity(path: Path) -> dict[str, object]:
     return {
         "path": str(path.resolve()),
@@ -396,7 +410,7 @@ class CpuBatchBaselineTests(unittest.TestCase):
                         driver.load_frozen(run_dir)
 
     def test_sealed_gate_rejects_manifest_raw_and_dispatch_drift(self):
-        for case in ("missing_seal", "manifest", "raw", "dispatch"):
+        for case in ("missing_gate", "missing_seal", "manifest", "raw", "dispatch"):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as directory:
                 run_dir = Path(directory) / "run"
                 gate_dir = run_dir / "semantic-gate"
@@ -435,7 +449,11 @@ class CpuBatchBaselineTests(unittest.TestCase):
                 seal.write_text(driver.sha256_file(report_path) + "\n", encoding="ascii")
                 self.assertTrue(driver.validate_gate_evidence(run_dir, manifest)["passed"])
 
-                if case == "missing_seal":
+                if case == "missing_gate":
+                    for path in gate_dir.iterdir():
+                        path.unlink()
+                    gate_dir.rmdir()
+                elif case == "missing_seal":
                     seal.unlink()
                 elif case == "manifest":
                     report["manifest_sha256"] = "0" * 64
@@ -453,6 +471,114 @@ class CpuBatchBaselineTests(unittest.TestCase):
                     )
                 with self.assertRaises(RuntimeError):
                     driver.validate_gate_evidence(run_dir, manifest)
+                # Publication must fail before reading or emitting a summary,
+                # even if the measurement records themselves remain valid.
+                with (
+                    patch.object(driver, "load_frozen", return_value=manifest),
+                    patch.object(driver, "validate_measurement_records") as records,
+                    self.assertRaises(RuntimeError),
+                ):
+                    driver.summarize(argparse.Namespace(run_dir=run_dir))
+                records.assert_not_called()
+                self.assertFalse((run_dir / "summary.json").exists())
+
+    def test_driver_admission_exercises_eight_samples_per_worker_configuration(self):
+        calls = []
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _write_json(root / "manifest.json", {})
+            manifest = {
+                "artifacts": {"runtime": {"path": "synthetic-runtime"},
+                              "python": {"path": "synthetic-python"}},
+                "timed_plan": {"path": "synthetic-event-plan"},
+                "reference_plan": {"path": "synthetic-reference-plan"},
+            }
+
+            def rust_gate(runtime, plan, output, seeds, workers, observation):
+                calls.append((list(seeds), workers))
+                _write_json(output, _gate_batch(seeds, workers))
+                return {"command": [str(runtime)], "exit_status": 0}
+
+            def binding_gate(command, cwd):
+                report = Path(command[command.index("--report") + 1])
+                _write_json(report, {"passed": True})
+                required = _gate_batch([0, 1, 7], 1)
+                _write_json(report.with_name("pyo3-gate-raw.json"), {
+                    "reference_results": [s["result"] for s in required["samples"]],
+                    "legacy_full": required, "event_full": required,
+                    "event_summary": required,
+                    "duplicate_runs": {
+                        f"{obs}-w{workers}": _gate_batch([7, 0, 7, 1] * 2, workers)
+                        for obs in ("full", "summary") for workers in (1, 8)
+                    },
+                })
+                return {"command": command, "exit_status": 0}
+
+            with (
+                patch.object(driver, "load_frozen", return_value=manifest),
+                patch.object(driver, "_run_runtime_gate", side_effect=rust_gate),
+                patch.object(driver, "_run_capture", side_effect=binding_gate),
+                patch("sys.stdout", new_callable=io.StringIO),
+            ):
+                report = driver.semantic_gate(argparse.Namespace(run_dir=root))
+            self.assertTrue(report["passed"])
+        self.assertEqual(calls[-4:], [([7, 0, 7, 1] * 2, workers)
+                                    for _ in range(2) for workers in (1, 8)])
+
+    def test_rust_admission_rejects_incorrect_effective_worker_envelopes(self):
+        for reported in (8, 4, None, True):
+            with self.subTest(reported=reported), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory) / "batch.json"
+
+                def execute(command, cwd, *, reported=reported, output=output):
+                    batch = _gate_batch([7, 0, 7, 1] * 2, 8)
+                    batch["worker_threads"] = reported
+                    _write_json(output, batch)
+                    return {"exit_status": 0}
+
+                with patch.object(driver, "_run_capture", side_effect=execute):
+                    if reported == 8:
+                        driver._run_runtime_gate(Path("runtime"), Path("plan"), output,
+                                                 [7, 0, 7, 1] * 2, 8, "full")
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "worker/sample count"):
+                            driver._run_runtime_gate(Path("runtime"), Path("plan"), output,
+                                                     [7, 0, 7, 1] * 2, 8, "full")
+
+    def _binding_admission(self, root, *, underprovisioned=False):
+        calls = []
+
+        def batch(plan, seeds, *, worker_threads, observation_level):
+            calls.append((list(seeds), worker_threads))
+            value = _gate_batch(seeds, worker_threads)
+            if underprovisioned and worker_threads == 8:
+                value["worker_threads"] = 4
+            return value
+
+        plan = root / "plan.json"
+        _write_json(plan, {})
+        with (
+            patch("sim_engine_compiler.native_available", return_value=True),
+            patch("sim_engine_compiler.run_batch", side_effect=batch),
+            patch("sim_engine_compiler.ir.plan.ExecutionPlan.from_dict", return_value=None),
+            patch("sim_engine_compiler.reference.SimpyReferenceRuntime") as reference,
+        ):
+            reference.return_value.run.return_value = {"trace": [], "plan_fingerprint": "synthetic-plan"}
+            report = binding_worker.run_semantic_gate(plan, plan, root / "report.json")
+        return report, calls
+
+    def test_binding_admission_exercises_eight_effective_workers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report, calls = self._binding_admission(Path(directory))
+        self.assertTrue(report["passed"])
+        self.assertEqual(calls[-4:], [([7, 0, 7, 1] * 2, workers)
+                                    for _ in range(2) for workers in (1, 8)])
+
+    def test_binding_admission_rejects_four_effective_workers_for_eight(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(AssertionError, "effective worker count"):
+                self._binding_admission(Path(directory), underprovisioned=True)
+            self.assertFalse((Path(directory) / "report.json").exists())
 
     def test_source_identity_rejects_untracked_added_deleted_or_modified_files(self):
         for status in (
@@ -580,7 +706,7 @@ class CpuBatchBaselineTests(unittest.TestCase):
             return "\n".join(rows)
 
         with (
-            patch.object(driver.os, "sched_getaffinity", return_value=set(range(128))),
+            patch.object(driver.os, "sched_getaffinity", return_value=set(range(128)), create=True),
             patch.object(driver, "checked_output", return_value=topology()),
         ):
             placement = driver.validate_placement()
@@ -597,7 +723,7 @@ class CpuBatchBaselineTests(unittest.TestCase):
         for affinity, output in cases:
             with (
                 self.subTest(affinity=len(affinity), output=output[-20:]),
-                patch.object(driver.os, "sched_getaffinity", return_value=affinity),
+                patch.object(driver.os, "sched_getaffinity", return_value=affinity, create=True),
                 patch.object(driver, "checked_output", return_value=output),
                 self.assertRaises(RuntimeError),
             ):
@@ -1195,6 +1321,7 @@ class CpuBatchBaselineTests(unittest.TestCase):
             _write_json(manifest_path, {})
             with (
                 patch.object(driver, "load_frozen", return_value={}),
+                patch.object(driver, "validate_gate_evidence", return_value={"passed": True}),
                 patch.object(
                     driver,
                     "validate_measurement_records",
