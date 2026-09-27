@@ -18,7 +18,9 @@ class PairingRunnerTests(unittest.TestCase):
             report = execute_pairing(output)
             self.assertEqual(report["equivalence_status"],
                              "matched_mapped_observables_not_full_equivalence")
-            controls = json.loads((output / "negative-controls.json").read_text())
+            controls = json.loads(
+                (output / "negative-controls.json").read_text(encoding="utf-8")
+            )
             self.assertEqual(controls["status"], "passed")
             self.assertEqual(len(controls["controls"]), 4)
             self.assertTrue(controls["controls"][0]["same_integrals"])
@@ -33,7 +35,9 @@ class PairingRunnerTests(unittest.TestCase):
                 self.assertGreater(case["comparison_checks"], 600)
                 for name, expected_hash in case["artifact_sha256"].items():
                     self.assertEqual(sha256((output / case_id / name).read_bytes()), expected_hash)
-            index = json.loads((output / "evidence-index.json").read_text())
+            index = json.loads(
+                (output / "evidence-index.json").read_text(encoding="utf-8")
+            )
             for name, expected_hash in index["files"].items():
                 self.assertEqual(sha256((output / name).read_bytes()), expected_hash)
 

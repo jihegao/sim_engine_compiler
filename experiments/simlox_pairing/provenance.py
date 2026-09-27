@@ -40,7 +40,7 @@ def json_digest(value: object) -> str:
             separators=(",", ":"),
             ensure_ascii=False,
             allow_nan=False,
-        ).encode()
+        ).encode("utf-8")
     )
 
 
@@ -58,7 +58,7 @@ def _git(root: Path, *args: str) -> bytes:
         ).stdout
     except (OSError, subprocess.CalledProcessError) as error:
         detail = (
-            error.stderr.decode(errors="replace").strip()
+            error.stderr.decode("utf-8", errors="replace").strip()
             if isinstance(error, subprocess.CalledProcessError)
             else str(error)
         )
@@ -77,7 +77,7 @@ def _baseline_source_blobs(root: Path, revision: str) -> dict[str, tuple[str, by
         "--",
         "src/sim_engine_compiler",
         "pyproject.toml",
-    ).decode()
+    ).decode("utf-8")
     result: dict[str, tuple[str, bytes]] = {}
     for line in listing.splitlines():
         metadata, name = line.split("\t", 1)
@@ -166,7 +166,7 @@ def load_handoff(path: Path = DEFAULT_ARCHIVE) -> dict:
         manifest_bytes = archive.read("manifest.json")
         if sha256(manifest_bytes) != MANIFEST_SHA256:
             raise ValueError("external manifest fingerprint mismatch")
-        manifest = json.loads(manifest_bytes)
+        manifest = json.loads(manifest_bytes.decode("utf-8"))
         payload = manifest["payload_files"]
         if set(names) != set(payload) | {"manifest.json"}:
             raise ValueError("archive membership mismatch")
@@ -187,10 +187,12 @@ def load_handoff(path: Path = DEFAULT_ARCHIVE) -> dict:
         receipt = verifier(path, MANIFEST_SHA256)
     return {
         "manifest": manifest,
-        "expected": json.loads(files["expected-observations.json"]),
-        "report_template": json.loads(files["consumer-report-template.json"]),
+        "expected": json.loads(files["expected-observations.json"].decode("utf-8")),
+        "report_template": json.loads(
+            files["consumer-report-template.json"].decode("utf-8")
+        ),
         "contracts": {
-            case: json.loads(files[f"cases/{case}/contract.json"])
+            case: json.loads(files[f"cases/{case}/contract.json"].decode("utf-8"))
             for case in ("A01", "A02")
         },
         "verification": {
