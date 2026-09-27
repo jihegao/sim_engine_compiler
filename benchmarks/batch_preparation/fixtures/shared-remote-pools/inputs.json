@@ -1,0 +1,298 @@
+{
+  "schema_version": "aircraft-support-v1-input-v1",
+  "operations_support_policy": "daily-v1",
+  "project_identity": {
+    "project_id": "synthetic-b2-preventive-maintenance",
+    "project_version": "1",
+    "scenario_id": "scenario-1",
+    "source_import_id": "hand-calculable"
+  },
+  "mission_profile": {
+    "profile_id": "b2-preventive-profile",
+    "name": "Initial calendar due",
+    "duration_minutes": 10,
+    "basic_missions": [],
+    "composite_tasks": [],
+    "mission_calendar": [],
+    "mission_phases": [],
+    "airports": []
+  },
+  "aircraft": {
+    "fleet_count": 2,
+    "initial_ready": 2,
+    "models": [
+      "F35"
+    ],
+    "assets": [
+      {
+        "tail_number": "F35-01",
+        "aircraft_type": "F35",
+        "model": "F35",
+        "initial_state": "available",
+        "initial_life_state": {
+          "calendar_days": 1,
+          "flight_hours": 2,
+          "takeoff_landing_cycles": 3
+        },
+        "preventive_cycles": [
+          {
+            "activity_id": "preventive-F35-01",
+            "equipment_id": "f35",
+            "thresholds": {
+              "calendar_days": 1,
+              "flight_hours": 5,
+              "takeoff_landing_cycles": 0
+            },
+            "initial_life_state": {
+              "calendar_days": 1,
+              "flight_hours": 2,
+              "takeoff_landing_cycles": 3
+            }
+          }
+        ]
+      },
+      {
+        "tail_number": "F35-02",
+        "aircraft_type": "F35",
+        "model": "F35",
+        "initial_state": "available",
+        "initial_life_state": {
+          "calendar_days": 1,
+          "flight_hours": 2,
+          "takeoff_landing_cycles": 3
+        },
+        "preventive_cycles": [
+          {
+            "activity_id": "preventive-F35-02",
+            "equipment_id": "f35",
+            "thresholds": {
+              "calendar_days": 1,
+              "flight_hours": 5,
+              "takeoff_landing_cycles": 0
+            },
+            "initial_life_state": {
+              "calendar_days": 1,
+              "flight_hours": 2,
+              "takeoff_landing_cycles": 3
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "equipment_tree": {
+    "root_component_id": "f35",
+    "components": [
+      {
+        "id": "f35",
+        "name": "F35",
+        "parent_id": "",
+        "aircraft_model": "F35",
+        "quantity": 1
+      }
+    ]
+  },
+  "support_network": {
+    "nodes": [
+      {
+        "id": "line-0",
+        "name": "line-0",
+        "inventory": {},
+        "personnel_capacity": 0,
+        "equipment_capacity": 0
+      },
+      {
+        "id": "line-1",
+        "name": "line-1",
+        "inventory": {},
+        "personnel_capacity": 0,
+        "equipment_capacity": 0
+      },
+      {
+        "id": "personnel-pool",
+        "name": "personnel",
+        "inventory": {},
+        "personnel_capacity": 1,
+        "equipment_capacity": 0
+      },
+      {
+        "id": "equipment-pool",
+        "name": "equipment",
+        "inventory": {},
+        "personnel_capacity": 0,
+        "equipment_capacity": 1
+      }
+    ],
+    "organization_graph": {
+      "runtime_mode": "vertical",
+      "nodes": [
+        {
+          "id": "line-0"
+        },
+        {
+          "id": "line-1"
+        },
+        {
+          "id": "personnel-pool"
+        },
+        {
+          "id": "equipment-pool"
+        }
+      ],
+      "parent_edges": [
+        {
+          "from_node_id": "personnel-pool",
+          "to_node_id": "line-0"
+        },
+        {
+          "from_node_id": "equipment-pool",
+          "to_node_id": "line-0"
+        },
+        {
+          "from_node_id": "personnel-pool",
+          "to_node_id": "line-1"
+        },
+        {
+          "from_node_id": "equipment-pool",
+          "to_node_id": "line-1"
+        }
+      ],
+      "lateral_edges": [],
+      "resource_ownership": [],
+      "transport_policies": [
+        {
+          "id": "personnel-line-0",
+          "from_organization_node_id": "personnel-pool",
+          "to_organization_node_id": "line-0",
+          "product_id": "personnel",
+          "capacity": 1,
+          "transport_minutes": 1,
+          "priority": 1
+        },
+        {
+          "id": "equipment-line-0",
+          "from_organization_node_id": "equipment-pool",
+          "to_organization_node_id": "line-0",
+          "product_id": "equipment",
+          "capacity": 1,
+          "transport_minutes": 1,
+          "priority": 1
+        },
+        {
+          "id": "personnel-line-1",
+          "from_organization_node_id": "personnel-pool",
+          "to_organization_node_id": "line-1",
+          "product_id": "personnel",
+          "capacity": 1,
+          "transport_minutes": 1,
+          "priority": 1
+        },
+        {
+          "id": "equipment-line-1",
+          "from_organization_node_id": "equipment-pool",
+          "to_organization_node_id": "line-1",
+          "product_id": "equipment",
+          "capacity": 1,
+          "transport_minutes": 1,
+          "priority": 1
+        }
+      ]
+    }
+  },
+  "support_activities": {
+    "activities": [
+      {
+        "id": "preventive-F35-01",
+        "name": "Calendar inspection",
+        "activity_type": "preventive",
+        "aircraft_model": "F35",
+        "equipment_id": "f35",
+        "resource_id": "line-0",
+        "priority": 1,
+        "maintenance_methods": [
+          "non_replacement"
+        ],
+        "replacement_ratio": 0,
+        "calendarDayInterval": 1,
+        "runHourInterval": 5,
+        "takeoffLandingInterval": 0,
+        "jobs": [
+          {
+            "activityCode": "PM-1",
+            "durationMinutes": 2,
+            "personnel": [
+              {
+                "quantity": 1
+              }
+            ],
+            "equipment": [
+              {
+                "quantity": 1
+              }
+            ],
+            "spare": [],
+            "predecessors": []
+          }
+        ]
+      },
+      {
+        "id": "preventive-F35-02",
+        "name": "Calendar inspection",
+        "activity_type": "preventive",
+        "aircraft_model": "F35",
+        "equipment_id": "f35",
+        "resource_id": "line-1",
+        "priority": 1,
+        "maintenance_methods": [
+          "non_replacement"
+        ],
+        "replacement_ratio": 0,
+        "calendarDayInterval": 1,
+        "runHourInterval": 5,
+        "takeoffLandingInterval": 0,
+        "jobs": [
+          {
+            "activityCode": "PM-1",
+            "durationMinutes": 2,
+            "personnel": [
+              {
+                "quantity": 1
+              }
+            ],
+            "equipment": [
+              {
+                "quantity": 1
+              }
+            ],
+            "spare": [],
+            "predecessors": []
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "duration_minutes": 10,
+    "tick_minutes": 1,
+    "sample_every_minutes": 10,
+    "max_state_frames_single": 2000,
+    "requested_steps": 10
+  },
+  "monte_carlo": {
+    "sample_count": 1,
+    "sweep": {}
+  },
+  "seed": 0,
+  "stop_policy": {
+    "schema_version": "stop-policy-v1",
+    "mode": "or",
+    "conditions": [
+      {
+        "type": "duration",
+        "duration_minutes": 10
+      }
+    ],
+    "defaulted": false
+  },
+  "disable_visualization_frames": true
+}

@@ -1,0 +1,218 @@
+{
+  "aircraft": {
+    "assets": [
+      {
+        "aircraft_type": "TEACH-AIR",
+        "initial_due_dimensions": [],
+        "initial_life_state": {
+          "calendar_days": 0,
+          "flight_hours": 0.0,
+          "takeoff_landing_cycles": 0
+        },
+        "initial_preventive_due": false,
+        "initial_state": "available",
+        "model": "TEACH-AIR",
+        "preventive_cycles": [],
+        "preventive_threshold_sources": {
+          "calendar_days": [],
+          "flight_hours": [],
+          "takeoff_landing_cycles": []
+        },
+        "preventive_thresholds": {
+          "calendar_days": 0,
+          "flight_hours": 0.0,
+          "takeoff_landing_cycles": 0
+        },
+        "source_initial_life_state": {
+          "calendar_days": 0,
+          "flight_hours": 0.0,
+          "takeoff_landing_cycles": 0
+        },
+        "source_initial_state": "available",
+        "tail_number": "TEACH-AIR-01"
+      }
+    ],
+    "fleet_count": 1,
+    "initial_ready": 1,
+    "models": [
+      "TEACH-AIR"
+    ]
+  },
+  "equipment_tree": {
+    "components": [
+      {
+        "aircraft_model": "TEACH-AIR",
+        "failure_rate": 0.0,
+        "id": "teach-air",
+        "name": "TEACH-AIR",
+        "parent_id": "",
+        "quantity": 1
+      }
+    ],
+    "root_component_id": "teach-air"
+  },
+  "mission_profile": {
+    "airports": [],
+    "basic_missions": [
+      {
+        "advanceNoticeMinutes": 60,
+        "cancelMinutes": 20,
+        "equipmentQuantity": 1,
+        "equipmentType": "TEACH-AIR",
+        "id": "teach-basic-mission",
+        "minRequiredSorties": 1,
+        "missionId": "teach-basic-mission",
+        "name": "TEACH-UNIT",
+        "successPoint": 1.0,
+        "taskDurationMinutes": 120
+      }
+    ],
+    "composite_tasks": [
+      {
+        "id": "a02-teaching-missions",
+        "name": "A02 teaching missions",
+        "priority": 1,
+        "taskItems": [
+          {
+            "basicMissionId": "teach-basic-mission",
+            "basicTaskName": "TEACH-UNIT",
+            "dailyRepeatCount": 1,
+            "equipmentType": "TEACH-AIR",
+            "firstWaveTime": "08:00",
+            "id": "a02-mission-01",
+            "operations_plan_group_id": "teach-daily"
+          },
+          {
+            "basicMissionId": "teach-basic-mission",
+            "basicTaskName": "TEACH-UNIT",
+            "dailyRepeatCount": 1,
+            "equipmentType": "TEACH-AIR",
+            "firstWaveTime": "20:00",
+            "id": "a02-mission-02",
+            "operations_plan_group_id": "teach-daily"
+          },
+          {
+            "basicMissionId": "teach-basic-mission",
+            "basicTaskName": "TEACH-UNIT",
+            "dailyRepeatCount": 1,
+            "equipmentType": "TEACH-AIR",
+            "firstWaveTime": "32:00",
+            "id": "a02-mission-03",
+            "operations_plan_group_id": "teach-daily"
+          }
+        ]
+      }
+    ],
+    "duration_minutes": 2160,
+    "mission_calendar": [
+      {
+        "composite_task_id": "a02-teaching-missions",
+        "day_index": 1
+      }
+    ],
+    "mission_phases": [],
+    "name": "SIMLOX A02 bounded pairing",
+    "periodic_source": {
+      "configured_slots": 3,
+      "label": "周剖面",
+      "level": "week"
+    },
+    "profile_id": "simlox-a02-pairing"
+  },
+  "monte_carlo": {
+    "sample_count": 1,
+    "sweep": {
+      "failureRates": [],
+      "spareMultipliers": [],
+      "supportCapacities": []
+    }
+  },
+  "operations_support_policy": "daily-v1",
+  "project_identity": {
+    "project_id": "simlox-a02-pairing-teaching-input",
+    "project_version": "1",
+    "scenario_id": "A02",
+    "source_import_id": "self-authored-pairing-input"
+  },
+  "schema_version": "aircraft-support-v1-input-v1",
+  "seed": 0,
+  "stop_policy": {
+    "conditions": [
+      {
+        "duration_minutes": 2160,
+        "type": "duration"
+      }
+    ],
+    "defaulted": false,
+    "mode": "or",
+    "schema_version": "stop-policy-v0"
+  },
+  "support_activities": {
+    "activities": [
+      {
+        "activity_type": "operations",
+        "aircraft_model": "TEACH-AIR",
+        "equipment_id": "teach-air",
+        "id": "teach-daily-preflight",
+        "jobs": [],
+        "name": "Notice binding bookkeeping",
+        "operations_phase": "preflight",
+        "plan_group_id": "teach-daily",
+        "priority": 1,
+        "resource_id": "teach-flight-line"
+      },
+      {
+        "activity_type": "operations",
+        "aircraft_model": "TEACH-AIR",
+        "equipment_id": "teach-air",
+        "id": "teach-daily-relaunch",
+        "jobs": [],
+        "name": "Notice relaunch binding bookkeeping",
+        "operations_phase": "relaunch",
+        "plan_group_id": "teach-daily",
+        "priority": 1,
+        "resource_id": "teach-flight-line"
+      },
+      {
+        "activity_type": "operations",
+        "aircraft_model": "TEACH-AIR",
+        "equipment_id": "teach-air",
+        "id": "teach-daily-postflight",
+        "jobs": [],
+        "name": "Terminal postflight",
+        "operations_phase": "postflight",
+        "plan_group_id": "teach-daily",
+        "priority": 1,
+        "resource_id": "teach-flight-line"
+      }
+    ]
+  },
+  "support_network": {
+    "nodes": [
+      {
+        "equipment_capacity": 1,
+        "id": "teach-flight-line",
+        "inventory": {},
+        "name": "Teaching flight line",
+        "organization_node_id": "teach-flight-line",
+        "personnel_capacity": 1,
+        "transport_policies": []
+      }
+    ],
+    "organization_graph": {
+      "lateral_edges": [],
+      "nodes": [],
+      "parent_edges": [],
+      "resource_ownership": [],
+      "runtime_mode": "legacy",
+      "transport_policies": []
+    }
+  },
+  "time": {
+    "duration_minutes": 2160,
+    "max_state_frames_single": 2160,
+    "requested_steps": 2160,
+    "sample_every_minutes": 30,
+    "tick_minutes": 1
+  }
+}

@@ -1,0 +1,120 @@
+diff --git a/rust/runtime/src/batch.rs b/rust/runtime/src/batch.rs
+index 2348acb..839bdff 100644
+--- a/rust/runtime/src/batch.rs
++++ b/rust/runtime/src/batch.rs
+@@ -211,6 +211,10 @@ pub fn run_prepared_batch(
+     // The output contract is independent of Rayon scheduling and completion order.
+     samples.sort_by_key(|sample| sample.sample_index);
+ 
++    if std::env::var_os("SIM_PREP_DIAGNOSTIC").is_some() {
++        eprintln!("SIM_PREP_DIAGNOSTIC {}", crate::runtime::preparation_diagnostics());
++    }
++
+     Ok(BatchResult {
+         plan_fingerprint: prepared.fingerprint().to_owned(),
+         sample_count: samples.len(),
+diff --git a/rust/runtime/src/runtime.rs b/rust/runtime/src/runtime.rs
+index cb28d02..38610e0 100644
+--- a/rust/runtime/src/runtime.rs
++++ b/rust/runtime/src/runtime.rs
+@@ -2,6 +2,7 @@ use std::{
+     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+     str::FromStr,
+     sync::Arc,
++    sync::atomic::{AtomicU64, Ordering},
+     time::Instant,
+ };
+ 
+@@ -15,6 +16,20 @@ use crate::rng::PythonRandom;
+ 
+ mod event_time;
+ 
++static DIAG_PREP_VALIDATE_NS: AtomicU64 = AtomicU64::new(0);
++static DIAG_PREP_VALIDATE_CALLS: AtomicU64 = AtomicU64::new(0);
++static DIAG_PREP_STATIC_NS: AtomicU64 = AtomicU64::new(0);
++static DIAG_SAMPLE_INIT_NS: AtomicU64 = AtomicU64::new(0);
++
++pub fn preparation_diagnostics() -> Value {
++    json!({
++        "prepare_validate_ns": DIAG_PREP_VALIDATE_NS.load(Ordering::Relaxed),
++        "prepare_validate_calls": DIAG_PREP_VALIDATE_CALLS.load(Ordering::Relaxed),
++        "prepare_static_ns": DIAG_PREP_STATIC_NS.load(Ordering::Relaxed),
++        "sample_init_total_ns": DIAG_SAMPLE_INIT_NS.load(Ordering::Relaxed),
++    })
++}
++
+ #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+ #[serde(rename_all = "snake_case")]
+ pub enum ObservationLevel {
+@@ -345,7 +360,10 @@ pub struct PreparedBatchPlan {
+ 
+ impl PreparedBatchPlan {
+     pub fn from_plan(plan: Arc<ExecutionPlan>, fingerprint: String) -> Result<Self> {
++        let started = Instant::now();
+         plan.validate()?;
++        DIAG_PREP_VALIDATE_NS.fetch_add(elapsed_ns(started), Ordering::Relaxed);
++        DIAG_PREP_VALIDATE_CALLS.fetch_add(1, Ordering::Relaxed);
+         Ok(Self::from_validated_plan(plan, fingerprint))
+     }
+ 
+@@ -356,7 +374,9 @@ impl PreparedBatchPlan {
+     }
+ 
+     fn from_validated_plan(plan: Arc<ExecutionPlan>, fingerprint: String) -> Self {
++        let started = Instant::now();
+         let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
++        DIAG_PREP_STATIC_NS.fetch_add(elapsed_ns(started), Ordering::Relaxed);
+         Self {
+             plan,
+             prepared,
+@@ -890,6 +910,7 @@ impl Runtime {
+         observation_level: ObservationLevel,
+         profile_enabled: bool,
+     ) -> Result<Self> {
++        let started = Instant::now();
+         let plan = prepared_plan.plan.clone();
+         let prepared = prepared_plan.prepared.clone();
+         let fingerprint = prepared_plan.fingerprint.clone();
+@@ -1004,6 +1025,7 @@ impl Runtime {
+             delayed_missions: HashSet::new(),
+         };
+         runtime.initialize_failure_timers();
++        DIAG_SAMPLE_INIT_NS.fetch_add(elapsed_ns(started), Ordering::Relaxed);
+         Ok(runtime)
+     }
+ 
+diff --git a/rust/runtime/src/main.rs b/rust/runtime/src/main.rs
+index c25849c..890a34b 100644
+--- a/rust/runtime/src/main.rs
++++ b/rust/runtime/src/main.rs
+@@ -34,12 +34,29 @@ fn main() -> Result<()> {
+     let args = Args::parse();
+     let load_started = Instant::now();
+     let bytes = fs::read(&args.plan)?;
++    let plan_read_ns = load_started.elapsed().as_nanos();
+     let (plan, fingerprint) = if is_plan_cache(&bytes) {
+         let cached = decode_plan_cache(&bytes, None, None, None)?;
+         (cached.plan, cached.plan_fingerprint)
+     } else {
+-        let (plan, raw) = ExecutionPlan::from_slice(&bytes)?;
++        let started = Instant::now();
++        let raw: serde_json::Value = serde_json::from_slice(&bytes)?;
++        let plan: ExecutionPlan = serde_json::from_value(raw.clone())?;
++        let plan_parse_ns = started.elapsed().as_nanos();
++        let started = Instant::now();
++        plan.validate()?;
++        let plan_validate_ns = started.elapsed().as_nanos();
++        let started = Instant::now();
+         let fingerprint = ExecutionPlan::fingerprint(&raw)?;
++        let plan_fingerprint_ns = started.elapsed().as_nanos();
++        if std::env::var_os("SIM_PREP_DIAGNOSTIC").is_some() {
++            eprintln!("SIM_PREP_LOAD_DIAGNOSTIC {}", serde_json::json!({
++                "plan_read_ns": plan_read_ns,
++                "plan_parse_ns": plan_parse_ns,
++                "plan_validate_ns": plan_validate_ns,
++                "plan_fingerprint_ns": plan_fingerprint_ns,
++            }));
++        }
+         (plan, fingerprint)
+     };
+     let plan_load_ns = load_started.elapsed().as_nanos();

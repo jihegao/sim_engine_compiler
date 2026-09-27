@@ -326,6 +326,75 @@ pub(crate) struct PreparedActivity {
 pub(crate) struct PreparedRuntimePlan {
     activities: Vec<PreparedActivity>,
     resource_dispatch_reverse: HashMap<DispatchResourceKey, Vec<DispatchCandidate>>,
+    execution_phases: Vec<ExecutionPhase>,
+    activity_by_group_phase: HashMap<(String, String), Vec<usize>>,
+    children_by_component: HashMap<i64, Vec<usize>>,
+    failure_components_by_aircraft: Vec<Vec<usize>>,
+}
+
+/// An immutable, validated Plan and its seed-independent runtime layout.
+///
+/// Construction is the only validation boundary. Keeping both objects in one
+/// handle prevents a caller from pairing prepared tables with a different Plan.
+#[derive(Clone, Debug)]
+pub struct PreparedBatchPlan {
+    plan: Arc<ExecutionPlan>,
+    prepared: Arc<PreparedRuntimePlan>,
+    fingerprint: String,
+}
+
+impl PreparedBatchPlan {
+    /// Prepare a public in-memory Plan and derive its fingerprint from the
+    /// serialized Plan. Use `from_slice` when the original JSON fingerprint
+    /// must be retained, since parsing can discard unknown JSON fields.
+    pub fn from_plan(plan: Arc<ExecutionPlan>) -> Result<Self> {
+        plan.validate()?;
+        let fingerprint = ExecutionPlan::fingerprint(&serde_json::to_value(plan.as_ref())?)?;
+        Ok(Self::from_validated_plan(plan, fingerprint))
+    }
+
+    // Existing Runtime and batch APIs accept a caller-supplied fingerprint.
+    // Preserve that contract while keeping it out of the new public handle API.
+    pub(crate) fn from_plan_with_fingerprint(
+        plan: Arc<ExecutionPlan>,
+        fingerprint: String,
+    ) -> Result<Self> {
+        plan.validate()?;
+        Ok(Self::from_validated_plan(plan, fingerprint))
+    }
+
+    pub fn from_slice(bytes: &[u8]) -> Result<Self> {
+        let (plan, raw) = ExecutionPlan::from_slice(bytes)?;
+        let fingerprint = ExecutionPlan::fingerprint(&raw)?;
+        Ok(Self::from_validated_plan(Arc::new(plan), fingerprint))
+    }
+
+    fn from_validated_plan(plan: Arc<ExecutionPlan>, fingerprint: String) -> Self {
+        let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
+        Self {
+            plan,
+            prepared,
+            fingerprint,
+        }
+    }
+
+    pub fn fingerprint(&self) -> &str {
+        &self.fingerprint
+    }
+
+    pub(crate) fn ensure_dependency_dispatch_supported(&self) -> Result<()> {
+        if self
+            .plan
+            .resource_dispatch_index
+            .as_ref()
+            .is_none_or(|index| index.schema_version != "resource-dispatch-index/v2")
+        {
+            bail!(
+                "dependency dispatch requires a validated resource-dispatch-index/v2 (including remote capacity dependencies)"
+            );
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -410,9 +479,47 @@ impl PreparedRuntimePlan {
                 }));
             }
         }
+        let execution_phases = plan
+            .phases
+            .iter()
+            .enumerate()
+            .map(|(index, name)| ExecutionPhase::from_name(index, name))
+            .collect();
+        let mut activity_by_group_phase: HashMap<(String, String), Vec<usize>> = HashMap::new();
+        for activity in &plan.activities {
+            if !activity.phase.is_empty() {
+                activity_by_group_phase
+                    .entry((activity.plan_group_id.clone(), activity.phase.clone()))
+                    .or_default()
+                    .push(activity.index);
+            }
+        }
+        let mut children_by_component: HashMap<i64, Vec<usize>> = HashMap::new();
+        for component in &plan.components {
+            children_by_component
+                .entry(component.parent_index)
+                .or_default()
+                .push(component.index);
+        }
+        let failure_components_by_aircraft = (0..plan.aircraft.len())
+            .map(|aircraft_index| {
+                plan.components
+                    .iter()
+                    .filter(|component| {
+                        component.failure_rate_per_hour > 0.0
+                            && component.aircraft_indexes.contains(&aircraft_index)
+                    })
+                    .map(|item| item.index)
+                    .collect()
+            })
+            .collect();
         Self {
             activities,
             resource_dispatch_reverse,
+            execution_phases,
+            activity_by_group_phase,
+            children_by_component,
+            failure_components_by_aircraft,
         }
     }
 }
@@ -460,7 +567,6 @@ pub struct RunResult {
 pub struct Runtime {
     plan: Arc<ExecutionPlan>,
     prepared: Arc<PreparedRuntimePlan>,
-    execution_phases: Vec<ExecutionPhase>,
     fingerprint: String,
     seed: u64,
     minute: i64,
@@ -507,33 +613,34 @@ pub struct Runtime {
     transport_replenishment_events: i64,
     total_transport_delay: i64,
     delayed_missions: HashSet<usize>,
-    activity_by_group_phase: HashMap<(String, String), Vec<usize>>,
-    children_by_component: HashMap<i64, Vec<usize>>,
-    failure_components_by_aircraft: Vec<Vec<usize>>,
 }
 
 impl Runtime {
     /// Opt-in candidate-instance dispatch. The index is validated by Plan loading;
     /// no index or an unsupported dependency contract may silently enable this path.
-    pub fn with_dependency_dispatch(mut self, enabled: bool) -> Result<Self> {
+    pub fn with_dependency_dispatch(self, enabled: bool) -> Result<Self> {
         if enabled
-            && !self
+            && self
                 .plan
                 .resource_dispatch_index
                 .as_ref()
-                .is_some_and(|index| index.schema_version == "resource-dispatch-index/v2")
+                .is_none_or(|index| index.schema_version != "resource-dispatch-index/v2")
         {
             bail!(
                 "dependency dispatch requires a validated resource-dispatch-index/v2 (including remote capacity dependencies)"
             );
         }
+        Ok(self.with_validated_dependency_dispatch(enabled))
+    }
+
+    pub(crate) fn with_validated_dependency_dispatch(mut self, enabled: bool) -> Self {
         self.dependency_dispatch = enabled;
         if enabled {
             self.dispatch_candidates = self.waiting_job_indexes.clone();
             self.waiting_epoch
                 .resize(self.jobs.len(), self.dispatch_epoch + 1);
         }
-        Ok(self)
+        self
     }
 
     fn dispatch_order(&self, index: usize) -> (i64, i64, String, usize) {
@@ -787,15 +894,11 @@ impl Runtime {
         seed: u64,
         observation_level: ObservationLevel,
     ) -> Result<Self> {
-        let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
-        Self::from_shared_prepared_config(
+        let prepared = Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
             plan,
-            prepared,
             fingerprint,
-            seed,
-            observation_level,
-            false,
-        )
+        )?);
+        Self::from_prepared_config(prepared, seed, observation_level, false)
     }
 
     pub fn from_shared_profiled(
@@ -804,55 +907,30 @@ impl Runtime {
         seed: u64,
         observation_level: ObservationLevel,
     ) -> Result<Self> {
-        let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
-        Self::from_shared_prepared_config(
+        let prepared = Arc::new(PreparedBatchPlan::from_plan_with_fingerprint(
             plan,
-            prepared,
             fingerprint,
-            seed,
-            observation_level,
-            true,
-        )
+        )?);
+        Self::from_prepared_config(prepared, seed, observation_level, true)
     }
 
-    pub(crate) fn from_shared_prepared_with_observation(
-        plan: Arc<ExecutionPlan>,
-        prepared: Arc<PreparedRuntimePlan>,
-        fingerprint: String,
+    pub(crate) fn from_prepared_with_observation(
+        prepared_plan: Arc<PreparedBatchPlan>,
         seed: u64,
         observation_level: ObservationLevel,
     ) -> Result<Self> {
-        Self::from_shared_prepared_config(
-            plan,
-            prepared,
-            fingerprint,
-            seed,
-            observation_level,
-            false,
-        )
+        Self::from_prepared_config(prepared_plan, seed, observation_level, false)
     }
 
-    fn from_shared_prepared_config(
-        plan: Arc<ExecutionPlan>,
-        prepared: Arc<PreparedRuntimePlan>,
-        fingerprint: String,
+    fn from_prepared_config(
+        prepared_plan: Arc<PreparedBatchPlan>,
         seed: u64,
         observation_level: ObservationLevel,
         profile_enabled: bool,
     ) -> Result<Self> {
-        plan.validate()?;
-        let failure_components_by_aircraft: Vec<Vec<usize>> = (0..plan.aircraft.len())
-            .map(|aircraft_index| {
-                plan.components
-                    .iter()
-                    .filter(|component| {
-                        component.failure_rate_per_hour > 0.0
-                            && component.aircraft_indexes.contains(&aircraft_index)
-                    })
-                    .map(|item| item.index)
-                    .collect()
-            })
-            .collect();
+        let plan = prepared_plan.plan.clone();
+        let prepared = prepared_plan.prepared.clone();
+        let fingerprint = prepared_plan.fingerprint.clone();
         let aircraft = plan
             .aircraft
             .iter()
@@ -877,11 +955,13 @@ impl Runtime {
                 landing_count: item.initial_cycles,
                 failure_remaining_by_slot: vec![
                     None;
-                    failure_components_by_aircraft[aircraft_index].len()
+                    prepared.failure_components_by_aircraft
+                        [aircraft_index]
+                        .len()
                 ],
                 component_failure_minutes_by_slot: vec![
                     None;
-                    failure_components_by_aircraft
+                    prepared.failure_components_by_aircraft
                         [aircraft_index]
                         .len()
                 ],
@@ -910,33 +990,10 @@ impl Runtime {
                 last_preventive_minute: -item.initial_calendar_days * 1440,
             })
             .collect();
-        let mut activity_by_group_phase: HashMap<(String, String), Vec<usize>> = HashMap::new();
-        for activity in &plan.activities {
-            if !activity.phase.is_empty() {
-                activity_by_group_phase
-                    .entry((activity.plan_group_id.clone(), activity.phase.clone()))
-                    .or_default()
-                    .push(activity.index);
-            }
-        }
-        let mut children_by_component: HashMap<i64, Vec<usize>> = HashMap::new();
-        for component in &plan.components {
-            children_by_component
-                .entry(component.parent_index)
-                .or_default()
-                .push(component.index);
-        }
-        let execution_phases = plan
-            .phases
-            .iter()
-            .enumerate()
-            .map(|(index, name)| ExecutionPhase::from_name(index, name))
-            .collect();
         let mission_count = plan.missions.len();
         let mut runtime = Self {
             plan,
             prepared,
-            execution_phases,
             fingerprint,
             seed,
             minute: 0,
@@ -983,9 +1040,6 @@ impl Runtime {
             transport_replenishment_events: 0,
             total_transport_delay: 0,
             delayed_missions: HashSet::new(),
-            activity_by_group_phase,
-            children_by_component,
-            failure_components_by_aircraft,
         };
         runtime.initialize_failure_timers();
         Ok(runtime)
@@ -1035,7 +1089,8 @@ impl Runtime {
                 }
                 let sampled =
                     self.sample_failure_minutes(component_index, aircraft_index, "initialize");
-                if let Some(component_slot) = self.failure_components_by_aircraft[aircraft_index]
+                if let Some(component_slot) = self.prepared.failure_components_by_aircraft
+                    [aircraft_index]
                     .iter()
                     .position(|item| *item == component_index)
                 {
@@ -1140,6 +1195,7 @@ impl Runtime {
             .cloned()
             .collect();
         let candidates: Vec<_> = self
+            .prepared
             .activity_by_group_phase
             .get(&(group_id.to_string(), phase.to_string()))
             .into_iter()
@@ -1383,7 +1439,8 @@ impl Runtime {
                         aircraft_index,
                         "repair_completed",
                     );
-                    let component_slot = self.failure_components_by_aircraft[aircraft_index]
+                    let component_slot = self.prepared.failure_components_by_aircraft
+                        [aircraft_index]
                         .iter()
                         .position(|item| *item == component_index)
                         .ok_or_else(|| {
@@ -1980,7 +2037,7 @@ impl Runtime {
             let component_index = self.aircraft[aircraft_index]
                 .failed_component_index
                 .unwrap_or_else(|| {
-                    self.failure_components_by_aircraft[aircraft_index]
+                    self.prepared.failure_components_by_aircraft[aircraft_index]
                         .iter()
                         .copied()
                         .zip(
@@ -2166,7 +2223,8 @@ impl Runtime {
     }
 
     fn failure_reaches_root(&self, aircraft_index: usize) -> bool {
-        let mut failed: HashSet<usize> = self.failure_components_by_aircraft[aircraft_index]
+        let mut failed: HashSet<usize> = self.prepared.failure_components_by_aircraft
+            [aircraft_index]
             .iter()
             .copied()
             .zip(
@@ -2185,6 +2243,7 @@ impl Runtime {
                     continue;
                 }
                 let count = self
+                    .prepared
                     .children_by_component
                     .get(&(component.index as i64))
                     .into_iter()
@@ -2219,11 +2278,12 @@ impl Runtime {
             {
                 continue;
             }
-            let component_count = self.failure_components_by_aircraft[aircraft_index].len();
+            let component_count =
+                self.prepared.failure_components_by_aircraft[aircraft_index].len();
             self.count_scan("component", component_count);
             for component_slot in 0..component_count {
                 let component_index =
-                    self.failure_components_by_aircraft[aircraft_index][component_slot];
+                    self.prepared.failure_components_by_aircraft[aircraft_index][component_slot];
                 if self.aircraft[aircraft_index].component_failure_minutes_by_slot[component_slot]
                     .is_some()
                 {
@@ -3043,8 +3103,8 @@ impl Runtime {
     }
 
     fn execute_minute(&mut self) -> Result<()> {
-        for phase_index in 0..self.execution_phases.len() {
-            let phase = self.execution_phases[phase_index];
+        for phase_index in 0..self.prepared.execution_phases.len() {
+            let phase = self.prepared.execution_phases[phase_index];
             let Some(phase_name) = phase.name() else {
                 let ExecutionPhase::Unsupported(source_index) = phase else {
                     unreachable!("known execution phase must have a name")
@@ -3244,7 +3304,7 @@ impl Runtime {
     #[cfg_attr(feature = "profiling", inline(never))]
     fn terminal_state(&self) -> Value {
         let aircraft: Vec<_> = self.aircraft.iter().enumerate().map(|(aircraft_index, item)| {
-            let failures: BTreeMap<_, _> = self.failure_components_by_aircraft[aircraft_index]
+            let failures: BTreeMap<_, _> = self.prepared.failure_components_by_aircraft[aircraft_index]
                 .iter()
                 .zip(item.component_failure_minutes_by_slot.iter())
                 .filter_map(|(component_index, minute)| minute.map(|minute| {
@@ -3394,7 +3454,7 @@ mod phase_tests {
         let mut runtime = Runtime::new(plan, "test-fingerprint".into(), 0).unwrap();
 
         assert_eq!(
-            runtime.failure_components_by_aircraft,
+            runtime.prepared.failure_components_by_aircraft,
             vec![vec![1, 2], vec![1]]
         );
         assert_eq!(runtime.aircraft[0].failure_remaining_by_slot.len(), 2);

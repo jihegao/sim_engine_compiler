@@ -1,5 +1,10 @@
 # sim_engine_compiler
 
+当前主线的默认入口、能力/验收矩阵及性能采用状态见
+[595cb5e 基线说明](docs/engine-baseline-595cb5e-v1.md)。特别是 PR #9 的共享
+PreparedBatchPlan 已进入普通 aircraft 批量默认路径，但历史 J35 全线程性能门槛
+未通过；历史报告中的“未合并默认”不再表示当前代码状态，也不代表当前版本的新测量。
+
 面向任务、资产与保障资源的业务模型编译器及离散事件运行时。首个领域是飞机机群任务与保障，原型通过 `spare_mvp` 的 canonical `simulation_inputs` 接入。
 
 **当前状态：Python reference 与独立 Rust 单样本/批量 runtime 均已通过当前 Execution Plan 兼容范围。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已完成旧模型 → Python reference → Rust 的差分闭环。Rust 批量执行共享只读 Plan、隔离每个样本的 RunState，并按输入 `sample_index` 稳定输出；Python 3.12 可通过 PyO3 绑定直接调用相同批量 API。
@@ -64,6 +69,14 @@ PYTHONPATH=src python3.12 -c 'import sim_engine_compiler; print(sim_engine_compi
 ```bash
 python3.12 -m venv .venv
 uv pip install --python .venv/bin/python -e .
+```
+
+ABM acceptance uses the pinned test extra and Rust 1.90.0:
+
+```bash
+uv pip install --python .venv/bin/python -e '.[test]'
+.venv/bin/python -m pytest tests/conformance tests/differential/test_abm_rust_runtime.py
+cargo +1.90.0 test --locked --release --manifest-path rust/runtime/Cargo.toml
 ```
 
 当前可使用 `scripts/compile_execution_plan.py` 和 MLIR 试点入口 `scripts/compile_mlir_execution_plan.py`；后者要求固定 LLVM/MLIR 23.1.1 插件。`scripts/run_reference_plan.py` 执行 Python reference，`rust/runtime` 的 `sim-engine-runtime` CLI 执行同一计划。Python 侧可调用 `sim_engine_compiler.run_plan(...)`、`sim_engine_compiler.run_batch(...)` 与 `sim_engine_compiler.run_canonical_batch(...)`。最后一个入口只接受上游 Adapter 生成的 canonical `simulation_inputs`，固定执行 `event-time-v2` summary，供 `spare_mvp` 的核心 Monte Carlo 路径使用；它不解释 Project JSON，也不生成分析投影。实现、三个手算切片和 F35 证据见 [Independent SimPy Reference Runtime Conformance](docs/b1-independent-reference.md)。[F35 43 天性能基线](benchmarks/spare_mvp_f35_43day/README.md)与[阶段 C 正式分段基准](benchmarks/stage_c/README.md)单独保留；语义验收与性能结论继续分开。
