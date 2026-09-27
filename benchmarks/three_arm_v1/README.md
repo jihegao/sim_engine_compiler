@@ -54,3 +54,20 @@ A failed/partial window is permanent evidence, not permission to retry. A
 bounded performance benefit is not default adoption. Whole-process RSS and
 single-sample counters have the limits explicitly described in the protocol;
 no batch-only memory or unmeasured phase decomposition is inferred.
+
+## Reference compatibility defect found before timing
+
+The first untimed verification at `ec1ac66` passed 36 Rust unit tests and
+40 existing dispatch regressions, but failed two of nine new IR reuse tests.
+Local capacity waiting emitted `organization.resource-capacity` and an extra
+`resource_kind`, while the Python reference emits the local personnel/equipment
+rule with only `step_index`. The three Rust arms agreed with each other, which
+is why the independent reference gate matters. Original logs are retained in
+`runs/three-arm-v1/failed-ec1ac66`; no formal window had started.
+
+The Rust helper now restores local diagnostics when no eligible inbound supply
+route exists, and retains organization diagnostics for eligible routes. Fresh
+dispatch and cached replay share the helper. This is a diagnostic semantic
+compatibility correction; allocation, event ordering, RNG, reference code,
+workloads and comparison tolerances are unchanged. The ablation compares all
+three arms on this same corrected kernel. Full verification must pass anew.

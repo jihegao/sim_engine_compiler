@@ -678,15 +678,37 @@ impl Runtime {
         resource_kind: &'static str,
         step_index: usize,
     ) {
+        let destination_node_index =
+            self.plan.activities[self.jobs[job_index].activity_index].resource_node_index;
+        let organization_capacity = self.plan.supply_routes.iter().any(|route| {
+            route.destination_node_index == destination_node_index
+                && (matches!(route.product_id.as_str(), "" | "*")
+                    || route.product_id == resource_kind)
+        });
+        let kind = if resource_kind == "personnel" {
+            "personnel_delay"
+        } else {
+            "equipment_shortage"
+        };
+        if organization_capacity {
+            self.emit(
+                kind,
+                "organization.resource-capacity",
+                self.jobs[job_index].job_id.clone(),
+                || json!({"step_index": step_index, "resource_kind": resource_kind}),
+                None,
+            );
+            return;
+        }
         self.emit(
+            kind,
             if resource_kind == "personnel" {
-                "personnel_delay"
+                "resource.personnel-capacity"
             } else {
-                "equipment_shortage"
+                "resource.equipment-capacity"
             },
-            "organization.resource-capacity",
             self.jobs[job_index].job_id.clone(),
-            || json!({"step_index": step_index, "resource_kind": resource_kind}),
+            || json!({"step_index": step_index}),
             None,
         );
     }
@@ -3942,6 +3964,98 @@ mod phase_tests {
                 .iter()
                 .all(|job| job.spare_reservations.is_empty())
         );
+    }
+
+    #[test]
+    fn capacity_delay_metadata_distinguishes_local_and_routed_resources() {
+        let mut local_runtime = Runtime::from_shared_profiled(
+            Arc::new(synthetic_plan()),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Full,
+        )
+        .unwrap();
+        local_runtime.phase = "resource_dispatch".into();
+        local_runtime
+            .create_job(0, 0, "test", None, None, None)
+            .unwrap();
+
+        local_runtime.emit_capacity_delay(0, "personnel", 1);
+        assert_eq!(
+            local_runtime.trace.last().unwrap(),
+            &json!({
+                "sequence": 2,
+                "time": 0,
+                "phase": "resource_dispatch",
+                "kind": "personnel_delay",
+                "rule_id": "resource.personnel-capacity",
+                "entity": "job-0001",
+                "source_path": Value::Null,
+                "details": {"step_index": 1},
+            })
+        );
+        local_runtime.emit_capacity_delay(0, "equipment", 2);
+        assert_eq!(
+            local_runtime.trace.last().unwrap(),
+            &json!({
+                "sequence": 3,
+                "time": 0,
+                "phase": "resource_dispatch",
+                "kind": "equipment_shortage",
+                "rule_id": "resource.equipment-capacity",
+                "entity": "job-0001",
+                "source_path": Value::Null,
+                "details": {"step_index": 2},
+            })
+        );
+
+        let mut routed_plan = synthetic_plan();
+        let mut supplier = routed_plan.resource_nodes[0].clone();
+        supplier.index = 1;
+        supplier.node_id = "parent-support".into();
+        supplier.organization_node_id = "parent-support".into();
+        supplier.inventory.clear();
+        routed_plan.resource_nodes.push(supplier);
+        routed_plan
+            .supply_routes
+            .push(crate::plan::SupplyRouteSpec {
+                index: 0,
+                route_id: "parent-to-line".into(),
+                source_node_index: 1,
+                destination_node_index: 0,
+                product_id: "*".into(),
+                capacity: 1,
+                transport_minutes: 2,
+                supply_mode: "vertical".into(),
+                relation_id: String::new(),
+                source_path: "test.support_network.transport_policies[0]".into(),
+            });
+        let mut routed_runtime = Runtime::from_shared_profiled(
+            Arc::new(routed_plan),
+            "test-fingerprint".into(),
+            0,
+            ObservationLevel::Full,
+        )
+        .unwrap();
+        routed_runtime.phase = "resource_dispatch".into();
+        routed_runtime
+            .create_job(0, 0, "test", None, None, None)
+            .unwrap();
+
+        for (resource_kind, step_index, expected_kind) in [
+            ("personnel", 1, "personnel_delay"),
+            ("equipment", 2, "equipment_shortage"),
+        ] {
+            routed_runtime.emit_capacity_delay(0, resource_kind, step_index);
+            let event = routed_runtime.trace.last().unwrap();
+            assert_eq!(event["kind"], expected_kind);
+            assert_eq!(event["rule_id"], "organization.resource-capacity");
+            assert_eq!(event["entity"], "job-0001");
+            assert_eq!(
+                event["details"],
+                json!({"step_index": step_index, "resource_kind": resource_kind})
+            );
+        }
     }
 
     #[test]
