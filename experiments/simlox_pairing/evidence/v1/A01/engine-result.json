@@ -1,0 +1,249 @@
+{
+  "metrics": {
+    "avg_departure_delay": 0.0,
+    "cancelled_sorties": 0,
+    "completed_sorties": 1,
+    "delayed_sorties": 0,
+    "elapsed_minutes": 2160,
+    "failed_count": 0,
+    "failed_sorties": 0,
+    "in_flight_failures": 0,
+    "launched_sorties": 1,
+    "lru_failures": 0,
+    "mean_transport_delay": 0.0,
+    "mission_success_rate": 1.0,
+    "planned_mission_waves": 1,
+    "planned_sorties": 1,
+    "postflight_count": 0,
+    "preventive_maintenance_events": 0,
+    "repairing_count": 0,
+    "shortage_events": 0,
+    "spare_consumed_total": 0,
+    "spare_demand_total": 0,
+    "spare_fill_rate": 1.0,
+    "spare_immediately_filled_total": 0,
+    "spare_stock_total": 0,
+    "stop_reason": "duration",
+    "successful_mission_waves": 1,
+    "total_transport_delay_minutes": 0,
+    "transport_in_transit_count": 0,
+    "transport_replenishment_events": 0
+  },
+  "plan_fingerprint": "806837849521ca00708fb2f85bcc3b2b72e2bfaa87d846d528f19d356f36e2b6",
+  "sample_requests": [],
+  "seed": 0,
+  "stop_reason": "duration",
+  "terminal_state": {
+    "aircraft": [
+      {
+        "component_failure_minutes": {},
+        "current_mission_id": null,
+        "daily_takeoffs": 1,
+        "failed_component_id": null,
+        "flight_hours": 2.0,
+        "in_flight_failure": false,
+        "landing_count": 1,
+        "operations_day": 0,
+        "postflight_due": false,
+        "postflight_required": false,
+        "prepared_mission_ids": [],
+        "state": "available",
+        "tail_number": "TEACH-AIR-01",
+        "takeoff_count": 1
+      }
+    ],
+    "jobs": [
+      {
+        "activity_id": "teach-daily-preflight",
+        "aircraft": "TEACH-AIR-01",
+        "completed_time": 420,
+        "component_id": null,
+        "job_id": "job-0001",
+        "kind": "preflight",
+        "maintenance_method": null,
+        "mission_id": "a01-mission-01-d1-w1",
+        "started_time": 420,
+        "state": "completed",
+        "step_index": 0
+      },
+      {
+        "activity_id": "teach-daily-postflight",
+        "aircraft": "TEACH-AIR-01",
+        "completed_time": 600,
+        "component_id": null,
+        "job_id": "job-0002",
+        "kind": "postflight",
+        "maintenance_method": null,
+        "mission_id": "a01-mission-01-d1-w1",
+        "started_time": 600,
+        "state": "completed",
+        "step_index": 0
+      }
+    ],
+    "missions": [
+      {
+        "actual_start": 480,
+        "assigned_tail_numbers": [
+          "TEACH-AIR-01"
+        ],
+        "mission_id": "a01-mission-01-d1-w1",
+        "status": "completed",
+        "succeeded": true,
+        "success_evaluated": true
+      }
+    ],
+    "resources": [
+      {
+        "equipment_in_use": 0,
+        "inventory": {},
+        "node_id": "teach-flight-line",
+        "personnel_in_use": 0
+      }
+    ]
+  },
+  "time": 2160,
+  "trace": [
+    {
+      "details": {
+        "activity_id": "teach-daily-preflight",
+        "mission_id": "a01-mission-01-d1-w1",
+        "operations_phase": "preflight",
+        "tail_number": "TEACH-AIR-01"
+      },
+      "entity": "job-0001",
+      "kind": "operations_phase_created",
+      "phase": "preflight_generation",
+      "rule_id": "daily-v1.create-operation",
+      "sequence": 1,
+      "source_path": "support_activities.activities[0]",
+      "time": 420
+    },
+    {
+      "details": {
+        "activity_id": "teach-daily-preflight",
+        "mission_id": "a01-mission-01-d1-w1",
+        "operations_phase": "preflight",
+        "tail_number": "TEACH-AIR-01"
+      },
+      "entity": "job-0001",
+      "kind": "operations_phase_completed",
+      "phase": "preflight_generation",
+      "rule_id": "daily-v1.complete-operation",
+      "sequence": 2,
+      "source_path": "support_activities.activities[0]",
+      "time": 420
+    },
+    {
+      "details": {
+        "mission_id": "a01-mission-01-d1-w1"
+      },
+      "entity": "TEACH-AIR-01",
+      "kind": "preflight_completed",
+      "phase": "preflight_generation",
+      "rule_id": "mission.preflight-complete",
+      "sequence": 3,
+      "source_path": "mission_profile.composite_tasks[0].taskItems[0]",
+      "time": 420
+    },
+    {
+      "details": {
+        "created": 1
+      },
+      "entity": "a01-mission-01-d1-w1",
+      "kind": "preflight_created",
+      "phase": "preflight_generation",
+      "rule_id": "mission.commission-preflight",
+      "sequence": 4,
+      "source_path": "mission_profile.composite_tasks[0].taskItems[0]",
+      "time": 420
+    },
+    {
+      "details": {
+        "aircraft": [
+          "TEACH-AIR-01"
+        ]
+      },
+      "entity": "a01-mission-01-d1-w1",
+      "kind": "mission_launched",
+      "phase": "mission_dispatch",
+      "rule_id": "mission.dispatch-ready-aircraft",
+      "sequence": 5,
+      "source_path": "mission_profile.composite_tasks[0].taskItems[0]",
+      "time": 480
+    },
+    {
+      "details": {
+        "mission_id": "a01-mission-01-d1-w1"
+      },
+      "entity": "TEACH-AIR-01",
+      "kind": "mission_returned",
+      "phase": "mission_returns",
+      "rule_id": "mission.normal-return",
+      "sequence": 6,
+      "source_path": "mission_profile.composite_tasks[0].taskItems[0]",
+      "time": 600
+    },
+    {
+      "details": {
+        "activity_id": "teach-daily-postflight",
+        "mission_id": "a01-mission-01-d1-w1",
+        "operations_phase": "postflight",
+        "tail_number": "TEACH-AIR-01"
+      },
+      "entity": "job-0002",
+      "kind": "operations_phase_created",
+      "phase": "operations_postflight_before_preparation",
+      "rule_id": "daily-v1.create-operation",
+      "sequence": 7,
+      "source_path": "support_activities.activities[2]",
+      "time": 600
+    },
+    {
+      "details": {
+        "activity_id": "teach-daily-postflight",
+        "mission_id": "a01-mission-01-d1-w1",
+        "operations_phase": "postflight",
+        "tail_number": "TEACH-AIR-01"
+      },
+      "entity": "job-0002",
+      "kind": "operations_phase_completed",
+      "phase": "operations_postflight_before_preparation",
+      "rule_id": "daily-v1.complete-operation",
+      "sequence": 8,
+      "source_path": "support_activities.activities[2]",
+      "time": 600
+    },
+    {
+      "details": {},
+      "entity": "TEACH-AIR-01",
+      "kind": "postflight_completed",
+      "phase": "operations_postflight_before_preparation",
+      "rule_id": "daily-v1.postflight-complete",
+      "sequence": 9,
+      "source_path": null,
+      "time": 600
+    },
+    {
+      "details": {
+        "members": 1
+      },
+      "entity": "a01-mission-01-d1-w1",
+      "kind": "mission_success_point_succeeded",
+      "phase": "mission_success",
+      "rule_id": "mission.evaluate-success-point",
+      "sequence": 10,
+      "source_path": "mission_profile.composite_tasks[0].taskItems[0]",
+      "time": 600
+    },
+    {
+      "details": {},
+      "entity": "simulation",
+      "kind": "simulation_stopped",
+      "phase": "stop",
+      "rule_id": "stop.duration",
+      "sequence": 11,
+      "source_path": null,
+      "time": 2160
+    }
+  ]
+}
