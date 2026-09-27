@@ -1,0 +1,97 @@
+{
+  "schema_version": "pr22-utf8-independent-review/v1",
+  "review_status": "pass_local_native_windows_and_remote_ci_pending",
+  "task": "engine-pr22-utf8-and-issue6-baseline-v1-part-a",
+  "reviewed_source": {
+    "branch": "codex/a01-a02-engine-pairing-v1",
+    "starting_commit": "5289fb59c4f32887d8e535ccfa3e9ff00dbdecbe",
+    "starting_tree": "5b0468d21b8a364a26594d5e992ff369ab34ddf5",
+    "implementation_changed_by_reviewer": false,
+    "commit_or_push_performed_by_reviewer": false
+  },
+  "historical_evidence": {
+    "source_commit": "d39e9c69267d570ca9518ff693a7f27a1d0a4776",
+    "path": "cases/simlox-air-support/windows-retest-5289fb5-v1/receipt.json",
+    "sha256": "08b2f20cbbc520561e8edc27fa48567e70d2160d77da554c4fd8d8410666e147",
+    "preserved_unchanged": true,
+    "historical_default_gbk_result": "31 passed, 1 UnicodeDecodeError, 0 skipped",
+    "historical_process_utf8_result": "32 passed, 0 errors, 0 skipped",
+    "interpretation": "conditional historical Windows evidence, not a default-locale acceptance"
+  },
+  "scope": {
+    "change": "explicit UTF-8 boundaries in the A01/A02 pairing consumer and tests",
+    "frozen_engine_source_changed": false,
+    "runtime_rng_or_business_semantics_changed": false,
+    "old_evidence_or_fixtures_changed": false,
+    "native_windows_execution_performed": false,
+    "benchmark_performed": false
+  },
+  "reviewed_artifacts": {
+    "docs/pr22-utf8-v1.md": "7832bea7691b9960d1d92af1871ed856cb1478662de7621b8462b8003bfb9530",
+    "experiments/simlox_pairing/check_tests.py": "c02d55eafc536824fffedec8f52aa9d7db9d3ae8bb2599f869d01111704d004e",
+    "experiments/simlox_pairing/provenance.py": "9f4f002ee26d4986538d455ad0a2fb3694b3587e9570753aa68475b49121f70f",
+    "experiments/simlox_pairing/run.py": "23d07df908a2dfd8de6d8fda88aeccb53d357f7051ba3aad14c5b0eac174343d",
+    "tests/conformance/test_simlox_pairing_runner.py": "bedc21db832a58cdbc8fb3a8f1d78c4cec6343e73cbb1f3de35163c396a386f7",
+    "tests/conformance/test_simlox_pairing_encoding.py": "1852c899d3e052ae7b6876347508ed81aa77021e3e92abf5b1d107ba626a5d02",
+    "experiments/simlox_pairing/evidence/v1/negative-controls.json": "67d3faca375efa24a9eddffab26d4d726c8ff66bb88b4fdc3b6e77330dc3bbc0"
+  },
+  "generated_evidence": {
+    "runs/pr22-utf8-v1/fresh-pairing/consumer-report.json": "d5ea33f337dcc978e32fe1a73ed6ab661f83e5e1dd257ca99977dc1edf445340",
+    "runs/pr22-utf8-v1/fresh-pairing/evidence-index.json": "41f8341e434fbddf06260940d817dc6ea38d3d815694c470897c449ae467b983",
+    "runs/pr22-utf8-v1/fresh-pairing/handoff-verification.json": "f430242034ea3a0b667fd45a522f46421665383cd930fe4cab685140fa1b4496",
+    "runs/pr22-utf8-v1/fresh-pairing/negative-controls.json": "67d3faca375efa24a9eddffab26d4d726c8ff66bb88b4fdc3b6e77330dc3bbc0",
+    "runs/pr22-utf8-v1/fresh-pairing/source-fingerprints.json": "8b1cc31f0af65b5c1ed6fe97bb1faf517c1a23fb26f99b3d2cd48be94dd5fa3a",
+    "evidence_index_entries": 24,
+    "all_indexed_sha256_values_recomputed": true
+  },
+  "verification": [
+    {
+      "command": "PYTHONPATH=src .venv/bin/python -m experiments.simlox_pairing.check_tests",
+      "result": "35 collected, 35 executed, 0 skipped, 0 failures, 0 errors",
+      "status": "pass"
+    },
+    {
+      "control": "original test modules under a subprocess with -X utf8=0 and modeled cp936 locale and implicit text encoding",
+      "result": "32 collected, 32 executed, 0 skipped, 0 failures, 0 errors",
+      "status": "pass"
+    },
+    {
+      "control": "actual non-ASCII negative-controls.json through the former implicit read boundary",
+      "result": "implicit cp936 read raises UnicodeDecodeError; explicit UTF-8 strict read preserves 周剖面",
+      "status": "pass"
+    },
+    {
+      "control": "fresh local pairing execution",
+      "result": "A01 625 checks and A02 681 checks matched; 72 half-hour bins per case; four negative controls passed",
+      "status": "pass"
+    },
+    {
+      "command": "uvx ruff check experiments/simlox_pairing/check_tests.py experiments/simlox_pairing/provenance.py tests/conformance/test_simlox_pairing_runner.py tests/conformance/test_simlox_pairing_encoding.py",
+      "result": "All checks passed",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean",
+      "status": "pass"
+    }
+  ],
+  "accepted_claims": [
+    "the two runner JSON reads now request UTF-8 explicitly instead of inheriting the host locale",
+    "consumer JSON bytes, Git textual metadata and hash-pinned archive JSON are decoded or encoded with explicit UTF-8",
+    "strict decoding is retained for evidence JSON; no production errors-ignore path or global UTF-8 mode bypass was introduced",
+    "the cp936 regression fixture also controls io.text_encoding and runs with Python UTF-8 mode disabled",
+    "the original 32 tests and three encoding controls are all collected and executed without skips",
+    "fresh A01/A02 results retain the bounded mapped-observable result and do not promote it to full equivalence",
+    "the frozen engine build fingerprint remains 8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1 across 26 engine source files"
+  ],
+  "remaining_limits": [
+    "the cp936/default-locale controls run on Linux and model the relevant Python text boundary; they are not native Windows 4700-3 acceptance",
+    "the unique 4700-3 coordinator must perform the new-head ordinary default-GBK, LF and CRLF native recheck",
+    "exact new-head remote CI has not yet been run or read back",
+    "the historical PR21 receipt remains evidence of the earlier conditional PYTHONUTF8 run and is not retroactively rewritten",
+    "this review does not claim GUI, SIMLOX execution, full model equivalence, faults, resources, spares, cancellation, RNG or performance acceptance",
+    "the complete repository test suite is outside this local encoding receipt"
+  ],
+  "conclusion": "No remaining local blocker was found in the explicit UTF-8 consumer and test slice. The change is ready for commit and updated PR22 review, but native Windows default-locale acceptance and exact-head remote CI remain mandatory pending gates."
+}

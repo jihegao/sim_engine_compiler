@@ -1,0 +1,45 @@
+name: A01 A02 bounded engine pairing
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pairing:
+    name: Frozen A01 A02 independent Python pairing
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned engine source blobs for working-file verification
+        run: git fetch --no-tags --depth=1 origin 595cb5eee9987324b19a8c3566f201f937e05f15
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent reference dependencies
+        run: python -m pip install simpy==4.1.1
+      - name: Execute all pairing controls without skips
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          python -m experiments.simlox_pairing.check_tests 2>&1 | tee pairing-tests.log
+      - name: Independently rerun both cases and bind evidence
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m experiments.simlox_pairing.run --output "$RUNNER_TEMP/a01-a02-pairing"
+      - name: Upload independent results and fingerprints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a01-a02-pairing-${{ github.sha }}
+          path: |
+            pairing-tests.log
+            ${{ runner.temp }}/a01-a02-pairing
+          if-no-files-found: error
