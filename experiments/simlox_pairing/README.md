@@ -131,8 +131,18 @@ Engine source identity now has two explicit layers:
 - The executed-source identity hashes the bytes actually read from the working
   tree and records a mode per file. A file must either equal its Git blob byte
   for byte or equal the single whole-file transformation LF to CRLF. Mixed
-  newlines, bare CR changes, any other content edit, and added or missing engine
-  Python files fail closed. CRLF is therefore audited, not generally normalized.
+  newlines, bare CR changes, any other content edit, and undeclared added or
+  missing engine Python files fail closed. CRLF is therefore audited, not
+  generally normalized.
+
+PR #20 adds five offline `identity` modules outside the frozen pairing execution
+path. Their repository paths and exact LF-byte SHA-256 values are declared in
+`provenance.py`. They are required to be present and byte-identical (with the
+same audited whole-file CRLF allowance), and are recorded under a separate
+checkout-membership fingerprint. They do not enter or alter the frozen
+`595cb5e` build fingerprint. Any later package source addition, deletion, or
+content change still fails until its provenance classification and digest are
+reviewed explicitly.
 
 The imported `SimpyReferenceRuntime` path must still resolve into this checkout.
 The source verifier reads the exact baseline tree and blobs and never substitutes

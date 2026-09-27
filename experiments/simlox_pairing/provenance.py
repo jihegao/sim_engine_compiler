@@ -27,6 +27,27 @@ REBUILT_ZIP_SHA256 = "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a
 PORTABLE_SHA256 = "ab26c7ea23496938e6e15e02f58eb8e6906db358acc2a9f24b7bdc28bee52d3f"
 DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.zip"
 
+# PR #20 adds an offline identity API to the package without changing the frozen
+# pairing engine.  Keep that checkout delta explicit and content-pinned instead
+# of widening the frozen baseline or ignoring arbitrary new Python files.
+DECLARED_NONBASELINE_SOURCE_SHA256 = {
+    "src/sim_engine_compiler/identity/__init__.py": (
+        "3cb31c00457b10ac369f0f059df6d536a97896492c3bed51ee4469e08e080c38"
+    ),
+    "src/sim_engine_compiler/identity/__main__.py": (
+        "e0df441b01f212591e6658e3f6513548f3b0246962054ddb342d88a55e49be32"
+    ),
+    "src/sim_engine_compiler/identity/artifacts.py": (
+        "07667396c189d6ba77c01e53c9d34012a4b973c641a9c3f9f89911d2fc08a555"
+    ),
+    "src/sim_engine_compiler/identity/common.py": (
+        "759932aa37d96ac261dbfecae5b24858fc7483e7a7866bbf259166666daef1fd"
+    ),
+    "src/sim_engine_compiler/identity/runs.py": (
+        "064c77bc52d7188479700f831fea0fe99fce9599ee75d1da77c7e220b65c0815"
+    ),
+}
+
 
 def sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
@@ -111,14 +132,39 @@ def _executed_byte_mode(blob: bytes, executed: bytes, key: str) -> str:
     raise ValueError(f"executed source differs from frozen baseline Git blob: {key}")
 
 
-def _verified_engine_sources(root: Path, revision: str) -> dict:
+def _declared_digest_mode(executed: bytes, expected_sha256: str, key: str) -> str:
+    """Verify a content-pinned checkout addition with the baseline newline policy."""
+    if sha256(executed) == expected_sha256:
+        return "exact_declared_bytes"
+    if b"\r\n" in executed:
+        remainder = executed.replace(b"\r\n", b"")
+        normalized = executed.replace(b"\r\n", b"\n")
+        if b"\r" not in remainder and b"\n" not in remainder:
+            if sha256(normalized) == expected_sha256:
+                return "controlled_whole_file_lf_to_crlf_checkout"
+    raise ValueError(f"declared nonbaseline source differs from pinned content: {key}")
+
+
+def _verified_engine_sources(
+    root: Path,
+    revision: str,
+    *,
+    declared_nonbaseline_sources: dict[str, str] | None = None,
+) -> dict:
     blobs = _baseline_source_blobs(root, revision)
+    declared = dict(sorted((declared_nonbaseline_sources or {}).items()))
+    overlap = set(blobs) & set(declared)
+    if overlap:
+        raise ValueError(
+            "declared nonbaseline sources overlap frozen baseline: "
+            f"{sorted(overlap)}"
+        )
     actual_paths = sorted((root / "src/sim_engine_compiler").rglob("*.py"))
     actual_paths.append(root / "pyproject.toml")
     actual = {
         _canonical_path_key(path.relative_to(root)): path for path in actual_paths
     }
-    expected_keys = set(blobs)
+    expected_keys = set(blobs) | set(declared)
     actual_keys = set(actual)
     if actual_keys != expected_keys:
         added = sorted(actual_keys - expected_keys)
@@ -136,6 +182,14 @@ def _verified_engine_sources(root: Path, revision: str) -> dict:
         canonical_hashes[key] = sha256(blob)
         blob_oids[key] = object_id
         executed_hashes[key] = sha256(executed)
+    declared_executed_hashes: dict[str, str] = {}
+    declared_modes: dict[str, str] = {}
+    for key, expected_sha256 in declared.items():
+        if len(expected_sha256) != 64:
+            raise ValueError(f"invalid declared nonbaseline source digest: {key}")
+        executed = actual[key].read_bytes()
+        declared_modes[key] = _declared_digest_mode(executed, expected_sha256, key)
+        declared_executed_hashes[key] = sha256(executed)
     return {
         "source_files": canonical_hashes,
         "source_git_blob_oids": blob_oids,
@@ -143,6 +197,12 @@ def _verified_engine_sources(root: Path, revision: str) -> dict:
         "executed_source_modes": modes,
         "build_fingerprint": json_digest(canonical_hashes),
         "executed_source_fingerprint": json_digest(executed_hashes),
+        "declared_nonbaseline_source_files": declared,
+        "declared_nonbaseline_executed_source_files": declared_executed_hashes,
+        "declared_nonbaseline_source_modes": declared_modes,
+        "checkout_source_membership_fingerprint": json_digest(
+            {**canonical_hashes, **declared}
+        ),
     }
 
 
@@ -218,7 +278,11 @@ def source_identity() -> dict:
         != expected_runtime.resolve()
     ):
         raise ValueError("imported runtime is not this checkout; set PYTHONPATH=src")
-    engine = _verified_engine_sources(ROOT, BASELINE)
+    engine = _verified_engine_sources(
+        ROOT,
+        BASELINE,
+        declared_nonbaseline_sources=DECLARED_NONBASELINE_SOURCE_SHA256,
+    )
     if engine["build_fingerprint"] != BASELINE_BUILD_SHA256:
         raise ValueError("engine sources differ from the frozen main baseline")
     consumer = {

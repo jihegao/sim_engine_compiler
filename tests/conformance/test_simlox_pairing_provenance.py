@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path, PureWindowsPath
 
 from experiments.simlox_pairing.provenance import (
+    DECLARED_NONBASELINE_SOURCE_SHA256,
     DEFAULT_ARCHIVE,
     MANIFEST_SHA256,
     _canonical_path_key,
@@ -73,6 +75,11 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
             identity["build_fingerprint"], identity["consumer_source_fingerprint"]
         )
         self.assertIsNone(identity["identity_pr20_dependency"])
+        self.assertEqual(
+            identity["declared_nonbaseline_source_files"],
+            DECLARED_NONBASELINE_SOURCE_SHA256,
+        )
+        self.assertTrue(identity["checkout_source_membership_fingerprint"])
 
     def test_source_keys_are_posix_for_windows_and_host_path_objects(self):
         self.assertEqual(
@@ -144,6 +151,51 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
             (root / "src/sim_engine_compiler/engine.py").unlink()
             with self.assertRaisesRegex(ValueError, "membership differs"):
                 _verified_engine_sources(root, revision)
+
+    def test_declared_nonbaseline_sources_are_exact_and_do_not_change_baseline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            revision = _make_source_repo(root)
+            baseline = _verified_engine_sources(root, revision)
+            extra = root / "src/sim_engine_compiler/extra.py"
+            extra.write_bytes(b"declared = True\n")
+            declared = {"src/sim_engine_compiler/extra.py": "9" * 64}
+            with self.assertRaisesRegex(ValueError, "differs from pinned content"):
+                _verified_engine_sources(
+                    root,
+                    revision,
+                    declared_nonbaseline_sources=declared,
+                )
+
+            declared["src/sim_engine_compiler/extra.py"] = hashlib.sha256(
+                extra.read_bytes()
+            ).hexdigest()
+            extended = _verified_engine_sources(
+                root,
+                revision,
+                declared_nonbaseline_sources=declared,
+            )
+            self.assertEqual(extended["build_fingerprint"], baseline["build_fingerprint"])
+            self.assertNotEqual(
+                extended["checkout_source_membership_fingerprint"],
+                baseline["checkout_source_membership_fingerprint"],
+            )
+
+            extra.write_bytes(b"declared = False\n")
+            with self.assertRaisesRegex(ValueError, "differs from pinned content"):
+                _verified_engine_sources(
+                    root,
+                    revision,
+                    declared_nonbaseline_sources=declared,
+                )
+
+            extra.unlink()
+            with self.assertRaisesRegex(ValueError, "membership differs"):
+                _verified_engine_sources(
+                    root,
+                    revision,
+                    declared_nonbaseline_sources=declared,
+                )
 
     def test_missing_baseline_object_fails_closed_without_using_head(self):
         with tempfile.TemporaryDirectory() as directory:
