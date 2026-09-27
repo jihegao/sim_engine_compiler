@@ -1,5 +1,10 @@
 # sim_engine_compiler
 
+当前主线的默认入口、能力/验收矩阵及性能采用状态见
+[595cb5e 基线说明](docs/engine-baseline-595cb5e-v1.md)。特别是 PR #9 的共享
+PreparedBatchPlan 已进入普通 aircraft 批量默认路径，但历史 J35 全线程性能门槛
+未通过；历史报告中的“未合并默认”不再表示当前代码状态，也不代表当前版本的新测量。
+
 面向任务、资产与保障资源的业务模型编译器及离散事件运行时。首个领域是飞机机群任务与保障，原型通过 `spare_mvp` 的 canonical `simulation_inputs` 接入。
 
 **当前状态：Python reference 与独立 Rust 单样本/批量 runtime 均已通过当前 Execution Plan 兼容范围。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已完成旧模型 → Python reference → Rust 的差分闭环。Rust 批量执行共享只读 Plan、隔离每个样本的 RunState，并按输入 `sample_index` 稳定输出；Python 3.12 可通过 PyO3 绑定直接调用相同批量 API。
@@ -96,4 +101,4 @@ Python 与 Rust AOT 的正式链路现为 canonical → Business → symbolic Co
 已校验的 IR 导出版本化设计审阅 JSON。它复用 PR20 的身份与 bundle 校验，
 不执行模型、不猜测独立 Core 的原始 Business，也不实现 SysML 渲染。
 支持矩阵、来源限制及离线 API/CLI 示例见[审阅数据合同](docs/review-data-v1.md)。
-本分支依赖尚未合并的 PR20 `c42d2679`，完整规则语义与 SysML 仍未交付。
+身份合同已随 PR20 合入 `main`；完整规则语义与 SysML 仍未交付。
