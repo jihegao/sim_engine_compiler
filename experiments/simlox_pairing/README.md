@@ -135,14 +135,15 @@ Engine source identity now has two explicit layers:
   missing engine Python files fail closed. CRLF is therefore audited, not
   generally normalized.
 
-PR #20 adds five offline `identity` modules outside the frozen pairing execution
-path. Their repository paths and exact LF-byte SHA-256 values are declared in
-`provenance.py`. They are required to be present and byte-identical (with the
-same audited whole-file CRLF allowance), and are recorded under a separate
-checkout-membership fingerprint. They do not enter or alter the frozen
-`595cb5e` build fingerprint. Any later package source addition, deletion, or
-content change still fails until its provenance classification and digest are
-reviewed explicitly.
+PR #20 adds five offline `identity` modules and PR #23 adds four offline
+`review` modules outside the frozen pairing execution path. Contract
+`simlox-pairing-checkout-additions/v2` declares their repository paths and exact
+LF-byte SHA-256 values in `provenance.py`. All nine files must be present and
+byte-identical, with the same audited whole-file CRLF allowance, and are recorded
+under a separate checkout-membership fingerprint. They do not enter or alter
+the frozen `595cb5e` build fingerprint. Any later package source addition,
+deletion, or content change still fails until its provenance classification and
+digest are reviewed explicitly.
 
 The imported `SimpyReferenceRuntime` path must still resolve into this checkout.
 The source verifier reads the exact baseline tree and blobs and never substitutes

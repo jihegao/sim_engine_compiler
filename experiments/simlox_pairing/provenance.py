@@ -27,9 +27,10 @@ REBUILT_ZIP_SHA256 = "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a
 PORTABLE_SHA256 = "ab26c7ea23496938e6e15e02f58eb8e6906db358acc2a9f24b7bdc28bee52d3f"
 DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.zip"
 
-# PR #20 adds an offline identity API to the package without changing the frozen
-# pairing engine.  Keep that checkout delta explicit and content-pinned instead
-# of widening the frozen baseline or ignoring arbitrary new Python files.
+# PRs #20 and #23 add offline identity and review APIs without changing the
+# frozen pairing engine. Keep that checkout delta explicit and content-pinned
+# instead of widening the frozen baseline or ignoring arbitrary new Python files.
+DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v2"
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/identity/__init__.py": (
         "3cb31c00457b10ac369f0f059df6d536a97896492c3bed51ee4469e08e080c38"
@@ -45,6 +46,18 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     ),
     "src/sim_engine_compiler/identity/runs.py": (
         "064c77bc52d7188479700f831fea0fe99fce9599ee75d1da77c7e220b65c0815"
+    ),
+    "src/sim_engine_compiler/review/__init__.py": (
+        "aa6fbb2a420bbae2f93bbecd7e9769411348bab559f5b38b4d1ac314c6f61b05"
+    ),
+    "src/sim_engine_compiler/review/__main__.py": (
+        "69b9b14a5f5ac62ea3e1d721c4fc1afc1ed2ab5ed6edb670b307a6e64a3593a4"
+    ),
+    "src/sim_engine_compiler/review/exporter.py": (
+        "698615a85153e89bf2c9da2eefeafdc8bcf99a3b167ae43f0fcd92618a784b03"
+    ),
+    "src/sim_engine_compiler/review/views.py": (
+        "28735cbb890050b359181c164bb2724e08e8b9479b0f14ce473483ed18190256"
     ),
 }
 
@@ -202,6 +215,9 @@ def _verified_engine_sources(
         "declared_nonbaseline_source_modes": declared_modes,
         "checkout_source_membership_fingerprint": json_digest(
             {**canonical_hashes, **declared}
+        ),
+        "declared_nonbaseline_source_contract": (
+            DECLARED_NONBASELINE_SOURCE_CONTRACT
         ),
     }
 
