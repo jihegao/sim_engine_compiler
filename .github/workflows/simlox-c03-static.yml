@@ -1,0 +1,47 @@
+name: C03 static preparation acceptance
+
+on:
+  pull_request:
+    branches: [codex/simlox-case-library-a01-a02, main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+    paths:
+      - .github/workflows/simlox-c03-static.yml
+      - scripts/check_simlox_c03_static.py
+      - cases/simlox-air-support/**
+      - tests/conformance/test_simlox_c03_contract_prep.py
+      - docs/simlox/c03-static-ci-af2fffc-v1.md
+
+permissions:
+  contents: read
+
+jobs:
+  static-preparation:
+    name: C03 generator and 12 static conformance tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify original inputs and run static acceptance at the PR head
+        env:
+          C03_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          C03_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          C03_PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python scripts/check_simlox_c03_static.py \
+            --head "$C03_PR_HEAD" --base "$C03_PR_BASE" \
+            --base-ref "$C03_PR_BASE_REF" --output "$RUNNER_TEMP/c03-static"
+      - name: Upload this head's static receipt and command logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c03-static-${{ github.event.pull_request.head.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/c03-static/
+          if-no-files-found: error
