@@ -1,0 +1,132 @@
+{
+  "schema": "a01-a02-pairing-independent-review/v1",
+  "task_id": "engine-a01-a02-pairing-519b209-v1",
+  "review_status": "pass_local_full_regression_and_remote_ci_pending",
+  "review_date": "2026-09-27",
+  "reviewer_scope": "independent read-only semantic, evidence, negative-control, test-discovery, and boundary review",
+  "findings": [],
+  "source_baseline": {
+    "engine_commit": "595cb5eee9987324b19a8c3566f201f937e05f15",
+    "engine_build_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+    "handoff_dependency_commit": "519b2094c3be355399bc101cdcfe30d456cbb47b",
+    "accepted_native_source_commit": "04dce604f6be75df064d40519187b482ceb4ddb8",
+    "identity_pr20_dependency": null,
+    "runtime_or_rng_source_changed": false
+  },
+  "provenance_boundary": {
+    "external_manifest_sha256": "0b7294414c5cafa050cf90349659822f5d08ff2b42421359826a26759483d987",
+    "rebuilt_zip_sha256": "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a5a3a60",
+    "delivered_zip_sha256_from_delivery_record": "fe5555954cc6596b478346a6df1ff1e3c78da9d01f16c9f73ce967407a9c0ece",
+    "delivered_zip_bytes_verified_here": false,
+    "rebuilt_zip_matches_delivered_bytes": false,
+    "external_manifest_and_payload_verified": true,
+    "native_raw_evidence_rechecked_here": false,
+    "native_simlox_executed_here": false,
+    "gui_accepted_here": false
+  },
+  "semantic_review": {
+    "canonical_path": "self-authored canonical simulation_inputs -> import_business_ir -> lower_business -> compile_core -> SimpyReferenceRuntime",
+    "expected_observations_used_to_produce_engine_output": false,
+    "empty_support_steps_invent_modeled_work": false,
+    "mission_ready_classification": "reserved_for_assigned_mission_and_not_globally_ready",
+    "notification_mapping": "preflight_created commission-time proxy; not an independent captured notification event",
+    "mapped_mission_boundaries": "start/completion at 8/10h and corresponding A02 waves",
+    "native_inner_task_boundary": "8.5/9.5h and corresponding later waves remain native-only",
+    "same_tick_order_equivalence_claimed": false,
+    "rcend_conflated_with_simpe": false,
+    "msuf_interpreted_as_completed_count": false
+  },
+  "positive_results": {
+    "A01": {
+      "comparison_status": "matched",
+      "checks": 625,
+      "failed_checks": 0,
+      "intervals": 72,
+      "first_discrepancy": null,
+      "integrals": {
+        "FTMO_hours": 2.0,
+        "NSYMO_aircraft_hours": 2.0,
+        "NSYMA_aircraft_hours": 3.0,
+        "NSYMR_aircraft_hours": 1.0,
+        "NSYRY_aircraft_hours": 33.0
+      },
+      "completed_waves": 1
+    },
+    "A02": {
+      "comparison_status": "matched",
+      "checks": 681,
+      "failed_checks": 0,
+      "intervals": 72,
+      "first_discrepancy": null,
+      "integrals": {
+        "FTMO_hours": 6.0,
+        "NSYMO_aircraft_hours": 6.0,
+        "NSYMA_aircraft_hours": 9.0,
+        "NSYMR_aircraft_hours": 3.0,
+        "NSYRY_aircraft_hours": 27.0
+      },
+      "completed_waves": 3
+    }
+  },
+  "negative_controls": {
+    "status": "passed",
+    "same_totals_wrong_schedule_detected": true,
+    "same_times_wrong_identity_detected": true,
+    "result_plan_mismatch_detected": true,
+    "canonical_input_plan_mismatch_detected": true,
+    "first_wrong_schedule_event_discrepancy_minutes": {
+      "actual": 450,
+      "expected": 420
+    },
+    "first_wrong_schedule_interval_discrepancy": "intervals[14].NSYMA"
+  },
+  "local_verification": {
+    "required_pairing_test_command": "PYTHONPATH=src .venv/bin/python -m experiments.simlox_pairing.check_tests",
+    "required_pairing_tests_collected": 26,
+    "required_pairing_tests_executed": 26,
+    "required_pairing_tests_skipped": 0,
+    "module_counts": {
+      "tests.conformance.test_simlox_pairing_canonical": 7,
+      "tests.conformance.test_simlox_pairing_observations": 13,
+      "tests.conformance.test_simlox_pairing_provenance": 3,
+      "tests.conformance.test_simlox_pairing_runner": 3
+    },
+    "combined_pairing_and_existing_b1_pytest": "39 passed",
+    "ruff": "passed",
+    "git_diff_check": "passed"
+  },
+  "frozen_artifacts": {
+    ".github/workflows/a01-a02-pairing.yml": "ad0f6c1d49c87af49c3060aad1b04a1d2eabfa8a3e177565de7fb64b21e4d984",
+    "experiments/simlox_pairing/README.md": "733a19c7c2b008901321c8215c7ec3e3ad306be025973877a5eae5ad22f21b2f",
+    "experiments/simlox_pairing/__init__.py": "86261faf5a0f667f97555b8bd3ea4ce13a5424a28049d9a85526632e6146bcf1",
+    "experiments/simlox_pairing/canonical.py": "bdf4b89c4baf035b19014640c3626ea0456da60f54658f41e37f7ced2df324c2",
+    "experiments/simlox_pairing/check_tests.py": "58a71d742ae381cc8abe4ae00a642d8de3e7bc7faf0343bd8f80943f498d8e17",
+    "experiments/simlox_pairing/negative_controls.py": "cd3c84b82699e4bdfaf83c2654b98656ebefb075a5fd5b6c9da48cdd928b98b8",
+    "experiments/simlox_pairing/observations.py": "7647c8f377fe2138601a470653c5a3d39fe7c15028d7a1015c89ec08a9ed4b24",
+    "experiments/simlox_pairing/provenance.py": "30ecf73763ae1fdd73becfa1636d77d5466276bcce32b902a920f7ab0d027d5e",
+    "experiments/simlox_pairing/run.py": "23d07df908a2dfd8de6d8fda88aeccb53d357f7051ba3aad14c5b0eac174343d",
+    "tests/conformance/test_simlox_pairing_canonical.py": "697f134f7d8edc69446da6b892b0b61b2724a79d5eb7cc767a5b55f8f40ae2bb",
+    "tests/conformance/test_simlox_pairing_observations.py": "7942d8c86695d1ab9f66d4123c64306b29bd06615e23b8e07a1fdc76d92818a1",
+    "tests/conformance/test_simlox_pairing_provenance.py": "cdb92a2fa83e96b8fd2da93b967f9faf66521a9e6535ac540a7f42007f81a124",
+    "tests/conformance/test_simlox_pairing_runner.py": "df0da18cc4bf436fea8c7180052afcf8021e3f366252a4bb0a065ede4a1f1f83",
+    "tests/fixtures/simlox_pairing/README.md": "5d52a626661e56558c098560ed095393ff8c6bfc11b9f658a9a9848d6920fd2e",
+    "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.zip": "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a5a3a60",
+    "experiments/simlox_pairing/evidence/v1/evidence-index.json": "ae06705d168458f6899232350760bbc32732656b06f9216dc59abe84c542ce31",
+    "experiments/simlox_pairing/evidence/v1/source-fingerprints.json": "c1ce19fbef82c568e82076a94084c93c4366a3102bfb31d7e7d384da298bb959",
+    "experiments/simlox_pairing/evidence/v1/consumer-report.json": "d5ea33f337dcc978e32fe1a73ed6ab661f83e5e1dd257ca99977dc1edf445340",
+    "experiments/simlox_pairing/evidence/v1/negative-controls.json": "67d3faca375efa24a9eddffab26d4d726c8ff66bb88b4fdc3b6e77330dc3bbc0",
+    "experiments/simlox_pairing/evidence/v1/handoff-verification.json": "f430242034ea3a0b667fd45a522f46421665383cd930fe4cab685140fa1b4496"
+  },
+  "evidence_index": {
+    "schema": "a01-a02-engine-evidence-index/v1",
+    "bound_file_count": 24,
+    "index_excludes_itself": true
+  },
+  "remaining_gates": [
+    "complete the clean-environment full baseline regression after rebuilding the pre-existing Rust validation binary",
+    "commit and push the consumer branch without merging",
+    "read back exact PR head/base and successful remote required checks",
+    "if any frozen hash changes, rerun this independent review and replace this receipt"
+  ],
+  "acceptance_boundary": "Passes the bounded A01/A02 mapped-observable pairing only. It does not establish complete native model equivalence, notification lifecycle equivalence, inner-task equivalence, same-time priority, faults, resources, spares, cancellation, RNG-stream equivalence, GUI acceptance, A03, F35/J35 completeness, performance, native SIMLOX execution, or formal timing."
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-pairing-source-portability/v1",
+  "task": "engine-review-data-recovery-and-pr22-portability-v1-part-a",
+  "baseline_commit": "595cb5eee9987324b19a8c3566f201f937e05f15",
+  "historical_windows_result": {
+    "tests_passed": 24,
+    "source_identity_errors": 2,
+    "tests_skipped": 0,
+    "windows_retested_here": false
+  },
+  "reproduction": {
+    "engine_source_file_count": 26,
+    "posix_path_key_aggregate": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+    "backslash_path_key_aggregate": "a20bb50e2db1c557351edfa52ca8f690a5529c4bcd50e8e59c3d62a2b77c579f",
+    "simulated_all_crlf_raw_byte_aggregate": "fbf174817c3a03ce2ca20e968a900567475b000153a6b4d65b536007aa7a0c4d"
+  },
+  "policy": {
+    "portable_identity": "exact baseline Git blob SHA-256 with POSIX path keys",
+    "executed_identity": "actual working-file byte SHA-256",
+    "allowed_byte_modes": [
+      "exact_git_blob_bytes",
+      "controlled_whole_file_lf_to_crlf_checkout"
+    ],
+    "rejected": [
+      "mixed newline styles",
+      "bare CR or arbitrary newline normalization",
+      "working-file content changes",
+      "added or deleted engine Python sources",
+      "missing exact baseline Git objects",
+      "imported runtime outside the checkout"
+    ],
+    "head_substitution_allowed": false,
+    "baseline_fetch_required_for_shallow_checkout": true
+  },
+  "scope": {
+    "runtime_changed": false,
+    "rng_changed": false,
+    "old_evidence_rewritten": false,
+    "native_simlox_executed": false,
+    "windows_executed": false
+  }
+}

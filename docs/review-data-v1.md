@@ -5,9 +5,10 @@ Implemented: persisted, validated Business or symbolic Core → deterministic
 identity/schema/profile/operation and bundle association checks to the public
 PR20 identity API. It does not require the original canonical Python object.
 
-Dependency: **unmerged PR20**, exact commit
-`c42d2679c6652a3f5e2d43c9ddc877ee5a388656`. This is a stacked change based on
-`codex/engine-identity-contract-v1`, not a new identity authority.
+Dependency: the identity contract from PR20 is present on `main` through merge
+commit `16cbdb3a23b7b5420a136be2904f367bfbe00167`. The original independent review
+receipt remains attached to the pre-integration feature commit so its recorded
+source hashes stay reproducible.
 
 ## Support matrix
 
@@ -106,7 +107,7 @@ assert linked["association_status"] == "verified"
 
 ## Offline CLI / cloud workspace example
 
-Use a clean checkout of this stacked branch in any Linux/cloud terminal with
+Use a clean checkout of this branch in any Linux/cloud terminal with
 the pinned Python test environment installed. No API key, internet service,
 model endpoint, local database or legacy source checkout is needed to export.
 Dependency installation is a separate setup step. Keep persisted input fixtures

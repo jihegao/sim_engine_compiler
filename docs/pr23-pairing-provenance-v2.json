@@ -1,0 +1,49 @@
+{
+  "schema_version": "simlox-pairing-checkout-additions-review/v2",
+  "status": "local_pass_exact_head_ci_pending",
+  "scope": "PR23 review modules classified as content-pinned checkout additions outside the frozen pairing engine",
+  "base_commit": "16cbdb3a23b7b5420a136be2904f367bfbe00167",
+  "feature_commit": "1a1e329ca4e7c38a7550ac9de15c699fccfb99ef",
+  "failed_ci_run": 36333177994,
+  "failure": "the strict checkout membership gate rejected four undeclared review modules",
+  "resolution": {
+    "contract": "simlox-pairing-checkout-additions/v2",
+    "frozen_engine_commit": "595cb5eee9987324b19a8c3566f201f937e05f15",
+    "frozen_build_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+    "frozen_build_changed": false,
+    "unknown_additions_still_rejected": true,
+    "declared_review_sources": {
+      "src/sim_engine_compiler/review/__init__.py": "aa6fbb2a420bbae2f93bbecd7e9769411348bab559f5b38b4d1ac314c6f61b05",
+      "src/sim_engine_compiler/review/__main__.py": "69b9b14a5f5ac62ea3e1d721c4fc1afc1ed2ab5ed6edb670b307a6e64a3593a4",
+      "src/sim_engine_compiler/review/exporter.py": "698615a85153e89bf2c9da2eefeafdc8bcf99a3b167ae43f0fcd92618a784b03",
+      "src/sim_engine_compiler/review/views.py": "28735cbb890050b359181c164bb2724e08e8b9479b0f14ce473483ed18190256"
+    }
+  },
+  "reviewed_artifacts": {
+    "experiments/simlox_pairing/provenance.py": "8f05dcb7c04aefd530cb258838d34b1729b9026018dd54e332bc8f911539a5f7",
+    "tests/conformance/test_simlox_pairing_provenance.py": "c83062d176b297c4de6d672b86463e4508bf1336edbcb01e4e445ffede32d85f",
+    "experiments/simlox_pairing/README.md": "023d0e03f291b58d1e55b8ae2f6e635bcf8835e8978a8419884a4d4ca48587e7"
+  },
+  "verification": [
+    {
+      "command": "PYTHONPATH=src python -m experiments.simlox_pairing.check_tests",
+      "result": "36 collected, 36 executed, 36 passed, 0 skipped",
+      "status": "pass"
+    },
+    {
+      "command": "PYTHONPATH=src python -m pytest -q [review, identity, and execution-evidence verifier modules]",
+      "result": "175 passed",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean",
+      "status": "pass"
+    }
+  ],
+  "historical_receipts": [
+    "docs/pr22-portability-independent-review-v1.json",
+    "docs/review-data-independent-review-v1.json"
+  ],
+  "receipt_boundary": "This versioned integration receipt records the changed pairing provenance contract. Historical source-bound receipts remain unchanged. Exact-head GitHub Actions is still required."
+}
