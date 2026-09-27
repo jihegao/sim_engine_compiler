@@ -148,6 +148,9 @@ class HandoffTests(unittest.TestCase):
             self.formal_verify(self.schema_mutant(add="extra.txt"))
 
     def test_native_run_and_tool_lineage_cannot_be_erased_by_rehash(self):
+        with self.assertRaisesRegex(ValueError, "native original artifact key set mismatch"):
+            self.formal_verify(self.mutant("manifest.json", lambda doc:
+                doc["native_runs"]["A01"][0]["original_artifacts"].pop("closure.json")))
         with self.assertRaisesRegex(ValueError, "missing bound native replay"):
             self.formal_verify(self.mutant("manifest.json", lambda doc:
                 doc["native_runs"].update(A01=[])))

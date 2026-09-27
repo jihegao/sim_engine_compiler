@@ -41,6 +41,9 @@ RUN_IDS = {
     "A01": ("a01-bound-final-20260927-03", "a01-bound-replay-20260927-04"),
     "A02": ("a02-bound-final-20260927-03", "a02-bound-replay-20260927-04"),
 }
+ORIGINAL_ARTIFACTS = frozenset({"invocation.json", "closure.json", "input.json",
+                                "model.sxi", "model.sxo", "report-raw.json",
+                                "model.log", "validation.json"})
 PAYLOAD_SOURCES = {
     "pairing-contract.json": "cases/simlox-air-support/pairing-contract.json",
     "collection-window-review-v2.json": "cases/simlox-air-support/collection-window-review-v2.json",
@@ -246,6 +249,8 @@ def semantic_verify(manifest: dict, files: dict[str, bytes]) -> dict:
         for ordinal, (run, binding, indexed) in enumerate(zip(runs, case_manifest["run_bindings"], index["runs"])):
             must(run["run_id"] == indexed["run_id"] == case_manifest["run_ids"][ordinal]
                  and run["invocation_id"] == binding["invocation_id"], "native run identity mismatch")
+            must(set(run.get("original_artifacts", {})) == ORIGINAL_ARTIFACTS,
+                 "native original artifact key set mismatch")
             for name, record in run["original_artifacts"].items():
                 must(record["sha256"] == indexed["artifacts"][name]["sha256"]
                      and record["bytes"] == indexed["artifacts"][name]["bytes"],
