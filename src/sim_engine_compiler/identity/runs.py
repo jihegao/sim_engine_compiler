@@ -517,7 +517,8 @@ def project_event_references(run_identity: Any, result: Any, *,
                 if selected is None or event["recorded_sequence"] in selected]
     omitted_events = [{"event_id": event["event_id"],
                        "recorded_sequence": event["recorded_sequence"]}
-                      for event in all_events if event not in included]
+                      for event in all_events
+                      if selected is not None and event["recorded_sequence"] not in selected]
     omitted = [event["event_id"] for event in omitted_events]
     if omitted:
         diagnostics.append(diagnostic(
