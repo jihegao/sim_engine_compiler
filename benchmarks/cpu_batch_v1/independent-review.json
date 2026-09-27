@@ -1,0 +1,83 @@
+{
+  "schema_version": "cpu-batch-independent-review/v1",
+  "reviewed_at_utc": "2026-09-27T05:57:21Z",
+  "reviewer_task": "/root/identity_repair_review",
+  "base_commit": "595cb5eee9987324b19a8c3566f201f937e05f15",
+  "decision": "pass_pre_freeze_preparation_only",
+  "scope_limited_admission": {
+    "freeze_and_semantic_gate_may_be_attempted_by_main_coordinator": true,
+    "formal_measurement_admitted": false,
+    "reason": "The real frozen artifacts and the F35 semantic gate do not exist yet. Performance measurement remains forbidden unless that exact gate passes and the coordinator separately admits the controlled best-effort CPU window."
+  },
+  "reviewed_files": {
+    ".github/workflows/cpu-batch-harness.yml": "d8323db485991681187d7ca9709191eb1362f65997fbe91f80efd573b2212764",
+    "benchmarks/cpu_batch_v1/PROTOCOL.md": "408d091d1fa26720b45b57f568ca110ed71cc09f4e30efb40db57bf7de8401f4",
+    "benchmarks/cpu_batch_v1/README.md": "bf6aab5ecce184c98faba2dd9542acc16bdf7b8b81fdc124e57982e98ab922d3",
+    "benchmarks/cpu_batch_v1/binding_worker.py": "d2fbc431fed2f625ec979361fec6a004675f6a00965832121327e318436083db",
+    "benchmarks/cpu_batch_v1/driver.py": "4c34067c083f96ca4cb7e05d662a11cbf666bdd604e7e361cdff45efed80b40a",
+    "tests/conformance/test_cpu_batch_baseline.py": "6fc187284197a6a74cd54209fe7dd7917f97c62a463cf75380d49f43faa311b7"
+  },
+  "reviewed_files_binding_sha256": "e10d0a5062978566bb7400c2923181fa851337899df0cfb62193d40d839345ba",
+  "verified_controls": {
+    "synthetic_unittest": {
+      "command": "PYTHONPATH=src .venv/bin/python -m unittest -q tests.conformance.test_cpu_batch_baseline",
+      "tests_run": 24,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "git_diff_check": "pass",
+    "runtime_compiler_source_diff_from_base": "empty",
+    "script_modes": {
+      "benchmarks/cpu_batch_v1/driver.py": "755",
+      "benchmarks/cpu_batch_v1/binding_worker.py": "755"
+    },
+    "live_read_only_helpers": {
+      "placement_json_roundtrip": "pass",
+      "selected_logical_cpus": [0, 1, 2, 3, 4, 5, 6, 7],
+      "smt_siblings": {
+        "0": [0, 64],
+        "1": [1, 65],
+        "2": [2, 66],
+        "3": [3, 67],
+        "4": [4, 68],
+        "5": [5, 69],
+        "6": [6, 70],
+        "7": [7, 71]
+      },
+      "venv_launcher_preserved": "/home/g/apps/sim-engine-issue6-cpu-baseline-v1/.venv/bin/python",
+      "python_environment_identity_without_pip": "pass",
+      "installed_distribution_count": 7
+    }
+  },
+  "review_findings": [],
+  "contracts_confirmed": [
+    "The ordered matrix is exactly 56 cells with N64 seeds [0,1,7,7] repeated sixteen times, rotated worker order, separate Full and Summary, and separate Rust and PyO3 boundaries.",
+    "The frozen Plan is event-time-v2, stable-topological-serial, legacy-sequential-v1, unindexed, and bound by byte digest, fingerprint, duration, phases, source digest, lineage and exact execution artifacts.",
+    "The accepted legacy Python-reference float policy is isolated to that boundary. Legacy-to-O5, Full-to-Summary, worker-count and Rust-to-PyO3 decoded-tree comparisons are otherwise exact after only named normalization.",
+    "Serialized sample digests are used only for stability inside their producing backend. They are not cross-language semantic evidence.",
+    "Cell reports bind all fields exposed by each supported entrypoint. Rust does not fabricate a Plan SHA field absent from stage-c output; load and per-cell artifact checks bind its exact Plan bytes and command path.",
+    "The 1200-second unique window reserves a fixed 60-second cell cap and 10-second postflight budget, cannot resume, and retains partial evidence on timeout, invalid evidence or coordinator interruption.",
+    "SIGINT and SIGTERM handlers are installed before the formal clock, kill and reap only the owned child session/process group, retain partial state, and restore prior handlers.",
+    "PyO3 call_ns and whole-process RSS disclose warmup validation and proof cache history. Rust and PyO3 RSS are not treated as an incremental-memory ratio.",
+    "The CI workflow requires exactly 24 controls with zero skips or expected failures and does not run the F35 performance window."
+  ],
+  "negative_controls_confirmed": [
+    "manifest, protocol, source, Plan, reference Plan, lineage, executable, Python environment, seed and schedule drift",
+    "stale or forged semantic-gate manifest binding, dispatch state, seal and raw result hashes",
+    "untracked, added, deleted and modified runtime/compiler source files",
+    "CPU affinity, physical-core, NUMA and SMT-sibling drift",
+    "Rust and PyO3 cell identity, observation, worker, seed, count, profile, RNG, fingerprint and evidence drift",
+    "malformed cell JSON, record/output/raw evidence drift and false completed-state claims",
+    "deadline reserve, no-resume, SIGINT, SIGTERM, preflight interruption, owned child/grandchild cleanup and unrelated-process preservation"
+  ],
+  "not_verified_by_this_receipt": [
+    "release binary build provenance or independent authenticity of self-entered compiler/install metadata",
+    "a completed freeze manifest and its real release artifact hashes",
+    "the F35 seeds 0, 1 and 7 semantic admission gate or duplicate-seed raw results",
+    "absence of unknown operating-system background load; the protocol permits only a controlled best-effort statement",
+    "any formal CPU timing, 56-cell completion, throughput, speedup, efficiency, RSS result or Issue #6 conclusion",
+    "remote CI, merge, release or issue closure"
+  ],
+  "execution_boundary": "No F35 simulation, Rust build, formal semantic gate or performance window was run by this reviewer."
+}

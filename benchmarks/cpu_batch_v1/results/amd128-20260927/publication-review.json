@@ -1,0 +1,145 @@
+{
+  "schema_version": "cpu-batch-publication-safety-review/v1",
+  "reviewed_at_utc": "2026-09-27T06:32:15Z",
+  "review_type": "bounded_read_only_publication_safety",
+  "decision": "safe_to_publish_exact_reviewed_package",
+  "exact_publication_artifacts": {
+    "raw-evidence.tar.gz": "6fa5e4915321af839c9ba1266c3989d042e8ca5e96333095723d57515b8b46a4",
+    "raw-files.sha256": "010d3e55a559af0484be163c67850fd8a5e148dd217487fc70fb86051cc04a60",
+    "SHA256SUMS": "33ecee92f921bd205910ff5667a3b22965a21086d33bb8ec3157a787178cfa0a",
+    "manifest.json": "b529e41107a9b547c9329a10902da2559aed661c699c4027f9d95e077a0231d3",
+    "summary.json": "d46668d90f8b5c8f39d9baf006600f925d10193f6331c7e47e605e30a4aaaf64",
+    "state-public.json": "a5d70b73a2fcc2d392412875e7e1ce330d2fd19e33107cc0ebf80125821e1b51",
+    "EVIDENCE.md": "b8372ac65407dc7ff9a39f076ca2c3c61a2e2c9abd1cdb1ba4e9a3ce28c07bd3",
+    "REPORT.md": "772aa25c6b5d29ab3df3efcbc20b67662280cc19b9168d49504a869f8e4a8bd2",
+    "package-evidence.sh": "e2021705c1a422af2e2fec793fb8741827d8a0b10c64102fbf1ae846f99dd2bb",
+    "independent-data-review.json": "cde3e0561f20574421ed34209405e880f82c469ca03717a8efe2deb040940dc2"
+  },
+  "publication_policy": {
+    "allowed_frozen_reporting_identifiers": [
+      "task hostname g-1503-amd128",
+      "task worktree and artifact paths under /home/g/apps/sim-engine-issue6-cpu-baseline-v1",
+      "toolchain installation paths under /home/g/.local/share"
+    ],
+    "prohibited_public_content": [
+      "credentials or credential values",
+      "personal email addresses captured from unrelated processes",
+      "unrelated process command lines or arguments",
+      "unrelated home-directory paths"
+    ]
+  },
+  "archive_verification": {
+    "member_count": 268,
+    "regular_file_count": 268,
+    "directory_member_count": 0,
+    "symlink_or_hardlink_count": 0,
+    "special_member_count": 0,
+    "absolute_or_parent_traversal_member_count": 0,
+    "excluded_member_count": 0,
+    "inventory_entry_count": 268,
+    "unique_inventory_path_count": 268,
+    "inventory_malformed_or_out_of_scope_count": 0,
+    "tar_member_set_equals_inventory": true,
+    "tar_member_order_equals_inventory": true,
+    "fresh_extraction_inventory_hashes_ok": 268,
+    "fresh_extraction_inventory_hashes_failed": 0,
+    "fresh_extraction_matches_current_source_hashes": 268,
+    "fresh_extraction_source_hash_failures": 0,
+    "adjacent_SHA256SUMS_ok": 5,
+    "adjacent_SHA256SUMS_failed": 0
+  },
+  "archive_content_scope": {
+    "preparation_files": 13,
+    "effective_eight_semantic_supplement_files": 5,
+    "semantic_gate_files": 19,
+    "measurement_files_without_private_state": 224,
+    "run_root_files": [
+      "manifest.json",
+      "manifest.sha256",
+      "measurement-list.json",
+      "seeds-n64.json",
+      "summary.json",
+      "window-admission.json",
+      "window-command.log"
+    ]
+  },
+  "local_raw_only": [
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/machine-freeze.json",
+      "sha256": "ed1e994ba1df1d7c2f93204b112f91faf8f602e5a8ab7ac53d96d05c129a597b",
+      "reason": "Embeds a full host process inventory including unrelated argv, personal email-like data, and unrelated home paths."
+    },
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/measurement/state.json",
+      "sha256": "46273aa25530987cf4e0d8940e7372f230462a791e3bf3137d2402f86c5575cc",
+      "reason": "Embeds machine_before and machine_after process inventories with the same unrelated host data."
+    },
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/preflight-processes.log",
+      "sha256": "15302df4e76d961ff308f966acf7833367e974257e7e6152c7d9b5682cef7d6a",
+      "reason": "Raw unrelated process command lines and arguments."
+    },
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/preflight-final-processes.log",
+      "sha256": "ae9e40e219bc0f296291f5786d1666c4c3381d1ffaa7b557f16c4e6798dc52c3",
+      "reason": "Raw unrelated process command lines and arguments."
+    },
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/preflight-top.log",
+      "sha256": "75030b1eb01c30ccdeb69031d1baf48f2d5e0c468d9cad064a9108f8df7b5256",
+      "reason": "Raw host-wide process and load inventory retained locally as operational evidence."
+    },
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/preflight-final-top.log",
+      "sha256": "23dc7010c5b6003ef5e2d5c5c82525cfcb20302228e25dd31cf992f73f38390d",
+      "reason": "Raw host-wide process and load inventory retained locally as operational evidence."
+    },
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/window-known-tools.log",
+      "sha256": "6b188a389d6b28b669241ae1c37dd93904b2efaf441a9a4aab82548ff26c5516",
+      "reason": "Raw monitoring output containing unrelated host paths and process details."
+    },
+    {
+      "path": "runs/cpu-batch-v1/run-20260927T055817Z-2557785/window-top.log",
+      "sha256": "9b9f4aeb9c80abf11886f1999af88ba3f56e63b97082d1647416e8481be3c04a",
+      "reason": "Raw host-wide process and load inventory retained locally as operational evidence."
+    }
+  ],
+  "safety_scan_results": {
+    "archive_files_with_personal_email_pattern": 0,
+    "archive_files_with_private_key_header": 0,
+    "archive_files_with_aws_access_key_pattern": 0,
+    "archive_files_with_github_token_pattern": 0,
+    "archive_files_with_openai_style_key_pattern": 0,
+    "archive_files_with_jwt_pattern": 0,
+    "archive_files_with_bearer_authorization_pattern": 0,
+    "archive_files_with_credential_assignment_pattern": 0,
+    "adjacent_readable_files_with_the_same_patterns": 0,
+    "pre_package_json_command_or_argv_fields_reviewed": 151,
+    "pre_package_json_command_or_argv_string_items_reviewed": 2483,
+    "pre_package_remaining_json_commands_with_unrelated_home_paths": 0,
+    "pre_package_remaining_json_commands_with_email_or_credential_patterns": 0
+  },
+  "state_public_verification": {
+    "machine_before_present": false,
+    "machine_after_present": false,
+    "original_local_state_sha256": "46273aa25530987cf4e0d8940e7372f230462a791e3bf3137d2402f86c5575cc",
+    "derivative_claim_is_explicit": true
+  },
+  "required_publication_disclosures_verified": [
+    "EVIDENCE.md states that the public archive is partial and excludes eight private host snapshots.",
+    "EVIDENCE.md states that the manifest pointer refers to an intentionally omitted local-only machine snapshot.",
+    "REPORT.md states that state-public.json is a derivative and not byte-identical to the original state.",
+    "REPORT.md and EVIDENCE.md limit monitoring claims to controlled best-effort and do not claim OS idleness.",
+    "The eight excluded originals remain local and are bound by SHA-256 in this review."
+  ],
+  "not_verified": [
+    "Any file changed or created after the reviewed hashes were computed",
+    "Remote hosting, Git history, CI, or downstream mirrors",
+    "Absence of arbitrary secrets that do not match the reviewed credential and identity patterns",
+    "Model correctness, benchmark performance, or semantic acceptance beyond the separate reviews"
+  ],
+  "mutations_performed": [
+    "Created this publication-review.json receipt only"
+  ]
+}
