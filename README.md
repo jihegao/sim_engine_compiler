@@ -89,3 +89,11 @@ cargo +1.90.0 test --locked --release --manifest-path rust/runtime/Cargo.toml
 ## 三层 IR 与依赖派遣里程碑
 
 Python 与 Rust AOT 的正式链路现为 canonical → Business → symbolic Core → layout → Plan；中间产物可独立重载、校验和修订。MLIR 直接接受持久化 Core，包括 Rust AOT 生成的 Core。详见[三层 IR 合同](docs/three-layer-ir.md)与[依赖派遣验收](docs/dependency-dispatch.md)。候选派遣需显式启用，性能结论按 profile 和观测级别分别报告。
+
+## 离线审阅数据（#10 首个切片）
+
+`python -m sim_engine_compiler.review export <business-or-core.json>` 从已保存、
+已校验的 IR 导出版本化设计审阅 JSON。它复用 PR20 的身份与 bundle 校验，
+不执行模型、不猜测独立 Core 的原始 Business，也不实现 SysML 渲染。
+支持矩阵、来源限制及离线 API/CLI 示例见[审阅数据合同](docs/review-data-v1.md)。
+本分支依赖尚未合并的 PR20 `c42d2679`，完整规则语义与 SysML 仍未交付。
