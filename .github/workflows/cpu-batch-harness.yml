@@ -1,0 +1,57 @@
+name: CPU batch baseline harness controls
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-controls:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install reference dependency (no native build or benchmark)
+        run: python -m pip install simpy==4.1.1
+      - name: Record exact source identity
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/cpu-batch-controls"
+          {
+            git rev-parse HEAD
+            git rev-parse 'HEAD^{tree}'
+            echo "pull_request_head=$PR_HEAD"
+            python --version
+            sha256sum benchmarks/cpu_batch_v1/driver.py benchmarks/cpu_batch_v1/binding_worker.py benchmarks/cpu_batch_v1/PROTOCOL.md tests/conformance/test_cpu_batch_baseline.py
+          } | tee "$RUNNER_TEMP/cpu-batch-controls/identity.txt"
+      - name: Run bounded synthetic controls without skips
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          python - <<'PY' 2>&1 | tee "$RUNNER_TEMP/cpu-batch-controls/tests.log"
+          import unittest
+          suite = unittest.defaultTestLoader.loadTestsFromName("tests.conformance.test_cpu_batch_baseline")
+          count = suite.countTestCases()
+          if count != 24:
+              raise SystemExit(f"required harness control count drift: expected 24, got {count}")
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          if result.testsRun != count or result.skipped or result.expectedFailures or not result.wasSuccessful():
+              raise SystemExit("CPU baseline harness gate failed or skipped")
+          print(f"executed={result.testsRun}; skips=0; no F35 performance window executed")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpu-batch-harness-controls-${{ github.sha }}
+          path: ${{ runner.temp }}/cpu-batch-controls
+          if-no-files-found: error
