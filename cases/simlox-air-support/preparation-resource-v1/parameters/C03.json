@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-preparation-resource-parameters/v1",
+  "case_id": "C03",
+  "version": "1.0.0",
+  "candidate_revision": "1.0.1",
+  "parent_case": "C02",
+  "status": "planned_native_acceptance",
+  "source_method_id": "M-C03",
+  "units": {"authored_time": "minute", "native_time": "hour", "minutes_per_hour": 60, "resource": "count"},
+  "site_id": "BASE-01",
+  "unit_id": "FORMATION-UNIT",
+  "aircraft_type_id": "AIR-TYPE",
+  "aircraft_quantity": 2,
+  "mission_types": [
+    {"id": "FORMATION-TWO", "description": "Two-aircraft same-formation sortie", "aircraft_required": 2, "minimum_aircraft": 2, "flight_duration_minutes": 60, "notice_lead_minutes": 30}
+  ],
+  "waves": [
+    {"mission_type_id": "FORMATION-TWO", "planned_start_minutes": 480, "quantity": 1, "delay_minutes": 60}
+  ],
+  "preparation_profiles": [
+    {
+      "mission_type_id": "FORMATION-TWO",
+      "aggregate_duration_minutes": 30,
+      "task_id": "PREP-FORMATION",
+      "task_demands": {},
+      "steps": [
+        {"id": "FORMATION-WORK", "duration_minutes": 30, "demands": {"P-CREW": 1}}
+      ]
+    }
+  ],
+  "resources": [
+    {"id": "P-CREW", "business_kind": "personnel", "native_type": "SPECIAL", "capacity": 2}
+  ],
+  "variants": [
+    {"variant_id": "staffing-2", "description": "two aircraft can prepare concurrently; designed launch 08:00", "resource_capacities": {"P-CREW": 2}},
+    {"variant_id": "staffing-1", "description": "two aircraft must prepare serially; designed launch 08:30", "resource_capacities": {"P-CREW": 1}},
+    {"variant_id": "staffing-0", "description": "zero-capacity waiting and deadline boundary", "resource_capacities": {"P-CREW": 0}}
+  ],
+  "horizon_minutes": 720,
+  "result_interval_minutes": 30,
+  "repetitions": 1,
+  "native_seed_text": "1"
+}

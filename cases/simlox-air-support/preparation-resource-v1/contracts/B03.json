@@ -1,0 +1,65 @@
+{
+  "schema": "simlox-preparation-resource-contract/v1",
+  "case_id": "B03",
+  "version": "1.0.0-explicit-mission-type-v1-plan",
+  "status": "planned_native_unverified",
+  "artifact_binding": {"manifest": "../native/manifest.json", "rule": "before execution, resolve this case and variant in the generated manifest and require its input_sha256 to equal the invocation source hash"},
+  "acceptance_policy": {"conversion_errors": 0, "allowed_warnings": [{"number": "108", "condition": "Control.ENLOG=Y", "explanation": "ENLOG intentionally records the first repetition"}, {"number": "126", "condition": "the teaching aircraft has no Item child rows", "explanation": "the item-free deterministic case intentionally contains no fault-bearing children"}], "reject_unlisted_warnings": true, "roundtrip_required": true, "nonempty_sxi_sxo_enlog_required": true, "native_artifact_hashes_required": true},
+  "title": "explicit cold-first and hot-sortie preparation",
+  "parent_case": "B02",
+  "requires": ["B02", "A02"],
+  "source": {
+    "method_id": "M-B03",
+    "manual_source_id": "SIMLOX-2017-USERS-REFERENCE",
+    "pdf_pages": [[181, 183], [226, 226], [294, 297], [305, 307], [400, 404]]
+  },
+  "classification": "accepted_explicit_mission_type",
+  "business_profile": "explicit-mission-type-v1",
+  "business_contract": {
+    "time_unit": "minute",
+    "aircraft": ["AIR-01"],
+    "mission_sequence": [
+      {"id": "MISSION-COLD-01", "mission_type": "COLD-FIRST", "notice": 450, "planned_launch": 480, "flight_duration": 60},
+      {"id": "MISSION-HOT-01", "mission_type": "HOT-SORTIE", "notice": 710, "planned_launch": 720, "flight_duration": 60},
+      {"id": "MISSION-HOT-02", "mission_type": "HOT-SORTIE", "notice": 950, "planned_launch": 960, "flight_duration": 60}
+    ],
+    "recipes": {
+      "COLD-FIRST": {"task_id": "COLD-PREP", "steps": [{"sequence": 1, "step_id": "B03-COLD-INSPECT", "duration": 10}, {"sequence": 2, "step_id": "B03-COLD-SERVICE", "duration": 20}]},
+      "HOT-SORTIE": {"task_id": "HOT-PREP", "steps": [{"sequence": 1, "step_id": "B03-HOT-SERVICE", "duration": 10}]}
+    },
+    "rules": [
+      "the schedule explicitly selects COLD-FIRST for the first wave and HOT-SORTIE for later waves",
+      "the aircraft returns ready before the next notice",
+      "recipe selection is determined by MTID, not by hidden sortie-history detection"
+    ]
+  },
+  "native_mapping": {
+    "time_unit": "hour",
+    "tables": {
+      "MissionType": ["MTID", "NOPER"],
+      "MissionPreparation": ["MTID", "SID", "STID", "DURN", "TID"],
+      "OperationProfile": ["PRID", "SPRID", "STIM", "ITYPE", "IQTY", "IPER", "DTIM"],
+      "Tasks": ["TID"],
+      "TaskBreakDown": ["TID", "SEQ", "SUTID", "DURN"]
+    },
+    "recipe_rows": [
+      {"MTID": "COLD-FIRST", "SID": "AIR-TYPE", "STID": "BASE-01", "TID": "COLD-PREP", "DURN": 0.5},
+      {"MTID": "HOT-SORTIE", "SID": "AIR-TYPE", "STID": "BASE-01", "TID": "HOT-PREP", "DURN": 0.16666666666666666}
+    ]
+  },
+  "variants": [
+    {"variant_id": "explicit-cold-hot", "mission_types": ["COLD-FIRST", "HOT-SORTIE"], "expected_preparation_durations": [30, 10, 10]}
+  ],
+  "deferred_variants": [
+    {"variant_id": "same-mtid-negative-control", "status": "deferred_not_generated_in_v1", "purpose": "demonstrate that this contract makes no sortie-ordinal claim"}
+  ],
+  "expected_assertions": [
+    {"id": "B03-A1", "assert": "MISSION-COLD-01 uses COLD-PREP and completes B03-COLD-INSPECT then B03-COLD-SERVICE"},
+    {"id": "B03-A2", "assert": "MISSION-HOT-01 and MISSION-HOT-02 each use HOT-PREP and complete exactly one B03-HOT-SERVICE step"},
+    {"id": "B03-A3", "assert": "the same stable aircraft identity executes all three missions"},
+    {"id": "B03-A4", "assert": "no cold step appears in either hot mission and no hot step appears in the cold mission"},
+    {"id": "B03-A5", "assert": "the report identifies explicit-mission-type-v1 as the accepted business contract, marks native behavior unverified until acceptance, and makes no automatic sortie-history trigger claim"}
+  ],
+  "acceptance_evidence": ["MTID and aircraft identity binding", "three mission timelines", "per-recipe task and step events", "parent diff from B02", "explicit statement that the same-MTID historical trigger remains deferred"],
+  "limitations": ["This does not prove same-MTID first-versus-repeat triggering", "This does not infer thermal or fueling state", "Changing the mission type is part of the business contract"]
+}

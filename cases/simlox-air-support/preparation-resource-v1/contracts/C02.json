@@ -1,0 +1,77 @@
+{
+  "schema": "simlox-preparation-resource-contract/v1",
+  "case_id": "C02",
+  "version": "1.0.1-plan",
+  "status": "planned_native_unverified",
+  "artifact_binding": {"manifest": "../native/manifest.json", "candidate_revision": "1.0.1", "parameter_path": "../parameters/C02.json", "rule": "before execution, resolve this case and variant in the generated manifest, require candidate_revision 1.0.1, and require its input_sha256 to equal the invocation source hash; failed candidates are never selectable"},
+  "acceptance_policy": {"conversion_errors": 0, "allowed_warnings": [{"number": "108", "condition": "Control.ENLOG=Y", "explanation": "ENLOG intentionally records the first repetition"}, {"number": "126", "condition": "the teaching aircraft has no Item child rows", "explanation": "the item-free deterministic case intentionally contains no fault-bearing children"}], "reject_unlisted_warnings": true, "roundtrip_required": true, "nonempty_sxi_sxo_enlog_required": true, "native_artifact_hashes_required": true},
+  "title": "joint personnel and equipment demand",
+  "parent_case": "C01",
+  "requires": ["C01"],
+  "source": {
+    "method_id": "M-C02",
+    "manual_source_id": "SIMLOX-2017-USERS-REFERENCE",
+    "pdf_pages": [[397, 400], [407, 410]]
+  },
+  "business_contract": {
+    "time_unit": "minute",
+    "mission": {"id": "MISSION-01", "notice": 450, "planned_launch": 480, "latest_launch": 540},
+    "steps": [
+      {"sequence": 1, "step_id": "INSPECT", "duration": 10, "demands": {"P-CREW": 1}},
+      {"sequence": 2, "step_id": "SERVICE", "duration": 20, "demands": {"P-CREW": 1, "E-GSE": 1}}
+    ],
+    "resource_policy": {
+      "step_scope": "resources are acquired and released per step",
+      "joint_acquisition": "SERVICE acquires both resources or neither",
+      "blocked_service": "INSPECT resources have already been released and SERVICE holds no partial lease"
+    }
+  },
+  "native_mapping": {
+    "tables": {
+      "Resource": ["RID", "TYPE"],
+      "ResourceAllocation": ["POINT", "RID", "STID", "RQTY"],
+      "SubTaskResource": ["TID", "SEQ", "RID", "QTY"],
+      "TaskBreakDown": ["TID", "SEQ", "SUTID", "DURN"]
+    },
+    "expected_rows": {
+      "Resource": [{"RID": "P-CREW", "TYPE": "SPECIAL"}, {"RID": "E-GSE", "TYPE": "SPECIAL"}],
+      "MissionPreparation": {"MTID": "MISSION-BASIC", "SID": "AIR-TYPE", "STID": "BASE-01", "DURN": 0.5, "TID": "PREP-JOINT"},
+      "TaskBreakDown": [{"TID": "PREP-JOINT", "SEQ": 1, "SUTID": "JOINT-INSPECT", "DURN": 0.16666666666666666}, {"TID": "PREP-JOINT", "SEQ": 2, "SUTID": "JOINT-SERVICE", "DURN": 0.3333333333333333}],
+      "SubTaskResource": [
+        {"TID": "PREP-JOINT", "SEQ": 1, "RID": "P-CREW", "QTY": 1},
+        {"TID": "PREP-JOINT", "SEQ": 2, "RID": "P-CREW", "QTY": 1},
+        {"TID": "PREP-JOINT", "SEQ": 2, "RID": "E-GSE", "QTY": 1}
+      ]
+    },
+    "mapping_note": "SubTaskResource is authoritative for this contract; TaskResource must be empty unless a separately versioned native probe proves required inheritance; each ResourceAllocation.POINT must equal Control.APID (AIR_BASIC)"
+  },
+  "variants": [
+    {"variant_id": "both-available", "P-CREW": 1, "E-GSE": 1, "expected_launch": 480},
+    {"variant_id": "equipment-zero", "P-CREW": 1, "E-GSE": 0, "expected_state": "SERVICE_waiting_without_partial_lease"}
+  ],
+  "deferred_variants": [
+    {"variant_id": "personnel-zero", "status": "deferred_not_generated_in_v1", "P-CREW": 0, "E-GSE": 1, "expected_state": "INSPECT_blocked"},
+    {"variant_id": "both-capacity-2", "status": "deferred_not_generated_in_v1", "P-CREW": 2, "E-GSE": 2, "expected_launch": 480}
+  ],
+  "failed_candidate_revisions": [
+    {
+      "candidate_revision": "1.0.0",
+      "variant_ids": ["both-available", "equipment-zero"],
+      "status": "native_conversion_failed",
+      "failure": {"error_number": "167", "form": "MissionPreparation", "message": "All required resources are not available at station (STID): BASE-01", "sxo_bytes": 4},
+      "source_evidence": {"source_id": "SIMLOX-2017-TABLE-DICTIONARY", "locator": "Control column 4 and ResourceAllocation column 1", "excerpt": "APID: Allocation Point Identifier; related fields include ResourceAllocation POINT", "native_comparator": "working J35 probe has Control.APID=J35 and every ResourceAllocation.POINT=J35"},
+      "diagnosis": "the failed inputs used Control.APID=AIR_BASIC but ResourceAllocation.POINT=AIR-TYPE",
+      "retention_rule": "retain every v1.0.0 input and hash as immutable failed evidence; never select it for acceptance"
+    }
+  ],
+  "expected_assertions": [
+    {"id": "C02-A1", "assert": "INSPECT uses one P-CREW during [450,460) and releases it at 460"},
+    {"id": "C02-A2", "assert": "SERVICE uses one P-CREW and one E-GSE together during [460,480)"},
+    {"id": "C02-A3", "assert": "both-available releases both SERVICE leases at 480 before launch"},
+    {"id": "C02-A4", "assert": "equipment-zero completes INSPECT, then SERVICE waits while holding neither P-CREW nor E-GSE"},
+    {"id": "C02-A5", "assert": "the personnel-zero boundary remains deferred and is not claimed by the v1 generated candidates"},
+    {"id": "C02-A6", "assert": "main-task and subtask resource rows are not silently combined or double-counted"}
+  ],
+  "acceptance_evidence": ["per-step request/acquire/release ledger", "two-resource left/right snapshots", "blocked SERVICE observation", "resource integrals", "parent diff from C01"],
+  "limitations": ["A successful available-capacity run alone does not prove joint acquisition under scarcity", "No resource substitution or transit is modeled"]
+}

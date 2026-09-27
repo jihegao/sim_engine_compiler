@@ -1,0 +1,540 @@
+{
+  "schema": "simlox-preparation-resource-parent-diff/v1",
+  "case_id": "C03",
+  "variant_id": "staffing-2",
+  "parent_case": "C02",
+  "status": "planned_native_acceptance",
+  "parent_variant_id": "both-available",
+  "declared_delta": [
+    "MissionType NOS and MNOS become 2",
+    "SystemDeployment quantity becomes 2",
+    "one 08:00 wave makes two aircraft compete for a shared personnel pool"
+  ],
+  "actual_normalized_diff": {
+    "table_count": 13,
+    "added_row_count": 10,
+    "removed_row_count": 16,
+    "field_change_count": 2,
+    "tables": {
+      "ProblemDescription": {
+        "added": [],
+        "removed": [],
+        "changed": [
+          {
+            "key": {
+              "__row_index__": 0
+            },
+            "fields": {
+              "PDESC": {
+                "parent": "C02; planned native acceptance candidate",
+                "child": "C03; planned native acceptance candidate"
+              }
+            }
+          }
+        ]
+      },
+      "SystemDeployment": {
+        "added": [
+          {
+            "key": {
+              "SID": "AIR-TYPE",
+              "USTID": "FORMATION-UNIT"
+            },
+            "row": {
+              "SID": "AIR-TYPE",
+              "USTID": "FORMATION-UNIT",
+              "QTYPS": 2,
+              "UTIL": 1,
+              "PRIOF": null,
+              "PLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "SID": "AIR-TYPE",
+              "USTID": "RESOURCE-UNIT"
+            },
+            "row": {
+              "SID": "AIR-TYPE",
+              "USTID": "RESOURCE-UNIT",
+              "QTYPS": 1,
+              "UTIL": 1,
+              "PRIOF": null,
+              "PLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "MissionType": {
+        "added": [
+          {
+            "key": {
+              "MTID": "FORMATION-TWO"
+            },
+            "row": {
+              "MTID": "FORMATION-TWO",
+              "DESCR": "Two-aircraft same-formation sortie",
+              "NOS": 2,
+              "MNOS": 2,
+              "MNOSA": null,
+              "DURN": 1.0,
+              "DURND": null,
+              "MSUCPT": 1,
+              "TFOUT": 0.25,
+              "TFRET": 0.25,
+              "MPAT": null,
+              "PRI": 1,
+              "NOPER": 0.5,
+              "MFF": null,
+              "SYACF": null,
+              "SYACP": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "MTID": "MISSION-BASIC"
+            },
+            "row": {
+              "MTID": "MISSION-BASIC",
+              "DESCR": "Joint personnel and equipment sortie",
+              "NOS": 1,
+              "MNOS": 1,
+              "MNOSA": null,
+              "DURN": 1.0,
+              "DURND": null,
+              "MSUCPT": 1,
+              "TFOUT": 0.25,
+              "TFRET": 0.25,
+              "MPAT": null,
+              "PRI": 1,
+              "NOPER": 0.5,
+              "MFF": null,
+              "SYACF": null,
+              "SYACP": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "OperationProfile": {
+        "added": [
+          {
+            "key": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "FORMATION-TWO",
+              "STIM": 8.0
+            },
+            "row": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "FORMATION-TWO",
+              "STIM": 8.0,
+              "ITYPE": "SCHEDULED",
+              "IQTY": 1,
+              "IQTYD": null,
+              "IPER": 0,
+              "IDISP": null,
+              "DTIM": 1.0,
+              "XCOORD": null,
+              "YCOORD": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "MISSION-BASIC",
+              "STIM": 8.0
+            },
+            "row": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "MISSION-BASIC",
+              "STIM": 8.0,
+              "ITYPE": "SCHEDULED",
+              "IQTY": 1,
+              "IQTYD": null,
+              "IPER": 0,
+              "IDISP": null,
+              "DTIM": 1.0,
+              "XCOORD": null,
+              "YCOORD": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "Operations": {
+        "added": [
+          {
+            "key": {
+              "USTID": "FORMATION-UNIT"
+            },
+            "row": {
+              "USTID": "FORMATION-UNIT",
+              "PRID": "PREP-SCHEDULE",
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "USTID": "RESOURCE-UNIT"
+            },
+            "row": {
+              "USTID": "RESOURCE-UNIT",
+              "PRID": "PREP-SCHEDULE",
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "Unit": {
+        "added": [
+          {
+            "key": {
+              "UNID": "FORMATION-UNIT"
+            },
+            "row": {
+              "UNID": "FORMATION-UNIT",
+              "DESCR": "Preparation-resource teaching unit",
+              "STID": "BASE-01",
+              "MAXPM": null,
+              "MAXPMP": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "UNID": "RESOURCE-UNIT"
+            },
+            "row": {
+              "UNID": "RESOURCE-UNIT",
+              "DESCR": "Preparation-resource teaching unit",
+              "STID": "BASE-01",
+              "MAXPM": null,
+              "MAXPMP": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "MissionPreparation": {
+        "added": [
+          {
+            "key": {
+              "MTID": "FORMATION-TWO",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01"
+            },
+            "row": {
+              "MTID": "FORMATION-TWO",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01",
+              "DURN": 0.5,
+              "TID": "PREP-FORMATION",
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "MTID": "MISSION-BASIC",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01"
+            },
+            "row": {
+              "MTID": "MISSION-BASIC",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01",
+              "DURN": 0.5,
+              "TID": "PREP-JOINT",
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "Tasks": {
+        "added": [
+          {
+            "key": {
+              "TID": "PREP-FORMATION"
+            },
+            "row": {
+              "TID": "PREP-FORMATION",
+              "DESCR": "FORMATION-TWO preparation",
+              "TCID": null,
+              "TLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "TID": "PREP-JOINT"
+            },
+            "row": {
+              "TID": "PREP-JOINT",
+              "DESCR": "MISSION-BASIC preparation",
+              "TCID": null,
+              "TLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "Resource": {
+        "added": [],
+        "removed": [
+          {
+            "key": {
+              "RID": "E-GSE"
+            },
+            "row": {
+              "RID": "E-GSE",
+              "DESCR": "equipment",
+              "PRICE": null,
+              "SUSTC": null,
+              "TLLEN": null,
+              "TYPE": "SPECIAL",
+              "MUTILF": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "ResourceAllocation": {
+        "added": [],
+        "removed": [
+          {
+            "key": {
+              "POINT": "AIR-TYPE",
+              "RID": "E-GSE",
+              "STID": "BASE-01"
+            },
+            "row": {
+              "POINT": "AIR-TYPE",
+              "RID": "E-GSE",
+              "STID": "BASE-01",
+              "RQTY": 1,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": [
+          {
+            "key": {
+              "POINT": "AIR-TYPE",
+              "RID": "P-CREW",
+              "STID": "BASE-01"
+            },
+            "fields": {
+              "RQTY": {
+                "parent": 1,
+                "child": 2
+              }
+            }
+          }
+        ]
+      },
+      "SubTaskType": {
+        "added": [
+          {
+            "key": {
+              "SUTID": "FORMATION-WORK"
+            },
+            "row": {
+              "SUTID": "FORMATION-WORK",
+              "DESCR": "FORMATION-WORK",
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "SUTID": "JOINT-INSPECT"
+            },
+            "row": {
+              "SUTID": "JOINT-INSPECT",
+              "DESCR": "JOINT-INSPECT",
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SUTID": "JOINT-SERVICE"
+            },
+            "row": {
+              "SUTID": "JOINT-SERVICE",
+              "DESCR": "JOINT-SERVICE",
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "TaskBreakDown": {
+        "added": [
+          {
+            "key": {
+              "SEQ": 1,
+              "TID": "PREP-FORMATION"
+            },
+            "row": {
+              "TID": "PREP-FORMATION",
+              "SEQ": 1,
+              "SUTID": "FORMATION-WORK",
+              "DURN": 0.5,
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "SEQ": 1,
+              "TID": "PREP-JOINT"
+            },
+            "row": {
+              "TID": "PREP-JOINT",
+              "SEQ": 1,
+              "SUTID": "JOINT-INSPECT",
+              "DURN": 0.16666666666666666,
+              "DURND": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SEQ": 2,
+              "TID": "PREP-JOINT"
+            },
+            "row": {
+              "TID": "PREP-JOINT",
+              "SEQ": 2,
+              "SUTID": "JOINT-SERVICE",
+              "DURN": 0.3333333333333333,
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "SubTaskResource": {
+        "added": [
+          {
+            "key": {
+              "RID": "P-CREW",
+              "SEQ": 1,
+              "TID": "PREP-FORMATION"
+            },
+            "row": {
+              "TID": "PREP-FORMATION",
+              "SEQ": 1,
+              "RID": "P-CREW",
+              "QTY": 1,
+              "RPROB": 1,
+              "ARID": null,
+              "ARTF": null,
+              "ENRMS": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "RID": "E-GSE",
+              "SEQ": 2,
+              "TID": "PREP-JOINT"
+            },
+            "row": {
+              "TID": "PREP-JOINT",
+              "SEQ": 2,
+              "RID": "E-GSE",
+              "QTY": 1,
+              "RPROB": 1,
+              "ARID": null,
+              "ARTF": null,
+              "ENRMS": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "RID": "P-CREW",
+              "SEQ": 1,
+              "TID": "PREP-JOINT"
+            },
+            "row": {
+              "TID": "PREP-JOINT",
+              "SEQ": 1,
+              "RID": "P-CREW",
+              "QTY": 1,
+              "RPROB": 1,
+              "ARID": null,
+              "ARTF": null,
+              "ENRMS": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "RID": "P-CREW",
+              "SEQ": 2,
+              "TID": "PREP-JOINT"
+            },
+            "row": {
+              "TID": "PREP-JOINT",
+              "SEQ": 2,
+              "RID": "P-CREW",
+              "QTY": 1,
+              "RPROB": 1,
+              "ARID": null,
+              "ARTF": null,
+              "ENRMS": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      }
+    }
+  },
+  "sibling_variant_diff": {
+    "baseline_variant_id": "staffing-2",
+    "actual_normalized_diff": {
+      "table_count": 0,
+      "added_row_count": 0,
+      "removed_row_count": 0,
+      "field_change_count": 0,
+      "tables": {}
+    }
+  },
+  "native_verified": false
+}

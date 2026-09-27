@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-preparation-resource-parameters/v1",
+  "case_id": "C01",
+  "version": "1.0.0",
+  "candidate_revision": "1.0.1",
+  "parent_case": "B02",
+  "status": "planned_native_acceptance",
+  "source_method_id": "M-C01",
+  "units": {"authored_time": "minute", "native_time": "hour", "minutes_per_hour": 60, "resource": "count"},
+  "site_id": "BASE-01",
+  "unit_id": "RESOURCE-UNIT",
+  "aircraft_type_id": "AIR-TYPE",
+  "aircraft_quantity": 1,
+  "mission_types": [
+    {"id": "MISSION-BASIC", "description": "Personnel qualification sortie", "aircraft_required": 1, "minimum_aircraft": 1, "flight_duration_minutes": 60, "notice_lead_minutes": 30}
+  ],
+  "waves": [
+    {"mission_type_id": "MISSION-BASIC", "planned_start_minutes": 480, "quantity": 1, "delay_minutes": 60}
+  ],
+  "preparation_profiles": [
+    {
+      "mission_type_id": "MISSION-BASIC",
+      "aggregate_duration_minutes": 30,
+      "task_id": "PREP-PERSONNEL",
+      "task_demands": {"P-CREW": 2},
+      "steps": [
+        {"id": "PERSONNEL-WORK", "duration_minutes": 30, "demands": {}}
+      ]
+    }
+  ],
+  "resources": [
+    {"id": "P-CREW", "business_kind": "personnel", "native_type": "SPECIAL", "capacity": 2},
+    {"id": "P-OTHER", "business_kind": "personnel", "native_type": "SPECIAL", "capacity": 0}
+  ],
+  "variants": [
+    {"variant_id": "capacity-2", "description": "qualified capacity equals demand", "resource_capacities": {"P-CREW": 2, "P-OTHER": 0}},
+    {"variant_id": "capacity-1", "description": "qualified capacity below demand", "resource_capacities": {"P-CREW": 1, "P-OTHER": 0}},
+    {"variant_id": "capacity-0", "description": "no qualified capacity", "resource_capacities": {"P-CREW": 0, "P-OTHER": 0}},
+    {"variant_id": "wrong-specialty", "description": "two personnel exist under a different RID", "resource_capacities": {"P-CREW": 0, "P-OTHER": 2}}
+  ],
+  "horizon_minutes": 720,
+  "result_interval_minutes": 30,
+  "repetitions": 1,
+  "native_seed_text": "1"
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-preparation-resource-parameters/v1",
+  "case_id": "B02",
+  "version": "1.0.1",
+  "candidate_revision": "1.0.1",
+  "parent_case": "B01",
+  "status": "planned_native_acceptance",
+  "source_method_id": "M-B02",
+  "units": {"authored_time": "minute", "native_time": "hour", "minutes_per_hour": 60, "resource": "count"},
+  "site_id": "BASE-01",
+  "unit_id": "PREP-UNIT",
+  "aircraft_type_id": "AIR-TYPE",
+  "aircraft_quantity": 1,
+  "mission_types": [
+    {"id": "MISSION-BASIC", "description": "Serial preparation sortie", "aircraft_required": 1, "minimum_aircraft": 1, "flight_duration_minutes": 60, "notice_lead_minutes": 60}
+  ],
+  "waves": [
+    {"mission_type_id": "MISSION-BASIC", "planned_start_minutes": 480, "quantity": 1, "delay_minutes": 60}
+  ],
+  "preparation_profiles": [
+    {
+      "mission_type_id": "MISSION-BASIC",
+      "aggregate_duration_minutes": 45,
+      "task_id": "PREP-SERIAL",
+      "task_demands": {},
+      "steps": [
+        {"id": "INSPECT", "duration_minutes": 10, "demands": {}},
+        {"id": "SERVICE", "duration_minutes": 20, "demands": {}}
+      ]
+    }
+  ],
+  "resources": [],
+  "variants": [
+    {"variant_id": "serial-10m-20m", "description": "10 then 20 minutes; scalar remains 45 minutes", "resource_capacities": {}}
+  ],
+  "horizon_minutes": 720,
+  "result_interval_minutes": 30,
+  "repetitions": 1,
+  "native_seed_text": "1"
+}

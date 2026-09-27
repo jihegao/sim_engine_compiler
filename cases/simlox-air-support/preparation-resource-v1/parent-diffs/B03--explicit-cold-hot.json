@@ -1,0 +1,499 @@
+{
+  "schema": "simlox-preparation-resource-parent-diff/v1",
+  "case_id": "B03",
+  "variant_id": "explicit-cold-hot",
+  "parent_case": "B02",
+  "status": "planned_native_acceptance",
+  "parent_variant_id": "serial-10m-20m",
+  "declared_delta": [
+    "mission identity splits into COLD-FIRST and HOT-SORTIE",
+    "three waves use explicit MTID mapping with 30/10/10 minute preparations"
+  ],
+  "actual_normalized_diff": {
+    "table_count": 9,
+    "added_row_count": 15,
+    "removed_row_count": 8,
+    "field_change_count": 5,
+    "tables": {
+      "ProblemDescription": {
+        "added": [],
+        "removed": [],
+        "changed": [
+          {
+            "key": {
+              "__row_index__": 0
+            },
+            "fields": {
+              "PDESC": {
+                "parent": "B02; planned native acceptance candidate",
+                "child": "B03; planned native acceptance candidate"
+              }
+            }
+          }
+        ]
+      },
+      "Control": {
+        "added": [],
+        "removed": [],
+        "changed": [
+          {
+            "key": {
+              "__row_index__": 0
+            },
+            "fields": {
+              "SIMPE": {
+                "parent": 12.0,
+                "child": 20.0
+              },
+              "RCEND": {
+                "parent": 12.0,
+                "child": 20.0
+              }
+            }
+          }
+        ]
+      },
+      "MissionType": {
+        "added": [
+          {
+            "key": {
+              "MTID": "COLD-FIRST"
+            },
+            "row": {
+              "MTID": "COLD-FIRST",
+              "DESCR": "Cold-start first sortie",
+              "NOS": 1,
+              "MNOS": 1,
+              "MNOSA": null,
+              "DURN": 1.0,
+              "DURND": null,
+              "MSUCPT": 1,
+              "TFOUT": 0.25,
+              "TFRET": 0.25,
+              "MPAT": null,
+              "PRI": 1,
+              "NOPER": 0.5,
+              "MFF": null,
+              "SYACF": null,
+              "SYACP": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "MTID": "HOT-SORTIE"
+            },
+            "row": {
+              "MTID": "HOT-SORTIE",
+              "DESCR": "Hot repeat sortie",
+              "NOS": 1,
+              "MNOS": 1,
+              "MNOSA": null,
+              "DURN": 1.0,
+              "DURND": null,
+              "MSUCPT": 1,
+              "TFOUT": 0.25,
+              "TFRET": 0.25,
+              "MPAT": null,
+              "PRI": 1,
+              "NOPER": 0.16666666666666666,
+              "MFF": null,
+              "SYACF": null,
+              "SYACP": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "MTID": "MISSION-BASIC"
+            },
+            "row": {
+              "MTID": "MISSION-BASIC",
+              "DESCR": "Serial preparation sortie",
+              "NOS": 1,
+              "MNOS": 1,
+              "MNOSA": null,
+              "DURN": 1.0,
+              "DURND": null,
+              "MSUCPT": 1,
+              "TFOUT": 0.25,
+              "TFRET": 0.25,
+              "MPAT": null,
+              "PRI": 1,
+              "NOPER": 1.0,
+              "MFF": null,
+              "SYACF": null,
+              "SYACP": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "OperationProfile": {
+        "added": [
+          {
+            "key": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "COLD-FIRST",
+              "STIM": 8.0
+            },
+            "row": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "COLD-FIRST",
+              "STIM": 8.0,
+              "ITYPE": "SCHEDULED",
+              "IQTY": 1,
+              "IQTYD": null,
+              "IPER": 0,
+              "IDISP": null,
+              "DTIM": 1.0,
+              "XCOORD": null,
+              "YCOORD": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "HOT-SORTIE",
+              "STIM": 12.0
+            },
+            "row": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "HOT-SORTIE",
+              "STIM": 12.0,
+              "ITYPE": "SCHEDULED",
+              "IQTY": 1,
+              "IQTYD": null,
+              "IPER": 0,
+              "IDISP": null,
+              "DTIM": 1.0,
+              "XCOORD": null,
+              "YCOORD": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "HOT-SORTIE",
+              "STIM": 16.0
+            },
+            "row": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "HOT-SORTIE",
+              "STIM": 16.0,
+              "ITYPE": "SCHEDULED",
+              "IQTY": 1,
+              "IQTYD": null,
+              "IPER": 0,
+              "IDISP": null,
+              "DTIM": 1.0,
+              "XCOORD": null,
+              "YCOORD": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "MISSION-BASIC",
+              "STIM": 8.0
+            },
+            "row": {
+              "PRID": "PREP-SCHEDULE",
+              "SPRID": "MISSION-BASIC",
+              "STIM": 8.0,
+              "ITYPE": "SCHEDULED",
+              "IQTY": 1,
+              "IQTYD": null,
+              "IPER": 0,
+              "IDISP": null,
+              "DTIM": 1.0,
+              "XCOORD": null,
+              "YCOORD": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "MissionPreparation": {
+        "added": [
+          {
+            "key": {
+              "MTID": "COLD-FIRST",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01"
+            },
+            "row": {
+              "MTID": "COLD-FIRST",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01",
+              "DURN": 0.5,
+              "TID": "COLD-PREP",
+              "DURND": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "MTID": "HOT-SORTIE",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01"
+            },
+            "row": {
+              "MTID": "HOT-SORTIE",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01",
+              "DURN": 0.16666666666666666,
+              "TID": "HOT-PREP",
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "MTID": "MISSION-BASIC",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01"
+            },
+            "row": {
+              "MTID": "MISSION-BASIC",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01",
+              "DURN": 0.75,
+              "TID": "PREP-SERIAL",
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "Tasks": {
+        "added": [
+          {
+            "key": {
+              "TID": "COLD-PREP"
+            },
+            "row": {
+              "TID": "COLD-PREP",
+              "DESCR": "COLD-FIRST preparation",
+              "TCID": null,
+              "TLID": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "TID": "HOT-PREP"
+            },
+            "row": {
+              "TID": "HOT-PREP",
+              "DESCR": "HOT-SORTIE preparation",
+              "TCID": null,
+              "TLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "TID": "PREP-SERIAL"
+            },
+            "row": {
+              "TID": "PREP-SERIAL",
+              "DESCR": "MISSION-BASIC preparation",
+              "TCID": null,
+              "TLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "ResultCollection": {
+        "added": [],
+        "removed": [],
+        "changed": [
+          {
+            "key": {
+              "RTYPE": "MISSION"
+            },
+            "fields": {
+              "RCEND": {
+                "parent": 12.0,
+                "child": 20.0
+              }
+            }
+          },
+          {
+            "key": {
+              "RTYPE": "SYSTEM"
+            },
+            "fields": {
+              "RCEND": {
+                "parent": 12.0,
+                "child": 20.0
+              }
+            }
+          }
+        ]
+      },
+      "SubTaskType": {
+        "added": [
+          {
+            "key": {
+              "SUTID": "B03-COLD-INSPECT"
+            },
+            "row": {
+              "SUTID": "B03-COLD-INSPECT",
+              "DESCR": "B03-COLD-INSPECT",
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SUTID": "B03-COLD-SERVICE"
+            },
+            "row": {
+              "SUTID": "B03-COLD-SERVICE",
+              "DESCR": "B03-COLD-SERVICE",
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SUTID": "B03-HOT-SERVICE"
+            },
+            "row": {
+              "SUTID": "B03-HOT-SERVICE",
+              "DESCR": "B03-HOT-SERVICE",
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "SUTID": "INSPECT"
+            },
+            "row": {
+              "SUTID": "INSPECT",
+              "DESCR": "INSPECT",
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SUTID": "SERVICE"
+            },
+            "row": {
+              "SUTID": "SERVICE",
+              "DESCR": "SERVICE",
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "TaskBreakDown": {
+        "added": [
+          {
+            "key": {
+              "SEQ": 1,
+              "TID": "COLD-PREP"
+            },
+            "row": {
+              "TID": "COLD-PREP",
+              "SEQ": 1,
+              "SUTID": "B03-COLD-INSPECT",
+              "DURN": 0.16666666666666666,
+              "DURND": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SEQ": 1,
+              "TID": "HOT-PREP"
+            },
+            "row": {
+              "TID": "HOT-PREP",
+              "SEQ": 1,
+              "SUTID": "B03-HOT-SERVICE",
+              "DURN": 0.16666666666666666,
+              "DURND": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SEQ": 2,
+              "TID": "COLD-PREP"
+            },
+            "row": {
+              "TID": "COLD-PREP",
+              "SEQ": 2,
+              "SUTID": "B03-COLD-SERVICE",
+              "DURN": 0.3333333333333333,
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "SEQ": 1,
+              "TID": "PREP-SERIAL"
+            },
+            "row": {
+              "TID": "PREP-SERIAL",
+              "SEQ": 1,
+              "SUTID": "INSPECT",
+              "DURN": 0.16666666666666666,
+              "DURND": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SEQ": 2,
+              "TID": "PREP-SERIAL"
+            },
+            "row": {
+              "TID": "PREP-SERIAL",
+              "SEQ": 2,
+              "SUTID": "SERVICE",
+              "DURN": 0.3333333333333333,
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      }
+    }
+  },
+  "sibling_variant_diff": {
+    "baseline_variant_id": "explicit-cold-hot",
+    "actual_normalized_diff": {
+      "table_count": 0,
+      "added_row_count": 0,
+      "removed_row_count": 0,
+      "field_change_count": 0,
+      "tables": {}
+    }
+  },
+  "native_verified": false
+}

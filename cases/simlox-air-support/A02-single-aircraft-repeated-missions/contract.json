@@ -1,0 +1,17 @@
+{
+  "case_id": "A02",
+  "version": "1.0.0",
+  "parent_case": "A01@1.0.0",
+  "delta": "add two non-overlapping OperationProfile rows at 20h and 32h; all other business fields unchanged",
+  "requires": ["A01 CLI behavior verified; GUI acceptance is a separate publication gate"],
+  "time_unit_native": "hour",
+  "time_unit_pairing": "minute",
+  "hours_to_minutes": 60,
+  "aircraft": [{"business_id": "TEACH-AIR-01", "native_sid": "TEACH-AIR-01", "qtyps": 1, "base": "BASE-01", "initial_state": "ready"}],
+  "mechanisms": {"preparation": false, "fault": false, "pm": false, "cm": false, "stock": false, "resource_constraint": false},
+  "native_inert_rows": {"MissionPreparation": "no business row; native ENLOG still emits same-time lifecycle markers but NPSTA=0 and no resource work", "System": "FRT=0 with no Item rows; warning #126 is expected and must be explained", "Control": "ENLOG=Y intentionally produces warning #108"},
+  "mission": {"business_id": "BASIC-MISSION", "planned_wave_count": 3, "required_aircraft_per_wave": 1, "duration_hours": 2, "notice_lead_hours": 1, "delay_window_minutes": 20, "schedule_hours": [8, 20, 32], "success_if": "one aircraft launches and completes each full two-hour mission without a fault"},
+  "observation": {"start_hours": 0, "end_hours": 36, "interval_minutes": 30, "end_semantics": "all three missions finish before the end; native crossing-end behavior is a separate measured probe, and derived clipped-window exposure is distinct from native FTMO"},
+  "hand_expected": {"notification_hours": [7, 19, 31], "planned_start_hours": [8, 20, 32], "actual_start_hours": [8, 20, 32], "actual_end_hours": [10, 22, 34], "reserved_not_ready_intervals_hours": [[7, 8], [19, 20], [31, 32]], "flight_intervals_hours": [[8, 10], [20, 22], [32, 34]], "ready_after_hours": [10, 22, 34], "flight_hours_integral": 6, "ready_hours_integral": 27, "native_preparation_started_count": 0, "planned_waves": 3, "launched_waves": 3, "sorties": 3, "completed_waves": 3, "cancelled_waves": 0, "unfinished_at_horizon": 0},
+  "cutoff_boundary": {"deadline_hours": [8.333333333333334, 20.333333333333332, 32.333333333333336], "before_tie_after_status": "not exercised by this always-ready no-preparation case; no native priority claim from printed decimals"}
+}

@@ -2,10 +2,10 @@ name: O5 and MLIR integration acceptance
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, simlox/main]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [main]
+    branches: [main, simlox/main]
 
 permissions:
   contents: read
@@ -145,7 +145,7 @@ jobs:
           set -euo pipefail
           python -m venv .venv
           .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/python -m pip install -e .
+          .venv/bin/python -m pip install -e '.[test]'
           PYTHONPATH=src .venv/bin/python -c \
             'from sim_engine_compiler import native_available; assert native_available(), "PyO3 extension failed to load"'
 
@@ -205,6 +205,19 @@ jobs:
           set -euo pipefail
           .venv/bin/python -m unittest discover -s tests -v 2>&1 \
             | tee "$RUNNER_TEMP/o5-mlir-acceptance/python-full-suite.log"
+
+      - name: Run SIMLOX catalog and native contract tests
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m pytest -q \
+            tests/conformance/test_simlox_manual_catalog_v2.py \
+            tests/conformance/test_simlox_batch_contract_consistency.py \
+            tests/conformance/test_simlox_batch_binding.py \
+            tests/conformance/test_simlox_preparation_resources.py \
+            tests/conformance/test_simlox_resource_behavior.py 2>&1 \
+            | tee "$RUNNER_TEMP/o5-mlir-acceptance/simlox-contract-tests.log"
 
       - name: Upload test logs and source fingerprint
         if: always()

@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-preparation-resource-parameters/v1",
+  "case_id": "C02",
+  "version": "1.0.0",
+  "candidate_revision": "1.0.1",
+  "parent_case": "C01",
+  "status": "planned_native_acceptance",
+  "source_method_id": "M-C02",
+  "units": {"authored_time": "minute", "native_time": "hour", "minutes_per_hour": 60, "resource": "count"},
+  "site_id": "BASE-01",
+  "unit_id": "RESOURCE-UNIT",
+  "aircraft_type_id": "AIR-TYPE",
+  "aircraft_quantity": 1,
+  "mission_types": [
+    {"id": "MISSION-BASIC", "description": "Joint personnel and equipment sortie", "aircraft_required": 1, "minimum_aircraft": 1, "flight_duration_minutes": 60, "notice_lead_minutes": 30}
+  ],
+  "waves": [
+    {"mission_type_id": "MISSION-BASIC", "planned_start_minutes": 480, "quantity": 1, "delay_minutes": 60}
+  ],
+  "preparation_profiles": [
+    {
+      "mission_type_id": "MISSION-BASIC",
+      "aggregate_duration_minutes": 30,
+      "task_id": "PREP-JOINT",
+      "task_demands": {},
+      "steps": [
+        {"id": "JOINT-INSPECT", "duration_minutes": 10, "demands": {"P-CREW": 1}},
+        {"id": "JOINT-SERVICE", "duration_minutes": 20, "demands": {"P-CREW": 1, "E-GSE": 1}}
+      ]
+    }
+  ],
+  "resources": [
+    {"id": "P-CREW", "business_kind": "personnel", "native_type": "SPECIAL", "capacity": 1},
+    {"id": "E-GSE", "business_kind": "equipment", "native_type": "SPECIAL", "capacity": 1}
+  ],
+  "variants": [
+    {"variant_id": "both-available", "description": "one person and one device available", "resource_capacities": {"P-CREW": 1, "E-GSE": 1}},
+    {"variant_id": "equipment-zero", "description": "person available but device unavailable", "resource_capacities": {"P-CREW": 1, "E-GSE": 0}}
+  ],
+  "horizon_minutes": 720,
+  "result_interval_minutes": 30,
+  "repetitions": 1,
+  "native_seed_text": "1"
+}

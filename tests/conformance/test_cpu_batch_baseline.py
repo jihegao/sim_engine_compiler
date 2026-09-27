@@ -967,9 +967,11 @@ class CpuBatchBaselineTests(unittest.TestCase):
             state = None
             for _ in range(50):
                 stat = Path(f"/proc/{grandchild}/stat")
-                if not stat.exists():
+                try:
+                    state = stat.read_text(encoding="ascii").split()[2]
+                except (FileNotFoundError, ProcessLookupError):
+                    state = None
                     break
-                state = stat.read_text(encoding="ascii").split()[2]
                 if state == "Z":
                     break
                 time.sleep(0.02)

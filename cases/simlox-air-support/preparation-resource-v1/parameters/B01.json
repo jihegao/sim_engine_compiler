@@ -1,0 +1,30 @@
+{
+  "schema": "simlox-preparation-resource-parameters/v1",
+  "case_id": "B01",
+  "version": "1.0.0",
+  "parent_case": "A01",
+  "status": "planned_native_acceptance",
+  "source_method_id": "M-B01",
+  "units": {"authored_time": "minute", "native_time": "hour", "minutes_per_hour": 60, "resource": "count"},
+  "site_id": "BASE-01",
+  "unit_id": "PREP-UNIT",
+  "aircraft_type_id": "AIR-TYPE",
+  "aircraft_quantity": 1,
+  "mission_types": [
+    {"id": "MISSION-BASIC", "description": "Fixed preparation sortie", "aircraft_required": 1, "minimum_aircraft": 1, "flight_duration_minutes": 60, "notice_lead_minutes": 30}
+  ],
+  "waves": [
+    {"mission_type_id": "MISSION-BASIC", "planned_start_minutes": 480, "quantity": 1, "delay_minutes": 60}
+  ],
+  "preparation_profiles": [
+    {"mission_type_id": "MISSION-BASIC", "aggregate_duration_minutes": 30, "task_id": "PREP-FIXED", "task_demands": {}, "steps": []}
+  ],
+  "resources": [],
+  "variants": [
+    {"variant_id": "fixed-30m", "description": "30 minute scalar preparation", "resource_capacities": {}}
+  ],
+  "horizon_minutes": 720,
+  "result_interval_minutes": 30,
+  "repetitions": 1,
+  "native_seed_text": "1"
+}
