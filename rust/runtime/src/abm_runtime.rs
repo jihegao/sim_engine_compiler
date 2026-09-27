@@ -100,7 +100,7 @@ struct RuntimeAgent {
     eligible_tick: i64,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 struct RuntimeState {
     globals: BTreeMap<String, Value>,
     patches: BTreeMap<String, Patch>,
@@ -619,18 +619,61 @@ impl<'a> Runtime<'a> {
                 if matches!(&actor, Actor::Agent(id) if !self.state.agents.contains_key(id)) {
                     break;
                 }
-                let read_state = match phase.read_view {
-                    ReadView::PhaseStart => phase_start.clone(),
-                    ReadView::Current => self.state.clone(),
+                let effects_result = match phase.read_view {
+                    ReadView::PhaseStart => self.evaluate_operation(
+                        operation,
+                        &EvalContext {
+                            state: &phase_start,
+                            actor: actor.clone(),
+                            outer: None,
+                            tick,
+                            phase: &phase.id,
+                        },
+                    ),
+                    ReadView::Current => {
+                        if matches!(
+                            operation,
+                            Operation::Move {
+                                mode: MoveMode::LocalRejection,
+                                ..
+                            }
+                        ) {
+                            // Rejected attempts update the live mover before
+                            // the accepted move commits, so this operation
+                            // still needs a stable read snapshot.
+                            let read_state = self.state.clone();
+                            self.evaluate_operation(
+                                operation,
+                                &EvalContext {
+                                    state: &read_state,
+                                    actor: actor.clone(),
+                                    outer: None,
+                                    tick,
+                                    phase: &phase.id,
+                                },
+                            )
+                        } else {
+                            // Evaluation draws from the runtime RNG and therefore
+                            // needs &mut self. Temporarily move the live state out
+                            // to give it an immutable view without cloning every
+                            // patch and agent for every actor/operation.
+                            let read_state = std::mem::take(&mut self.state);
+                            let result = self.evaluate_operation(
+                                operation,
+                                &EvalContext {
+                                    state: &read_state,
+                                    actor: actor.clone(),
+                                    outer: None,
+                                    tick,
+                                    phase: &phase.id,
+                                },
+                            );
+                            self.state = read_state;
+                            result
+                        }
+                    }
                 };
-                let context = EvalContext {
-                    state: &read_state,
-                    actor: actor.clone(),
-                    outer: None,
-                    tick,
-                    phase: &phase.id,
-                };
-                let effects = self.evaluate_operation(operation, &context)?;
+                let effects = effects_result?;
                 dead = effects.iter().any(|effect| {
                     matches!(effect, Effect::Death { entity, killer: None } if entity == actor.id())
                 });
