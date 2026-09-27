@@ -1,0 +1,78 @@
+{
+  "schema_version": "review-data-independent-review/v1",
+  "review_status": "pass_local_remote_ci_pending",
+  "task": "engine-review-data-issue10-c42d2679-v1",
+  "reviewed_dependency": {
+    "commit": "c42d2679c6652a3f5e2d43c9ddc877ee5a388656",
+    "tree": "1b7e52715b3de83e80b7d5b61ae37f4f0a086eb0",
+    "pull_request": 20,
+    "merge_status": "unmerged"
+  },
+  "scope": {
+    "issue": 10,
+    "slice": "offline persisted Business or Core to versioned review JSON",
+    "implementation_changed_by_reviewer": false,
+    "runtime_or_rng_semantics_changed": false,
+    "sysml_or_trace_collection_in_scope": false,
+    "remote_ci_status_at_review": "pending"
+  },
+  "reviewed_artifacts": {
+    ".github/workflows/o5-mlir-integration.yml": "8bfcb10148c5db3bead079d06d6c9923ee8e59d1fc03fb1064b6a04c72c6db7b",
+    "docs/review-data-v1.md": "0a84a25c6d00f2ba01f2df40ee87b3a759c10c2ce3ca4bbc6273af7e9bc50a73",
+    "src/sim_engine_compiler/review/__init__.py": "aa6fbb2a420bbae2f93bbecd7e9769411348bab559f5b38b4d1ac314c6f61b05",
+    "src/sim_engine_compiler/review/__main__.py": "69b9b14a5f5ac62ea3e1d721c4fc1afc1ed2ab5ed6edb670b307a6e64a3593a4",
+    "src/sim_engine_compiler/review/exporter.py": "698615a85153e89bf2c9da2eefeafdc8bcf99a3b167ae43f0fcd92618a784b03",
+    "src/sim_engine_compiler/review/views.py": "28735cbb890050b359181c164bb2724e08e8b9479b0f14ce473483ed18190256",
+    "tests/conformance/test_review_views.py": "d9db3af430816b5b0e56e0f98cd5b63eb8dfa06d6b8aedae3462143f8759478e",
+    "tests/conformance/test_review_controls.py": "78abc9ec79eb927da5bcbd91f8499d8ff8a6408c4643335da54906a68c5fb5f5",
+    "tests/conformance/test_review_export.py": "0a0a6e09720ce5bb35af9c19d8a27141ee1d953da6ccbd227e3c4f9052c6002c",
+    "tests/conformance/test_review_cli.py": "2043f4bf016e7310a911a4b25461c7d071330d877d9c02627ede9df222c517d2"
+  },
+  "verification": [
+    {
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/conformance/test_review_views.py tests/conformance/test_review_controls.py tests/conformance/test_review_export.py tests/conformance/test_review_cli.py",
+      "result": "49 passed in 9.49s",
+      "status": "pass"
+    },
+    {
+      "command": "uvx ruff check src/sim_engine_compiler/review tests/conformance/test_review_views.py tests/conformance/test_review_controls.py tests/conformance/test_review_export.py tests/conformance/test_review_cli.py",
+      "result": "All checks passed",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean",
+      "status": "pass"
+    }
+  ],
+  "resolved_findings": [
+    "Business relation identities no longer depend on revision-specific array indexes",
+    "missing or ambiguous Business process predecessors are not reported as resolved",
+    "duplicate local step and review-node identities fail closed instead of producing ambiguous graph nodes",
+    "behavioral strings and booleans, including stop and Core execution contracts, are retained",
+    "units use a finite curated field contract after camelCase normalization, with explicit known, unknown, and not-applicable status",
+    "selected and omitted views are machine-readable and semantic coverage remains partial",
+    "CLI read failures use the same versioned report envelope as API failures",
+    "invalid projections clear admitted views and all top-level or nested provisional mappings"
+  ],
+  "accepted_claims": [
+    "persisted aircraft Business v1 and Core v2 can be independently reloaded and projected without a hidden canonical object",
+    "the exporter delegates artifact and bundle authority to the public identity API instead of creating a second association validator",
+    "an independently edited valid Core remains reviewable without reconstructing its original Business template",
+    "only a complete verified raw bundle and compiler-lineage/v2 publish cross-layer Plan mappings",
+    "stable Business IDs and qualified Core symbols remain identities while Plan paths remain revision-specific locators",
+    "coarse compatibility operations remain named, versioned, and partial rather than being presented as rule-level or execution equivalence",
+    "real persisted B1 and F35 artifacts exercise entities, processes, predecessors, resources, states, rules, parameters, units, provenance, and mappings"
+  ],
+  "remaining_limits": [
+    "remote exact-head CI has not yet been run or read back for this slice",
+    "the full repository regression result is not part of this independent receipt",
+    "producer compiler and domain-package versions, human revision labels, and scalar value origins remain unknown when absent from persisted artifacts",
+    "Business relation interpretation is a curated aircraft subset and overall coverage remains partial",
+    "a Plan artifact may describe its own array locators, but these are not cross-layer associations without verified lineage",
+    "production and ABM artifacts are isolated and unsupported by this aircraft review schema",
+    "SysML rendering or parsing, runtime trace collection, UI or service work, performance claims, and scientific or source-model equivalence are outside this slice",
+    "issue 10 remains open for later SysML and broader review work"
+  ],
+  "conclusion": "No remaining blocker was found in the frozen local review-data slice. The bounded API and CLI are suitable for stacked-PR review after full regression and exact-head remote CI are independently confirmed; this receipt does not claim either pending gate."
+}
