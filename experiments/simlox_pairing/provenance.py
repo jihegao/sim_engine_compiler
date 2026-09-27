@@ -27,10 +27,11 @@ REBUILT_ZIP_SHA256 = "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a
 PORTABLE_SHA256 = "ab26c7ea23496938e6e15e02f58eb8e6906db358acc2a9f24b7bdc28bee52d3f"
 DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.zip"
 
-# PRs #20 and #23 add offline identity and review APIs without changing the
-# frozen pairing engine. Keep that checkout delta explicit and content-pinned
-# instead of widening the frozen baseline or ignoring arbitrary new Python files.
-DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v2"
+# PRs #20, #23, and #24 add offline identity, review, and trace-query APIs
+# without changing the frozen pairing engine. Keep that checkout delta explicit
+# and content-pinned instead of widening the frozen baseline or ignoring
+# arbitrary new Python files.
+DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v3"
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/identity/__init__.py": (
         "3cb31c00457b10ac369f0f059df6d536a97896492c3bed51ee4469e08e080c38"
@@ -45,7 +46,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "759932aa37d96ac261dbfecae5b24858fc7483e7a7866bbf259166666daef1fd"
     ),
     "src/sim_engine_compiler/identity/runs.py": (
-        "064c77bc52d7188479700f831fea0fe99fce9599ee75d1da77c7e220b65c0815"
+        "3b1a4c9a9ee0b98a88d539fbd14bd3467d604afb3bc101fe009df9ad089e69e0"
     ),
     "src/sim_engine_compiler/review/__init__.py": (
         "aa6fbb2a420bbae2f93bbecd7e9769411348bab559f5b38b4d1ac314c6f61b05"
@@ -58,6 +59,18 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     ),
     "src/sim_engine_compiler/review/views.py": (
         "28735cbb890050b359181c164bb2724e08e8b9479b0f14ce473483ed18190256"
+    ),
+    "src/sim_engine_compiler/trace_query/__init__.py": (
+        "c0e6ccf516db95362ef5c37a0c22cec3eee5bbbd27fd908823c2156c2463fbfc"
+    ),
+    "src/sim_engine_compiler/trace_query/__main__.py": (
+        "252556632f749f07d5c66e5b7396dfcc7ea171d00e55eb62dc85e4be89f52e33"
+    ),
+    "src/sim_engine_compiler/trace_query/facts.py": (
+        "1117d82de0879dc533f4bc8366efd69ecc7732ece6cdde4efa82767bc0f75af3"
+    ),
+    "src/sim_engine_compiler/trace_query/query.py": (
+        "a39f4f6f9565f80dea43e1d42ea4dadfb395c6c87e9f56b0d2d5159ddbd8df9a"
     ),
 }
 
@@ -152,9 +165,12 @@ def _declared_digest_mode(executed: bytes, expected_sha256: str, key: str) -> st
     if b"\r\n" in executed:
         remainder = executed.replace(b"\r\n", b"")
         normalized = executed.replace(b"\r\n", b"\n")
-        if b"\r" not in remainder and b"\n" not in remainder:
-            if sha256(normalized) == expected_sha256:
-                return "controlled_whole_file_lf_to_crlf_checkout"
+        if (
+            b"\r" not in remainder
+            and b"\n" not in remainder
+            and sha256(normalized) == expected_sha256
+        ):
+            return "controlled_whole_file_lf_to_crlf_checkout"
     raise ValueError(f"declared nonbaseline source differs from pinned content: {key}")
 
 

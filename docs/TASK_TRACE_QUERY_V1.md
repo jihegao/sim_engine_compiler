@@ -2,10 +2,9 @@
 
 Task `engine-trace-query-issue11-1a1e329-v1`, authority coordination thread
 `01a0df64-5e20-7d61-88f1-cf3be014e781`, dispatched 2026-09-27.
-Worktree `/home/g/apps/sim-engine-trace-query-v1`, branch `codex/trace-query-v1`.
-Exact parent PR23 `1a1e329ca4e7c38a7550ac9de15c699fccfb99ef`; stacked PR base
-`codex/review-data-v1`. PR23 depends on unmerged PR20
-`c42d2679c6652a3f5e2d43c9ddc877ee5a388656`. No merge/rebase/issue closure.
+PR20 and PR23 are merged. PR24 is integrated on main commit
+`2822a807ed35321aac061a6e058969ad845f51f1` and remains a draft until its
+exact-head CI passes. Do not merge or close issue #11 from this bounded slice.
 
 After compaction, reread this file, AGENTS and required README/architecture/
 semantic-baseline/roadmap, then current implementation/status. This is always

@@ -5,10 +5,10 @@ The finite event vocabulary below is taken from the Python reference runtime's
 not a general event ontology.  In particular, this module never turns temporal
 adjacency into a trigger, cause, guard evaluation, or process relationship.
 
-``review`` is an internal admission product: callers must obtain it through the
-query package's validated raw-bundle path.  The integrity checks here prevent a
-partial or edited envelope from authorizing links; they do not authenticate an
-arbitrary third-party review document.
+Design association accepts only raw bundle artifacts and revalidates them through
+the review exporter in the link-producing call.  A serialized review envelope
+cannot authorize links.  Raw bundles remain unsigned content; this validation
+does not authenticate their publisher or prove runtime consumption.
 """
 
 from __future__ import annotations

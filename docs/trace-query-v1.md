@@ -5,9 +5,10 @@ It neither runs a simulation nor changes instrumentation, RNG calls, scheduling,
 trace collection, metrics, ledgers or terminal state. It is not full issue #11
 acceptance and makes no performance/collection-overhead claim.
 
-Dependency: PR23 `1a1e329ca4e7c38a7550ac9de15c699fccfb99ef`, itself stacked on
-PR20 `c42d2679c6652a3f5e2d43c9ddc877ee5a388656`. Both are unmerged parents of
-this slice. No migration of existing run/Plan contracts is required.
+The identity and review dependencies from PR20 and PR23 are merged in `main`.
+This slice is integrated on main commit
+`2822a807ed35321aac061a6e058969ad845f51f1`. No migration of existing run/Plan
+contracts is required.
 
 ## Support and evidence matrix
 
@@ -183,10 +184,12 @@ and complete result digests must remain unchanged by queries. An independent
 review record accompanies the slice. CI requires collection-to-execution parity
 and no skipped tests in any new module, retaining Rust/PyO3/mandatory MLIR gates.
 
-The only parent identity change replaces list membership with the already
-validated unique sequence set when producing omitted IDs. It preserves the
-projected values and order; without it, projecting a full large trace needlessly
-compared every event against the entire included list. It adds no runtime work.
+The parent identity changes are bounded to recorded-event projection. Omitted ID
+selection uses the already validated unique sequence set instead of comparing
+every event with the entire included list; projected values and order are
+unchanged. Projection also validates every event's `details` as an object or
+null before any query filter, page, or output budget can hide malformed input.
+Neither change adds simulation-runtime work.
 
 Still unimplemented: new guard/candidate/cache collection, runtime collection
 budgets, authenticated run manifests, richer rule/causal semantics, Rust/O5 query
