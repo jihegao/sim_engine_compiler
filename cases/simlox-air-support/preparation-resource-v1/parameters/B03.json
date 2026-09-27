@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-preparation-resource-parameters/v1",
+  "case_id": "B03",
+  "version": "1.0.0",
+  "parent_case": "B02",
+  "status": "planned_native_acceptance",
+  "source_method_id": "M-B03",
+  "units": {"authored_time": "minute", "native_time": "hour", "minutes_per_hour": 60, "resource": "count"},
+  "site_id": "BASE-01",
+  "unit_id": "PREP-UNIT",
+  "aircraft_type_id": "AIR-TYPE",
+  "aircraft_quantity": 1,
+  "mission_types": [
+    {"id": "COLD-FIRST", "description": "Cold-start first sortie", "aircraft_required": 1, "minimum_aircraft": 1, "flight_duration_minutes": 60, "notice_lead_minutes": 30},
+    {"id": "HOT-SORTIE", "description": "Hot repeat sortie", "aircraft_required": 1, "minimum_aircraft": 1, "flight_duration_minutes": 60, "notice_lead_minutes": 10}
+  ],
+  "waves": [
+    {"mission_type_id": "COLD-FIRST", "planned_start_minutes": 480, "quantity": 1, "delay_minutes": 60},
+    {"mission_type_id": "HOT-SORTIE", "planned_start_minutes": 720, "quantity": 1, "delay_minutes": 60},
+    {"mission_type_id": "HOT-SORTIE", "planned_start_minutes": 960, "quantity": 1, "delay_minutes": 60}
+  ],
+  "preparation_profiles": [
+    {
+      "mission_type_id": "COLD-FIRST",
+      "aggregate_duration_minutes": 30,
+      "task_id": "COLD-PREP",
+      "task_demands": {},
+      "steps": [
+        {"id": "B03-COLD-INSPECT", "duration_minutes": 10, "demands": {}},
+        {"id": "B03-COLD-SERVICE", "duration_minutes": 20, "demands": {}}
+      ]
+    },
+    {
+      "mission_type_id": "HOT-SORTIE",
+      "aggregate_duration_minutes": 10,
+      "task_id": "HOT-PREP",
+      "task_demands": {},
+      "steps": [
+        {"id": "B03-HOT-SERVICE", "duration_minutes": 10, "demands": {}}
+      ]
+    }
+  ],
+  "resources": [],
+  "variants": [
+    {"variant_id": "explicit-cold-hot", "description": "Versioned explicit MTID substitution for first/repeat sortie behavior", "resource_capacities": {}}
+  ],
+  "horizon_minutes": 1200,
+  "result_interval_minutes": 30,
+  "repetitions": 1,
+  "native_seed_text": "1"
+}

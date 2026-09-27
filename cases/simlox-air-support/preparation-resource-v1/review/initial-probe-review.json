@@ -1,0 +1,93 @@
+{
+  "schema_version": "simlox-preparation-resource-independent-review/v1",
+  "review_id": "initial-probe-review",
+  "reviewed_at": "2026-09-27T21:43:23+08:00",
+  "scope": "local read-only review of copied 4700-3 native probe artifacts",
+  "source_root": "data/local/issue18-native/b26313f353ab/v1",
+  "remote_execution_performed_by_review": false,
+  "implementation_files_modified_by_review": false,
+  "cases": {
+    "B01/fixed-30m": {
+      "probe_status": "sealed_probe_behavior_unverified",
+      "validator_executed": false,
+      "binding_review": {
+        "passed": true,
+        "checks": [
+          "closure artifact names, byte counts and SHA-256 values match every retained raw file",
+          "closure invocation SHA-256 matches invocation.json",
+          "probe manifest closure and invocation SHA-256 values match the retained files"
+        ]
+      },
+      "sealed_source_hashes": {
+        "input": "134bff623caa8554679121e2b876f25b9f14609faceca65872e90d0f3bdef804",
+        "runner": "9c002bac5dce225dcc489f7eca6e32b3137bf54770eb3448ec3b92d15b389dfc",
+        "binding": "31835c84d9ab6715e0e986599bcbdc95db9401407cafd11e1e944fcd7437fa68",
+        "validator": "96ed0b9c2a0c452346660714be00f26248a10d2490db0a019afa36260619f816",
+        "generator": "dd5be2fc6ee0877cb5c2874b9e368e3ee6cfdfd4fdfe7b0259dd5ca4b5748630",
+        "contract": "bb62a533b691714b1ba28192a43658492627aecb3b0c2a9d7f25ef42b502b7ac",
+        "parameters": "19aa4738937da4bf12ee6c5983773b3dfd562c3fb48c9548c8e1df968bd6b014",
+        "native_manifest": "af34ab9395b627b01b11b9887d074e4d4990e64d1a19f639bb225033ce863d52"
+      },
+      "direct_event_evidence": [
+        {"minute": 450, "event": "preparation_start", "aircraft": "<AIR-TYPE,0>", "mission_type": "MISSION-BASIC"},
+        {"minute": 480, "event": "preparation_end", "aircraft": "<AIR-TYPE,0>", "mission_type": "MISSION-BASIC"},
+        {"minute": 480, "event": "launch", "aircraft": "<AIR-TYPE,0>", "mission_type": "MISSION-BASIC"},
+        {"minute": 540, "event": "mission_complete", "aircraft": "<AIR-TYPE,0>", "mission_type": "MISSION-BASIC"}
+      ],
+      "roundtrip": {"all_equal": true, "nonempty_business_tables": 12},
+      "review_conclusion": "raw trace supports the fixed 30-minute preparation timeline; the retained probe manifest itself remains behavior-unverified"
+    },
+    "B03/explicit-cold-hot": {
+      "probe_status": "sealed_probe_behavior_unverified",
+      "validator_executed": false,
+      "binding_review": {
+        "passed": true,
+        "checks": [
+          "closure artifact names, byte counts and SHA-256 values match every retained raw file",
+          "closure invocation SHA-256 matches invocation.json",
+          "probe manifest closure and invocation SHA-256 values match the retained files"
+        ]
+      },
+      "sealed_source_hashes": {
+        "input": "1cd10612994d10e6fdf2eca8e8a659188a5592d3561b63ec6e10ad41b3fdde93",
+        "runner": "9c002bac5dce225dcc489f7eca6e32b3137bf54770eb3448ec3b92d15b389dfc",
+        "binding": "31835c84d9ab6715e0e986599bcbdc95db9401407cafd11e1e944fcd7437fa68",
+        "validator": "96ed0b9c2a0c452346660714be00f26248a10d2490db0a019afa36260619f816",
+        "generator": "dd5be2fc6ee0877cb5c2874b9e368e3ee6cfdfd4fdfe7b0259dd5ca4b5748630",
+        "contract": "dc4090095619591ce588300319f6bf7b20eb087c17a85c349f72c9d0e896785d",
+        "parameters": "fb53f21a4f9fd540dff1e0ffc0b9cac1b66d14f635daa3c36fcf9caebd245178",
+        "native_manifest": "af34ab9395b627b01b11b9887d074e4d4990e64d1a19f639bb225033ce863d52"
+      },
+      "direct_event_evidence": [
+        {"mission_type": "COLD-FIRST", "aircraft": "<AIR-TYPE,0>", "preparation_start_minute": 450, "step_1_end_minute": 460, "step_2_end_minute": 480, "launch_minute": 480, "mission_complete_minute": 540},
+        {"mission_type": "HOT-SORTIE", "aircraft": "<AIR-TYPE,0>", "preparation_start_minute": 710, "step_1_end_minute": 720, "launch_minute": 720, "mission_complete_minute": 780},
+        {"mission_type": "HOT-SORTIE", "aircraft": "<AIR-TYPE,0>", "preparation_start_minute": 950, "step_1_end_minute": 960, "launch_minute": 960, "mission_complete_minute": 1020}
+      ],
+      "roundtrip": {"all_equal": true, "nonempty_business_tables": 14},
+      "current_contract_binding": "not established: the sealed contract SHA-256 is dc4090..., while the later working-tree contract differs",
+      "review_conclusion": "raw trace supports the user-approved explicit cold-task/hot-task modeling approach, but this calibration probe cannot be promoted to verification of the later contract snapshot"
+    },
+    "C03": {
+      "variants": ["staffing-2", "staffing-1", "staffing-0"],
+      "import_export_roundtrip_completed": true,
+      "native_calculation": {
+        "status": "rejected",
+        "error_number": 167,
+        "message": "All required resources are not available at station (STID): BASE-01",
+        "conversion_errors": 1,
+        "sxo_bytes_per_variant": 4
+      },
+      "missing_for_all_variants": ["model.log", "report-raw.json", "closure.json", "probe-manifest.json", "run-manifest.json"],
+      "resource_lifecycle_evidence": false,
+      "native_behavior_verified": false,
+      "review_conclusion": "the three variants contain input and roundtrip evidence only; no request, wait, acquire, release, preparation or formation-launch timeline exists"
+    }
+  },
+  "acceptance_boundaries": [
+    "binding closure proves retained file identity, not behavioral acceptance",
+    "B03 uses explicit mission types for cold and hot preparation under the user-approved business contract",
+    "C03 remains a two-aircraft same-formation case and cannot be replaced by staggered independent missions",
+    "aggregate report totals do not substitute for timestamped resource lifecycle events",
+    "a later final native review must be added as a separate record and must not overwrite this review"
+  ]
+}

@@ -1,0 +1,180 @@
+{
+  "schema": "simlox-preparation-resource-parent-diff/v1",
+  "case_id": "B02",
+  "variant_id": "serial-10m-20m",
+  "parent_case": "B01",
+  "status": "planned_native_acceptance",
+  "parent_variant_id": "fixed-30m",
+  "declared_delta": [
+    "MissionPreparation points to PREP-SERIAL",
+    "TaskBreakDown adds ordered 10 and 20 minute steps",
+    "aggregate DURN is 45 minutes so native precedence remains an acceptance assertion"
+  ],
+  "actual_normalized_diff": {
+    "table_count": 6,
+    "added_row_count": 5,
+    "removed_row_count": 1,
+    "field_change_count": 4,
+    "tables": {
+      "ProblemDescription": {
+        "added": [],
+        "removed": [],
+        "changed": [
+          {
+            "key": {
+              "__row_index__": 0
+            },
+            "fields": {
+              "PDESC": {
+                "parent": "B01; planned native acceptance candidate",
+                "child": "B02; planned native acceptance candidate"
+              }
+            }
+          }
+        ]
+      },
+      "MissionType": {
+        "added": [],
+        "removed": [],
+        "changed": [
+          {
+            "key": {
+              "MTID": "MISSION-BASIC"
+            },
+            "fields": {
+              "DESCR": {
+                "parent": "Fixed preparation sortie",
+                "child": "Serial preparation sortie"
+              }
+            }
+          }
+        ]
+      },
+      "MissionPreparation": {
+        "added": [],
+        "removed": [],
+        "changed": [
+          {
+            "key": {
+              "MTID": "MISSION-BASIC",
+              "SID": "AIR-TYPE",
+              "STID": "BASE-01"
+            },
+            "fields": {
+              "DURN": {
+                "parent": 0.5,
+                "child": 0.75
+              },
+              "TID": {
+                "parent": "PREP-FIXED",
+                "child": "PREP-SERIAL"
+              }
+            }
+          }
+        ]
+      },
+      "Tasks": {
+        "added": [
+          {
+            "key": {
+              "TID": "PREP-SERIAL"
+            },
+            "row": {
+              "TID": "PREP-SERIAL",
+              "DESCR": "MISSION-BASIC preparation",
+              "TCID": null,
+              "TLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [
+          {
+            "key": {
+              "TID": "PREP-FIXED"
+            },
+            "row": {
+              "TID": "PREP-FIXED",
+              "DESCR": "MISSION-BASIC preparation",
+              "TCID": null,
+              "TLID": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "changed": []
+      },
+      "SubTaskType": {
+        "added": [
+          {
+            "key": {
+              "SUTID": "INSPECT"
+            },
+            "row": {
+              "SUTID": "INSPECT",
+              "DESCR": "INSPECT",
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SUTID": "SERVICE"
+            },
+            "row": {
+              "SUTID": "SERVICE",
+              "DESCR": "SERVICE",
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [],
+        "changed": []
+      },
+      "TaskBreakDown": {
+        "added": [
+          {
+            "key": {
+              "SEQ": 1,
+              "TID": "PREP-SERIAL"
+            },
+            "row": {
+              "TID": "PREP-SERIAL",
+              "SEQ": 1,
+              "SUTID": "INSPECT",
+              "DURN": 0.16666666666666666,
+              "DURND": null,
+              "NOTE": null
+            }
+          },
+          {
+            "key": {
+              "SEQ": 2,
+              "TID": "PREP-SERIAL"
+            },
+            "row": {
+              "TID": "PREP-SERIAL",
+              "SEQ": 2,
+              "SUTID": "SERVICE",
+              "DURN": 0.3333333333333333,
+              "DURND": null,
+              "NOTE": null
+            }
+          }
+        ],
+        "removed": [],
+        "changed": []
+      }
+    }
+  },
+  "sibling_variant_diff": {
+    "baseline_variant_id": "serial-10m-20m",
+    "actual_normalized_diff": {
+      "table_count": 0,
+      "added_row_count": 0,
+      "removed_row_count": 0,
+      "field_change_count": 0,
+      "tables": {}
+    }
+  },
+  "native_verified": false
+}

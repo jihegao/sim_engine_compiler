@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-preparation-resource-contract/v1",
+  "case_id": "B01",
+  "version": "1.0.0-plan",
+  "status": "planned_native_unverified",
+  "artifact_binding": {"manifest": "../native/manifest.json", "rule": "before execution, resolve this case and variant in the generated manifest and require its input_sha256 to equal the invocation source hash"},
+  "acceptance_policy": {"conversion_errors": 0, "allowed_warnings": [{"number": "108", "condition": "Control.ENLOG=Y", "explanation": "ENLOG intentionally records the first repetition"}, {"number": "126", "condition": "the teaching aircraft has no Item child rows", "explanation": "the item-free deterministic case intentionally contains no fault-bearing children"}], "reject_unlisted_warnings": true, "roundtrip_required": true, "nonempty_sxi_sxo_enlog_required": true, "native_artifact_hashes_required": true},
+  "title": "fixed pre-mission preparation",
+  "parent_case": "A01",
+  "requires": ["A01"],
+  "source": {
+    "method_id": "M-B01",
+    "manual_source_id": "SIMLOX-2017-USERS-REFERENCE",
+    "pdf_pages": [[181, 182], [294, 297]]
+  },
+  "business_contract": {
+    "time_unit": "minute",
+    "aircraft": ["AIR-01"],
+    "mission_type": "MISSION-BASIC",
+    "mission": {"id": "MISSION-01", "notice": 450, "planned_launch": 480, "flight_duration": 60},
+    "preparation": {"task_id": "PREP-FIXED", "duration": 30, "resources": []},
+    "rules": [
+      "preparation is created once for the assigned aircraft at notice time",
+      "the aircraft cannot launch before preparation completes",
+      "positive preparation duration is work, not a reporting-only delay"
+    ]
+  },
+  "native_mapping": {
+    "time_unit": "hour",
+    "tables": {
+      "MissionPreparation": ["MTID", "SID", "STID", "DURN", "TID", "DURND"],
+      "MissionType": ["MTID", "NOPER"],
+      "Tasks": ["TID"]
+    },
+    "expected_rows": {
+      "MissionPreparation": {"MTID": "MISSION-BASIC", "SID": "AIR-TYPE", "STID": "BASE-01", "DURN": 0.5, "TID": "PREP-FIXED"},
+      "MissionType": {"MTID": "MISSION-BASIC", "NOPER": 0.5},
+      "Tasks": {"TID": "PREP-FIXED"}
+    }
+  },
+  "variants": [
+    {"variant_id": "fixed-30m", "preparation_duration": 30, "expected_launch": 480}
+  ],
+  "deferred_variants": [
+    {"variant_id": "zero-duration-control", "status": "deferred_not_generated_in_v1", "preparation_duration": 0, "expected_launch": 480, "purpose": "distinguish no work from positive work"}
+  ],
+  "expected_assertions": [
+    {"id": "B01-A1", "assert": "one preparation instance is bound to AIR-01 and MISSION-01"},
+    {"id": "B01-A2", "assert": "preparation starts at 450 and completes at 480"},
+    {"id": "B01-A3", "assert": "launch occurs at 480 and never before preparation completion"},
+    {"id": "B01-A4", "assert": "positive-duration work totals 30 aircraft-minutes; the zero-duration control is deferred"},
+    {"id": "B01-A5", "assert": "native preparation count and NOPER behavior are reported separately"}
+  ],
+  "acceptance_evidence": ["roundtrip row equality", "aircraft and mission identity binding", "preparation create/start/complete events", "launch and return events", "raw ENLOG and result export"],
+  "limitations": ["No resource behavior is claimed", "No random-duration behavior is claimed"]
+}

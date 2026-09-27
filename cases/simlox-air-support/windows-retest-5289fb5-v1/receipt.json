@@ -1,0 +1,90 @@
+{
+  "schema": "simlox-a01-a02-pr22-real-windows-retest/v1",
+  "task_id": "simlox-pr22-windows-retest-5289fb5-v1",
+  "platform": {
+    "machine": "4700-3",
+    "os": "Microsoft Windows 10 Pro 10.0.19045, 64-bit",
+    "cpu": "AMD Ryzen 7 4700U with Radeon Graphics",
+    "python": "3.12.14",
+    "simpy": "4.1.1"
+  },
+  "source": {
+    "native_branch_start": "2c0277b42586a6c02af18152d2cdc0806073c953",
+    "pr22_review_head": "5289fb59c4f32887d8e535ccfa3e9ff00dbdecbe",
+    "pr22_baseline": "595cb5eee9987324b19a8c3566f201f937e05f15",
+    "bundle_sha256": "aa20e46678aa9c906cc18ee2f8a9ff855cbbb0a25e1150e34fc7ad7852b8798d",
+    "bundle_verified": true,
+    "baseline_object_present": true,
+    "source_count": 26,
+    "portable_build_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+    "previous_native_receipt_sha256": "330c968bb26e7c6c1be83d3b3007221f05b32d09578634932e972b22718815c4",
+    "native_manifest_external_sha256": "0b7294414c5cafa050cf90349659822f5d08ff2b42421359826a26759483d987",
+    "engine_pr22_ci_dedicated": "36289616534 SUCCESS, coordinator readback",
+    "engine_pr22_ci_full": "36289616565 SUCCESS, coordinator readback"
+  },
+  "checkout_modes": {
+    "ordinary": {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-27\\simlox-pr22-windows-retest-5289fb5-v1\\pr22-normal",
+      "autocrlf_effective": "true from C:/Program Files/Git/etc/gitconfig",
+      "autocrlf_local": "unset",
+      "eol_effective": "unset",
+      "engine_source_mode": "26/26 strict whole-file LF-to-CRLF",
+      "executed_source_fingerprint": "fbf174817c3a03ce2ca20e968a900567475b000153a6b4d65b536007aa7a0c4d",
+      "consumer_source_fingerprint": "dba42c791bd1c23c0e9497aeb60a3594dbff440f599251c9ab8d8fa4ef65a94b",
+      "pretest_snapshot": "ordinary-before.json",
+      "utf8_pretest_snapshot": "ordinary-utf8-before.json"
+    },
+    "controlled_crlf": {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-27\\simlox-pr22-windows-retest-5289fb5-v1\\pr22-crlf",
+      "autocrlf_local": "true",
+      "engine_source_mode": "26/26 strict whole-file LF-to-CRLF",
+      "executed_source_fingerprint": "fbf174817c3a03ce2ca20e968a900567475b000153a6b4d65b536007aa7a0c4d",
+      "consumer_source_fingerprint": "dba42c791bd1c23c0e9497aeb60a3594dbff440f599251c9ab8d8fa4ef65a94b",
+      "pretest_snapshot": "crlf-before.json"
+    },
+    "controlled_lf": {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-27\\simlox-pr22-windows-retest-5289fb5-v1\\pr22-lf",
+      "autocrlf_local": "false",
+      "engine_source_mode": "26/26 exact baseline Git blob bytes",
+      "executed_source_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+      "consumer_source_fingerprint": "ae5e031fdb311aaa8116870d3a04ca7b6c7b217b3650e9ae9ace6bfdf0e249b4",
+      "pretest_snapshot": "lf-before.json"
+    }
+  },
+  "commands": {
+    "environment_accepted": {"PYTHONPATH": "src", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUTF8": "1"},
+    "tests": "python -m experiments.simlox_pairing.check_tests",
+    "execution": "python -m experiments.simlox_pairing.run --output <fresh-nonexistent-directory>",
+    "exact_command_records": ["ordinary-tests.json", "ordinary-utf8-tests.json", "ordinary-utf8-run.json", "crlf-tests.json", "crlf-run.json", "lf-tests.json", "lf-run.json"]
+  },
+  "tests": {
+    "ordinary_default_locale": {"collected": 32, "passed": 31, "skipped": 0, "errors": 1, "exit_code": 1, "record": "ordinary-tests.json", "first_error": "UnicodeDecodeError: GBK Path.read_text() on UTF-8 negative-controls.json at test_simlox_pairing_runner.py:21", "classification": "test-harness implicit-text-decoding environment limitation, distinct from source-provenance repair"},
+    "ordinary_process_utf8": {"collected": 32, "passed": 32, "skipped": 0, "errors": 0, "exit_code": 0, "record": "ordinary-utf8-tests.json"},
+    "controlled_crlf_process_utf8": {"collected": 32, "passed": 32, "skipped": 0, "errors": 0, "exit_code": 0, "record": "crlf-tests.json"},
+    "controlled_lf_process_utf8": {"collected": 32, "passed": 32, "skipped": 0, "errors": 0, "exit_code": 0, "record": "lf-tests.json"},
+    "independent_mutation_controls": {"passed": 9, "total": 9, "record": "provenance-negatives-v3.json", "names": ["dirty_content", "mixed_lf_crlf", "bare_cr", "added_engine_python", "missing_engine_python", "missing_baseline_object", "actual_fixed_baseline_absent_with_valid_head", "valid_wrong_revision_not_substituted_for_baseline", "outside_checkout_runtime_import"]},
+    "native_manifest_pin_negative": {"status": "rejected_changed_manifest", "record": "manifest-pin-negative.json"}
+  },
+  "fresh_executions": {
+    "ordinary": "runs/ordinary-utf8-01",
+    "controlled_crlf": "runs/crlf-utf8-01",
+    "controlled_lf": "runs/lf-utf8-01",
+    "a01": {"half_hour_bins": 72, "mapped_checks": 625, "canonical_digest": "1ebd4dd38540385db50d94c4113b42b9e63f30843fad5c294ff00134d2306c4f", "plan_fingerprint": "806837849521ca00708fb2f85bcc3b2b72e2bfaa87d846d528f19d356f36e2b6", "raw_result_semantic_digest": "dbd8758c9f8b47f558cf9f5fa64db4cd345fca805396c95f036078936e6570a2"},
+    "a02": {"half_hour_bins": 72, "mapped_checks": 681, "canonical_digest": "ac42f4c657dc205c1b9c3f7684008d53110d2af191e9d4313da4dc2fd45b19df", "plan_fingerprint": "8fe2564e61815d0fe683c2ee476037f86a64a4a73b2d18148fcd7c349505402e", "raw_result_semantic_digest": "29dc45f974175694d51fa5ee12f44713150a48c4a5224dabdc26318d5c6e21f8"},
+    "native_recheck": "all 72 SystemResults rows per case, five fields, full aircraft and mission identities and notice/allocation/launch/completion times for four sealed normal/replay runs",
+    "frozen_c97_comparison": "all nine case JSON artifacts and four negative controls semantically equal; Windows raw file SHA-256 may differ from Linux because of newline bytes",
+    "first_pairing_discrepancy": null,
+    "comparison_record": "independent-compare-v2.json",
+    "coordinator_independent_review": "coordinator-three-mode-review.json"
+  },
+  "conclusion": {
+    "status": "bounded_A01_A02_windows_pairing_verified_with_process_UTF8_selector",
+    "gui": "pending_private_user_handoff",
+    "notification": "engine preflight_created at commission time is a proxy, not independent notification",
+    "mission_ready": "mission bound; not a global aircraft-ready state",
+    "native_inner_task": "8.5-9.5h unmapped",
+    "unverified": ["GUI calibration and review", "same-tick priority", "faults", "resources", "spares", "cancellation and J35 wave-20", "403 nested LRU replacement", "F35/J35 full model", "RNG equivalence", "performance"],
+    "simlox_started_in_this_retest": false,
+    "full_equivalence_verified": false
+  }
+}
