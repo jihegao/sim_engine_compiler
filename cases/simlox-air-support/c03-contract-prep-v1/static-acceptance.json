@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-c03-static-acceptance/v1",
+  "status": "prepared_static_validated_native_unverified",
+  "base_commit": "861ce9e193046bc1c8cec276fdb85101044dbfaa",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "python": "3.9.6",
+  "commands": [
+    {
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "cases/simlox-air-support/c03-contract-prep-v1/prepare.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "062c7eeac357e6baf314ed23b85b081026a62f958d0e7f325ceaaab53a2b4c4b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "-m",
+        "unittest",
+        "tests.conformance.test_simlox_c03_contract_prep",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "21d0d8ee0f4852d1dc3c95f319e95f23215fab23300690bc3b1a7525e1f43974"
+    }
+  ],
+  "focused_unittests": {
+    "executed": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "independent_static_review": {
+    "checks": 65,
+    "passed": 65,
+    "failed": 0,
+    "report_sha256": "853b1b0d8e8f338929dfd95549a1fd48142703f5bf62d988cab58fb322578f97",
+    "initial_review_failures": 4,
+    "repair": "Closed candidate membership rejects hidden active-table flags and distributions; old failed review retained in ignored task directory"
+  },
+  "raw_evidence_directory": "/Users/gaojihe/.codex/worktrees/simlox-c03-contract/sim_engine_compiler/data/local/simlox-c03-contract-prep-861ce9e-v1",
+  "executions": {
+    "SIMLOX": 0,
+    "GUI": 0,
+    "Python_reference": 0,
+    "Rust": 0,
+    "replay": 0,
+    "performance": 0
+  },
+  "native_behavior": "unverified",
+  "sxi_sha256": null,
+  "execution_plan_fingerprint": null,
+  "native_binary_version": null,
+  "native_binary_sha256": null
+}

@@ -1,0 +1,65 @@
+{
+  "schema": "simlox-c03-common-parameters/v1",
+  "units": {
+    "time": "minute",
+    "native_time": "hour",
+    "resource": "count",
+    "conversion": 60
+  },
+  "site_id": "BASE-01",
+  "unit_id": "RESOURCE-UNIT",
+  "aircraft_type_id": "RESOURCE-AIR",
+  "aircraft_ids": [
+    "AIR-A",
+    "AIR-B"
+  ],
+  "resources": [
+    {
+      "id": "P-SPECIALIST",
+      "kind": "personnel",
+      "capacity": 2
+    },
+    {
+      "id": "E-SHARED",
+      "kind": "equipment",
+      "capacity": 1
+    }
+  ],
+  "steps": [
+    {
+      "id": "INSPECT",
+      "duration_minutes": 10,
+      "demands": {
+        "P-SPECIALIST": 1
+      }
+    },
+    {
+      "id": "SERVICE",
+      "duration_minutes": 40,
+      "demands": {
+        "P-SPECIALIST": 1,
+        "E-SHARED": 1
+      }
+    }
+  ],
+  "missions": [
+    {
+      "id": "MISSION-A",
+      "aircraft_id": "AIR-A",
+      "notice_minutes": 420,
+      "planned_start_minutes": 480,
+      "delay_minutes": 30,
+      "flight_minutes": 60
+    },
+    {
+      "id": "MISSION-B",
+      "aircraft_id": "AIR-B",
+      "notice_minutes": 440,
+      "planned_start_minutes": 500,
+      "delay_minutes": 30,
+      "flight_minutes": 60
+    }
+  ],
+  "horizon_minutes": 720,
+  "result_interval_minutes": 30
+}

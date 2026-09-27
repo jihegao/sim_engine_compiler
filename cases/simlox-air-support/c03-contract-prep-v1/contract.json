@@ -1,0 +1,68 @@
+{
+  "schema": "simlox-shared-resource-preparation-contract/v1",
+  "name": "c03-staggered-joint-step-resources-v1",
+  "status": "prepared_static_validated_native_unverified",
+  "source_commit": "861ce9e193046bc1c8cec276fdb85101044dbfaa",
+  "unmerged_dependency": "PR21 at exact source_commit; PR22 engine code is not included",
+  "catalog_path": "../catalog.json",
+  "required_chain": ["A01", "B01", "B02", "C01", "C02", "C03"],
+  "catalog_status_updates": false,
+  "units": {"business_time": "minute", "native_time": "hour", "minutes_per_hour": 60, "capacity": "count", "resource_integral": "count_minute"},
+  "parameters": "parameters.json",
+  "resource_policy": {
+    "scope": "one shared site pool per RID, shared by both aircraft",
+    "steps": "strict serial INSPECT then SERVICE per mission",
+    "INSPECT": "10 minutes of one P-SPECIALIST; release at step completion",
+    "SERVICE": "40 minutes; acquire one P-SPECIALIST and one E-SHARED together or acquire neither",
+    "waiting": "no SERVICE lease while queued; INSPECT lease has already been released",
+    "retention": "nonpreemptive; no resource consumption, transit, loss, reservation across steps, or hold until launch",
+    "queue": "oldest request first; distinct main-case requests avoid initial simultaneous request arbitration",
+    "wake": "grant at earliest feasible completion time in the proposed common contract; native wake latency is unverified",
+    "variants": "only E-SHARED capacity changes from 1 to 2; P-SPECIALIST stays 2",
+    "native_status": "blocked_unverified_joint_acquisition_and_scope"
+  },
+  "event_contract": {
+    "identity": "stable mission, aircraft, process, step, RID and lease identity required; no aggregate-count substitution",
+    "logical_causality": ["notice before INSPECT request", "request before grant", "grant before work", "INSPECT completion/release before SERVICE request", "completion before release", "release before a grant that needs that released unit", "all preparation complete before launch", "planned launch time is a lower bound", "launch before mission return"],
+    "native_time_phase_tie_order": null,
+    "native_phase_status": "blocked_unverified; equal printed timestamps are not phase-order evidence",
+    "same_time_cross_resource_order": "not inferred; compare left/right occupancy and per-lease causes, then record native micro-order only if exposed",
+    "aircraft_binding": "AIR-A and AIR-B are proposed business identities; bind by observed full native identities before pairing, never silently swap after mismatch",
+    "native_aircraft_instance_binding": {"AIR-A": null, "AIR-B": null},
+    "native_mission_instance_binding": {"MISSION-A": null, "MISSION-B": null},
+    "identity_gate": "QTYPS=2 and mission type labels do not prove selection order or exact native instance indices"
+  },
+  "time_boundaries": {
+    "A": {"notice": 420, "planned_launch": 480, "nominal_launch_deadline": 510, "flight_duration": 60},
+    "B": {"notice": 440, "planned_launch": 500, "nominal_launch_deadline": 530, "flight_duration": 60},
+    "nominal_deadline_mapping": "STIM+DTIM is a hypothesis for an already selected aircraft, not a proven missing-aircraft cutoff",
+    "main_case": "both capacities complete prep strictly before nominal deadline; no cancellation behavior exercised",
+    "analytical_observation_cuts": [449, 450, 451, 455, 469, 470, 471, 489, 490, 491, 509, 510, 511, 529, 530, 531],
+    "cut_policy": "read-only left/right snapshots; do not cancel tasks, release resources, shorten work, or treat RCEND as SIMPE",
+    "deadline_tie_probe": "deferred and blocked until parent acceptance and GUI review; separately test completion just before/at/after STIM+DTIM without pre-assigning cancellation or refund behavior",
+    "horizon": 720,
+    "horizon_policy": "all proposed work finishes by 570; crossing-horizon execution is not tested"
+  },
+  "observability": {
+    "previously_observed": ["ENLOG mission creation/allocation/start/completion and ready transitions for A01/A02", "SystemResults FTMO/NSYMO/NSYMA/NSYMR/NSYRY", "ResourceResults column names in prior J35 export"],
+    "required_for_new_acceptance": ["actual aircraft/mission instance bijection", "per-step request and wait interval", "lease owner, RID, quantity, grant, release and causal step", "step start/completion and remaining work at observation cuts", "launch/return times and readiness", "left/right capacity snapshots at release/grant boundaries"],
+    "not_yet_exposed_or_mapped": ["joint acquisition atomicity", "partial reservation while waiting", "internal queue order/microstep/phase", "native subtask lease identifiers", "ResourceResults column meanings and interval aggregation", "POINT sharing scope across two instances"],
+    "rule": "absence of native visibility blocks the corresponding claim; derived ledger must be labeled derived and cannot replace raw evidence"
+  },
+  "native_candidate": {
+    "input_kind": "row-schema-compatible JSON candidate, not converted or accepted SXI",
+    "source": "SHA-pinned existing native schema and A01 writer",
+    "preparation_mapping": "MissionPreparation.TID=PREP; DURN equals serial TaskBreakDown.DURN sum; effective timing behavior unverified",
+    "resource_mapping": "SubTaskResource entries; TaskResource deliberately empty to avoid double demand; activation/holding scope blocked_unverified",
+    "category_mapping": "distinct P-SPECIALIST/E-SHARED RIDs express business categories; native TYPE=SPECIAL for both does not prove a native personnel-specialty classifier",
+    "pool_mapping": "ResourceAllocation POINT=RESOURCE-AIR at BASE-01; one row per RID, QTYPS=2; sharing must be probed",
+    "native_model_hash": null,
+    "native_binary_version": null,
+    "native_binary_hash": null,
+    "plan_fingerprint": null,
+    "executed": false
+  },
+  "forbidden_claims": ["static checks establish SIMLOX behavior", "C03 accepted despite unaccepted parents", "empty resource steps establish demand", "full F35/J35 or Rust equivalence", "same RNG stream from equal seed", "GUI acceptance", "1000-sample or equivalent speed ratio"],
+  "preserved_blockers": ["J35 wave20 cancellation mismatch", "403 nested LRU physical replacement mapping", "full material ledger", "commission-time notification proxy", "private GUI review pending"],
+  "excluded": ["faults", "RNG mechanism", "PM", "spares", "transport", "new cancellation/refund policy", "A03/A04 rollout", "compiler/runtime changes", "issue #6 performance"]
+}
