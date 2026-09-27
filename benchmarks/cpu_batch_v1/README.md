@@ -3,6 +3,10 @@
 This is a bounded offline experiment for Issue #6, based directly on runtime
 `595cb5eee9987324b19a8c3566f201f937e05f15`. It changes no engine, compiler,
 RNG, dispatch, or default path. Read [PROTOCOL.md](PROTOCOL.md) before running.
+The sole 2026-09-27 window completed all 56 cells in 921.501 seconds; see the
+[result report](results/amd128-20260927/REPORT.md) and
+[evidence verification boundary](results/amd128-20260927/EVIDENCE.md).
+The frozen protocol's preparation status is historical and remains unchanged.
 The protocol, semantic gate, and measurement are separate stages. CI runs
 synthetic harness controls, never the formal performance window.
 

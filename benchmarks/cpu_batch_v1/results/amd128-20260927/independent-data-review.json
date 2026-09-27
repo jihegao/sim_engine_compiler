@@ -1,0 +1,128 @@
+{
+  "schema_version": "cpu-batch-independent-data-review/v1",
+  "review_role": "independent data-only reviewer",
+  "reviewed_run": "runs/cpu-batch-v1/run-20260927T055817Z-2557785",
+  "verdict": "accepted_scope_limited",
+  "unhandled_findings": [],
+  "scope": {
+    "included": [
+      "read-back of the frozen admission, semantic-gate, effective-eight supplement, measurement state, 56 cell records, 56 raw reports, and 112 captured streams",
+      "independent verification of file seals, cell identities, commands, seed order, worker and observation envelopes, warmup evidence, and content-digest stability",
+      "independent recomputation of all 16 primary timing, throughput, paired-speedup, paired-efficiency, stage, cold-wall, and RSS distributions",
+      "independent verification of all eight startup-probe records",
+      "independent monitoring-log cadence and observed-process review"
+    ],
+    "excluded": [
+      "no model, compiler, runtime, benchmark, build, or test was rerun",
+      "no claim of exclusive CPU isolation or zero background load",
+      "no cross-backend comparison of Rust serde byte hashes with PyO3 JSON byte hashes",
+      "no native Windows acceptance and no remote CI acceptance",
+      "the public archive excludes host-sensitive local monitoring and machine snapshots, so a public-archive consumer cannot independently repeat the monitoring review from the archive alone",
+      "no claim beyond this exact machine, run, frozen Plan, seed list, and timing protocol"
+    ]
+  },
+  "artifact_bindings": {
+    "manifest.json": "b529e41107a9b547c9329a10902da2559aed661c699c4027f9d95e077a0231d3",
+    "semantic-gate/report.json": "4630c2402f5572da0fe59d2f31f148f831d0a3427cea32eee0244454a1fda021",
+    "measurement-list.json": "1d9395e596efe54401b24e1fbcfec185c9f8bb495016900a4238c9072d8b04a0",
+    "seeds-n64.json": "62747a163c1f63326f39722926ca6b910d50a4706942bcdbce403e996daee284",
+    "window-admission.json": "ebfbb4d452513024278e80b20827bf1fd4b9861aa99c7de2156c66f5181b565f",
+    "measurement/state.json": "46273aa25530987cf4e0d8940e7372f230462a791e3bf3137d2402f86c5575cc",
+    "summary.json": "d46668d90f8b5c8f39d9baf006600f925d10193f6331c7e47e605e30a4aaaf64",
+    "effective-eight-semantic-supplement/report.json": "7e93b1b8e02beeddcc0fc9e7b2c3a307a9be1553f344fa7ad54196ea0998dcc4",
+    "runs/cpu-batch-v1-preparation/check-effective-eight.py": "20eb761a864b0389ee46866df6c1aa6fbdc78d6ad7f988e052b6772a58669472",
+    "effective-eight-semantic-supplement/pyo3-full.json": "647a55d2586e1b9deed1f2305f8fb95a884d22b6c88b4aeeeb8462d8adfb0e2b",
+    "effective-eight-semantic-supplement/pyo3-summary.json": "8e9784436ea471707f2e16fcd27f41462c6cde27be3a0f02ebfd5a520049195d",
+    "effective-eight-semantic-supplement/rust-full.json": "4c9f8e480b546882957d6db2a7525723d02bc33a1431c5740881965d4be0af89",
+    "effective-eight-semantic-supplement/rust-summary.json": "db9f3fe88a06debe767d9ad645803dff442cbd5d225aeabfd6863aeb78d5c677",
+    "window-known-tools.log": "6b188a389d6b28b669241ae1c37dd93904b2efaf441a9a4aab82548ff26c5516",
+    "window-top.log": "9b9f4aeb9c80abf11886f1999af88ba3f56e63b97082d1647416e8481be3c04a"
+  },
+  "measurement_inventory": {
+    "files_verified": 224,
+    "composition": "56 each of record.json, raw-report.json, stdout.txt, and stderr.txt",
+    "digest_algorithm": "SHA-256 over lexicographically sorted UTF-8 lines: relative_path<TAB>decimal_bytes<TAB>file_sha256<LF>",
+    "digest": "95b25dc4eb0b4387a51c7bc7eb54497398d8e40b0210d30f6093874014d77a3c"
+  },
+  "checks": {
+    "formal_window": {
+      "status": "passed",
+      "cells_completed": 56,
+      "cells_failed": 0,
+      "cells_missing": 0,
+      "elapsed_ns": 921500818382,
+      "within_frozen_deadline": true,
+      "records_are_monotonic_and_nonoverlapping": true
+    },
+    "cell_evidence": {
+      "status": "passed",
+      "schedule_ordinals": "exactly 0 through 55",
+      "commands": "all 56 equal their recorded execution command and carry the scheduled backend, observation level, worker count, and exact seed prefix under taskset CPUs 0-7",
+      "seals": "all 168 cell-referenced raw-report, stdout, and stderr files match the recorded size and SHA-256; the 56 record files were structurally checked and included with those files in the independent 224-file inventory digest",
+      "warmups": "all cells record one completed warmup; PyO3 warmup and measured proofs are identical; Rust explicitly retains no warmup digest and does not claim one",
+      "candidate_dependency_dispatch": false,
+      "cross_envelope_content": "stable within each backend, observation level, and sample-count group"
+    },
+    "pyo3_result_hashes": {
+      "status": "passed",
+      "algorithm": "SHA-256 of each result encoded as UTF-8 JSON with ensure_ascii=false, sorted keys, compact separators, and non-finite numbers rejected",
+      "comparison": "every measured and warmup per-sample digest matches the admitted event-time-v2 Full or Summary result for its seed 0, 1, or 7",
+      "scope_note": "these are PyO3-boundary canonical JSON hashes, not Rust serde-byte hashes"
+    },
+    "effective_eight_supplement": {
+      "status": "passed",
+      "purpose": "untimed semantic evidence only",
+      "requested_workers": 8,
+      "effective_workers": 8,
+      "seeds": [7, 0, 7, 1, 0, 1, 7, 7],
+      "strict_sample_checks": 32,
+      "complete_decoded_tree_equality": "Rust equals PyO3 for each Full and Summary batch; every sample equals the corresponding already-admitted seed result",
+      "serialization_note": "decoded semantic trees were compared; the distinct Rust and PyO3 file hashes are retained and were not misrepresented as cross-backend byte equality"
+    },
+    "summary_recomputation": {
+      "status": "passed",
+      "rows": 16,
+      "repeat_count_per_row": 3,
+      "comparison": "independent recomputation matched summary.json recursively, including warm timing, samples/second, same-repeat worker-1 speedup, efficiency, stage timing, cold process wall time, and RSS distributions",
+      "distribution": "median, minimum, maximum, and median absolute deviation",
+      "startup_probes": "all eight summary entries are exact copies of the independently verified completed cell records"
+    }
+  },
+  "recomputed_primary_medians": [
+    {"backend":"pyo3","observation":"full","workers":1,"warm_batch_ns":12171623056,"samples_per_second":5.258131943911228,"paired_speedup":1.0,"paired_efficiency":1.0,"rss_kbytes":3339380},
+    {"backend":"pyo3","observation":"full","workers":2,"warm_batch_ns":8289072994,"samples_per_second":7.721008132794348,"paired_speedup":1.468393759448175,"paired_efficiency":0.7341968797240875,"rss_kbytes":3855788},
+    {"backend":"pyo3","observation":"full","workers":4,"warm_batch_ns":6291148263,"samples_per_second":10.173023639643318,"paired_speedup":1.9287682467896752,"paired_efficiency":0.4821920616974188,"rss_kbytes":4314960},
+    {"backend":"pyo3","observation":"full","workers":8,"warm_batch_ns":5333996274,"samples_per_second":11.998508568886939,"paired_speedup":2.2726259253476186,"paired_efficiency":0.28407824066845233,"rss_kbytes":4546932},
+    {"backend":"pyo3","observation":"summary","workers":1,"warm_batch_ns":6454485315,"samples_per_second":9.915585345165512,"paired_speedup":1.0,"paired_efficiency":1.0,"rss_kbytes":1538768},
+    {"backend":"pyo3","observation":"summary","workers":2,"warm_batch_ns":3654678993,"samples_per_second":17.5117979233149,"paired_speedup":1.770306542543316,"paired_efficiency":0.885153271271658,"rss_kbytes":1541008},
+    {"backend":"pyo3","observation":"summary","workers":4,"warm_batch_ns":2588192507,"samples_per_second":24.72768151012965,"paired_speedup":2.506543296352631,"paired_efficiency":0.6266358240881578,"rss_kbytes":1540692},
+    {"backend":"pyo3","observation":"summary","workers":8,"warm_batch_ns":1947186783,"samples_per_second":32.86793057489647,"paired_speedup":3.31477461297045,"paired_efficiency":0.41434682662130623,"rss_kbytes":1469152},
+    {"backend":"rust","observation":"full","workers":1,"warm_batch_ns":7326799270,"samples_per_second":8.735055737373845,"paired_speedup":1.0,"paired_efficiency":1.0,"rss_kbytes":5031440},
+    {"backend":"rust","observation":"full","workers":2,"warm_batch_ns":3642970765,"samples_per_second":17.568079495691478,"paired_speedup":2.0112155003802235,"paired_efficiency":1.0056077501901117,"rss_kbytes":5037232},
+    {"backend":"rust","observation":"full","workers":4,"warm_batch_ns":1579176045,"samples_per_second":40.527463801542154,"paired_speedup":4.632984135977944,"paired_efficiency":1.158246033994486,"rss_kbytes":5039128},
+    {"backend":"rust","observation":"full","workers":8,"warm_batch_ns":873814821,"samples_per_second":73.24206280543278,"paired_speedup":8.393194375676536,"paired_efficiency":1.049149296959567,"rss_kbytes":5045760},
+    {"backend":"rust","observation":"summary","workers":1,"warm_batch_ns":5145531464,"samples_per_second":12.437976610922926,"paired_speedup":1.0,"paired_efficiency":1.0,"rss_kbytes":1665440},
+    {"backend":"rust","observation":"summary","workers":2,"warm_batch_ns":2369184427,"samples_per_second":27.013515398225266,"paired_speedup":2.0068934903563758,"paired_efficiency":1.0034467451781879,"rss_kbytes":1666268},
+    {"backend":"rust","observation":"summary","workers":4,"warm_batch_ns":1191747350,"samples_per_second":53.70265769837877,"paired_speedup":4.305743555324543,"paired_efficiency":1.0764358888311358,"rss_kbytes":1667928},
+    {"backend":"rust","observation":"summary","workers":8,"warm_batch_ns":660420195,"samples_per_second":96.90799961076296,"paired_speedup":7.829213319256538,"paired_efficiency":0.9786516649070672,"rss_kbytes":1673576}
+  ],
+  "monitoring_review": {
+    "evidence_availability": "local audit only: window-known-tools.log and window-top.log were read from the unchanged local run but are intentionally excluded from the public archive because host process command lines can contain unrelated personal paths; their hashes remain recorded here",
+    "verdict": "no competing build, test, or benchmark was observed by the retained known-tool scans; monitoring does not establish exclusive or noise-free execution",
+    "known_tool_scans": {
+      "count": 29,
+      "first_utc": "2026-09-27T06:06:23Z",
+      "last_utc": "2026-09-27T06:21:14Z",
+      "cadence_disclosure": "the local log retains two manual snapshots at 06:06:23Z and 06:07:13Z; the automated approximately 30-second sequence began at 06:08:12Z; observed later gaps were 30 or 31 seconds"
+    },
+    "top_snapshots": {
+      "count": 183,
+      "first_local_time": "14:06:01",
+      "last_local_time": "14:21:18",
+      "cadence": "175 adjacent gaps were 5 seconds and seven were 6 seconds"
+    },
+    "observed_background_activity": "retained top snapshots include constant remote-control, network, editor, and Codex processes; one Codex snapshot reached 22.2% CPU and the VS Code extension host reached 29.0% CPU with four snapshots at or above 10%. CPU affinity is not present in top output, so these observations cannot be converted into a claim about contention on CPUs 0-7.",
+    "interpretation": "timing results are valid observations under the recorded shared-host conditions, not proof of exclusive-host peak performance"
+  },
+  "final_statement": "The frozen run is internally consistent and its published summary is arithmetically reproducible from the sealed records. Acceptance is limited to data integrity and protocol-consistent reporting for this exact run."
+}
