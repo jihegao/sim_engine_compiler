@@ -42,8 +42,8 @@ jobs:
           import unittest
           suite = unittest.defaultTestLoader.loadTestsFromName("tests.conformance.test_cpu_batch_baseline")
           count = suite.countTestCases()
-          if count != 24:
-              raise SystemExit(f"required harness control count drift: expected 24, got {count}")
+          if count != 28:
+              raise SystemExit(f"required harness control count drift: expected 28, got {count}")
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           if result.testsRun != count or result.skipped or result.expectedFailures or not result.wasSuccessful():
               raise SystemExit("CPU baseline harness gate failed or skipped")

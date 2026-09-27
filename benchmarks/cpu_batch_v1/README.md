@@ -7,6 +7,11 @@ The sole 2026-09-27 window completed all 56 cells in 921.501 seconds; see the
 [result report](results/amd128-20260927/REPORT.md) and
 [evidence verification boundary](results/amd128-20260927/EVIDENCE.md).
 The frozen protocol's preparation status is historical and remains unchanged.
+The [PR #25 repair](../../docs/pr25-admission-repair-v1.md) makes the reusable
+gate exercise eight effective workers and revalidates sealed admission evidence
+before summary publication. The historical measurement package remains pinned
+to its original source and separate eight-worker supplement.
+
 The protocol, semantic gate, and measurement are separate stages. CI runs
 synthetic harness controls, never the formal performance window.
 

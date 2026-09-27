@@ -855,6 +855,13 @@ def _run_runtime_gate(
     atomic_json(output.with_name(f"{output.stem}-command.json"), result)
     if result["exit_status"] != 0 or not output.is_file():
         raise RuntimeError(f"runtime semantic gate failed: {result}")
+    batch = json.loads(output.read_text(encoding="utf-8"))
+    if (
+        type(batch.get("worker_threads")) is not int
+        or batch["worker_threads"] != min(workers, len(seeds))
+        or batch.get("sample_count") != len(seeds)
+    ):
+        raise RuntimeError("runtime semantic gate effective worker/sample count drift")
     result["output"] = {
         "path": output.name,
         "sha256": sha256_file(output),
@@ -882,7 +889,7 @@ def _semantic_gate_impl(args: argparse.Namespace) -> dict[str, Any]:
     for observation in OBSERVATIONS:
         for workers in (1, 8):
             specifications.append(
-                (f"event-{observation}-duplicate-w{workers}", event_plan, [7, 0, 7, 1], workers, observation)
+                (f"event-{observation}-duplicate-w{workers}", event_plan, [7, 0, 7, 1] * 2, workers, observation)
             )
     for name, plan, seeds, workers, observation in specifications:
         output = gate_dir / f"rust-{name}.json"
@@ -1616,6 +1623,7 @@ def validate_measurement_records(
 def summarize(args: argparse.Namespace) -> dict[str, Any]:
     run_dir = args.run_dir.resolve()
     manifest = load_frozen(run_dir)
+    validate_gate_evidence(run_dir, manifest)
     measure_dir = run_dir / "measurement"
     state, records = validate_measurement_records(run_dir, manifest)
     completed = [record for record in records if record.get("status") == "completed"]

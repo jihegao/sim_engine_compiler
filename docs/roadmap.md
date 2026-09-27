@@ -1,5 +1,11 @@
 # 实施路线与验收
 
+2026-09-27 状态校准：以 [595cb5e 基线与采用说明](engine-baseline-595cb5e-v1.md)
+区分已实现、实际默认、历史性能门槛与未验证范围。PR #9 共享 PreparedBatchPlan
+已合并并用于普通 aircraft batch；其原 J35 全线程收益门仍未通过。本页后文历史
+阶段记录不应解释为当前实现尚未采用。下一最小切片是 #10/#11 公共身份合同；
+#6 当前版本性能测量单独推进，不复用历史数字作为新结论。
+
 当前已完成项目结构、F35 上游基准、Independent SimPy Reference Runtime Conformance，以及阶段 C 的独立 Rust 单样本与批量执行内核、稳定排序、Python 绑定和正式分段基准。2026-09-24 另完成一个 opt-in MLIR 资源依赖索引试点：F35 三组对照的完整结果一致，9 次运行总成本降低 4.26%。详细证据见 [独立 reference conformance](b1-independent-reference.md)、[阶段 C 基准](../benchmarks/stage_c/README.md)和[MLIR 试点](mlir-resource-dispatch-pilot.md)。2026-09-25 已接入可持久化 Business/Core IR 主链及 opt-in 候选派遣，见[三层 IR](three-layer-ir.md)与[本轮验收](dependency-dispatch.md)。
 
 ## 阶段路线
@@ -87,7 +93,7 @@ Issue #4 的输入校验切片已实现：Python 与 Rust AOT 拒绝负工作时
 
 ## 后续工作
 
-1. C1 的正式优化记录当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。MLIR 资源索引是独立 opt-in 试点，已证明 F35 九次执行下有 4.26% 总成本收益；推广前还要用另一台主机及更稠密、更多样的资源网络测量。完整共享 PreparedPlan 与 dense inventory/reservation 也应另行独立测量，分别单列 init/batch/RSS 或真实库存运输负载。
+1. C1 的正式优化记录当前收录到 O6；O2a/O4b/compatibility lowering 已因收益不足回退，O7 在本机及 AMD128 独立复测后仍未达到收录门槛。MLIR 资源索引是独立 opt-in 试点，已证明 F35 九次执行下有 4.26% 总成本收益；推广前还要用另一台主机及更稠密、更多样的资源网络测量。PreparedBatchPlan 的共享静态索引已合并为批量内部默认实现，但原 J35 全线程性能门未通过；当前版本需另行测量 init/batch/RSS。尚未共享的 dense inventory/reservation 则需另立实现与真实库存运输负载实验。
 2. 在已实现的可持久化三层链基础上，用第二领域验证粗粒度兼容操作边界；正式 Agent patch/version API 另行立项。
 3. 增加 Plan schema 验证、缓存失效合同和更细的编译诊断；先把已通过实验门槛的 O5d guarded continuous advance 作为独立变更集成/验收，再在 O5 保守跳时基础上重新设计 transition-owned persistent event、owner generation、stale token 与 microstep convergence。当前尚未实现直接事件回调执行。
 4. 扩展组织资源的多跳人员/设备运输与更多取消竞争案例。
