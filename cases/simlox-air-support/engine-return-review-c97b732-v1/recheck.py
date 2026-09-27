@@ -337,6 +337,8 @@ def check_source_identity(engine_root: Path, evidence: Path) -> dict:
     return {"pr22_head": head, "engine_build_baseline": source["commit"],
             "engine_build_fingerprint": source["build_fingerprint"],
             "consumer_source_fingerprint": source["consumer_source_fingerprint"],
+            "producer_python_version": source["python"],
+            "producer_simpy_version": source["simpy"],
             "source_git_blobs_checked": len(source["source_files"]),
             "consumer_git_blobs_checked": len(source["consumer_source_files"])}
 
@@ -422,15 +424,33 @@ def main() -> None:
                "cases": {case: check_case(case, native_root, engine_root, manifest,
                                            expected, index) for case in ("A01", "A02")},
                "status": "matched_bounded_mapped_observables_only",
-               "paired_runtime": "independent_python_reference",
+               "paired_runtime": "Python SimpyReferenceRuntime",
                "notification_mapping": "preflight_created_commission_time_proxy_only",
                "gui_status": "pending_private_user_handoff",
                "full_equivalence_verified": False,
                "native_or_engine_executed_by_this_checker": False,
+               "accepted_mapping": ["stable_aircraft_and_full_mission_identity",
+                                    "notice_time_proxy", "allocation_and_global_ready_loss",
+                                    "launch", "success", "completion_and_ready_restoration",
+                                    "72_half_hour_bins_each_case", "five_profile_integrals",
+                                    "terminal_wave_and_sortie_counts"],
                "unaccepted_semantics": ["native_creation_activation", "native_inner_task",
                                         "same_tick_priority", "faults", "pm_cm", "resources",
                                         "stock_spares", "cancellation", "shared_rng",
-                                        "A03", "J35_F35", "performance"]}
+                                        "A03", "J35_F35", "performance"],
+               "windows_consumer_test_finding": {
+                   "command": "PYTHONPATH=src python -m experiments.simlox_pairing.check_tests",
+                   "executed": 26, "passed": 24, "errors": 2, "skipped": 0,
+                   "error": "source_identity: engine sources differ from frozen main baseline",
+                   "classification": "consumer_provenance_path_portability_not_engine_semantics",
+                   "cause": "Windows str(Path.relative_to(ROOT)) uses backslash keys; checkout CRLF also changes raw file bytes",
+                   "posix_key_build_fingerprint":
+                       "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+                   "windows_key_build_fingerprint":
+                       "a20bb50e2db1c557351edfa52ca8f690a5529c4bcd50e8e59c3d62a2b77c579f",
+                   "per_file_git_blob_bytes_match_pinned": True,
+                   "pr22_implementation_changed": False,
+               }}
     receipt["negative_controls"] = check_controls(evidence, receipt["cases"]["A01"])
     print(json.dumps(receipt, ensure_ascii=False, indent=2))
 

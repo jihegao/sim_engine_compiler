@@ -23,6 +23,8 @@
     "engine_build_baseline": "595cb5eee9987324b19a8c3566f201f937e05f15",
     "engine_build_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
     "consumer_source_fingerprint": "f3726c2bb1ea83dbad3b487bd53ab2e0f58ad123f30af6a3d2b800e8d85c369b",
+    "producer_python_version": "3.12.13",
+    "producer_simpy_version": "4.1.1",
     "source_git_blobs_checked": 26,
     "consumer_git_blobs_checked": 7
   },
@@ -325,11 +327,22 @@
     }
   },
   "status": "matched_bounded_mapped_observables_only",
-  "paired_runtime": "independent_python_reference",
+  "paired_runtime": "Python SimpyReferenceRuntime",
   "notification_mapping": "preflight_created_commission_time_proxy_only",
   "gui_status": "pending_private_user_handoff",
   "full_equivalence_verified": false,
   "native_or_engine_executed_by_this_checker": false,
+  "accepted_mapping": [
+    "stable_aircraft_and_full_mission_identity",
+    "notice_time_proxy",
+    "allocation_and_global_ready_loss",
+    "launch",
+    "success",
+    "completion_and_ready_restoration",
+    "72_half_hour_bins_each_case",
+    "five_profile_integrals",
+    "terminal_wave_and_sortie_counts"
+  ],
   "unaccepted_semantics": [
     "native_creation_activation",
     "native_inner_task",
@@ -344,6 +357,20 @@
     "J35_F35",
     "performance"
   ],
+  "windows_consumer_test_finding": {
+    "command": "PYTHONPATH=src python -m experiments.simlox_pairing.check_tests",
+    "executed": 26,
+    "passed": 24,
+    "errors": 2,
+    "skipped": 0,
+    "error": "source_identity: engine sources differ from frozen main baseline",
+    "classification": "consumer_provenance_path_portability_not_engine_semantics",
+    "cause": "Windows str(Path.relative_to(ROOT)) uses backslash keys; checkout CRLF also changes raw file bytes",
+    "posix_key_build_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+    "windows_key_build_fingerprint": "a20bb50e2db1c557351edfa52ca8f690a5529c4bcd50e8e59c3d62a2b77c579f",
+    "per_file_git_blob_bytes_match_pinned": true,
+    "pr22_implementation_changed": false
+  },
   "negative_controls": [
     {
       "name": "same_totals_wrong_schedule",
