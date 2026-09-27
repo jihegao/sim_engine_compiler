@@ -16,6 +16,7 @@ from pathlib import Path
 FIELDS = ("FTMO", "NSYMO", "NSYMA", "NSYMR", "NSYRY")
 MODES = {"ordinary": "ordinary-utf8-01", "crlf": "crlf-utf8-01", "lf": "lf-utf8-01"}
 OLD_RECEIPT_SHA = "330c968bb26e7c6c1be83d3b3007221f05b32d09578634932e972b22718815c4"
+NATIVE_MANIFEST_SHA = "0b7294414c5cafa050cf90349659822f5d08ff2b42421359826a26759483d987"
 
 
 def sha(raw: bytes) -> str:
@@ -148,12 +149,17 @@ def native_case(case: str, native_repo: Path, manifest: dict, observed: dict) ->
 def compare(native_repo: Path, engine_repo: Path, dispatch: Path):
     previous = native_repo / "cases/simlox-air-support/engine-return-review-c97b732-v1/receipt.json"
     require(sha(previous.read_bytes()) == OLD_RECEIPT_SHA, "historical_receipt_sha")
-    manifest = read(native_repo / "cases/simlox-air-support/handoff-v1/manifest.json")
+    manifest_path = native_repo / "cases/simlox-air-support/handoff-v1/manifest.json"
+    require(sha(manifest_path.read_bytes()) == NATIVE_MANIFEST_SHA,
+            "native_manifest_external_sha256", sha(manifest_path.read_bytes()),
+            NATIVE_MANIFEST_SHA)
+    manifest = read(manifest_path)
     require(subprocess.check_output(["git", "-C", str(engine_repo), "rev-parse", "HEAD"],
                                     text=True).strip() ==
             "5289fb59c4f32887d8e535ccfa3e9ff00dbdecbe", "engine_revision")
     report = {"schema": "simlox-pr22-windows-independent-compare/v1",
               "historical_receipt_sha256": OLD_RECEIPT_SHA,
+              "native_manifest_external_sha256": NATIVE_MANIFEST_SHA,
               "engine_head": "5289fb59c4f32887d8e535ccfa3e9ff00dbdecbe",
               "modes": {}}
     frozen_root = "experiments/simlox_pairing/evidence/v1"

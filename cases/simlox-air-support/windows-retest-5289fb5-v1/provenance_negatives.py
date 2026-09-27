@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -93,6 +94,53 @@ def main() -> None:
                                   lambda candidate, _revision:
                                   _verified_engine_sources(candidate, "0" * 40)))
 
+        # A fresh real repository has a valid HEAD and the current 26 engine
+        # source files, but deliberately has no object for the fixed baseline.
+        # This is stronger than requesting an all-zero revision from the full
+        # history checkout: HEAD must not silently replace the missing ID.
+        isolated = Path(temporary) / "valid-head-without-fixed-baseline"
+        isolated.mkdir()
+        subprocess.run(["git", "init", "--quiet", str(isolated)], check=True)
+        git(isolated, "config", "--local", "core.autocrlf", "false")
+        shutil.copytree(checkout / "src/sim_engine_compiler",
+                        isolated / "src/sim_engine_compiler",
+                        ignore=shutil.ignore_patterns("__pycache__"))
+        shutil.copy2(checkout / "pyproject.toml", isolated / "pyproject.toml")
+        sources = [isolated / "pyproject.toml"] + sorted(
+            (isolated / "src/sim_engine_compiler").rglob("*.py"))
+        assert len(sources) == 26
+        source_hashes = {
+            path.relative_to(isolated).as_posix(): digest(path) for path in sources
+        }
+        assert source_hashes == {
+            path.relative_to(isolated).as_posix(): digest(checkout / path.relative_to(isolated))
+            for path in sources
+        }
+        git(isolated, "add", "pyproject.toml", "src/sim_engine_compiler")
+        git(isolated, "-c", "user.name=Pairing Review", "-c",
+            "user.email=pairing-review@example.invalid", "commit", "-m",
+            "disposable current engine source")
+        isolated_head = git(isolated, "rev-parse", "HEAD")
+        assert git(isolated, "cat-file", "-t", isolated_head) == "commit"
+        missing = subprocess.run(["git", "-C", str(isolated), "cat-file", "-e",
+                                  BASELINE + "^{commit}"], capture_output=True)
+        assert missing.returncode != 0
+        try:
+            _verified_engine_sources(isolated, BASELINE)
+        except Exception as error:
+            assert "frozen baseline Git object unavailable" in str(error)
+            results.append({
+                "name": "actual_fixed_baseline_absent_with_valid_head",
+                "status": "rejected", "exception_type": type(error).__name__,
+                "exception": str(error), "checkout_head": isolated_head,
+                "requested_baseline": BASELINE,
+                "baseline_cat_file_exit_code": missing.returncode,
+                "source_file_count": len(sources),
+                "source_file_sha256": source_hashes,
+            })
+        else:
+            raise AssertionError("missing actual fixed baseline silently used HEAD")
+
         git(root, "reset", "--hard", "5289fb59c4f32887d8e535ccfa3e9ff00dbdecbe")
         source = root / SOURCE
         baseline_hash = digest(source)
@@ -146,6 +194,8 @@ def main() -> None:
         "added_engine_python": "membership differs",
         "missing_engine_python": "membership differs",
         "missing_baseline_object": "frozen baseline Git object unavailable",
+        "actual_fixed_baseline_absent_with_valid_head":
+            "frozen baseline Git object unavailable",
         "valid_wrong_revision_not_substituted_for_baseline": "differs from frozen baseline",
     }
     for item in results:
