@@ -71,3 +71,35 @@ Reproduction after building each exact revision's release binary:
 ```
 
 Do not replace historical compiler benchmark results with this bounded check.
+
+## Python reference scale diagnostic (subsequent change)
+
+The Python reference previously copied the entire world for every `current`
+operation and again on each `set`/`increment` action. On a freshly compiled
+51×51, density-70, threshold-30, one-tick Plan (seed `700000001`), the pinned
+Python checkout timed out at 180 seconds while a sampled stack repeatedly
+showed `copy.deepcopy` inside `_state_copy`. The Python change now reads the
+live state for `current` operations and write targets while preserving the
+deep `phase_start` snapshot. It is generic to the ABM profile and does not
+dispatch on model identity.
+
+On the same Plan, the modified Python reference completed in 5.39 seconds.
+Its complete decoded result matched the independent Rust result exactly:
+21,346 events, 11,308 random requests, metrics and final state. A tape
+derived from each backend replayed exactly on the other backend. These are
+development diagnostics, **not** a controlled Python performance benchmark;
+the pre-change bound is a timeout, not a measured execution time. The
+Schelling source model is not involved in this backend comparison.
+
+A 100-tick-horizon Plan for threshold 30, seed `700000001`, stopped at tick 13
+with `all-happy`. Python and Rust again produced exactly equal decoded results:
+131,948 events and 14,570 random requests. This covers the full source
+candidate world and a multi-tick run. At threshold 50 with the same seed and
+horizon, both stopped at tick 16 with exactly equal results: 165,330 events
+and 25,548 random requests. The two cases do not cover all parameters or seeds.
+
+The separate historical SIMLOX A01/A02 pairing uses a frozen engine-source
+baseline. The new Python ABM bytes are recorded as an explicit, SHA-pinned
+checkout delta; the old baseline hash remains unchanged. Fresh pairing output
+now records both the frozen baseline and executed-source fingerprints. This
+does not retroactively change old evidence or imply SIMLOX native acceptance.

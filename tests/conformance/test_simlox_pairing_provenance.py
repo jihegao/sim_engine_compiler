@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path, PureWindowsPath
 
 from experiments.simlox_pairing.provenance import (
+    DECLARED_MODIFIED_BASELINE_SOURCE_SHA256,
     DECLARED_NONBASELINE_SOURCE_CONTRACT,
     DECLARED_NONBASELINE_SOURCE_SHA256,
     DEFAULT_ARCHIVE,
@@ -103,6 +104,10 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
             },
         )
         self.assertTrue(identity["checkout_source_membership_fingerprint"])
+        self.assertEqual(identity["declared_modified_baseline_source_files"],
+                         DECLARED_MODIFIED_BASELINE_SOURCE_SHA256)
+        self.assertNotEqual(identity["build_fingerprint"],
+                            identity["executed_source_fingerprint"])
 
     def test_source_keys_are_posix_for_windows_and_host_path_objects(self):
         self.assertEqual(

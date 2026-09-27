@@ -153,6 +153,11 @@ class AbmTickRuntime:
             "agents": {identity: copy.deepcopy(value) for identity, value in self.agents.items()},
         }
 
+    def _current_view(self) -> dict[str, Any]:
+        # Expressions only read state. Actions copy values before storing them,
+        # so current reads can observe live writes without cloning the world.
+        return {"globals": self.globals, "patches": self.patches, "agents": self.agents}
+
     def _normalize_position(self, x: float, y: float) -> tuple[float, float]:
         topology = self.payload["topology"]
         width, height = topology["width"], topology["height"]
@@ -423,14 +428,14 @@ class AbmTickRuntime:
                             "kind": kind, "entity": entity, "details": copy.deepcopy(details)})
 
     def _write(self, target: str, actor: dict[str, Any], field: str, value: Any,
-               kind: str, state: dict[str, Any]) -> None:
+               kind: str) -> None:
         if target == "globals":
             before = self.globals.get(field)
             after = value if kind == "set" else self._add(before, value)
             self.globals[field] = copy.deepcopy(after)
             identity = "$global"
         else:
-            record = actor if target == "self" else self._patch_here(actor, self._state_copy())
+            record = actor if target == "self" else self._patch_here(actor, self._current_view())
             live = self.patches.get(record["id"]) or self.agents.get(record["id"])
             if live is None:
                 return
@@ -452,7 +457,7 @@ class AbmTickRuntime:
         if kind in {"set", "increment"}:
             _, target, actor_id, field, value, actor_snapshot = action
             actor = self.agents.get(actor_id) or self.patches.get(actor_id) or actor_snapshot
-            self._write(target, actor, field, value, kind, self._state_copy())
+            self._write(target, actor, field, value, kind)
         elif kind == "move":
             _, actor_id, x, y, heading = action
             actor = self.agents.get(actor_id)
@@ -709,7 +714,7 @@ class AbmTickRuntime:
             for operation in phase["operations"]:
                 if dead:
                     break
-                view = snapshot if phase["read_view"] == "phase_start" else self._state_copy()
+                view = snapshot if phase["read_view"] == "phase_start" else self._current_view()
                 actor = view[phase["target"]].get(initial_actor["id"])
                 if actor is None:
                     break

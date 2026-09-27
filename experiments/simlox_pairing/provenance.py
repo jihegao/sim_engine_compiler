@@ -32,6 +32,14 @@ DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.
 # and content-pinned instead of widening the frozen baseline or ignoring
 # arbitrary new Python files.
 DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v3"
+DECLARED_MODIFIED_BASELINE_SOURCE_CONTRACT = "simlox-pairing-declared-engine-delta/v1"
+DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
+    # The ABM reference clone-elision is a new engine revision. Keep the A01/A02
+    # source baseline frozen and identify the changed executed bytes separately.
+    "src/sim_engine_compiler/reference/abm_runtime.py": (
+        "46ef80ad188c39bc8d733378b143a29d46c0bba67eda63904067070bb352e10f"
+    ),
+}
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/identity/__init__.py": (
         "3cb31c00457b10ac369f0f059df6d536a97896492c3bed51ee4469e08e080c38"
@@ -171,7 +179,7 @@ def _declared_digest_mode(executed: bytes, expected_sha256: str, key: str) -> st
             and sha256(normalized) == expected_sha256
         ):
             return "controlled_whole_file_lf_to_crlf_checkout"
-    raise ValueError(f"declared nonbaseline source differs from pinned content: {key}")
+    raise ValueError(f"declared source differs from pinned content: {key}")
 
 
 def _verified_engine_sources(
@@ -179,14 +187,22 @@ def _verified_engine_sources(
     revision: str,
     *,
     declared_nonbaseline_sources: dict[str, str] | None = None,
+    declared_modified_baseline_sources: dict[str, str] | None = None,
 ) -> dict:
     blobs = _baseline_source_blobs(root, revision)
     declared = dict(sorted((declared_nonbaseline_sources or {}).items()))
+    modified = dict(sorted((declared_modified_baseline_sources or {}).items()))
     overlap = set(blobs) & set(declared)
     if overlap:
         raise ValueError(
             "declared nonbaseline sources overlap frozen baseline: "
             f"{sorted(overlap)}"
+        )
+    missing_modifications = sorted(set(modified) - set(blobs))
+    if missing_modifications:
+        raise ValueError(
+            "declared modified source is absent from frozen baseline: "
+            f"{missing_modifications}"
         )
     actual_paths = sorted((root / "src/sim_engine_compiler").rglob("*.py"))
     actual_paths.append(root / "pyproject.toml")
@@ -207,7 +223,12 @@ def _verified_engine_sources(
     modes: dict[str, str] = {}
     for key, (object_id, blob) in blobs.items():
         executed = actual[key].read_bytes()
-        modes[key] = _executed_byte_mode(blob, executed, key)
+        if key in modified:
+            if len(modified[key]) != 64:
+                raise ValueError(f"invalid declared modified source digest: {key}")
+            modes[key] = _declared_digest_mode(executed, modified[key], key)
+        else:
+            modes[key] = _executed_byte_mode(blob, executed, key)
         canonical_hashes[key] = sha256(blob)
         blob_oids[key] = object_id
         executed_hashes[key] = sha256(executed)
@@ -229,8 +250,12 @@ def _verified_engine_sources(
         "declared_nonbaseline_source_files": declared,
         "declared_nonbaseline_executed_source_files": declared_executed_hashes,
         "declared_nonbaseline_source_modes": declared_modes,
+        "declared_modified_baseline_source_files": modified,
+        "declared_modified_baseline_source_contract": (
+            DECLARED_MODIFIED_BASELINE_SOURCE_CONTRACT
+        ),
         "checkout_source_membership_fingerprint": json_digest(
-            {**canonical_hashes, **declared}
+            {**canonical_hashes, **declared, **modified}
         ),
         "declared_nonbaseline_source_contract": (
             DECLARED_NONBASELINE_SOURCE_CONTRACT
@@ -314,6 +339,7 @@ def source_identity() -> dict:
         ROOT,
         BASELINE,
         declared_nonbaseline_sources=DECLARED_NONBASELINE_SOURCE_SHA256,
+        declared_modified_baseline_sources=DECLARED_MODIFIED_BASELINE_SOURCE_SHA256,
     )
     if engine["build_fingerprint"] != BASELINE_BUILD_SHA256:
         raise ValueError("engine sources differ from the frozen main baseline")
@@ -323,10 +349,11 @@ def source_identity() -> dict:
     }
     return {
         "commit": BASELINE,
-        "commit_scope": "engine_source_baseline_not_consumer_PR_head",
+        "commit_scope": "frozen_engine_source_baseline_with_declared_checkout_delta",
+        "checkout_head": _git(ROOT, "rev-parse", "HEAD").decode("ascii").strip(),
         "build_kind": "independent_python_reference_source_execution",
         **engine,
-        "source_byte_policy": "git-blob-or-strict-whole-file-lf-to-crlf/v1",
+        "source_byte_policy": "git-blob-or-explicit-digest-with-strict-whole-file-lf-to-crlf/v2",
         "consumer_source_fingerprint": json_digest(consumer),
         "consumer_source_files": consumer,
         "python": platform.python_version(),
