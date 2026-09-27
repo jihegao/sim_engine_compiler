@@ -68,6 +68,27 @@ def assert_partial_envelope(report):
     assert report["coverage"]["level"] in {"partial", "none"}
 
 
+@pytest.mark.parametrize(
+    "query",
+    [
+        {"limit": 1},
+        {"entity": "does-not-match"},
+        {"limit": 1000, "max_event_bytes": 2},
+    ],
+    ids=("outside-page", "outside-filter", "outside-budget"),
+)
+def test_invalid_event_details_are_rejected_before_selection(plan, result, query) -> None:
+    malformed = copy.deepcopy(result)
+    malformed["trace"][1]["details"] = ["invalid-runtime-event-details"]
+
+    report = query_trace(malformed, request(), plan, query=query)
+
+    assert report["status"] == "invalid"
+    assert report["events"] == []
+    assert "unparseable_trace" in codes(report)
+    assert report["diagnostics"][-1]["path"] == "result.trace[1].details"
+
+
 def test_default_query_preserves_original_sequence_ids_and_recorded_facts(result, plan):
     result_before = copy.deepcopy(result)
     plan_before = copy.deepcopy(plan.to_dict())

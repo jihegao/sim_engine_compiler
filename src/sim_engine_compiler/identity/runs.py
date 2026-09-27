@@ -479,6 +479,11 @@ def project_event_references(run_identity: Any, result: Any, *,
                 return _projection_invalid("unparseable_trace",
                                            f"event {field} must be a non-empty string",
                                            path=f"result.trace[{index}].{field}")
+        details = event.get("details")
+        if details is not None and not isinstance(details, dict):
+            return _projection_invalid("unparseable_trace",
+                                       "event details must be an object or null",
+                                       path=f"result.trace[{index}].details")
         event_id = _event_id(identity["sample_id"], sequence)
         all_events.append({
             "event_id": event_id,

@@ -6,9 +6,13 @@ from pathlib import Path
 
 import pytest
 
+import sim_engine_compiler.trace_query.facts as facts_module
+from sim_engine_compiler.identity.common import content_digest
 from sim_engine_compiler.review import export_review
 from sim_engine_compiler.trace_query.facts import (
     FACTS_SCHEMA,
+    _project_facts,
+    _review_has_verified_authority,
     process_reference,
     project_facts,
 )
@@ -27,6 +31,11 @@ def _bundle(case: str = "b1") -> dict[str, dict]:
 def _review(case: str = "b1") -> dict:
     persisted = _bundle(case)
     return export_review(persisted["core"], bundle=persisted)
+
+
+def _projector(case: str = "b1"):
+    bundle = _bundle(case)
+    return lambda raw_event: project_facts(raw_event, bundle=bundle)
 
 
 def _events(name: str = "b1-reference-result.json") -> list[dict]:
@@ -69,7 +78,7 @@ def test_recorded_job_event_preserves_fields_and_uses_only_versioned_process_mea
 def test_verified_review_links_only_exact_recorded_core_symbols_and_source_paths() -> None:
     raw = _event("operations_phase_created")
 
-    facts = project_facts(raw, review=_review())
+    facts = _projector()(raw)
 
     assert facts["design_links"]["status"] == "verified"
     links = facts["design_links"]["links"]
@@ -83,9 +92,9 @@ def test_verified_review_links_only_exact_recorded_core_symbols_and_source_paths
 
 
 def test_entity_role_is_kind_scoped_and_never_cross_typed_by_string_coincidence() -> None:
-    review = _review()
-    returned = project_facts(_event("mission_returned"), review=review)
-    launched = project_facts(_event("mission_launched"), review=review)
+    projector = _projector()
+    returned = projector(_event("mission_returned"))
+    launched = projector(_event("mission_launched"))
 
     returned_entity_links = [
         item for item in returned["design_links"]["links"]
@@ -134,7 +143,7 @@ def test_unknown_event_kind_is_capability_limited_and_does_not_infer_job_from_en
         "details": {"opaque_future_field": {"kept": True}},
     }
 
-    facts = project_facts(raw, review=_review())
+    facts = _projector()(raw)
 
     assert facts["status"] == "capability_limited"
     assert facts["recorded"]["details"] == raw["details"]
@@ -146,7 +155,7 @@ def test_unknown_event_kind_is_capability_limited_and_does_not_infer_job_from_en
     assert all(item["recorded_field"] != "entity" for item in facts["design_links"]["links"])
 
 
-def test_absent_partial_or_tampered_review_cannot_authorize_design_links() -> None:
+def test_caller_supplied_review_cannot_authorize_design_links() -> None:
     raw = _event("mission_launched")
     persisted = _bundle()
     partial = export_review(persisted["core"], bundle={"core": persisted["core"]})
@@ -160,9 +169,39 @@ def test_absent_partial_or_tampered_review_cannot_authorize_design_links() -> No
     tampered["views"]["entities"].pop()
 
     for review in (None, partial, forged, tampered):
-        facts = project_facts(raw, review=review)
-        assert facts["design_links"] == {"status": "unavailable", "links": []}
-        assert "design_association_unverified" in _gap_codes(facts)
+        with pytest.raises(TypeError, match="unexpected keyword argument 'review'"):
+            project_facts(raw, review=review)
+
+
+def test_self_signed_review_envelope_cannot_authorize_design_links() -> None:
+    forged = copy.deepcopy(_review())
+    forged["views"]["entities"].append({
+        "view_id": "core/aircraft/EVIL",
+        "provenance": {"source_path": "forged.aircraft"},
+    })
+    forged["view_fingerprint"] = content_digest(forged["views"])
+    unsigned = dict(forged)
+    unsigned.pop("export_fingerprint")
+    forged["export_fingerprint"] = content_digest(unsigned)
+    assert _review_has_verified_authority(forged)
+    assert not hasattr(facts_module, "_bundle_backed_review")
+    raw = {
+        "sequence": 1,
+        "time": 0,
+        "phase": "mission",
+        "kind": "mission_returned",
+        "entity": "EVIL",
+        "source_path": "forged.aircraft",
+        "details": {},
+    }
+
+    with pytest.raises(TypeError, match="unexpected keyword argument 'review'"):
+        project_facts(raw, review=forged)
+    with pytest.raises(TypeError, match="unexpected keyword argument 'review'"):
+        _project_facts(raw, review=forged)
+
+    disguised = project_facts(raw, bundle={"core": forged})
+    assert disguised["design_links"] == {"status": "unavailable", "links": []}
 
 
 def test_process_reference_does_not_promote_aircraft_mission_or_adjacent_events() -> None:

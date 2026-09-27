@@ -133,7 +133,7 @@ def _matches(event, raw_event, identity, query):
             and event["time"] < query.get("time_end", math.inf))
 
 
-def _select(report, projection, raw, query, review):
+def _select(report, projection, raw, query, bundle):
     events = projection["events"]
     raw_by_sequence = ({event["sequence"]: event for event in raw["trace"]}
                        if events else {})
@@ -144,8 +144,12 @@ def _select(report, projection, raw, query, review):
     selected = []
     used_bytes = 2  # brackets of the canonical JSON event array
     for event in page:
-        item = {**event, "facts": project_facts(
-            raw_by_sequence[event["recorded_sequence"]], review=review)}
+        item = {
+            **event,
+            "facts": project_facts(
+                raw_by_sequence[event["recorded_sequence"]], bundle=bundle
+            ),
+        }
         size = len(_encoded(item)) + bool(selected)
         if used_bytes + size > query["max_event_bytes"]:
             break  # preserve a prefix; never skip a large item to include a later one
@@ -281,6 +285,7 @@ def query_trace(result: Any, request: Any, plan: Any, *, bundle=None, query=None
         report["evidence_binding"] = {**projection["evidence_binding"],
                                       "backend": req["backend"], "backend_basis": "caller_asserted"}
         review = None
+        linked_bundle = None
         if supplied is not None and supplied.get("core") is not None:
             stage = "review"
             review = export_review(supplied["core"], bundle=supplied)
@@ -293,15 +298,15 @@ def query_trace(result: Any, request: Any, plan: Any, *, bundle=None, query=None
                 "association_status": review["association_status"],
                 "input_identity": review["input_identity"],
             }
+            linked_bundle = supplied
         stage = "trace-query"
-        linked_review = review
         if review is not None and "plan_fingerprint" not in projection["evidence_binding"]["verified_result_fields"]:
-            linked_review = None
+            linked_bundle = None
             report["diagnostics"].append(diagnostic(
                 "result_plan_binding_insufficient", "result did not record a Plan fingerprint; "
                 "a valid supplied design revision cannot authorize event-to-design links",
                 stage="trace-query", severity="warning"))
-        _select(report, projection, raw, normalized, linked_review)
+        _select(report, projection, raw, normalized, linked_bundle)
         report["status"] = "partial"
         report["diagnostics"].append(diagnostic(
             "trace_evidence_partial", "only supplied recorded facts; unsigned tail completeness, "

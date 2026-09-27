@@ -184,7 +184,17 @@ def _view_index(review: Mapping[str, Any]) -> tuple[dict[str, tuple[str, dict[st
     return by_id, with_sources
 
 
-def _design_links(event: Mapping[str, Any], review: Mapping[str, Any]) -> list[dict[str, str]]:
+def _design_links(
+    event: Mapping[str, Any], bundle: Mapping[str, Any]
+) -> list[dict[str, str]] | None:
+    """Return links only after revalidating the supplied raw artifact bundle."""
+    if not isinstance(bundle, Mapping) or bundle.get("core") is None:
+        raise ValueError("raw bundle with Core is required for design associations")
+    from sim_engine_compiler.review import export_review
+
+    review = export_review(bundle["core"], bundle=bundle)
+    if not _review_has_verified_authority(review):
+        return None
     by_id, with_sources = _view_index(review)
     links: dict[tuple[str, str, str, str], dict[str, str]] = {}
 
@@ -244,9 +254,11 @@ def _design_links(event: Mapping[str, Any], review: Mapping[str, Any]) -> list[d
     return [links[key] for key in sorted(links)]
 
 
-def project_facts(raw_event: Mapping[str, Any], *, review: Mapping[str, Any] | None = None
-                  ) -> dict[str, Any]:
-    """Project one raw event without adding unrecorded causal semantics."""
+def _project_facts(
+    raw_event: Mapping[str, Any],
+    *,
+    bundle: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     if not isinstance(raw_event, Mapping):
         raise TypeError("raw_event must be an object")
     event = json_value(raw_event)
@@ -312,8 +324,8 @@ def project_facts(raw_event: Mapping[str, Any], *, review: Mapping[str, Any] | N
             "reason": "event did not record a details object",
         })
 
-    if review is not None and _review_has_verified_authority(review):
-        design_links = _design_links(event, review)
+    design_links = _design_links(event, bundle) if bundle is not None else None
+    if design_links is not None:
         design_fact = {"status": "verified", "links": design_links}
         if not design_links:
             gaps.append({
@@ -349,3 +361,12 @@ def project_facts(raw_event: Mapping[str, Any], *, review: Mapping[str, Any] | N
         "design_links": design_fact,
         "evidence_gaps": sorted(gaps, key=lambda item: (item["code"], item["field"])),
     }
+
+
+def project_facts(
+    raw_event: Mapping[str, Any],
+    *,
+    bundle: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Project one event; raw bundle authority is revalidated on every call."""
+    return _project_facts(raw_event, bundle=bundle)
