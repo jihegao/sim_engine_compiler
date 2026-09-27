@@ -1,0 +1,116 @@
+{
+  "schema_version": "simlox-pairing-portability-independent-review/v1",
+  "review_status": "pass_local_remote_pending",
+  "task": "engine-review-data-recovery-and-pr22-portability-v1-part-a",
+  "reviewed_parent": {
+    "commit": "c97b73241ef961b99c2c416488bdd6462ce0e1d2",
+    "tree": "27a549216795517c34bbc34d694bfcdd31cebf85"
+  },
+  "scope": {
+    "pull_request": 22,
+    "implementation_changed_by_reviewer": false,
+    "runtime_semantics_changed": false,
+    "rng_semantics_changed": false,
+    "windows_or_native_simlox_executed_by_reviewer": false,
+    "remote_ci_status_at_review": "pending"
+  },
+  "reviewed_artifacts": {
+    ".github/workflows/a01-a02-pairing.yml": "486ecf5415445fbb6dbf08992abca5d2b328826c92399ce513c615af995e46ea",
+    ".github/workflows/o5-mlir-integration.yml": "dba21eefb0dc99eeb51e02c7a3d039d2047e0a79863c1a8e5c8b16f2bfbae641",
+    "docs/TASK_PR22_PORTABILITY_V1.md": "624a501b7a4a15fc1fec9cae85549906c2e052c51046ee38307e173e9f58e7cc",
+    "experiments/simlox_pairing/README.md": "586159400b34d53e966b5e04d34460d5e2182dcfac06f40c4c0e4f73ec8e4405",
+    "experiments/simlox_pairing/provenance.py": "e279e889fdc254074c5e90e980d7aacf50f70c60af2638063d28264d64b77a03",
+    "experiments/simlox_pairing/check_tests.py": "58a71d742ae381cc8abe4ae00a642d8de3e7bc7faf0343bd8f80943f498d8e17",
+    "tests/conformance/test_simlox_pairing_provenance.py": "a159b973c3c8e9a524e6e2c49cb7f61c3244821025ed227fdbe08c9e3ebe547b",
+    "experiments/simlox_pairing/evidence/portability-v1/report.json": "7c87c1410eb5394d34203cf2a233b148d3784e6847b0982aac8102c6c7f50dae"
+  },
+  "frozen_identity": {
+    "engine_baseline_commit": "595cb5eee9987324b19a8c3566f201f937e05f15",
+    "engine_source_file_count": 26,
+    "portable_posix_build_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+    "backslash_key_reproduction_fingerprint": "a20bb50e2db1c557351edfa52ca8f690a5529c4bcd50e8e59c3d62a2b77c579f",
+    "simulated_all_crlf_executed_fingerprint": "fbf174817c3a03ce2ca20e968a900567475b000153a6b4d65b536007aa7a0c4d",
+    "historical_v1_git_tree": "2fb8f12f4a2539daab4e27338ed7f331e91b175e",
+    "historical_native_receipt_sha256": "330c968bb26e7c6c1be83d3b3007221f05b32d09578634932e972b22718815c4"
+  },
+  "verification": [
+    {
+      "command": "PYTHONPATH=src python3 -m experiments.simlox_pairing.check_tests",
+      "result": "32 collected, 32 executed, 0 skipped, 0 failures, 0 errors",
+      "module_counts": {
+        "tests.conformance.test_simlox_pairing_canonical": 7,
+        "tests.conformance.test_simlox_pairing_observations": 13,
+        "tests.conformance.test_simlox_pairing_provenance": 9,
+        "tests.conformance.test_simlox_pairing_runner": 3
+      },
+      "status": "pass"
+    },
+    {
+      "command": "PYTHONPATH=src python3 -m experiments.simlox_pairing.run --output <fresh-temporary-directory>",
+      "result": "A01 matched 625 checks and A02 matched 681 checks; each produced 72 intervals",
+      "status": "pass"
+    },
+    {
+      "command": "independent temporary Git repository revision and newline controls",
+      "result": "valid old revision was not replaced by a different HEAD; working bytes from the wrong revision were rejected; exact and per-file whole-file CRLF modes were accepted and distinguished",
+      "status": "pass"
+    },
+    {
+      "command": "uvx ruff check experiments/simlox_pairing/provenance.py tests/conformance/test_simlox_pairing_provenance.py",
+      "result": "All checks passed",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean",
+      "status": "pass"
+    }
+  ],
+  "negative_controls": {
+    "pairing_controls": {
+      "count": 4,
+      "all_detected": true,
+      "classes": [
+        "same_totals_wrong_schedule",
+        "same_times_wrong_identity",
+        "result_plan_mismatch",
+        "canonical_input_plan_mismatch"
+      ]
+    },
+    "provenance_controls": [
+      "Windows path objects produce canonical POSIX repository keys",
+      "mixed LF and CRLF within a file is rejected",
+      "bare CR replacement is rejected",
+      "arbitrary working-file content changes are rejected",
+      "added or deleted engine Python sources are rejected",
+      "missing exact baseline Git objects fail closed without a HEAD fallback",
+      "Git-blob build identity remains separate from actual working-file byte identity"
+    ]
+  },
+  "review_findings": {
+    "blocking": [],
+    "resolved": [
+      "native Windows path separators no longer affect the portable build fingerprint",
+      "checkout newline conversion is audited per file instead of being silently normalized",
+      "the exact baseline tree and blobs are read from Git rather than inferred from HEAD",
+      "working-file membership and bytes are checked independently of the baseline build fingerprint",
+      "shallow CI checkouts explicitly fetch the pinned baseline object before verification"
+    ]
+  },
+  "accepted_boundaries": [
+    "source_files and build_fingerprint identify exact baseline Git blob contents with POSIX keys",
+    "executed_source_files and executed_source_fingerprint identify bytes read from the current working tree",
+    "each current engine Python file and pyproject.toml must be exact or the strict whole-file LF-to-CRLF transform of its matching baseline blob",
+    "consumer experiment files retain a separate actual-byte fingerprint and the PR head remains a CI binding"
+  ],
+  "remaining_limits": [
+    "remote Linux CI for the repair commit must be read back before PR handoff",
+    "Windows checkout and native SIMLOX were not rerun; PureWindowsPath and CRLF behavior were exercised locally",
+    "executed_source is a verification-time working-file snapshot and is not cryptographic proof of interpreter byte consumption or absence of concurrent mutation",
+    "the historical engine identity scope remains Python source files plus pyproject.toml; package data, binaries, dependency wheels and the full installation are outside this receipt",
+    "consumer source collection covers the current top-level experiment modules; a future nested Python package would require recursive collection",
+    "the rebuilt and delivered ZIP containers are not byte-identical even though the reported member data and compressed streams match",
+    "the original v1 evidence and native receipt remain historical and were not rewritten"
+  ],
+  "conclusion": "The portability repair correctly separates portable Git-blob build identity from audited working-file byte identity, rejects unapproved content or membership changes, and preserves the bounded A01/A02 pairing evidence. No local blocker remains within the declared scope; exact-head remote CI is still required."
+}

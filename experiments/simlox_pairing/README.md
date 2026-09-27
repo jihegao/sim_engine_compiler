@@ -113,3 +113,44 @@ is not dynamic cancellation. This work does not establish faults, resources,
 spares, cancellation, same-time priority, shared RNG streams, complete F35/J35
 equivalence, GUI acceptance, A03 support or any speedup. No formal timing, native
 SIMLOX execution or paid pilot dispatch occurred.
+
+## Portability repair v1
+
+The original v1 evidence remains immutable. A later Windows checkout reported
+24 passing tests and two `source_identity` errors: native `Path` stringification
+put backslashes into the aggregate keys, changing the expected POSIX digest
+`8b029a0a...` to `a20bb50e...`; checkout newline conversion could also change
+raw working-file hashes. This repair does not rewrite that receipt and did not
+repeat Windows, GUI or native SIMLOX acceptance.
+
+Engine source identity now has two explicit layers:
+
+- The portable build identity is the SHA-256 of each exact Git blob at
+  `main@595cb5eee9987324b19a8c3566f201f937e05f15`, keyed by canonical POSIX
+  repository paths. Its aggregate remains `8b029a0a...` on every host.
+- The executed-source identity hashes the bytes actually read from the working
+  tree and records a mode per file. A file must either equal its Git blob byte
+  for byte or equal the single whole-file transformation LF to CRLF. Mixed
+  newlines, bare CR changes, any other content edit, and added or missing engine
+  Python files fail closed. CRLF is therefore audited, not generally normalized.
+
+The imported `SimpyReferenceRuntime` path must still resolve into this checkout.
+The source verifier reads the exact baseline tree and blobs and never substitutes
+`HEAD`; a shallow checkout must first fetch the exact baseline commit. Missing
+Git objects are a hard failure. Consumer experiment files remain a separate
+actual-byte fingerprint because the PR head is bound by CI rather than by the
+engine baseline. Reproduction and negative-control results are recorded under
+`evidence/portability-v1/`; historical `evidence/v1/` files are unchanged.
+
+This identity scope is the historical Python source set plus `pyproject.toml`,
+not a complete installed-package or interpreter identity. The executed-source
+fields are a working-file snapshot at verification time, not a proof against
+stale bytecode or concurrent file replacement. Current consumer modules are all
+top-level files; a future consumer subpackage must extend its inventory.
+
+The native coordinator's later PR21 receipt (commit `2c0277b42586a6c02af18152d2cdc0806073c953`,
+receipt SHA-256 `330c968bb26e7c6c1be83d3b3007221f05b32d09578634932e972b22718815c4`)
+reports matching contents and compressed streams for all 24 ZIP members, with
+24 central-directory `create_system` metadata bytes differing. This is reported
+external evidence, not a new native check here; delivered and rebuilt ZIPs
+remain **not byte identical**. The old receipt is not retrospectively changed.
