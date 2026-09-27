@@ -15,26 +15,11 @@ LIB = HERE.parent
 REPO = HERE.parents[2]
 sys.path.insert(0, str(LIB / "tools"))
 from validate_native import remove_trailing_commas, table_rows, validate  # noqa: E402
-from portable import (CASE_DIR, CONTRACT_SHA, INPUT_SHA, METRICS, PAIRING_SHA,
+from portable import (CASE_DIR, CONTRACT_SHA, INPUT_SHA, METRICS, PAIRING_SHA, PAYLOAD_SOURCES,
                       RUN_IDS, SOURCE_COMMIT, WINDOW_SHA, digest, encoded,
-                      expected_case, must, window_summary)  # noqa: E402
+                      expected_case, expected_tolerances, must, window_summary)  # noqa: E402
 
 RAW_ROOT = REPO / "data/local/simlox-case-library/v1"
-PAYLOAD_SOURCES = {
-    "pairing-contract.json": "cases/simlox-air-support/pairing-contract.json",
-    "collection-window-review-v2.json": "cases/simlox-air-support/collection-window-review-v2.json",
-    "expected-observations.json": "cases/simlox-air-support/handoff-v1/expected-observations.json",
-    "gui-checklist.json": "cases/simlox-air-support/handoff-v1/gui-checklist.json",
-    "consumer-report-template.json": "cases/simlox-air-support/handoff-v1/consumer-report-template.json",
-    "README.md": "cases/simlox-air-support/handoff-v1/README.md",
-    "portable.py": "cases/simlox-air-support/handoff-v1/portable.py",
-}
-for case, folder in CASE_DIR.items():
-    for name in ("contract.json", "parameters.json", "native-input.json", "manifest.json",
-                 "acceptance.json", "results-summary.json", "evidence-index.json", "mapping.csv"):
-        PAYLOAD_SOURCES[f"cases/{case}/{name}"] = f"cases/simlox-air-support/{folder}/{name}"
-
-
 def check_native(case_id: str, expected: dict) -> list[dict]:
     accepted = []
     for run_id in RUN_IDS[case_id]:
@@ -141,17 +126,13 @@ def freeze() -> dict:
         "native_runs": native_runs,
         "units": {"native_time": "hour", "pairing_time": "minute", "hours_to_minutes": 60,
                   "FTMO_integral": "hour", "NSY_integral": "aircraft-hour"},
-        "tolerances": {"event_time_hours": .0001,
-                       "event_time_minutes": .006,
-                       "normal_interval_endpoint_hours": 1e-8,
-                       "normal_interval_endpoint_minutes": 6e-7,
-                       "rcend_requested_to_native_float_hours": 2e-7,
-                       "profile_value": 1e-8, "integral": 1e-8,
-                       "profile_value_units": "FTMO mission-operation hours/hour; NSY* aircraft count",
-                       "integral_units": "FTMO hours; NSY* aircraft-hours",
-                       "discrete_counts_and_identities": "exact"},
+        "tolerances": expected_tolerances(),
         "normal_observation": {"SIMPE_hours": 36, "RCEND_hours": 36,
                                "system_intervals": 72, "result_summary_window_hours": [0, 36]},
+        "native_result_scope": {
+            "SystemResults.UNID": "Total over all Units",
+            "SystemResults.SID": "Total over all Systems",
+            "single_aircraft_interpretation": "totals equal the sole aircraft in A01/A02 only; no multi-aircraft identity claim"},
         "output_boundaries": {
             "native_report_fields": ["ResultSummary.MSTF", "ResultSummary.MSUF", "SystemResults.FTMO",
                                      "SystemResults.NSYMO", "SystemResults.NSYMA", "SystemResults.NSYMR",

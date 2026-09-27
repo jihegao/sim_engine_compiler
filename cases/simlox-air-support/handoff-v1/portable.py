@@ -41,6 +41,19 @@ RUN_IDS = {
     "A01": ("a01-bound-final-20260927-03", "a01-bound-replay-20260927-04"),
     "A02": ("a02-bound-final-20260927-03", "a02-bound-replay-20260927-04"),
 }
+PAYLOAD_SOURCES = {
+    "pairing-contract.json": "cases/simlox-air-support/pairing-contract.json",
+    "collection-window-review-v2.json": "cases/simlox-air-support/collection-window-review-v2.json",
+    "expected-observations.json": "cases/simlox-air-support/handoff-v1/expected-observations.json",
+    "gui-checklist.json": "cases/simlox-air-support/handoff-v1/gui-checklist.json",
+    "consumer-report-template.json": "cases/simlox-air-support/handoff-v1/consumer-report-template.json",
+    "README.md": "cases/simlox-air-support/handoff-v1/README.md",
+    "portable.py": "cases/simlox-air-support/handoff-v1/portable.py",
+}
+for _case, _folder in CASE_DIR.items():
+    for _name in ("contract.json", "parameters.json", "native-input.json", "manifest.json",
+                  "acceptance.json", "results-summary.json", "evidence-index.json", "mapping.csv"):
+        PAYLOAD_SOURCES[f"cases/{_case}/{_name}"] = f"cases/simlox-air-support/{_folder}/{_name}"
 
 
 def digest(raw: bytes) -> str:
@@ -54,6 +67,22 @@ def encoded(value: object) -> bytes:
 def must(condition: bool, message: str) -> None:
     if not condition:
         raise ValueError(message)
+
+
+def expected_tolerances() -> dict:
+    return {
+        "event_time": {"absolute_hours": .0001, "equivalent_minutes": .006},
+        "normal_interval_endpoint": {"absolute_hours": 1e-8, "equivalent_minutes": 6e-7},
+        "rcend_requested_vs_native_float": {"absolute_hours": 2e-7,
+                                             "meaning": "report float precision observation, not scheduler tolerance"},
+        "profile": {metric: {"absolute": 1e-8,
+                              "unit": "mission-operation-hour/hour" if metric == "FTMO" else "aircraft"}
+                    for metric in METRICS},
+        "integral": {metric: {"absolute": 1e-8,
+                               "unit": "hour" if metric == "FTMO" else "aircraft-hour"}
+                     for metric in METRICS},
+        "discrete_counts_and_identities": "exact",
+    }
 
 
 def interval_rows(contract: dict) -> list[dict]:
@@ -168,15 +197,11 @@ def semantic_verify(manifest: dict, files: dict[str, bytes]) -> dict:
     must(manifest.get("units") == {"native_time": "hour", "pairing_time": "minute",
                                         "hours_to_minutes": 60, "FTMO_integral": "hour",
                                         "NSY_integral": "aircraft-hour"}, "wrong units")
-    must(manifest.get("tolerances") == {"event_time_hours": .0001,
-              "event_time_minutes": .006,
-              "normal_interval_endpoint_hours": 1e-8,
-              "normal_interval_endpoint_minutes": 6e-7,
-              "rcend_requested_to_native_float_hours": 2e-7,
-              "profile_value": 1e-8, "integral": 1e-8,
-              "profile_value_units": "FTMO mission-operation hours/hour; NSY* aircraft count",
-              "integral_units": "FTMO hours; NSY* aircraft-hours",
-              "discrete_counts_and_identities": "exact"}, "wrong tolerances")
+    must(manifest.get("tolerances") == expected_tolerances(), "wrong dimensioned tolerances")
+    must(set(manifest.get("payload_files", {})) == set(PAYLOAD_SOURCES), "wrong fixed payload schema")
+    for name, relative in PAYLOAD_SOURCES.items():
+        must(manifest["payload_files"][name].get("repo_relative_path") == relative,
+             f"wrong fixed payload source path: {name}")
     must(manifest.get("case_versions") == {"A01": "1.0.0", "A02": "1.0.0"}, "case versions changed")
     must(manifest.get("sealed_tools_sha256") == SEALED_TOOLS, "sealed tool fingerprints changed")
     native_tool = manifest.get("native_executable", {})
@@ -257,16 +282,28 @@ def semantic_verify(manifest: dict, files: dict[str, bytes]) -> dict:
          "engine result falsely accepted")
     gui = json.loads(files["gui-checklist.json"])
     must(gui["status"] == "pending_private_user_handoff", "GUI status falsely accepted")
+    must(gui["cases"]["A01"]["table_fields_to_confirm"]["MissionType"]["NOPER_hours_notice_lead"] == 1,
+         "GUI notice-lead field omitted")
     for case_id in CASE_DIR:
         final_artifacts = manifest["native_runs"][case_id][0]["original_artifacts"]
         must(gui["cases"][case_id]["sxi_sha256"] == final_artifacts["model.sxi"]["sha256"]
              and gui["cases"][case_id]["sxo_sha256"] == final_artifacts["model.sxo"]["sha256"],
              "GUI retained model fingerprint mismatch")
+        fields = gui["cases"][case_id]["table_fields_to_confirm"]
+        must(all(fields[table]["nonempty_business_rows"] == 0
+                 for table in ("Item", "MaterielPM", "PMLocation", "TaskResource", "StockAllocation")),
+             "GUI empty mechanism table names/values changed")
+    must(manifest.get("native_result_scope") == {
+        "SystemResults.UNID": "Total over all Units",
+        "SystemResults.SID": "Total over all Systems",
+        "single_aircraft_interpretation": "totals equal the sole aircraft in A01/A02 only; no multi-aircraft identity claim"},
+        "native report scope changed")
     return {"case_count": 2, "intervals_per_case": 72,
             "engine_status": "not_run_unverified", "gui_status": "pending_private_user_handoff"}
 
 
 def verify_package(path: Path, manifest_sha256: str | None = None) -> dict:
+    must(manifest_sha256 is not None, "external manifest SHA required for formal verification")
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
         must(len(names) == len(set(names)), "duplicate package member")
@@ -274,8 +311,7 @@ def verify_package(path: Path, manifest_sha256: str | None = None) -> dict:
                  and not name.endswith("/") for name in names), "unsafe package member")
         must("manifest.json" in names, "missing manifest")
         raw_manifest = archive.read("manifest.json")
-        if manifest_sha256:
-            must(digest(raw_manifest) == manifest_sha256, "manifest SHA mismatch")
+        must(digest(raw_manifest) == manifest_sha256, "manifest SHA mismatch")
         manifest = json.loads(raw_manifest)
         payload = manifest.get("payload_files", {})
         must(set(names) == set(payload) | {"manifest.json"}, "missing/extra package file")
@@ -320,7 +356,7 @@ def main() -> None:
     package.add_argument("--output", type=Path, required=True)
     verify = sub.add_parser("verify")
     verify.add_argument("--zip", type=Path, required=True)
-    verify.add_argument("--manifest-sha256")
+    verify.add_argument("--manifest-sha256", required=True)
     args = parser.parse_args()
     result = pack(args.repo, args.output) if args.command == "pack" else verify_package(args.zip, args.manifest_sha256)
     print(json.dumps(result, ensure_ascii=False, indent=2))

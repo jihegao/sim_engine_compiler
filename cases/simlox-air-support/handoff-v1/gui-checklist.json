@@ -18,11 +18,15 @@
         "SystemDeployment": {"SID": "TEACH-AIR-01", "USTID": "TEACH-UNIT", "QTYPS": 1},
         "Unit": {"UNID": "TEACH-UNIT", "STID": "BASE-01"},
         "Station": {"STID": "BASE-01", "QTY": 1},
-        "MissionType": {"MTID": "BASIC-MISSION", "NOS": 1, "MNOS": 1, "DURN_hours": 2, "MSUCPT": 1, "TFOUT": 0.25, "TFRET": 0.25},
+        "MissionType": {"MTID": "BASIC-MISSION", "NOS": 1, "MNOS": 1, "DURN_hours": 2, "MSUCPT": 1, "TFOUT": 0.25, "TFRET": 0.25, "NOPER_hours_notice_lead": 1},
         "OperationProfile": {"STIM_hours": [8], "IQTY": [1], "DTIM_hours": 0.3333333333333333},
         "MissionPreparation": {"nonempty_business_rows": 0},
         "ResultCollection": {"types": ["MISSION", "SYSTEM"], "RCINT_hours": 0.5, "RCEND_hours": 36},
-        "Item/PM/TaskResource/StockAllocation": {"nonempty_business_rows": 0}
+        "Item": {"nonempty_business_rows": 0},
+        "MaterielPM": {"nonempty_business_rows": 0},
+        "PMLocation": {"nonempty_business_rows": 0},
+        "TaskResource": {"nonempty_business_rows": 0},
+        "StockAllocation": {"nonempty_business_rows": 0}
       },
       "retained_result_checks": {"one_notification_hours": 7, "one_launch_hours": 8, "one_completion_hours": 10, "SystemResults_intervals": 72, "FTMO_integral_hours": 2, "NSYRY_integral_aircraft_hours": 33, "NPSTA": 0},
       "screenshots_needed": ["connected session and SIMLOX About/version dialog", "opened SXI model identity and System/Deployment/Unit/Station table views", "Control, MissionType, OperationProfile and empty preparation/item/resource/stock views", "opened retained SXO result summary and SystemResults around 7-10 h"]
@@ -35,7 +39,12 @@
       "table_fields_to_confirm": {
         "System/SystemDeployment/Unit/Station/MissionType/Control": "same values as A01; inspect rather than assume from GUI",
         "OperationProfile": {"STIM_hours": [8, 20, 32], "IQTY": [1, 1, 1], "DTIM_hours_each": 0.3333333333333333},
-        "MissionPreparation/Item/PM/TaskResource/StockAllocation": {"nonempty_business_rows": 0}
+        "MissionPreparation": {"nonempty_business_rows": 0},
+        "Item": {"nonempty_business_rows": 0},
+        "MaterielPM": {"nonempty_business_rows": 0},
+        "PMLocation": {"nonempty_business_rows": 0},
+        "TaskResource": {"nonempty_business_rows": 0},
+        "StockAllocation": {"nonempty_business_rows": 0}
       },
       "retained_result_checks": {"notifications_hours": [7, 19, 31], "launches_hours": [8, 20, 32], "completions_hours": [10, 22, 34], "SystemResults_intervals": 72, "FTMO_integral_hours": 6, "NSYRY_integral_aircraft_hours": 27, "NPSTA": 0},
       "screenshots_needed": ["opened A02 SXI model identity and three OperationProfile rows", "same sole aircraft/deployment and no preparation/item/resource rows", "opened retained SXO result summary and SystemResults around each ready/allocated/flying transition"]

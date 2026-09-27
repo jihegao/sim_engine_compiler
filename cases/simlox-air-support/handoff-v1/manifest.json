@@ -228,15 +228,62 @@
     "NSY_integral": "aircraft-hour"
   },
   "tolerances": {
-    "event_time_hours": 0.0001,
-    "event_time_minutes": 0.006,
-    "normal_interval_endpoint_hours": 1e-08,
-    "normal_interval_endpoint_minutes": 6e-07,
-    "rcend_requested_to_native_float_hours": 2e-07,
-    "profile_value": 1e-08,
-    "integral": 1e-08,
-    "profile_value_units": "FTMO mission-operation hours/hour; NSY* aircraft count",
-    "integral_units": "FTMO hours; NSY* aircraft-hours",
+    "event_time": {
+      "absolute_hours": 0.0001,
+      "equivalent_minutes": 0.006
+    },
+    "normal_interval_endpoint": {
+      "absolute_hours": 1e-08,
+      "equivalent_minutes": 6e-07
+    },
+    "rcend_requested_vs_native_float": {
+      "absolute_hours": 2e-07,
+      "meaning": "report float precision observation, not scheduler tolerance"
+    },
+    "profile": {
+      "FTMO": {
+        "absolute": 1e-08,
+        "unit": "mission-operation-hour/hour"
+      },
+      "NSYMO": {
+        "absolute": 1e-08,
+        "unit": "aircraft"
+      },
+      "NSYMA": {
+        "absolute": 1e-08,
+        "unit": "aircraft"
+      },
+      "NSYMR": {
+        "absolute": 1e-08,
+        "unit": "aircraft"
+      },
+      "NSYRY": {
+        "absolute": 1e-08,
+        "unit": "aircraft"
+      }
+    },
+    "integral": {
+      "FTMO": {
+        "absolute": 1e-08,
+        "unit": "hour"
+      },
+      "NSYMO": {
+        "absolute": 1e-08,
+        "unit": "aircraft-hour"
+      },
+      "NSYMA": {
+        "absolute": 1e-08,
+        "unit": "aircraft-hour"
+      },
+      "NSYMR": {
+        "absolute": 1e-08,
+        "unit": "aircraft-hour"
+      },
+      "NSYRY": {
+        "absolute": 1e-08,
+        "unit": "aircraft-hour"
+      }
+    },
     "discrete_counts_and_identities": "exact"
   },
   "normal_observation": {
@@ -276,8 +323,8 @@
   "payload_files": {
     "README.md": {
       "repo_relative_path": "cases/simlox-air-support/handoff-v1/README.md",
-      "sha256": "697e78a23e902984c7c1741d3f08d07fe362f08c6845a2cc8dfece70a8456fb4",
-      "bytes": 4268
+      "sha256": "8e04971e2157441cae008702cc7bcd7543b7f92acdd98a035dd0aa43e9738820",
+      "bytes": 4713
     },
     "cases/A01/acceptance.json": {
       "repo_relative_path": "cases/simlox-air-support/A01-single-aircraft-single-mission/acceptance.json",
@@ -376,8 +423,8 @@
     },
     "gui-checklist.json": {
       "repo_relative_path": "cases/simlox-air-support/handoff-v1/gui-checklist.json",
-      "sha256": "bd053133bf9d5ae415fc1c53bd5b07fd41b945ab839503fa444c126026f39411",
-      "bytes": 4635
+      "sha256": "68df491d13dbc36131887cc3f058d2d175c26ff09c3b7afe2bf4277aa32a8a46",
+      "bytes": 5081
     },
     "pairing-contract.json": {
       "repo_relative_path": "cases/simlox-air-support/pairing-contract.json",
@@ -386,10 +433,15 @@
     },
     "portable.py": {
       "repo_relative_path": "cases/simlox-air-support/handoff-v1/portable.py",
-      "sha256": "cd4442597e42e2fc36c845d3ca77495730341337aa569cf23841625235555d0d",
-      "bytes": 20028
+      "sha256": "ca85a2f49d840a18c4b9fa552e9f8133f0c75aa7375491fdc10c4318c14b4904",
+      "bytes": 22484
     }
   },
   "native_observation_status": "four_sealed_cli_normal_replay_runs_verified_on_4700-3",
-  "engine_mapping_status": "pending_unverified"
+  "engine_mapping_status": "pending_unverified",
+  "native_result_scope": {
+    "SystemResults.UNID": "Total over all Units",
+    "SystemResults.SID": "Total over all Systems",
+    "single_aircraft_interpretation": "totals equal the sole aircraft in A01/A02 only; no multi-aircraft identity claim"
+  }
 }

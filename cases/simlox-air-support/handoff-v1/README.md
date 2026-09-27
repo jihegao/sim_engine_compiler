@@ -53,6 +53,9 @@ returns 10/22/34 h. The aircraft is **not ready** between notice and launch.
 `NSYMO/NSYMA/NSYMR/NSYRY × interval_width` integrate to aircraft-hours:
 A01 `2/3/1/33`, A02 `6/9/3/27`. The native inner task at 8.5–9.5 h
 (and +12/+24 h) is retained as native-only until an engine mapping is agreed.
+Native `SystemResults` rows are scoped to `Total over all Units` and
+`Total over all Systems`; these totals equal the sole aircraft in A01/A02,
+which does not establish a SID-specific report mapping for multiple aircraft.
 Native zero-time preparation log markers are bookkeeping; NPSTA=0 means no
 modeled preparation work. One wave equals one sortie here only because there
 is exactly one aircraft per wave.
@@ -74,3 +77,6 @@ independent execution with explicit aircraft/mission identity mapping,
 72-bin state comparison, terminal counts and first discrepancy. GUI review
 still awaits private Windows App connection; the included checklist is a
 request for evidence, not a record of completed screenshots.
+Read-only engine code inspection suggests an existing pre-support path for
+notice and readiness, but this is only a mapping candidate until an engine
+run demonstrates matching observables; no engine task is initiated here.
