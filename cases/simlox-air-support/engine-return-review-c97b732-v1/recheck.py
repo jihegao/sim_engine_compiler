@@ -412,6 +412,8 @@ def main() -> None:
     require(sha(Path(native_executable["path_windows"])) == native_executable["sha256"],
             "native executable hash")
     receipt = {"schema": "a01-a02-engine-return-independent-recheck/v1",
+               "native_handoff_source": "519b2094c3be355399bc101cdcfe30d456cbb47b",
+               "accepted_native_source": manifest["accepted_source_commit"],
                "native_executable": native_executable,
                "native_manifest_sha256": MANIFEST_SHA,
                "engine_evidence_index_sha256": ENGINE_INDEX_SHA,
@@ -419,7 +421,16 @@ def main() -> None:
                "source_identity": check_source_identity(engine_root, evidence),
                "cases": {case: check_case(case, native_root, engine_root, manifest,
                                            expected, index) for case in ("A01", "A02")},
-               "status": "matched_bounded_mapped_observables_only"}
+               "status": "matched_bounded_mapped_observables_only",
+               "paired_runtime": "independent_python_reference",
+               "notification_mapping": "preflight_created_commission_time_proxy_only",
+               "gui_status": "pending_private_user_handoff",
+               "full_equivalence_verified": False,
+               "native_or_engine_executed_by_this_checker": False,
+               "unaccepted_semantics": ["native_creation_activation", "native_inner_task",
+                                        "same_tick_priority", "faults", "pm_cm", "resources",
+                                        "stock_spares", "cancellation", "shared_rng",
+                                        "A03", "J35_F35", "performance"]}
     receipt["negative_controls"] = check_controls(evidence, receipt["cases"]["A01"])
     print(json.dumps(receipt, ensure_ascii=False, indent=2))
 
