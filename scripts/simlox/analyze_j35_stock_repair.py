@@ -34,6 +34,7 @@ RULES = {
     "direct_repair_duration": re.compile(r"direct repair subtask .* starts performing, planned to last for"),
     "system_ready": re.compile(r"System ready <"),
 }
+EXPECTED_NATIVE_STEPS = ("import", "export", "calc", "jsonreport")
 
 
 def sha256(path: Path) -> str:
@@ -57,6 +58,21 @@ def parse_log(path: Path) -> list[dict]:
     return events
 
 
+def require_complete_native_steps(steps: object, *, case: str) -> None:
+    """Reject partial, reordered, duplicated, or failed native evidence."""
+    if not isinstance(steps, list):
+        raise ValueError(f"{case}: steps.json must contain a list")
+    names = [step.get("name") if isinstance(step, dict) else None for step in steps]
+    if names != list(EXPECTED_NATIVE_STEPS):
+        raise ValueError(
+            f"{case}: expected native steps {list(EXPECTED_NATIVE_STEPS)}, got {names}"
+        )
+    for step in steps:
+        exit_code = step.get("exit_code")
+        if isinstance(exit_code, bool) or not isinstance(exit_code, int) or exit_code != 0:
+            raise ValueError(f"{case}: native step {step['name']} exit code is {exit_code!r}, expected 0")
+
+
 def analyze_case(directory: Path) -> dict:
     stem = directory.name
     model_path = directory / f"{stem}.json"
@@ -65,9 +81,10 @@ def analyze_case(directory: Path) -> dict:
     validity = json.loads((directory / "validity.json").read_text(encoding="utf-8-sig"))
     roundtrip = json.loads((directory / "roundtrip-check.json").read_text(encoding="utf-8-sig"))
     steps = json.loads((directory / "steps.json").read_text(encoding="utf-8-sig"))
+    require_complete_native_steps(steps, case=stem)
     assert sha256(model_path) == manifest["input_sha256"]
     assert validity["valid"] and validity["conversion_errors"] == 0 and validity["sxo_bytes"] > 4
-    assert roundtrip["all_equal"] and all(step["exit_code"] == 0 for step in steps)
+    assert roundtrip["all_equal"]
     events = parse_log(log_path)
     return {
         "case": stem, "input_sha256": sha256(model_path), "enlog_sha256": sha256(log_path),

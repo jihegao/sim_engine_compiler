@@ -30,6 +30,30 @@ def load_script(name: str):
 
 
 class J35ContractProbeTests(unittest.TestCase):
+    def test_native_analyzers_require_exact_ordered_four_step_evidence(self):
+        complete = [
+            {"name": name, "exit_code": 0}
+            for name in ("import", "export", "calc", "jsonreport")
+        ]
+        incomplete = complete[:-1]
+        reordered = [complete[1], complete[0], *complete[2:]]
+        duplicated = [*complete, complete[-1]]
+        failed = [*complete[:2], {"name": "calc", "exit_code": 1}, complete[-1]]
+
+        for script in ("analyze_j35_cancel_matrix.py", "analyze_j35_stock_repair.py"):
+            analyzer = load_script(script)
+            with self.subTest(script=script, evidence="complete"):
+                analyzer.require_complete_native_steps(complete, case="probe")
+            for evidence, steps in (
+                ("incomplete", incomplete),
+                ("reordered", reordered),
+                ("duplicated", duplicated),
+                ("failed", failed),
+            ):
+                with self.subTest(script=script, evidence=evidence):
+                    with self.assertRaisesRegex(ValueError, "probe:.*native step|probe: expected native steps"):
+                        analyzer.require_complete_native_steps(steps, case="probe")
+
     def test_all_lru_products_keep_stable_source_and_shared_pools(self):
         rows, summary = load_script("audit_j35_lru_contract.py").audit()
         self.assertEqual((len(rows), summary["lru_count"]), (403, 403))
