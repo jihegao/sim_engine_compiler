@@ -71,3 +71,12 @@ dispatch and cached replay share the helper. This is a diagnostic semantic
 compatibility correction; allocation, event ordering, RNG, reference code,
 workloads and comparison tolerances are unchanged. The ablation compares all
 three arms on this same corrected kernel. Full verification must pass anew.
+
+## Completed AMD128 window
+
+The [2026-09-27 report](results/amd128-20260927/REPORT.md) records the sole
+99-cell window at measured source `cf50eec`: 85.675827 seconds, all cells
+complete, zero comparisons meeting the frozen benefit threshold. Independent
+semantic and evidence reviews passed. This is negative performance evidence;
+default dispatch remains unchanged. The publication bundle documents its
+process-argument redaction and preserves original/published hashes.
