@@ -15,7 +15,8 @@ on completion, and four aircraft-hours of mission operation. It rejects a
 one-aircraft launch even when aggregate mission success is one.
 
 The parent A01/A02 GUI gates remain pending. The candidate is not published.
-`run_native.ps1` runs only from a local `Console` session; it refuses SSH/RDP,
+`run_native.ps1` requires an active interactive `Console` or RDP user session;
+this interactive runner rejects SSH/session-0 execution,
 an existing run directory or an active SIMLOX process. Each run needs a new ID
 and the checked input hash. It stores raw outputs in a unique directory, runs
 both the preserved probe validator and the new source-bound strict summary
@@ -25,3 +26,8 @@ GUI review, parent gates and an independent replay are separate requirements
 for a formal case conclusion. The three retained probes and their original
 source-bound results are indexed in `evidence-index.json`; their validator is
 preserved byte-for-byte in `validate.py`.
+RDP process presence alone does not prove that SIMLOX import, calculation or
+report export works there. Check the visible license state and keep a failed
+first RDP run as evidence rather than promoting the earlier CLI probes.
+An SSH CLI run, if used, needs its own versioned launch and provenance contract;
+it does not turn a CLI result into GUI acceptance.

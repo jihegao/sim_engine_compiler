@@ -100,6 +100,29 @@ def expected_arguments(run: Path) -> dict[str, str]:
     }
 
 
+def validate_interactive_session(evidence: dict) -> dict:
+    if not isinstance(evidence, dict):
+        raise ValueError("invalid interactive native session evidence")
+    name = evidence.get("name")
+    session_id = evidence.get("id")
+    user = evidence.get("user")
+    query_line = evidence.get("query_line")
+    if (
+        not isinstance(name, str)
+        or re.fullmatch(r"Console|RDP-Tcp#\d+", name, re.IGNORECASE) is None
+        or type(session_id) is not int
+        or session_id <= 0
+        or not isinstance(user, str)
+        or not user
+        or not isinstance(query_line, str)
+    ):
+        raise ValueError("invalid interactive native session evidence")
+    pattern = rf"^\s*>?\s*{re.escape(name)}\s+{re.escape(user)}\s+{session_id}\s+Active(?:\s|$)"
+    if re.match(pattern, query_line, re.IGNORECASE) is None:
+        raise ValueError("native session query does not identify an active matching user")
+    return {"name": name, "id": session_id, "user": user, "query_line": query_line}
+
+
 def resolve_manifest_path(relative: object, parent: Path, label: str) -> Path:
     if not isinstance(relative, str):
         raise ValueError(f"manifest {label} path must be a string")
@@ -206,6 +229,7 @@ def prepare(
     variant_id: str,
     run_id: str,
     input_sha256: str,
+    interactive_session: dict | None = None,
 ) -> dict:
     run = run.resolve()
     source_input = source_input.resolve()
@@ -221,9 +245,11 @@ def prepare(
         raise ValueError("source/copied input fingerprint mismatch")
     if not EXE.is_file() or sha256(EXE) != EXE_SHA256:
         raise ValueError("SIMLOX executable fingerprint mismatch")
+    if interactive_session is None:
+        raise ValueError("new native invocation requires interactive session evidence")
     invocation_id = str(uuid.uuid4())
     record = {
-        "schema_version": "simlox-preparation-resource-native-binding/v1",
+        "schema_version": "simlox-preparation-resource-native-binding/v2",
         "task_id": "simlox-preparation-resource-v1",
         "case_id": case_id,
         "variant_id": variant_id,
@@ -245,6 +271,7 @@ def prepare(
             name: str((run / name).resolve()) for name in RAW_NAMES
         },
     }
+    record["interactive_session"] = validate_interactive_session(interactive_session)
     write_exclusive(run / "invocation.json", record)
     return record
 
@@ -369,8 +396,8 @@ def verify(run: Path, case_id: str, variant_id: str) -> dict:
         raise ValueError("invocation case/variant/run identity mismatch")
     if tuple(closure.get(key) for key in ("case_id", "variant_id", "run_id")) != identity:
         raise ValueError("closure case/variant/run identity mismatch")
-    schema = "simlox-preparation-resource-native-binding/v1"
-    if invocation.get("schema_version") != schema or closure.get("schema_version") != schema:
+    schema = invocation.get("schema_version")
+    if schema not in {"simlox-preparation-resource-native-binding/v1", "simlox-preparation-resource-native-binding/v2"} or closure.get("schema_version") != schema:
         raise ValueError("binding schema mismatch")
     if invocation.get("task_id") != "simlox-preparation-resource-v1" or closure.get(
         "task_id"
@@ -391,6 +418,8 @@ def verify(run: Path, case_id: str, variant_id: str) -> dict:
         raise ValueError("closure timestamp predates invocation")
     if invocation.get("run_dir") != str(run):
         raise ValueError("invocation run directory mismatch")
+    if schema.endswith("/v2"):
+        validate_interactive_session(invocation.get("interactive_session", {}))
 
     source_input = Path(invocation.get("source_input_path", "")).resolve()
     input_sha = invocation.get("copied_input_sha256")
@@ -481,6 +510,10 @@ def main() -> None:
     parser.add_argument("--variant")
     parser.add_argument("--run-id")
     parser.add_argument("--input-sha256")
+    parser.add_argument("--session-name")
+    parser.add_argument("--session-id", type=int)
+    parser.add_argument("--session-user")
+    parser.add_argument("--session-query-line")
     args = parser.parse_args()
     if args.operation == "prepare":
         required = (
@@ -494,6 +527,15 @@ def main() -> None:
             parser.error(
                 "prepare needs --source-input, --case, --variant, --run-id and --input-sha256"
             )
+        session_parts = (args.session_name, args.session_id, args.session_user, args.session_query_line)
+        if not all(part is not None for part in session_parts):
+            parser.error("prepare needs all four session evidence fields")
+        session = {
+            "name": args.session_name,
+            "id": args.session_id,
+            "user": args.session_user,
+            "query_line": args.session_query_line,
+        }
         result = prepare(
             args.run_dir,
             args.source_input,
@@ -501,6 +543,7 @@ def main() -> None:
             args.variant,
             args.run_id,
             args.input_sha256,
+            session,
         )
     elif args.operation == "roundtrip":
         result = check_roundtrip(args.run_dir)

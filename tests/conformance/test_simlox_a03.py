@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 BASE = Path(__file__).resolve().parents[2] / "cases/simlox-air-support/A03-two-aircraft-formation"
 
@@ -64,3 +64,29 @@ def test_a03_strict_summary_rejects_false_wave_and_result_window() -> None:
         bad = list(good)
         bad[index] = wrong
         assert any(field in error for error in strict.check_summary(report(tuple(bad))))
+
+
+def test_a03_strict_invocation_requires_active_session_and_complete_native_steps() -> None:
+    strict = load("validate_strict")
+    invocation = {
+        "runner_sha256": strict.sha256(BASE / "run_native.ps1"),
+        "run_id": "run-001",
+        "original_run_dir": r"C:\native\a03\run-001",
+        "session_name": "rdp-tcp#35",
+        "session_id": 1,
+        "session_user": "user",
+        "session_query_line": ">rdp-tcp#35 user 1 Active",
+    }
+    run_dir = Path("/review/copy/run-001")
+    steps = [{"name": name, "arguments": arguments, "exit_code": 0, "wall_seconds": 0.1}
+             for name, arguments in strict.expected_arguments(PureWindowsPath(invocation["original_run_dir"])).items()]
+    assert strict.check_invocation(invocation, steps, run_dir) == []
+    assert strict.check_invocation(invocation, steps, Path("/another/replay/run-001")) == []
+    assert strict.check_invocation({**invocation, "original_run_dir": r"C:\native\a03\other"}, steps, run_dir)
+    assert strict.check_invocation({**invocation, "session_id": 0}, steps, run_dir)
+    assert strict.check_invocation({**invocation, "session_query_line": ">rdp-tcp#35 user 1 Disc"}, steps, run_dir)
+    assert strict.check_invocation({**invocation, "runner_sha256": "0" * 64}, steps, run_dir)
+    assert strict.check_invocation(invocation, steps[:-1], run_dir)
+    assert strict.check_invocation(invocation, [{**steps[0], "exit_code": 1}, *steps[1:]], run_dir)
+    assert strict.check_invocation(invocation, [{**steps[0], "arguments": "-calc other.sxi"}, *steps[1:]], run_dir)
+    assert strict.check_invocation(invocation, [{**steps[0], "wall_seconds": -1}, *steps[1:]], run_dir)

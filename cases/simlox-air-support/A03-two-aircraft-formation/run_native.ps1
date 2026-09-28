@@ -16,8 +16,17 @@ if(!(Test-Path -LiteralPath $workingDirectory) -or !(Test-Path -LiteralPath $pyt
 if(!(Test-Path -LiteralPath $exe) -or (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeSha256){throw 'SIMLOX executable fingerprint changed'}
 if((Get-FileHash -LiteralPath $input -Algorithm SHA256).Hash.ToLowerInvariant() -ne $InputSha256){throw 'checked input fingerprint changed'}
 if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX already active; preserve the user session'}
-if($env:SESSIONNAME -ne 'Console' -or (Get-Process -Id $PID).SessionId -eq 0){throw 'A03 native execution requires the visible local Console session; SSH/RDP is not admitted'}
-$consoleSessionId=(Get-Process -Id $PID).SessionId
+$nativeSessionId=(Get-Process -Id $PID).SessionId
+$nativeSessionName=$env:SESSIONNAME
+if($nativeSessionId -le 0 -or $nativeSessionName -notmatch '^(Console|RDP-Tcp#\d+)$'){
+ throw 'A03 native execution requires an interactive Console or RDP session; SSH/session-0 is not admitted'
+}
+$sessionRows=@(query session 2>&1)
+if($LASTEXITCODE -ne 0){throw 'could not verify the active Windows session'}
+$sessionPattern='^\s*>?\s*'+[regex]::Escape($nativeSessionName)+'\s+'+[regex]::Escape($env:USERNAME)+'\s+'+$nativeSessionId+'\s+Active(?:\s|$)'
+$activeSessionRows=@($sessionRows | Where-Object { $_ -match $sessionPattern })
+if($activeSessionRows.Count -ne 1){throw 'PowerShell process does not belong to one active interactive user session'}
+$nativeSessionLine=$activeSessionRows[0].Trim()
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 Copy-Item -LiteralPath $input -Destination (Join-Path $run 'input.json')
 $source=Join-Path $run 'input.json'
@@ -28,12 +37,13 @@ $report=Join-Path $run 'report-raw.json'
 $invocation=[ordered]@{
  schema='simlox-a03-invocation/v1';case_id='A03';run_id=$RunId
  created_utc=(Get-Date).ToUniversalTime().ToString('o')
+ original_run_dir=$run
  input_sha256=$InputSha256;contract_sha256=(Get-FileHash (Join-Path $case 'contract.json') -Algorithm SHA256).Hash.ToLowerInvariant()
  validator_sha256=(Get-FileHash (Join-Path $case 'validate.py') -Algorithm SHA256).Hash.ToLowerInvariant()
  strict_validator_sha256=(Get-FileHash (Join-Path $case 'validate_strict.py') -Algorithm SHA256).Hash.ToLowerInvariant()
  runner_sha256=(Get-FileHash $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant()
  simlox_exe_sha256=$exeSha256;working_directory=$workingDirectory
- session_name=$env:SESSIONNAME;session_id=$consoleSessionId
+ session_name=$nativeSessionName;session_id=$nativeSessionId;session_user=$env:USERNAME;session_query_line=$nativeSessionLine
 }
 $invocation|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'invocation.json') -Encoding UTF8
 $commands=@(

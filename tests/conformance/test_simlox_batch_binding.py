@@ -29,6 +29,12 @@ def load_binding():
 
 
 BINDING = load_binding()
+ACTIVE_SESSION = {
+    "name": "rdp-tcp#35",
+    "id": 1,
+    "user": "user",
+    "query_line": ">rdp-tcp#35 user 1 Active",
+}
 
 
 def write_json(path: Path, value: object) -> None:
@@ -115,6 +121,7 @@ def isolated_binding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict:
             "fixed-30m",
             run_id,
             digest(source),
+            ACTIVE_SESSION,
         )
         return run, invocation
 
@@ -176,7 +183,49 @@ def test_prepare_records_an_exact_manifest_bound_invocation(isolated_binding):
     assert Path(invocation["run_dir"]) == run
     assert invocation["manifest_candidate"] == isolated_binding["candidate"]
     assert invocation["copied_input_sha256"] == digest(isolated_binding["source"])
+    assert invocation["schema_version"].endswith("/v2")
+    assert invocation["interactive_session"] == ACTIVE_SESSION
     assert (run / "invocation.json").is_file()
+
+
+def test_interactive_session_binding_accepts_active_rdp_and_rejects_ssh_or_other_user(
+    isolated_binding,
+):
+    evidence = ACTIVE_SESSION
+    run = isolated_binding["new_run"]()
+    invocation = BINDING.prepare(
+        run,
+        isolated_binding["source"],
+        "B01",
+        "fixed-30m",
+        "run-001",
+        digest(isolated_binding["source"]),
+        evidence,
+    )
+    assert invocation["interactive_session"] == evidence
+    assert BINDING.validate_interactive_session({
+        **evidence,
+        "name": "Console",
+        "query_line": " console               user               1  Active",
+    })["name"] == "Console"
+    for bad in (
+        {**evidence, "name": "Services"},
+        {**evidence, "id": 0},
+        {**evidence, "user": "other"},
+        {**evidence, "query_line": ">rdp-tcp#35 user 1 Disc"},
+    ):
+        with pytest.raises(ValueError, match="session"):
+            BINDING.validate_interactive_session(bad)
+
+
+def test_new_binding_rejects_missing_session_evidence(isolated_binding):
+    run = isolated_binding["new_run"]()
+    with pytest.raises(ValueError, match="requires interactive session"):
+        BINDING.prepare(
+            run, isolated_binding["source"], "B01", "fixed-30m", "run-001",
+            digest(isolated_binding["source"]),
+        )
+    assert not (run / "invocation.json").exists()
 
 
 def test_prepare_rejects_run_path_escape(isolated_binding, tmp_path: Path):
@@ -238,6 +287,7 @@ def test_prepare_accepts_manifest_versioned_candidate_and_parameters(isolated_bi
         "serial-10m-20m",
         run_id,
         digest(source),
+        ACTIVE_SESSION,
     )
 
     assert invocation["manifest_candidate"] == candidate

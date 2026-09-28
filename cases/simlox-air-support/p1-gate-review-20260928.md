@@ -96,3 +96,16 @@ historical observation; neither state proves a local `Console` executor. The
 formal GUI queue therefore remains closed. P0 also includes K01/K02/K07/J05,
 which are still planned: A01/A02 GUI calibration is only the minimum parent
 gate for this P1 path, not completion of all P0 cases.
+
+## RDP authorization and read-only preflight — 2026-09-28
+
+The owner now authorizes using remote desktop for SIMLOX. The former
+Console-only handoff no longer describes the permitted session, but permission
+does not establish native execution capability or case acceptance. A read-only
+check found active `rdp-tcp#35` session ID 1 and an existing `Simlox.exe` process
+in that session. No second instance was launched. The revised candidate
+runners accept a matching active interactive Console/RDP process and reject
+SSH/session-0. The owner also separately authorized SSH CLI acceptance; that
+path needs its own source-bound launch contract and does not supply GUI evidence.
+The RDP path still needs a fresh native run, license observation,
+GUI evidence, and independent replay. A01/A02/A03 status remains unchanged.

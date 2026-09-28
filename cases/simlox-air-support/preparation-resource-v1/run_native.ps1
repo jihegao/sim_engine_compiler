@@ -26,13 +26,24 @@ if(!(Test-Path -LiteralPath $exe) -or (Get-FileHash -LiteralPath $exe -Algorithm
 if(!(Test-Path -LiteralPath $python)){throw 'isolated Python missing'}
 if((Get-FileHash -LiteralPath $input -Algorithm SHA256).Hash.ToLowerInvariant() -ne $InputSha256){throw 'checked source input fingerprint changed'}
 if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX process already running; leave user window untouched'}
+$nativeSessionId=(Get-Process -Id $PID).SessionId
+$nativeSessionName=$env:SESSIONNAME
+if($nativeSessionId -le 0 -or $nativeSessionName -notmatch '^(Console|RDP-Tcp#\d+)$'){
+ throw 'native execution requires an interactive Console or RDP session; SSH/session-0 is not admitted'
+}
+$sessionRows=@(query session 2>&1)
+if($LASTEXITCODE -ne 0){throw 'could not verify the active Windows session'}
+$sessionPattern='^\s*>?\s*'+[regex]::Escape($nativeSessionName)+'\s+'+[regex]::Escape($env:USERNAME)+'\s+'+$nativeSessionId+'\s+Active(?:\s|$)'
+$activeSessionRows=@($sessionRows | Where-Object { $_ -match $sessionPattern })
+if($activeSessionRows.Count -ne 1){throw 'PowerShell process does not belong to one active interactive user session'}
+$nativeSessionLine=$activeSessionRows[0].Trim()
 
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 Copy-Item -LiteralPath $input -Destination (Join-Path $run 'input.json')
 $source=Join-Path $run 'input.json'
 $binding=Join-Path $bundle 'binding.py'
 $validator=Join-Path $bundle 'validate.py'
-$invocationOutput=& $python $binding prepare --run-dir $run --source-input $input --case $CaseId --variant $VariantId --run-id $RunId --input-sha256 $InputSha256
+$invocationOutput=& $python $binding prepare --run-dir $run --source-input $input --case $CaseId --variant $VariantId --run-id $RunId --input-sha256 $InputSha256 --session-name $nativeSessionName --session-id $nativeSessionId --session-user $env:USERNAME --session-query-line $nativeSessionLine
 if($LASTEXITCODE -ne 0){throw 'pre-launch invocation binding failed; no native process started'}
 $invocation=$invocationOutput|ConvertFrom-Json
 if(!$invocation.invocation_id){throw 'pre-launch invocation ID absent'}
@@ -51,7 +62,7 @@ $records=@()
 foreach($command in $commands){
  if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX process appeared; do not disturb it'}
  $watch=[Diagnostics.Stopwatch]::StartNew()
- $process=Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -WindowStyle Hidden -PassThru -Wait
+ $process=Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -PassThru -Wait
  $watch.Stop()
  $records += [pscustomobject]@{
   name=$command.name
