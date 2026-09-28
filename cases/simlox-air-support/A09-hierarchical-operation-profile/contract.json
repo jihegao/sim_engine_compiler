@@ -1,0 +1,86 @@
+{
+  "schema": "simlox-a09-local-candidate/v1",
+  "case_id": "A09",
+  "version": "1.0.0-candidate",
+  "parent_case": "A02@1.0.0",
+  "parent_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+  "candidate_input_sha256": {
+    "flat": "65dfc84f5f17ffd83363bd61cfd35c530056c34f1e3c4478ff89525d87cf32d7",
+    "nested": "644cdd63463ff0dea1daefaa4d95f8b362610fdb9d568142df0c23f8dad8dcb0"
+  },
+  "source_method_id": "M-A09",
+  "source_manual_id": "SIMLOX-2017-USERS-REFERENCE",
+  "source_manual_pdf_pages": [[270, 276]],
+  "native_table_name": "OperationProfile",
+  "time_unit_native": "hour",
+  "time_unit_pairing": "minute",
+  "hours_to_minutes": 60,
+  "mechanisms": {
+    "aircraft_count": 1,
+    "mission_duration_hours": 2,
+    "notice_lead_hours": 1,
+    "preparation": false,
+    "fault": false,
+    "pm": false,
+    "cm": false,
+    "stock": false,
+    "resource_constraint": false
+  },
+  "observation": {"start_hours": 0, "end_hours": 48, "interval_minutes": 30, "expected_intervals": 96},
+  "flat": {
+    "root_profile_id": "BASIC-SCHEDULE",
+    "mission_id": "BASIC-MISSION",
+    "scheduled_start_hours": [8, 20, 32, 44],
+    "operation_profile_rows": 4
+  },
+  "nested": {
+    "root_profile_id": "BASIC-SCHEDULE",
+    "daily_profile_id": "A09-DAILY-TWO-WAVE",
+    "root_start_hour": 0,
+    "root_repeat_count": 2,
+    "root_repeat_period_hours": 24,
+    "relative_daily_start_hours": [8, 20],
+    "operation_profile_rows": 3,
+    "expansion_semantics": "hypothesis_only_pending_native_import_roundtrip_and_event_validation"
+  },
+  "hand_expected_if_native_expansion_matches_hypothesis": {
+    "notification_hours": [7, 19, 31, 43],
+    "start_hours": [8, 20, 32, 44],
+    "end_hours": [10, 22, 34, 46],
+    "planned_waves": 4,
+    "launched_waves": 4,
+    "sorties": 4,
+    "completed_waves": 4,
+    "cancelled_waves": 0,
+    "unfinished_at_horizon": 0,
+    "flight_hours_integral": 8,
+    "ready_hours_integral": 36
+  },
+  "expected_changed_tables": {
+    "a02_to_flat": ["Control", "OperationProfile", "ProblemDescription", "ResultCollection"],
+    "a02_to_nested": ["Control", "OperationProfile", "ProblemDescription", "ResultCollection"],
+    "flat_to_nested": ["OperationProfile"]
+  },
+  "native_acceptance_to_run_later": [
+    "Use fresh serial native runs bound to each candidate source SHA, runner, validators and raw closure; do not reuse A02 evidence.",
+    "Check import errors, warnings and native roundtrip without deduplicating repeated OperationProfile PRID values.",
+    "Compare four notifications, launches and completions by business mission and time; record native-generated instance mapping instead of assuming ordinal equality.",
+    "Compare 96 half-hour result intervals, one repetition and the no-preparation/no-fault/no-resource mechanism boundary.",
+    "Review Operations root, both OperationProfile levels and the four resulting waves in the native GUI before publication."
+  ],
+  "coverage": {
+    "A09.var01_single_multi_layer": "candidate_two_level_only_native_unverified",
+    "A09.var02_IQTY_gt_1_IPER_0": "not_covered",
+    "A09.var03_positive_IPER": "candidate_positive_period_only_native_unverified",
+    "A09.var04_duplicate_rows_vs_IQTY": "not_covered",
+    "A09.var05_illegal_child_random_regenerative": "not_covered",
+    "A09.var06_missing_or_cycle": "local_reference_rejection_only_native_conversion_unverified"
+  },
+  "scope": "local_static_candidate_only",
+  "native_import_status": "not_run",
+  "native_roundtrip_status": "not_run",
+  "native_behavior_status": "not_run",
+  "gui_status": "not_run",
+  "publication_state": "not_published",
+  "cross_engine_status": "unverified"
+}
