@@ -29,5 +29,28 @@ preserved byte-for-byte in `validate.py`.
 RDP process presence alone does not prove that SIMLOX import, calculation or
 report export works there. Check the visible license state and keep a failed
 first RDP run as evidence rather than promoting the earlier CLI probes.
-An SSH CLI run, if used, needs its own versioned launch and provenance contract;
-it does not turn a CLI result into GUI acceptance.
+For an SSH CLI run, use the separate `run_native_ssh.ps1` entry point and its
+`ssh_cli_v1` provenance contract. It requires an authenticated session-0 SSH
+process with an `sshd.exe` ancestor and stores the host, original Windows run
+path, and ordered UTC command timestamps. The strict validator checks that mode
+independently of the interactive runner. By default, this runner stops if
+another SIMLOX process exists. `-AllowExistingGui` admits exactly one verified
+active GUI process and checks its identity before and after every CLI command.
+It also holds a host-wide mutex across its native queue and validation, so a
+second invocation of this SSH runner cannot enter concurrently. This mutex
+does not coordinate the frozen historical runners or a manual SIMLOX launch.
+An SSH result does not turn a CLI result into GUI acceptance.
+
+During a read-only RDP inspection on 2026-09-28, SIMLOX 2017.2 displayed the
+candidate input from `probe-a03-20260928-03/model.sxi`: `QTYPS=2`,
+`MissionType.NOS=MNOS=2`, and a single `BASIC-SCHEDULE` operation profile
+starting at 08:00. A later source-bound A03 CLI run succeeded over SSH while
+the same GUI process stayed open; see `evidence-ssh-cli-v1.md`. This is CLI
+evidence only. No GUI calculation, report export, or source-bound screen
+capture was produced, so GUI acceptance remains pending. SIMLOX must stay open
+in the present RDP session.
+
+The native `ProblemDescription` inherited from A02 still describes an
+"A01/A02 generic one-aircraft teaching case". It conflicts with A03's actual
+two-aircraft input and must be corrected in a newly versioned candidate before
+publication; do not edit the frozen input or past run evidence in place.
