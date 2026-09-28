@@ -1,0 +1,68 @@
+{
+  "schema": "simlox-a03-contract/v1",
+  "case_id": "A03",
+  "version": "1.0.1-candidate",
+  "parent_case": "A02@1.0.0",
+  "parent_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+  "input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+  "source_method_id": "M-A03",
+  "source_manual_pdf_pages": [
+    [
+      184,
+      188
+    ],
+    [
+      262,
+      265
+    ],
+    [
+      302,
+      304
+    ]
+  ],
+  "time_unit": "hour",
+  "business_delta": "One scheduled wave at 08:00, two ready aircraft of the same System type and Unit, NOS=MNOS=2; no preparation or resources.",
+  "changed_tables_only": [
+    "MissionType",
+    "OperationProfile",
+    "ProblemDescription",
+    "SystemDeployment"
+  ],
+  "allowed_native_warnings": {
+    "108": "Control.ENLOG=Y records the first repetition",
+    "126": "the deterministic teaching System has no Item children"
+  },
+  "expected_native": {
+    "mission_tag": "<BASIC-MISSION,TEACH-UNIT,0,0,0>",
+    "aircraft": [
+      "<TEACH-AIR-01,0>",
+      "<TEACH-AIR-01,1>"
+    ],
+    "notice_hour": 7,
+    "launch_hour": 8,
+    "completion_hour": 10,
+    "planned_waves": 1,
+    "launched_waves": 1,
+    "sorties": 2,
+    "flight_aircraft_hours": 4,
+    "preparation_business_rows": 0,
+    "problem_description": "A03 two-aircraft, one-wave teaching case; no J35/F35 equivalence"
+  },
+  "limitations": [
+    "MNOSA is retained null from A02; no distinct in-flight minimum is claimed.",
+    "No MissionFormation alternative table is used; that capability belongs to A11.",
+    "The 20-minute delay deadline is not exercised by this ready-aircraft case.",
+    "CLI output does not satisfy the GUI or publication gate.",
+    "This 1.0.1 input has not been run in SIMLOX; 1.0.0 evidence cannot be reassigned to it."
+  ],
+  "acceptance_scope": "candidate_pending_parent_gui_and_native_run",
+  "publication_state": "not_published",
+  "supersedes": {
+    "version": "1.0.0-candidate",
+    "input_sha256": "51e3f99ecf86e05e35dce2b2c9e062b483a2c0f3dd64625761bc64c45900cce6",
+    "scope": "ProblemDescription.PDESC only; native behavior contract unchanged"
+  },
+  "revision_changed_tables_only": [
+    "ProblemDescription"
+  ]
+}
