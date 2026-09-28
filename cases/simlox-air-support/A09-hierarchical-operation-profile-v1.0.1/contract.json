@@ -1,0 +1,82 @@
+{
+  "schema": "simlox-a09-nested-revision/v1",
+  "case_id": "A09",
+  "version": "1.0.1-candidate",
+  "parent_case": "A02@1.0.0",
+  "parent_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+  "previous_candidate": "A09@1.0.0-candidate/nested",
+  "previous_input_sha256": "644cdd63463ff0dea1daefaa4d95f8b362610fdb9d568142df0c23f8dad8dcb0",
+  "flat_control_sha256": "65dfc84f5f17ffd83363bd61cfd35c530056c34f1e3c4478ff89525d87cf32d7",
+  "candidate_input_sha256": "e795c5fcf563f8e42ab9e9cb161a925bec3b06157cbbecde7901e99bfec91d85",
+  "v100_source_commit": "6beb791d20a93586b81a67357472874ba2679b09",
+  "source_manual_id": "SIMLOX-2017-USERS-REFERENCE",
+  "source_manual_pdf_pages": [[270, 276]],
+  "manual_evidence_boundary": "Repository mapping confirms nested SPRID references and hour-valued STIM/IPER, but does not prove the IQTY/IPER expansion formula; the proprietary manual remains on 4700-3.",
+  "changed_cell_only": {
+    "table": "OperationProfile",
+    "row_identity": {"PRID": "BASIC-SCHEDULE", "SPRID": "A09-DAILY-TWO-WAVE", "STIM": 0},
+    "column": "IPER",
+    "before_hours": 24,
+    "after_hours": 48
+  },
+  "v100_native_flat_control": {
+    "run_id": "a09-flat-nested-20260929-02-flat",
+    "host": "4700-3",
+    "execution_mode": "ssh_cli_v1",
+    "source_input_sha256": "65dfc84f5f17ffd83363bd61cfd35c530056c34f1e3c4478ff89525d87cf32d7",
+    "model_log_sha256": "c87d12ebe855b1a4c6e987318b2ea247ced02d76b25d676d707b6c42588b9ba6",
+    "report_raw_sha256": "36cd362bb15e70e388c77885143a359a6d78a4204aa63bbcabf29943c0d618b6",
+    "validation_sha256": "4e5f36ceeebd47f8216fd582b5920908484daa1d6f58a6fd6dd33119e58ba52b",
+    "raw_run_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-a09-1c7a7bda5088\\repo\\cases\\simlox-air-support\\A09-hierarchical-operation-profile\\runs\\a09-flat-nested-20260929-02-flat",
+    "import_conversion_errors": 0,
+    "roundtrip_business_rows_equal": true,
+    "notification_hours": [7, 19, 31, 43],
+    "launched_hours": [8, 20, 32, 44],
+    "completed_hours": [10, 22, 34, 46],
+    "validation_passed": true,
+    "scope": "isolated_contract_cli_candidate_only"
+  },
+  "v100_native_observation": {
+    "run_id": "a09-flat-nested-20260929-02-nested",
+    "host": "4700-3",
+    "execution_mode": "ssh_cli_v1",
+    "source_input_sha256": "644cdd63463ff0dea1daefaa4d95f8b362610fdb9d568142df0c23f8dad8dcb0",
+    "model_log_sha256": "e72d6aa37263802cab46289a0522e3a3568eec8341355941bbd4d62e2c5fb9d4",
+    "validation_sha256": "c78758d26358117275f11cbf98176370b103d9e26f8a1a82bb4c09bd7cd8d4aa",
+    "raw_run_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-a09-1c7a7bda5088\\repo\\cases\\simlox-air-support\\A09-hierarchical-operation-profile\\runs\\a09-flat-nested-20260929-02-nested",
+    "import_conversion_errors": 0,
+    "roundtrip_business_rows_equal": true,
+    "notification_hours": [7, 19, 19, 31],
+    "launched_hours": [8, 20, 32],
+    "cancelled": [{"mission_tag": "<BASIC-MISSION,TEACH-UNIT,0,0,2>", "hour_printed": 20.3333}],
+    "result_summary_mstf": 0.75,
+    "validation_passed": false,
+    "scope": "observed_isolated_cli_failure_of_four-wave_contract"
+  },
+  "interpretation": {
+    "inferred_root_instance_offset_hours_for_v100": [0, 12],
+    "candidate_rule": "root instance separation may be IPER divided by IQTY",
+    "evidence_limit": "The single IQTY=2/IPER=24 observation does not establish the general rule or the cause of every nested scheduling effect.",
+    "manual_state": "Nested reference and hour-valued STIM/IPER are mapped; the IQTY/IPER expansion formula is unverified."
+  },
+  "v101_prediction_if_candidate_rule_holds": {
+    "root_instance_offset_hours": [0, 24],
+    "notification_hours": [7, 19, 31, 43],
+    "launch_hours": [8, 20, 32, 44],
+    "completion_hours": [10, 22, 34, 46],
+    "cancelled_count": 0,
+    "result_intervals": 96
+  },
+  "native_acceptance_required": [
+    "Run the new source-bound input in a fresh run directory and retain failures without overwriting the v1.0.0 run.",
+    "Check import and roundtrip, zero conversion errors, warning identities and raw SXI/SXO/ENLOG/report closure.",
+    "Compare four distinct mission tags, four notifications, launches and completions by printed event time and identity; reject any cancellation or duplicate wave.",
+    "Compare interval-level SystemResults against the flat control, then review the nested profile in the GUI and independently replay read-only evidence."
+  ],
+  "scope": "local_static_candidate_only",
+  "native_import_status": "not_run",
+  "native_behavior_status": "not_run",
+  "gui_status": "not_run",
+  "publication_state": "not_published",
+  "cross_engine_status": "unverified"
+}
