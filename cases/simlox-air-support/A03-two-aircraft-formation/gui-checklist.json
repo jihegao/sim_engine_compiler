@@ -1,0 +1,21 @@
+{
+  "schema": "simlox-a03-gui-calibration/v1",
+  "status": "pending_disconnected_windows_desktop",
+  "reference_cli_run_id": "probe-a03-20260928-03",
+  "reference_sxi_sha256": "88ddf37cea60ced5c5e778d627baebec07217261932206cb4c90cf44a408b438",
+  "reference_sxo_sha256": "2c35501282f2eb0a58a8270155ad1e55d664256cc6ee9f0dc2ce0f016117e3d8",
+  "required_parent_gui": ["A01@1.0.0", "A02@1.0.0"],
+  "a01_a02_reference": "../handoff-v1/gui-checklist.json",
+  "checks": [
+    "Record connected 4700-3 session, SIMLOX About/version, path, capture time and screenshot hashes.",
+    "Open the retained A03 SXI read-only; confirm Control APID AIR_BASIC, NREPS 1, SIMPE 36, ENLOG Y.",
+    "Confirm System TEACH-AIR-01, Unit TEACH-UNIT, Station BASE-01, and SystemDeployment QTYPS 2.",
+    "Confirm MissionType BASIC-MISSION has NOS 2, MNOS 2, DURN 2, NOPER 1; MNOSA remains blank and is not interpreted as a tested distinct minimum.",
+    "Confirm OperationProfile contains exactly one 08:00 scheduled wave with IQTY 1 and DTIM 20 minutes.",
+    "Confirm MissionPreparation, Item, TaskResource and StockAllocation contain no business rows.",
+    "Open the retained SXO and event/result windows; locate one mission identity with aircraft instances 0 and 1, one 08:00 launch and one 10:00 completion.",
+    "Confirm SystemResults shows NSYA 2, 08:00-10:00 NSYMO 2 and FTMO 1; record ResultSummary MSTF/MSUF 1 without treating them as sortie counts.",
+    "Record exact GUI navigation path, any discrepancy and all screenshots before changing the case status."
+  ],
+  "publication_state": "not_published"
+}
