@@ -76,6 +76,11 @@ business IDs must survive JSON import, native conversion and JSON roundtrip.
 2. Import in a fresh native work directory and roundtrip every non-empty row.
 3. Run once with deterministic durations and retain invocation, exit status,
    conversion log, SXI, SXO, ENLOG and raw result export.
+   Launch only from a verified active interactive Console or RDP user session;
+   this interactive runner rejects SSH/session-0, binds the session evidence before launch,
+   and leaves any existing SIMLOX window alone.
+   Separately authorized SSH CLI collection needs a distinct, source-bound
+   launch context and remains a CLI gate until GUI evidence is reviewed.
 4. Bind full aircraft, mission, task, step and resource identities before
    comparing event times.
 5. Resolve case, variant and candidate revision from the manifest. Failed or

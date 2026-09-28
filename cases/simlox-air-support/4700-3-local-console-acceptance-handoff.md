@@ -1,31 +1,33 @@
-# 给 4700-3 本地 Codex 的 P1 原生验收交接
+# 4700-3 P1 原生验收交接
 
-本交接替代先前通过 Mac Windows App/RDP 操作 SIMLOX 的步骤。机主确认
-SIMLOX 不允许在 RDP 登录后的会话中使用。**所有 SIMLOX GUI、导入、回导、
-计算和报告操作，均须由 4700-3 本地控制台会话中的 Codex 执行。** SSH/RDP
-只可用于不启动 SIMLOX 的只读文件检查；不要通过切换窗口、隐藏启动或 CLI
-规避这一限制。若无法证明当前 Codex 及其子进程处于本地控制台，停止原生
-操作，报告阻塞。不要索取或记录登录凭据。
+2026-09-28 本轮更新：机主现允许经远程桌面操作 SIMLOX。原 Console-only
+限制保留为历史交接背景；当前可在已核实的活动交互式 `Console` 或 RDP
+用户会话中尝试 GUI 与原生运行。本交接的交互式 runner 拒绝 SSH/session-0。
+机主另已允许以 SSH 做 CLI 模型验收；该路径必须有单独版本化的启动和来源
+绑定，不能通过取消本 runner 的门禁或隐藏窗口来冒充 GUI 验收。RDP 可见
+进程不等于许可证、导入和计算可用；首次
+新运行须保留实际结果或失败现场。不要索取或记录登录凭据。
 
 ## 0. 先确认执行环境与证据边界
 
 1. 在要启动 SIMLOX 的同一登录会话中先记录 `hostname`、
-   `$env:SESSIONNAME`、`(Get-Process -Id $PID).SessionId`、`quser`、本地桌面
-   可见状态、时间、工作目录及现有 SIMLOX 进程。确认本地控制台后，才打开
+   `$env:SESSIONNAME`、`(Get-Process -Id $PID).SessionId`、`query session`、桌面
+   可见状态、时间、工作目录及现有 SIMLOX 进程。确认同一活动交互会话后，才打开
    SIMLOX，记录 About/版本/许可证状态及可执行文件路径与 SHA-256。
    预期可执行文件为
    `C:\Program Files\Systecon\SIMLOX\Simlox.exe`，此前哈希为
    `fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0`；
    实测不同时先报告，不按旧指纹强行执行。
-2. 确认 Codex 进程所属会话是 `Console`，而非 `rdp-tcp#...`。如果本地 Codex 没有桌面
-   控制或截图能力，不得把 CLI 结果写成 GUI 已验收；明确列出缺少的窗口。
+2. 确认执行进程属于活动 `Console` 或 `rdp-tcp#...` 会话，且能看到实际桌面。
+   如果没有窗口控制或截图能力，不得把 CLI 结果写成 GUI 已验收；明确列出
+   缺少的窗口。现有 SIMLOX 进程或用户窗口不得被自动关闭或抢占。
 3. 每个正式运行用唯一 run ID、新目录、冻结输入和来源哈希；一次只启动一个
    SIMLOX 作业。遇到活动进程，等待并报告，不抢占。原始运行目录及失败
    产物不覆盖、不重写。不要更改 A01/A02 冻结文件或旧证据。
 4. 所有截图记录 UTC 或本地时间、窗口/表名、打开的文件路径、实际 GUI 菜单
    路径和文件 SHA-256。截图中的字段和值须清晰可读。
 
-## 1. A01/A02 冻结复核与本地 GUI 校准
+## 1. A01/A02 冻结复核与 GUI 校准
 
 只读复核 `handoff-v1/manifest.json` 所列 A01/A02 各自的 final 和 replay
 原始目录、输入/输出哈希与原有只读验证命令；复核 19 个冻结源文件与
@@ -74,9 +76,9 @@ C:\Users\user\Documents\Codex\2026-09-28\simlox-p1-a03-b7e6945a\cases\simlox-air
 `NSYMO=2`、`FTMO=1`。结论是**一波次、两架次**、4 飞机小时；`FTMO`
 不是架次。结果摘要 `MSTF/MSUF=1` 也不能当架次数。
 
-随后按 `A03-two-aircraft-formation/contract.json` 的输入哈希，在本地
-控制台用同目录 `run_native.ps1` 建立新的唯一 run ID，执行导入、回导、
-计算、报告、严格验证及封存。脚本会拒绝非 `Console` 会话，启动命令不再
+随后按 `A03-two-aircraft-formation/contract.json` 的输入哈希，在上述
+活动交互会话用同目录 `run_native.ps1` 建立新的唯一 run ID，执行导入、回导、
+计算、报告、严格验证及封存。本交互式脚本会拒绝 SSH/session-0，启动命令不再
 指定隐藏窗口；保留 `invocation.json` 的会话 ID 和严格验证器哈希，以及
 `strict-validation.json` 的摘要断言。再对**新** `model.sxi/model.sxo` 做同样 GUI
 检查。脚本生成的 `run-manifest.json` 仍标记 `isolated_contract_cli`，
@@ -85,12 +87,14 @@ C:\Users\user\Documents\Codex\2026-09-28\simlox-p1-a03-b7e6945a\cases\simlox-air
 
 ## 3. 通过父例和 A03 门后，再串行重跑 P1 队列
 
-使用冻结源快照
+先从合并后的 `simlox/main` 在 4700-3 建立新的、记录 Git 提交和文件哈希的
+执行快照，使用其中更新过的 `preparation-resource-v1/run_native.ps1` 与
+`binding.py`。旧冻结源快照
 `C:\Users\user\Documents\Codex\2026-09-27\simlox-preparation-resource-v1-6539ea720ef2`
-中的 `cases\simlox-air-support\preparation-resource-v1\native\manifest.json`
-选取 `candidates`，核对每个 `path` 与 `input_sha256`。**不要选择**
-`failed_candidates` 中 B02 1.0.0 或 C01–C03 1.0.0。源目录存在性、脚本
-位置及哈希先实测；不能凭历史报告假定仍相同。
+仅供核对原始候选输入、manifest 和历史证据，不能用其中旧 runner 执行本轮。
+新快照的 `native/manifest.json` 从 `candidates` 选取输入，并逐一核对它与
+旧冻结快照的 `path`、`input_sha256` 完全一致。**不要选择** `failed_candidates`
+中 B02 1.0.0 或 C01–C03 1.0.0。新旧源目录存在性、脚本位置及哈希均先实测。
 
 按 `B01 → B02 → C01 → C02 → C03` 顺序执行；同一案例的所有活跃变体
 逐项串行。B03 在 B02 通过后另列一项，不与资源链结论合并。可使用包内
@@ -111,12 +115,12 @@ C:\Users\user\Documents\Codex\2026-09-28\simlox-p1-a03-b7e6945a\cases\simlox-air
 原始 SXI/SXO/ENLOG/报告非空；按合同逐条核对任务、飞机、工序、资源
 请求/等待/获得/释放及结束状态。GUI 截图要覆盖输入表关系和案例所需
 结果窗口。资源事件不全时，即使汇总起飞时间符合，也不能签署 C03。
-本地控制台环境若拒绝 SIMLOX 启动，保留错误、会话、许可证及启动上下文，
-不要用 RDP 或旧 CLI 结果代替。
+交互会话若拒绝 SIMLOX 启动或运行，保留错误、会话、许可证及启动上下文，
+不要用旧 CLI 结果代替。
 
 ## 4. 交付给独立复验者
 
-为每例/变体生成机器可读索引和简短结论，至少列：主机与 console 会话
+为每例/变体生成机器可读索引和简短结论，至少列：主机与交互会话
 证据、SIMLOX 版本/哈希/许可证、源快照与输入哈希、父例状态、新 run ID、
 GUI 实际菜单路径与截图 SHA-256、原始产物路径/大小/SHA-256、逐项断言
 `pass/fail/not_observed`、首个差异及失败现场、警告解释。将原始产物
