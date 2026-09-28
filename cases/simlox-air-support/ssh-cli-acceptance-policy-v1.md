@@ -50,7 +50,11 @@ For each new SSH CLI run:
    session markers and `sshd.exe` process ancestry, SIMLOX executable hash,
    runner hash, frozen input hash,
    exit codes, and per-step UTC timestamps.
-2. Allow only one CLI job at a time. By default, an existing SIMLOX process is
+2. Allow only one CLI job at a time. The A03 SSH runner takes a nonblocking
+   host-wide named mutex before checking existing processes and holds it
+   through validation. This coordinates concurrent invocations of that runner;
+   the frozen interactive and resource runners do not use the mutex. By
+   default, an existing SIMLOX process is
    a stop condition. `-AllowExistingGui` permits exactly one pre-existing
    process in an active interactive session; record its PID, session and start
    time, reject any other process, and verify it survives every command. Do not

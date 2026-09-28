@@ -29,6 +29,13 @@ if($sshAncestors -notcontains 'sshd.exe'){throw 'SSH CLI runner cannot verify an
 if(!(Test-Path -LiteralPath $workingDirectory) -or !(Test-Path -LiteralPath $python)){throw 'known native runtime dependencies absent'}
 if(!(Test-Path -LiteralPath $exe) -or (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeSha256){throw 'SIMLOX executable fingerprint changed'}
 if((Get-FileHash -LiteralPath $input -Algorithm SHA256).Hash.ToLowerInvariant() -ne $InputSha256){throw 'checked input fingerprint changed'}
+$queueMutexName='Global\SimloxIssue18NativeQueue'
+$queueMutex=New-Object System.Threading.Mutex($false,$queueMutexName)
+$queueAcquired=$false
+try {
+try {$queueAcquired=$queueMutex.WaitOne(0)}
+catch [System.Threading.AbandonedMutexException] {$queueAcquired=$true}
+if(-not $queueAcquired){throw 'another Issue #18 SSH native runner holds the host-wide queue mutex'}
 $existing=@(Get-Process Simlox -ErrorAction SilentlyContinue)
 $coexistingGui=$null
 if($existing.Count -gt 0){
@@ -36,9 +43,9 @@ if($existing.Count -gt 0){
  $gui=$existing[0]
  $guiSessionId=$gui.SessionId
  if($guiSessionId -le 0){throw 'existing SIMLOX process is not an interactive GUI'}
- $sessionRows=@(query session 2>&1)
+ $sessionRows=@(qwinsta 2>&1)
  if($LASTEXITCODE -ne 0){throw 'cannot verify the GUI session'}
- $activeGuiRows=@($sessionRows | Where-Object {$_ -match ('^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+'+$guiSessionId+'\s+Active(?:\s|$)')})
+ $activeGuiRows=@($sessionRows | Where-Object {$_ -match ('^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+'+$guiSessionId+'\s+(?:Active|\u8fd0\u884c\u4e2d)(?:\s|$)')})
  if($activeGuiRows.Count -ne 1){throw 'existing SIMLOX GUI is not in one active interactive session'}
  $coexistingGui=[ordered]@{pid=$gui.Id;session_id=$guiSessionId;session_query_line=$activeGuiRows[0].Trim();process_start_utc=$gui.StartTime.ToUniversalTime().ToString('o')}
 }elseif($AllowExistingGui){throw 'AllowExistingGui was requested without an existing GUI'}
@@ -62,6 +69,7 @@ $invocation=[ordered]@{
  ssh_connection_present=[bool]$env:SSH_CONNECTION;ssh_client_present=[bool]$env:SSH_CLIENT
  ssh_ancestor_names=$sshAncestors
  allow_existing_gui=[bool]$AllowExistingGui;coexisting_gui=$coexistingGui
+ queue_mutex=$queueMutexName
 }
 $invocation|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'invocation.json') -Encoding UTF8
 $commands=@(
@@ -105,3 +113,7 @@ if($LASTEXITCODE -ne 0){throw 'A03 CLI assertions failed; preserve raw artifacts
 if($LASTEXITCODE -ne 0){throw 'A03 strict summary assertions failed; preserve raw artifacts'}
 [ordered]@{schema='simlox-a03-run-manifest/v1';case_id='A03';run_id=$RunId;input_sha256=$InputSha256;closure_sha256=(Get-FileHash (Join-Path $run 'closure.json') -Algorithm SHA256).Hash.ToLowerInvariant();validation_sha256=(Get-FileHash (Join-Path $run 'validation.json') -Algorithm SHA256).Hash.ToLowerInvariant();strict_validation_sha256=(Get-FileHash (Join-Path $run 'strict-validation.json') -Algorithm SHA256).Hash.ToLowerInvariant();strict_validator_sha256=$invocation.strict_validator_sha256;execution_mode='ssh_cli_v1';acceptance_scope='isolated_contract_cli';publication_state='not_published';prerequisites_state='not_all_published';gui_status='not_run'}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'run-manifest.json') -Encoding UTF8
 $steps|Format-Table name,exit_code,wall_seconds -AutoSize
+} finally {
+ if($queueAcquired){$queueMutex.ReleaseMutex()|Out-Null}
+ $queueMutex.Dispose()
+}

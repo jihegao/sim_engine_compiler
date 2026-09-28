@@ -36,6 +36,9 @@ path, and ordered UTC command timestamps. The strict validator checks that mode
 independently of the interactive runner. By default, this runner stops if
 another SIMLOX process exists. `-AllowExistingGui` admits exactly one verified
 active GUI process and checks its identity before and after every CLI command.
+It also holds a host-wide mutex across its native queue and validation, so a
+second invocation of this SSH runner cannot enter concurrently. This mutex
+does not coordinate the frozen historical runners or a manual SIMLOX launch.
 An SSH result does not turn a CLI result into GUI acceptance.
 
 During a read-only RDP inspection on 2026-09-28, SIMLOX 2017.2 displayed the

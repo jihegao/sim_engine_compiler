@@ -105,6 +105,8 @@ def check_invocation(invocation: dict, steps: list[dict], run_dir: Path) -> list
           or re.fullmatch(r"[A-Za-z0-9._-]+", invocation["host_name"]) is None
           or utc_timestamp(invocation.get("created_utc")) is None):
         errors.append("invocation lacks authenticated SSH session provenance")
+    if mode == "ssh_cli_v1" and invocation.get("queue_mutex") != r"Global\SimloxIssue18NativeQueue":
+        errors.append("SSH run lacks the host-wide queue mutex identity")
     gui = invocation.get("coexisting_gui") if mode == "ssh_cli_v1" else None
     if mode == "ssh_cli_v1":
         allow_gui = invocation.get("allow_existing_gui")
@@ -117,7 +119,7 @@ def check_invocation(invocation: dict, steps: list[dict], run_dir: Path) -> list
                     or type(gui.get("pid")) is not int or gui["pid"] <= 0
                     or type(gui_id) is not int or gui_id <= 0
                     or not isinstance(gui_line, str)
-                    or re.match(rf"^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+{gui_id}\s+Active(?:\s|$)", gui_line, re.IGNORECASE) is None
+                    or re.match(rf"^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+{gui_id}\s+(?:Active|运行中)(?:\s|$)", gui_line, re.IGNORECASE) is None
                     or utc_timestamp(gui.get("process_start_utc")) is None):
                 errors.append("SSH run lacks active existing-GUI process evidence")
     original_path = invocation.get("original_run_dir")

@@ -109,6 +109,7 @@ def test_a03_ssh_invocation_has_separate_provenance_and_ordered_steps() -> None:
         "ssh_ancestor_names": ["cmd.exe", "sshd.exe"],
         "allow_existing_gui": False,
         "coexisting_gui": None,
+        "queue_mutex": r"Global\SimloxIssue18NativeQueue",
     }
     run_dir = Path("/review/copy/ssh-run-001")
     steps = [
@@ -130,6 +131,7 @@ def test_a03_ssh_invocation_has_separate_provenance_and_ordered_steps() -> None:
         {"session_name": "rdp-tcp#35"},
         {"host_name": ""},
         {"created_utc": "yesterday"},
+        {"queue_mutex": "other"},
     ):
         assert strict.check_invocation({**invocation, **changed}, steps, run_dir)
     assert strict.check_invocation(invocation, [{**steps[0], "completed_utc": "2026-09-28T11:59:00Z"}, *steps[1:]], run_dir)
@@ -144,6 +146,8 @@ def test_a03_ssh_invocation_has_separate_provenance_and_ordered_steps() -> None:
     coexist = {**invocation, "allow_existing_gui": True, "coexisting_gui": gui}
     coexist_steps = [{**step, "coexisting_gui_present_after": True} for step in steps]
     assert strict.check_invocation(coexist, coexist_steps, run_dir) == []
+    localized_gui = {**gui, "session_query_line": "rdp-tcp#35 user 1 运行中"}
+    assert strict.check_invocation({**coexist, "coexisting_gui": localized_gui}, coexist_steps, run_dir) == []
     assert strict.check_invocation(coexist, [{**coexist_steps[0], "coexisting_gui_present_after": False}, *coexist_steps[1:]], run_dir)
     assert strict.check_invocation({**coexist, "coexisting_gui": {**gui, "session_id": 0}}, coexist_steps, run_dir)
     assert strict.check_invocation({**coexist, "allow_existing_gui": False}, coexist_steps, run_dir)
