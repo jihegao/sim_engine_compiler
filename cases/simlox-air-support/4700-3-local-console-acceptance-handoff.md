@@ -1,5 +1,9 @@
 # 给 4700-3 本地 Codex 的 P1 原生验收交接
 
+2026-09-28 更新：机主已允许 SSH 执行 CLI 范围的原生验收。CLI 规则见
+[SSH CLI 执行政策](ssh-cli-acceptance-policy-v1.md)；本文件的本地 Console
+限制继续适用于 GUI 校准和 GUI 验收。旧运行与证据保持原样。
+
 本交接替代先前通过 Mac Windows App/RDP 操作 SIMLOX 的步骤。机主确认
 SIMLOX 不允许在 RDP 登录后的会话中使用。**所有 SIMLOX GUI、导入、回导、
 计算和报告操作，均须由 4700-3 本地控制台会话中的 Codex 执行。** SSH/RDP
