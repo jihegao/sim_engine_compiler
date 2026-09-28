@@ -105,6 +105,21 @@ def check_invocation(invocation: dict, steps: list[dict], run_dir: Path) -> list
           or re.fullmatch(r"[A-Za-z0-9._-]+", invocation["host_name"]) is None
           or utc_timestamp(invocation.get("created_utc")) is None):
         errors.append("invocation lacks authenticated SSH session provenance")
+    gui = invocation.get("coexisting_gui") if mode == "ssh_cli_v1" else None
+    if mode == "ssh_cli_v1":
+        allow_gui = invocation.get("allow_existing_gui")
+        if type(allow_gui) is not bool or allow_gui != (gui is not None):
+            errors.append("SSH GUI coexistence flag and process evidence differ")
+        if gui is not None:
+            gui_id = gui.get("session_id") if isinstance(gui, dict) else None
+            gui_line = gui.get("session_query_line") if isinstance(gui, dict) else None
+            if (not isinstance(gui, dict)
+                    or type(gui.get("pid")) is not int or gui["pid"] <= 0
+                    or type(gui_id) is not int or gui_id <= 0
+                    or not isinstance(gui_line, str)
+                    or re.match(rf"^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+{gui_id}\s+Active(?:\s|$)", gui_line, re.IGNORECASE) is None
+                    or utc_timestamp(gui.get("process_start_utc")) is None):
+                errors.append("SSH run lacks active existing-GUI process evidence")
     original_path = invocation.get("original_run_dir")
     if not isinstance(original_path, str):
         errors.append("invocation lacks the original Windows run path")
@@ -136,6 +151,8 @@ def check_invocation(invocation: dict, steps: list[dict], run_dir: Path) -> list
                 if start is None or end is None or start > end or (previous_end is not None and start < previous_end):
                     errors.append(f"native {step['name']} lacks ordered UTC timestamps")
                 previous_end = end
+                if gui is not None and step.get("coexisting_gui_present_after") is not True:
+                    errors.append(f"native {step['name']} did not preserve the existing GUI")
     return errors
 
 

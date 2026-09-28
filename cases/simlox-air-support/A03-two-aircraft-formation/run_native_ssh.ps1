@@ -1,6 +1,7 @@
 param(
  [Parameter(Mandatory=$true)][ValidatePattern('^[a-z0-9][a-z0-9-]{2,63}$')][string]$RunId,
- [Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{64}$')][string]$InputSha256
+ [Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{64}$')][string]$InputSha256,
+ [switch]$AllowExistingGui
 )
 $ErrorActionPreference='Stop'
 $case=(Resolve-Path $PSScriptRoot).Path
@@ -28,7 +29,19 @@ if($sshAncestors -notcontains 'sshd.exe'){throw 'SSH CLI runner cannot verify an
 if(!(Test-Path -LiteralPath $workingDirectory) -or !(Test-Path -LiteralPath $python)){throw 'known native runtime dependencies absent'}
 if(!(Test-Path -LiteralPath $exe) -or (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeSha256){throw 'SIMLOX executable fingerprint changed'}
 if((Get-FileHash -LiteralPath $input -Algorithm SHA256).Hash.ToLowerInvariant() -ne $InputSha256){throw 'checked input fingerprint changed'}
-if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX already active; preserve the user session'}
+$existing=@(Get-Process Simlox -ErrorAction SilentlyContinue)
+$coexistingGui=$null
+if($existing.Count -gt 0){
+ if(-not $AllowExistingGui -or $existing.Count -ne 1){throw 'SIMLOX already active; explicit single-GUI coexistence is required'}
+ $gui=$existing[0]
+ $guiSessionId=$gui.SessionId
+ if($guiSessionId -le 0){throw 'existing SIMLOX process is not an interactive GUI'}
+ $sessionRows=@(query session 2>&1)
+ if($LASTEXITCODE -ne 0){throw 'cannot verify the GUI session'}
+ $activeGuiRows=@($sessionRows | Where-Object {$_ -match ('^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+'+$guiSessionId+'\s+Active(?:\s|$)')})
+ if($activeGuiRows.Count -ne 1){throw 'existing SIMLOX GUI is not in one active interactive session'}
+ $coexistingGui=[ordered]@{pid=$gui.Id;session_id=$guiSessionId;session_query_line=$activeGuiRows[0].Trim();process_start_utc=$gui.StartTime.ToUniversalTime().ToString('o')}
+}elseif($AllowExistingGui){throw 'AllowExistingGui was requested without an existing GUI'}
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 Copy-Item -LiteralPath $input -Destination (Join-Path $run 'input.json')
 $source=Join-Path $run 'input.json'
@@ -48,6 +61,7 @@ $invocation=[ordered]@{
  execution_mode='ssh_cli_v1';session_name=$env:SESSIONNAME;session_id=$executionSessionId
  ssh_connection_present=[bool]$env:SSH_CONNECTION;ssh_client_present=[bool]$env:SSH_CLIENT
  ssh_ancestor_names=$sshAncestors
+ allow_existing_gui=[bool]$AllowExistingGui;coexisting_gui=$coexistingGui
 }
 $invocation|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'invocation.json') -Encoding UTF8
 $commands=@(
@@ -58,14 +72,20 @@ $commands=@(
 )
 $steps=@()
 foreach($command in $commands){
- if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX appeared during serial queue item'}
+ $present=@(Get-Process Simlox -ErrorAction SilentlyContinue)
+ if($coexistingGui){
+  if($present.Count -ne 1 -or $present[0].Id -ne $coexistingGui.pid -or $present[0].StartTime.ToUniversalTime().ToString('o') -ne $coexistingGui.process_start_utc){throw 'SIMLOX process set changed before serial queue item'}
+ }elseif($present.Count -ne 0){throw 'SIMLOX appeared during serial queue item'}
  $watch=[Diagnostics.Stopwatch]::StartNew()
  $startedUtc=(Get-Date).ToUniversalTime().ToString('o')
- $process=Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -PassThru -Wait
+ $process=Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -WindowStyle Hidden -PassThru -Wait
  $watch.Stop()
  $completedUtc=(Get-Date).ToUniversalTime().ToString('o')
- $steps += [pscustomobject]@{name=$command.name;arguments=$command.args;exit_code=$process.ExitCode;wall_seconds=$watch.Elapsed.TotalSeconds;started_utc=$startedUtc;completed_utc=$completedUtc}
+ $after=@(Get-Process Simlox -ErrorAction SilentlyContinue)
+ $guiStillPresent=($coexistingGui -and $after.Count -eq 1 -and $after[0].Id -eq $coexistingGui.pid -and $after[0].StartTime.ToUniversalTime().ToString('o') -eq $coexistingGui.process_start_utc)
+ $steps += [pscustomobject]@{name=$command.name;arguments=$command.args;exit_code=$process.ExitCode;wall_seconds=$watch.Elapsed.TotalSeconds;started_utc=$startedUtc;completed_utc=$completedUtc;coexisting_gui_present_after=[bool]$guiStillPresent}
  $steps|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'steps.json') -Encoding UTF8
+ if($coexistingGui -and -not $guiStillPresent){throw 'existing GUI process changed during native command'}
  if($process.ExitCode -ne 0){throw "$($command.name) exited $($process.ExitCode); preserve run directory"}
  if($command.name -eq 'import' -and (!(Test-Path $sxi) -or (Get-Item $sxi).Length -le 4)){throw 'empty SXI'}
  if($command.name -eq 'export' -and (!(Test-Path $round) -or (Get-Item $round).Length -le 4)){throw 'empty roundtrip export'}

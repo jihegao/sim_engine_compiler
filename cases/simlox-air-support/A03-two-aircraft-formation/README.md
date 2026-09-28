@@ -32,13 +32,17 @@ first RDP run as evidence rather than promoting the earlier CLI probes.
 For an SSH CLI run, use the separate `run_native_ssh.ps1` entry point and its
 `ssh_cli_v1` provenance contract. It requires an authenticated session-0 SSH
 process with an `sshd.exe` ancestor and stores the host, original Windows run
-path, and ordered UTC command timestamps. The strict validator checks that mode independently of the
-interactive runner. An SSH result does not turn a CLI result into GUI acceptance.
+path, and ordered UTC command timestamps. The strict validator checks that mode
+independently of the interactive runner. By default, this runner stops if
+another SIMLOX process exists. `-AllowExistingGui` admits exactly one verified
+active GUI process and checks its identity before and after every CLI command.
+An SSH result does not turn a CLI result into GUI acceptance.
 
 During a read-only RDP inspection on 2026-09-28, SIMLOX 2017.2 displayed the
 candidate input from `probe-a03-20260928-03/model.sxi`: `QTYPS=2`,
 `MissionType.NOS=MNOS=2`, and a single `BASIC-SCHEDULE` operation profile
 starting at 08:00. No new GUI calculation, report export, or source-bound
 screen capture was produced, so GUI acceptance remains pending. SIMLOX must
-stay open in the present RDP session; a concurrent SSH CLI run is excluded by
-the runner's process guard.
+stay open in the present RDP session. A separate official Demo export succeeded
+over SSH while that GUI stayed open, but A03 has not yet been rerun under the
+explicit GUI coexistence contract.
