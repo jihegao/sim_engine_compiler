@@ -44,8 +44,13 @@ An SSH result does not turn a CLI result into GUI acceptance.
 During a read-only RDP inspection on 2026-09-28, SIMLOX 2017.2 displayed the
 candidate input from `probe-a03-20260928-03/model.sxi`: `QTYPS=2`,
 `MissionType.NOS=MNOS=2`, and a single `BASIC-SCHEDULE` operation profile
-starting at 08:00. No new GUI calculation, report export, or source-bound
-screen capture was produced, so GUI acceptance remains pending. SIMLOX must
-stay open in the present RDP session. A separate official Demo export succeeded
-over SSH while that GUI stayed open, but A03 has not yet been rerun under the
-explicit GUI coexistence contract.
+starting at 08:00. A later source-bound A03 CLI run succeeded over SSH while
+the same GUI process stayed open; see `evidence-ssh-cli-v1.md`. This is CLI
+evidence only. No GUI calculation, report export, or source-bound screen
+capture was produced, so GUI acceptance remains pending. SIMLOX must stay open
+in the present RDP session.
+
+The native `ProblemDescription` inherited from A02 still describes an
+"A01/A02 generic one-aircraft teaching case". It conflicts with A03's actual
+two-aircraft input and must be corrected in a newly versioned candidate before
+publication; do not edit the frozen input or past run evidence in place.
