@@ -44,3 +44,23 @@ def test_a03_rejects_single_aircraft_and_split_mission() -> None:
     assert validator.check_events("\n".join(lines)) == []
     assert validator.check_events("\n".join(lines).replace(",<TEACH-AIR-01,1>", ""))
     assert validator.check_events("\n".join(lines).replace(tag, "<BASIC-MISSION,TEACH-UNIT,0,0,1>", 1))
+
+
+def test_a03_strict_summary_rejects_false_wave_and_result_window() -> None:
+    strict = load("validate_strict")
+    fields = ("NREP", "RTILW", "RTIUP", "MSTF", "MSUF")
+
+    def report(values: tuple[int, ...]) -> dict:
+        return {"report": {"tables": [{
+            "name": "ResultSummary",
+            "columns": [{"name": field} for field in fields],
+            "instances": [{"rows": [list(values)]}],
+        }]}}
+
+    good = (1, 0, 36, 1, 1)
+    assert strict.check_summary(report(good)) == []
+    for field, index, wrong in (("RTILW", 1, 1), ("RTIUP", 2, 999),
+                                ("MSTF", 3, 99), ("MSUF", 4, 0)):
+        bad = list(good)
+        bad[index] = wrong
+        assert any(field in error for error in strict.check_summary(report(tuple(bad))))

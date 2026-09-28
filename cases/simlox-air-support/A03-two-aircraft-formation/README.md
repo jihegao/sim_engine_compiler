@@ -15,9 +15,13 @@ on completion, and four aircraft-hours of mission operation. It rejects a
 one-aircraft launch even when aggregate mission success is one.
 
 The parent A01/A02 GUI gates remain pending. The candidate is not published.
-`run_native.ps1` supports an isolated CLI capability probe now; a formal case
-run remains gated on parent and A03 GUI calibration. Each run needs a new ID.
-The runner requires the checked input hash, refuses an existing run directory
-or active SIMLOX process, and stores raw outputs in a unique directory. The
-three retained probes and their source-bound result are indexed in
-`evidence-index.json`.
+`run_native.ps1` runs only from a local `Console` session; it refuses SSH/RDP,
+an existing run directory or an active SIMLOX process. Each run needs a new ID
+and the checked input hash. It stores raw outputs in a unique directory, runs
+both the preserved probe validator and the new source-bound strict summary
+validator, and still marks the result as an isolated CLI check. The strict
+validator checks the result window and one planned/successful mission wave.
+GUI review, parent gates and an independent replay are separate requirements
+for a formal case conclusion. The three retained probes and their original
+source-bound results are indexed in `evidence-index.json`; their validator is
+preserved byte-for-byte in `validate.py`.

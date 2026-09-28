@@ -76,7 +76,9 @@ C:\Users\user\Documents\Codex\2026-09-28\simlox-p1-a03-b7e6945a\cases\simlox-air
 
 随后按 `A03-two-aircraft-formation/contract.json` 的输入哈希，在本地
 控制台用同目录 `run_native.ps1` 建立新的唯一 run ID，执行导入、回导、
-计算、报告、严格验证及封存；再对**新** `model.sxi/model.sxo` 做同样 GUI
+计算、报告、严格验证及封存。脚本会拒绝非 `Console` 会话，启动命令不再
+指定隐藏窗口；保留 `invocation.json` 的会话 ID 和严格验证器哈希，以及
+`strict-validation.json` 的摘要断言。再对**新** `model.sxi/model.sxo` 做同样 GUI
 检查。脚本生成的 `run-manifest.json` 仍标记 `isolated_contract_cli`，
 不能只改状态字段；正式结论须另写有父例、GUI、原始产物及独立复验绑定的
 验收记录。保留旧探针与新正式运行各自的路径及哈希。
@@ -125,3 +127,7 @@ GUI 实际菜单路径与截图 SHA-256、原始产物路径/大小/SHA-256、�
 最后分别报告已实现、已验证、失败/阻塞、未验证与仍计划。C03 人员 0
 在 08:30 取消只是该固定配置的观察；一般截止/取消规则另由 C04 验证。
 P1 完成前不开展 108 例后续批次的发布验收。
+
+阶段计划 P0 还列有 K01、K02、K07、J05；这些案例目前仍为规划状态。
+上述 A01/A02 GUI 校准只补齐这条 P1 依赖链所需的父例门，不能据此宣布
+整个 P0 阶段或工具案例发布完成。

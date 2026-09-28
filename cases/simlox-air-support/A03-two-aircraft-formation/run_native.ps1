@@ -16,6 +16,8 @@ if(!(Test-Path -LiteralPath $workingDirectory) -or !(Test-Path -LiteralPath $pyt
 if(!(Test-Path -LiteralPath $exe) -or (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeSha256){throw 'SIMLOX executable fingerprint changed'}
 if((Get-FileHash -LiteralPath $input -Algorithm SHA256).Hash.ToLowerInvariant() -ne $InputSha256){throw 'checked input fingerprint changed'}
 if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX already active; preserve the user session'}
+if($env:SESSIONNAME -ne 'Console' -or (Get-Process -Id $PID).SessionId -eq 0){throw 'A03 native execution requires the visible local Console session; SSH/RDP is not admitted'}
+$consoleSessionId=(Get-Process -Id $PID).SessionId
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 Copy-Item -LiteralPath $input -Destination (Join-Path $run 'input.json')
 $source=Join-Path $run 'input.json'
@@ -28,8 +30,10 @@ $invocation=[ordered]@{
  created_utc=(Get-Date).ToUniversalTime().ToString('o')
  input_sha256=$InputSha256;contract_sha256=(Get-FileHash (Join-Path $case 'contract.json') -Algorithm SHA256).Hash.ToLowerInvariant()
  validator_sha256=(Get-FileHash (Join-Path $case 'validate.py') -Algorithm SHA256).Hash.ToLowerInvariant()
+ strict_validator_sha256=(Get-FileHash (Join-Path $case 'validate_strict.py') -Algorithm SHA256).Hash.ToLowerInvariant()
  runner_sha256=(Get-FileHash $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant()
  simlox_exe_sha256=$exeSha256;working_directory=$workingDirectory
+ session_name=$env:SESSIONNAME;session_id=$consoleSessionId
 }
 $invocation|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'invocation.json') -Encoding UTF8
 $commands=@(
@@ -42,7 +46,7 @@ $steps=@()
 foreach($command in $commands){
  if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX appeared during serial queue item'}
  $watch=[Diagnostics.Stopwatch]::StartNew()
- $process=Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -WindowStyle Hidden -PassThru -Wait
+ $process=Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -PassThru -Wait
  $watch.Stop()
  $steps += [pscustomobject]@{name=$command.name;arguments=$command.args;exit_code=$process.ExitCode;wall_seconds=$watch.Elapsed.TotalSeconds}
  $steps|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'steps.json') -Encoding UTF8
@@ -61,5 +65,7 @@ foreach($name in @('input.json','roundtrip-raw.json','model.sxi','model.sxo','im
 [ordered]@{schema='simlox-a03-closure/v1';case_id='A03';run_id=$RunId;input_sha256=$InputSha256;raw=$raw}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $run 'closure.json') -Encoding UTF8
 & $python (Join-Path $case 'validate.py') $run | Set-Content -LiteralPath (Join-Path $run 'validation.json') -Encoding UTF8
 if($LASTEXITCODE -ne 0){throw 'A03 CLI assertions failed; preserve raw artifacts'}
-[ordered]@{schema='simlox-a03-run-manifest/v1';case_id='A03';run_id=$RunId;input_sha256=$InputSha256;closure_sha256=(Get-FileHash (Join-Path $run 'closure.json') -Algorithm SHA256).Hash.ToLowerInvariant();validation_sha256=(Get-FileHash (Join-Path $run 'validation.json') -Algorithm SHA256).Hash.ToLowerInvariant();acceptance_scope='isolated_contract_cli';publication_state='not_published';prerequisites_state='not_all_published';gui_status='not_run'}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'run-manifest.json') -Encoding UTF8
+& $python (Join-Path $case 'validate_strict.py') $run | Set-Content -LiteralPath (Join-Path $run 'strict-validation.json') -Encoding UTF8
+if($LASTEXITCODE -ne 0){throw 'A03 strict summary assertions failed; preserve raw artifacts'}
+[ordered]@{schema='simlox-a03-run-manifest/v1';case_id='A03';run_id=$RunId;input_sha256=$InputSha256;closure_sha256=(Get-FileHash (Join-Path $run 'closure.json') -Algorithm SHA256).Hash.ToLowerInvariant();validation_sha256=(Get-FileHash (Join-Path $run 'validation.json') -Algorithm SHA256).Hash.ToLowerInvariant();strict_validation_sha256=(Get-FileHash (Join-Path $run 'strict-validation.json') -Algorithm SHA256).Hash.ToLowerInvariant();strict_validator_sha256=$invocation.strict_validator_sha256;acceptance_scope='isolated_contract_cli';publication_state='not_published';prerequisites_state='not_all_published';gui_status='not_run'}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'run-manifest.json') -Encoding UTF8
 $steps|Format-Table name,exit_code,wall_seconds -AutoSize

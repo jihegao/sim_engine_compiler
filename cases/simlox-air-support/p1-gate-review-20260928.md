@@ -80,3 +80,19 @@ After P1, start C04 as a separate deadline/cancellation case. C03 staffing-0
 cancellation at 08:30 is a fixed-profile observation before its 09:00
 latest-launch bound, not a general cancellation rule. Task dependencies,
 RBD, initial age and other batches follow the P1 exit gate.
+
+## Subsequent review addendum — 2026-09-28 08:51 CST
+
+An independent review found that the original source-bound A03 probe validator
+did not check `ResultSummary.RTILW/RTIUP/MSTF/MSUF`. Its three historical
+archives and `validate.py` remain unchanged. A new `validate_strict.py` checks
+those fields and is bound by source hash in future runs. A read-only check of
+the retained probe-03 raw report found no strict-summary difference; that
+check does not relabel the historical run as a new formal acceptance.
+
+The live session check at this time found an active `rdp-tcp#31` session and no
+SIMLOX process. The earlier disconnected-session observation above remains a
+historical observation; neither state proves a local `Console` executor. The
+formal GUI queue therefore remains closed. P0 also includes K01/K02/K07/J05,
+which are still planned: A01/A02 GUI calibration is only the minimum parent
+gate for this P1 path, not completion of all P0 cases.
