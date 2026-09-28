@@ -50,3 +50,30 @@ separate. Catalog variants for simultaneous `IQTY>1/IPER=0`, repeated-key
 equivalence, illegal Random/Regenerative children, and native missing/cycle
 conversion are still untested; this baseline cannot be marked full A09
 acceptance.
+
+The prepared [SSH CLI runner](run_native_ssh.ps1) accepts one fresh `RunId` and
+creates `<RunId>-flat` followed by `<RunId>-nested` under ignored `runs/`. It
+holds the host-wide Issue #18 mutex for both candidates. If the existing GUI
+must coexist, pass `-AllowExistingGui`; the runner requires one active Console
+or RDP session and rechecks its PID, session and process start before and after
+every native command. A failed flat run stops before nested. Each completed
+run keeps source/runner/parser/executable hashes, command exit records, raw
+hash closure and a [read-only behavioral validation](validate_native_cli.py).
+The validator checks all four event lifecycles, identity continuity, 96
+half-hour intervals and zero mechanism indicators. It permits different
+native-generated mission ordinals if each wave has one consistent identity.
+This runner and validator have local negative tests only; they have not been
+executed on `4700-3`.
+
+From an authenticated session-0 SSH PowerShell shell, after placing the A09
+directory, A02 `native-input.json`, `tools/validate_native.py`, and
+`tools/native_binding.py` in their repository-relative positions, the planned
+single invocation is:
+
+```powershell
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$repo\cases\simlox-air-support\A09-hierarchical-operation-profile\run_native_ssh.ps1" -RunId "a09-unique-run-id" -AllowExistingGui
+```
+
+`$repo` must name the fresh isolated checkout root. The command is a prepared
+handoff, not an execution record. A failure leaves the raw candidate run in
+place for diagnosis; use a new run ID after any source revision.
