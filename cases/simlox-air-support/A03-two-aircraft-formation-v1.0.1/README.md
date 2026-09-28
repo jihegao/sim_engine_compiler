@@ -10,12 +10,15 @@ tables from frozen A02: `MissionType`, `OperationProfile`,
 
 `python3.12 build.py --check` verifies the checked input without rewriting it.
 The version-local SSH runner, validator and strict validator bind the new
-contract and input hashes. A future native run must use a fresh run ID and the
-new input SHA-256 from `contract.json`. The validator requires the corrected
+contract and input hashes. Any further native run must use a fresh run ID and
+the input SHA-256 from `contract.json`. The validator requires the corrected
 description in the source input, native JSON roundtrip, and native report, in
 addition to the unchanged A03 event, metric, warning and provenance checks.
 
-No SIMLOX run or GUI acceptance has been performed for 1.0.1. Earlier 1.0.0
-probe and SSH results remain attached to their original input and scripts;
-they are not evidence for this revision. `publication_state` remains
-`not_published`, and the A01/A02 parent GUI and A03 GUI gates remain open.
+The 2026-09-29 [native and GUI evidence](evidence-2026-09-29.md) records a
+fresh source-bound SSH run, independent raw-artifact audit, and GUI calculation
+of an identical native SXI copy. Earlier 1.0.0 probe and SSH results remain
+attached to their original input and scripts; they are not evidence for this
+revision. The frozen `contract.json` and native run manifest retain their
+pre-run status text and hashes; the dated evidence is the later acceptance
+readout. `publication_state` remains `not_published`.
