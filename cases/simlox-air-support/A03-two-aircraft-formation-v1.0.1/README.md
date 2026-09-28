@@ -19,6 +19,7 @@ The 2026-09-29 [native and GUI evidence](evidence-2026-09-29.md) records a
 fresh source-bound SSH run, independent raw-artifact audit, and GUI calculation
 of an identical native SXI copy. Earlier 1.0.0 probe and SSH results remain
 attached to their original input and scripts; they are not evidence for this
-revision. The frozen `contract.json` and native run manifest retain their
-pre-run status text and hashes; the dated evidence is the later acceptance
-readout. `publication_state` remains `not_published`.
+revision. The frozen `contract.json` retains its candidate status, while the
+native run manifest records GUI as `not_run` at CLI execution time; the dated
+evidence is the later GUI acceptance readout. `publication_state` remains
+`not_published`.
