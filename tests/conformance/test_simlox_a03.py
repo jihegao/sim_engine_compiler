@@ -90,3 +90,45 @@ def test_a03_strict_invocation_requires_active_session_and_complete_native_steps
     assert strict.check_invocation(invocation, [{**steps[0], "exit_code": 1}, *steps[1:]], run_dir)
     assert strict.check_invocation(invocation, [{**steps[0], "arguments": "-calc other.sxi"}, *steps[1:]], run_dir)
     assert strict.check_invocation(invocation, [{**steps[0], "wall_seconds": -1}, *steps[1:]], run_dir)
+
+
+def test_a03_ssh_invocation_has_separate_provenance_and_ordered_steps() -> None:
+    strict = load("validate_strict")
+    invocation = {
+        "schema": "simlox-a03-invocation/ssh-cli-v1",
+        "execution_mode": "ssh_cli_v1",
+        "runner_sha256": strict.sha256(BASE / "run_native_ssh.ps1"),
+        "run_id": "ssh-run-001",
+        "original_run_dir": r"C:\native\a03\ssh-run-001",
+        "host_name": "4700-3",
+        "created_utc": "2026-09-28T12:00:00Z",
+        "session_name": None,
+        "session_id": 0,
+        "ssh_connection_present": True,
+        "ssh_client_present": True,
+        "ssh_ancestor_names": ["cmd.exe", "sshd.exe"],
+    }
+    run_dir = Path("/review/copy/ssh-run-001")
+    steps = [
+        {"name": name, "arguments": arguments, "exit_code": 0, "wall_seconds": 0.1,
+         "started_utc": f"2026-09-28T12:0{index}:00Z",
+         "completed_utc": f"2026-09-28T12:0{index}:01Z"}
+        for index, (name, arguments) in enumerate(
+            strict.expected_arguments(PureWindowsPath(invocation["original_run_dir"])).items(), 1
+        )
+    ]
+    assert strict.check_invocation(invocation, steps, run_dir) == []
+    assert strict.check_invocation(invocation, steps, Path("/independent/replay/ssh-run-001")) == []
+    for changed in (
+        {"execution_mode": "unknown"},
+        {"runner_sha256": strict.sha256(BASE / "run_native.ps1")},
+        {"ssh_connection_present": False},
+        {"ssh_ancestor_names": ["cmd.exe"]},
+        {"session_id": 1},
+        {"session_name": "rdp-tcp#35"},
+        {"host_name": ""},
+        {"created_utc": "yesterday"},
+    ):
+        assert strict.check_invocation({**invocation, **changed}, steps, run_dir)
+    assert strict.check_invocation(invocation, [{**steps[0], "completed_utc": "2026-09-28T11:59:00Z"}, *steps[1:]], run_dir)
+    assert strict.check_invocation(invocation, [{**steps[0], "arguments": "-calc other.sxi"}, *steps[1:]], run_dir)

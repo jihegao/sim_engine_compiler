@@ -7,15 +7,33 @@ does not accept any case in this library. This decision supersedes the earlier
 Console-only restriction for **CLI execution only** in
 `4700-3-local-console-acceptance-handoff.md`.
 
-GUI calibration and GUI acceptance still require a visible local Console
-session. SSH results must keep `gui_status=not_run` and cannot promote a case to
+GUI calibration and GUI acceptance require a visible, verified active Console
+or RDP user session. RDP use must be checked in the actual SIMLOX windows and
+recorded as GUI evidence; merely seeing a process is insufficient. SSH results
+must keep `gui_status=not_run` and cannot promote a case to
 `native_behavior_accepted` or `reusable_published` without its other gates.
 The old Console runner and historical run evidence remain unchanged.
 
+On 2026-09-28 at 23:19 local time, a separate RDP desktop CLI smoke test of
+the bundled `aircraftorg.sxi` Demo exited with code 0 but produced no requested
+JSON. The SIMLOX license log reported `Terminal client access is not allowed!`.
+This is a failed RDP CLI route, not a successful simulation. The original
+probe input remained in
+`C:\Users\user\AppData\Local\Temp\codex-simlox-local-cli-probe-312fb3f1669149bbba4476eb8b22de73`;
+the expected `aircraftorg.json` was absent. The evidence is the 4700-3 Codex
+session transcript at
+`C:\Users\user\.codex\sessions\2026\09\28\rollout-2026-09-28T22-25-12-01a0e224-34c6-7961-bf32-95fb53c11aa2_01a0e867-d030-7b32-995e-cbe370cca50d.jsonl`
+(lines 715, 718 and 725) and `OpusSuite_key.log` line 26; do not copy the full
+license log into the repository. The GUI remains open for RDP inspection and
+must not be exited solely to clear the SSH runner's exclusive-process guard.
+No SSH CLI run was attempted while that GUI process was active.
+
 For each new SSH CLI run:
 
-1. Use a new run ID and directory; record host, SSH session markers, SIMLOX
-   executable hash, runner hash, frozen input hash, exit codes, and timestamps.
+1. Use a new run ID and directory; record host, original Windows run path, SSH
+   session markers and `sshd.exe` process ancestry, SIMLOX executable hash,
+   runner hash, frozen input hash,
+   exit codes, and per-step UTC timestamps.
 2. Allow only one SIMLOX job at a time. An existing SIMLOX process is a stop
    condition; do not close the user's GUI window.
 3. Check import, nonempty roundtrip export, zero conversion errors, nonempty
@@ -27,7 +45,8 @@ For each new SSH CLI run:
    statuses explicit. An isolated CLI pass is not a published case.
 
 `A03-two-aircraft-formation/run_native_ssh.ps1` is a new runner for this policy.
-The existing `run_native.ps1` retains its Console-only behavior and historical
+Its `ssh_cli_v1` provenance is checked separately by the source-bound strict
+validator. The existing `run_native.ps1` retains its interactive behavior and historical
 identity. Resource cases need their own versioned SSH runner before formal
 reruns; their frozen v1 runner and evidence must not be rewritten.
 

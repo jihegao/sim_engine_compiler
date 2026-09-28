@@ -12,10 +12,19 @@ $python='C:\Users\user\Documents\Codex\2026-09-26\simlox-j35-event-parity\worksp
 $base=Join-Path $case 'runs'
 $run=Join-Path $base $RunId
 if(Test-Path -LiteralPath $run){throw "immutable run directory exists: $run"}
-$sshSessionPresent=([bool]$env:SSH_CONNECTION -or [bool]$env:SSH_CLIENT)
+$sshSessionPresent=[bool]$env:SSH_CONNECTION
 if(-not $sshSessionPresent){throw 'SSH CLI runner requires an authenticated SSH session'}
-if($env:SESSIONNAME -match '^rdp-'){throw 'RDP session is not admitted for SSH CLI acceptance'}
 $executionSessionId=(Get-Process -Id $PID).SessionId
+if($executionSessionId -ne 0 -or $env:SESSIONNAME){throw 'SSH CLI runner requires a session-0 SSH process'}
+$sshAncestors=@()
+$ancestorPid=(Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
+for($depth=0; $depth -lt 8 -and $ancestorPid -gt 0; $depth++){
+ $ancestor=Get-CimInstance Win32_Process -Filter "ProcessId=$ancestorPid"
+ if(-not $ancestor){break}
+ $sshAncestors += $ancestor.Name
+ $ancestorPid=$ancestor.ParentProcessId
+}
+if($sshAncestors -notcontains 'sshd.exe'){throw 'SSH CLI runner cannot verify an sshd ancestor'}
 if(!(Test-Path -LiteralPath $workingDirectory) -or !(Test-Path -LiteralPath $python)){throw 'known native runtime dependencies absent'}
 if(!(Test-Path -LiteralPath $exe) -or (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeSha256){throw 'SIMLOX executable fingerprint changed'}
 if((Get-FileHash -LiteralPath $input -Algorithm SHA256).Hash.ToLowerInvariant() -ne $InputSha256){throw 'checked input fingerprint changed'}
@@ -28,8 +37,9 @@ $sxo=Join-Path $run 'model.sxo'
 $round=Join-Path $run 'roundtrip-raw.json'
 $report=Join-Path $run 'report-raw.json'
 $invocation=[ordered]@{
- schema='simlox-a03-invocation/v1';case_id='A03';run_id=$RunId
+ schema='simlox-a03-invocation/ssh-cli-v1';case_id='A03';run_id=$RunId
  created_utc=(Get-Date).ToUniversalTime().ToString('o')
+ original_run_dir=$run;host_name=$env:COMPUTERNAME
  input_sha256=$InputSha256;contract_sha256=(Get-FileHash (Join-Path $case 'contract.json') -Algorithm SHA256).Hash.ToLowerInvariant()
  validator_sha256=(Get-FileHash (Join-Path $case 'validate.py') -Algorithm SHA256).Hash.ToLowerInvariant()
  strict_validator_sha256=(Get-FileHash (Join-Path $case 'validate_strict.py') -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -37,6 +47,7 @@ $invocation=[ordered]@{
  simlox_exe_sha256=$exeSha256;working_directory=$workingDirectory
  execution_mode='ssh_cli_v1';session_name=$env:SESSIONNAME;session_id=$executionSessionId
  ssh_connection_present=[bool]$env:SSH_CONNECTION;ssh_client_present=[bool]$env:SSH_CLIENT
+ ssh_ancestor_names=$sshAncestors
 }
 $invocation|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'invocation.json') -Encoding UTF8
 $commands=@(
@@ -49,9 +60,11 @@ $steps=@()
 foreach($command in $commands){
  if(Get-Process Simlox -ErrorAction SilentlyContinue){throw 'SIMLOX appeared during serial queue item'}
  $watch=[Diagnostics.Stopwatch]::StartNew()
+ $startedUtc=(Get-Date).ToUniversalTime().ToString('o')
  $process=Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -PassThru -Wait
  $watch.Stop()
- $steps += [pscustomobject]@{name=$command.name;arguments=$command.args;exit_code=$process.ExitCode;wall_seconds=$watch.Elapsed.TotalSeconds}
+ $completedUtc=(Get-Date).ToUniversalTime().ToString('o')
+ $steps += [pscustomobject]@{name=$command.name;arguments=$command.args;exit_code=$process.ExitCode;wall_seconds=$watch.Elapsed.TotalSeconds;started_utc=$startedUtc;completed_utc=$completedUtc}
  $steps|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'steps.json') -Encoding UTF8
  if($process.ExitCode -ne 0){throw "$($command.name) exited $($process.ExitCode); preserve run directory"}
  if($command.name -eq 'import' -and (!(Test-Path $sxi) -or (Get-Item $sxi).Length -le 4)){throw 'empty SXI'}

@@ -29,5 +29,16 @@ preserved byte-for-byte in `validate.py`.
 RDP process presence alone does not prove that SIMLOX import, calculation or
 report export works there. Check the visible license state and keep a failed
 first RDP run as evidence rather than promoting the earlier CLI probes.
-An SSH CLI run, if used, needs its own versioned launch and provenance contract;
-it does not turn a CLI result into GUI acceptance.
+For an SSH CLI run, use the separate `run_native_ssh.ps1` entry point and its
+`ssh_cli_v1` provenance contract. It requires an authenticated session-0 SSH
+process with an `sshd.exe` ancestor and stores the host, original Windows run
+path, and ordered UTC command timestamps. The strict validator checks that mode independently of the
+interactive runner. An SSH result does not turn a CLI result into GUI acceptance.
+
+During a read-only RDP inspection on 2026-09-28, SIMLOX 2017.2 displayed the
+candidate input from `probe-a03-20260928-03/model.sxi`: `QTYPS=2`,
+`MissionType.NOS=MNOS=2`, and a single `BASIC-SCHEDULE` operation profile
+starting at 08:00. No new GUI calculation, report export, or source-bound
+screen capture was produced, so GUI acceptance remains pending. SIMLOX must
+stay open in the present RDP session; a concurrent SSH CLI run is excluded by
+the runner's process guard.

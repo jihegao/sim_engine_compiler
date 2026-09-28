@@ -6,6 +6,7 @@ archives bind its SHA-256. New runs also bind and execute this stricter check.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timedelta
 import hashlib
 import json
 import math
@@ -51,29 +52,59 @@ def expected_arguments(run_dir: PureWindowsPath) -> dict[str, str]:
     }
 
 
+def utc_timestamp(value: object) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo is not None and parsed.utcoffset() == timedelta(0) else None
+
+
 def check_invocation(invocation: dict, steps: list[dict], run_dir: Path) -> list[str]:
     errors = []
-    if invocation.get("runner_sha256") != sha256(HERE / "run_native.ps1"):
+    mode = invocation.get("execution_mode", "interactive_v1")
+    if mode == "interactive_v1":
+        runner = HERE / "run_native.ps1"
+    elif mode == "ssh_cli_v1":
+        runner = HERE / "run_native_ssh.ps1"
+    else:
+        return [f"unsupported A03 execution mode: {mode!r}"]
+    if invocation.get("runner_sha256") != sha256(runner):
         errors.append("invocation is not bound to the current native runner")
     name = invocation.get("session_name")
     session_id = invocation.get("session_id")
-    user = invocation.get("session_user")
-    line = invocation.get("session_query_line")
-    if (
-        not isinstance(name, str)
-        or re.fullmatch(r"Console|RDP-Tcp#\d+", name, re.IGNORECASE) is None
-        or type(session_id) is not int
-        or session_id <= 0
-        or not isinstance(user, str)
-        or not user
-        or not isinstance(line, str)
-        or re.match(
-            rf"^\s*>?\s*{re.escape(name)}\s+{re.escape(user)}\s+{session_id}\s+Active(?:\s|$)",
-            line,
-            re.IGNORECASE,
-        ) is None
-    ):
-        errors.append("invocation lacks active interactive session evidence")
+    if mode == "interactive_v1":
+        user = invocation.get("session_user")
+        line = invocation.get("session_query_line")
+        if (
+            not isinstance(name, str)
+            or re.fullmatch(r"Console|RDP-Tcp#\d+", name, re.IGNORECASE) is None
+            or type(session_id) is not int
+            or session_id <= 0
+            or not isinstance(user, str)
+            or not user
+            or not isinstance(line, str)
+            or re.match(
+                rf"^\s*>?\s*{re.escape(name)}\s+{re.escape(user)}\s+{session_id}\s+Active(?:\s|$)",
+                line,
+                re.IGNORECASE,
+            ) is None
+        ):
+            errors.append("invocation lacks active interactive session evidence")
+    elif (invocation.get("schema") != "simlox-a03-invocation/ssh-cli-v1"
+          or type(session_id) is not int or session_id != 0
+          or name not in (None, "")
+          or invocation.get("ssh_connection_present") is not True
+          or type(invocation.get("ssh_client_present")) is not bool
+          or not isinstance(invocation.get("ssh_ancestor_names"), list)
+          or not all(isinstance(item, str) for item in invocation["ssh_ancestor_names"])
+          or "sshd.exe" not in [item.lower() for item in invocation["ssh_ancestor_names"]]
+          or not isinstance(invocation.get("host_name"), str)
+          or re.fullmatch(r"[A-Za-z0-9._-]+", invocation["host_name"]) is None
+          or utc_timestamp(invocation.get("created_utc")) is None):
+        errors.append("invocation lacks authenticated SSH session provenance")
     original_path = invocation.get("original_run_dir")
     if not isinstance(original_path, str):
         errors.append("invocation lacks the original Windows run path")
@@ -90,6 +121,7 @@ def check_invocation(invocation: dict, steps: list[dict], run_dir: Path) -> list
     elif [step.get("name") for step in steps] != list(arguments):
         errors.append("native command sequence or exit status differs from contract")
     else:
+        previous_end = utc_timestamp(invocation.get("created_utc")) if mode == "ssh_cli_v1" else None
         for step in steps:
             duration = step.get("wall_seconds")
             if (step.get("exit_code") != 0
@@ -98,6 +130,12 @@ def check_invocation(invocation: dict, steps: list[dict], run_dir: Path) -> list
                     or not math.isfinite(duration)
                     or duration < 0):
                 errors.append(f"native {step['name']} arguments, exit or duration differs from contract")
+            if mode == "ssh_cli_v1":
+                start = utc_timestamp(step.get("started_utc"))
+                end = utc_timestamp(step.get("completed_utc"))
+                if start is None or end is None or start > end or (previous_end is not None and start < previous_end):
+                    errors.append(f"native {step['name']} lacks ordered UTC timestamps")
+                previous_end = end
     return errors
 
 
