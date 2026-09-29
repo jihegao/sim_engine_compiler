@@ -1,10 +1,14 @@
-# A09 nested profile, v1.0.1 candidate
+# A09 nested profile, v1.0.1 bounded publication
 
+The [later bounded sign-off](cli-scope-signoff-2026-09-29.md) publishes the
+tested four-wave CLI recipe after A02 parent acceptance and separate read-only
+replay. The original `1.0.1-candidate` contract and run labels remain frozen.
 This candidate **passed one source-bound native SIMLOX CLI run** on 4700-3.
 The [2026-09-29 acceptance record](native-acceptance-2026-09-29.md) pins the
 run ID, original Windows artifacts, hashes, observed waves, and evidence
 limits. A partial [GUI review](gui-review-2026-09-29.md) of this A09 v1.0.1
-model has been performed; publication remains `not_published`. The
+model has been performed; its original record says `not_published` because
+it predates the later sign-off. The
 [v1.0.0 nested source](../A09-hierarchical-operation-profile/native-nested.json)
 and its failed native run remain unchanged. The [flat v1.0.0 source](../A09-hierarchical-operation-profile/native-flat.json)
 passed the isolated CLI contract in run `a09-flat-nested-20260929-02-flat`;
@@ -14,7 +18,8 @@ source SHA-256, `model.log` SHA-256 and validation SHA-256, plus the flat
 control's raw report SHA-256. These two outcomes
 are tied to v1.0.0 source commit `6beb791` and its retained raw run directories;
 the v1.0.0 outcomes do not establish GUI review or full A09 method coverage.
-A02 is still the frozen parent; its GUI and publication gates remain separate.
+A02 is the frozen parent. Its bounded repeated-wave CLI behavior was later
+published in the [A02 sign-off](../A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md).
 
 The only model change is the root `OperationProfile` row
 `BASIC-SCHEDULE → A09-DAILY-TWO-WAVE`, `STIM=0`, `IQTY=2`:
@@ -70,7 +75,6 @@ powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$repo\c
 and a disconnected GUI session. Import, roundtrip, conversion, events,
 cancellation, result intervals, and an independent read-only raw replay passed
 for this run. The coexisting GUI PID/session remained stable during the CLI
-steps. A subsequent partial GUI review is recorded separately; full GUI
-acceptance remains a pending gate.
-No full A09 method coverage, publication, or cross-engine equivalence is
-claimed.
+steps. A subsequent partial GUI review is recorded separately. The dated
+sign-off publishes only this tested CLI behavior; full A09 method coverage,
+unobserved GUI behavior, and cross-engine equivalence remain unverified.
