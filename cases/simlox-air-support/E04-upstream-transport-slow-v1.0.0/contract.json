@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E04.var01",
+  "case_version": "1.0.0-candidate",
+  "variant": "SLOW-upstream-demand-after-faulty-item-arrival",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E04",
+    "version": "1.0.0",
+    "behavior_scope": "accepted FAST local shortage supplied by one upstream spare with two-hour transport each way",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+    "signoff": "../E04-upstream-transport-fast-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 213, 218, 219, 220, 221, 327, 328, 363, 364, 444, 445, 446],
+    "source_boundary": "For repairable items, StationStructure.OPOL=SLOW delays the upstream replacement demand until the corresponding faulty item reaches the support station. TFRMS remains two hours downward and TTOMS two hours upward; the local backorder waits until the upstream spare arrives."
+  },
+  "native_input_sha256": "b717f88bd0581a486677e7ba60b1235228ba88e05afd9b22cee02925c8ccc317",
+  "delta": {
+    "tables": ["ProblemDescription", "StationStructure"],
+    "mechanism": "Change the sole general BASE-01 to DEPOT-01 support link from OPOL FAST to SLOW; retain both two-hour transport times, all stock and repair data, seed and mission schedule.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "depot": "DEPOT-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "base_nominal_stock": 0,
+    "depot_nominal_stock": 1,
+    "ordering_policy": "SLOW",
+    "downward_transport_hours": 2,
+    "upward_transport_hours": 2,
+    "depot_item_direct_repair_hours": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "predeclared_native_acceptance": [
+    "The same installed-LRU failure and local demand must occur on the frozen seed; exact stochastic time comes from raw native events. Base starts at stock zero and depot at stock one.",
+    "The BASE-01 demand must backorder locally without immediate depot issue. The faulty LRU must be REMOVED, transported up for exactly two hours, and only on its arrival may the upstream demand and depot spare issue occur. Compare this propagation delay with accepted FAST E04.",
+    "Trace the distinct physical spare sent down for exactly two hours, base backorder clearance, actual physical fit and aircraft readiness. Separately trace faulty item depot repair and restock; reconcile both station inventories and terminal transit state. Do not infer causality solely from aggregate metrics.",
+    "Four native CLI steps must exit zero, conversion errors must be zero, all 21 row-containing source tables including all-null placeholders must roundtrip, and sealed raw hashes must close.",
+    "Reconcile all observed mission outcomes, failures, repairs, demand/backorder waiting and terminal state with 72 half-hour report intervals; trace any additional cycles rather than ignoring them.",
+    "Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340, and obtain independent prelaunch and read-only native replay."
+  ],
+  "limits": [
+    "This is the SLOW side of the FAST/SLOW ordering comparison for one repairable LRU and one upstream spare. It does not accept upstream shortage, zero-time transport, end-horizon in-transit items, lateral support, reorder, resource contention or PM.",
+    "Exact failure time is run-specific; native events supply timing evidence."
+  ]
+}
