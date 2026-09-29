@@ -7,6 +7,21 @@ PreparedBatchPlan 已进入普通 aircraft 批量默认路径，但历史 J35 �
 
 面向任务、资产与保障资源的业务模型编译器及离散事件运行时。首个领域是飞机机群任务与保障，原型通过 `spare_mvp` 的 canonical `simulation_inputs` 接入。
 
+## v0.1 可安装产品入口（Issue #29）
+
+`sim-engine-compiler` wheel 提供 `sim-engine` 命令和等价 Python SDK，
+覆盖 `inspect / validate / seal / compile / run / batch / diff`。
+安装后的 `sim-engine example DIR` 在目标目录生成可编辑的 synthetic B1
+Business IR 与初始 `.simpack`；修改 Business payload 后显式 `seal`、
+`validate`、`compile` 即可产生新 bundle 并运行，不需要仓库脚本或修改 Rust。
+完整的版本支持矩阵、bundle 失效规则、示例命令和 Agent 操作合同见
+[v0.1 产品合同](docs/v01-product-contract.md)与
+[Agent 工具合同](docs/agent-v01-tool-contract.md)。
+
+v0.1 bundle 限定为未带资源派遣索引的 aircraft Plan。已有索引 Plan
+实验及其运行时能力不因此改变；当前身份检查尚不能证明索引内容与其
+Plan fingerprint 的关联，产品入口会明确拒绝该组合。
+
 **当前状态：Python reference 与独立 Rust 单样本/批量 runtime 均已通过当前 Execution Plan 兼容范围。** B1 任务与日保障、B2 故障/维修/预防维修、B3 本地与组织库存/运输/取消返还均由独立 Plan runtime 执行；F35 43 天案例的 seed `0、1、7` 已完成旧模型 → Python reference → Rust 的差分闭环。Rust 批量执行共享只读 Plan、隔离每个样本的 RunState，并按输入 `sample_index` 稳定输出；Python 3.12 可通过 PyO3 绑定直接调用相同批量 API。
 
 MLIR 资源依赖索引试点已贯通 F35 canonical 输入、`sim` 方言 pass、带反向依赖索引的 Execution Plan 和现有 Rust 执行器。三个 seed、三次重复的完整结果完全一致；守卫重检次数降低 95.73%，本轮编译、加载与九次运行总成本降低 4.26%。数据和适用边界见[试点记录](docs/mlir-resource-dispatch-pilot.md)。

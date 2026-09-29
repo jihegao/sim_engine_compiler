@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path, PureWindowsPath
 
 from experiments.simlox_pairing.provenance import (
+    DECLARED_BASELINE_OVERRIDE_SHA256,
     DECLARED_NONBASELINE_SOURCE_CONTRACT,
     DECLARED_NONBASELINE_SOURCE_SHA256,
     DEFAULT_ARCHIVE,
@@ -84,14 +85,20 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
             identity["declared_nonbaseline_source_contract"],
             DECLARED_NONBASELINE_SOURCE_CONTRACT,
         )
+        self.assertEqual(identity["declared_baseline_overrides"], DECLARED_BASELINE_OVERRIDE_SHA256)
+        self.assertNotEqual(identity["build_fingerprint"], identity["executed_source_fingerprint"])
         self.assertEqual(
             set(identity["declared_nonbaseline_source_files"]),
             {
+                "src/sim_engine_compiler/cli.py",
+                "src/sim_engine_compiler/domains/aircraft_support/pack.py",
+                "src/sim_engine_compiler/examples/__init__.py",
                 "src/sim_engine_compiler/identity/__init__.py",
                 "src/sim_engine_compiler/identity/__main__.py",
                 "src/sim_engine_compiler/identity/artifacts.py",
                 "src/sim_engine_compiler/identity/common.py",
                 "src/sim_engine_compiler/identity/runs.py",
+                "src/sim_engine_compiler/product.py",
                 "src/sim_engine_compiler/review/__init__.py",
                 "src/sim_engine_compiler/review/__main__.py",
                 "src/sim_engine_compiler/review/exporter.py",
