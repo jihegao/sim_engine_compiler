@@ -1,0 +1,71 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A17",
+  "case_version": "1.0.0-candidate",
+  "variant": "two-explicit-units-group",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A03",
+    "version": "1.0.1",
+    "behavior_scope": "published one-wave two-aircraft formation",
+    "input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "signoff": "../A03-two-aircraft-formation-v1.0.1/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [178, 184, 185, 196, 308, 309, 310, 311, 312, 313, 314],
+    "source_boundary": "Manual describes explicit/implicit units, group membership, priority and XTIME; observed native behavior requires a separate CLI run."
+  },
+  "native_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "delta": {
+    "mechanism": "Two explicit units at different bases serve one shared group mission.",
+    "tables": ["ProblemDescription", "Station", "Unit", "SystemDeployment", "Operations", "UnitGroup", "UnitGroupMember"],
+    "identities": {
+      "system_type": "TEACH-AIR-01",
+      "units": ["TEACH-UNIT", "TEACH-UNIT-2"],
+      "bases": ["BASE-01", "BASE-02"],
+      "group": "TEACH-GROUP",
+      "mission_type": "BASIC-MISSION"
+    }
+  },
+  "configuration": {
+    "aircraft_per_unit": 1,
+    "mission_aircraft_nominal": 2,
+    "mission_aircraft_minimum": 2,
+    "group_member_priority": {"TEACH-UNIT": 1, "TEACH-UNIT-2": 2},
+    "group_member_xtime_hours": {"TEACH-UNIT": 0, "TEACH-UNIT-2": 0},
+    "group_unpr1": "N",
+    "horizon_hours": 36,
+    "seed": "1",
+    "repetitions": 1,
+    "result_interval_hours": 0.5,
+    "fault_preparation_resource_stock": "disabled or absent as in A03 parent"
+  },
+  "hand_expected_if_native_group_model_accepts": {
+    "notice_hour": 7,
+    "launch_hour": 8,
+    "completion_hour": 10,
+    "mission_instances": 1,
+    "unique_aircraft": 2,
+    "selected_units": ["TEACH-UNIT", "TEACH-UNIT-2"],
+    "sorties": 2,
+    "flight_aircraft_hours": 4,
+    "result_intervals": 72,
+    "cancelled_missions": 0,
+    "terminal_aircraft_ready": 2
+  },
+  "native_acceptance_required": [
+    "Run from session-0 SSH under the host-wide Issue 18 queue; preserve GUI PID 13340 and use a unique versioned run ID.",
+    "Bind input, generator, contract, parent, executable, command arguments, raw outputs and hashes before and after execution.",
+    "Require native import/export business-row equality, zero conversion errors, nonempty valid SXI/SXO/ENLOG/report and explained warnings.",
+    "Replay both aircraft and unit identities through assignment, launch, completion and return; check one mission, two sorties, 72 interval ledgers, metrics and terminal state.",
+    "Have a separate reviewer replay read-only raw evidence without importing the author implementation before publishing."
+  ],
+  "limits": [
+    "This first variant does not prove priority choice: both units are required by the mission.",
+    "Implicit units, equal-priority cycling, UNPR1 explicit-formation ordering, XTIME effects, symmetric station groups, and direct-to-group deployment rejection remain separate A17 variants.",
+    "The two bases model organizational membership, not geographic movement. No aircraft transfer or geographic path is claimed.",
+    "Cross-engine equivalence and GUI-only behavior are unverified."
+  ]
+}

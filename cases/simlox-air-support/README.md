@@ -20,6 +20,8 @@ The [C04 1.0.0 deadline and cancellation case](C04-deadline-cancellation-v1.0.0/
 
 The [A09 1.0.1 nested-profile sign-off](A09-hierarchical-operation-profile-v1.0.1/cli-scope-signoff-2026-09-29.md) publishes one fixed four-wave CLI recipe from the accepted A02 parent. Its retained native run and separate 98-check read-only replay support only the tested `IQTY=2`, `IPER=48 h` profile; the general expansion formula and other A09 variants remain unverified.
 
+The [A17 1.0.0 two-unit group sign-off](A17-multi-unit-group-v1.0.0/cli-scope-signoff-2026-09-29.md) publishes one fixed CLI recipe from the accepted A03 parent: one two-aircraft mission draws one aircraft from each of two explicit units at separate bases, then returns both. The sealed four-step run, 281-check author validation and independent read-only replay support this bounded behavior. Priority choice, implicit units, XTIME, transfer and other A17 variants remain unverified.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
