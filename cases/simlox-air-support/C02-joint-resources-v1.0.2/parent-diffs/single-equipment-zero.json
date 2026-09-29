@@ -1,0 +1,186 @@
+{
+  "schema": "simlox-c02-exact-parent-diff/v1",
+  "parent_case": "C01@1.0.2/capacity-2",
+  "case_id": "C02",
+  "version": "1.0.2",
+  "variant_id": "single-equipment-zero",
+  "parent_input_sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c",
+  "child_input_sha256": "f22fa4ef442ec7690238d86b1a04f18c6455ae1aa56c769cfbbe4025786ab5a5",
+  "unchanged_table_count": 27,
+  "changed_tables_only": [
+    "Resource",
+    "ResourceAllocation",
+    "TaskBreakDown",
+    "SubTaskResource"
+  ],
+  "added_rows": 3,
+  "removed_rows": 1,
+  "tables": {
+    "Resource": {
+      "parent_rows": [
+        {
+          "RID": "P-CREW",
+          "DESCR": "Crew A personnel",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        },
+        {
+          "RID": "P-OTHER",
+          "DESCR": "Other specialty personnel",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "RID": "P-CREW",
+          "DESCR": "Crew A personnel",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        },
+        {
+          "RID": "P-OTHER",
+          "DESCR": "Other specialty personnel",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        },
+        {
+          "RID": "E-GSE",
+          "DESCR": "Ground support equipment",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "ResourceAllocation": {
+      "parent_rows": [
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-CREW",
+          "STID": "BASE-01",
+          "RQTY": 2,
+          "NOTE": null
+        },
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-OTHER",
+          "STID": "BASE-01",
+          "RQTY": 0,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-CREW",
+          "STID": "BASE-01",
+          "RQTY": 1,
+          "NOTE": null
+        },
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-OTHER",
+          "STID": "BASE-01",
+          "RQTY": 0,
+          "NOTE": null
+        },
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "E-GSE",
+          "STID": "BASE-01",
+          "RQTY": 0,
+          "NOTE": null
+        }
+      ]
+    },
+    "TaskBreakDown": {
+      "parent_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "SUTID": "INSPECT",
+          "DURN": 0.16666666666666666,
+          "DURND": null,
+          "NOTE": null
+        },
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 2,
+          "SUTID": "SERVICE",
+          "DURN": 0.3333333333333333,
+          "DURND": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "SUTID": "INSPECT",
+          "DURN": 0.5,
+          "DURND": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "SubTaskResource": {
+      "parent_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "RID": "P-CREW",
+          "QTY": 2,
+          "RPROB": 1,
+          "ARID": null,
+          "ARTF": null,
+          "ENRMS": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "RID": "P-CREW",
+          "QTY": 1,
+          "RPROB": 1,
+          "ARID": null,
+          "ARTF": null,
+          "ENRMS": null,
+          "NOTE": null
+        },
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "RID": "E-GSE",
+          "QTY": 1,
+          "RPROB": 1,
+          "ARID": null,
+          "ARTF": null,
+          "ENRMS": null,
+          "NOTE": null
+        }
+      ]
+    }
+  }
+}
