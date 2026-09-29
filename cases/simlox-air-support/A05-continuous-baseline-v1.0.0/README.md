@@ -1,0 +1,7 @@
+# A05 v1.0.0 input acceptance probe — unpublished
+
+This frozen three-input candidate derives a four-hour A03 fixed control, a continuous child, and a one-aircraft continuous shortage child. The fixed control completed native run `a05-fixed-four-hour-v100-ssh-20260930-01` with source roundtrip and zero conversion errors. Its raw report SHA-256 is `2e1363bd4779b03b3fdf1155b04a936936d93b3b4c52148c67b9a88625c5adce`.
+
+The source-bound continuous run `a05-continuous-four-hour-v100-ssh-20260930-01` failed the native calculation gate. Conversion error **#335** states that `TFOUT` and `TFRET` are not allowed for continuous or extendable missions. The A03 parent fractions 0.25/0.25 had been retained; the native SXO is only four bytes, and no report was exported. Its input SHA-256 is `260c9508c5c39ce0d31441510b73084c563e4000f3870c105eb769e83d88fef8`; raw invocation SHA-256 `846fb252df60b01ea88e66e63815007a06a429585df34e4bd30562868359a371`, closure SHA-256 `0e49976c08cb3551887d608a305a188f139f8dd6225df4989a8a5ed7983e31a9`, and conversion log SHA-256 `722d789cca2df9341302e2875269c3ce8f127247e016f0c0a1f14ba14bca5d21`. The planned shortage input was not run at this version.
+
+These source files and raw runs remain immutable and **unpublished**. The [v1.0.1 correction](../A05-continuous-baseline-v1.0.1/README.md) unsets the two forbidden fractions only on continuous inputs and runs all three controls separately. Raw files stay under ignored local `runs/`.
