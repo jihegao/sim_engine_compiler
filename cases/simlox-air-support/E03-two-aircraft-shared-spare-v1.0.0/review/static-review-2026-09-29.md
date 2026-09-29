@@ -1,0 +1,5 @@
+# Independent prelaunch review
+
+The separate reviewer found one evidence-schema labeling blocker: the copied runner and checker still identified E02. All five labels were corrected to E03 before the native run, and the reviewer confirmed the runner parsed, the checker parsed and no stale E02 evidence schemas remained.
+
+The accepted E02 parent and A03 two-aircraft prerequisite hashes and signoffs match the contract. The actual parent delta is exactly the seven tables in `parent-diff.json`; 20 source tables contain rows. The two-aircraft deployment, two requested one-aircraft missions, local stock one and four-hour local item repair are internally consistent. Installed manual page 240 supports the matched 3,000,000 `OPHOURS` system/item FRT hierarchy; pages 211–213 and 218–220 support the system demand, REMOVE, waiting for a spare, local backorder and repaired-item service sequence. The runner retains session-0 SSH, host-wide mutex and GUI PID 13340 guards. The reviewer made no edits or native calls. Whether `IQTY=2` actually launches two distinct missions and exposes the backorder was left for native evidence.
