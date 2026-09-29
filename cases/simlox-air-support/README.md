@@ -22,6 +22,8 @@ The [A09 1.0.1 nested-profile sign-off](A09-hierarchical-operation-profile-v1.0.
 
 The [A17 1.0.0 two-unit group sign-off](A17-multi-unit-group-v1.0.0/cli-scope-signoff-2026-09-29.md) publishes one fixed CLI recipe from the accepted A03 parent: one two-aircraft mission draws one aircraft from each of two explicit units at separate bases, then returns both. The sealed four-step run, 281-check author validation and independent read-only replay support this bounded behavior. Priority choice, implicit units, XTIME, transfer and other A17 variants remain unverified.
 
+The [D01 1.0.0 restricted sign-off](D01-system-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md) publishes only the system-level direct-repair slice from accepted A02. A seeded native run observed two critical failures and 0.5-hour local repairs, with two mission aborts, one successful mission and terminal recovery. The 293-check author replay and separate read-only review passed. Installed-item failure, replacement, stock and ItemRepair remain unverified D01 extensions.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.

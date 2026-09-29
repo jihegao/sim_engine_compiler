@@ -1,0 +1,62 @@
+{
+  "schema": "simlox-d01-v100-independent-readonly/v1",
+  "review_date": "2026-09-29",
+  "run_id": "d01-v100-ssh-20260929-01",
+  "passed": true,
+  "differences": [],
+  "evidence": {
+    "parent_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "child_input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450",
+    "invocation_sha256": "cad80021f770db3acb7af5f64a029f8af24b2aa44d41f439685f7e052405c8c4",
+    "closure_sha256": "c3769da04ae3e8e754ff172cb0bed9317a0ec7ec5352913086341cc0ad489c05",
+    "report_sha256": "cb21d4b6f7c3c35b8d42412e60bb6ca85d178b4ef6e9d61d71ca294ba94fc83a",
+    "model_log_sha256": "71c46a192990c81bf27ed6fd1b41ea15b5ada25834131a7700d4d1b779e83161",
+    "a02_control_report_sha256": "a7227687988841c074b28b524792af7d856cd674840169bf15c210f2d2cd4739",
+    "changed_tables": [
+      "ProblemDescription",
+      "System",
+      "SystemRepair"
+    ],
+    "warning_codes": [
+      "108",
+      "126"
+    ],
+    "critical_failure_hours": [
+      9.8829,
+      33.8602
+    ],
+    "mission_outcomes": [
+      "aborted",
+      "successful",
+      "aborted"
+    ],
+    "direct_repair_windows": [
+      [
+        10,
+        10.5
+      ],
+      [
+        34,
+        34.5
+      ]
+    ],
+    "result_intervals": 72,
+    "system_result_change_hours_vs_a02": [
+      9.5,
+      10.0,
+      10.5,
+      33.5,
+      34.0,
+      34.5
+    ],
+    "terminal_ready": 1
+  },
+  "scope": "independent_cli_behavior_review",
+  "publication_state": "not_published",
+  "limitations": [
+    "Failure times are run-specific observations under seed 1 and this executable, not portable scheduled inputs.",
+    "The 0.5-hour DIRPT is a local direct-repair turnaround; no item replacement, stock, explicit task resource, PM, failure-mode, GUI-only or cross-engine behavior is accepted.",
+    "SystemResults uses half-hour bins: it records a failure in each final mission interval and six nominal mission-operation hours, while exact 9.8829/33.8602 abort times come from the event log.",
+    "GUI preservation, active-session gating and queue ownership rely on the source-bound runner and sealed step records; GUI window content was not independently sampled."
+  ]
+}
