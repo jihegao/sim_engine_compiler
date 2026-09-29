@@ -10,6 +10,8 @@ The [published B02 1.0.2 serial-preparation case](B02-serial-preparation-v1.0.2/
 
 The [C01 1.0.2 personnel-capacity case](C01-personnel-capacity-v1.0.2/README.md) derives from published B02 1.0.2. Four source-bound CLI runs independently confirm a two-person crew lease, insufficient capacity, zero capacity and wrong specialty. Its [evidence report](C01-personnel-capacity-v1.0.2/evidence-2026-09-29.md) bounds the publication decision.
 
+The [C02 1.0.2 joint-resource case](C02-joint-resources-v1.0.2/README.md) derives from accepted C01 capacity two. Four source-bound CLI runs compare joint P-CREW/E-GSE acquisition in one-step and two-step preparation, with equipment-zero controls. Its [evidence report](C02-joint-resources-v1.0.2/evidence-2026-09-29.md) records the exact source and raw hashes.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.

@@ -1,0 +1,7 @@
+# C02 1.0.2: joint personnel and equipment
+
+This case derives only from the SHA-256-pinned [published C01 1.0.2 capacity-two input](../C01-personnel-capacity-v1.0.2/inputs/capacity-2.json). C01 in turn derives from accepted B02 1.0.2 and B01 1.0.1. The older `preparation-resource-v1` C02 candidate has different identities and unpublished ancestry; it is a semantic reference, never this model's parent.
+
+The [contract](contract.json) retains the C01 aircraft, mission, station, task, notice, planned launch, seed, horizon and scalar preparation duration. It replaces INSPECT's two-person P-CREW demand with P-CREW x1 plus E-GSE x1 and adds one SPECIAL E-GSE allocation at `Control.APID=AIR_BASIC`. Available and equipment-zero variants compare a 30-minute single INSPECT step with serial 10-minute INSPECT then 20-minute unresourced SERVICE. The single-step model retains the unused SERVICE type identity but removes its breakdown row. Equipment-zero variants check that an available crew member is not partially booked when the device is absent.
+
+The installed SIMLOX 2017 manual, SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`, maps task-step resource requests on PDF pp. 397–400 and resource type/allocation behavior on pp. 407–414. `build.py --check` reproduces all four inputs and exact C01 parent diffs. Each native run uses the authenticated session-0 SSH wrapper, host-wide mutex and original GUI PID 13340 coexistence checks. The [dated evidence report](evidence-2026-09-29.md) records the independent review and bounded decision.

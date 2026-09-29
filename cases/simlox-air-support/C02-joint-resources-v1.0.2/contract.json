@@ -1,0 +1,78 @@
+{
+  "schema": "simlox-c02-observable-contract/v1",
+  "case_id": "C02",
+  "version": "1.0.2",
+  "status": "candidate_pending_native_runs",
+  "parent_case": "C01@1.0.2/capacity-2",
+  "parent_input_sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c",
+  "source_method_id": "M-C02",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pdf_pages": [[397, 400], [407, 414]],
+  "business_delta": "Retain C01 aircraft, mission, station, task, notice, horizon and seed. INSPECT needs P-CREW x1 and E-GSE x1 together. Compare one 30-minute step with B02's serial 10+20-minute steps; SERVICE has no explicit resource demand. Equipment-zero controls joint acquisition under scarcity.",
+  "common_identity": {
+    "aircraft": "TEACH-AIR-01",
+    "mission_type": "BASIC-MISSION",
+    "station": "BASE-01",
+    "task": "PREP-FIXED",
+    "demand_seq": 1,
+    "resource_ids": ["P-CREW", "E-GSE"],
+    "allocation_point": "AIR_BASIC"
+  },
+  "expected_common": {
+    "notice_hour": 7,
+    "planned_launch_hour": 8,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5
+  },
+  "variants": {
+    "single-both": {
+      "serial": false,
+      "crew_quantity": 1,
+      "equipment_quantity": 1,
+      "input_sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+      "parent_diff_sha256": "d18ea1aefdef3c9a93e60f1733edead706a6da4c81c9f761e22bbc18d7b4a40b",
+      "expected": "Both leases begin before 30-minute INSPECT work and end at 07:30; the mission launches at 08:00."
+    },
+    "single-equipment-zero": {
+      "serial": false,
+      "crew_quantity": 1,
+      "equipment_quantity": 0,
+      "input_sha256": "f22fa4ef442ec7690238d86b1a04f18c6455ae1aa56c769cfbbe4025786ab5a5",
+      "parent_diff_sha256": "4a999bfd2618c37cfd5573369bcb432a098cc237e4b5fd937f37b41d54450a0f",
+      "expected": "Joint request waits; neither lease nor preparation work begins. Record native cancellation time."
+    },
+    "serial-both": {
+      "serial": true,
+      "crew_quantity": 1,
+      "equipment_quantity": 1,
+      "input_sha256": "f7b9c19958d96cdc8a6bf955fd94a52e61b12e6dd116e310683732688dbf550e",
+      "parent_diff_sha256": "4e0d7326cc373a09b6002e3ff0c7272ac649fe5d4124096a01a5798d5c2affc5",
+      "expected": "Both leases cover only 10-minute INSPECT, release at 07:10, then unresourced SERVICE runs to 07:30; launch at 08:00."
+    },
+    "serial-equipment-zero": {
+      "serial": true,
+      "crew_quantity": 1,
+      "equipment_quantity": 0,
+      "input_sha256": "2f209a5420432263b588230624d7586a3edecab2da613efbf65d6a1e8df862fa",
+      "parent_diff_sha256": "0b3176d9a8da96c18ef954036df9e2b40462518a682ee4c25099a6ffd9403a5c",
+      "expected": "INSPECT's joint request waits and SERVICE does not start. No partial lease or launch; record native cancellation time."
+    }
+  },
+  "assertions": {
+    "C02-102-A1": "C01 source identity and common schedule remain; only resource demand, capacity and single-step breakdown change.",
+    "C02-102-A2": "P-CREW and E-GSE each have quantity one on INSPECT SEQ 1; no main-task demand or substitute resource is present.",
+    "C02-102-A3": "Both-available variants acquire both resources before work and release both after INSPECT, with no double counting.",
+    "C02-102-A4": "Equipment-zero variants acquire neither resource and do no work.",
+    "C02-102-A5": "Single-step duration is 30 minutes; serial steps are 10 then 20 minutes, with only the first explicitly resourced."
+  },
+  "allowed_native_warnings": {
+    "108": "Control.ENLOG=Y records the first repetition",
+    "126": "the deterministic teaching System has no Item children"
+  },
+  "acceptance_scope": "joint personnel and equipment acquisition on one-step and first-of-two-step preparation, with equipment-zero controls",
+  "excluded_claims": [
+    "The old C02 1.0.1 candidate is only a semantic reference and is not a parent.",
+    "No delayed arrival, partial capacity, shifts, substitution, multi-aircraft contention, GUI-only behavior, cross-engine parity or performance is claimed."
+  ],
+  "publication_state": "not_published"
+}
