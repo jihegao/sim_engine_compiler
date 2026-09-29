@@ -1,0 +1,23 @@
+# A03 1.0.1: bounded two-aircraft formation sign-off, 2026-09-29
+
+This later case-level review follows the revised Issue #18 / PR #44 publication rule. The frozen candidate input, contract, native run, manifest, and historical status labels were not changed. A01's normal path and A02's repeated-wave path were separately published before this decision; A02 was merged on `simlox/main` by PR #54 at `839c2ba2c2dd8343f434d0831d67bbc89cf3b543`.
+
+## Decision and source
+
+`native_behavior_accepted_cli_scope` and `reusable_published` for one scheduled 08:00 wave using two ready aircraft of the same type and unit, with no preparation or resource demand. The source is the checked [A03 1.0.1 input](native-input.json), SHA-256 `d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4`, derived from published [A02 1.0.0](../A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md), input SHA-256 `84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8`. The frozen [contract](contract.json) SHA-256 is `123b5391d0b17fdd0b7d61088c883e7cfb891892fe89c7cb85b27e30868ea34d`.
+
+The [independent read-only review](review/independent-readonly-2026-09-29.json) recomputed every table from both checked inputs and verified the exact `MissionType`, `OperationProfile`, `ProblemDescription`, and `SystemDeployment` row changes against `parent-diff.json`. A03 1.0.1 differs from A03 1.0.0 only in `ProblemDescription.PDESC`; the earlier 1.0.0 run was not reassigned. `python build.py --check` independently confirmed those source hashes and deltas.
+
+## Sealed native and GUI evidence
+
+Native run ID `a03-v101-ssh-gui-20260929-01` remains at `C:\Users\user\Documents\Codex\2026-09-28\simlox-issue18-ssh-current\cases\simlox-air-support\A03-two-aircraft-formation-v1.0.1\runs\a03-v101-ssh-gui-20260929-01`. Its invocation SHA-256 is `7dd01046c8c7a2e14ff282a4d15dc94551bde286761800b7e016f91f0ae40a8b`; the closure SHA-256 is `a3b4a2739b5b098c956aa19428cf997b2079aab858e22fb5ea9c4486a4209edd`. The reviewer recomputed all 11 raw closure file sizes and hashes, checked the frozen input, contract, runner and validator bindings, and verified four SSH session-0 native commands exited 0 while GUI PID 13340 remained present. Re-running the source-bound strict validator read-only returned `passed=true`, `differences=[]`.
+
+The native `model.sxi` SHA-256 is `f4f9c781dac3492e11d13f88ccee2efd06afa3a871aeef1ee3f3c8d12e7d9d08`; `model.log` is `5a88edd86e6fe3dfab96cb9fee12c7d327e9fe56b202be9c4f58918b06476809`; raw JSON report is `8ff915b97b22720da95698f111697400a6d7bf9069232a73c50f6743668d9e28`. Ten nonempty business tables roundtripped unchanged. The log has two distinct aircraft allocated at 07:00, a joint launch at 08:00, success and completion at 10:00, and no cancellation or abort. The report has 72 half-hour SystemResults intervals, two sorties and four aircraft-hours in mission operation. Conversion recorded zero errors and the documented 108/126 warnings.
+
+The [dated evidence addendum](evidence-2026-09-29.md) records a separate GUI calculation from an identical SXI: `A03-v101-ssh-01-gui-calc.sxi` and its `.log` hash exactly match the native SXI and event log above. The comparison screenshot SHA-256 is `47b524b74d40abbe8cedf2b761e8dc52ba51de67a926d4b2a6d1c0d55c29f684`; it displays total system availability 2.00 for the new GUI calculation. These GUI files remain at `C:\Users\user\Documents\Codex\2026-09-28\simlox-p1-a03-b7e6945a\cases\simlox-air-support\A03-two-aircraft-formation\runs\gui-review-20260928\gui-calc-20260929`. The independent reviewer rehashed the SXI, log and screenshot. The GUI SXO bytes differ from the native SXO; the addendum's input-table screenshots are corroboration, not a full GUI result-table export.
+
+The independent review passed with zero differences. Its JSON SHA-256 is `646e2076eb03565b4fb390b98d8651c5c1403380a28a9d5b99bb9a06a37d9282`.
+
+## Scope limits
+
+This publishes only the deterministic, always-ready two-aircraft one-wave behavior above. `Unit.DESCR` still says “One-aircraft teaching unit”; the source quantity, mission type, log, and report establish the actual two-aircraft behavior, but the label remains inaccurate. `MNOSA` is null; no distinct in-flight minimum or MissionFormation alternative is claimed. The 20-minute delay deadline is untested. No GUI-only semantics, Python/Rust/J35 equivalence, fault behavior, shared-resource behavior or performance claim follows from this case. The old candidate and run-manifest `not_published` fields describe their original creation-time state; this later sign-off is the publication decision.
