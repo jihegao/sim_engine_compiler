@@ -1,0 +1,57 @@
+{
+  "schema": "simlox-b01-observable-contract/v1",
+  "case_id": "B01",
+  "version": "1.0.1",
+  "status": "candidate_pending_native_run",
+  "parent_case": "A01@1.0.0",
+  "parent_behavior_scope": "normal one-aircraft 0-36 h path accepted in A01 CLI sign-off 2026-09-29",
+  "parent_input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+  "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+  "parent_diff_sha256": "79c801e621e6872b823e9558d3b9bdb2fe0555acdce34bb33147698695c9bb92",
+  "source_method_id": "M-B01",
+  "source_manual_pdf_pages": [[181, 182], [294, 297]],
+  "business_delta": "Keep every A01 business ID and unchanged table; add one fixed 0.5-hour MissionPreparation row and its PREP-FIXED Tasks row.",
+  "changed_tables_only": ["MissionPreparation", "Tasks"],
+  "business_identity": {
+    "aircraft": "TEACH-AIR-01",
+    "unit": "TEACH-UNIT",
+    "mission_type": "BASIC-MISSION",
+    "schedule": "BASIC-SCHEDULE",
+    "station": "BASE-01",
+    "task": "PREP-FIXED"
+  },
+  "expected_native": {
+    "mission_tag": "<BASIC-MISSION,TEACH-UNIT,0,0,0>",
+    "aircraft_instance": "<TEACH-AIR-01,0>",
+    "notice_hour": 7,
+    "preparation_start_hour": 7,
+    "preparation_end_hour": 7.5,
+    "preparation_work_hours": 0.5,
+    "launch_hour": 8,
+    "completion_hour": 10,
+    "mission_flight_hours": 2,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5,
+    "preparation_starts": 1,
+    "preparation_completions": 1,
+    "successful_missions": 1
+  },
+  "assertions": {
+    "B01-101-A1": "Exactly one observable aircraft preparation, system preparation task and subtask lifecycle for the assigned aircraft; no extra lifecycle at another time.",
+    "B01-101-A2": "Preparation and positive 0.5-hour work start at 07:00 and finish at 07:30; source and native roundtrip retain both added rows.",
+    "B01-101-A3": "The same mission starts once at 08:00, after preparation finishes, and completes once at 10:00; no cancellation or abort.",
+    "B01-101-A4": "All 72 half-hour SystemResults intervals show one NPSTA and NPSUC, 0.5 aircraft-hour NSYMP and 2 aircraft-hours FTMO/NSYMO in their declared windows.",
+    "B01-101-A5": "MissionType.NOPER stays 1 hour from A01; it is distinct from preparation work and observed counts. One scheduled wave and one aircraft remain unchanged."
+  },
+  "allowed_native_warnings": {
+    "108": "Control.ENLOG=Y records the first repetition",
+    "126": "the deterministic teaching System has no Item children"
+  },
+  "acceptance_scope": "fixed positive-duration preparation on A01 normal path only",
+  "excluded_claims": [
+    "Internal preparation-object creation count is not exposed by ENLOG.",
+    "This schedule does not test launch delay caused by unfinished preparation.",
+    "No zero-duration control, resource contention, random duration, deadline tie, GUI-only operation, cross-engine parity or performance is claimed."
+  ],
+  "publication_state": "not_published"
+}

@@ -1,5 +1,10 @@
 # Preparation and shared-resource contracts v1
 
+The [B01 1.0.1 case](../B01-fixed-preparation-v1.0.1/README.md) is a separate
+versioned A01-derived model with a two-row parent delta. Its corrected, fresh
+SSH native run and independent replay support bounded publication. This v1
+bundle and the original B01 1.0.0 evidence remain frozen.
+
 The [2026-09-29 B01 `fixed-30m` CLI review](review/B01-fixed-30m-cli-review-2026-09-29.md)
 accepts the observed positive-duration execution only in CLI scope under the
 revised Issue #18 standard. B01 remains `not_published`: its original
