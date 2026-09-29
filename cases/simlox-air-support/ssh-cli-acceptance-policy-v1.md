@@ -7,11 +7,12 @@ does not accept any case in this library. This decision supersedes the earlier
 Console-only restriction for **CLI execution only** in
 `4700-3-local-console-acceptance-handoff.md`.
 
-GUI calibration and GUI acceptance require a visible, verified active Console
-or RDP user session. RDP use must be checked in the actual SIMLOX windows and
-recorded as GUI evidence; merely seeing a process is insufficient. SSH results
-must keep `gui_status=not_run` and cannot promote a case to
-`native_behavior_accepted` or `reusable_published` without its other gates.
+When GUI is sampled, use a visible, verified active Console or RDP user
+session and check the actual SIMLOX windows; merely seeing a process is
+insufficient. SSH-only results keep `gui_status=not_run`. Under the
+[2026-09-29 revised case standard](execution-plan-v2.md#3-证据状态和阶段门),
+that GUI status does not block behavior acceptance or publication when the
+declared CLI contract and other gates pass. GUI screenshots are optional.
 The old Console runner and historical run evidence remain unchanged.
 
 The [2026-09-24/25 efficiency record](../../docs/simlox-feasibility-benchmark.md)
@@ -65,7 +66,8 @@ For each new SSH CLI run:
 4. Preserve raw outputs and failed attempts. Independent review must replay
    assertions on read-only copies before any CLI-scope acceptance conclusion.
 5. Keep parent, GUI, publication, cross-engine, and unsupported-capability
-   statuses explicit. An isolated CLI pass is not a published case.
+   statuses explicit. An isolated CLI pass is not automatically a published
+   case; apply the revised evidence and parent review before promotion.
 
 `A03-two-aircraft-formation/run_native_ssh.ps1` is a new runner for this policy.
 Its `ssh_cli_v1` provenance is checked separately by the source-bound strict

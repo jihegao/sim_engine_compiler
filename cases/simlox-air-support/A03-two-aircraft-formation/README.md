@@ -1,5 +1,7 @@
 # A03: two aircraft in one mission wave
 
+The [2026-09-29 revised acceptance standard](../execution-plan-v2.md#3-证据状态和阶段门) supersedes the historical GUI publication gates mentioned below. GUI is now an optional spot-check without mandatory screenshot retention; parent CLI behavior, the case contract and independent evidence review still require separate decisions. This file describes the original A03 candidate; see the versioned 1.0.1 case for its later native run.
+
 This candidate fixes `A02@1.0.0` as the parent. The builder verifies its exact
 input SHA-256 before changing three native tables. It keeps the 08:00 wave,
 removes A02's 20:00 and 32:00 waves, sets `SystemDeployment.QTYPS=2`, and sets

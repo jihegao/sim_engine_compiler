@@ -6,7 +6,7 @@ Hand expectations in the [contract](contract.json): notifications 7/19/31 h; sta
 
 Files: [parameters](parameters.json), [native input](native-input.json), [field and GUI mapping](mapping.csv), [manifest](manifest.json), [result summary](results-summary.json), [acceptance](acceptance.json), [evidence index](evidence-index.json). Fresh reproduction uses `generate_native.py --case A02 --output data/local/simlox-case-library/generated/a02-replay-input.json`, compares the SHA to the checked input, then invokes `run_native_bound.ps1 -CaseId A02 -RunId a02-replay-UNIQUE -InputSha256 <checked-input-sha>` through the coordinator SSH PowerShell path. Both commands must use the absolute new repo workdir.
 
-CLI evidence may support a provisional derivation from A01. GUI acceptance of A01 and GUI review of A02 are pending; this is not a reusable published derivative yet. Normal always-ready missions do not exercise before/tie/after cancellation priority.
+CLI evidence supports a provisional derivation from A01. Under the [revised case standard](../execution-plan-v2.md#3-证据状态和阶段门), GUI is an optional spot-check and no screenshot archive is required for publication. This case is not automatically published: its frozen CLI behavior, A01 parent status, reproducibility and limits still need a case-level release review. Normal always-ready missions do not exercise before/tie/after cancellation priority.
 
 Use these exact commands in the coordinator SSH PowerShell context on 4700-3, with a fresh run ID when repeating. The generated file is a separate byte-reproduction check; the runner uses the checked case input.
 
