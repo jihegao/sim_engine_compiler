@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D02",
+  "variant_id": "D02.var03",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D02",
+    "variant_id": "D02.var01",
+    "input_sha256": "9e6d264330c6f7b41752ed8b0c09a32ac45089cec9ec823ad5e3367ce7f348e2",
+    "signoff": "../D02-var01-traditional-op-hours-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 338, 339, 349, 350, 351],
+    "source_boundary": "The accepted D02.var01 parent keeps traditional System and Item OPID=OPHOURS and observes a 30-hour no-flight interval. This child retains the same traditional failure/repair path and extends the no-flight interval to 130 hours without altering the first two missions or seed."
+  },
+  "native_input_sha256": "c1bd1294a126b199e16d55fd66ae084d382683416581b67772d7e82e532f6e24",
+  "delta": {
+    "tables": ["ProblemDescription", "Control", "OperationProfile", "ResultCollection"],
+    "mechanism": "Move only third scheduled mission from hour 52 to 152, extend simulation and result-collection horizon 60 to 160 hours, and change description label. The no-flight interval after the second mission increases from 30 to 130 hours."
+  },
+  "configuration": {
+    "system_and_item_frt_per_million_ophours": 300000,
+    "traditional_system_opid": "OPHOURS",
+    "traditional_item_opid": "OPHOURS",
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 160,
+    "scheduled_launch_hours": [8, 20, 152]
+  },
+  "predeclared_native_acceptance": [
+    "Four native CLI steps, exact row-containing source roundtrip and zero conversion errors under guarded session-0 SSH with host-wide mutex and GUI PID 13340 identity guard; source and raw bytes are sealed.",
+    "The first two mission/failure/repair events match accepted D02.var01 where their inputs are identical; the longer gap begins after the second mission and has no traditional random failure in event log or aligned report bins.",
+    "The interval from hour 22 to 152 has no flight: aircraft ready/idle through the relevant bins except normal pre-mission preparation. The delayed third mission starts at its scheduled hour 152, with its native success or failure status and report values recorded rather than assumed.",
+    "The 160-hour report has aligned half-hour bins, reconciled failure/repair totals, stock demand and terminal aircraft state; differences from the 60-hour parent are described without assuming cross-engine or general random-stream equivalence.",
+    "Independent reviewer replays exact parent diff, source/raw seals, guard, log, report and limits before publication."
+  ],
+  "limits": [
+    "One fixed seed and one extended idle interval; no direct internal OPHOURS counter is reported and a quiet gap alone does not prove a general clock algorithm.",
+    "Other seeds, PM during parking, dynamic state changes, GUI visual content and cross-engine equivalence are untested."
+  ]
+}
