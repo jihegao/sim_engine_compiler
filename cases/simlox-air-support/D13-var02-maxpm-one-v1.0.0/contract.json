@@ -1,0 +1,29 @@
+{
+  "case_id": "D13.var02",
+  "version": "1.0.0-candidate",
+  "parent_case": "D03@1.0.0",
+  "parent_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "input_sha256": "8881ab42a492ce066dd23a51830b039768c316282e241fd45ee73d0ed5ee9748",
+  "scope": "two aircraft at one unit, noncritical CAL24 PM, MAXPM=1, no PM resource demand",
+  "delta": [
+    "SystemDeployment.QTYPS 1 to 2",
+    "Unit.MAXPM absent to 1",
+    "MaterielPM.DTIM 0 to 0.5 (noncritical interval)",
+    "simulation and MISSION/SYSTEM result horizons 60 to 36 hours",
+    "descriptive labels updated"
+  ],
+  "hand_expected": {
+    "aircraft_count": 2,
+    "first_pm_due_hours": 24,
+    "pm_task_count": 2,
+    "max_concurrent_pm": 1,
+    "both_complete_before_hours": 31,
+    "mission_waves": [
+      8,
+      20,
+      32
+    ],
+    "no_mission_cancellation": true
+  },
+  "publication_state": "not_published"
+}

@@ -1,6 +1,6 @@
 # SIMLOX air-support teaching cases
 
-This library follows issue #18. The [SIMLOX 2017 progressive catalog v2](progressive-catalog-v2.md) has 108 planned case definitions: the original 26 business cases and 82 method, experiment and authoring extensions. Its 579 named variants and all 133 input tables are mapped to manual sources and acceptance plans. The catalog is a frozen planning snapshot; the separate [publication index](publication-index-v1.json) lists 25 accepted bounded CLI packages covering 20 distinct case IDs as of 2026-09-30. Each linked case report defines its precise scope and limits. Under the [revised acceptance standard](execution-plan-v2.md#3-证据状态和阶段门), source-bound CLI behavior evidence can support delivery and publication without a universal GUI gate. The aircraft is a generic teaching asset; real F35/J35 applications need separate contracts and evidence.
+This library follows issue #18. The [SIMLOX 2017 progressive catalog v2](progressive-catalog-v2.md) has 108 planned case definitions: the original 26 business cases and 82 method, experiment and authoring extensions. Its 579 named variants and all 133 input tables are mapped to manual sources and acceptance plans. The catalog is a frozen planning snapshot; the separate [publication index](publication-index-v1.json) lists 26 accepted bounded CLI packages covering 21 distinct case IDs as of 2026-09-30. Each linked case report defines its precise scope and limits. Under the [revised acceptance standard](execution-plan-v2.md#3-证据状态和阶段门), source-bound CLI behavior evidence can support delivery and publication without a universal GUI gate. The aircraft is a generic teaching asset; real F35/J35 applications need separate contracts and evidence.
 
 ## Current implementation batch
 
@@ -27,6 +27,8 @@ The [D01 1.0.0 restricted sign-off](D01-system-direct-repair-v1.0.0/cli-scope-si
 The [D03 1.0.0 calendar-PM sign-off](D03-calendar-pm-v1.0.0/cli-scope-signoff-2026-09-30.md) adds two nonconflicting one-hour PM services to A02's three-mission aircraft: 24–25 and 49–50 hours in a sealed 60-hour run. The second start follows the first completion by 24 hours in this run. The 62-check author replay and independent 19-check review passed. Conflict, resource and alternative-counter PM behavior remain separate catalog scopes.
 
 The [D04 1.0.0 operation-hour PM sign-off](D04-flight-hour-pm-v1.0.0/cli-scope-signoff-2026-09-30.md) changes D03's trigger to three `OPHOURS`: a two-hour mission at 8–10 and a one-hour mission at 40–41 bracket a 30-hour no-flight interval; one-hour PM follows at 41–42. The 65-check author replay and independent 22-check raw review passed. No PM occurred during the long gap. Other PM counters and conflict behavior remain separate scopes.
+
+The [D13.var02 static MAXPM comparison](D13-var02-maxpm-two-v1.0.0/cli-scope-signoff-2026-09-30.md) derives two aircraft from D03 with a noncritical calendar-PM window. Both PM task objects start at hour 24, while performed one-hour subtasks are serial under `MAXPM=1` and parallel under `MAXPM=2`. The 104-check author pair replay and independent 35-check raw review passed. D13's activation-period, dynamic-capacity and critical-PM boundaries remain planned.
 
 ## Find and reproduce
 
