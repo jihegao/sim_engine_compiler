@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D01",
+  "case_version": "1.0.0-candidate",
+  "variant": "one-system-stochastic-failure-direct-repair",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A02",
+    "version": "1.0.0",
+    "behavior_scope": "published one-aircraft repeated fixed missions",
+    "input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "signoff": "../A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [190, 191, 211, 212, 236, 240, 246, 258, 349, 350, 351, 352, 353, 354],
+    "source_boundary": "Traditional system FRT is failures per million OPHOURS; direct system failures are critical and SystemRepair.DIRPT is fixed turnaround without explicit subtasks."
+  },
+  "native_input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450",
+  "delta": {
+    "tables": ["ProblemDescription", "System", "SystemRepair"],
+    "mechanism": "One aircraft gains a system-level operational failure clock and local direct repair at the same workstation base.",
+    "identities": {"system": "TEACH-AIR-01", "unit": "TEACH-UNIT", "base": "BASE-01", "mission": "BASIC-MISSION"}
+  },
+  "configuration": {
+    "system_frt_failures_per_million_ophours": 300000,
+    "derived_rate_per_operating_hour": 0.3,
+    "direct_repair_hours": 0.5,
+    "repair_station": "BASE-01",
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5,
+    "scheduled_launch_hours": [8, 20, 32],
+    "other_faults_pm_resources_and_stock": "disabled or absent as in A02 parent"
+  },
+  "predeclared_native_acceptance": [
+    "The frozen seed/configuration must produce at least one observed system failure; failure time is read from raw native events, not asserted from seed alone.",
+    "Import/export must preserve all nonblank source business rows, conversion errors must be zero, and SXI/SXO/ENLOG/report must be valid and nonempty.",
+    "For each observed critical failure, identify the affected aircraft, mission state, repair start and completion; SystemRepair.DIRPT specifies 0.5 h total turnaround unless a documented wait or interruption explains a longer interval.",
+    "Reconcile downtime into observed waiting and repair turnaround, mission outcomes, 72 half-hour availability intervals, fault/repair counts and terminal state; compare the fixed no-fault A02 control.",
+    "Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340, seal raw hashes and obtain independent read-only replay."
+  ],
+  "limits": [
+    "This first slice is a system-level direct repair; an installed component, item replacement and ItemRepair are separate D01 variants and remain unverified.",
+    "The fixed seed does not guarantee or prescribe a failure time across model/executable changes; exact times are run-specific evidence.",
+    "No resource, inventory, PM, failure-mode, GUI-only or cross-engine behavior is accepted."
+  ]
+}
