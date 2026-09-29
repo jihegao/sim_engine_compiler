@@ -2,7 +2,9 @@
 
 **Result:** the `nested-v101` candidate passed one isolated, source-bound
 SIMLOX CLI run on `4700-3`. This is native CLI behavior evidence for the A09
-four-wave, 48-hour contract. GUI model review and publication remain pending.
+four-wave, 48-hour contract. A subsequent partial GUI review is recorded
+separately in [gui-review-2026-09-29.md](gui-review-2026-09-29.md); publication
+remains pending.
 The pre-run [contract](contract.json) is frozen; this record does not alter it.
 This record was written and the README was updated after the run; the bundle manifest
 binds the model, builder, runner, validator, contract, and shared parser bytes
@@ -53,6 +55,7 @@ and the 96 interval-level `SystemResults` profiles, including `STACC`.
 The observed four waves support this particular `IPER=48`, `IQTY=2` nested
 input under the pinned native executable and contract. A single successful
 candidate does not establish a general `IPER/IQTY` expansion formula or
-validate other quantities, periods, profiles, or engines. GUI review is
-**not_run**; publication is **not_published**. Full A09 method coverage and
+validate other quantities, periods, profiles, or engines. GUI review was
+**not_run at the time of this CLI acceptance** and is now **partial** in the
+separate record above; publication is **not_published**. Full A09 method coverage and
 cross-engine equivalence remain unverified.
