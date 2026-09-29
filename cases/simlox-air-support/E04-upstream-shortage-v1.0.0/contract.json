@@ -1,0 +1,60 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E04.var02",
+  "case_version": "1.0.0-candidate",
+  "variant": "upstream-stockout-under-fast-ordering",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E04",
+    "version": "1.0.0",
+    "behavior_scope": "accepted FAST upstream one-spare route with two-hour down and up transit",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+    "signoff": "../E04-upstream-transport-fast-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 213, 218, 219, 220, 221, 327, 328, 363, 364, 444, 445, 446],
+    "source_boundary": "The manual documents stock allocation, backorder handling and FAST general support links. The exact native response when both base and depot begin with no spare, but a faulty installed item can travel to depot repair, must be observed."
+  },
+  "native_input_sha256": "826ee25fc20e2e690c46b0b61f27c4ce5b1d590891cc9d4cb6ab8f296cf7623f",
+  "delta": {
+    "tables": ["ProblemDescription", "StockAllocation"],
+    "mechanism": "Set only DEPOT-01 initial LRU stock from one to zero; retain BASE-01 stock zero, FAST link, two-hour bidirectional transport, one-hour depot ItemRepair, seed and missions.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "depot": "DEPOT-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "base_nominal_stock": 0,
+    "depot_nominal_stock": 0,
+    "ordering_policy": "FAST",
+    "downward_transport_hours": 2,
+    "upward_transport_hours": 2,
+    "depot_item_direct_repair_hours": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "design_expected_if_repaired_item_fulfills_depot_shortage": {
+    "basis": "The accepted parent's seed exposed the first failure at 9.8829 hours; these times are a hand calculation conditional on the same native event and repair routing, not an assertion about the engine's choice.",
+    "base_and_depot_demand_hour": 10,
+    "removed_faulty_item_upward_transport_hours": [10.1667, 12.1667],
+    "depot_direct_repair_hours": [12.1667, 13.1667],
+    "repaired_item_downward_transport_hours": [13.1667, 15.1667],
+    "base_fit_hours": [15.1667, 15.5],
+    "aircraft_ready_hour": 15.5
+  },
+  "predeclared_native_acceptance": [
+    "Import/export and calculation must have zero conversion errors; four CLI steps must succeed and 21 row-containing source tables, including three all-null placeholders, must roundtrip. If the native engine rejects this route, retain the failed probe and classify the limitation rather than publishing behavior.",
+    "The first local stockout must be traced through base demand/backorder and FAST depot demand. Confirm depot initial stock zero, absence of a fictitious issue, and the number and location of any backorders.",
+    "Trace the identity of the removed faulty LRU from aircraft through two-hour upward transport to depot repair and disposition: issue against a pending backorder or entry into depot stock. Determine whether the repaired item fulfills any pending upstream demand and travels downward; if so, verify physical item identity, every transit start/arrival, base backorder clearance, fit and aircraft readiness.",
+    "Reconcile the full event and stock ledger with 72 half-hour report intervals, failures, repairs, demands, backorder and item-wait integrals, mission outcomes and terminal stocks/transit. Compare to accepted E04 FAST stocked-depot control without attributing stochastic timing differences to stock alone.",
+    "Keep the source and native raw hashes sealed under session-0 SSH, host-wide queue and GUI PID 13340 guard. Require independent prelaunch review and read-only raw replay before a bounded publication decision."
+  ],
+  "limits": [
+    "This one zero-stock depot probe does not establish stock replenishment from an additional echelon, FIFO across multiple backorders, SLOW ordering, lateral support or automated reorder.",
+    "Exact stochastic failure time is run-specific."
+  ]
+}
