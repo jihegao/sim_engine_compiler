@@ -1,0 +1,22 @@
+{
+  "case_id": "D13",
+  "variant_id": "D13.var01",
+  "version": "1.0.0-candidate",
+  "parent_case": "D03@1.0.0/calendar-PM",
+  "parent_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "input_sha256": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+  "scope": "one aircraft with CAL24 PM suppressed during hours 0-30 and enabled 30-60 using a local PMActivationProfile",
+  "delta": [
+    "add PMActivation for TEACH-UNIT/CAL24 with a linked PM-SWITCH profile",
+    "add explicit nonoverlapping PMActivationProfile ENPM=N 0-30 and ENPM=Y 30-60 periods",
+    "change ProblemDescription label only; retain D03 Control.ENPM=Y, all missions, PM interval, seed and horizon"
+  ],
+  "manual_source": "Installed SIMLOX 2017 manual SHA-256 39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3, pages 379-385; installed DatabaseDictionary_SIMLOX.txt PMActivation and PMActivationProfile field definitions",
+  "hypotheses_to_probe": [
+    "CAL24 PM counter reaches its 24-hour threshold while ENPM is disabled and no PM work starts before hour 30",
+    "the pending PM begins after the profile enables it at hour 30, and later PM behavior is visible through hour 60",
+    "the three D03 parent missions still execute and complete",
+    "native import, export, calculation and report remain valid"
+  ],
+  "publication_state": "not_published"
+}

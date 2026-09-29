@@ -1,0 +1,5912 @@
+{
+  "schema": "simlox-d13-var01-activation-v100-author-validation/v1",
+  "case_id": "D13",
+  "variant_id": "D13.var01",
+  "run_id": "d13-var01-activation-v100-ssh-20260930-01",
+  "input_sha256": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+  "passed": true,
+  "passed_count": 63,
+  "failed_count": 0,
+  "checks": [
+    {
+      "name": "accepted D03 parent SHA",
+      "passed": true,
+      "actual": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+      "expected": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32"
+    },
+    {
+      "name": "frozen child SHA",
+      "passed": true,
+      "actual": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+      "expected": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70"
+    },
+    {
+      "name": "copied input SHA",
+      "passed": true,
+      "actual": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+      "expected": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70"
+    },
+    {
+      "name": "contract source binding",
+      "passed": true,
+      "actual": [
+        "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+        "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70"
+      ],
+      "expected": [
+        "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+        "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70"
+      ]
+    },
+    {
+      "name": "contract variant and state",
+      "passed": true,
+      "actual": [
+        "D13.var01",
+        "not_published"
+      ],
+      "expected": [
+        "D13.var01",
+        "not_published"
+      ]
+    },
+    {
+      "name": "parent table set retained",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "exact added tables",
+      "passed": true,
+      "actual": "{'PMActivation', 'PMActivationProfile'}",
+      "expected": "{'PMActivation', 'PMActivationProfile'}"
+    },
+    {
+      "name": "only parent description changes",
+      "passed": true,
+      "actual": "{'ProblemDescription'}",
+      "expected": "{'ProblemDescription'}"
+    },
+    {
+      "name": "global PM remains on",
+      "passed": true,
+      "actual": "Y",
+      "expected": "Y"
+    },
+    {
+      "name": "local activation row",
+      "passed": true,
+      "actual": [
+        {
+          "USTID": "TEACH-UNIT",
+          "PMID": "CAL24",
+          "ENPM": "Y",
+          "CRIT": "Y",
+          "PRID": "PM-SWITCH",
+          "NOTE": null
+        }
+      ],
+      "expected": [
+        {
+          "USTID": "TEACH-UNIT",
+          "PMID": "CAL24",
+          "ENPM": "Y",
+          "CRIT": "Y",
+          "PRID": "PM-SWITCH",
+          "NOTE": null
+        }
+      ]
+    },
+    {
+      "name": "off/on profile",
+      "passed": true,
+      "actual": [
+        [
+          "PM-SWITCH",
+          "<LIMIT>",
+          0.0,
+          30.0,
+          "N",
+          "Y"
+        ],
+        [
+          "PM-SWITCH",
+          "<LIMIT>",
+          30.0,
+          60.0,
+          "Y",
+          "Y"
+        ]
+      ],
+      "expected": [
+        [
+          "PM-SWITCH",
+          "<LIMIT>",
+          0,
+          30,
+          "N",
+          "Y"
+        ],
+        [
+          "PM-SWITCH",
+          "<LIMIT>",
+          30,
+          60,
+          "Y",
+          "Y"
+        ]
+      ]
+    },
+    {
+      "name": "copied model equals source",
+      "passed": true,
+      "actual": {
+        "model": {
+          "database_version": 20160627,
+          "tables": [
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "name": "PDESC"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "D13.var01 CAL24 PM disabled until hour 30 then enabled"
+                    ]
+                  ]
+                }
+              ],
+              "name": "ProblemDescription"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "name": "STYPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PTYPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LORA-XT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PHASC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "APID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PRMOE"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "NPOINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MINLSC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXLSC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MINMOE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXMOE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "STEXP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "INCEX"
+                },
+                {
+                  "datatype": "string",
+                  "name": "FOMRC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GEMRC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "STARC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OLEVL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPPBE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPROS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENDEM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPSS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ISSAC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RRFIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MRINC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PREAL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "APLIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RICCS"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "ControlParameters"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "integer",
+                  "name": "NREPS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SIMPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RSEED"
+                },
+                {
+                  "datatype": "string",
+                  "name": "APID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCSTA"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCEND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENLAT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENALU"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TCLEV"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENLOG"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RMVFR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "WTLIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RRFIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENBOP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DRAOS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRMVF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRPLF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PERCL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXPL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RELOP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPNM"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      1,
+                      60.0,
+                      "1",
+                      "AIR_BASIC",
+                      0.5,
+                      0,
+                      60.0,
+                      "Y",
+                      null,
+                      null,
+                      null,
+                      null,
+                      "Y",
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Control"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "double",
+                  "name": "IRATE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SCLEN"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SCTIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ENPER"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPBRO"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPCFL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "REOPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "BDVMR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MANHC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CURRN"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "GlobalParameters"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRICE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "FRT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GSID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CBSID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXNC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "BSID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-AIR-01",
+                      "Generic teaching aircraft",
+                      null,
+                      0,
+                      "OPHOURS",
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "System"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRICE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "FRT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TYPE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GIID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "AFFRT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "BCRF"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "EXIST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MINST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXST"
+                },
+                {
+                  "datatype": "string",
+                  "name": "AREPL"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "NSIMI"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SGID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPBRO"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPCFL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "REOPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "BDVMR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CRIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TRACK"
+                },
+                {
+                  "datatype": "double",
+                  "name": "WTLIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NCFTL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NCFTT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "UTXT1"
+                },
+                {
+                  "datatype": "string",
+                  "name": "UTXT2"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "Item"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTYPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ENVF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RRF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RUBM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NFFF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NFFT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemStructure"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTY"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TYPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GSTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LEVL"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "LINDX"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MANHC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LGID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CUNIT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CVAL"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MINST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXST"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMCF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXROS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MINPNB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "BOPRI"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENROB"
+                },
+                {
+                  "datatype": "double",
+                  "name": "XCOORD"
+                },
+                {
+                  "datatype": "double",
+                  "name": "YCOORD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "BASE-01",
+                      "Teaching base",
+                      1,
+                      "WS",
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Station"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MSTID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TFRMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TTOMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CFRMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CTOMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DFRAC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPOL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PFRMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PTOMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "StationStructure"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "USTID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTYPS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "UTIL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRIOF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PLID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-AIR-01",
+                      "TEACH-UNIT",
+                      1,
+                      1,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "SystemDeployment"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "SystemRepair"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "UDPER"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemRepair"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "LEADT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DISCF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ORDSC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ROINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "REOPF"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MINRS"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXRS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LEADTD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemReorder"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "NOS"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MNOS"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MNOSA"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DURN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DURND"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MSUCPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TFOUT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TFRET"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MPAT"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "PRI"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NOPER"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MFF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SYACF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SYACP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "BASIC-MISSION",
+                      "Two-hour generic mission",
+                      1,
+                      1,
+                      null,
+                      2.0,
+                      null,
+                      1,
+                      0.25,
+                      0.25,
+                      null,
+                      1,
+                      1.0,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "MissionType"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SPRID"
+                },
+                {
+                  "datatype": "double",
+                  "key": true,
+                  "name": "STIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ITYPE"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "IQTY"
+                },
+                {
+                  "datatype": "string",
+                  "name": "IQTYD"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPER"
+                },
+                {
+                  "datatype": "string",
+                  "name": "IDISP"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DTIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "XCOORD"
+                },
+                {
+                  "datatype": "double",
+                  "name": "YCOORD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "BASIC-SCHEDULE",
+                      "BASIC-MISSION",
+                      8.0,
+                      "SCHEDULED",
+                      1,
+                      null,
+                      0,
+                      null,
+                      0.3333333333333333,
+                      null,
+                      null,
+                      null
+                    ],
+                    [
+                      "BASIC-SCHEDULE",
+                      "BASIC-MISSION",
+                      20.0,
+                      "SCHEDULED",
+                      1,
+                      null,
+                      0,
+                      null,
+                      0.3333333333333333,
+                      null,
+                      null,
+                      null
+                    ],
+                    [
+                      "BASIC-SCHEDULE",
+                      "BASIC-MISSION",
+                      32.0,
+                      "SCHEDULED",
+                      1,
+                      null,
+                      0,
+                      null,
+                      0.3333333333333333,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "OperationProfile"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "OperationParameter"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "USTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-UNIT",
+                      "BASIC-SCHEDULE",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Operations"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "UNID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "STID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MAXPMP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-UNIT",
+                      "One-aircraft teaching unit",
+                      "BASE-01",
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Unit"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MTID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DURN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DURND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "MissionPreparation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TCID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TLID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "PM-CAL24",
+                      "One-hour calendar service",
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Tasks"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTY"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RPROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ARID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ARTF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENRMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "TaskResource"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRICE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SUSTC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TYPE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MUTILF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "Resource"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "POINT"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RQTY"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ResourceAllocation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PMID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMINT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CRITF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ATIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DTIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MONIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PMRID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENFNC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENREG"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MNOCC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "CAL24",
+                      "24-hour calendar service",
+                      "TEACH-AIR-01",
+                      24.0,
+                      "CALHOURS",
+                      null,
+                      0.0,
+                      0.0,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "MaterielPM"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PMID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "ID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PMTD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "CAL24",
+                      "TEACH-AIR-01",
+                      "BASE-01",
+                      1.0,
+                      null,
+                      null,
+                      "PM-CAL24",
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "PMLocation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "POINT"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "STSIZ"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "ROSIZ"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "AINST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "ISTOH"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PLID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "StockAllocation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RTYPE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCSTA"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCEND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RCPID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "MISSION",
+                      0.5,
+                      0,
+                      60.0,
+                      null,
+                      null
+                    ],
+                    [
+                      "SYSTEM",
+                      0.5,
+                      0,
+                      60.0,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "ResultCollection"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemReplacement"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SUTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "INSPECT",
+                      "Inspection",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "SubTaskType"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "integer",
+                  "key": true,
+                  "name": "SEQ"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SUTID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DURN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DURND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "PM-CAL24",
+                      1,
+                      "INSPECT",
+                      1.0,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "TaskBreakDown"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "integer",
+                  "key": true,
+                  "name": "SEQ"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTY"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RPROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ARID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ARTF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENRMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "SubTaskResource"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "USTID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PMID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CRIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-UNIT",
+                      "CAL24",
+                      "Y",
+                      "Y",
+                      "PM-SWITCH",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "PMActivation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SPRID"
+                },
+                {
+                  "datatype": "double",
+                  "key": true,
+                  "name": "STIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ETIM"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "IQTY"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IINT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CRIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "PM-SWITCH",
+                      "<LIMIT>",
+                      0.0,
+                      30.0,
+                      1,
+                      0.0,
+                      "N",
+                      "Y",
+                      null
+                    ],
+                    [
+                      "PM-SWITCH",
+                      "<LIMIT>",
+                      30.0,
+                      60.0,
+                      1,
+                      0.0,
+                      "Y",
+                      "Y",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "PMActivationProfile"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "model": {
+          "database_version": 20160627,
+          "tables": [
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "name": "PDESC"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "D13.var01 CAL24 PM disabled until hour 30 then enabled"
+                    ]
+                  ]
+                }
+              ],
+              "name": "ProblemDescription"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "name": "STYPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PTYPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LORA-XT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PHASC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "APID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PRMOE"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "NPOINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MINLSC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXLSC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MINMOE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXMOE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "STEXP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "INCEX"
+                },
+                {
+                  "datatype": "string",
+                  "name": "FOMRC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GEMRC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "STARC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OLEVL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPPBE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPROS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENDEM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPSS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ISSAC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RRFIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MRINC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PREAL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "APLIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RICCS"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "ControlParameters"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "integer",
+                  "name": "NREPS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SIMPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RSEED"
+                },
+                {
+                  "datatype": "string",
+                  "name": "APID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCSTA"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCEND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENLAT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENALU"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TCLEV"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENLOG"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RMVFR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "WTLIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RRFIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENBOP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DRAOS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRMVF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRPLF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PERCL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXPL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RELOP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPNM"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      1,
+                      60.0,
+                      "1",
+                      "AIR_BASIC",
+                      0.5,
+                      0,
+                      60.0,
+                      "Y",
+                      null,
+                      null,
+                      null,
+                      null,
+                      "Y",
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Control"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "double",
+                  "name": "IRATE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SCLEN"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SCTIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ENPER"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPBRO"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPCFL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "REOPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "BDVMR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MANHC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CURRN"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "GlobalParameters"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRICE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "FRT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GSID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CBSID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXNC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "BSID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-AIR-01",
+                      "Generic teaching aircraft",
+                      null,
+                      0,
+                      "OPHOURS",
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "System"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRICE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "FRT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TYPE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GIID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "AFFRT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "BCRF"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "EXIST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MINST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXST"
+                },
+                {
+                  "datatype": "string",
+                  "name": "AREPL"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "NSIMI"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SGID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPBRO"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPCFL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "REOPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "BDVMR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CRIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TRACK"
+                },
+                {
+                  "datatype": "double",
+                  "name": "WTLIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NCFTL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NCFTT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "UTXT1"
+                },
+                {
+                  "datatype": "string",
+                  "name": "UTXT2"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "Item"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTYPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ENVF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RRF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RUBM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NFFF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NFFT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemStructure"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTY"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TYPE"
+                },
+                {
+                  "datatype": "string",
+                  "name": "GSTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LEVL"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "LINDX"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MANHC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LGID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CUNIT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CVAL"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MINST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXST"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMCF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MAXROS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MINPNB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "BOPRI"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENROB"
+                },
+                {
+                  "datatype": "double",
+                  "name": "XCOORD"
+                },
+                {
+                  "datatype": "double",
+                  "name": "YCOORD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "BASE-01",
+                      "Teaching base",
+                      1,
+                      "WS",
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Station"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MSTID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TFRMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TTOMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CFRMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CTOMS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DFRAC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPOL"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PFRMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PTOMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "StationStructure"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "USTID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTYPS"
+                },
+                {
+                  "datatype": "double",
+                  "name": "UTIL"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRIOF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PLID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-AIR-01",
+                      "TEACH-UNIT",
+                      1,
+                      1,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "SystemDeployment"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "SystemRepair"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DIRPC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "UDPER"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DIRPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemRepair"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "LEADT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DISCF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ORDSC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ROINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "REOPF"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MINRS"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXRS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "LEADTD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemReorder"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "NOS"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MNOS"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MNOSA"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DURN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DURND"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MSUCPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TFOUT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TFRET"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MPAT"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "PRI"
+                },
+                {
+                  "datatype": "double",
+                  "name": "NOPER"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MFF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SYACF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SYACP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "BASIC-MISSION",
+                      "Two-hour generic mission",
+                      1,
+                      1,
+                      null,
+                      2.0,
+                      null,
+                      1,
+                      0.25,
+                      0.25,
+                      null,
+                      1,
+                      1.0,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "MissionType"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SPRID"
+                },
+                {
+                  "datatype": "double",
+                  "key": true,
+                  "name": "STIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ITYPE"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "IQTY"
+                },
+                {
+                  "datatype": "string",
+                  "name": "IQTYD"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IPER"
+                },
+                {
+                  "datatype": "string",
+                  "name": "IDISP"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DTIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "XCOORD"
+                },
+                {
+                  "datatype": "double",
+                  "name": "YCOORD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "BASIC-SCHEDULE",
+                      "BASIC-MISSION",
+                      8.0,
+                      "SCHEDULED",
+                      1,
+                      null,
+                      0,
+                      null,
+                      0.3333333333333333,
+                      null,
+                      null,
+                      null
+                    ],
+                    [
+                      "BASIC-SCHEDULE",
+                      "BASIC-MISSION",
+                      20.0,
+                      "SCHEDULED",
+                      1,
+                      null,
+                      0,
+                      null,
+                      0.3333333333333333,
+                      null,
+                      null,
+                      null
+                    ],
+                    [
+                      "BASIC-SCHEDULE",
+                      "BASIC-MISSION",
+                      32.0,
+                      "SCHEDULED",
+                      1,
+                      null,
+                      0,
+                      null,
+                      0.3333333333333333,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "OperationProfile"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "OperationParameter"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "USTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-UNIT",
+                      "BASIC-SCHEDULE",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Operations"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "UNID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "STID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MAXPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MAXPMP"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-UNIT",
+                      "One-aircraft teaching unit",
+                      "BASE-01",
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Unit"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MTID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DURN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DURND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "MissionPreparation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TCID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TLID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "PM-CAL24",
+                      "One-hour calendar service",
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "Tasks"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTY"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RPROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ARID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ARTF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENRMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "TaskResource"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PRICE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SUSTC"
+                },
+                {
+                  "datatype": "double",
+                  "name": "TLLEN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TYPE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "MUTILF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "Resource"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "POINT"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RQTY"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ResourceAllocation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PMID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMINT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "OPID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "CRITF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ATIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DTIM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "MONIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PMRID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENFNC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENREG"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "MNOCC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "CAL24",
+                      "24-hour calendar service",
+                      "TEACH-AIR-01",
+                      24.0,
+                      "CALHOURS",
+                      null,
+                      0.0,
+                      0.0,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "MaterielPM"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PMID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "ID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "PMC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "TID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PMTD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "CAL24",
+                      "TEACH-AIR-01",
+                      "BASE-01",
+                      1.0,
+                      null,
+                      null,
+                      "PM-CAL24",
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "PMLocation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "POINT"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "STSIZ"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "ROSIZ"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "AINST"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "ISTOH"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PLID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "StockAllocation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RTYPE"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCINT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCSTA"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RCEND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "RCPID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "MISSION",
+                      0.5,
+                      0,
+                      60.0,
+                      null,
+                      null
+                    ],
+                    [
+                      "SYSTEM",
+                      0.5,
+                      0,
+                      60.0,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "ResultCollection"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "MID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "IID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "STID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPT"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPF"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "SURPC"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SURPD"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "ItemReplacement"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SUTID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DESCR"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "INSPECT",
+                      "Inspection",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "SubTaskType"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "integer",
+                  "key": true,
+                  "name": "SEQ"
+                },
+                {
+                  "datatype": "string",
+                  "name": "SUTID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "DURN"
+                },
+                {
+                  "datatype": "string",
+                  "name": "DURND"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "PM-CAL24",
+                      1,
+                      "INSPECT",
+                      1.0,
+                      null,
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "TaskBreakDown"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "TID"
+                },
+                {
+                  "datatype": "integer",
+                  "key": true,
+                  "name": "SEQ"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "RID"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "QTY"
+                },
+                {
+                  "datatype": "double",
+                  "name": "RPROB"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ARID"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ARTF"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENRMS"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": []
+                }
+              ],
+              "name": "SubTaskResource"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "USTID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PMID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CRIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "TEACH-UNIT",
+                      "CAL24",
+                      "Y",
+                      "Y",
+                      "PM-SWITCH",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "PMActivation"
+            },
+            {
+              "columns": [
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "PRID"
+                },
+                {
+                  "datatype": "string",
+                  "key": true,
+                  "name": "SPRID"
+                },
+                {
+                  "datatype": "double",
+                  "key": true,
+                  "name": "STIM"
+                },
+                {
+                  "datatype": "double",
+                  "name": "ETIM"
+                },
+                {
+                  "datatype": "integer",
+                  "name": "IQTY"
+                },
+                {
+                  "datatype": "double",
+                  "name": "IINT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "ENPM"
+                },
+                {
+                  "datatype": "string",
+                  "name": "CRIT"
+                },
+                {
+                  "datatype": "string",
+                  "name": "NOTE"
+                }
+              ],
+              "instances": [
+                {
+                  "instance_name": "",
+                  "rows": [
+                    [
+                      "PM-SWITCH",
+                      "<LIMIT>",
+                      0.0,
+                      30.0,
+                      1,
+                      0.0,
+                      "N",
+                      "Y",
+                      null
+                    ],
+                    [
+                      "PM-SWITCH",
+                      "<LIMIT>",
+                      30.0,
+                      60.0,
+                      1,
+                      0.0,
+                      "Y",
+                      "Y",
+                      null
+                    ]
+                  ]
+                }
+              ],
+              "name": "PMActivationProfile"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "20 source row-containing tables roundtrip",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "roundtrip checker",
+      "passed": true,
+      "actual": [
+        true,
+        []
+      ],
+      "expected": [
+        true,
+        []
+      ]
+    },
+    {
+      "name": "invocation identity",
+      "passed": true,
+      "actual": [
+        "D13.var01",
+        "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+        "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+        0,
+        true,
+        13340,
+        "Global\\SimloxIssue18NativeQueue"
+      ],
+      "expected": [
+        "D13.var01",
+        "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+        "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+        0,
+        true,
+        13340,
+        "Global\\SimloxIssue18NativeQueue"
+      ]
+    },
+    {
+      "name": "sshd ancestor",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "five guarded native steps",
+      "passed": true,
+      "actual": [
+        [
+          "import",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "export",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "calc",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "jsonreport",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "check_import_export",
+          "completed",
+          0,
+          true
+        ]
+      ],
+      "expected": [
+        [
+          "import",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "export",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "calc",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "jsonreport",
+          "completed",
+          0,
+          true
+        ],
+        [
+          "check_import_export",
+          "completed",
+          0,
+          true
+        ]
+      ]
+    },
+    {
+      "name": "closure no error",
+      "passed": true,
+      "actual": null,
+      "expected": null
+    },
+    {
+      "name": "closure invocation SHA",
+      "passed": true,
+      "actual": "306349746948d5d7e79c2fe2efb15cf3544932d58f2fc184592ecacae3ba842f",
+      "expected": "306349746948d5d7e79c2fe2efb15cf3544932d58f2fc184592ecacae3ba842f"
+    },
+    {
+      "name": "sealed sources stable",
+      "passed": true,
+      "actual": {
+        "input": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+        "parent": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+        "contract": "c6153ade2deeb31cfee2e8ecb3b0a45c5f7f2ed589296b809a5e6775fc89bca0",
+        "builder": "49b172331bb0f7a6633344ed1ef74ede846780ecd1b9536b41acba5c31d201b1",
+        "checker": "c1731802db7a04d8f2ce8e07aad29415cda53f58a4c8786cde0f3abbc8f41bd1",
+        "python": "a432275029de41f0ab824ed47ca77e356141c5cbf9bbbb2298955a0e0a7c002c",
+        "runner_script": "822279643fb7e6707c21b9c38873b4d6ae5a9d31dc180e969c43681f0be6da17",
+        "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+      },
+      "expected": {
+        "input": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+        "parent": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+        "contract": "c6153ade2deeb31cfee2e8ecb3b0a45c5f7f2ed589296b809a5e6775fc89bca0",
+        "builder": "49b172331bb0f7a6633344ed1ef74ede846780ecd1b9536b41acba5c31d201b1",
+        "checker": "c1731802db7a04d8f2ce8e07aad29415cda53f58a4c8786cde0f3abbc8f41bd1",
+        "python": "a432275029de41f0ab824ed47ca77e356141c5cbf9bbbb2298955a0e0a7c002c",
+        "runner_script": "822279643fb7e6707c21b9c38873b4d6ae5a9d31dc180e969c43681f0be6da17",
+        "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+      }
+    },
+    {
+      "name": "sealed current input",
+      "passed": true,
+      "actual": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+      "expected": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70"
+    },
+    {
+      "name": "sealed current parent",
+      "passed": true,
+      "actual": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+      "expected": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32"
+    },
+    {
+      "name": "sealed current contract",
+      "passed": true,
+      "actual": "c6153ade2deeb31cfee2e8ecb3b0a45c5f7f2ed589296b809a5e6775fc89bca0",
+      "expected": "c6153ade2deeb31cfee2e8ecb3b0a45c5f7f2ed589296b809a5e6775fc89bca0"
+    },
+    {
+      "name": "sealed current builder",
+      "passed": true,
+      "actual": "49b172331bb0f7a6633344ed1ef74ede846780ecd1b9536b41acba5c31d201b1",
+      "expected": "49b172331bb0f7a6633344ed1ef74ede846780ecd1b9536b41acba5c31d201b1"
+    },
+    {
+      "name": "sealed current checker",
+      "passed": true,
+      "actual": "c1731802db7a04d8f2ce8e07aad29415cda53f58a4c8786cde0f3abbc8f41bd1",
+      "expected": "c1731802db7a04d8f2ce8e07aad29415cda53f58a4c8786cde0f3abbc8f41bd1"
+    },
+    {
+      "name": "sealed current runner_script",
+      "passed": true,
+      "actual": "822279643fb7e6707c21b9c38873b4d6ae5a9d31dc180e969c43681f0be6da17",
+      "expected": "822279643fb7e6707c21b9c38873b4d6ae5a9d31dc180e969c43681f0be6da17"
+    },
+    {
+      "name": "raw export.log",
+      "passed": true,
+      "actual": [
+        "8da6148b4252724b60d63a9da7a1589e7e663edfc8fa85728e2760450dd8cbec",
+        253
+      ],
+      "expected": [
+        "8da6148b4252724b60d63a9da7a1589e7e663edfc8fa85728e2760450dd8cbec",
+        253
+      ]
+    },
+    {
+      "name": "raw import.log",
+      "passed": true,
+      "actual": [
+        "0f83215a0d135a65786feee0b9977805e7ed5bcbe80c970a4bfa10a68dbb5701",
+        2039
+      ],
+      "expected": [
+        "0f83215a0d135a65786feee0b9977805e7ed5bcbe80c970a4bfa10a68dbb5701",
+        2039
+      ]
+    },
+    {
+      "name": "raw input.json",
+      "passed": true,
+      "actual": [
+        "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+        44685
+      ],
+      "expected": [
+        "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+        44685
+      ]
+    },
+    {
+      "name": "raw model.log",
+      "passed": true,
+      "actual": [
+        "739170073ebe6e5e7c05e935e3226f8f2469ac1b83f74c4964db8363ba364f3f",
+        8683
+      ],
+      "expected": [
+        "739170073ebe6e5e7c05e935e3226f8f2469ac1b83f74c4964db8363ba364f3f",
+        8683
+      ]
+    },
+    {
+      "name": "raw model.sxi",
+      "passed": true,
+      "actual": [
+        "85500bc17ac82737132e9fbe14874e04a0562e7dd10c6135e6abe2e7658de744",
+        189993
+      ],
+      "expected": [
+        "85500bc17ac82737132e9fbe14874e04a0562e7dd10c6135e6abe2e7658de744",
+        189993
+      ]
+    },
+    {
+      "name": "raw model.sxo",
+      "passed": true,
+      "actual": [
+        "ef345129d0b8de362deb23fe02ffe536ae760ba0938b753176f417418f5bc82c",
+        357690
+      ],
+      "expected": [
+        "ef345129d0b8de362deb23fe02ffe536ae760ba0938b753176f417418f5bc82c",
+        357690
+      ]
+    },
+    {
+      "name": "raw report-export.log",
+      "passed": true,
+      "actual": [
+        "12bf451e0c1d1e903692330483dac35202cd69f5c060c6a1252ec855b6a8880d",
+        64
+      ],
+      "expected": [
+        "12bf451e0c1d1e903692330483dac35202cd69f5c060c6a1252ec855b6a8880d",
+        64
+      ]
+    },
+    {
+      "name": "raw report-raw.json",
+      "passed": true,
+      "actual": [
+        "d04d1e3891585296c277a89ff17dc58a14159e89ddeb61fc7e377c46dba20a1f",
+        167414
+      ],
+      "expected": [
+        "d04d1e3891585296c277a89ff17dc58a14159e89ddeb61fc7e377c46dba20a1f",
+        167414
+      ]
+    },
+    {
+      "name": "raw roundtrip-raw.json",
+      "passed": true,
+      "actual": [
+        "90509d6437036fbbda7a9be6ccf1de6c32ca866fe6b0002d1048946707bfbc6b",
+        60510
+      ],
+      "expected": [
+        "90509d6437036fbbda7a9be6ccf1de6c32ca866fe6b0002d1048946707bfbc6b",
+        60510
+      ]
+    },
+    {
+      "name": "raw roundtrip-validation.json",
+      "passed": true,
+      "actual": [
+        "26a17d623c841b94bab6d225a650b5641d0830dfcc0d24f323d01ec1c0e4836c",
+        1321
+      ],
+      "expected": [
+        "26a17d623c841b94bab6d225a650b5641d0830dfcc0d24f323d01ec1c0e4836c",
+        1321
+      ]
+    },
+    {
+      "name": "raw run.log",
+      "passed": true,
+      "actual": [
+        "dac56711e1a54a2731ea37789f37e85318e7c2a9fdc7d50f9530547b332e5a16",
+        1058
+      ],
+      "expected": [
+        "dac56711e1a54a2731ea37789f37e85318e7c2a9fdc7d50f9530547b332e5a16",
+        1058
+      ]
+    },
+    {
+      "name": "raw steps.json",
+      "passed": true,
+      "actual": [
+        "7e77f19fa20de9e050f2fad2c2ee242057a62a453a1eefcbdab79d089233974b",
+        4258
+      ],
+      "expected": [
+        "7e77f19fa20de9e050f2fad2c2ee242057a62a453a1eefcbdab79d089233974b",
+        4258
+      ]
+    },
+    {
+      "name": "conversion result",
+      "passed": true,
+      "actual": [
+        [
+          "0",
+          "2",
+          "0"
+        ]
+      ],
+      "expected": [
+        [
+          "0",
+          "2",
+          "0"
+        ]
+      ]
+    },
+    {
+      "name": "warning IDs",
+      "passed": true,
+      "actual": [
+        "108",
+        "126"
+      ],
+      "expected": [
+        "108",
+        "126"
+      ]
+    },
+    {
+      "name": "native error IDs",
+      "passed": true,
+      "actual": [],
+      "expected": []
+    },
+    {
+      "name": "D03 parent PM starts",
+      "passed": true,
+      "actual": [
+        24.0,
+        49.0
+      ],
+      "expected": [
+        24,
+        49
+      ]
+    },
+    {
+      "name": "child PM starts",
+      "passed": true,
+      "actual": [
+        30.0,
+        55.0
+      ],
+      "expected": [
+        30,
+        55
+      ]
+    },
+    {
+      "name": "child PM work starts",
+      "passed": true,
+      "actual": [
+        30.0,
+        55.0
+      ],
+      "expected": [
+        30,
+        55
+      ]
+    },
+    {
+      "name": "child PM completes",
+      "passed": true,
+      "actual": [
+        31.0,
+        56.0
+      ],
+      "expected": [
+        31,
+        56
+      ]
+    },
+    {
+      "name": "no PM before enable",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "parent mission starts",
+      "passed": true,
+      "actual": [
+        8.0,
+        20.0,
+        32.0
+      ],
+      "expected": [
+        8,
+        20,
+        32
+      ]
+    },
+    {
+      "name": "child mission starts",
+      "passed": true,
+      "actual": [
+        8.0,
+        20.0,
+        32.0
+      ],
+      "expected": [
+        8,
+        20,
+        32
+      ]
+    },
+    {
+      "name": "child mission successes",
+      "passed": true,
+      "actual": [
+        10.0,
+        22.0,
+        34.0
+      ],
+      "expected": [
+        10,
+        22,
+        34
+      ]
+    },
+    {
+      "name": "child no mission abort/cancel",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "child no failure",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "120 parent half-hour bins",
+      "passed": true,
+      "actual": 120,
+      "expected": 120
+    },
+    {
+      "name": "120 child half-hour bins",
+      "passed": true,
+      "actual": 120,
+      "expected": 120
+    },
+    {
+      "name": "child intervals",
+      "passed": true,
+      "actual": [
+        [
+          0,
+          0.5
+        ],
+        [
+          0.5,
+          1
+        ],
+        [
+          1,
+          1.5
+        ],
+        [
+          1.5,
+          2
+        ],
+        [
+          2,
+          2.5
+        ],
+        [
+          2.5,
+          3
+        ],
+        [
+          3,
+          3.5
+        ],
+        [
+          3.5,
+          4
+        ],
+        [
+          4,
+          4.5
+        ],
+        [
+          4.5,
+          5
+        ],
+        [
+          5,
+          5.5
+        ],
+        [
+          5.5,
+          6
+        ],
+        [
+          6,
+          6.5
+        ],
+        [
+          6.5,
+          7
+        ],
+        [
+          7,
+          7.5
+        ],
+        [
+          7.5,
+          8
+        ],
+        [
+          8,
+          8.5
+        ],
+        [
+          8.5,
+          9
+        ],
+        [
+          9,
+          9.5
+        ],
+        [
+          9.5,
+          10
+        ],
+        [
+          10,
+          10.5
+        ],
+        [
+          10.5,
+          11
+        ],
+        [
+          11,
+          11.5
+        ],
+        [
+          11.5,
+          12
+        ],
+        [
+          12,
+          12.5
+        ],
+        [
+          12.5,
+          13
+        ],
+        [
+          13,
+          13.5
+        ],
+        [
+          13.5,
+          14
+        ],
+        [
+          14,
+          14.5
+        ],
+        [
+          14.5,
+          15
+        ],
+        [
+          15,
+          15.5
+        ],
+        [
+          15.5,
+          16
+        ],
+        [
+          16,
+          16.5
+        ],
+        [
+          16.5,
+          17
+        ],
+        [
+          17,
+          17.5
+        ],
+        [
+          17.5,
+          18
+        ],
+        [
+          18,
+          18.5
+        ],
+        [
+          18.5,
+          19
+        ],
+        [
+          19,
+          19.5
+        ],
+        [
+          19.5,
+          20
+        ],
+        [
+          20,
+          20.5
+        ],
+        [
+          20.5,
+          21
+        ],
+        [
+          21,
+          21.5
+        ],
+        [
+          21.5,
+          22
+        ],
+        [
+          22,
+          22.5
+        ],
+        [
+          22.5,
+          23
+        ],
+        [
+          23,
+          23.5
+        ],
+        [
+          23.5,
+          24
+        ],
+        [
+          24,
+          24.5
+        ],
+        [
+          24.5,
+          25
+        ],
+        [
+          25,
+          25.5
+        ],
+        [
+          25.5,
+          26
+        ],
+        [
+          26,
+          26.5
+        ],
+        [
+          26.5,
+          27
+        ],
+        [
+          27,
+          27.5
+        ],
+        [
+          27.5,
+          28
+        ],
+        [
+          28,
+          28.5
+        ],
+        [
+          28.5,
+          29
+        ],
+        [
+          29,
+          29.5
+        ],
+        [
+          29.5,
+          30
+        ],
+        [
+          30,
+          30.5
+        ],
+        [
+          30.5,
+          31
+        ],
+        [
+          31,
+          31.5
+        ],
+        [
+          31.5,
+          32
+        ],
+        [
+          32,
+          32.5
+        ],
+        [
+          32.5,
+          33
+        ],
+        [
+          33,
+          33.5
+        ],
+        [
+          33.5,
+          34
+        ],
+        [
+          34,
+          34.5
+        ],
+        [
+          34.5,
+          35
+        ],
+        [
+          35,
+          35.5
+        ],
+        [
+          35.5,
+          36
+        ],
+        [
+          36,
+          36.5
+        ],
+        [
+          36.5,
+          37
+        ],
+        [
+          37,
+          37.5
+        ],
+        [
+          37.5,
+          38
+        ],
+        [
+          38,
+          38.5
+        ],
+        [
+          38.5,
+          39
+        ],
+        [
+          39,
+          39.5
+        ],
+        [
+          39.5,
+          40
+        ],
+        [
+          40,
+          40.5
+        ],
+        [
+          40.5,
+          41
+        ],
+        [
+          41,
+          41.5
+        ],
+        [
+          41.5,
+          42
+        ],
+        [
+          42,
+          42.5
+        ],
+        [
+          42.5,
+          43
+        ],
+        [
+          43,
+          43.5
+        ],
+        [
+          43.5,
+          44
+        ],
+        [
+          44,
+          44.5
+        ],
+        [
+          44.5,
+          45
+        ],
+        [
+          45,
+          45.5
+        ],
+        [
+          45.5,
+          46
+        ],
+        [
+          46,
+          46.5
+        ],
+        [
+          46.5,
+          47
+        ],
+        [
+          47,
+          47.5
+        ],
+        [
+          47.5,
+          48
+        ],
+        [
+          48,
+          48.5
+        ],
+        [
+          48.5,
+          49
+        ],
+        [
+          49,
+          49.5
+        ],
+        [
+          49.5,
+          50
+        ],
+        [
+          50,
+          50.5
+        ],
+        [
+          50.5,
+          51
+        ],
+        [
+          51,
+          51.5
+        ],
+        [
+          51.5,
+          52
+        ],
+        [
+          52,
+          52.5
+        ],
+        [
+          52.5,
+          53
+        ],
+        [
+          53,
+          53.5
+        ],
+        [
+          53.5,
+          54
+        ],
+        [
+          54,
+          54.5
+        ],
+        [
+          54.5,
+          55
+        ],
+        [
+          55,
+          55.5
+        ],
+        [
+          55.5,
+          56
+        ],
+        [
+          56,
+          56.5
+        ],
+        [
+          56.5,
+          57
+        ],
+        [
+          57,
+          57.5
+        ],
+        [
+          57.5,
+          58
+        ],
+        [
+          58,
+          58.5
+        ],
+        [
+          58.5,
+          59
+        ],
+        [
+          59,
+          59.5
+        ],
+        [
+          59.5,
+          60
+        ]
+      ],
+      "expected": [
+        [
+          0.0,
+          0.5
+        ],
+        [
+          0.5,
+          1.0
+        ],
+        [
+          1.0,
+          1.5
+        ],
+        [
+          1.5,
+          2.0
+        ],
+        [
+          2.0,
+          2.5
+        ],
+        [
+          2.5,
+          3.0
+        ],
+        [
+          3.0,
+          3.5
+        ],
+        [
+          3.5,
+          4.0
+        ],
+        [
+          4.0,
+          4.5
+        ],
+        [
+          4.5,
+          5.0
+        ],
+        [
+          5.0,
+          5.5
+        ],
+        [
+          5.5,
+          6.0
+        ],
+        [
+          6.0,
+          6.5
+        ],
+        [
+          6.5,
+          7.0
+        ],
+        [
+          7.0,
+          7.5
+        ],
+        [
+          7.5,
+          8.0
+        ],
+        [
+          8.0,
+          8.5
+        ],
+        [
+          8.5,
+          9.0
+        ],
+        [
+          9.0,
+          9.5
+        ],
+        [
+          9.5,
+          10.0
+        ],
+        [
+          10.0,
+          10.5
+        ],
+        [
+          10.5,
+          11.0
+        ],
+        [
+          11.0,
+          11.5
+        ],
+        [
+          11.5,
+          12.0
+        ],
+        [
+          12.0,
+          12.5
+        ],
+        [
+          12.5,
+          13.0
+        ],
+        [
+          13.0,
+          13.5
+        ],
+        [
+          13.5,
+          14.0
+        ],
+        [
+          14.0,
+          14.5
+        ],
+        [
+          14.5,
+          15.0
+        ],
+        [
+          15.0,
+          15.5
+        ],
+        [
+          15.5,
+          16.0
+        ],
+        [
+          16.0,
+          16.5
+        ],
+        [
+          16.5,
+          17.0
+        ],
+        [
+          17.0,
+          17.5
+        ],
+        [
+          17.5,
+          18.0
+        ],
+        [
+          18.0,
+          18.5
+        ],
+        [
+          18.5,
+          19.0
+        ],
+        [
+          19.0,
+          19.5
+        ],
+        [
+          19.5,
+          20.0
+        ],
+        [
+          20.0,
+          20.5
+        ],
+        [
+          20.5,
+          21.0
+        ],
+        [
+          21.0,
+          21.5
+        ],
+        [
+          21.5,
+          22.0
+        ],
+        [
+          22.0,
+          22.5
+        ],
+        [
+          22.5,
+          23.0
+        ],
+        [
+          23.0,
+          23.5
+        ],
+        [
+          23.5,
+          24.0
+        ],
+        [
+          24.0,
+          24.5
+        ],
+        [
+          24.5,
+          25.0
+        ],
+        [
+          25.0,
+          25.5
+        ],
+        [
+          25.5,
+          26.0
+        ],
+        [
+          26.0,
+          26.5
+        ],
+        [
+          26.5,
+          27.0
+        ],
+        [
+          27.0,
+          27.5
+        ],
+        [
+          27.5,
+          28.0
+        ],
+        [
+          28.0,
+          28.5
+        ],
+        [
+          28.5,
+          29.0
+        ],
+        [
+          29.0,
+          29.5
+        ],
+        [
+          29.5,
+          30.0
+        ],
+        [
+          30.0,
+          30.5
+        ],
+        [
+          30.5,
+          31.0
+        ],
+        [
+          31.0,
+          31.5
+        ],
+        [
+          31.5,
+          32.0
+        ],
+        [
+          32.0,
+          32.5
+        ],
+        [
+          32.5,
+          33.0
+        ],
+        [
+          33.0,
+          33.5
+        ],
+        [
+          33.5,
+          34.0
+        ],
+        [
+          34.0,
+          34.5
+        ],
+        [
+          34.5,
+          35.0
+        ],
+        [
+          35.0,
+          35.5
+        ],
+        [
+          35.5,
+          36.0
+        ],
+        [
+          36.0,
+          36.5
+        ],
+        [
+          36.5,
+          37.0
+        ],
+        [
+          37.0,
+          37.5
+        ],
+        [
+          37.5,
+          38.0
+        ],
+        [
+          38.0,
+          38.5
+        ],
+        [
+          38.5,
+          39.0
+        ],
+        [
+          39.0,
+          39.5
+        ],
+        [
+          39.5,
+          40.0
+        ],
+        [
+          40.0,
+          40.5
+        ],
+        [
+          40.5,
+          41.0
+        ],
+        [
+          41.0,
+          41.5
+        ],
+        [
+          41.5,
+          42.0
+        ],
+        [
+          42.0,
+          42.5
+        ],
+        [
+          42.5,
+          43.0
+        ],
+        [
+          43.0,
+          43.5
+        ],
+        [
+          43.5,
+          44.0
+        ],
+        [
+          44.0,
+          44.5
+        ],
+        [
+          44.5,
+          45.0
+        ],
+        [
+          45.0,
+          45.5
+        ],
+        [
+          45.5,
+          46.0
+        ],
+        [
+          46.0,
+          46.5
+        ],
+        [
+          46.5,
+          47.0
+        ],
+        [
+          47.0,
+          47.5
+        ],
+        [
+          47.5,
+          48.0
+        ],
+        [
+          48.0,
+          48.5
+        ],
+        [
+          48.5,
+          49.0
+        ],
+        [
+          49.0,
+          49.5
+        ],
+        [
+          49.5,
+          50.0
+        ],
+        [
+          50.0,
+          50.5
+        ],
+        [
+          50.5,
+          51.0
+        ],
+        [
+          51.0,
+          51.5
+        ],
+        [
+          51.5,
+          52.0
+        ],
+        [
+          52.0,
+          52.5
+        ],
+        [
+          52.5,
+          53.0
+        ],
+        [
+          53.0,
+          53.5
+        ],
+        [
+          53.5,
+          54.0
+        ],
+        [
+          54.0,
+          54.5
+        ],
+        [
+          54.5,
+          55.0
+        ],
+        [
+          55.0,
+          55.5
+        ],
+        [
+          55.5,
+          56.0
+        ],
+        [
+          56.0,
+          56.5
+        ],
+        [
+          56.5,
+          57.0
+        ],
+        [
+          57.0,
+          57.5
+        ],
+        [
+          57.5,
+          58.0
+        ],
+        [
+          58.0,
+          58.5
+        ],
+        [
+          58.5,
+          59.0
+        ],
+        [
+          59.0,
+          59.5
+        ],
+        [
+          59.5,
+          60.0
+        ]
+      ]
+    },
+    {
+      "name": "child NFAIL sum",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "name": "child NREPT sum",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "name": "child NPMS sum",
+      "passed": true,
+      "actual": 2,
+      "expected": 2
+    },
+    {
+      "name": "child NPMT sum",
+      "passed": true,
+      "actual": 2,
+      "expected": 2
+    },
+    {
+      "name": "child NSYPM aircraft-hours",
+      "passed": true,
+      "actual": 2.0,
+      "expected": 2,
+      "tolerance": 3e-05
+    },
+    {
+      "name": "child NSYMO aircraft-hours",
+      "passed": true,
+      "actual": 6.0,
+      "expected": 6,
+      "tolerance": 3e-05
+    },
+    {
+      "name": "no PM occupancy before hour30",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "terminal aircraft ready",
+      "passed": true,
+      "actual": [
+        1,
+        0
+      ],
+      "expected": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "summary all missions succeed",
+      "passed": true,
+      "actual": 1,
+      "expected": 1
+    }
+  ],
+  "scope": "fixed_local_pm_activation_off_0_30_on_30_60_cli",
+  "publication_state": "not_published"
+}
