@@ -74,8 +74,11 @@ def check_events(raw: str) -> list[str]:
     errors = []
     for label, (marker, wanted) in checks.items():
         if label == "task_start":
-            actual = [(row["hour"], row["body"]) for row in events if row["body"].startswith(marker)
-                      and (row["body"].endswith(" started") or row["body"].endswith(" completed"))]
+            actual = [(row["hour"], row["body"]) for row in events if re.fullmatch(
+                r"system preparation task \d+ on <[^>]+> (?:started|completed)", row["body"])]
+        elif label == "subtask_start":
+            actual = [(row["hour"], row["body"]) for row in events if re.match(
+                r"subtask \d+ seqno \d+ within system preparation task \d+ on <[^>]+> ", row["body"])]
         else:
             actual = [(row["hour"], row["body"]) for row in events if marker in row["body"]]
         if len(actual) != len(wanted) or any(abs(a[0] - w[0]) > 1e-4 or a[1] != w[1]
@@ -152,6 +155,8 @@ def check_provenance(run: Path) -> tuple[dict, list[str]]:
         errors.append("invocation does not bind existing GUI PID 13340")
     if closure.get("input_sha256") != INPUT_HASH or closure.get("case_id") != "B01" or closure.get("run_id") != invocation.get("run_id"):
         errors.append("closure identity or input hash mismatch")
+    if closure.get("invocation_sha256") != sha256(run / "invocation.json"):
+        errors.append("closure invocation hash mismatch")
     if set(closure.get("raw", {})) != RAW_FILES:
         errors.append("closure raw file set mismatch")
     for name, record in closure.get("raw", {}).items():

@@ -95,6 +95,7 @@ $invocation=[ordered]@{
  queue_mutex=$queueMutexName
 }
 $invocation|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'invocation.json') -Encoding UTF8
+$invocationSha256=(Get-FileHash -LiteralPath (Join-Path $run 'invocation.json') -Algorithm SHA256).Hash.ToLowerInvariant()
 $commands=@(
  [pscustomobject]@{name='import';args=('-silent -jimport "{0}" -save "{1}" -log "{2}" -close' -f $source,$sxi,(Join-Path $run 'import.log'))},
  [pscustomobject]@{name='export';args=('"{0}" -silent -jexport "{1}" -log "{2}" -close' -f $sxi,$round,(Join-Path $run 'export.log'))},
@@ -129,10 +130,10 @@ foreach($name in @('input.json','roundtrip-raw.json','model.sxi','model.sxo','im
  if(!(Test-Path -LiteralPath $path) -or (Get-Item -LiteralPath $path).Length -le 4){throw "missing raw artifact: $name"}
  $raw[$name]=[ordered]@{bytes=(Get-Item -LiteralPath $path).Length;sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()}
 }
-[ordered]@{schema='simlox-b01-closure/v1';case_id='B01';case_version=$caseVersion;run_id=$RunId;input_sha256=$InputSha256;raw=$raw}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $run 'closure.json') -Encoding UTF8
+[ordered]@{schema='simlox-b01-closure/v1';case_id='B01';case_version=$caseVersion;run_id=$RunId;input_sha256=$InputSha256;invocation_sha256=$invocationSha256;raw=$raw}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $run 'closure.json') -Encoding UTF8
 & $python (Join-Path $case 'validate.py') $run | Set-Content -LiteralPath (Join-Path $run 'validation.json') -Encoding UTF8
 if($LASTEXITCODE -ne 0){throw 'B01 CLI assertions failed; preserve raw artifacts'}
-[ordered]@{schema='simlox-b01-run-manifest/v1';case_id='B01';case_version=$caseVersion;run_id=$RunId;input_sha256=$InputSha256;closure_sha256=(Get-FileHash (Join-Path $run 'closure.json') -Algorithm SHA256).Hash.ToLowerInvariant();validation_sha256=(Get-FileHash (Join-Path $run 'validation.json') -Algorithm SHA256).Hash.ToLowerInvariant();execution_mode='ssh_cli_v1';acceptance_scope='candidate_cli_review';publication_state='not_published';gui_status='not_run'}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'run-manifest.json') -Encoding UTF8
+[ordered]@{schema='simlox-b01-run-manifest/v1';case_id='B01';case_version=$caseVersion;run_id=$RunId;input_sha256=$InputSha256;invocation_sha256=$invocationSha256;closure_sha256=(Get-FileHash (Join-Path $run 'closure.json') -Algorithm SHA256).Hash.ToLowerInvariant();validation_sha256=(Get-FileHash (Join-Path $run 'validation.json') -Algorithm SHA256).Hash.ToLowerInvariant();execution_mode='ssh_cli_v1';acceptance_scope='candidate_cli_review';publication_state='not_published';gui_status='not_run'}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $run 'run-manifest.json') -Encoding UTF8
 $steps|Format-Table name,exit_code,wall_seconds -AutoSize
 } finally {
  if($queueAcquired){$queueMutex.ReleaseMutex()|Out-Null}

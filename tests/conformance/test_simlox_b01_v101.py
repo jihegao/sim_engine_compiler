@@ -81,6 +81,8 @@ class B01VersionedSourceTests(unittest.TestCase):
         self.assertTrue(VALIDATE.check_events(events + "\nTime: 11 <TEACH-AIR-01,0> preparation started, mission: <BASIC-MISSION,TEACH-UNIT,0,0,0>"))
         self.assertTrue(VALIDATE.check_events(events.replace("<TEACH-AIR-01,0> preparation ended", "<OTHER-AIR,0> preparation ended")))
         self.assertTrue(VALIDATE.check_events(events.replace("duration: 2", "duration: 1")))
+        self.assertTrue(VALIDATE.check_events(events + "\nTime: 11 system preparation task 1 on <TEACH-AIR-01,0> started"))
+        self.assertTrue(VALIDATE.check_events(events + "\nTime: 11 subtask 1 seqno 1 within system preparation task 1 on <TEACH-AIR-01,0> started"))
 
     def test_report_checks_full_horizon_and_completion_count(self):
         report = sample_report()

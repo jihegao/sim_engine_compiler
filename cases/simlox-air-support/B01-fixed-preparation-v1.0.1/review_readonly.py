@@ -81,6 +81,8 @@ def check_evidence(run: Path) -> tuple[list[str], dict]:
     contract = read_native_json(HERE / "contract.json")
     if set(closure.get("raw", {})) != RAW:
         errors.append("raw closure file set differs")
+    if closure.get("invocation_sha256") != digest(run / "invocation.json"):
+        errors.append("closure does not bind invocation bytes")
     for name, item in closure.get("raw", {}).items():
         path = run / name
         if not path.is_file() or path.stat().st_size != item.get("bytes") or digest(path) != item.get("sha256"):
@@ -101,8 +103,10 @@ def check_evidence(run: Path) -> tuple[list[str], dict]:
     if [step.get("name") for step in steps] != ["import", "export", "calc", "jsonreport"] or any(
             step.get("exit_code") != 0 or not step.get("coexisting_gui_present_after") for step in steps):
         errors.append("native step sequence, exit code or GUI coexistence mismatch")
-    if manifest.get("closure_sha256") != digest(run / "closure.json") or manifest.get("validation_sha256") != digest(run / "validation.json"):
-        errors.append("run manifest closure or validation hash mismatch")
+    if (manifest.get("invocation_sha256") != digest(run / "invocation.json") or
+            manifest.get("closure_sha256") != digest(run / "closure.json") or
+            manifest.get("validation_sha256") != digest(run / "validation.json")):
+        errors.append("run manifest invocation, closure or validation hash mismatch")
     if not validation.get("passed") or validation.get("differences"):
         errors.append("source-bound validator did not pass")
     source_rows = rows(read_native_json(run / "input.json"), "model")
