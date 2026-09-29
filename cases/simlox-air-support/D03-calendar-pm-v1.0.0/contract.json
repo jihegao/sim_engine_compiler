@@ -1,0 +1,39 @@
+{
+  "case_id": "D03",
+  "version": "1.0.0-candidate",
+  "parent_case": "A02@1.0.0",
+  "parent_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+  "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "scope": "one aircraft, fixed 24-hour calendar PM and one-hour task, no scheduled mission overlap",
+  "delta": [
+    "Control.SIMPE and RCEND 36 to 60 hours",
+    "ResultCollection MISSION and SYSTEM RCEND 36 to 60 hours",
+    "Control.ENPM N to Y",
+    "one MaterielPM CALHOURS 24h row with ATIM=DTIM=0",
+    "one PMLocation BASE-01 one-hour task and one TaskBreakDown subtask"
+  ],
+  "hand_expected": {
+    "missions_start_hours": [
+      8,
+      20,
+      32
+    ],
+    "missions_end_hours": [
+      10,
+      22,
+      34
+    ],
+    "pm_due_hours": [
+      24,
+      49
+    ],
+    "pm_duration_hours": 1,
+    "calendar_pm_count": 2,
+    "pm_completion_hours": [
+      25,
+      50
+    ],
+    "second_due_basis": "completion of first PM at 25h plus 24 calendar hours; observed in preliminary native log"
+  },
+  "publication_state": "not_published"
+}
