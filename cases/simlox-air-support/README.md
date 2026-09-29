@@ -1,6 +1,6 @@
 # SIMLOX air-support teaching cases
 
-This library follows issue #18. The [SIMLOX 2017 progressive catalog v2](progressive-catalog-v2.md) has 108 planned case definitions: the original 26 business cases and 82 method, experiment and authoring extensions. Its 579 named variants and all 133 input tables are mapped to manual sources and acceptance plans. Only A01 and A02 retain their existing limited CLI evidence; GUI publication acceptance remains pending. The aircraft is a generic teaching asset; real F35/J35 applications need separate contracts and evidence.
+This library follows issue #18. The [SIMLOX 2017 progressive catalog v2](progressive-catalog-v2.md) has 108 planned case definitions: the original 26 business cases and 82 method, experiment and authoring extensions. Its 579 named variants and all 133 input tables are mapped to manual sources and acceptance plans. The catalog is a planning snapshot; later A03, A09 and B01–C03 CLI evidence is recorded in case-specific reports. Under the [revised acceptance standard](execution-plan-v2.md#3-证据状态和阶段门), source-bound CLI behavior evidence can support delivery and publication without a universal GUI gate. The aircraft is a generic teaching asset; real F35/J35 applications need separate contracts and evidence.
 
 ## Current implementation batch
 
@@ -40,7 +40,13 @@ new acceptance attribution. The corrected collection-window analysis is
 The earlier A01/A02 final and replay runs passed historical CLI checks but lack
 pre-run binding. Four new normal/replay runs have independent invocation IDs,
 sealed raw files and strict read-only validation passes. They restore CLI
-behavior acceptance for these two teaching cases. GUI calibration and review
-remain pending private handoff. A02 is a provisional CLI child of A01; it is
-not a published child of a GUI-accepted A01.
-All other v2 entries stay planned. A mapped manual method or a passing catalog check does not establish native behavior. See the [manual review findings](known-issues/manual-review-v2.md) for capability probes and conflicting source descriptions.
+behavior acceptance for these two teaching cases. GUI observations have since
+been recorded separately in the [dated addendum](gui-acceptance-2026-09-29.md).
+GUI completeness no longer controls publication; GUI is sampled when useful,
+and screenshot retention is optional. Each case still needs a
+case-level review of its declared behavior, required parent behavior, raw
+evidence, reproducibility and limitations before `reusable_published` is set.
+No case status is changed merely by this policy revision. A mapped manual
+method or a passing catalog check does not establish native behavior. See the
+[manual review findings](known-issues/manual-review-v2.md) for capability
+probes and conflicting source descriptions.

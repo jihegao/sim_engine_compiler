@@ -1,5 +1,7 @@
 # 4700-3 P1 原生验收交接
 
+> Historical handoff: the [2026-09-29 revised standard](execution-plan-v2.md#3-证据状态和阶段门) supersedes this document's mandatory GUI screenshots and GUI publication gate. GUI is now sampled when useful, with no mandatory screenshot retention. Existing native evidence still requires case-level review.
+
 2026-09-28 本轮更新：机主现允许经远程桌面操作 SIMLOX。原 Console-only
 限制保留为历史交接背景；当前可在已核实的活动交互式 `Console` 或 RDP
 用户会话中尝试 GUI 与原生运行。本交接的交互式 runner 拒绝 SSH/session-0。
