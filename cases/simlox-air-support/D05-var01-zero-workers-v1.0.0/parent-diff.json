@@ -1,0 +1,75 @@
+{
+  "schema": "simlox-d05-var01-exact-parent-diff/v1",
+  "case_id": "D05",
+  "version": "1.0.0-candidate",
+  "parent_case": "D05@1.0.0/one-worker",
+  "parent_input_sha256": "4443d057ade36010a84186aa0f9ac8279886563db190ed80699b7fe48ad2baad",
+  "child_input_sha256": "e8ef846a1f5c87e2fce982baaa3c5057b2f9554f3a620b09c49d6ecb8bd4e158",
+  "changed_tables_only": [
+    "ProblemDescription",
+    "Resource",
+    "ResourceAllocation"
+  ],
+  "unchanged_table_count": 28,
+  "tables": {
+    "ProblemDescription": {
+      "parent_rows": [
+        {
+          "PDESC": "D05 pilot: system fault and calendar PM compete for one maintainer"
+        }
+      ],
+      "child_rows": [
+        {
+          "PDESC": "D05.var01 zero-worker capacity control for repair and PM"
+        }
+      ]
+    },
+    "Resource": {
+      "parent_rows": [
+        {
+          "RID": "P-MAINT",
+          "DESCR": "One shared maintenance worker",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "RID": "P-MAINT",
+          "DESCR": "Zero maintenance workers",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "ResourceAllocation": {
+      "parent_rows": [
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-MAINT",
+          "STID": "BASE-01",
+          "RQTY": 1,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-MAINT",
+          "STID": "BASE-01",
+          "RQTY": 0,
+          "NOTE": null
+        }
+      ]
+    }
+  },
+  "publication_state": "not_published"
+}
