@@ -18,6 +18,8 @@ The [A02 repeated-wave sign-off](A02-single-aircraft-repeated-missions/cli-scope
 
 The [C04 1.0.0 deadline and cancellation case](C04-deadline-cancellation-v1.0.0/README.md) derives directly from C03's published inputs. Five sealed CLI runs check crew readiness before/at/after the fixed cutoff, separate missing-aircraft and missing-crew conditions, partial-work cleanup and final stocks. The [evidence report](C04-deadline-cancellation-v1.0.0/evidence-2026-09-29.md) records independent replay and the failed, nonpublished horizon probe. The v2 machine catalog remains a planning snapshot; it is not rewritten as a publication register.
 
+The [A09 1.0.1 nested-profile sign-off](A09-hierarchical-operation-profile-v1.0.1/cli-scope-signoff-2026-09-29.md) publishes one fixed four-wave CLI recipe from the accepted A02 parent. Its retained native run and separate 98-check read-only replay support only the tested `IQTY=2`, `IPER=48 h` profile; the general expansion formula and other A09 variants remain unverified.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
