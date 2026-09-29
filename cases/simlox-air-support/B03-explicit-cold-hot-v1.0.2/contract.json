@@ -1,0 +1,31 @@
+{
+  "schema": "simlox-b03-observable-contract/v1",
+  "case_id": "B03",
+  "version": "1.0.2",
+  "status": "candidate_pending_native_run",
+  "business_profile": "explicit-mission-type-v1",
+  "parent_case": "B02@1.0.2",
+  "requires": ["B02@1.0.2", "A02@1.0.0-cli-scope"],
+  "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "input_sha256": "9c6b3c8955089b89caa1a71634eb78e9fd52069d5d710273e3a6bc710e19222c",
+  "parent_diff_sha256": "b1480f9f3f414feb84ab08448f156e25aee15d8ee1e90e56fb652d1f87a13283",
+  "source_method_id": "M-B03",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pdf_pages": [[181, 183], [226, 226], [294, 297], [305, 307], [400, 404]],
+  "acceptance_scope": "one generic aircraft, three scheduled nonoverlapping sorties, explicit MTID selection of cold and hot preparation, deterministic no-resource normal path",
+  "aircraft_instance": "<TEACH-AIR-01,0>",
+  "unit_id": "TEACH-UNIT",
+  "site_id": "BASE-01",
+  "horizon_hours": 36,
+  "report_interval_hours": 0.5,
+  "missions": [
+    {"mtid": "COLD-FIRST", "launch_hour": 8, "notice_hour": 7, "duration_hours": 2, "task_id": "PREP-FIXED", "steps": [{"seq": 1, "step_id": "INSPECT", "minutes": 10}, {"seq": 2, "step_id": "SERVICE", "minutes": 20}]},
+    {"mtid": "HOT-SORTIE", "launch_hour": 12, "notice_hour": 11, "duration_hours": 2, "task_id": "HOT-PREP", "steps": [{"seq": 1, "step_id": "HOT-SERVICE", "minutes": 10}]},
+    {"mtid": "HOT-SORTIE", "launch_hour": 16, "notice_hour": 15, "duration_hours": 2, "task_id": "HOT-PREP", "steps": [{"seq": 1, "step_id": "HOT-SERVICE", "minutes": 10}]}
+  ],
+  "conversion": {"errors": 0, "allowed_warning_counts": {"108": 1, "126": 1}},
+  "limits": [
+    "Mission type explicitly chooses the recipe; no automatic switching by sortie number, history or thermal state is claimed.",
+    "No personnel, equipment, inventory, fault, random duration, GUI-only behavior, cross-engine equivalence or performance is claimed."
+  ]
+}

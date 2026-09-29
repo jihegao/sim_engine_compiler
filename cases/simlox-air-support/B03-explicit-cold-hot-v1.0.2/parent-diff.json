@@ -1,0 +1,281 @@
+{
+  "schema": "simlox-b03-exact-parent-diff/v1",
+  "parent_case": "B02@1.0.2",
+  "case_id": "B03",
+  "version": "1.0.2",
+  "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "child_input_sha256": "9c6b3c8955089b89caa1a71634eb78e9fd52069d5d710273e3a6bc710e19222c",
+  "unchanged_table_count": 25,
+  "changed_tables_only": [
+    "MissionType",
+    "OperationProfile",
+    "MissionPreparation",
+    "Tasks",
+    "SubTaskType",
+    "TaskBreakDown"
+  ],
+  "tables": {
+    "MissionType": {
+      "parent_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "DESCR": "Two-hour generic mission",
+          "NOS": 1,
+          "MNOS": 1,
+          "MNOSA": null,
+          "DURN": 2.0,
+          "DURND": null,
+          "MSUCPT": 1,
+          "TFOUT": 0.25,
+          "TFRET": 0.25,
+          "MPAT": null,
+          "PRI": 1,
+          "NOPER": 1.0,
+          "MFF": null,
+          "SYACF": null,
+          "SYACP": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "MTID": "COLD-FIRST",
+          "DESCR": "Cold-first two-hour sortie",
+          "NOS": 1,
+          "MNOS": 1,
+          "MNOSA": null,
+          "DURN": 2.0,
+          "DURND": null,
+          "MSUCPT": 1,
+          "TFOUT": 0.25,
+          "TFRET": 0.25,
+          "MPAT": null,
+          "PRI": 1,
+          "NOPER": 1.0,
+          "MFF": null,
+          "SYACF": null,
+          "SYACP": null,
+          "NOTE": null
+        },
+        {
+          "MTID": "HOT-SORTIE",
+          "DESCR": "Hot two-hour repeat sortie",
+          "NOS": 1,
+          "MNOS": 1,
+          "MNOSA": null,
+          "DURN": 2.0,
+          "DURND": null,
+          "MSUCPT": 1,
+          "TFOUT": 0.25,
+          "TFRET": 0.25,
+          "MPAT": null,
+          "PRI": 1,
+          "NOPER": 1.0,
+          "MFF": null,
+          "SYACF": null,
+          "SYACP": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "OperationProfile": {
+      "parent_rows": [
+        {
+          "PRID": "BASIC-SCHEDULE",
+          "SPRID": "BASIC-MISSION",
+          "STIM": 8.0,
+          "ITYPE": "SCHEDULED",
+          "IQTY": 1,
+          "IQTYD": null,
+          "IPER": 0,
+          "IDISP": null,
+          "DTIM": 0.3333333333333333,
+          "XCOORD": null,
+          "YCOORD": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "PRID": "BASIC-SCHEDULE",
+          "SPRID": "COLD-FIRST",
+          "STIM": 8.0,
+          "ITYPE": "SCHEDULED",
+          "IQTY": 1,
+          "IQTYD": null,
+          "IPER": 0,
+          "IDISP": null,
+          "DTIM": 0.3333333333333333,
+          "XCOORD": null,
+          "YCOORD": null,
+          "NOTE": null
+        },
+        {
+          "PRID": "BASIC-SCHEDULE",
+          "SPRID": "HOT-SORTIE",
+          "STIM": 12.0,
+          "ITYPE": "SCHEDULED",
+          "IQTY": 1,
+          "IQTYD": null,
+          "IPER": 0,
+          "IDISP": null,
+          "DTIM": 0.3333333333333333,
+          "XCOORD": null,
+          "YCOORD": null,
+          "NOTE": null
+        },
+        {
+          "PRID": "BASIC-SCHEDULE",
+          "SPRID": "HOT-SORTIE",
+          "STIM": 16.0,
+          "ITYPE": "SCHEDULED",
+          "IQTY": 1,
+          "IQTYD": null,
+          "IPER": 0,
+          "IDISP": null,
+          "DTIM": 0.3333333333333333,
+          "XCOORD": null,
+          "YCOORD": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "MissionPreparation": {
+      "parent_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DURN": 0.75,
+          "TID": "PREP-FIXED",
+          "DURND": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "MTID": "COLD-FIRST",
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DURN": 0.75,
+          "TID": "PREP-FIXED",
+          "DURND": null,
+          "NOTE": null
+        },
+        {
+          "MTID": "HOT-SORTIE",
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DURN": 0.75,
+          "TID": "HOT-PREP",
+          "DURND": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "Tasks": {
+      "parent_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "DESCR": "Serial 10+20-minute BASIC-MISSION preparation",
+          "TCID": null,
+          "TLID": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "DESCR": "Cold-first serial 10+20-minute preparation",
+          "TCID": null,
+          "TLID": null,
+          "NOTE": null
+        },
+        {
+          "TID": "HOT-PREP",
+          "DESCR": "Hot-sortie 10-minute preparation",
+          "TCID": null,
+          "TLID": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "SubTaskType": {
+      "parent_rows": [
+        {
+          "SUTID": "INSPECT",
+          "DESCR": "INSPECT",
+          "NOTE": null
+        },
+        {
+          "SUTID": "SERVICE",
+          "DESCR": "SERVICE",
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "SUTID": "INSPECT",
+          "DESCR": "INSPECT",
+          "NOTE": null
+        },
+        {
+          "SUTID": "SERVICE",
+          "DESCR": "SERVICE",
+          "NOTE": null
+        },
+        {
+          "SUTID": "HOT-SERVICE",
+          "DESCR": "HOT-SERVICE",
+          "NOTE": null
+        }
+      ]
+    },
+    "TaskBreakDown": {
+      "parent_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "SUTID": "INSPECT",
+          "DURN": 0.16666666666666666,
+          "DURND": null,
+          "NOTE": null
+        },
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 2,
+          "SUTID": "SERVICE",
+          "DURN": 0.3333333333333333,
+          "DURND": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "SUTID": "INSPECT",
+          "DURN": 0.16666666666666666,
+          "DURND": null,
+          "NOTE": null
+        },
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 2,
+          "SUTID": "SERVICE",
+          "DURN": 0.3333333333333333,
+          "DURND": null,
+          "NOTE": null
+        },
+        {
+          "TID": "HOT-PREP",
+          "SEQ": 1,
+          "SUTID": "HOT-SERVICE",
+          "DURN": 0.16666666666666666,
+          "DURND": null,
+          "NOTE": null
+        }
+      ]
+    }
+  }
+}
