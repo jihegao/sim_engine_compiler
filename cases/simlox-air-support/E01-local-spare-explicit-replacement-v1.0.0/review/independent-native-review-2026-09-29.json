@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-e01-independent-native-review/v1",
+  "review_mode": "independent read-only replay of frozen input and sealed native raw evidence",
+  "reviewer": "separate review agent; no file edits and no SIMLOX invocation",
+  "run_id": "e01-v100-ssh-20260929-01",
+  "passed": true,
+  "differences": [],
+  "raw_report_sha256": "e23caaf4092fec476cbb83c4d7ac85b97301efc89db19937c9d6b756d7c27c77",
+  "closure_sha256": "1713af4ca149f3fe3bd80bb8a033372475762eec787e36e38aeaddf8c385f5c6",
+  "checks": {
+    "frozen_sources_closure_and_gui_guard": "passed",
+    "four_steps_roundtrip_and_zero_conversion_errors": "passed",
+    "failure_spare_issue_and_restock": "passed",
+    "remove_10_minutes_then_replace_20_minutes": "passed",
+    "72_intervals_and_terminal_ready": "passed"
+  },
+  "observed": {
+    "critical_lru_failure_hour": 9.8829,
+    "opening_stock": 1,
+    "spare_issue_hour": 10,
+    "stock_after_issue": 0,
+    "remove_hours_rounded_in_log": [10, 10.1667],
+    "replace_hours_rounded_in_log": [10.1667, 10.5],
+    "removed_item_direct_repair_hours_rounded_in_log": [10.1667, 11.1667],
+    "stock_after_repair": 1,
+    "successful_later_mission_completion_hours": [22, 34]
+  },
+  "limits": [
+    "The event log rounds fractional-hour timestamps to four decimals.",
+    "Aggregate report rows match the accepted D01 LRU parent and do not expose subtask timing or item identity; those come from the event log.",
+    "The runner guards GUI process identity and active session but GUI content was not sampled."
+  ]
+}

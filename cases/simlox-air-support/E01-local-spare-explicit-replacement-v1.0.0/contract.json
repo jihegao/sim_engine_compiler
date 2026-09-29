@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E01",
+  "case_version": "1.0.0-candidate",
+  "variant": "one-local-spare-explicit-removal-and-fit",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D01",
+    "version": "1.0.0-installed-lru",
+    "behavior_scope": "accepted local LRU failure, spare issue, replacement, direct item repair and restock",
+    "input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+    "signoff": "../D01-installed-lru-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 400, 401, 402, 403, 404],
+    "source_boundary": "A system repair by subitem replacement includes mandatory REMOVE and REPLACE subtasks. TaskBreakDown TID+SEQ with predefined <REMOVE>/<REPLACE> gives explicit sequential DURN and overrides the general SystemRepair.SURPT duration."
+  },
+  "native_input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+  "delta": {
+    "tables": ["ProblemDescription", "SystemRepair", "Tasks", "TaskBreakDown"],
+    "mechanism": "Bind SystemRepair.SURPTID to E01-SURP with complete two-step breakdown, 1/6 h REMOVE then 1/3 h REPLACE; retain the parent failure, spare and item-repair loop.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "task_type": "E01-SURP", "base": "BASE-01"}
+  },
+  "configuration": {
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "total_system_replacement_minutes": 30,
+    "nominal_stock_and_expected_opening_on_hand": 1,
+    "item_direct_repair_hours_inherited": 1.0,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "predeclared_native_acceptance": [
+    "The frozen seed/configuration must produce at least one observed critical installed-LRU failure, with the failure time read from raw native events.",
+    "Import/export must preserve all 20 row-containing source tables, including three all-null placeholders; conversion errors must be zero and all four native CLI steps succeed.",
+    "At a system SURP task, confirm immediate spare demand and local issue from opening stock one, then explicit REMOVE lasting 10 minutes and REPLACE lasting 20 minutes in that order. The removed LRU must reach ItemRepair only after REMOVE completes; system readiness follows REPLACE.",
+    "Reconcile removed-item direct repair and restock, mission outcome, stock on hand/backorders and 72 system/stock result intervals with the accepted D01 LRU control. The parent default split is 15/15 minutes and should change to 10/20 without changing total 30-minute system turnaround.",
+    "Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340, seal raw hashes and obtain independent read-only replay."
+  ],
+  "limits": [
+    "This one-spare case establishes explicit removal/fit timing; no shortage, transport, second demand, resource queue, PM or alternate failure path is accepted.",
+    "Exact stochastic failure times and report aggregation are run-specific."
+  ]
+}

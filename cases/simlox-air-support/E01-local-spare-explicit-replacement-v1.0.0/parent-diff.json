@@ -1,0 +1,92 @@
+{
+  "schema": "simlox-parent-table-diff/v1",
+  "parent_case": "D01-installed-LRU",
+  "case_id": "E01",
+  "changed_tables": {
+    "ProblemDescription": {
+      "before_rows": [
+        {
+          "PDESC": "D01 installed LRU: one local spare, system replacement, direct item repair"
+        }
+      ],
+      "after_rows": [
+        {
+          "PDESC": "E01 local spare: explicit 10-minute REMOVE and 20-minute REPLACE"
+        }
+      ]
+    },
+    "SystemRepair": {
+      "before_rows": [
+        {
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DIRPT": 0.0,
+          "SURPT": 0.5,
+          "DIRPF": 1.0,
+          "SURPF": 1.0,
+          "DIRPM": null,
+          "SURPM": null,
+          "DIRPC": null,
+          "SURPC": null,
+          "DIRPTID": null,
+          "SURPTID": null,
+          "DIRPD": null,
+          "SURPD": null,
+          "NOTE": null
+        }
+      ],
+      "after_rows": [
+        {
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DIRPT": 0.0,
+          "SURPT": 0.5,
+          "DIRPF": 1.0,
+          "SURPF": 1.0,
+          "DIRPM": null,
+          "SURPM": null,
+          "DIRPC": null,
+          "SURPC": null,
+          "DIRPTID": null,
+          "SURPTID": "E01-SURP",
+          "DIRPD": null,
+          "SURPD": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "Tasks": {
+      "before_rows": [],
+      "after_rows": [
+        {
+          "TID": "E01-SURP",
+          "DESCR": "Explicit local LRU system replacement",
+          "TCID": null,
+          "TLID": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "TaskBreakDown": {
+      "before_rows": [],
+      "after_rows": [
+        {
+          "TID": "E01-SURP",
+          "SEQ": 1,
+          "SUTID": "<REMOVE>",
+          "DURN": 0.16666666666666666,
+          "DURND": null,
+          "NOTE": null
+        },
+        {
+          "TID": "E01-SURP",
+          "SEQ": 2,
+          "SUTID": "<REPLACE>",
+          "DURN": 0.3333333333333333,
+          "DURND": null,
+          "NOTE": null
+        }
+      ]
+    }
+  }
+}
