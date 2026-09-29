@@ -26,4 +26,15 @@ Status: **partial GUI observation; A01 and A02 remain `gui_pending` and `not_pub
 | A02 frozen final SXO identity and overview | partial; screenshot saved | Hash-identical copy of the retained SXO was opened in GUI. The retained-SXO screenshot above shows `A02-retained-cli-original`, `TEACH-UNIT`, `TEACH-AIR-01` selected and `System Availability=1.00`. The original retained SXO SHA-256 is `960c917c8846fab038d088493e6da35092dbcaf6ef3a3ad31fb1ae54ce7f546a`. |
 | A02 frozen final SXO ResultSummary and 7–34 h SystemResults | not observed | The overview value cannot establish the three-mission timeline or per-interval results. |
 
+## Retained-SXO mission charts, 08:20–08:23 local time
+
+The existing GUI opened the hash-identical retained CLI SXO copies identified above. In `Mission Results`, the bottom selectors were `A01-retained-cli-original` or `A02-retained-cli-original`, `TEACH-UNIT`, and `BASIC-MISSION`, with `Accumulate` checked. The `Fixed Mission Quantity` chart's `Successful` series reached 1 for A01 and 3 for A02. The `System Time` chart reached 2 aircraft-hours for A01 and 6 aircraft-hours for A02, in three 2-hour steps for A02. The GUI chart time coordinates are approximate; the frozen CLI event logs and validators remain the source for exact times and detailed assertions.
+
+| Screenshot copied into `gui-calc-20260929` | Bytes | SHA-256 | Visible result |
+| --- | ---: | --- | --- |
+| `a01-retained-fixed-mission-quantity-gui-20260929.png` | 224,659 | `fea63475b140606d0159536ae59a074c781998e0458665dd24bceafa72c521fe` | A01, `Successful=1` |
+| `a02-retained-fixed-mission-quantity-gui-20260929.png` | 232,969 | `4d05275a9f47074ff36a3930823c0c6ba7db19543282a9eda9e9c8225d3bebba` | A02, `Successful=3` |
+
+These PNG files are under `C:\Users\user\Documents\Codex\2026-09-28\simlox-p1-a03-b7e6945a\cases\simlox-air-support\A03-two-aircraft-formation\runs\gui-review-20260928\gui-calc-20260929`. Their hashes were verified against the screenshots saved in `C:\Users\user\Downloads`. The A01/A02 chart observations extend the overview evidence; they do not show the required detailed `ResultSummary` or interval `SystemResults` tables. The SIMLOX GUI process remained PID `13340`, session `1`, after the screenshots.
+
 The next GUI review should inspect each retained final SXO's detailed result tables, then walk the remaining required input views. Capture the remaining screenshots bound to the displayed files with hashes. A01 must pass before using it as A02's published parent. The GUI process must remain open. Until these checks and independent review pass, keep the catalog statuses unchanged. The separate AMD128 comparison, SIMPE boundary, and J35 equivalence remain unverified.
