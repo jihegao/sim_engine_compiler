@@ -1,0 +1,82 @@
+{
+  "schema": "simlox-c01-observable-contract/v1",
+  "case_id": "C01",
+  "version": "1.0.2",
+  "status": "candidate_pending_native_runs",
+  "parent_case": "B02@1.0.2",
+  "parent_behavior_scope": "published 10+20-minute serial preparation on the B01 normal path",
+  "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "source_method_id": "M-C01",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pdf_pages": [[397, 399], [407, 414]],
+  "business_delta": "Retain every B02 row and add two SPECIAL personnel types, station allocation and a two-P-CREW demand on INSPECT (SEQ 1). SERVICE (SEQ 2) remains unresourced.",
+  "changed_tables_only": ["Resource", "ResourceAllocation", "SubTaskResource"],
+  "common_identity": {
+    "aircraft": "TEACH-AIR-01",
+    "unit": "TEACH-UNIT",
+    "mission_type": "BASIC-MISSION",
+    "schedule": "BASIC-SCHEDULE",
+    "station": "BASE-01",
+    "task": "PREP-FIXED",
+    "demand_step": "INSPECT",
+    "demand_seq": 1,
+    "requested_rid": "P-CREW",
+    "requested_quantity": 2,
+    "allocation_point": "AIR_BASIC"
+  },
+  "expected_common": {
+    "mission_tag": "<BASIC-MISSION,TEACH-UNIT,0,0,0>",
+    "aircraft_instance": "<TEACH-AIR-01,0>",
+    "notice_hour": 7,
+    "planned_launch_hour": 8,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5
+  },
+  "variants": {
+    "capacity-2": {
+      "crew_quantity": 2,
+      "other_quantity": 0,
+      "input_sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c",
+      "parent_diff_sha256": "cba0bb3f452dc59e158dd43dfa03b8f43843b3e89e0f0b9a6dd13170cf52b8a1",
+      "expected": "Two P-CREW are acquired for INSPECT at 07:00, released at 07:10, SERVICE completes at 07:30, and the mission launches 08:00 and completes 10:00. Personnel lease integrates to 20 person-minutes."
+    },
+    "capacity-1": {
+      "crew_quantity": 1,
+      "other_quantity": 0,
+      "input_sha256": "12804f3f589abddf1a4a85e27e0bdf7f965ba6750517f4de18715e7e065ba2ad",
+      "parent_diff_sha256": "4cde7c19a0930f988d4e54b77601e7b3de7b9d340e54a2c61d1d1f51d1fd6e70",
+      "expected": "INSPECT requests two P-CREW and waits; one unit is insufficient. No partial booking, work, SERVICE start or mission launch. Record the native cancellation time and stopped state from raw evidence."
+    },
+    "capacity-0": {
+      "crew_quantity": 0,
+      "other_quantity": 0,
+      "input_sha256": "02d1e3c1cdb585b73a00cf73b58f9d5fe6295c45c6fdc282a7c80c443499fdeb",
+      "parent_diff_sha256": "babd961569583c199d218d8b213b97b7dfaa4322602425cef8dfe9b6ef73bc41",
+      "expected": "INSPECT requests two P-CREW and waits; no crew is available. No booking, work, SERVICE start or mission launch. Record the native cancellation time and stopped state from raw evidence."
+    },
+    "wrong-specialty": {
+      "crew_quantity": 0,
+      "other_quantity": 2,
+      "input_sha256": "e1341e7abfc8e1f4c853ba11648c0dfb1de6a90de3341aecae180af8ea4d0783",
+      "parent_diff_sha256": "42b07bc157052abeac1ca5b09632a0ed8754d0b038cf9b34830d46910234f18e",
+      "expected": "Two P-OTHER cannot satisfy the two-P-CREW request. No booking, work, SERVICE start or mission launch. Record the native cancellation time and stopped state from raw evidence."
+    }
+  },
+  "assertions": {
+    "C01-102-A1": "All four variants retain B02 business identity, schedule and serial breakdown exactly; their only sibling difference is ResourceAllocation.RQTY.",
+    "C01-102-A2": "The native request for INSPECT is P-CREW quantity two; any P-OTHER capacity is disjoint and no alternative resource is declared.",
+    "C01-102-A3": "Capacity two acquires both units before work, releases both after INSPECT, preserves SERVICE ordering, and yields one successful mission.",
+    "C01-102-A4": "Capacity one, zero and wrong specialty never book partial capacity or start any preparation work or mission.",
+    "C01-102-A5": "For blocked variants, cancellation and stopped state are read from native evidence; no deadline time is inferred from the input alone."
+  },
+  "allowed_native_warnings": {
+    "108": "Control.ENLOG=Y records the first repetition",
+    "126": "the deterministic teaching System has no Item children"
+  },
+  "acceptance_scope": "two-person P-CREW specialty and capacity gating on B02 INSPECT with four declared variants",
+  "excluded_claims": [
+    "The old C01 1.0.1 candidate's one-step 30-minute personnel task remains historical and is not a parent.",
+    "No resource substitution, shifts, multi-aircraft competition, GUI-only behavior, cross-engine parity or performance is claimed."
+  ],
+  "publication_state": "not_published"
+}

@@ -8,6 +8,8 @@ The [staged execution plan](execution-plan-v2.md) assigns local parallel develop
 
 The [published B02 1.0.2 serial-preparation case](B02-serial-preparation-v1.0.2/README.md) derives from accepted B01 1.0.1 and has a separate source-bound native run, exact parent diff and independent raw replay. The older B02 1.0.1 batch candidate remains historical and is not its parent.
 
+The [C01 1.0.2 personnel-capacity case](C01-personnel-capacity-v1.0.2/README.md) derives from published B02 1.0.2. Four source-bound CLI runs independently confirm a two-person crew lease, insufficient capacity, zero capacity and wrong specialty. Its [evidence report](C01-personnel-capacity-v1.0.2/evidence-2026-09-29.md) bounds the publication decision.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
