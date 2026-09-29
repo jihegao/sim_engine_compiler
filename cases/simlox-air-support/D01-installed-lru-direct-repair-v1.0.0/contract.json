@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D01",
+  "case_version": "1.0.0-lru-candidate",
+  "variant": "one-installed-lru-local-spare-and-direct-item-repair",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D01",
+    "version": "1.0.0-system-direct",
+    "behavior_scope": "accepted system-level direct failure and repair control",
+    "input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450",
+    "signoff": "../D01-system-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 218, 219, 239, 240, 241, 247, 248, 338, 339, 340, 349, 350, 351, 402, 403, 444, 445, 446],
+    "source_boundary": "Traditional FRT at both system and installed LRU is 300000 per million OPHOURS, so one item contributes the full system failure rate. A failed LRU is removed in a system SURP repair, replaced from one local stock item, then directly repaired at the same WS via ItemRepair. StockAllocation STSIZ declares nominal stock; native evidence must establish the opening on-hand quantity. ISTOH applies to reorder positions and is unused here."
+  },
+  "native_input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+  "delta": {
+    "tables": ["ProblemDescription", "Item", "ItemStructure", "SystemRepair", "ItemRepair", "StockAllocation"],
+    "mechanism": "Redirect the accepted system failure clock to one installed critical LRU; local spare replacement takes 0.5 h and removed LRU direct repair takes 1.0 h.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "unit": "TEACH-UNIT", "base": "BASE-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "system_and_item_frt_failures_per_million_ophours": 300000,
+    "derived_rate_per_operating_hour": 0.3,
+    "item_type": "LRU",
+    "item_criticality": 1.0,
+    "installed_quantity": 1,
+    "local_spare_nominal_stock": 1,
+    "system_replacement_turnaround_hours": 0.5,
+    "removed_item_direct_repair_hours": 1.0,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "predeclared_native_acceptance": [
+    "The frozen seed/configuration must produce at least one observed installed-LRU failure, with time read from native events rather than prescribed in advance.",
+    "Import/export must preserve all nonblank source business rows, conversion errors must be zero, and all four native CLI steps must succeed.",
+    "For each observed failure, trace LRU identity through mission impact, system SURP task and spare demand, local issue, REMOVE and REPLACE, system recovery, removed-item DIRP task, repair completion and local restock; reconcile stock on hand and outstanding demand at each transition.",
+    "Compare mission and system results to the accepted system-direct D01 control, explaining any differing stochastic event times or recovery interval.",
+    "Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340, seal raw hashes and obtain independent read-only replay."
+  ],
+  "limits": [
+    "This covers one installed LRU, one local spare and a local direct ItemRepair path only; no remote supply, shortage, multiple removals, explicit task breakdown, PM, resource competition or alternate failure mode is accepted.",
+    "Exact stochastic timestamps and event sequence are evidence from the observed native run, not guarantees inferred from the seed.",
+    "ItemRepair.DIRPT and SystemRepair.SURPT are total turnaround times, not measured wrench time."
+  ]
+}
