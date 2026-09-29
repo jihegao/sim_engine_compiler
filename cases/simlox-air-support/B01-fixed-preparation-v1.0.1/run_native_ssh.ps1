@@ -32,6 +32,7 @@ for($depth=0; $depth -lt 8 -and $ancestorPid -gt 0; $depth++){
  $ancestorPid=$ancestor.ParentProcessId
 }
 if($sshAncestors -notcontains 'sshd.exe'){throw 'SSH CLI runner cannot verify an sshd ancestor'}
+Write-Output 'B01 preflight: SSH session-0 ancestry verified'
 if(!(Test-Path -LiteralPath $workingDirectory) -or !(Test-Path -LiteralPath $python)){throw 'known native runtime dependencies absent'}
 if(!(Test-Path -LiteralPath $exe) -or (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $exeSha256){throw 'SIMLOX executable fingerprint changed'}
 if((Get-FileHash -LiteralPath $input -Algorithm SHA256).Hash.ToLowerInvariant() -ne $InputSha256){throw 'checked input fingerprint changed'}
@@ -41,6 +42,7 @@ if((Get-FileHash -LiteralPath $parentInput -Algorithm SHA256).Hash.ToLowerInvari
 if((Get-FileHash -LiteralPath $parentDiff -Algorithm SHA256).Hash.ToLowerInvariant() -ne $contract.parent_diff_sha256){throw 'exact parent diff fingerprint changed'}
 & $python (Join-Path $case 'build.py') --check | Out-Null
 if($LASTEXITCODE -ne 0){throw 'B01 input or parent diff fails builder check'}
+Write-Output 'B01 preflight: source and parent hashes verified'
 $queueMutexName='Global\SimloxIssue18NativeQueue'
 $queueMutex=New-Object System.Threading.Mutex($false,$queueMutexName)
 $queueAcquired=$false
@@ -48,6 +50,7 @@ try {
 try {$queueAcquired=$queueMutex.WaitOne(0)}
 catch [System.Threading.AbandonedMutexException] {$queueAcquired=$true}
 if(-not $queueAcquired){throw 'another Issue #18 SSH native runner holds the host-wide queue mutex'}
+Write-Output 'B01 preflight: native queue mutex acquired'
 $existing=@(Get-Process Simlox -ErrorAction SilentlyContinue)
 $coexistingGui=$null
 if($existing.Count -gt 0){
@@ -62,7 +65,9 @@ if($existing.Count -gt 0){
  if($activeGuiRows.Count -ne 1){throw 'existing SIMLOX GUI is not in one active interactive session'}
  $coexistingGui=[ordered]@{pid=$gui.Id;session_id=$guiSessionId;session_query_line=$activeGuiRows[0].Trim();process_start_utc=$gui.StartTime.ToUniversalTime().ToString('o')}
 }elseif($AllowExistingGui){throw 'AllowExistingGui was requested without an existing GUI'}
+Write-Output 'B01 preflight: GUI PID 13340 and active session verified'
 New-Item -ItemType Directory -Path $run -Force | Out-Null
+Write-Output "B01 preflight: run directory created at $run"
 Copy-Item -LiteralPath $input -Destination (Join-Path $run 'input.json')
 $source=Join-Path $run 'input.json'
 $sxi=Join-Path $run 'model.sxi'
