@@ -51,8 +51,8 @@ def sample_report() -> dict:
                      int(start == 7), int(start == 7.5), int(start == 7),
                      int(8 <= start < 10), int(8 <= start < 10)])
     return {"report": {"tables": [
-        {"name": "ResultSummary", "columns": [{"name": value} for value in ("NREP", "RTILW", "RTIUP")],
-         "instances": [{"rows": [[1, 0, 36]]}]},
+        {"name": "ResultSummary", "columns": [{"name": value} for value in ("NREP", "RTILW", "RTIUP", "MSTF", "MSUF")],
+         "instances": [{"rows": [[1, 0, 36, 1, 1]]}]},
         {"name": "SystemResults", "columns": [{"name": value} for value in names],
          "instances": [{"rows": rows}]},
     ]}}

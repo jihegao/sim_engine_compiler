@@ -93,8 +93,9 @@ def check_events(raw: str) -> list[str]:
 def check_report(report: dict) -> list[str]:
     errors = []
     summary = native.table_rows(report, "ResultSummary")
-    if len(summary) != 1 or summary[0].get("NREP") != 1 or summary[0].get("RTILW") != 0 or summary[0].get("RTIUP") != 36:
-        errors.append("ResultSummary must cover one repetition and 0-36 h")
+    if len(summary) != 1 or any(summary[0].get(field) != value for field, value in
+                                {"NREP": 1, "RTILW": 0, "RTIUP": 36, "MSTF": 1, "MSUF": 1}.items()):
+        errors.append("ResultSummary must cover one successful mission in one 0-36 h repetition")
     system = native.table_rows(report, "SystemResults")
     if len(system) != 72:
         errors.append(f"expected 72 SystemResults intervals, found {len(system)}")
@@ -144,8 +145,10 @@ def check_provenance(run: Path) -> tuple[dict, list[str]]:
         errors.append("invocation case identity/version mismatch")
     if invocation.get("execution_mode") != "ssh_cli_v1" or invocation.get("session_id") != 0 or "sshd.exe" not in invocation.get("ssh_ancestor_names", []):
         errors.append("invocation does not prove session-0 SSH ancestry")
+    if invocation.get("host_name", "").lower() != "4700-3" or invocation.get("simlox_exe_sha256") != "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0":
+        errors.append("host or SIMLOX executable fingerprint mismatch")
     gui = invocation.get("coexisting_gui") or {}
-    if not invocation.get("allow_existing_gui") or gui.get("pid") != 13340 or gui.get("session_id", 0) <= 0:
+    if not invocation.get("allow_existing_gui") or gui.get("pid") != 13340 or gui.get("session_id", 0) <= 0 or gui.get("process_start_utc") != "2026-09-28T10:09:56.8261381Z":
         errors.append("invocation does not bind existing GUI PID 13340")
     if closure.get("input_sha256") != INPUT_HASH or closure.get("case_id") != "B01" or closure.get("run_id") != invocation.get("run_id"):
         errors.append("closure identity or input hash mismatch")

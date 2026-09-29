@@ -12,6 +12,7 @@ $parentInput=Join-Path (Join-Path (Split-Path $case -Parent) 'A01-single-aircraf
 $parentDiff=Join-Path $case 'parent-diff.json'
 $exe='C:\Program Files\Systecon\SIMLOX\Simlox.exe'
 $exeSha256='fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0'
+$expectedGuiStartUtc='2026-09-28T10:09:56.8261381Z'
 $workingDirectory='C:\Users\user\Documents\Codex\2026-09-26\simlox-j35-event-parity\workspace'
 $python='C:\Users\user\Documents\Codex\2026-09-26\simlox-j35-event-parity\workspace\evidence\py312-venv\Scripts\python.exe'
 $base=Join-Path $case 'runs'
@@ -52,7 +53,7 @@ $coexistingGui=$null
 if($existing.Count -gt 0){
  if(-not $AllowExistingGui -or $existing.Count -ne 1){throw 'SIMLOX already active; explicit single-GUI coexistence is required'}
  $gui=$existing[0]
- if($gui.Id -ne 13340){throw 'existing SIMLOX GUI is not preserved PID 13340'}
+ if($gui.Id -ne 13340 -or $gui.StartTime.ToUniversalTime().ToString('o') -ne $expectedGuiStartUtc){throw 'existing SIMLOX GUI is not the preserved PID 13340 process'}
  $guiSessionId=$gui.SessionId
  if($guiSessionId -le 0){throw 'existing SIMLOX process is not an interactive GUI'}
  $sessionRows=@(qwinsta 2>&1)
