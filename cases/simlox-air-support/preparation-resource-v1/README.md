@@ -1,5 +1,13 @@
 # Preparation and shared-resource contracts v1
 
+The [2026-09-29 B01 `fixed-30m` CLI review](review/B01-fixed-30m-cli-review-2026-09-29.md)
+accepts the observed positive-duration execution only in CLI scope under the
+revised Issue #18 standard. B01 remains `not_published`: its original
+contract changes the parent's business IDs and asks for a preparation-create
+event the native log does not expose. The frozen 2026-09-27 run status remains
+historical; B02–C03 keep their separately recorded gates. The B01 parent
+diff has 11 changed tables, so its one-sentence declared delta is incomplete.
+
 This package defines the business and native-acceptance contracts for the first
 preparation/resource chain: B01, B02, B03, C01, C02 and C03. The contracts are
 frozen expectations for deterministic teaching cases. They are not records of
@@ -30,9 +38,9 @@ itself establish that all catalog prerequisites are complete.
 B03 uses the user-approved `explicit-mission-type-v1` business contract.
 `COLD-FIRST` represents the first-wave cold-start sortie and `HOT-SORTIE`
 represents later hot sorties. The mission type selects the preparation recipe.
-This business contract is accepted; its SIMLOX behavior remains pending native
-acceptance. Automatic switching by sortie history or thermal state is outside
-this contract.
+This business contract is accepted. Its frozen CLI run passed an isolated
+contract check; parent and publication review remains separate. Automatic
+switching by sortie history or thermal state is outside this contract.
 
 C03 retains the issue #18 business case: one formation mission requires two
 aircraft, both aircraft start 30-minute preparation at 07:30, planned launch is
@@ -76,11 +84,11 @@ business IDs must survive JSON import, native conversion and JSON roundtrip.
 2. Import in a fresh native work directory and roundtrip every non-empty row.
 3. Run once with deterministic durations and retain invocation, exit status,
    conversion log, SXI, SXO, ENLOG and raw result export.
-   Launch only from a verified active interactive Console or RDP user session;
-   this interactive runner rejects SSH/session-0, binds the session evidence before launch,
-   and leaves any existing SIMLOX window alone.
-   Separately authorized SSH CLI collection needs a distinct, source-bound
-   launch context and remains a CLI gate until GUI evidence is reviewed.
+   The frozen interactive runner requires a verified active Console or RDP
+   session, rejects SSH/session-0, and leaves any existing SIMLOX window alone.
+   Separately authorized SSH CLI collection needs a source-bound launch
+   context; under the 2026-09-29 standard, complete CLI evidence may pass the
+   declared behavior gate after independent review.
 4. Bind full aircraft, mission, task, step and resource identities before
    comparing event times.
 5. Resolve case, variant and candidate revision from the manifest. Failed or
@@ -88,8 +96,9 @@ business IDs must survive JSON import, native conversion and JSON roundtrip.
 6. Check request, wait, acquire, work, release, preparation completion and
    launch in causal order. Aggregate utilization alone is insufficient.
 7. Replay independently from the sealed input. Record the first discrepancy.
-8. Complete the GUI checklist before changing a case from behavior-verified to
-   reusable/published.
+8. Complete the source, parent, behavior, reproduction and limitation review
+   before changing a case to reusable/published. Sample the GUI according to
+   risk; a missing screenshot is not a uniform release blocker.
 
 The native run may disprove an expected behavior. Preserve that result as a
 counterexample and keep the case unverified; do not revise the expected ledger
