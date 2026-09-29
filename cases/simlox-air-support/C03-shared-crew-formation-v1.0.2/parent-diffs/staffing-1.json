@@ -1,0 +1,302 @@
+{
+  "schema": "simlox-c03-exact-parent-diff/v1",
+  "parent_case": "C02@1.0.2/single-both",
+  "case_id": "C03",
+  "version": "1.0.2",
+  "variant_id": "staffing-1",
+  "parent_input_sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+  "child_input_sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789",
+  "changed_tables_only": [
+    "ProblemDescription",
+    "SystemDeployment",
+    "MissionType",
+    "OperationProfile",
+    "Unit",
+    "MissionPreparation",
+    "Resource",
+    "ResourceAllocation",
+    "SubTaskResource"
+  ],
+  "unchanged_table_count": 22,
+  "tables": {
+    "ProblemDescription": {
+      "parent_rows": [
+        {
+          "PDESC": "A01/A02 generic one-aircraft teaching case; no J35/F35 equivalence"
+        }
+      ],
+      "child_rows": [
+        {
+          "PDESC": "C03 two-aircraft shared-crew formation; no J35/F35 equivalence"
+        }
+      ]
+    },
+    "SystemDeployment": {
+      "parent_rows": [
+        {
+          "SID": "TEACH-AIR-01",
+          "USTID": "TEACH-UNIT",
+          "QTYPS": 1,
+          "UTIL": 1,
+          "PRIOF": null,
+          "PLID": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "SID": "TEACH-AIR-01",
+          "USTID": "TEACH-UNIT",
+          "QTYPS": 2,
+          "UTIL": 1,
+          "PRIOF": null,
+          "PLID": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "MissionType": {
+      "parent_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "DESCR": "Two-hour generic mission",
+          "NOS": 1,
+          "MNOS": 1,
+          "MNOSA": null,
+          "DURN": 2.0,
+          "DURND": null,
+          "MSUCPT": 1,
+          "TFOUT": 0.25,
+          "TFRET": 0.25,
+          "MPAT": null,
+          "PRI": 1,
+          "NOPER": 1.0,
+          "MFF": null,
+          "SYACF": null,
+          "SYACP": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "DESCR": "One-hour two-aircraft shared-crew formation",
+          "NOS": 2,
+          "MNOS": 2,
+          "MNOSA": null,
+          "DURN": 1.0,
+          "DURND": null,
+          "MSUCPT": 1,
+          "TFOUT": 0.25,
+          "TFRET": 0.25,
+          "MPAT": null,
+          "PRI": 1,
+          "NOPER": 0.5,
+          "MFF": null,
+          "SYACF": null,
+          "SYACP": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "OperationProfile": {
+      "parent_rows": [
+        {
+          "PRID": "BASIC-SCHEDULE",
+          "SPRID": "BASIC-MISSION",
+          "STIM": 8.0,
+          "ITYPE": "SCHEDULED",
+          "IQTY": 1,
+          "IQTYD": null,
+          "IPER": 0,
+          "IDISP": null,
+          "DTIM": 0.3333333333333333,
+          "XCOORD": null,
+          "YCOORD": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "PRID": "BASIC-SCHEDULE",
+          "SPRID": "BASIC-MISSION",
+          "STIM": 8.0,
+          "ITYPE": "SCHEDULED",
+          "IQTY": 1,
+          "IQTYD": null,
+          "IPER": 0,
+          "IDISP": null,
+          "DTIM": 1.0,
+          "XCOORD": null,
+          "YCOORD": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "Unit": {
+      "parent_rows": [
+        {
+          "UNID": "TEACH-UNIT",
+          "DESCR": "One-aircraft teaching unit",
+          "STID": "BASE-01",
+          "MAXPM": null,
+          "MAXPMP": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "UNID": "TEACH-UNIT",
+          "DESCR": "Two-aircraft shared-crew teaching unit",
+          "STID": "BASE-01",
+          "MAXPM": null,
+          "MAXPMP": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "MissionPreparation": {
+      "parent_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DURN": 0.75,
+          "TID": "PREP-FIXED",
+          "DURND": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DURN": 0.5,
+          "TID": "PREP-FIXED",
+          "DURND": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "Resource": {
+      "parent_rows": [
+        {
+          "RID": "P-CREW",
+          "DESCR": "Crew A personnel",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        },
+        {
+          "RID": "P-OTHER",
+          "DESCR": "Other specialty personnel",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        },
+        {
+          "RID": "E-GSE",
+          "DESCR": "Ground support equipment",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "RID": "P-CREW",
+          "DESCR": "Crew A personnel",
+          "PRICE": null,
+          "SUSTC": null,
+          "TLLEN": null,
+          "TYPE": "SPECIAL",
+          "MUTILF": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "ResourceAllocation": {
+      "parent_rows": [
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-CREW",
+          "STID": "BASE-01",
+          "RQTY": 1,
+          "NOTE": null
+        },
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-OTHER",
+          "STID": "BASE-01",
+          "RQTY": 0,
+          "NOTE": null
+        },
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "E-GSE",
+          "STID": "BASE-01",
+          "RQTY": 1,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "POINT": "AIR_BASIC",
+          "RID": "P-CREW",
+          "STID": "BASE-01",
+          "RQTY": 1,
+          "NOTE": null
+        }
+      ]
+    },
+    "SubTaskResource": {
+      "parent_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "RID": "P-CREW",
+          "QTY": 1,
+          "RPROB": 1,
+          "ARID": null,
+          "ARTF": null,
+          "ENRMS": null,
+          "NOTE": null
+        },
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "RID": "E-GSE",
+          "QTY": 1,
+          "RPROB": 1,
+          "ARID": null,
+          "ARTF": null,
+          "ENRMS": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "RID": "P-CREW",
+          "QTY": 1,
+          "RPROB": 1,
+          "ARID": null,
+          "ARTF": null,
+          "ENRMS": null,
+          "NOTE": null
+        }
+      ]
+    }
+  }
+}
