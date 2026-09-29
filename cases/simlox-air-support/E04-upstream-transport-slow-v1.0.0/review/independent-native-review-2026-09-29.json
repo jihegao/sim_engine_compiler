@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-e04-slow-independent-native-review/v1",
+  "review_mode": "independent read-only replay of frozen source and sealed native raw evidence against accepted FAST parent",
+  "reviewer": "separate review agent; no file edits and no SIMLOX invocation",
+  "run_id": "e04-slow-v100-ssh-20260929-01",
+  "passed": true,
+  "differences": [],
+  "raw_report_sha256": "3a24ba6190cc0bd156b6ae10a7bd8d51080094d59cbe7cb68b9cea83b9c48b26",
+  "fast_parent_raw_report_sha256": "3284c19ccce1237ca651cd50c6c0fb3320e9ed914a77f61c75cb4830e624c376",
+  "checks": {
+    "frozen_sources_closure_and_gui_guard": "passed",
+    "four_steps_roundtrip_and_zero_conversion_errors": "passed",
+    "local_demand_without_immediate_depot_issue": "passed",
+    "faulty_item_upward_arrival_before_depot_demand_and_issue": "passed",
+    "two_hour_downward_spare_backorder_clearance_and_fit": "passed",
+    "depot_repair_restock_later_missions_and_terminal_state": "passed",
+    "72_intervals_and_FAST_control_comparison": "passed"
+  },
+  "observed": {
+    "critical_lru_failure_hour": 9.8829,
+    "base_demand_and_backorder_hour": 10,
+    "removed_faulty_instance_id": 1,
+    "upward_transport_hours": [10.1667, 12.1667],
+    "depot_demand_and_issue_hour": 12.1667,
+    "issued_spare_instance_id": 0,
+    "downward_transport_hours": [12.1667, 14.1667],
+    "base_backorder_clearance_hour": 14.1667,
+    "base_backorder_wait_hours": 4.16667,
+    "physical_fit_hours": [14.1667, 14.5],
+    "system_ready_hour": 14.5,
+    "depot_item_repair_hours": [12.1667, 13.1667],
+    "depot_restock_instance_id": 1,
+    "terminal_base_stock": 0,
+    "terminal_depot_stock": 1,
+    "terminal_backorders": 0,
+    "terminal_ready_aircraft": 1,
+    "FAST_to_SLOW_issue_delay_hours": 2.1667,
+    "mission_success_fraction": 0.6666666865
+  },
+  "limits": [
+    "One backorder tests propagation timing, not FIFO ordering.",
+    "Station-specific stock identities and absence of terminal in-transit items come from the raw event log; StockTotalResults is aggregate.",
+    "The native event log rounds fractional-hour timestamps; GUI visual content was not sampled.",
+    "Other stock/transport variants remain unverified."
+  ]
+}
