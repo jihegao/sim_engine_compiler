@@ -1,5 +1,10 @@
 # B01 1.0.1: fixed preparation on the A01 normal path
 
+The [2026-09-29 source-bound review](evidence-2026-09-29.md) accepts and
+publishes this fixed-profile version within its stated limits. The original
+CLI run manifest retains its at-execution candidate status; the later dated
+review records the release decision. B01 1.0.0 remains unpublished.
+
 This version derives from the SHA-256-pinned A01 native input. It keeps A01's
 `TEACH-AIR-01`, `TEACH-UNIT`, `BASIC-MISSION`, `BASIC-SCHEDULE`, one-hour notice,
 two-hour mission, 36-hour horizon, half-hour result interval and seed. The
@@ -31,9 +36,7 @@ powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$repo\c
 ```
 
 The runner records import, native JSON roundtrip, calculation, report export,
-raw closure hashes and behavior validation. A passing validator output is a
-candidate result until independent read-only review checks the raw source,
-events, report, provenance, parent behavior and declared limits. GUI sampling
-is optional under the 2026-09-29 Issue #18 standard; CLI output cannot prove
-GUI-only functions. Publication and B02 reuse require a separate B01 release
-decision.
+raw closure hashes and behavior validation. Independent read-only review checks
+the raw source, events, report, provenance, parent behavior and declared limits.
+GUI sampling is optional under the 2026-09-29 Issue #18 standard; CLI output
+cannot prove GUI-only functions. B02 requires a separate model and acceptance.
