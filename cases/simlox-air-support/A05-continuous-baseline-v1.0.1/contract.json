@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A05",
+  "case_version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A03",
+    "input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "signoff": "../A03-two-aircraft-formation-v1.0.1/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 180, 181, 182, 183, 265, 266],
+    "source_boundary": "MPAT=CONTINUOUS denotes a fixed-calendar-length mission that starts on time even below its minimum, suspended until enough systems are attached. The v1.0.0 continuous probe was rejected by native converter #335 because it inherited A03's TFOUT/TFRET fractions; this corrected version clears those fields only on continuous inputs. A separate fixed four-hour control tests the shared normal path; the one-aircraft child tests initial shortage only. Mid-mission loss, replacement and resumption need further native evidence."
+  },
+  "inputs": {
+    "fixed_control": "577f95bc8716b7191a783f3ec06ed24c50d61362df1dbf434e9fba846be58b0d",
+    "continuous_control": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+    "continuous_initial_shortage": "95d2c855f0e7a99f9892053a89fdff99501dfab78b50bac0265b9d4512a67cca"
+  },
+  "excluded_probe": {
+    "package": "../A05-continuous-baseline-v1.0.0",
+    "run_id": "a05-continuous-four-hour-v100-ssh-20260930-01",
+    "input_sha256": "260c9508c5c39ce0d31441510b73084c563e4000f3870c105eb769e83d88fef8",
+    "native_converter_error": 335,
+    "publication_state": "not_published"
+  },
+  "delta": {
+    "fixed_from_A03": "Change mission duration 2 to 4 hours, simulation/report end 36 to 16 hours, description and inherited unit label; keep two deployed aircraft and NOS=MNOS=2.",
+    "continuous_from_fixed": "Change MissionType.MPAT default FIXED to CONTINUOUS, clear TFOUT/TFRET as required by native converter #335, and change description.",
+    "shortage_from_continuous": "Change only SystemDeployment.QTYPS 2 to 1 and descriptive labels; keep MissionType.NOS=MNOS=2, MPAT=CONTINUOUS and hour-8 launch."
+  },
+  "configuration": {
+    "mission_start_hour": 8,
+    "mission_calendar_duration_hours": 4,
+    "mission_desired_aircraft": 2,
+    "mission_minimum_aircraft": 2,
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "seed": "1",
+    "failures_enabled": false,
+    "preparation_resource_demand": false
+  },
+  "predeclared_native_acceptance": [
+    "Each input has its own immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source/raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip.",
+    "The fixed and continuous two-aircraft controls convert with zero errors, start their single mission at hour 8 and conclude at hour 12; their per-aircraft events and 16-hour report are compared without claiming generic equivalence.",
+    "The one-aircraft continuous child is evaluated for on-time start, explicit suspended state and the native hour-12 stop; native report and log decide whether any aircraft is allocated or operating, whether a success is recorded and whether terminal readiness is one. No unsupported success/failure status is presumed.",
+    "For all three runs, reconcile 32 aligned half-hour system and stock bins, mission state/exposure, no random failure or maintenance, inventory demand, and terminal state; classify any conversion warning.",
+    "An independent reviewer replays exact input and parent deltas, sealed raw artifacts, three event/report ledgers and limits without importing the author validator."
+  ],
+  "limits": [
+    "This three-run group cannot establish mid-mission loss, replacement, resumption or paused-system exposure; those are required follow-on A05 slices before full A05 method completion.",
+    "One fixed seed, one formation, no failures, repairs, PM, external resources, GUI visual observation or cross-engine equivalence."
+  ]
+}
