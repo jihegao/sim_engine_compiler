@@ -1,5 +1,10 @@
 # A01 — one aircraft, one mission
 
+The [2026-09-29 bounded CLI sign-off](cli-scope-signoff-2026-09-29.md) publishes
+the normal 0–36 h path as a reusable behavior parent under the revised Issue
+#18 standard. The frozen `acceptance.json` retains its earlier review status;
+deadline and simulation-end boundary behavior remain outside this sign-off.
+
 Version `1.0.0`; no parent. This is a generic teaching aircraft at one base. [Contract](contract.json) was written before [native input](native-input.json). One scheduled wave at 8 h, ordered at 7 h by the explicit 1 h notice lead, occupies one aircraft for 2 h, then completes at 10 h. Horizon 36 h. Expected mission-operation interval integral is 2 h = 120 min; this does not separately measure airborne phases. Planned waves, launches, sorties and completions are each 1; cancellation and unfinished count are 0. All rates and capacity constraints unrelated to this slice are absent or explicitly inert. The native output must confirm these expectations; printed hours are not treated as infinite precision.
 
 Files: [parameters](parameters.json), [SIMLOX field and GUI mapping](mapping.csv), [manifest](manifest.json), [result summary](results-summary.json), [acceptance](acceptance.json), [evidence index](evidence-index.json). Null native columns are left null and their behavior is recorded by exact import/export roundtrip; no undocumented default is asserted. `MissionType.TFOUT/TFRET=0.25` are explicit phase fractions; native `SystemResults.FTMO` must integrate to 2 h. The final input omits `MissionPreparation` entirely. An initial zero-duration row caused native `NPSTA=1`; removing it made `NPSTA=0` while the log still emitted same-time preparation lifecycle markers. Both raw runs are retained.
