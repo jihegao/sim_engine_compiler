@@ -61,15 +61,16 @@ if($existing.Count -gt 0){
  if(-not $AllowExistingGui -or $existing.Count -ne 1){throw 'SIMLOX already active; explicit single-GUI coexistence is required'}
  $gui=$existing[0]
  if($gui.Id -ne 13340 -or $gui.StartTime.ToUniversalTime().ToString('o') -ne $expectedGuiStartUtc){throw 'existing SIMLOX GUI is not the preserved PID 13340 process'}
+ if(-not $gui.Responding){throw 'preserved SIMLOX GUI is not responding'}
  $guiSessionId=$gui.SessionId
  if($guiSessionId -le 0){throw 'existing SIMLOX process is not an interactive GUI'}
  $sessionRows=@(qwinsta 2>&1)
  if($LASTEXITCODE -ne 0){throw 'cannot verify the GUI session'}
- $activeGuiRows=@($sessionRows | Where-Object {$_ -match ('^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+'+$guiSessionId+'\s+(?:Active|\u8fd0\u884c\u4e2d)(?:\s|$)')})
- if($activeGuiRows.Count -ne 1){throw 'existing SIMLOX GUI is not in one active interactive session'}
- $coexistingGui=[ordered]@{pid=$gui.Id;session_id=$guiSessionId;session_query_line=$activeGuiRows[0].Trim();process_start_utc=$gui.StartTime.ToUniversalTime().ToString('o')}
+ $guiRows=@($sessionRows | Where-Object {$_ -match ('^\s*>?\s*(?:\S+\s+)?'+[regex]::Escape($env:USERNAME)+'\s+'+$guiSessionId+'\s+(?:Active|Disc|\u8fd0\u884c\u4e2d|\u65ad\u5f00)(?:\s|$)')})
+ if($guiRows.Count -ne 1){throw 'cannot bind preserved GUI to one logged-on interactive session'}
+ $coexistingGui=[ordered]@{pid=$gui.Id;session_id=$guiSessionId;session_query_line=$guiRows[0].Trim();process_start_utc=$gui.StartTime.ToUniversalTime().ToString('o');responding_at_preflight=[bool]$gui.Responding}
 }elseif($AllowExistingGui){throw 'AllowExistingGui was requested without an existing GUI'}
-Write-Output 'B01 preflight: GUI PID 13340 and active session verified'
+Write-Output 'B01 preflight: GUI PID 13340 and logged-on session verified'
 New-Item -ItemType Directory -Path $run -Force | Out-Null
 Write-Output "B01 preflight: run directory created at $run"
 Copy-Item -LiteralPath $input -Destination (Join-Path $run 'input.json')

@@ -1,9 +1,9 @@
 # B01 1.0.1: fixed preparation on the A01 normal path
 
-The [2026-09-29 source-bound review](evidence-2026-09-29.md) records a first
-native run and a later PR review correction. The release decision is suspended
-until a fresh run and independent replay use the corrected invocation closure
-and global preparation-event checks. B01 1.0.0 remains unpublished.
+The [2026-09-29 source-bound review](evidence-2026-09-29.md) accepts and
+publishes this bounded B01 1.0.1 model after a fresh native run and independent
+replay with corrected invocation closure and global preparation-event checks.
+B01 1.0.0 remains unpublished.
 
 This version derives from the SHA-256-pinned A01 native input. It keeps A01's
 `TEACH-AIR-01`, `TEACH-UNIT`, `BASIC-MISSION`, `BASIC-SCHEDULE`, one-hour notice,
@@ -22,7 +22,8 @@ preparation-object creation count is not observable and is excluded.
 Use `python build.py --check` to verify the checked [native input](native-input.json)
 and [exact parent diff](parent-diff.json). The `run_native_ssh.ps1` script
 requires an authenticated session-0 SSH process with `sshd.exe` ancestry,
-the existing active SIMLOX GUI PID 13340, `-AllowExistingGui`, a new run ID and
+the existing responsive SIMLOX GUI PID 13340 in its logged-on session,
+`-AllowExistingGui`, a new run ID and
 the contract's input SHA-256. It obtains the host-wide native queue mutex,
 launches each CLI step hidden, and checks that the GUI survives each step. It
 never stops, closes, restarts or interacts with that GUI. Failed runs retain

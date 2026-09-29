@@ -151,7 +151,7 @@ def check_provenance(run: Path) -> tuple[dict, list[str]]:
     if invocation.get("host_name", "").lower() != "4700-3" or invocation.get("simlox_exe_sha256") != "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0":
         errors.append("host or SIMLOX executable fingerprint mismatch")
     gui = invocation.get("coexisting_gui") or {}
-    if not invocation.get("allow_existing_gui") or gui.get("pid") != 13340 or gui.get("session_id", 0) <= 0 or gui.get("process_start_utc") != "2026-09-28T10:09:56.8261381Z":
+    if not invocation.get("allow_existing_gui") or gui.get("pid") != 13340 or gui.get("session_id") != 1 or gui.get("process_start_utc") != "2026-09-28T10:09:56.8261381Z" or gui.get("responding_at_preflight") is not True or not gui.get("session_query_line"):
         errors.append("invocation does not bind existing GUI PID 13340")
     if closure.get("input_sha256") != INPUT_HASH or closure.get("case_id") != "B01" or closure.get("run_id") != invocation.get("run_id"):
         errors.append("closure identity or input hash mismatch")

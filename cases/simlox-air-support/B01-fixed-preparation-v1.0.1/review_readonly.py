@@ -97,7 +97,7 @@ def check_evidence(run: Path) -> tuple[list[str], dict]:
     if invocation.get("session_id") != 0 or "sshd.exe" not in invocation.get("ssh_ancestor_names", []):
         errors.append("session-0 SSH provenance missing")
     gui = invocation.get("coexisting_gui") or {}
-    if gui.get("pid") != 13340 or gui.get("session_id") != 1 or gui.get("process_start_utc") != "2026-09-28T10:09:56.8261381Z":
+    if gui.get("pid") != 13340 or gui.get("session_id") != 1 or gui.get("process_start_utc") != "2026-09-28T10:09:56.8261381Z" or gui.get("responding_at_preflight") is not True or not gui.get("session_query_line"):
         errors.append("preserved GUI process identity mismatch")
     steps = read_native_json(run / "steps.json")
     if [step.get("name") for step in steps] != ["import", "export", "calc", "jsonreport"] or any(
