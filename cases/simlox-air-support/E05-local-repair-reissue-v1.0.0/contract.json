@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E05",
+  "case_version": "1.0.0-candidate",
+  "variant": "local-lru-repair-restock-and-second-issue",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E01",
+    "version": "1.0.0",
+    "behavior_scope": "accepted one local spare, explicit 10-minute REMOVE and 20-minute REPLACE, and inherited direct item repair",
+    "input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+    "signoff": "../E01-local-spare-explicit-replacement-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [210, 211, 212, 218, 219, 220, 240, 338, 339, 340, 402, 403],
+    "source_boundary": "The traditional Item FRT supplies the complete System FRT for one installed LRU. A system SURP demand consumes a local spare; the removed LRU reaches ItemRepair at the end of REMOVE, then a repaired item serves future demands or returns to local stock."
+  },
+  "native_input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca",
+  "delta": {
+    "tables": ["ProblemDescription", "System", "Item"],
+    "mechanism": "Increase paired system and item OPHOURS FRT from 300000 to 450000 per million to elicit a second local LRU demand after the first removed item has completed its inherited one-hour direct repair and restocked.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "system_and_item_frt_failures_per_million_ophours": 450000,
+    "derived_rate_per_operating_hour": 0.45,
+    "nominal_local_stock": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "item_direct_repair_hours": 1,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "predeclared_native_acceptance": [
+    "The frozen seed/configuration must produce at least two observed installed-LRU failures and two system replacement demands; exact stochastic times are read from native events.",
+    "The first removed item must complete local ItemRepair and return to stock before the second demand. The second demand must issue that same repaired item identity, with stock on-hand conservation and no backorder at the two issue times.",
+    "For every observed failure, trace mission impact, demand and issued spare identity, explicit REMOVE then REPLACE, system recovery, removed-item direct repair and restock. Do not silently ignore an additional failure.",
+    "Import/export must preserve all 20 row-containing source tables, including three all-null placeholders; conversion errors must be zero, four native CLI steps must succeed and 72 half-hour system/stock result intervals must reconcile with raw events.",
+    "Compare against accepted E01 one-demand control, identifying added fault, repair, mission and stock effects. Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340, seal raw hashes and obtain independent read-only replay."
+  ],
+  "limits": [
+    "This is one local repair and reissue loop with sufficient time before the second demand; no shortage, late repair/backorder, remote transport, reorder, resource contention or PM behavior is accepted.",
+    "The 450000 FRT is a failure-rate input, not a prescribed failure time or exact failure count across executable versions."
+  ]
+}
