@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D02",
+  "variant_id": "D02.var04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D06",
+    "version": "1.0.0",
+    "input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+    "signoff": "../D06-explicit-position-direct-repair-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "dictionary_rows": ["CMLocation.CMT", "FailureMode.OPID", "OperationProfile.STIM"],
+    "source_boundary": "CMLocation.CMT is nonnegative calendar turnaround in hours. The accepted D06 parent maps FM-POS-A to direct system CM with CMT=0.5 and OPHOURS failure exposure. This child extends CMT without changing the failure mode, mission schedule, seed or 36-hour horizon."
+  },
+  "native_input_sha256": "19aaca9e7b9ae6eab68685e622a254c7c20f44ef671425f047ee7c05dfdad91c",
+  "delta": {
+    "tables": ["ProblemDescription", "CMLocation"],
+    "mechanism": "Change FM-POS-A direct system CM CMT 0.5 to 15.5 hours, crossing the scheduled hour-20 mission after an anticipated first-mission failure; description label also changes."
+  },
+  "configuration": {
+    "failure_mode": "FM-POS-A",
+    "clock": "OPHOURS",
+    "frequency_per_million_ophours": 300000,
+    "cm_turnaround_hours": 15.5,
+    "scheduled_launch_hours": [8, 20, 32],
+    "horizon_hours": 36,
+    "repetitions": 1,
+    "seed": "1"
+  },
+  "predeclared_native_acceptance": [
+    "The guarded session-0 SSH runner uses the host-wide native mutex and GUI PID 13340 identity guard and seals all source and raw bytes; import, export, calculation, report and row-containing source roundtrip complete with zero conversion errors.",
+    "The fixed seed produces an FM-POS-A critical failure during the first mission. Native events show direct system CM starting after return and still active at the scheduled hour-20 mission boundary, then show its eventual completion or explicit horizon limitation.",
+    "The hour-20 mission's actual creation, allocation, delay, cancellation and/or success is determined from native events and reconciled with aligned report bins, without assuming a queue rule from the input alone.",
+    "The exact parent delta changes only CMLocation.CMT and description. Differences in later failure draws and mission outcomes are measured, not assumed equal to the half-hour D06 parent.",
+    "An independent reviewer replays parent diff, source and raw seals, guarded invocation, event timeline, report metrics and limits before publication."
+  ],
+  "limits": [
+    "One explicit FMID, one fixed seed and one long direct system CM; no alternative position, replacement, personnel capacity, GUI visual content or cross-engine equivalence.",
+    "CMT is calendar turnaround, not a measured labor occupancy. This case may overlap the scheduled mission without proving a general repair priority or rescheduling algorithm."
+  ]
+}
