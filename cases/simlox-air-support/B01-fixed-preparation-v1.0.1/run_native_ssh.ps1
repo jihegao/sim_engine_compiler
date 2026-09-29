@@ -4,7 +4,9 @@ param(
  [switch]$AllowExistingGui
 )
 $ErrorActionPreference='Stop'
+Write-Output 'B01 preflight: entry'
 $case=(Resolve-Path $PSScriptRoot).Path
+Write-Output 'B01 preflight: case path resolved'
 $input=Join-Path $case 'native-input.json'
 $contractPath=Join-Path $case 'contract.json'
 $caseVersion='1.0.1'
@@ -19,10 +21,12 @@ $base=Join-Path $case 'runs'
 $run=Join-Path $base $RunId
 if(Test-Path -LiteralPath $run){throw "immutable run directory exists: $run"}
 if(-not $AllowExistingGui){throw 'B01 run requires explicit coexistence with GUI PID 13340'}
+Write-Output 'B01 preflight: fresh run ID and GUI coexistence requested'
 $sshSessionPresent=[bool]$env:SSH_CONNECTION
 if(-not $sshSessionPresent){throw 'SSH CLI runner requires an authenticated SSH session'}
 $executionSessionId=(Get-Process -Id $PID).SessionId
 if($executionSessionId -ne 0 -or $env:SESSIONNAME){throw 'SSH CLI runner requires a session-0 SSH process'}
+Write-Output 'B01 preflight: session 0 verified'
 $sshAncestors=@()
 $ancestorPid=(Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
 for($depth=0; $depth -lt 8 -and $ancestorPid -gt 0; $depth++){
