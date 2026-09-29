@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A05",
+  "variant_id": "A05.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "package": "../A05-continuous-baseline-v1.0.1",
+    "input_sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea"
+  },
+  "repair_source": {
+    "case_id": "D01",
+    "package": "../D01-system-direct-repair-v1.0.0",
+    "input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450"
+  },
+  "native_input_sha256": "02e823bd09fd3e6a3c2f0ae59846adcb2d35bcbc6d0ee9b09d0d936ebf36b10c",
+  "exact_delta": [
+    "ProblemDescription.PDESC changes descriptive label only.",
+    "System.FRT changes 0 to 300000 per million OPHOURS, matching accepted D01 system failure source.",
+    "SystemRepair receives D01's one BASE-01 direct repair row: DIRPT=0.5, SURPT=0, DIRPF=SURPF=1."
+  ],
+  "configuration": {
+    "mission_start_hour": 8,
+    "mission_calendar_duration_hours": 4,
+    "mission_desired_aircraft": 2,
+    "mission_minimum_aircraft": 2,
+    "deployed_aircraft": 2,
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "seed": "1"
+  },
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source and raw SHA-256 seals, four CLI steps, and exact row-containing source roundtrip.",
+    "Convert with zero errors, classify warnings, and reconcile the actual fixed-seed failure event without presuming its time from another case or another quantity of aircraft.",
+    "Determine from native event and report rows whether a failure occurs during hour 8-12, whether the continuous mission suspends, whether a system returns for repair, and whether an aircraft joins or rejoins before the fixed hour-12 mission end.",
+    "If no sustained suspension/resumption or replacement interval is observed, preserve this as a bounded probe without publishing A05.var02 completion.",
+    "Compare with the accepted failure-free A05 continuous control. Retain exact event, system, mission and stock ledgers; do not infer hidden random-stream identity or generic behavior."
+  ],
+  "limits": [
+    "The failure mechanism is stochastic with one fixed seed; the actual event time and affected aircraft must come from the sealed native run, not from a predeclared deterministic failure time.",
+    "No third ready spare is deployed, so this probe may test repair/rejoin rather than a distinct replacement aircraft.",
+    "No GUI visual observation or cross-engine equivalence is claimed."
+  ]
+}
