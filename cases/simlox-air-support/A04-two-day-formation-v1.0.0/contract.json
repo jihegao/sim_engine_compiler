@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A03",
+    "input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "signoff": "../A03-two-aircraft-formation-v1.0.1/cli-scope-signoff-2026-09-29.md"
+  },
+  "instructional_prerequisite": {
+    "case_id": "A09",
+    "input_sha256": "e795c5fcf563f8e42ab9e9cb161a925bec3b06157cbbecde7901e99bfec91d85",
+    "signoff": "../A09-hierarchical-operation-profile-v1.0.1/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 184, 187, 188, 270, 271, 272, 273, 274, 275, 276],
+    "source_boundary": "Scheduled subprofiles may repeat fixed mission rows; MissionType.MNOS and NOS specify minimum and desired system counts. The accepted A09 profile observes starts 8/20/32/44 in one 48-hour run, and accepted A03 observes two aircraft in one formation. Their combined behavior remains to be tested here."
+  },
+  "native_input_sha256": "9e2eac17e0408903e099e6ce054ebf4b91db1ca79036afe29638ee8a41d40711",
+  "delta": {
+    "tables": ["ProblemDescription", "Control", "OperationProfile", "Unit", "ResultCollection"],
+    "mechanism": "Use the accepted A09 nested two-day/two-wave OperationProfile on the accepted A03 two-aircraft mission and deployment. Extend the 36-hour A03 horizon and report windows to 48 hours. Correct the inherited unit description and label the case."
+  },
+  "configuration": {
+    "aircraft_deployed": 2,
+    "mission_desired_aircraft": 2,
+    "mission_minimum_aircraft": 2,
+    "mission_duration_hours": 2,
+    "mission_start_hours": [8, 20, 32, 44],
+    "mission_end_hours": [10, 22, 34, 46],
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 48,
+    "result_interval_hours": 0.5,
+    "failures_enabled": false,
+    "preparation_resource_demand": false
+  },
+  "predeclared_native_acceptance": [
+    "Guarded session-0 SSH, host-wide mutex and GUI PID 13340 identity check enclose all four native CLI steps and exact row-containing source roundtrip; source and raw bytes are sealed.",
+    "Import/conversion has zero errors; report is nonempty and all returned result tables parse. Warnings are classified by native code, not assumed away.",
+    "Four two-aircraft formation missions are created at the expected two-day launch hours 8, 20, 32 and 44, complete at 10, 22, 34 and 46, without delay, cancellation, abort or repeated cross-window mission.",
+    "Both aircraft are allocated to every mission and return ready after each wave. The per-aircraft event sequence and stock/resource ledgers show no unplanned work or demand.",
+    "The 48-hour half-hour report grid aligns to 96 bins; mission counts, operation exposure, success and terminal readiness reconcile with the event trace. Parent A03 and profile A09 outcomes are comparison controls, not proofs that their behaviors always compose.",
+    "An independent reviewer replays input/source hashes, exact delta, guarded raw closure, event sequence, report and limitations without importing the author validator."
+  ],
+  "limits": [
+    "One fixed seed, one explicit two-aircraft formation, two days and four fixed waves; shortage, delay, cross-day return, horizon waiting and alternate repetition layouts remain separate A04 variants.",
+    "No failures, maintenance or resource contention; GUI visual content and cross-engine equivalence are unverified."
+  ]
+}

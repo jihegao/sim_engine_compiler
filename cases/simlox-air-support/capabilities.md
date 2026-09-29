@@ -1,12 +1,13 @@
 # Capability index
 
-The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](catalog-v2.json) are frozen planning snapshots: 108 cases, 579 named variants and 133 mapped input tables do not mean those scopes are published. The [publication index](publication-index-v1.json) lists **38 accepted bounded CLI packages covering 24 distinct case IDs** as of 2026-09-30. Each linked sign-off or evidence report defines the verified behavior and limits. Full manual-method coverage, GUI-specific behavior and cross-engine equivalence require their own evidence. The [manual coverage](manual-coverage-v2.json) and [findings](known-issues/manual-review-v2.md) retain the broader unverified methods and source conflicts.
+The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](catalog-v2.json) are frozen planning snapshots: 108 cases, 579 named variants and 133 mapped input tables do not mean those scopes are published. The [publication index](publication-index-v1.json) lists **39 accepted bounded CLI packages covering 25 distinct case IDs** as of 2026-09-30. Each linked sign-off or evidence report defines the verified behavior and limits. Full manual-method coverage, GUI-specific behavior and cross-engine equivalence require their own evidence. The [manual coverage](manual-coverage-v2.json) and [findings](known-issues/manual-review-v2.md) retain the broader unverified methods and source conflicts.
 
 | Need | Smallest accepted scope | Evidence and important limit |
 | --- | --- | --- |
 | One generic aircraft and one scheduled mission | [A01](A01-single-aircraft-single-mission/cli-scope-signoff-2026-09-29.md) | One bounded normal CLI mission and ready return. |
 | Reuse one aircraft across three missions | [A02](A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md) | Three nonoverlapping waves and ready returns. |
 | Two-aircraft formation | [A03](A03-two-aircraft-formation-v1.0.1/cli-scope-signoff-2026-09-29.md) | One fixed two-aircraft mission. |
+| Repeat a two-aircraft formation over two days | [A04](A04-two-day-formation-v1.0.0/cli-scope-signoff-2026-09-30.md) | Four fixed two-aircraft waves at 8/20/32/44 succeed; eight aircraft sorties and 16 aircraft mission-hours. Shortage, delay and cross-day return unverified. |
 | Nested mission profile | [A09](A09-hierarchical-operation-profile-v1.0.1/cli-scope-signoff-2026-09-29.md) | One fixed four-wave recipe; general expansion rules remain unverified. |
 | Two explicit units supplying a formation | [A17](A17-multi-unit-group-v1.0.0/cli-scope-signoff-2026-09-29.md) | One aircraft from each unit; selection priority and transfer remain unverified. |
 | Fixed and serial mission preparation | [B01](B01-fixed-preparation-v1.0.1/evidence-2026-09-29.md), [B02](B02-serial-preparation-v1.0.2/evidence-2026-09-29.md) | Fixed preparation and explicit ordered 10/20-minute work. |
