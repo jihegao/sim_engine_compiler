@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A05",
+  "variant_id": "A05.var02",
+  "case_version": "distinct-spare-1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "package": "../A05-var02-system-loss-probe-v1.0.0",
+    "input_sha256": "02e823bd09fd3e6a3c2f0ae59846adcb2d35bcbc6d0ee9b09d0d936ebf36b10c"
+  },
+  "native_input_sha256": "aab1e4050a107e8490716a9306d9eb461b5c4a0c88430c157a2699afc5a120bb",
+  "exact_delta": [
+    "SystemDeployment.QTYPS changes 2 to 3, leaving desired/minimum mission quantity at 2.",
+    "ProblemDescription and Unit.DESCR change descriptive labels to three-aircraft terms.",
+    "All failure, repair, seed, mission, schedule and report settings remain the accepted parent values."
+  ],
+  "configuration": {
+    "mission_start_hour": 8,
+    "mission_calendar_duration_hours": 4,
+    "mission_desired_aircraft": 2,
+    "mission_minimum_aircraft": 2,
+    "deployed_aircraft": 3,
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "seed": "1"
+  },
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source and raw SHA-256 seals, four CLI steps, and exact row-containing source roundtrip.",
+    "Convert with zero errors and classify warnings. Record actual fixed-seed failure times without assuming the parent's random stream or failed aircraft identity remains unchanged after adding an aircraft.",
+    "If an allocated aircraft fails during hour 8-12, determine from native event lines whether it exits and a distinct initially unallocated aircraft is assigned and attached; reconcile mission suspension/resumption, continued operation and fixed hour-12 end.",
+    "Verify result intervals, per-aircraft event identities, failure/repair work, inventory and terminal readiness. A zero-duration switch must be reported as such rather than invented as a finite suspension.",
+    "Preserve this as an unpublished or narrower probe if no distinct replacement is observed; do not infer general A05.var02 policy from one seed."
+  ],
+  "limits": [
+    "The failure process is stochastic. One fixed seed and three aircraft do not create a predeclared deterministic unavailable interval.",
+    "A third deployed aircraft is a system-level ready spare, not a stocked item; no materiel replacement semantics are implied.",
+    "No GUI visual observation or cross-engine equivalence is claimed."
+  ]
+}

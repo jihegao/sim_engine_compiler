@@ -1,0 +1,28 @@
+# A05 distinct ready-aircraft substitutions: CLI scope sign-off (2026-09-30)
+
+**Decision:** `native_behavior_accepted_cli_scope`, `reusable_published` for one fixed-seed four-hour continuous mission with two same-timestamp substitutions by distinct ready aircraft. This bounded observation does not establish a finite suspension interval, deterministic unavailable interval, generic A05.var02 policy or the full A05 method.
+
+## Accepted source and exact delta
+
+The model parent is the accepted [A05 mid-mission system-loss and same-aircraft rejoin slice](../A05-var02-system-loss-probe-v1.0.0/cli-scope-signoff-2026-09-30.md), input SHA-256 `02e823bd09fd3e6a3c2f0ae59846adcb2d35bcbc6d0ee9b09d0d936ebf36b10c`. The [child input](native-input.json) SHA-256 is `aab1e4050a107e8490716a9306d9eb461b5c4a0c88430c157a2699afc5a120bb`. Its [exact parent diff](exact-diff.json), SHA-256 `2c62f7b716c9f4441a65e1753da66e2acf2c2597e394a8fcbcced761a987d2e6`, changes `SystemDeployment.QTYPS=2→3` and descriptive `ProblemDescription.PDESC` and `Unit.DESCR`; the other 28 parent tables are unchanged. The mission still requests and requires two aircraft (`NOS=MNOS=2`), starts at hour 8, lasts four calendar hours with `MPAT=CONTINUOUS`, and has a 16-hour report horizon. `System.FRT=300000` per million `OPHOURS`, the D01 half-hour direct repair row and seed `1` stay unchanged. The [contract](contract.json), SHA-256 `64199bee5fa432efeae763063f69b31ba99992a3d810d35aeba7d5b13443b084`, declared the distinct-aircraft comparison before execution; no failure time or outcome was predeclared.
+
+The installed SIMLOX 2017 manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`. Physical PDF pages 179–183 and 265–266 describe continuous mission suspension, replenishment and fixed calendar end. Pages 551–553 and 558–559 define `MSTF`/`MSUF` over fixed missions, excluding continuous missions. The installed dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Neither proprietary file is uploaded.
+
+## Sealed native result and review
+
+Run `a05-var02-distinct-spare-v100-ssh-20260930-01` used guarded session-0 SSH, the host-wide `Global\SimloxIssue18NativeQueue` mutex, and the GUI PID 13340 identity guard. Import, export, calculation, report and exact source roundtrip checker all exited zero. All 14 row-containing source business tables roundtripped exactly. Conversion had zero errors and warnings #108 for event logging and #126 for the teaching aircraft with no items. The native JSON writer emits trailing commas; the replays normalize a read-only parser copy while retaining raw-byte hashes.
+
+| Child raw artifact | SHA-256 |
+| --- | --- |
+| `invocation.json` | `e8561aa4447d102bbdce6f5267754150549af3dc75666266a18e0122f3102e94` |
+| `closure.json` | `3fff2fb5b81d3d0c6528e4b575f585011eee386f0842feafb7927892cec142ac` |
+| `model.log` | `caa673e728fb65c5c37269b84a256dc16f7894766d7ac8d2f644f608f2d61b83` |
+| `report-raw.json` | `b038c841d5222f223506de414ab1e4774ee7ea0207b36c7576f86f6d8d28ec62` |
+
+Aircraft #0 and #1 start the mission at hour 8, while #2 remains ready at the unit. At **9.8829**, #0 incurs a critical random system failure and leaves; #2 is allocated and attached. The event log records suspension and resumption at that same timestamp. #0 completes its direct repair at 10.3829 and becomes ready. At **11.7431**, #1 fails and leaves; repaired #0 is allocated and attached, again with same-timestamp suspension/resumption markers. #1 completes repair at 12.2431, after the mission's original hour-12 completion. The hour-12 mission participants are #2 and #0. These are substitutions by distinct aircraft systems; no stocked item or component replacement occurs.
+
+The 32 aligned half-hour report bins cover 0–16 hours. They integrate **eight aircraft mission-hours**, **zero suspended aircraft-hours**, and **one aircraft repair-hour**, with two failures and two repairs. Both required aircraft continue operating across each same-timestamp switch; `MTMF=STMF=1`. All three aircraft are ready by the end of the report window. Stock demand and backorder remain zero. The hour-12 log success marker coexists with `MSTF=MSUF=0`, as those manual-defined fractions exclude continuous missions. The event timestamps show zero observed calendar suspension; the half-hour report independently shows no measurable suspended exposure.
+
+The [author validator](validate_distinct_spare.py), SHA-256 `f258b7c3ff0b6f9b723688c8ff0c89cdac7009223f4f132f2ffeb7a1ce2bf135`, passes [220/220 checks](review/author-distinct-spare-validation-2026-09-30.json), SHA-256 `76017286bc859a742738883281622a1e6c93701d112e2ed366e851f3ff96f576`. A separate reviewer wrote a [read-only replay](review/independent_distinct_spare_readonly.py), SHA-256 `e854b3de79cedfe29ca2b1719e90f6b33303ea56007fc4951c6402645b1bd150`, without importing the author validator. Its [72/72 result](review/independent-distinct-spare-2026-09-30.json), SHA-256 `650e1b857074a6fb06f027973f550d2345d8e401101148b236cbc78c5e49b801`, independently verifies source and raw seals, guarded execution, identities, report ledgers and limits. Raw files remain in ignored local `runs/`.
+
+This evidence is specific to installed SIMLOX executable SHA-256 `fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0`, one seed and two stochastic failures. It does not supply the catalog's planned deterministic unavailable interval or establish delayed replacement after finite suspension. Different seeds, longer preparation or unavailable spare, `MNOSA` thresholds, terminal suspension, GUI visual content and cross-engine equivalence remain unverified. Issue #18 stays open.
