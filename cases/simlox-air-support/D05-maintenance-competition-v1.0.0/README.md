@@ -1,0 +1,25 @@
+# D05 bounded shared-maintainer competition, v1.0.0
+
+This case demonstrates one observed critical direct system repair competing with two noncritical calendar PM jobs for one maintenance worker. It is a restricted D05 teaching slice. The full D05 catalog plan also requires other priority combinations and boundary variants.
+
+## Parent and configuration
+
+The direct input parent is accepted [D03](../D03-calendar-pm-v1.0.0/cli-scope-signoff-2026-09-30.md), SHA-256 `5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32`. Published [D01 system repair](../D01-system-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md), [D04 operation-hour PM](../D04-flight-hour-pm-v1.0.0/cli-scope-signoff-2026-09-30.md), and [C03 shared crew](../C03-shared-crew-formation-v1.0.2/evidence-2026-09-29.md) satisfy the catalog prerequisites and supply independent field precedents. D03 is the immediate parent because its deterministic `CALHOURS=24` PM creates a fixed competition boundary. The [exact parent diff](parent-diff.json) lists every changed table and row.
+
+There are two aircraft in one unit. `System.FRT=1000000` is applied to the second, three-hour `RISK-MISSION`; the first and third two-hour `BASIC-MISSION` waves have `MissionType.MFF=0`. The risk mission's realized failure time is observed from its native log, not promised by the input seed alone. Direct system repair uses `SystemRepair.DIRPT=5`, `DIRPTID=CM-DIRECT` and a mandatory `<REPAIR>` subtask of five hours. `CAL24` PM remains one hour, with `MaterielPM.DTIM=0.5` to make it noncritical during the observed interval. Both repair and PM subtasks request one `P-MAINT` worker, while `ResourceAllocation.RQTY=1`. `Unit.MAXPM=2` avoids a second, independent static PM capacity limit in this probe. Simulation and result windows end at hour 36.
+
+The installed SIMLOX 2017 manual, SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`, documents traditional direct repair (pages 190–192), mandatory `<REPAIR>` (211–212), critical repair and PM ordering (213, 217–218), and PM deferment (370–374). The installed table dictionary provides the referenced field names. Neither source is uploaded.
+
+## Native evidence and result
+
+The accepted native run is `d05-pilot-v100-ssh-20260930-03` in ignored local `runs/`. It used session-0 SSH, the host-wide SIMLOX mutex, and the GUI PID 13340 identity/active-session guard. All four native steps and the 22-source-row-containing-table roundtrip checker completed successfully. Three of those source tables hold all-null placeholder rows, and native export adds nine more such tables. Conversion had zero errors and warnings #108 (requested event logging) and #126 (the intentionally item-free aircraft).
+
+The first mission succeeds 8–10. Aircraft 1 starts the risk mission at 20 and has one critical failure at 22.6835; the mission aborts and aircraft 1 returns at 23. Its repair holds the sole worker 23–28. At 24, both aircraft receive PM task objects. Aircraft 0's PM subtask fails the resource test and waits until 28, then performs 28–29. Aircraft 1's PM waits for its own critical repair; it reactivates at 28, waits for the worker, and performs 29–30. The third mission succeeds 32–34. Both aircraft and the worker are available at the end of the 36-hour run.
+
+The native report contains 72 half-hour system and resource intervals, one failure and completed repair, two PM starts and completions, five aircraft-hours of repair occupancy, two aircraft-hours of PM occupancy, seven worker-hours used, and five worker-hours of summed resource wait. Task-object start at 24 is not physical PM work. The precise timestamps, source hashes, raw-report hash, replay results, and restrictions are in the [CLI sign-off](cli-scope-signoff-2026-09-30.md).
+
+## Reuse
+
+Run `python build.py` and `python describe_diff.py` to verify the frozen input and exact D03 delta. The [contract](contract.json) records the pre-run hypothesis and parent/source fingerprints. On the pinned 4700-3 host, invoke `run_native_ssh.ps1` via session-0 SSH with a fresh `-RunId`; it refuses duplicate run directories and unexpected GUI state. Then run `python validate_native_cli.py runs/<new-run-id> --output review/<new-validation>.json`. The script checks the particular observed seed and timeline; a changed seed or failure rate requires a new contract and expected event times. Native raw artifacts remain local. Independent read-only replay is required before publishing a changed scope.
+
+The earlier immutable probes remain in local `runs/`: `-01` failed conversion with error #162 because the direct repair subtask was spelled as a custom `REPAIR` instead of reserved `<REPAIR>`; `-02` converted and ran but produced two failures during a more aggressive exposure, and its first roundtrip checker had a mistaken populated-table count. They are excluded from acceptance. GUI visual content, noncritical fault priority, critical PM priority, same-time scheduling, worker capacities other than one, PM/repair conflict with mission cancellation, later PM cycles, and cross-engine equivalence remain unverified.
