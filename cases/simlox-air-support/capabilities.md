@@ -1,6 +1,6 @@
 # Capability index
 
-The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](catalog-v2.json) are frozen planning snapshots: 108 cases, 579 named variants and 133 mapped input tables do not mean those scopes are published. The [publication index](publication-index-v1.json) lists **24 accepted bounded CLI packages covering 19 distinct case IDs** as of 2026-09-30. Each linked sign-off or evidence report defines the verified behavior and limits. Full manual-method coverage, GUI-specific behavior and cross-engine equivalence require their own evidence. The [manual coverage](manual-coverage-v2.json) and [findings](known-issues/manual-review-v2.md) retain the broader unverified methods and source conflicts.
+The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](catalog-v2.json) are frozen planning snapshots: 108 cases, 579 named variants and 133 mapped input tables do not mean those scopes are published. The [publication index](publication-index-v1.json) lists **25 accepted bounded CLI packages covering 20 distinct case IDs** as of 2026-09-30. Each linked sign-off or evidence report defines the verified behavior and limits. Full manual-method coverage, GUI-specific behavior and cross-engine equivalence require their own evidence. The [manual coverage](manual-coverage-v2.json) and [findings](known-issues/manual-review-v2.md) retain the broader unverified methods and source conflicts.
 
 | Need | Smallest accepted scope | Evidence and important limit |
 | --- | --- | --- |
@@ -17,6 +17,7 @@ The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](ca
 | Random system failure and direct repair | [D01 system](D01-system-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md) | One fixed seeded system-level repair slice. |
 | Installed LRU failure, replacement and repair | [D01 LRU](D01-installed-lru-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md) | One installed item, one local spare and repaired-item return. |
 | Calendar preventive maintenance | [D03](D03-calendar-pm-v1.0.0/cli-scope-signoff-2026-09-30.md) | One fixed one-hour PM at 24–25 and 49–50 hours; conflict and resource behavior remain unverified. |
+| Operation-hour preventive maintenance | [D04](D04-flight-hour-pm-v1.0.0/cli-scope-signoff-2026-09-30.md) | Two missions accumulate three `OPHOURS`; no PM during the 30-hour no-flight gap, then one PM after the second return. |
 | Local spare with physical REMOVE/REPLACE | [E01](E01-local-spare-explicit-replacement-v1.0.0/cli-scope-signoff-2026-09-29.md) | Ten-minute removal and twenty-minute replacement step. |
 | Local zero-stock backorder | [E02](E02-zero-stock-local-backorder-v1.0.0/cli-scope-signoff-2026-09-29.md) | One backorder cleared by repair of the same failed item. |
 | Two aircraft competing for one local spare | [E03](E03-two-aircraft-shared-spare-v1.0.0/cli-scope-signoff-2026-09-29.md) | One second-customer backorder; FIFO across multiple pending demands is unverified. |
