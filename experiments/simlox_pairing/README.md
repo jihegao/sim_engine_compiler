@@ -5,6 +5,13 @@ Engine semantic baseline: `main@595cb5eee9987324b19a8c3566f201f937e05f15`.
 No compiler, Plan, Python/Rust runtime, RNG or business semantics were changed.
 This experiment neither uses nor merges the unmerged PR #20 identity API.
 
+The current main checkout has since added PR #20/#23/#24 and Issue #29 product
+modules. `provenance.py` now lists their exact source digests and separately
+declares the changed package entrypoint and installer metadata. Its frozen
+`595cb5e` Git blob/build fingerprint and the historical `evidence/v1` files
+remain unchanged. A passing current-checkout pairing test is a regression
+check, not new SIMLOX native acceptance.
+
 ## Outcome and acceptance scope
 
 Both independently executed teaching cases match the frozen **mapped**
