@@ -5,6 +5,9 @@ publishes this bounded B01 1.0.1 model after a fresh native run and independent
 replay with corrected invocation closure and global preparation-event checks.
 B01 1.0.0 remains unpublished.
 
+The [permanent loopback SSH verification](loopback-ssh-verification-2026-09-29.md)
+records a later, source-bound B01 rerun using the user's verified local key.
+
 This version derives from the SHA-256-pinned A01 native input. It keeps A01's
 `TEACH-AIR-01`, `TEACH-UNIT`, `BASIC-MISSION`, `BASIC-SCHEDULE`, one-hour notice,
 two-hour mission, 36-hour horizon, half-hour result interval and seed. The
