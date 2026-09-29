@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D02",
+  "variant_id": "D02.var05",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D02",
+    "variant_id": "D02.var01",
+    "input_sha256": "9e6d264330c6f7b41752ed8b0c09a32ac45089cec9ec823ad5e3367ce7f348e2",
+    "signoff": "../D02-var01-traditional-op-hours-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 338, 339, 349, 350, 351],
+    "source_boundary": "Traditional System and Item FRT remain 300000 per million OPHOURS. The accepted D02.var01 parent exercises missions and a long idle gap; this child proposes no scheduled missions over the same 60-hour horizon as a zero-operating-exposure control."
+  },
+  "native_input_sha256": "dc64f5644ef146cdef1ab8364bd57be0a28251f0d2f6130a45c0b90c876d2a8d",
+  "delta": {
+    "tables": ["ProblemDescription", "OperationProfile"],
+    "mechanism": "Remove the three accepted parent OperationProfile rows, preserving the table schema and all other configuration including seed, FRT, repair, stock and 60-hour horizon."
+  },
+  "configuration": {
+    "system_and_item_frt_per_million_ophours": 300000,
+    "traditional_system_opid": "OPHOURS",
+    "traditional_item_opid": "OPHOURS",
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 60,
+    "scheduled_launch_hours": []
+  },
+  "predeclared_native_acceptance": [
+    "The guarded session-0 SSH runner uses the host-wide mutex and GUI PID 13340 identity guard, seals all source and raw artifacts, and does not overwrite an existing run.",
+    "Native import/export retains all populated business rows and the empty OperationProfile table; conversion has zero errors and simulation produces a nonempty SXO and report.",
+    "With no scheduled missions, the 60-hour native event log has no mission start, preparation or critical traditional random failure; aligned report bins have zero mission and failure counts.",
+    "No inference about a general clock algorithm follows from this single zero-exposure seed; a rejected no-mission model is retained as an inconclusive native probe, not a published positive result.",
+    "Independent reviewer replays source diff, guard, raw seals, conversion, event log and report before publication."
+  ],
+  "limits": [
+    "This is a fixed seed, no-mission traditional Item/System OPHOURS control, not an explicit FailureMode or custom OperationParameter test.",
+    "Zero mission exposure is inferred from input and native events; a direct internal OPHOURS counter is not reported.",
+    "Other seeds, idle-with-PM, maintenance spans, GUI visual content and cross-engine equivalence are untested."
+  ]
+}
