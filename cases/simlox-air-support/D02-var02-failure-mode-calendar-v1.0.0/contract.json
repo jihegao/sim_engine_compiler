@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D02",
+  "variant_id": "D02.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D06",
+    "version": "1.0.0-position-direct-cm",
+    "input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+    "signoff": "../D06-explicit-position-direct-repair-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [
+      364,
+      365,
+      366,
+      367,
+      368,
+      369
+    ],
+    "source_boundary": "FailureMode.OPID supports OPHOURS and CALHOURS; CALHOURS expresses calendar exposure, including time without mission operations. Traditional Item/ItemFailureRate clock restrictions are not tested by this variant."
+  },
+  "native_input_sha256": "23b550dbc4e0aea4d6d328fe4805a4eb50af81f3af54ccd6353e45bce933271b",
+  "delta": {
+    "tables": [
+      "ProblemDescription",
+      "FailureMode"
+    ],
+    "mechanism": "Change only FM-POS-A.OPID from OPHOURS to CALHOURS and description label; all other model tables, FRQ=300000, seed, missions, direct CM and horizon remain unchanged."
+  },
+  "configuration": {
+    "failure_frequency_per_million_ophours_or_calhours": 300000,
+    "parent_opid": "OPHOURS",
+    "child_opid": "CALHOURS",
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [
+      8,
+      20,
+      32
+    ]
+  },
+  "predeclared_native_acceptance": [
+    "Four native CLI steps, exact source roundtrip and zero conversion errors pass under the guarded session-0 SSH runner.",
+    "At least one FM-POS-A failure occurs in an idle non-mission interval in the CALHOURS child; the accepted OPHOURS parent has no such failure in the same interval.",
+    "Native events trace each observed FMID failure, system CM action, completion or horizon truncation; report totals reconcile.",
+    "The exact parent delta is OPID and description only; no traditional FRT is introduced.",
+    "Raw source, invocation and closure hashes remain sealed and independent reviewer replays the comparison."
+  ],
+  "limits": [
+    "Only one FMID and fixed 36-hour seed/model; traditional item OPHOURS behavior is supported by prior D01 evidence but not re-accepted here.",
+    "Calendar and operation clocks have unequal exposure; failure counts are one stochastic realization, not estimated comparative failure rates.",
+    "Other seeds, clock transitions during maintenance or a long all-idle stretch, traditional CALHOURS/MISSIONS negative tests, GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
