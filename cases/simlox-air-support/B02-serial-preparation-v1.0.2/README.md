@@ -1,0 +1,11 @@
+# B02 1.0.2: serial preparation on published B01 1.0.1
+
+This version derives only from the SHA-256-pinned [B01 1.0.1 input](../B01-fixed-preparation-v1.0.1/native-input.json). The old `preparation-resource-v1` B02 1.0.1 uses the unpublished B01 1.0.0 identity set and remains a historical semantic reference. It is not this model's parent or acceptance evidence.
+
+The [contract](contract.json) keeps the published B01 aircraft, unit, mission type, schedule, task ID, seed, 36-hour horizon, half-hour report interval, one-hour notice, 08:00 launch and two-hour flight. The exact [parent diff](parent-diff.json) changes only `MissionPreparation.DURN` from 30 to 45 minutes, updates the existing task description and adds `INSPECT` and `SERVICE` types with `TaskBreakDown` rows at `SEQ=1,2` for 10 and 20 minutes. The task ID `PREP-FIXED` is retained as a stable identity even though its new description says serial work.
+
+The installed SIMLOX 2017 manual, SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`, says in PDF pp. 296 and 402–404 that a complete breakdown runs strictly in sequence and its summed duration overrides the main preparation scalar. The 45-minute scalar stays below the one-hour notice as required by p. 296. The old B02 native log shows separate SEQ 1 and SEQ 2 lifecycles, so this contract requires the same direct observability on the new source.
+
+Run `build.py --check` to verify checked input and exact parent delta. `run_native_ssh.ps1` requires a fresh run ID, the input SHA-256, authenticated session-0 SSH with `sshd.exe` ancestry, the host-wide native queue mutex, and preservation of the original responsive GUI PID 13340. It runs import, export, calculation and report export in order and seals raw artifacts. `review_readonly.py` independently replays the raw evidence without importing the builder or runner validator. Failed run directories are immutable evidence.
+
+Acceptance is limited to the two serial work steps on the one-aircraft normal path. The log names steps by SEQ and ordinal position; the roundtripped input binds those positions to `INSPECT` and `SERVICE`. No resource waiting, launch delay, GUI-only behavior or cross-engine claim follows from this model.

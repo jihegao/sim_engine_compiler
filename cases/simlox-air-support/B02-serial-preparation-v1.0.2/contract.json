@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-b02-observable-contract/v1",
+  "case_id": "B02",
+  "version": "1.0.2",
+  "status": "candidate_pending_native_run",
+  "parent_case": "B01@1.0.1",
+  "parent_behavior_scope": "published fixed positive-duration preparation on the A01 normal path",
+  "parent_input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+  "input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "parent_diff_sha256": "d946e566657ff6453a35f735d53f17e8994ccdb29d4c48231c68e892320dd4df",
+  "source_method_id": "M-B02",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pdf_pages": [[294, 296], [400, 404]],
+  "business_delta": "Retain all B01 business IDs, schedule and common parameters; set preparation scalar DURN to 45 minutes, update its description, and add ordered 10-minute INSPECT and 20-minute SERVICE subtasks.",
+  "changed_tables_only": ["MissionPreparation", "Tasks", "SubTaskType", "TaskBreakDown"],
+  "business_identity": {
+    "aircraft": "TEACH-AIR-01",
+    "unit": "TEACH-UNIT",
+    "mission_type": "BASIC-MISSION",
+    "schedule": "BASIC-SCHEDULE",
+    "station": "BASE-01",
+    "task": "PREP-FIXED",
+    "subtasks": ["INSPECT", "SERVICE"]
+  },
+  "expected_native": {
+    "mission_tag": "<BASIC-MISSION,TEACH-UNIT,0,0,0>",
+    "aircraft_instance": "<TEACH-AIR-01,0>",
+    "notice_hour": 7,
+    "inspect_end_hour": 7.166666666666667,
+    "preparation_end_hour": 7.5,
+    "scalar_preparation_hours": 0.75,
+    "effective_preparation_hours": 0.5,
+    "launch_hour": 8,
+    "completion_hour": 10,
+    "mission_flight_hours": 2,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5
+  },
+  "assertions": {
+    "B02-102-A1": "The full B01 normal mission path and all existing business IDs remain unchanged.",
+    "B02-102-A2": "Exactly two native subtasks occur globally: SEQ 1 INSPECT starts at 07:00 and completes at 07:10, then SEQ 2 SERVICE starts at 07:10 and completes at 07:30, with each planned work duration logged.",
+    "B02-102-A3": "The native roundtrip retains the 45-minute scalar and both 10/20-minute breakdown rows; preparation completes in 30 minutes, proving breakdown duration overrides rather than adds to the scalar.",
+    "B02-102-A4": "One successful mission launches at planned 08:00 and completes at 10:00; all 72 half-hour report intervals retain one start/success, 0.5 preparation aircraft-hour and 2 flight hours.",
+    "B02-102-A5": "If native events do not expose both ordered subtask lifecycles and durations, this version remains blocked."
+  },
+  "allowed_native_warnings": {
+    "108": "Control.ENLOG=Y records the first repetition",
+    "126": "the deterministic teaching System has no Item children"
+  },
+  "acceptance_scope": "strictly serial 10-minute INSPECT and 20-minute SERVICE preparation on the B01 normal path",
+  "excluded_claims": [
+    "The native log identifies SEQ and ordinal subtask positions; names are bound through the roundtripped TaskBreakDown rows rather than printed in each event.",
+    "No resource wait, causal launch delay, random duration, parallel task graph, GUI-only behavior, cross-engine parity or performance is claimed."
+  ],
+  "publication_state": "not_published"
+}

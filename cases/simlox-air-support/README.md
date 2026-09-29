@@ -6,6 +6,8 @@ This library follows issue #18. The [SIMLOX 2017 progressive catalog v2](progres
 
 The [staged execution plan](execution-plan-v2.md) assigns local parallel development and serialized native verification on 4700-3. The [preparation/resource batch](preparation-resource-v1/README.md) implements B01/B02/B03/C01/C02/C03 candidates. B03 uses explicit cold-first/hot-sortie mission types; C03 uses two aircraft in one formation sharing personnel. The [delivery report](issue18-delivery-v2.md) separates implementation, local checks, native evidence and remaining gates. The [import source manifest](catalog-import-source-v2.json) records the original remote working-tree files before local revisions.
 
+The [published B02 1.0.2 serial-preparation case](B02-serial-preparation-v1.0.2/README.md) derives from accepted B01 1.0.1 and has a separate source-bound native run, exact parent diff and independent raw replay. The older B02 1.0.1 batch candidate remains historical and is not its parent.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.

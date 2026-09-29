@@ -1,0 +1,100 @@
+{
+  "schema": "simlox-b02-exact-parent-diff/v1",
+  "parent_case": "B01@1.0.1",
+  "case_id": "B02",
+  "version": "1.0.2",
+  "parent_input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+  "child_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "unchanged_table_count": 27,
+  "changed_tables_only": [
+    "MissionPreparation",
+    "Tasks",
+    "SubTaskType",
+    "TaskBreakDown"
+  ],
+  "field_changes": 2,
+  "removed_rows": 0,
+  "added_rows": 4,
+  "tables": {
+    "MissionPreparation": {
+      "parent_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DURN": 0.5,
+          "TID": "PREP-FIXED",
+          "DURND": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "MTID": "BASIC-MISSION",
+          "SID": "TEACH-AIR-01",
+          "STID": "BASE-01",
+          "DURN": 0.75,
+          "TID": "PREP-FIXED",
+          "DURND": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "Tasks": {
+      "parent_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "DESCR": "Fixed 30-minute BASIC-MISSION preparation",
+          "TCID": null,
+          "TLID": null,
+          "NOTE": null
+        }
+      ],
+      "child_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "DESCR": "Serial 10+20-minute BASIC-MISSION preparation",
+          "TCID": null,
+          "TLID": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "SubTaskType": {
+      "parent_rows": [],
+      "child_rows": [
+        {
+          "SUTID": "INSPECT",
+          "DESCR": "INSPECT",
+          "NOTE": null
+        },
+        {
+          "SUTID": "SERVICE",
+          "DESCR": "SERVICE",
+          "NOTE": null
+        }
+      ]
+    },
+    "TaskBreakDown": {
+      "parent_rows": [],
+      "child_rows": [
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 1,
+          "SUTID": "INSPECT",
+          "DURN": 0.16666666666666666,
+          "DURND": null,
+          "NOTE": null
+        },
+        {
+          "TID": "PREP-FIXED",
+          "SEQ": 2,
+          "SUTID": "SERVICE",
+          "DURN": 0.3333333333333333,
+          "DURND": null,
+          "NOTE": null
+        }
+      ]
+    }
+  }
+}
