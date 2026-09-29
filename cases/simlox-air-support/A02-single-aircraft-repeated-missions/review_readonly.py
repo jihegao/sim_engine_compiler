@@ -14,6 +14,8 @@ import sys
 HERE = Path(__file__).resolve().parent
 PARENT = HERE.parent / "A01-single-aircraft-single-mission" / "native-input.json"
 CHILD = HERE / "native-input.json"
+CONTRACT = HERE / "contract.json"
+CONTRACT_SHA256 = "f192c22de44ec20cf8581e2652ce8b4a44fc315acb7998624be340cb5a42a465"
 
 
 def sha(path: Path) -> str:
@@ -39,6 +41,8 @@ def source_review() -> list[str]:
         errors.append("published A01 parent hash differs")
     if sha(CHILD) != "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8":
         errors.append("A02 input hash differs")
+    if sha(CONTRACT) != CONTRACT_SHA256:
+        errors.append("A02 frozen contract hash differs")
     before, after = tables(read(PARENT), "model"), tables(read(CHILD), "model")
     if list(before) != list(after):
         errors.append("table order differs from A01")
@@ -77,6 +81,7 @@ def run_review(entry: dict) -> tuple[list[str], dict]:
     if (invocation.get("case_id") != "A02" or invocation.get("run_id") != run_id
             or invocation.get("run_dir") != str(run)
             or invocation.get("source_hashes", {}).get("input") != sha(CHILD)
+            or invocation.get("source_hashes", {}).get("contract") != sha(CONTRACT)
             or invocation.get("source_hashes", {}).get("validator") !=
             "43b42fbc5f6d2b9ecbeb82b1419224d6a99025c1be5c600dd959f77d362b6354"
             or invocation.get("simlox_exe_sha256") !=
