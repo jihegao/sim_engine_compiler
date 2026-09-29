@@ -34,7 +34,7 @@ The [D05.var01 two-worker control](D05-var01-two-workers-v1.0.0/cli-scope-signof
 
 The [D05.var04 hour-26 in-repair boundary](D05-var04-horizon-in-repair-v1.0.0/cli-scope-signoff-2026-09-30.md) shortens the accepted one-worker model and removes its out-of-window third mission. The five-hour critical repair starts at 23 and remains in progress with the worker occupied at the hour-26 stop; the healthy aircraft's PM request waits. The 74-check author and 59-check independent raw replays passed. The waiting-for-repair boundary and post-horizon outcome remain unverified.
 
-The [D13.var02 static MAXPM comparison](D13-var02-maxpm-two-v1.0.0/cli-scope-signoff-2026-09-30.md) derives two aircraft from D03 with a noncritical calendar-PM window. Both PM task objects start at hour 24, while performed one-hour subtasks are serial under `MAXPM=1` and parallel under `MAXPM=2`. The 104-check author pair replay and independent 35-check raw review passed. D13's activation-period, dynamic-capacity and critical-PM boundaries remain planned.
+The [D13.var03 static MAXPM comparison](D13-var02-maxpm-two-v1.0.0/catalog-id-erratum-2026-09-30.md) derives two aircraft from D03 with a noncritical calendar-PM window. Both PM task objects start at hour 24, while performed one-hour subtasks are serial under `MAXPM=1` and parallel under `MAXPM=2`. The 104-check author pair replay and independent 35-check raw review passed. Its legacy artifact folder and sealed run identity say D13.var02; the linked erratum maps this result to the frozen catalog's D13.var03. `MAXPM=0`, D13.var02 `CRIT=Y/N`, activation periods and dynamic capacity remain planned.
 
 ## Find and reproduce
 
