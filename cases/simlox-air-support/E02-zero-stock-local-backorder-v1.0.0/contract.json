@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E02",
+  "case_version": "1.0.0-candidate",
+  "variant": "zero-local-spare-backorder-served-by-removed-item-repair",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E01",
+    "version": "1.0.0",
+    "behavior_scope": "accepted local LRU demand with one spare and explicit 10-minute REMOVE, 20-minute REPLACE",
+    "input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+    "signoff": "../E01-local-spare-explicit-replacement-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "prerequisite": {
+    "case_id": "E05",
+    "behavior_scope": "accepted local removed-LRU direct repair, restock and reissue before a later demand",
+    "signoff": "../E05-local-repair-reissue-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 213, 218, 219, 220, 338, 339, 340, 444, 445, 446],
+    "source_boundary": "System replacement demands a spare immediately when repair starts. REMOVE can release the faulty LRU for local ItemRepair. REPLACE cannot begin without a spare. With zero stock, the demand becomes a local backorder; an item returned from repair serves that backorder before entering stock."
+  },
+  "native_input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+  "delta": {
+    "tables": ["ProblemDescription", "StockAllocation"],
+    "mechanism": "Change only local repairable-LRU nominal stock STSIZ from 1 to 0, retaining the accepted one-failure seed, explicit system replacement steps and one-hour local ItemRepair.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "local_nominal_stock": 0,
+    "expected_opening_on_hand": 0,
+    "system_and_item_frt_failures_per_million_ophours": 300000,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "item_direct_repair_hours": 1,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "predeclared_native_acceptance": [
+    "The frozen seed/configuration must produce at least one observed installed-LRU failure. Exact stochastic time is taken from raw native events.",
+    "The first system replacement demand must find zero on-hand stock and create a backorder. REMOVE must complete before the removed LRU enters one-hour local ItemRepair; the system must wait to begin REPLACE until that repaired item returns and serves the backorder.",
+    "Trace physical item identity through removal, ItemRepair, backorder clearance, receipt and installation. Reconcile waiting time and system readiness with the one-spare E01 control, and show the repaired item arrives before the next mission deadline.",
+    "Import/export must preserve all 20 row-containing source tables, including three all-null placeholders; conversion errors must be zero, four native CLI steps must succeed, and 72 half-hour system/stock intervals must reconcile with events.",
+    "Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340, seal raw hashes and obtain independent read-only replay."
+  ],
+  "limits": [
+    "This is a single local stockout/backorder served by repair of the removed item. It does not accept remote or lateral supply, multiple simultaneous demands, FIFO ordering, reorder, resource contention or PM.",
+    "Exact failure time is run-specific; the native event log, not the input seed alone, supplies timing evidence."
+  ]
+}

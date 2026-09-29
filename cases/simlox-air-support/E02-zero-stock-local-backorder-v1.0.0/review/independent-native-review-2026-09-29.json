@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-e02-independent-native-review/v1",
+  "review_mode": "independent read-only replay of frozen source and sealed native raw evidence",
+  "reviewer": "separate review agent; no file edits and no SIMLOX invocation",
+  "run_id": "e02-v100-ssh-20260929-01",
+  "passed": true,
+  "differences": [],
+  "raw_report_sha256": "b5b83fbdc877eac297ba8a7492bdcdb162c6eeaab64901eacb16a3daa5cacf3e",
+  "checks": {
+    "frozen_sources_closure_and_gui_guard": "passed",
+    "four_steps_roundtrip_and_zero_conversion_errors": "passed",
+    "empty_stock_backorder_same_item_repair_and_fit": "passed",
+    "72_intervals_one_failure_repair_demand_backorder_terminal_ready": "passed",
+    "E01_control_readiness_and_availability_comparison": "passed"
+  },
+  "observed": {
+    "critical_lru_failure_hour": 9.8829,
+    "demand_and_backorder_hour": 10,
+    "removed_item_instance_id": 0,
+    "remove_completion_and_item_repair_start_hour": 10.1667,
+    "item_repair_and_backorder_clearance_hour": 11.1667,
+    "fit_physical_work_hours": [11.1667, 11.5],
+    "system_ready_hour": 11.5,
+    "backorder_wait_hours": 1.16667,
+    "opening_stock": 0,
+    "terminal_backorders": 0,
+    "mission_success_fraction": 0.6666666865
+  },
+  "limits": [
+    "The native event log rounds fractional-hour timestamps.",
+    "The fit task is instantiated at 10.1667 and waits; physical fit starts at 11.1667 when the repaired item arrives.",
+    "The report contains aggregate half-hour intervals; item identity comes from the event log.",
+    "The runner verifies GUI process identity and active session; GUI visual content was not sampled."
+  ]
+}
