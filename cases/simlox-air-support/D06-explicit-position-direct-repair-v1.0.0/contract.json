@@ -1,0 +1,82 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D06",
+  "case_version": "1.0.0-candidate",
+  "variant": "two-positions-one-fmid-direct-system-cm",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D01",
+    "version": "1.0.0-installed-lru",
+    "input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+    "signoff": "../D01-installed-lru-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [
+      355,
+      356,
+      357,
+      364,
+      365,
+      366,
+      367,
+      369,
+      370
+    ],
+    "source_boundary": "FailureMode.MID may identify MaterielPosition; CMLocation FMID/ID/STID maps the CM task and CMT is calendar turnaround. Explicit failure mode FRQ replaces traditional FRT for linked item; materiel position uses MaterielStructure."
+  },
+  "native_input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+  "delta": {
+    "tables": [
+      "ProblemDescription",
+      "System",
+      "Item",
+      "ItemStructure",
+      "SystemRepair",
+      "ItemRepair",
+      "StockAllocation",
+      "MaterielPosition",
+      "MaterielStructure",
+      "FailureMode",
+      "CMLocation"
+    ],
+    "mechanism": "Two positions of the same LRU, with one explicit mode on position A and system-level direct CM at BASE-01. Traditional FRT and repair rows are cleared.",
+    "identities": {
+      "system": "TEACH-AIR-01",
+      "item": "TEACH-LRU-01",
+      "position_a": "POS-A",
+      "position_b": "POS-B",
+      "failure_mode": "FM-POS-A",
+      "station": "BASE-01"
+    }
+  },
+  "configuration": {
+    "failure_frequency_per_million_ophours": 300000,
+    "traditional_system_frt": null,
+    "traditional_item_frt": null,
+    "position_a_quantity": 1,
+    "position_b_quantity": 1,
+    "cmt_hours": 0.5,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [
+      8,
+      20,
+      32
+    ]
+  },
+  "predeclared_native_acceptance": [
+    "All four native CLI steps and exact import/export roundtrip pass with zero conversion errors.",
+    "The seed produces at least one observed FM-POS-A failure; native event evidence must trace the mode, affected position/system, mission impact, CM start and completion, and recovery.",
+    "Failure counts reconcile to explicit FM-POS-A only, with no traditional FRT branch or duplicate event.",
+    "The second position remains installed as the same item type; no unplanned replacement or stock issue is inferred.",
+    "Source hashes, session-0 SSH guard, host-wide mutex and GUI PID 13340 remain sealed and independently replayed."
+  ],
+  "limits": [
+    "This slice accepts one FMID on position A and a direct system CM task; position-specific alternative repair, multiple modes, replacement and CMRF/CMRQ/CMRQD remain future variants.",
+    "The stochastic failure time is read from the run, not predicted from the seed.",
+    "CMT is calendar turnaround, not measured wrench time."
+  ]
+}

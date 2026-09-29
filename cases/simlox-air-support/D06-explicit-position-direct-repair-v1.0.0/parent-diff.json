@@ -1,0 +1,1331 @@
+{
+  "schema": "simlox-d06-position-cm-exact-parent-diff/v1",
+  "case_id": "D06",
+  "version": "1.0.0-candidate",
+  "parent_input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+  "child_input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+  "changed_tables_only": [
+    "ProblemDescription",
+    "System",
+    "Item",
+    "ItemStructure",
+    "SystemRepair",
+    "ItemRepair",
+    "StockAllocation"
+  ],
+  "added_tables_only": [
+    "MaterielPosition",
+    "MaterielStructure",
+    "FailureMode",
+    "CMLocation"
+  ],
+  "unchanged_table_count": 24,
+  "changed_tables": {
+    "ProblemDescription": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "D01 installed LRU: one local spare, system replacement, direct item repair"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "D06 two installed positions of one LRU, position A explicit failure mode, local direct CM"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      }
+    },
+    "System": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "SID"
+          },
+          {
+            "datatype": "string",
+            "name": "DESCR"
+          },
+          {
+            "datatype": "double",
+            "name": "PRICE"
+          },
+          {
+            "datatype": "double",
+            "name": "FRT"
+          },
+          {
+            "datatype": "string",
+            "name": "OPID"
+          },
+          {
+            "datatype": "double",
+            "name": "TLLEN"
+          },
+          {
+            "datatype": "string",
+            "name": "GSID"
+          },
+          {
+            "datatype": "string",
+            "name": "CBSID"
+          },
+          {
+            "datatype": "integer",
+            "name": "MAXNC"
+          },
+          {
+            "datatype": "string",
+            "name": "BSID"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "TEACH-AIR-01",
+                "Generic teaching aircraft",
+                null,
+                300000,
+                "OPHOURS",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "System"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "SID"
+          },
+          {
+            "datatype": "string",
+            "name": "DESCR"
+          },
+          {
+            "datatype": "double",
+            "name": "PRICE"
+          },
+          {
+            "datatype": "double",
+            "name": "FRT"
+          },
+          {
+            "datatype": "string",
+            "name": "OPID"
+          },
+          {
+            "datatype": "double",
+            "name": "TLLEN"
+          },
+          {
+            "datatype": "string",
+            "name": "GSID"
+          },
+          {
+            "datatype": "string",
+            "name": "CBSID"
+          },
+          {
+            "datatype": "integer",
+            "name": "MAXNC"
+          },
+          {
+            "datatype": "string",
+            "name": "BSID"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "TEACH-AIR-01",
+                "Generic teaching aircraft",
+                null,
+                null,
+                "OPHOURS",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "System"
+      }
+    },
+    "Item": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "name": "DESCR"
+          },
+          {
+            "datatype": "double",
+            "name": "PRICE"
+          },
+          {
+            "datatype": "double",
+            "name": "FRT"
+          },
+          {
+            "datatype": "string",
+            "name": "OPID"
+          },
+          {
+            "datatype": "string",
+            "name": "TYPE"
+          },
+          {
+            "datatype": "double",
+            "name": "TLLEN"
+          },
+          {
+            "datatype": "string",
+            "name": "GIID"
+          },
+          {
+            "datatype": "double",
+            "name": "AFFRT"
+          },
+          {
+            "datatype": "double",
+            "name": "BCRF"
+          },
+          {
+            "datatype": "integer",
+            "name": "EXIST"
+          },
+          {
+            "datatype": "integer",
+            "name": "MINST"
+          },
+          {
+            "datatype": "integer",
+            "name": "MAXST"
+          },
+          {
+            "datatype": "string",
+            "name": "AREPL"
+          },
+          {
+            "datatype": "integer",
+            "name": "NSIMI"
+          },
+          {
+            "datatype": "string",
+            "name": "SGID"
+          },
+          {
+            "datatype": "double",
+            "name": "IPBRO"
+          },
+          {
+            "datatype": "double",
+            "name": "IPCFL"
+          },
+          {
+            "datatype": "double",
+            "name": "REOPF"
+          },
+          {
+            "datatype": "double",
+            "name": "BDVMR"
+          },
+          {
+            "datatype": "double",
+            "name": "CRIT"
+          },
+          {
+            "datatype": "string",
+            "name": "TRACK"
+          },
+          {
+            "datatype": "double",
+            "name": "WTLIM"
+          },
+          {
+            "datatype": "double",
+            "name": "NCFTL"
+          },
+          {
+            "datatype": "string",
+            "name": "NCFTT"
+          },
+          {
+            "datatype": "string",
+            "name": "ENROB"
+          },
+          {
+            "datatype": "string",
+            "name": "UTXT1"
+          },
+          {
+            "datatype": "string",
+            "name": "UTXT2"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "TEACH-LRU-01",
+                "Single replaceable teaching component",
+                null,
+                300000,
+                "OPHOURS",
+                "LRU",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                1.0,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "Item"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "name": "DESCR"
+          },
+          {
+            "datatype": "double",
+            "name": "PRICE"
+          },
+          {
+            "datatype": "double",
+            "name": "FRT"
+          },
+          {
+            "datatype": "string",
+            "name": "OPID"
+          },
+          {
+            "datatype": "string",
+            "name": "TYPE"
+          },
+          {
+            "datatype": "double",
+            "name": "TLLEN"
+          },
+          {
+            "datatype": "string",
+            "name": "GIID"
+          },
+          {
+            "datatype": "double",
+            "name": "AFFRT"
+          },
+          {
+            "datatype": "double",
+            "name": "BCRF"
+          },
+          {
+            "datatype": "integer",
+            "name": "EXIST"
+          },
+          {
+            "datatype": "integer",
+            "name": "MINST"
+          },
+          {
+            "datatype": "integer",
+            "name": "MAXST"
+          },
+          {
+            "datatype": "string",
+            "name": "AREPL"
+          },
+          {
+            "datatype": "integer",
+            "name": "NSIMI"
+          },
+          {
+            "datatype": "string",
+            "name": "SGID"
+          },
+          {
+            "datatype": "double",
+            "name": "IPBRO"
+          },
+          {
+            "datatype": "double",
+            "name": "IPCFL"
+          },
+          {
+            "datatype": "double",
+            "name": "REOPF"
+          },
+          {
+            "datatype": "double",
+            "name": "BDVMR"
+          },
+          {
+            "datatype": "double",
+            "name": "CRIT"
+          },
+          {
+            "datatype": "string",
+            "name": "TRACK"
+          },
+          {
+            "datatype": "double",
+            "name": "WTLIM"
+          },
+          {
+            "datatype": "double",
+            "name": "NCFTL"
+          },
+          {
+            "datatype": "string",
+            "name": "NCFTT"
+          },
+          {
+            "datatype": "string",
+            "name": "ENROB"
+          },
+          {
+            "datatype": "string",
+            "name": "UTXT1"
+          },
+          {
+            "datatype": "string",
+            "name": "UTXT2"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "TEACH-LRU-01",
+                "Single replaceable teaching component",
+                null,
+                null,
+                "OPHOURS",
+                "LRU",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                1.0,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "Item"
+      }
+    },
+    "ItemStructure": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "MID"
+          },
+          {
+            "datatype": "integer",
+            "name": "QTYPM"
+          },
+          {
+            "datatype": "double",
+            "name": "ENVF"
+          },
+          {
+            "datatype": "double",
+            "name": "RRF"
+          },
+          {
+            "datatype": "double",
+            "name": "RUBM"
+          },
+          {
+            "datatype": "double",
+            "name": "NFFF"
+          },
+          {
+            "datatype": "double",
+            "name": "NFFT"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "TEACH-LRU-01",
+                "TEACH-AIR-01",
+                1,
+                1.0,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "ItemStructure"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "MID"
+          },
+          {
+            "datatype": "integer",
+            "name": "QTYPM"
+          },
+          {
+            "datatype": "double",
+            "name": "ENVF"
+          },
+          {
+            "datatype": "double",
+            "name": "RRF"
+          },
+          {
+            "datatype": "double",
+            "name": "RUBM"
+          },
+          {
+            "datatype": "double",
+            "name": "NFFF"
+          },
+          {
+            "datatype": "double",
+            "name": "NFFT"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": []
+          }
+        ],
+        "name": "ItemStructure"
+      }
+    },
+    "SystemRepair": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "SID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "STID"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPT"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPT"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPF"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPF"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPM"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPM"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPC"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPC"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPD"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPD"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "TEACH-AIR-01",
+                "BASE-01",
+                0.0,
+                0.5,
+                1.0,
+                1.0,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "SystemRepair"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "SID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "STID"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPT"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPT"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPF"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPF"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPM"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPM"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPC"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPC"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPD"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPD"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": []
+          }
+        ],
+        "name": "SystemRepair"
+      }
+    },
+    "ItemRepair": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "STID"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPT"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPT"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPF"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPF"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPM"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPM"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPC"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPC"
+          },
+          {
+            "datatype": "double",
+            "name": "UDPER"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPD"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPD"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "TEACH-LRU-01",
+                "BASE-01",
+                1.0,
+                0.0,
+                1.0,
+                1.0,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "ItemRepair"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "STID"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPT"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPT"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPF"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPF"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPM"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPM"
+          },
+          {
+            "datatype": "double",
+            "name": "DIRPC"
+          },
+          {
+            "datatype": "double",
+            "name": "SURPC"
+          },
+          {
+            "datatype": "double",
+            "name": "UDPER"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPTID"
+          },
+          {
+            "datatype": "string",
+            "name": "DIRPD"
+          },
+          {
+            "datatype": "string",
+            "name": "SURPD"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": []
+          }
+        ],
+        "name": "ItemRepair"
+      }
+    },
+    "StockAllocation": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "POINT"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "STID"
+          },
+          {
+            "datatype": "integer",
+            "name": "STSIZ"
+          },
+          {
+            "datatype": "integer",
+            "name": "ROSIZ"
+          },
+          {
+            "datatype": "integer",
+            "name": "AINST"
+          },
+          {
+            "datatype": "integer",
+            "name": "ISTOH"
+          },
+          {
+            "datatype": "string",
+            "name": "PLID"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "AIR_BASIC",
+                "TEACH-LRU-01",
+                "BASE-01",
+                1,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ],
+        "name": "StockAllocation"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "POINT"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "IID"
+          },
+          {
+            "datatype": "string",
+            "key": true,
+            "name": "STID"
+          },
+          {
+            "datatype": "integer",
+            "name": "STSIZ"
+          },
+          {
+            "datatype": "integer",
+            "name": "ROSIZ"
+          },
+          {
+            "datatype": "integer",
+            "name": "AINST"
+          },
+          {
+            "datatype": "integer",
+            "name": "ISTOH"
+          },
+          {
+            "datatype": "string",
+            "name": "PLID"
+          },
+          {
+            "datatype": "string",
+            "name": "NOTE"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": []
+          }
+        ],
+        "name": "StockAllocation"
+      }
+    }
+  },
+  "added_tables": {
+    "MaterielPosition": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "MPID"
+        },
+        {
+          "datatype": "string",
+          "name": "DESCR"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "POS-A",
+              "Left LRU position",
+              null
+            ],
+            [
+              "POS-B",
+              "Right LRU position",
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "MaterielPosition"
+    },
+    "MaterielStructure": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "MID"
+        },
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "MMID"
+        },
+        {
+          "datatype": "integer",
+          "name": "QTYPM"
+        },
+        {
+          "datatype": "double",
+          "name": "ENVF"
+        },
+        {
+          "datatype": "double",
+          "name": "RUBM"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "POS-A",
+              "TEACH-AIR-01",
+              1,
+              1.0,
+              null,
+              null
+            ],
+            [
+              "POS-B",
+              "TEACH-AIR-01",
+              1,
+              1.0,
+              null,
+              null
+            ],
+            [
+              "TEACH-LRU-01",
+              "POS-A",
+              1,
+              1.0,
+              null,
+              null
+            ],
+            [
+              "TEACH-LRU-01",
+              "POS-B",
+              1,
+              1.0,
+              null,
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "MaterielStructure"
+    },
+    "FailureMode": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "FMID"
+        },
+        {
+          "datatype": "string",
+          "name": "DESCR"
+        },
+        {
+          "datatype": "string",
+          "name": "MID"
+        },
+        {
+          "datatype": "double",
+          "name": "FRQ"
+        },
+        {
+          "datatype": "string",
+          "name": "OPID"
+        },
+        {
+          "datatype": "double",
+          "name": "CRITF"
+        },
+        {
+          "datatype": "double",
+          "name": "NCFTL"
+        },
+        {
+          "datatype": "string",
+          "name": "NCFTT"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "FM-POS-A",
+              "Position A direct repair",
+              "POS-A",
+              300000.0,
+              "OPHOURS",
+              1.0,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "FailureMode"
+    },
+    "CMLocation": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "FMID"
+        },
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "ID"
+        },
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "STID"
+        },
+        {
+          "datatype": "double",
+          "name": "CMT"
+        },
+        {
+          "datatype": "double",
+          "name": "CMM"
+        },
+        {
+          "datatype": "double",
+          "name": "CMC"
+        },
+        {
+          "datatype": "double",
+          "name": "CMF"
+        },
+        {
+          "datatype": "string",
+          "name": "TID"
+        },
+        {
+          "datatype": "string",
+          "name": "CMTD"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "FM-POS-A",
+              "TEACH-AIR-01",
+              "BASE-01",
+              0.5,
+              null,
+              null,
+              1.0,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "CMLocation"
+    }
+  },
+  "publication_state": "not_published"
+}
