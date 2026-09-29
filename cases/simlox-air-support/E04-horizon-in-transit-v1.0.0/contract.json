@@ -1,0 +1,61 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E04.var04",
+  "case_version": "1.0.0-candidate",
+  "variant": "upstream-spare-in-transit-at-simulation-end",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E04",
+    "version": "1.0.0",
+    "behavior_scope": "accepted FAST upstream one-spare route with two-hour down and up transit",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+    "signoff": "../E04-upstream-transport-fast-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 213, 218, 219, 220, 221, 327, 328, 363, 364, 444, 445, 446],
+    "source_boundary": "StationStructure.TFRMS is downward transportation time in hours. This candidate extends it beyond the 36-hour simulation end while keeping the accepted FAST demand and upward failed-item route. Native treatment of a shipment pending at the stop must be observed; prior short-SIMPE probes are not evidence for this unchanged-horizon configuration."
+  },
+  "native_input_sha256": "d2d95d45eccf05509ea1f9e35e90a47ef143750c353b1f3bb8791dd81a99b9ae",
+  "delta": {
+    "tables": ["ProblemDescription", "StationStructure"],
+    "mechanism": "Change only TFRMS from two to thirty hours on the sole FAST BASE-01→DEPOT-01 general support link. Retain TTOMS=2, base stock zero, depot stock one, one-hour depot repair, seed, missions and 36-hour horizon.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "depot": "DEPOT-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "base_nominal_stock": 0,
+    "depot_nominal_stock": 1,
+    "ordering_policy": "FAST",
+    "downward_transport_hours": 30,
+    "upward_transport_hours": 2,
+    "depot_item_direct_repair_hours": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "design_expected_if_native_accepts_unfinished_shipment": {
+    "basis": "The accepted parent's first failure was at hour 9.8829; these times are conditional arithmetic for the same failure and support routing, not a claim of native end-state semantics.",
+    "base_and_depot_demand_hour": 10,
+    "spare_downward_transport_hours": [10, 40],
+    "failed_item_upward_transport_hours": [10.1667, 12.1667],
+    "depot_item_repair_hours": [12.1667, 13.1667],
+    "simulation_stop_hour": 36,
+    "expected_unfinished_downward_transport_at_stop": true
+  },
+  "predeclared_native_acceptance": [
+    "Native import/export/calculation/report must have zero conversion errors and four successful CLI steps, with 21 row-containing source tables, including three all-null placeholders, roundtripped identically. If SIMLOX rejects this configuration, preserve the failed probe and do not publish the claimed behavior.",
+    "Confirm depot opening stock one, FAST demand from empty base at hour 10, base backorder and issue of the sole physical spare. Trace its actual downward transport start, declared 30-hour duration, and absence of arrival before the 36-hour simulation stop; do not infer an active shipment from a table total alone.",
+    "Trace the distinct failed installed item through REMOVE and two-hour upward transport, one-hour depot repair and its disposition. Reconstruct terminal item conservation across base stock, depot stock, installation, backorder and in-transit identities, explicitly distinguishing nominal stock from physical on-hand stock.",
+    "Reconcile all half-hour report intervals to the 36-hour horizon, the demand and backorder/wait measures, system failure and unfinished repair state, and actual outcomes of all three scheduled missions. If later missions are cancelled or unsatisfied, describe the native events rather than assuming the parent success pattern.",
+    "Seal source and native raw hashes under session-0 SSH, host-wide queue and GUI PID 13340 guard; require independent prelaunch review and read-only native replay before bounded publication."
+  ],
+  "limits": [
+    "This is a long fixed shipment that crosses the normal simulation end, not a short simulation period or a report-only clipped window.",
+    "This run does not establish shipment resumption after the horizon, alternative termination policies, FIFO, SLOW ordering, multiple transit batches or generic event priority.",
+    "Exact stochastic failure time is run-specific."
+  ]
+}
