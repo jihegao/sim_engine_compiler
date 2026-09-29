@@ -1,0 +1,7 @@
+# D03 calendar preventive maintenance, v1.0.0
+
+This bounded case derives from [accepted A02](../A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md). The same generic aircraft completes the three A02 missions and receives a one-hour calendar preventive maintenance task at its base. The [parent diff](parent-diff.json) shows the exact source changes: enable PM, extend simulation and both result windows to 60 hours, and add one 24-hour `CALHOURS` PM with one fixed one-hour subtask. There is no fault, stock transaction, resource demand, mission conflict, or stochastic PM duration.
+
+The [CLI scope sign-off](cli-scope-signoff-2026-09-30.md) accepts this fixed native behavior: PM at 24–25 hours and again at 49–50 hours, while A02's missions remain 8–10, 20–22 and 32–34. The second start is observed 24 hours after the first PM completes. This run alone does not establish a general scheduling rule for delayed, interrupted, or conflicting PM.
+
+Run `python build.py` to verify the frozen [input](native-input.json). The [SSH runner](run_native_ssh.ps1) requires session 0, the host-wide Issue #18 queue, the expected live GUI identity, and the SHA-locked source. Native outputs stay in ignored local `runs/`; the retained [author replay](review/author-native-validation-2026-09-30.json) and [independent review](review/independent-native-review-2026-09-30.json) can be inspected without rerunning SIMLOX.

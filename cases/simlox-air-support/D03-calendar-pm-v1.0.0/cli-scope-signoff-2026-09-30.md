@@ -1,0 +1,23 @@
+# D03 calendar PM: CLI scope sign-off (2026-09-30)
+
+**Decision:** `native_behavior_accepted_cli_scope`, `reusable_published` for one generic aircraft, three nonoverlapping missions, and a fixed one-hour preventive maintenance task triggered by a 24-hour calendar interval. This is a bounded native SIMLOX result, not an assertion about PM under mission conflict, resource shortages, item replacement, alternative operation parameters, or a third cycle beyond the 60-hour horizon.
+
+## Source and execution
+
+The accepted [A02 parent](../A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md) input SHA-256 is `84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8`. Frozen [D03 input](native-input.json) SHA-256 is `5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32`; the [parent diff](parent-diff.json) changes `Control.SIMPE/RCEND` and `ResultCollection.RCEND` from 36 to 60 hours, `Control.ENPM` from `N` to `Y`, and adds one row each to `Tasks`, `MaterielPM`, `PMLocation`, `SubTaskType`, and `TaskBreakDown`. `MaterielPM` uses `PMINT=24`, `OPID=CALHOURS`, `ATIM=DTIM=0`. The local `PMLocation` links a one-hour `INSPECT` subtask. The installed manual explains the relevant fields on pages 202–204, 370–375, 387–389 and 402–404; native timing is established by the run.
+
+The [contract](contract.json) SHA-256 is `3a231facf94971a619189e75c4e5d65a375e8f0eebb20da7db3a49426e7cfc92`. The first native pilot showed that A02's `ResultCollection` still ended at hour 36 and showed the second PM at hour 49. Before the accepted run, both result-window rows were extended to hour 60 and the contract recorded the pilot's observed second start. The pilot is not used as final report evidence.
+
+Accepted run `d03-calendar-v100-ssh-20261001-02` used session-0 SSH, the host-wide `Global\SimloxIssue18NativeQueue` mutex and the active GUI PID 13340 guard. Import, export, calculation, JSON report and roundtrip checker all exited zero. All 18 populated source tables roundtripped identically. Conversion had zero errors and two expected warnings: `#108` for event logging and `#126` for the intentionally item-free aircraft. Sealed invocation SHA-256 is `aee0b3e23739d82bdaef3597712ee7db09ca51060b0e781e3c61e61d50046b91`; closure SHA-256 is `9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8`. Raw native files remain in ignored local `runs/d03-calendar-v100-ssh-20261001-02/`.
+
+## Observed behavior and report
+
+The event log records a `CAL24` system PM task and its sole one-hour subtask starting at hour 24 and completing at 25; the aircraft leaves ready status during this task and returns ready at 25. The next `CAL24` task starts at hour 49 and completes at 50, again returning the aircraft ready. The second start is 24 hours after the first completion in this run. The log does not expose the scheduler's internal rule, so completion-based rescheduling is an inference rather than a general PM guarantee. Both tasks request no resources. Missions still start at 8, 20 and 32 hours and complete successfully at 10, 22 and 34, with no PM overlap, abort, or cancellation.
+
+Raw event-log SHA-256 is `edd41c34046fb92e53a3f5eb8569cec3a932aa00aed8e878ecc40ef45826a4a5`; raw JSON-report SHA-256 is `a9cc414e9b40da06be620e5fb64c52e0db41ec6fe959ac0874497d358232a84e`. The report spans 120 contiguous half-hour system intervals through hour 60. `NPMS` marks PM starts at 24 and 49; `NPMT` marks completions at 25 and 50. Integrated `NSYPM` is two aircraft-hours and `NSYMO` six aircraft-hours. There are no reported failures or repairs; the terminal interval has one ready aircraft and no active PM.
+
+## Review and limits
+
+The [author raw replay](review/author-native-validation-2026-09-30.json) passed 62 checks; its report SHA-256 is `aac80684c01bdc5c70de492ad0e11274fcb0337d2fe6f1b139e7807bbfdf88c3`, and its [validator](validate_native_cli.py) SHA-256 is `51e65d5a6e7bb14875405c9a6b2c64ca1d3975907a17e714a7fed39cadab1165`. The validator was added after native execution and performs read-only raw replay. A separate reviewer checked the revised source before the final native run, then independently replayed the sealed evidence. Its [19-check review](review/independent-native-review-2026-09-30.json) passed with no differences; review SHA-256 is `16bd06085c5db36ec65d07893e69fbc7f9c402890b2eff74950db035bacf382d`.
+
+This case does not prove how PM timing responds to an aircraft away on mission, task queueing, resource competition, interruption, `ENREG`, nonzero `ATIM/DTIM`, flight-hour or mission-count counters, or PM item replacement. The GUI identity and active session were guarded, but GUI visual content was not sampled.
