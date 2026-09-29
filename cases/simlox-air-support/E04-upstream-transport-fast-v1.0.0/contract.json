@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E04",
+  "case_version": "1.0.0-candidate",
+  "variant": "fast-upstream-stock-two-hour-downward-shipment",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E02",
+    "version": "1.0.0",
+    "behavior_scope": "accepted local stockout and backorder with explicit REMOVE and REPLACE",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "signoff": "../E02-zero-stock-local-backorder-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "supporting_prerequisite": {
+    "case_id": "A17",
+    "behavior_scope": "accepted explicit stations at separate bases",
+    "signoff": "../A17-multi-unit-group-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 213, 218, 219, 220, 221, 327, 328, 363, 364, 444, 445, 446],
+    "source_boundary": "A local stockout creates a backorder. General StationStructure links a supported station STID to mother MSTID. With FAST ordering, demand reaches the support station immediately; TFRMS is downward time from mother to child and TTOMS is upward time for a faulty item. A repaired item first serves any backorder at its station, otherwise enters local stock."
+  },
+  "native_input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+  "delta": {
+    "tables": ["ProblemDescription", "Station", "StationStructure", "ItemRepair", "StockAllocation"],
+    "mechanism": "Add DEPOT-01 as BASE-01's sole general upstream support station, FAST demand propagation, 2h downward and upward transport. Keep base stock zero, add one depot spare, and locate the inherited one-hour direct LRU repair at the depot so local repair cannot satisfy the shortage before the shipment.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "depot": "DEPOT-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "base_nominal_stock": 0,
+    "depot_nominal_stock": 1,
+    "ordering_policy": "FAST",
+    "downward_transport_hours": 2,
+    "upward_transport_hours": 2,
+    "depot_item_direct_repair_hours": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "predeclared_native_acceptance": [
+    "The frozen seed/configuration must produce at least one installed-LRU failure and local system SURP demand. Exact stochastic times come from native events.",
+    "The base starts with zero stock and demand creates a local backorder. Under FAST ordering, the depot issues its sole opening spare before the faulty item arrives there; downward transport of that physical spare lasts two hours.",
+    "Trace the upstream issue, in-transit item identity, arrival at BASE-01, backorder clearance, actual REPLACE fit and aircraft readiness. Separately trace REMOVE, upward faulty-item transport, depot arrival, one-hour direct ItemRepair and terminal depot stock. Reconcile both station inventories and all observed demands without duplicate issue.",
+    "Import/export must preserve every row-containing source table, including all-null placeholders; conversion errors must be zero, four native CLI steps must succeed, and sealed raw hashes must close.",
+    "Reconcile mission outcomes, failure/repair and backorder measures with 72 half-hour system and stock intervals, and terminal ready/stock/backorder/in-transit state. Trace any additional observed cycles rather than stopping at the first event.",
+    "Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340 and obtain independent prelaunch and read-only native replay."
+  ],
+  "limits": [
+    "This is one general support link, one upstream spare, FAST ordering and fixed two-hour transport in both directions. SLOW, upstream shortage, zero-time transport, end-horizon in-transit stock, lateral support, reorder, resource contention and PM remain unverified.",
+    "The general StationStructure link is tested here; item-specific overrides are outside scope.",
+    "Exact failure time is run-specific; the native event log, not the input seed alone, supplies timing evidence."
+  ]
+}

@@ -1,0 +1,5 @@
+# Independent prelaunch review
+
+The separate reviewer found one checker count blocker: `StationStructure` gains a row, so E04 has 21 row-containing source tables rather than E02's 20. The checker was corrected before native execution, and the reviewer confirmed the count, E04 schemas and parsing. No static blocker remained.
+
+The accepted E02 parent and A17 station prerequisite hashes and signoffs match the contract. The actual parent delta is exactly `ProblemDescription`, `Station`, `StationStructure`, `ItemRepair` and `StockAllocation`, with all other tables inherited. The general BASE-01→DEPOT-01 link has valid references, `DFRAC=1`, `OPOL=FAST`, `TFRMS=2` downward and `TTOMS=2` upward. Stock starts at base zero and depot one; ItemRepair moves to the depot with its inherited one-hour duration. The installed manual supports these field meanings and the backorder route. The runner retains session-0 SSH, the host-wide mutex and GUI PID 13340 guards. The reviewer made no edits or native calls. Actual issue, transit and repair timing remained native acceptance questions.
