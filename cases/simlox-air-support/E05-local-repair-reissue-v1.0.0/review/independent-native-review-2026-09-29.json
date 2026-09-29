@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-e05-independent-native-review/v1",
+  "review_mode": "independent read-only replay of frozen source and sealed native raw evidence",
+  "reviewer": "separate review agent; no file edits and no SIMLOX invocation",
+  "run_id": "e05-v100-ssh-20260929-01",
+  "passed": true,
+  "differences": [],
+  "raw_report_sha256": "fcf9a124546e77fb96871b5bf4b5e111774c00616bfed69c19ad7f1b6c08b4bf",
+  "checks": {
+    "frozen_sources_closure_and_gui_guard": "passed",
+    "four_steps_roundtrip_and_zero_conversion_errors": "passed",
+    "three_failure_demand_issue_repair_restock_chains": "passed",
+    "second_and_third_demands_issue_previously_repaired_items": "passed",
+    "72_intervals_three_failures_repairs_demands_no_backorders_terminal_ready": "passed"
+  },
+  "observed": {
+    "critical_lru_failure_hours": [9.25527, 21.9597, 33.3079],
+    "demand_issue_hours": [9.75527, 22, 33.8079],
+    "issued_item_instance_ids": [0, 1, 2],
+    "removed_item_instance_ids": [1, 2, 3],
+    "remove_completion_hours": [9.92193, 22.1667, 33.9746],
+    "system_ready_hours": [10.2553, 22.5, 34.3079],
+    "removed_item_restock_hours": [10.9219, 23.1667, 34.9746],
+    "stock_level_cycle": "1→0→1 repeated three times",
+    "mission_success_fraction": 0
+  },
+  "limits": [
+    "The native event log rounds fractional-hour timestamps.",
+    "Item identity and exact stock changes come from the event log, while the JSON report contains aggregate half-hour intervals.",
+    "The runner verifies GUI process identity and active session; GUI visual content was not sampled."
+  ]
+}
