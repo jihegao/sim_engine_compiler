@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-e04-zero-independent-native-review/v1",
+  "review_mode": "independent read-only replay of frozen source and sealed native raw evidence",
+  "reviewer": "separate review agent; no file edits and no SIMLOX invocation",
+  "run_id": "e04-zero-v100-ssh-20260930-01",
+  "passed": true,
+  "differences": [],
+  "raw_report_sha256": "34f3021801b2e6794e9938eb91dcb5f463750510938472a405c6db57f7d63ba1",
+  "accepted_fast_parent_report_sha256": "3284c19ccce1237ca651cd50c6c0fb3320e9ed914a77f61c75cb4830e624c376",
+  "checks": {
+    "frozen_sources_closure_and_gui_guard": "passed",
+    "four_steps_roundtrip_and_zero_conversion_errors": "passed",
+    "FAST_depot_issue_and_zero_time_actual_transport_tasks": "passed",
+    "transient_base_backorder_clearance_fit_and_readiness": "passed",
+    "faulty_item_upward_shipment_depot_repair_and_restock": "passed",
+    "72_intervals_one_failure_repair_demand_and_terminal_state": "passed",
+    "author_75_check_post_run_read_only_replay": "passed"
+  },
+  "observed": {
+    "critical_lru_failure_hour": 9.8829,
+    "base_demand_and_transient_backorder_hour": 10,
+    "depot_demand_and_issue_hour": 10,
+    "issued_spare_instance_id": 0,
+    "downward_transport_hours": [10, 10],
+    "removed_faulty_instance_id": 1,
+    "upward_transport_hours": [10.1667, 10.1667],
+    "base_backorder_clearance_hour": 10,
+    "base_backorder_wait_hours": 0,
+    "physical_fit_hours": [10.1667, 10.5],
+    "system_ready_hour": 10.5,
+    "depot_item_repair_hours": [10.1667, 11.1667],
+    "depot_restock_instance_id": 1,
+    "terminal_base_stock": 0,
+    "terminal_depot_stock": 1,
+    "terminal_backorders": 0,
+    "terminal_ready_aircraft": 1,
+    "mission_success_fraction_approx": 0.666667,
+    "system_availability_gain_vs_two_hour_fast_hours": 1.833333
+  },
+  "limits": [
+    "The event log adds and removes one base backorder at hour 10; report NBO=0 is zero-duration occupancy, not absence of a backorder event.",
+    "This run does not establish a general same-time event priority rule.",
+    "StockTotalResults is aggregate; station-specific stock identities and absence of an active terminal shipment come from the complete event log.",
+    "The native event log rounds fractional-hour timestamps.",
+    "The runner verifies GUI process identity and active session; GUI visual content was not sampled.",
+    "The author validator was added after the native run and is a read-only replay, not an invocation-hashed prelaunch source."
+  ]
+}
