@@ -1,0 +1,25 @@
+{
+  "case_id": "D05",
+  "version": "1.0.0-candidate",
+  "parent_case": "D03@1.0.0",
+  "parent_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "input_sha256": "4443d057ade36010a84186aa0f9ac8279886563db190ed80699b7fe48ad2baad",
+  "scope": "two aircraft, one maintenance worker, one five-hour direct system repair and calendar PM",
+  "source_precedents": ["D01@1.0.0/system-direct-repair", "C03@1.0.2/staffing-1"],
+  "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "manual_pages": [190, 191, 211, 212, 213, 217, 218, 370, 371, 372, 373, 374],
+  "delta": [
+    "two aircraft and MAXPM 2",
+    "one shared P-MAINT worker requested by both CM-DIRECT and PM-CAL24 subtasks",
+    "direct system failure rate 1000000 per million operation hours with five-hour fixed repair",
+    "zero failure multiplier on first and third missions, unit multiplier on second mission",
+    "three-hour second mission and noncritical CAL24 PM via DTIM 0.5",
+    "36-hour simulation and result windows"
+  ],
+  "hypotheses_to_probe": [
+    "one second-wave mission fails while the other aircraft remains available",
+    "fault repair and PM contend for the single P-MAINT worker",
+    "resource events show one worker acquired and released per active subtask"
+  ],
+  "publication_state": "not_published"
+}
