@@ -1,9 +1,9 @@
 # B01 1.0.1: fixed preparation on the A01 normal path
 
-The [2026-09-29 source-bound review](evidence-2026-09-29.md) accepts and
-publishes this fixed-profile version within its stated limits. The original
-CLI run manifest retains its at-execution candidate status; the later dated
-review records the release decision. B01 1.0.0 remains unpublished.
+The [2026-09-29 source-bound review](evidence-2026-09-29.md) records a first
+native run and a later PR review correction. The release decision is suspended
+until a fresh run and independent replay use the corrected invocation closure
+and global preparation-event checks. B01 1.0.0 remains unpublished.
 
 This version derives from the SHA-256-pinned A01 native input. It keeps A01's
 `TEACH-AIR-01`, `TEACH-UNIT`, `BASIC-MISSION`, `BASIC-SCHEDULE`, one-hour notice,
