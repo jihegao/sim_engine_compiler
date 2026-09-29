@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E04.var03",
+  "case_version": "1.0.0-candidate",
+  "variant": "zero-time-upstream-and-return-transport",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E04",
+    "version": "1.0.0",
+    "behavior_scope": "accepted FAST one-spare upstream route with fixed two-hour down and up transport",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+    "signoff": "../E04-upstream-transport-fast-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 213, 218, 219, 220, 221, 327, 328, 363, 364, 444, 445, 446],
+    "source_boundary": "StationStructure.TFRMS is downward transit time; TTOMS is upward transit time. This candidate sets both to zero to test whether the native engine accepts an instantaneous support link and how the events, inventory, system replacement and half-hour measures reconcile. The manual field description gives floating-point hours; zero-time native behavior must be observed, not inferred from the description."
+  },
+  "native_input_sha256": "93fc0451c7d0ddfc8f161cee3d179ba7081941c1d37cbfb667f1b74887367199",
+  "delta": {
+    "tables": ["ProblemDescription", "StationStructure"],
+    "mechanism": "Change only TFRMS and TTOMS from two hours to zero on the sole FAST general support link, retaining all inventory, repair, seed and mission settings.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "depot": "DEPOT-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "base_nominal_stock": 0,
+    "depot_nominal_stock": 1,
+    "ordering_policy": "FAST",
+    "downward_transport_hours": 0,
+    "upward_transport_hours": 0,
+    "depot_item_direct_repair_hours": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "predeclared_native_acceptance": [
+    "Import/export and calculation must accept zero TFRMS/TTOMS without conversion errors; four native CLI steps must succeed and preserve 21 row-containing tables including three all-null placeholders. A rejected zero duration is a retained capability result, not a published case.",
+    "The first local stockout demand must reach the depot under FAST ordering and issue exactly one distinct spare from upstream stock. Both actual transport tasks must have zero travel time; trace task start/arrival and physical item identity at both stations, even if the engine emits them at one timestamp.",
+    "The base backorder must clear when the spare arrives, with no negative or duplicate stock issue. Explicit REMOVE must precede removed-LRU ItemRepair; zero-time upward transport must deliver the same faulty item to depot. Physical REPLACE fit must occur only after a spare is available and the 10-minute removal is complete.",
+    "Trace depot repair and restock of the removed LRU, all later mission outcomes, terminal station stocks/backorder/transit and aircraft readiness. Compare event times and availability/backorder intervals to the accepted two-hour FAST control without inferring general same-time event priority.",
+    "Reconcile 72 half-hour system and stock intervals, conversion log and sealed raw hashes. Obtain independent prelaunch review and read-only raw replay under session-0 SSH, host-wide queue and GUI PID 13340 guard."
+  ],
+  "limits": [
+    "This is the zero-time side of E04.var03 against a two-hour FAST control. It does not establish generic event priority, SLOW ordering with zero transport, upstream shortage, horizon-end in-transit stock, lateral support, reorder, resource contention or PM.",
+    "Exact stochastic failure time is run-specific; native events supply timing evidence."
+  ]
+}

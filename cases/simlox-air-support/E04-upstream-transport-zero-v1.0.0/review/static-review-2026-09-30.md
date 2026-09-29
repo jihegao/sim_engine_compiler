@@ -1,0 +1,5 @@
+# Independent prelaunch review
+
+The separate reviewer verified the frozen input SHA-256 `93fc0451c7d0ddfc8f161cee3d179ba7081941c1d37cbfb667f1b74887367199`, accepted FAST parent SHA-256 `2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1`, and exact parent delta. Only `ProblemDescription` and `StationStructure` change; the latter sets both `TFRMS` and `TTOMS` from two hours to zero on the sole FAST base/depot link. Inventory, repair, random seed and missions remain inherited. The source-bound checker expects 21 row-containing tables, including three all-null placeholders. The native runner retains session-0 SSH, the host-wide mutex and GUI PID 13340 guard. No static blocker remained.
+
+The installed manual identifies `TFRMS` as downward and `TTOMS` as upward transport time in floating-point hours, but does not independently establish native acceptance of zero values. Native import, actual transport tasks and measured results were therefore acceptance questions. The reviewer made no edits or native calls before launch.
