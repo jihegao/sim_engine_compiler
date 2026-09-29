@@ -1,0 +1,28 @@
+{
+  "schema": "simlox-c04-observable-contract/v1",
+  "case_id": "C04",
+  "version": "1.0.0",
+  "status": "reviewed_after_discovery_before_final_runs",
+  "pre_native_contract_sha256": "a24c20e30984c3acb311acfb9a1093afe42c341059619005a463718c0d506157",
+  "accepted_variant_ids": ["crew-before", "crew-equal", "crew-after", "aircraft-missing", "crew-zero"],
+  "nonpublished_probe_ids": ["horizon-wait"],
+  "parent_case": "C03@1.0.2",
+  "source_method_id": "M-C04",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pdf_pages": [[180, 187], [266, 275], [294, 296], [397, 414], [553, 567], [629, 631]],
+  "business_rule": "For this fixed mission, OperationProfile.STIM=8 h and DTIM is the permitted launch delay. The declared latest launch is STIM+DTIM. MissionType.NOPER=0.5 h orders the mission at 7.5 h. Each of two required aircraft needs one 0.5 h INSPECT preparation using one P-CREW. The manual describes an earlier latest preparation start based on remaining preparation time. Native same-time ordering and cause labels require observation.",
+  "common_identity": {"aircraft_type": "TEACH-AIR-01", "unit": "TEACH-UNIT", "mission_type": "BASIC-MISSION", "station": "BASE-01", "task": "PREP-FIXED", "resource": "P-CREW", "allocation_point": "AIR_BASIC"},
+  "fixed_inputs": {"planned_launch_hour": 8.0, "notice_hour": 7.5, "required_aircraft": 2, "preparation_hours_per_aircraft": 0.5, "crew_demand_per_aircraft": 1, "result_interval_hours": 0.5, "random_seed": 1, "repetitions": 1},
+  "allowed_native_warnings": {"108": "Control.ENLOG=Y records first repetition", "126": "teaching aircraft has no Item children"},
+  "variants": {
+    "crew-before": {"parent_variant": "staffing-1", "parent_input_sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789", "input_sha256": "de94d53eccade61af067deadea3becdcd17042a7713bbec1b704480c0e39ff31", "parent_diff_sha256": "cf0f1552545b2a0e202bfc475ed88c1dc19301403ff8a67f046c81219e6ed1e8", "cutoff_hour": 8.51, "predicted": {"aircraft_0_work": [7.5, 8.0], "aircraft_1_work": [8.0, 8.5], "launch_hour": 8.5, "cancel_hour": null, "crew_person_minutes": 60, "end_crew_busy": 0, "end_aircraft_ready": 2}},
+    "crew-equal": {"parent_variant": "staffing-1", "parent_input_sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789", "input_sha256": "479869631af3a3fa22a34bcecf2458431d132980b799786e22bae00b9500a658", "parent_diff_sha256": "783b8af6e9ee7a132869fe94b44d7ab6508dad7f3a29d8d730f3d48bd7e9e61e", "cutoff_hour": 8.5, "predicted": {"aircraft_0_work": [7.5, 8.0], "aircraft_1_work": [8.0, 8.5], "launch_or_cancel_at": 8.5, "same_time_order": "native_observation_required", "end_crew_busy": 0, "end_aircraft_ready": 2}, "observed_fixed_profile": {"launch_hour": 8.5, "cancel_hour": null, "same_time_evidence": "second preparation ends and crew releases before mission starting log row"}},
+    "crew-after": {"parent_variant": "staffing-1", "parent_input_sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789", "input_sha256": "e33e112fead5400f9c6bca4de9375d655a2513c1e301e34778c7c8dc3f6dc2cb", "parent_diff_sha256": "82decd2be89c4ababf7ba6e638ada338f276f3b207bb1c756d03d70fc7a3e2bc", "cutoff_hour": 8.49, "predicted": {"aircraft_0_work": [7.5, 8.0], "aircraft_1_work_scheduled": [8.0, 8.5], "launch_hour": null, "cancel_hour": 8.49, "partial_preparation_cleanup": true, "end_crew_busy": 0, "end_aircraft_ready": 2}},
+    "aircraft-missing": {"parent_variant": "staffing-2", "parent_input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0", "input_sha256": "d5c35ee2ecaa6eaa93272bdabcef13049185d5703d1724c92e07cd607f246690", "parent_diff_sha256": "51b9872427b72557f43e384fe3ed390d8e9d94e0c155d0fb912c0196476dc632", "cutoff_hour": 8.5, "predicted": {"aircraft_supply": 1, "crew_supply": 2, "one_aircraft_work": [7.5, 8.0], "second_aircraft_request_unfulfilled": true, "launch_hour": null, "cancel_no_later_than_hour": 8.5, "end_crew_busy": 0, "end_aircraft_ready": 1}},
+    "crew-zero": {"parent_variant": "staffing-0", "parent_input_sha256": "50682827a363aeb2cb35f860f78671fffd1ea48fbea655ce664eb2c1e2b19267", "input_sha256": "39f8907d5ef7d0dd23c483f6172aa544cc92676dba31e85bb7e98a9c25366644", "parent_diff_sha256": "c13812a5e04883b48649f7407dfabdae020b928e6d26e4a905c0f33aab80466a", "cutoff_hour": 8.5, "predicted": {"aircraft_supply": 2, "crew_supply": 0, "requests": 2, "leases": 0, "work": 0, "launch_hour": null, "cancel_no_later_than_hour": 8.5, "end_crew_busy": 0, "end_aircraft_ready": 2}},
+    "horizon-wait": {"parent_variant": "staffing-0", "parent_input_sha256": "50682827a363aeb2cb35f860f78671fffd1ea48fbea655ce664eb2c1e2b19267", "input_sha256": "1c8853a61244da9376997928a8b5f4c7ee7c6fbc808087f8adc7bb9fc495f166", "parent_diff_sha256": "a9ac61941e21b09c0759d2eeef40ed82bc0129b4da4c5cecccb07e402704c673", "cutoff_hour": 9.0, "predicted": {"horizon_hour": 8.0, "requests": 2, "leases": 0, "work": 0, "cancel_hour": null, "launch_hour": null, "end_crew_busy": 0, "end_waiters": 2}, "probe_status": "native_input_rejected_errors_107_204_no_sxo"}
+  },
+  "acceptance_scope": "Only observed fixed-profile CLI mission/aircraft/resource timelines and cancellation cleanup, with precise source diffs and native report intervals.",
+  "excluded_claims": ["A mission-cancelled log row contains no causal code; resource and aircraft shortages are diagnosed from distinct source and event rows.", "Same-time log order is not a universal scheduler tie-break rule.", "No GUI-only, cross-engine, randomized, substitute-resource or broader cancellation semantics are claimed."],
+  "publication_state": "not_published"
+}
