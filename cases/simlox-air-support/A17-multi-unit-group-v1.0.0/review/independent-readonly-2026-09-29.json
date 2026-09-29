@@ -1,0 +1,80 @@
+{
+  "schema": "simlox-a17-v100-independent-readonly/v1",
+  "review_date": "2026-09-29",
+  "run_id": "a17-v100-ssh-20260929-01",
+  "passed": true,
+  "differences": [],
+  "evidence": {
+    "parent_input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "child_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+    "invocation_sha256": "286177cf998911c3e3519fa5c2a868ad73a479556204fdeb754dd94c1987ee6c",
+    "closure_sha256": "f1885aa1c21bf2260d1d7671e762d18451d91a0fc0398cf45309574d16c2f76b",
+    "report_sha256": "fcd289233082398dfa8531475719a6b068dadc841486d050ec71f6815356a8f4",
+    "model_log_sha256": "ae6c8430c26490c16e98f7ea66a0137ea7bcd1e309c1f2ba46a44940a0e7f33e",
+    "changed_tables": [
+      "Operations",
+      "ProblemDescription",
+      "Station",
+      "SystemDeployment",
+      "Unit",
+      "UnitGroup",
+      "UnitGroupMember"
+    ],
+    "populated_business_tables": [
+      "Control",
+      "MissionType",
+      "OperationProfile",
+      "Operations",
+      "ProblemDescription",
+      "ResultCollection",
+      "Station",
+      "System",
+      "SystemDeployment",
+      "Unit",
+      "UnitGroup",
+      "UnitGroupMember"
+    ],
+    "row_containing_tables": [
+      "Control",
+      "ControlParameters",
+      "GlobalParameters",
+      "MissionType",
+      "OperationParameter",
+      "OperationProfile",
+      "Operations",
+      "ProblemDescription",
+      "ResultCollection",
+      "Station",
+      "System",
+      "SystemDeployment",
+      "Unit",
+      "UnitGroup",
+      "UnitGroupMember"
+    ],
+    "native_warning_codes": [
+      "108",
+      "126"
+    ],
+    "mission_instances": 1,
+    "aircraft_ids": [
+      "<TEACH-AIR-01,0>",
+      "<TEACH-AIR-01,1>"
+    ],
+    "selected_units": [
+      "TEACH-UNIT",
+      "TEACH-UNIT-2"
+    ],
+    "sorties": 2,
+    "system_result_intervals": 72,
+    "flight_aircraft_hours": 4.0,
+    "terminal_aircraft_ready": 2
+  },
+  "scope": "independent_cli_behavior_review",
+  "publication_state": "not_published",
+  "limitations": [
+    "Two sorties are established by the single launch/completion event carrying two distinct aircraft; the exported report contains aggregate SystemResults, not per-unit sortie rows.",
+    "GUI preservation is based on sealed runner step checks and process identity; raw evidence does not prove GUI calculation or window content.",
+    "The raw invocation records session-0 SSH and GUI identity; active-session and mutex ownership were enforced by the bound runner, not independently observable from the sealed files.",
+    "Warnings 108 (simulation logging) and 126 (system without items) are explained by the model. No priority choice, XTIME effect, transfer, implicit unit, GUI-only behavior, or cross-engine equivalence is accepted."
+  ]
+}
