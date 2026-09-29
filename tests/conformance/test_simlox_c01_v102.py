@@ -83,6 +83,11 @@ class C01VersionedTests(unittest.TestCase):
                      log.replace("<P-CREW at", "<P-OTHER at"),
                      log.replace("Time: 7.16667 subtask 1", "Time: 7 subtask 1"),
                      log.replace("0.333333 hours", "0.75 hours")]
+        lines = log.splitlines()
+        acquire = next(i for i, row in enumerate(lines) if " allocated to maintenance task:" in row)
+        work = next(i for i, row in enumerate(lines) if " starts performing, planned to last for 0.166667" in row)
+        lines[acquire], lines[work] = lines[work], lines[acquire]
+        mutations.append("\n".join(lines))
         for changed in mutations:
             with self.subTest(change=changed[-100:]):
                 self.assertTrue(VALIDATE.check_events(changed, "capacity-2")[0])

@@ -136,6 +136,22 @@ def audit_events(log: str, variant: str) -> tuple[list[str], dict]:
         expect("preparation end", " preparation ended,", [7.5])
         if "allocated to maintenance task: 2  available now: 0" not in log or "deallocated from  maintenance task: 2  available now: 2" not in log:
             errors.append("two-unit lease ledger differs")
+        first = "subtask 0 seqno 1 within system preparation task 0 on <TEACH-AIR-01,0>"
+        second = "subtask 1 seqno 2 within system preparation task 0 on <TEACH-AIR-01,0>"
+        crew = "<P-CREW at <BASE-01,0>>"
+        order = [
+            first + " books resources",
+            crew + " allocated to maintenance task: 2  available now: 0",
+            first + " starts performing, planned to last for 0.166667 hours",
+            first + " completed",
+            first + " frees resources",
+            crew + " deallocated from  maintenance task: 2  available now: 2",
+            second + " starts performing, planned to last for 0.333333 hours",
+        ]
+        positions = [[event[0] for event in events if event[2] == label] for label in order]
+        if any(len(group) != 1 for group in positions) or any(
+                left[0] >= right[0] for left, right in zip(positions, positions[1:])):
+            errors.append(f"crew acquisition/work/release order differs: {positions}")
         return errors, {"cancellation_hour": None, "lease_person_minutes": 20}
     if request_line + "failed" not in log or any(" books resources" in e[2] for e in events):
         errors.append("blocked request or booking differs")

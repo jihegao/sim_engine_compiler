@@ -90,6 +90,19 @@ def check_events(raw: str, variant_id: str) -> tuple[list[str], dict]:
               [(7, resource + " allocated to maintenance task: 2  available now: 0")])
         exact("release", selected("deallocated from  maintenance task:"),
               [(7 + 10 / 60, resource + " deallocated from  maintenance task: 2  available now: 2")])
+        sequence = [
+            first + " books resources",
+            resource + " allocated to maintenance task: 2  available now: 0",
+            first + " starts performing, planned to last for 0.166667 hours",
+            first + " completed",
+            first + " frees resources",
+            resource + " deallocated from  maintenance task: 2  available now: 2",
+            second + " starts performing, planned to last for 0.333333 hours",
+        ]
+        positions = [[row["line"] for row in events if row["body"] == body] for body in sequence]
+        if any(len(group) != 1 for group in positions) or any(
+                a[0] >= b[0] for a, b in zip(positions, positions[1:])):
+            errors.append(f"crew acquisition/work/release order differs: {positions}")
         wanted_steps = [
             (7, first + " started"), (7, first + " requests resources"),
             (7, first + " resource availability test"), (7, first + " books resources"),
