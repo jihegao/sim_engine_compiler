@@ -1,0 +1,83 @@
+{
+  "schema": "simlox-air-support-negative-case-contract/v1",
+  "case_id": "D02",
+  "variant_id": "D02.var06",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D01",
+    "version": "1.0.0-installed-lru",
+    "input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+    "signoff": "../D01-installed-lru-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "dictionary_rows": [
+      "Item.OPID",
+      "ItemFailureRate.OPID",
+      "FailureMode.OPID"
+    ],
+    "source_boundary": "Installed dictionary lists OPHOURS or a defined OperationParameter for traditional Item/ItemFailureRate OPID. CALHOURS and MISSIONS are predefined parameters; the FailureMode CALHOURS branch is separately accepted in D02.var02. Native input conversion decides whether the proposed traditional values are accepted."
+  },
+  "native_input_sha256": {
+    "item-calhours": "e6287abc8e3292aeef8ac2b2ff30daecddcb998eb2659c4741690e70b9879239",
+    "item-missions": "99b3daaa36febae511e195c71f739dd34b23182f7c8e49f6db47b433b35c5dbc",
+    "rate-ophours": "b76dd77056378ca06c0134ddd363816d9c9ac211e4f36181fb597eca0e9b4797",
+    "rate-calhours": "70ba834f4fb2c6bd2ba4558e1c499024652b533f297951e53445585925b9e713",
+    "rate-missions": "0fb2b7dd2761fe051d5ebc3c2c2cfdd957142c4f60db7c027efaa10a7c289262"
+  },
+  "delta": {
+    "parent_tables": [
+      "ProblemDescription",
+      "Item",
+      "ItemFailureRate"
+    ],
+    "mechanism": "Two Item.OPID negative candidates and two ItemFailureRate.OPID negative candidates, plus a rate-ophours structural positive control. Other accepted D01 configuration is fixed."
+  },
+  "variants": {
+    "item-calhours": {
+      "table": "Item",
+      "field": "OPID",
+      "value": "CALHOURS",
+      "hypothesis": "native conversion rejects"
+    },
+    "item-missions": {
+      "table": "Item",
+      "field": "OPID",
+      "value": "MISSIONS",
+      "hypothesis": "native conversion rejects"
+    },
+    "rate-ophours": {
+      "table": "ItemFailureRate",
+      "field": "OPID",
+      "value": "OPHOURS",
+      "hypothesis": "native conversion and simulation accept structural positive control"
+    },
+    "rate-calhours": {
+      "table": "ItemFailureRate",
+      "field": "OPID",
+      "value": "CALHOURS",
+      "hypothesis": "native conversion rejects"
+    },
+    "rate-missions": {
+      "table": "ItemFailureRate",
+      "field": "OPID",
+      "value": "MISSIONS",
+      "hypothesis": "native conversion rejects"
+    }
+  },
+  "predeclared_native_acceptance": [
+    "Each variant runs through the guarded session-0 SSH CLI runner with the host-wide mutex and GUI PID 13340 identity guard; source and raw bytes are sealed even for expected nonzero outcomes.",
+    "The OPHOURS ItemFailureRate control must import, export, convert and simulate with zero conversion errors, distinguishing a valid table from unsupported clock values.",
+    "For each negative candidate, a source-bound native conversion error must identify the disallowed OPID or relevant table field. An import failure alone is acceptable only if the native diagnostic directly identifies the invalid OPID.",
+    "Record exact native exit codes, diagnostics, raw output size and any truncation; do not label an error as unsupported without a relevant diagnostic.",
+    "Independent reviewer replays all five variants and distinguishes published negative capability from inconclusive probes."
+  ],
+  "limits": [
+    "Negative conversion evidence is version-specific to installed SIMLOX executable SHA fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0.",
+    "The OPHOURS rate control may override the base Item.FRT; its stochastic outcome is not used as a general reliability claim.",
+    "No alternative custom OperationParameter identifiers, GUI visual content or cross-engine equivalence are tested."
+  ]
+}
