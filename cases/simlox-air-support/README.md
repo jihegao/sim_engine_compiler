@@ -8,6 +8,8 @@ The [staged execution plan](execution-plan-v2.md) assigns local parallel develop
 
 The [published B02 1.0.2 serial-preparation case](B02-serial-preparation-v1.0.2/README.md) derives from accepted B01 1.0.1 and has a separate source-bound native run, exact parent diff and independent raw replay. The older B02 1.0.1 batch candidate remains historical and is not its parent.
 
+The [published B03 1.0.2 explicit cold/hot preparation case](B03-explicit-cold-hot-v1.0.2/README.md) derives directly from B02 1.0.2 and uses A02's signed repeated-wave scope. Its [native evidence](B03-explicit-cold-hot-v1.0.2/evidence-2026-09-29.md) and independent replay accept only the explicit `COLD-FIRST`/`HOT-SORTIE` mission-type recipes on one aircraft; automatic sortie-history switching remains unverified.
+
 The [C01 1.0.2 personnel-capacity case](C01-personnel-capacity-v1.0.2/README.md) derives from published B02 1.0.2. Four source-bound CLI runs independently confirm a two-person crew lease, insufficient capacity, zero capacity and wrong specialty. Its [evidence report](C01-personnel-capacity-v1.0.2/evidence-2026-09-29.md) bounds the publication decision.
 
 The [C02 1.0.2 joint-resource case](C02-joint-resources-v1.0.2/README.md) derives from accepted C01 capacity two. Four source-bound CLI runs compare joint P-CREW/E-GSE acquisition in one-step and two-step preparation, with equipment-zero controls. Its [evidence report](C02-joint-resources-v1.0.2/evidence-2026-09-29.md) records the exact source and raw hashes.
