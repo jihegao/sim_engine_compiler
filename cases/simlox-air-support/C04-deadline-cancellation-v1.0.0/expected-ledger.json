@@ -1,0 +1,16 @@
+{
+  "schema": "simlox-c04-pre-native-ledger/v1",
+  "frozen_before_native_runs": true,
+  "time_unit": "hours from simulation start",
+  "source_rows": ["Control.SIMPE", "Control.RCINT", "SystemDeployment.QTYPS", "MissionType.NOS", "MissionType.MNOS", "MissionType.NOPER", "MissionPreparation.DURN", "TaskBreakDown.DURN", "SubTaskResource.QTY", "ResourceAllocation.RQTY", "OperationProfile.STIM", "OperationProfile.DTIM"],
+  "common": {"notice": 7.5, "planned_start": 8.0, "aircraft_required": 2, "preparation_each": 0.5, "crew_each": 1, "mission_duration": 1.0, "end_resource_lease_count": 0},
+  "variants": {
+    "crew-before": {"cutoff": 8.51, "aircraft_0": {"request": 7.5, "wait": [7.5, 7.5], "lease": [7.5, 8.0], "work": [7.5, 8.0]}, "aircraft_1": {"request": 7.5, "wait": [7.5, 8.0], "lease": [8.0, 8.5], "work": [8.0, 8.5]}, "mission": {"launch": 8.5, "success": 9.5, "cancel": null}, "resource_occupancy": [[7.5, 8.0, 1, 1], [8.0, 8.5, 1, 0]], "end_aircraft_ready": 2},
+    "crew-equal": {"cutoff": 8.5, "aircraft_0": {"request": 7.5, "lease": [7.5, 8.0], "work": [7.5, 8.0]}, "aircraft_1": {"request": 7.5, "wait": [7.5, 8.0], "lease": [8.0, 8.5], "work": [8.0, 8.5]}, "mission": {"launch_or_cancel": 8.5, "ordering": "native_observation_required"}, "resource_occupancy": [[7.5, 8.0, 1, 1], [8.0, 8.5, 1, 0]], "end_aircraft_ready": 2},
+    "crew-after": {"cutoff": 8.49, "aircraft_0": {"request": 7.5, "lease": [7.5, 8.0], "work": [7.5, 8.0]}, "aircraft_1": {"request": 7.5, "wait": [7.5, 8.0], "lease": [8.0, 8.49], "partial_work": [8.0, 8.49], "planned_work_end_without_cancel": 8.5}, "mission": {"launch": null, "cancel": 8.49}, "resource_occupancy": [[7.5, 8.0, 1, 1], [8.0, 8.49, 1, 0], [8.49, 8.5, 0, 0]], "end_aircraft_ready": 2},
+    "aircraft-missing": {"cutoff": 8.5, "aircraft_supply": 1, "crew_supply": 2, "aircraft_0": {"request_expected_if_allocated": 7.5, "work_expected_if_allocated": [7.5, 8.0]}, "aircraft_1": {"absent": true}, "mission": {"launch": null, "cancel_by": 8.5}, "resource_occupancy_upper_bound": 1, "end_aircraft_ready": 1},
+    "crew-zero": {"cutoff": 8.5, "latest_preparation_start_estimate": 8.0, "aircraft_0": {"request": 7.5, "wait": [7.5, 8.0], "lease": null, "work": null}, "aircraft_1": {"request": 7.5, "wait": [7.5, 8.0], "lease": null, "work": null}, "mission": {"launch": null, "cancel_by": 8.5}, "resource_occupancy": [[7.5, 8.0, 0, 2]], "end_aircraft_ready": 2},
+    "horizon-wait": {"cutoff": 9.0, "horizon": 8.0, "aircraft_0": {"request": 7.5, "wait": [7.5, 8.0], "lease": null, "work": null}, "aircraft_1": {"request": 7.5, "wait": [7.5, 8.0], "lease": null, "work": null}, "mission": {"launch": null, "cancel_before_horizon": false}, "resource_occupancy": [[7.5, 8.0, 0, 2]], "end_waiters": 2}
+  },
+  "observability_limits": ["Event text does not carry a cancellation reason code.", "Half-hour ResourceResults can aggregate a partial interval; exact value must be checked against time-weighting actually emitted.", "The manual does not specify equal-time event precedence."]
+}
