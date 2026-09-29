@@ -1,0 +1,180 @@
+{
+  "schema": "simlox-d13-var01-exact-parent-diff/v1",
+  "case_id": "D13",
+  "variant_id": "D13.var01",
+  "version": "1.0.0-candidate",
+  "parent_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "child_input_sha256": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+  "changed_tables_only": [
+    "ProblemDescription"
+  ],
+  "added_tables_only": [
+    "PMActivation",
+    "PMActivationProfile"
+  ],
+  "unchanged_table_count": 30,
+  "changed_tables": {
+    "ProblemDescription": {
+      "parent": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "A01/A02 generic one-aircraft teaching case; no J35/F35 equivalence"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      },
+      "child": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "D13.var01 CAL24 PM disabled until hour 30 then enabled"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      }
+    }
+  },
+  "added_tables": {
+    "PMActivation": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "USTID"
+        },
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "PMID"
+        },
+        {
+          "datatype": "string",
+          "name": "ENPM"
+        },
+        {
+          "datatype": "string",
+          "name": "CRIT"
+        },
+        {
+          "datatype": "string",
+          "name": "PRID"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "TEACH-UNIT",
+              "CAL24",
+              "Y",
+              "Y",
+              "PM-SWITCH",
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "PMActivation"
+    },
+    "PMActivationProfile": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "PRID"
+        },
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "SPRID"
+        },
+        {
+          "datatype": "double",
+          "key": true,
+          "name": "STIM"
+        },
+        {
+          "datatype": "double",
+          "name": "ETIM"
+        },
+        {
+          "datatype": "integer",
+          "name": "IQTY"
+        },
+        {
+          "datatype": "double",
+          "name": "IINT"
+        },
+        {
+          "datatype": "string",
+          "name": "ENPM"
+        },
+        {
+          "datatype": "string",
+          "name": "CRIT"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "PM-SWITCH",
+              "<LIMIT>",
+              0.0,
+              30.0,
+              1,
+              0.0,
+              "N",
+              "Y",
+              null
+            ],
+            [
+              "PM-SWITCH",
+              "<LIMIT>",
+              30.0,
+              60.0,
+              1,
+              0.0,
+              "Y",
+              "Y",
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "PMActivationProfile"
+    }
+  },
+  "publication_state": "not_published"
+}
