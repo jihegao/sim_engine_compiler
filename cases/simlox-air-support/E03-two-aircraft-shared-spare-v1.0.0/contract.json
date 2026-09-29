@@ -1,0 +1,57 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E03",
+  "case_version": "1.0.0-candidate",
+  "variant": "two-aircraft-two-missions-one-shared-local-spare",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E02",
+    "version": "1.0.0",
+    "behavior_scope": "accepted zero-local-stock backorder served by repair of the removed LRU",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "signoff": "../E02-zero-stock-local-backorder-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "supporting_prerequisite": {
+    "case_id": "A03",
+    "behavior_scope": "accepted two-aircraft deployment and formation identity",
+    "signoff": "../A03-two-aircraft-formation-v1.0.1/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [211, 212, 213, 218, 219, 220, 240, 444, 445, 446],
+    "source_boundary": "A system replacement demand takes a local stock item immediately when available. If local stock is empty it becomes a backorder. A repaired item first serves waiting backorders; default backorders are FIFO unless urgency prioritization is enabled. This bounded case examines one spare and one later backorder, so it does not test FIFO ordering."
+  },
+  "native_input_sha256": "657c0d52116c09ef2dbd009209f461f6fb4ed3570327c4305e0e4608f208cbf0",
+  "delta": {
+    "tables": ["ProblemDescription", "System", "Item", "SystemDeployment", "ItemRepair", "OperationProfile", "StockAllocation"],
+    "mechanism": "Deploy two identical aircraft and launch two separate one-aircraft missions together. Provide exactly one local spare. Raise matching installed-LRU OPHOURS rates to ensure two observed failures on the frozen seed; extend local removed-LRU direct repair to four hours to expose a second demand before replenishment.",
+    "identities": {"system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "base": "BASE-01", "stock_point": "AIR_BASIC"}
+  },
+  "configuration": {
+    "aircraft": 2,
+    "simultaneous_one_aircraft_missions": 2,
+    "scheduled_launch_hour": 8,
+    "local_nominal_stock": 1,
+    "system_and_item_frt_failures_per_million_ophours": 3000000,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "item_direct_repair_hours": 4,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "The frozen seed/configuration must launch two distinct one-aircraft missions and produce critical installed-LRU failures on two distinct aircraft. Exact stochastic times and aircraft order come from native events.",
+    "The first system replacement demand must issue the sole opening stock item and lower on hand from one to zero. A second demand before repair/replenishment must create a backorder and wait for an item; no physical stock instance may be issued twice.",
+    "Trace both failed installed LRU identities through REMOVE and four-hour local ItemRepair. Trace which repaired item clears the second backorder, then the actual REPLACE fit and both aircraft readiness times. If the run produces additional failures, demands, or replenishments, trace all of them before acceptance.",
+    "Reconcile two aircraft, two mission outcomes, issue count, backorder count and waiting/repair occupancy against 72 half-hour system and stock report intervals; show terminal stock, backorders and readiness. Do not infer FIFO ordering from a single backorder.",
+    "Import/export must preserve every row-containing source table, including all-null placeholders; conversion errors must be zero, four native CLI steps must succeed, and sealed raw hashes must close.",
+    "Use session-0 SSH under the host-wide native queue, preserve GUI PID 13340 and obtain independent prelaunch and read-only native replay."
+  ],
+  "limits": [
+    "This is one local stock point, one initially available spare and two aircraft. It does not accept multiple simultaneous backorders, FIFO ordering, remote or lateral supply, reorder, resource contention or PM.",
+    "High matched fault rates and longer repair are test parameters to expose competition, not estimates of operational fleet behavior.",
+    "Exact failure times are run-specific; the native event log, not the input seed alone, supplies timing evidence."
+  ]
+}

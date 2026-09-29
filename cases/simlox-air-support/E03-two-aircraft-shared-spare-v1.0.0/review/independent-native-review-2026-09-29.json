@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-e03-independent-native-review/v1",
+  "review_mode": "independent read-only replay of frozen source and sealed native raw evidence",
+  "reviewer": "separate review agent; no file edits and no SIMLOX invocation",
+  "run_id": "e03-v100-ssh-20260929-01",
+  "passed": true,
+  "differences": [],
+  "raw_report_sha256": "aee4bb06225d48e8da46fbbb1a861dc5030bf63974561996e10566f5f6b89d31",
+  "checks": {
+    "frozen_sources_closure_and_gui_guard": "passed",
+    "four_steps_roundtrip_and_zero_conversion_errors": "passed",
+    "two_distinct_one_aircraft_missions_and_two_failed_LRUs": "passed",
+    "sole_spare_issued_once_second_demand_backordered": "passed",
+    "two_repair_identity_chains_backorder_clearance_and_restock": "passed",
+    "72_intervals_two_failures_repairs_demands_terminal_ready": "passed"
+  },
+  "observed": {
+    "critical_lru_failure_hours": [8.18829, 8.31325],
+    "first_demand_issue_hour": 8.37658,
+    "opening_spare_instance_id": 0,
+    "second_demand_backorder_hour": 8.6265,
+    "removed_item_instance_ids": [1, 2],
+    "item_repair_start_hours": [8.54325, 8.79317],
+    "item_repair_completion_hours": [12.5432, 12.7932],
+    "backorder_serving_item_instance_id": 1,
+    "backorder_clearance_hour": 12.5432,
+    "backorder_wait_hours": 3.91674,
+    "system_ready_hours": [8.87658, 12.8766],
+    "restocked_item_instance_id": 2,
+    "terminal_stock": 1,
+    "terminal_backorders": 0,
+    "terminal_ready_aircraft": 2,
+    "mission_success_fraction": 0
+  },
+  "limits": [
+    "A03 established two-aircraft deployment; the IQTY=2, NOS=1 two-mission pattern is established only for this frozen E03 input.",
+    "One observed backorder does not establish FIFO ordering or urgency-priority behavior.",
+    "The native event log rounds fractional-hour timestamps; report intervals are aggregate.",
+    "The runner verifies GUI process identity and active session; GUI visual content was not sampled."
+  ]
+}
