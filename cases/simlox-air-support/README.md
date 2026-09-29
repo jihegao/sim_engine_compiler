@@ -12,6 +12,8 @@ The [C01 1.0.2 personnel-capacity case](C01-personnel-capacity-v1.0.2/README.md)
 
 The [C02 1.0.2 joint-resource case](C02-joint-resources-v1.0.2/README.md) derives from accepted C01 capacity two. Four source-bound CLI runs compare joint P-CREW/E-GSE acquisition in one-step and two-step preparation, with equipment-zero controls. Its [evidence report](C02-joint-resources-v1.0.2/evidence-2026-09-29.md) records the exact source and raw hashes.
 
+The [A02 repeated-wave sign-off](A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md) and [A03 two-aircraft sign-off](A03-two-aircraft-formation-v1.0.1/cli-scope-signoff-2026-09-29.md) publish bounded behavior from sealed earlier runs. The [C03 1.0.2 shared-crew formation case](C03-shared-crew-formation-v1.0.2/README.md) derives from published C02 and uses A03 as its formation prerequisite. Three source-bound native runs check parallel, serial and zero-capacity crew behavior; its [evidence report](C03-shared-crew-formation-v1.0.2/evidence-2026-09-29.md) bounds that publication.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.

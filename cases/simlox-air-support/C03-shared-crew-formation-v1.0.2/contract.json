@@ -1,0 +1,25 @@
+{
+  "schema": "simlox-c03-observable-contract/v1",
+  "case_id": "C03",
+  "version": "1.0.2",
+  "status": "candidate_pending_native_runs",
+  "parent_case": "C02@1.0.2/single-both",
+  "parent_input_sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+  "formation_behavior_parent": "A03@1.0.1",
+  "formation_parent_input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+  "source_method_id": "M-C03",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pdf_pages": [[180, 184], [286, 294], [397, 414]],
+  "business_delta": "From C02 single-both, use two aircraft in one mission with NOS=MNOS=2, 30-minute notice and preparation, one-hour sortie and one shared P-CREW pool. Remove E-GSE and unused P-OTHER to isolate personnel contention; compare pool capacity 2, 1 and 0. A03 supplies the accepted formation behavior reference.",
+  "common_identity": {"aircraft_type": "TEACH-AIR-01", "unit": "TEACH-UNIT", "mission_type": "BASIC-MISSION", "station": "BASE-01", "task": "PREP-FIXED", "resource": "P-CREW", "allocation_point": "AIR_BASIC"},
+  "expected_common": {"notice_hour": 7.5, "planned_launch_hour": 8, "flight_duration_hour": 1, "horizon_hours": 36, "result_interval_hours": 0.5, "aircraft_count": 2, "crew_demand_per_aircraft": 1},
+  "variants": {
+    "staffing-2": {"crew_quantity": 2, "input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0", "parent_diff_sha256": "d31a0f67b623448ddd3553132b42d8eb911b256f0ee6866fb821bf521c8a978e", "expected": "Both aircraft prepare concurrently and launch at 08:00."},
+    "staffing-1": {"crew_quantity": 1, "input_sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789", "parent_diff_sha256": "6a4bfc3f8c1267597a09da866968399c0662c04e91ebf427dba0839e9b66852d", "expected": "One aircraft waits for the shared crew, then the formation launches after both preparations."},
+    "staffing-0": {"crew_quantity": 0, "input_sha256": "50682827a363aeb2cb35f860f78671fffd1ea48fbea655ce664eb2c1e2b19267", "parent_diff_sha256": "8ee490f85bcbf169c1e0b1eef6936e7d5df2c6fdc9406bc9fa779237601a1015", "expected": "Neither aircraft acquires crew or works; record native cancellation time."}
+  },
+  "allowed_native_warnings": {"108": "Control.ENLOG=Y records first repetition", "126": "teaching aircraft has no Item children"},
+  "acceptance_scope": "two-aircraft shared-crew capacity and formation readiness gate in one fixed schedule",
+  "excluded_claims": ["No general deadline rule is inferred from staffing-0.", "No resource substitution, shifts, failures, GUI-only behavior, cross-engine parity or performance is claimed."],
+  "publication_state": "not_published"
+}
