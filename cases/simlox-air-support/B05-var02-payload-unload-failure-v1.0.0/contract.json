@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B05",
+  "variant_id": "B05.var02",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "B05.var02.successful_payload_unloading_omission.1.0.0",
+  "parent_input_sha256": "21bd66e3ba54e22fb5d7c7c9b612892faf2999cb873f7dd34483e5880a607c9a",
+  "failure_prerequisite": "D01.system_direct.1.0.0",
+  "failure_input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450",
+  "mechanism": "One payloaded aircraft suffers an observed critical system failure before successful mission completion; paired ordinary SERVICE versus built-in UNLOADING post-mission turnround tests positive unloading work after failure.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [190, 191, 211, 212, 226, 240, 246, 258, 349, 350, 351, 352, 353, 354, 400, 401, 402, 403, 404],
+    "tables": ["System", "SystemRepair", "MissionPreparation", "MissionTurnround", "Tasks", "TaskBreakDown"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "aircraft": "<TEACH-AIR-01,0>",
+    "mission": "BASIC-MISSION",
+    "scheduled_hour": 8,
+    "nominal_duration_hours": 2,
+    "notice_hour": 7,
+    "preparation": "<PAYLOADING> ten minutes, SERVICE twenty minutes",
+    "system_failure": "FRT=300000 per million OPHOURS, RSEED=1, half-hour local direct repair, matching D01",
+    "turnround": "ordinary SERVICE ten-minute control versus predefined <UNLOADING> ten-minute child"
+  },
+  "hypotheses_to_test": [
+    "Both variants perform PAYLOADING before the 8-hour mission and observe an in-mission critical system failure before mission success.",
+    "The failed mission returns the aircraft; built-in UNLOADING performs positive ten-minute work rather than skipping, under the same failure timing as the ordinary SERVICE control.",
+    "Direct repair and turnround order, readiness, mission result, 72 half-hour report bins and terminal state reconcile without inferring payload quantity.",
+    "All populated source tables roundtrip exactly, conversion errors are zero, raw artifacts are sealed, and GUI/mutex guards hold."
+  ],
+  "limits": [
+    "One fixed-seed failure and one payloaded mission only; other failure times and mission outcomes are unverified.",
+    "Internal payload quantity/state and fuel use are not directly measured.",
+    "Resource contention, GUI-only behavior and cross-engine parity remain unverified."
+  ]
+}
