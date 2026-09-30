@@ -1,0 +1,26 @@
+{
+  "schema": "simlox-c05-mission-resource-contract/v1",
+  "case_id": "C05",
+  "version": "1.0.0-candidate",
+  "parent_case": "A03@1.0.1",
+  "parent_input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+  "input_sha256": {
+    "capacity-2": "d2ea6e874eff82f1e50f271051010985c28adfba7aab94d2a0a0b343b989e865",
+    "capacity-1": "8668a9b57ace08067a41db48f1af15181f8f7ca0530399b4fe7ea6f2cfabf35a",
+    "capacity-0": "15b2e6d97f3033c5546b876c8340ef4e395f2ff6fb2ee1b4e8d26593a8d7e947"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_pages": [300, 301, 302, 412, 413, 414],
+  "dictionary": "SIMLOX 2017 DatabaseDictionary_SIMLOX.txt, MissionResource rows 428-432",
+  "source_method_id": "M-C05",
+  "pre_run_business_contract": "A03's one two-aircraft wave remains at hour 8 with a two-hour mission. Each aircraft needs one SPECIAL MISSION-CREW resource for its mission. AIR_BASIC allocation at BASE-01 is 2, 1 or 0. Resource has no preparation-task demand in this slice.",
+  "changed_tables_only": ["ProblemDescription", "Resource", "ResourceAllocation", "MissionResource"],
+  "expected_native_hypothesis": {
+    "capacity-2": "both aircraft can be assigned to one formation mission",
+    "capacity-1": "two-aircraft formation cannot be partially assigned before all mission-resource demand is available",
+    "capacity-0": "no aircraft can be assigned"
+  },
+  "acceptance_requires": ["exact populated-table roundtrip", "zero conversion errors", "nonempty native log and report", "event-level resource allocation and release boundary review", "mission and terminal-state review", "separate read-only replay"],
+  "limitations": ["The catalog's one-hour mission is deferred: this slice keeps the accepted A03 two-hour mission to isolate resource demand.", "A distinct ground-preparation resource, multiple mission resource types, cancellation and remote support remain unverified.", "The hypotheses are not accepted outcomes until raw native evidence and independent replay pass."],
+  "publication_state": "not_published"
+}

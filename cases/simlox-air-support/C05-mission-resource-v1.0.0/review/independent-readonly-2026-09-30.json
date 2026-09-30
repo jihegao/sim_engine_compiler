@@ -1,0 +1,908 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C05",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 209,
+  "passed_count": 209,
+  "failures": [],
+  "decision": "GO_bounded_three_capacity_native_observation",
+  "accepted_scope": "In this fixed A03 two-aircraft, two-hour mission with one special crew required per aircraft, capacity 2 reserves two at hour 7, launches at 8, succeeds at 10, and releases both. Capacity 1 reserves one aircraft/crew at hour 7 while the second fails its check; cancellation at 8.33333 releases the reservation. Capacity 0 reserves none and cancels at 8.33333. All variants return to two ready aircraft and initial free crew capacity.",
+  "rejected_hypothesis": "The frozen pre-run capacity-1 claim that the two-aircraft formation cannot be partially assigned before all mission-resource demand is available is false in the sealed native evidence.",
+  "limits": [
+    "One fixed seed, one two-aircraft wave, one crew type and site, and the A03 two-hour mission only.",
+    "The catalog one-hour mission, preparation resource interactions, multiple mission resource types, remote support, and alternate timing/seeds remain unverified.",
+    "Session-0 SSH and GUI continuity are replayed from sealed metadata; the reviewer did not run or observe native SIMLOX live."
+  ],
+  "checks": [
+    {
+      "name": "contract identity and frozen A03 parent",
+      "passed": true
+    },
+    {
+      "name": "frozen manual fingerprint/pages",
+      "passed": true
+    },
+    {
+      "name": "contract remains unpublished candidate",
+      "passed": true
+    },
+    {
+      "name": "frozen changed-table set",
+      "passed": true
+    },
+    {
+      "name": "A03 parent unique source tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: source SHA and copied input",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact parent changed-table set",
+      "passed": true,
+      "detail": [
+        "MissionResource",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation"
+      ]
+    },
+    {
+      "name": "capacity-2: all unchanged A03 tables exact",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: problem description",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: special mission crew defined",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: resource schema preserved from A03",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: allocation capacity at base",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: allocation schema preserved from A03",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: one crew per mission aircraft",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: MissionResource key and quantity schema",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: no preparation resource table demand",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: A03 two-aircraft two-hour mission retained",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: native invocation identity",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: SSH session and mutex",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: source and runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: complete raw seal inventory",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: 16 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip MissionResource",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: conversion errors zero; exact known warnings",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: report generated",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: ordered two-aircraft wave",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: initial crew shift stock",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: exact crew allocation/release ledger",
+      "passed": true,
+      "detail": [
+        [
+          7.0,
+          "allocate",
+          1
+        ],
+        [
+          7.0,
+          "allocate",
+          0
+        ],
+        [
+          10.0,
+          "release",
+          1
+        ],
+        [
+          10.0,
+          "release",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "capacity-2: ledger nonnegative and restored",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: six report tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: 72 complete half-hour result bins",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: mission summary metrics",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: terminal systems and crew capacity",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: resource total reconciles 36-hour ledger",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: report structural comma accounted for",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: two aircraft assigned and launch at 8",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: success/completion at 10 and two releases",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: resource report assigned then operational",
+      "passed": true
+    },
+    {
+      "name": "capacity-2: system report launch and recovery",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: source SHA and copied input",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact parent changed-table set",
+      "passed": true,
+      "detail": [
+        "MissionResource",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation"
+      ]
+    },
+    {
+      "name": "capacity-1: all unchanged A03 tables exact",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: problem description",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: special mission crew defined",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: resource schema preserved from A03",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: allocation capacity at base",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: allocation schema preserved from A03",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: one crew per mission aircraft",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: MissionResource key and quantity schema",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: no preparation resource table demand",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: A03 two-aircraft two-hour mission retained",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: native invocation identity",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: SSH session and mutex",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: source and runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: complete raw seal inventory",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: 16 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip MissionResource",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: conversion errors zero; exact known warnings",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: report generated",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: ordered two-aircraft wave",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: initial crew shift stock",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: exact crew allocation/release ledger",
+      "passed": true,
+      "detail": [
+        [
+          7.0,
+          "allocate",
+          0
+        ],
+        [
+          8.33333,
+          "release",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "capacity-1: ledger nonnegative and restored",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: six report tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: 72 complete half-hour result bins",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: mission summary metrics",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: terminal systems and crew capacity",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: resource total reconciles 36-hour ledger",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: report structural comma accounted for",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: partial reservation at 7 rejects atomicity hypothesis",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: second aircraft blocked; cancelled and released",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: report records temporary reservation",
+      "passed": true
+    },
+    {
+      "name": "capacity-1: system report temporary assignment",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: source SHA and copied input",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact parent changed-table set",
+      "passed": true,
+      "detail": [
+        "MissionResource",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation"
+      ]
+    },
+    {
+      "name": "capacity-0: all unchanged A03 tables exact",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: problem description",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: special mission crew defined",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: resource schema preserved from A03",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: allocation capacity at base",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: allocation schema preserved from A03",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: one crew per mission aircraft",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: MissionResource key and quantity schema",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: no preparation resource table demand",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: A03 two-aircraft two-hour mission retained",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: native invocation identity",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: SSH session and mutex",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: source and runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: complete raw seal inventory",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: 16 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip MissionResource",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: conversion errors zero; exact known warnings",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: report generated",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: ordered two-aircraft wave",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: initial crew shift stock",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: exact crew allocation/release ledger",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "capacity-0: ledger nonnegative and restored",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: six report tables",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: 72 complete half-hour result bins",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: mission summary metrics",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: terminal systems and crew capacity",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: resource total reconciles 36-hour ledger",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: report structural comma accounted for",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: no assignments and two failed tests",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: cancellation at timeout",
+      "passed": true
+    },
+    {
+      "name": "capacity-0: report has no crew or assigned/operating aircraft",
+      "passed": true
+    },
+    {
+      "name": "only capacity and description differ within three-source pair",
+      "passed": true
+    }
+  ]
+}
