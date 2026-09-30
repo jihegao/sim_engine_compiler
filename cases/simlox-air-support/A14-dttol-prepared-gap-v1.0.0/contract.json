@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "variant_id": "A14.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "package": "../A05-var02-prepared-spare-probe-v1.0.0",
+    "input_sha256": "b7ca5f4d6152e2c166b1ba7fe8b41246c24782a50d56b2bcc773f86f176d3f4d",
+    "signoff": "../A05-var02-prepared-spare-probe-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [188, 287, 288, 289],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "inputs_sha256": {
+    "control": "f9341e525ae78313b355042296b059bc4751a00eb23914b22a11322c0b846b25",
+    "zero": "8e871c91a5ba824941bb1faa3b91d1b69c1977d3302a4c2a1de54048d8ab5401",
+    "below": "1b3f9c294c28dc4c53fdb9b7c0a67c1cd9cee776ccaf7f167a8e127e1e7ac608",
+    "edge": "0b98bae7f3d832449895049cff15e52b6ea4388af96e7516e65a5134a8ec21ef",
+    "above": "2ba6346570a5e4ab97f293e2b48e57f6da1be932b82a397d7bcfd32b34ae9fa6"
+  },
+  "exact_diff_sha256": "080b1152b43c906a23cc8e2579107a20aabf3db3e6d5514f52e4dbc3e16cde2a",
+  "model": {
+    "unit": "TEACH-UNIT",
+    "deployed_aircraft": 4,
+    "support": {"type": "SUPPORT", "pattern": "CONTINUOUS", "start_hour": 8, "duration_hours": 4, "NOS": 2, "MNOS": 2, "fixed_preparation_hours": 0.5},
+    "execution": {"type": "EXECUTE", "pattern": "CONTINUOUS", "start_hour": 8, "duration_hours": 3, "NOS": 1, "MNOS": 1},
+    "dependency": "EXECUTE continuously depends on SUPPORT at hour 8; MUTD=N; DTTOL is the only semantic difference between dependent inputs",
+    "tolerance_hours": {"zero": 0, "below": 0.49, "edge": 0.5, "above": 0.51},
+    "control": "identical four-aircraft model without MissionDependence",
+    "failure": "accepted A05 stochastic system FRT=300000 operating hours with seed 1 and half-hour direct repair",
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5
+  },
+  "predeclared_hypotheses": [
+    "SUPPORT begins with two aircraft and EXECUTE with a third; a fourth is a ready spare. All missions and source business rows convert cleanly and launch from the scheduled hour 8.",
+    "The accepted A05 parent observed a half-hour SUPPORT-like suspension under this seed. The changed A14 model must independently show a finite SUPPORT suspension and resumed operation with a prepared replacement. Failure onset is stochastic and is not assumed to remain at the A05 timestamp.",
+    "The no-dependency control provides a same-model failure/suspension and EXECUTE outcome reference. All five runs must be compared for identical stochastic failure and SUPPORT gap timing before attributing any EXECUTE difference to DTTOL.",
+    "If the observed SUPPORT gap is 0.5 hour, DTTOL=0 and 0.49 should abort the dependent EXECUTE before its hour-11 planned end; DTTOL=0.51 should preserve it through the gap. The DTTOL=0.5 exact boundary is measured without preassigning event order.",
+    "For every accepted run, independently reconcile failure, preparation, suspension, dependency and mission events with 32 aligned half-hour system/stock bins, success factors and terminal readiness. Any changed failure schedule, absent gap, converter error or unsupported dependency result makes this five-run comparison a diagnostic."
+  ],
+  "limits": [
+    "One seed and one stochastic failure onset; this cannot prove a general DTTOL law or deterministic failure timing.",
+    "No other DTTOL values, multiple precedents, cross-unit or profile dependence, GUI visual behavior or cross-engine equivalence."
+  ]
+}
