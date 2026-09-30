@@ -1,0 +1,7 @@
+# A06.var03 suspension crossing the report-window end
+
+This bounded child derives from the accepted [A06 extendable mission](../A06-extendable-prepared-gap-v1.0.0/cli-scope-signoff-2026-09-30.md). It changes `Control.RCEND` and both `ResultCollection.RCEND` values from 16 to **12.5** hours while leaving `Control.SIMPE=16`; a descriptive label also changes. The [frozen contract](contract.json), [builder](build.py), and [exact diff](exact-diff.json) bind this change to the parent.
+
+The guarded native run's event log is byte-identical to the accepted full simulation: the second suspension begins at 12.2431, crosses the 12.5 report end, resumes at 12.7431, and the mission completes at 13. The report has only 25 half-hour system and stock bins through 12.5, integrating 7.486288 aircraft operation hours. Its `ResultSummary` still reflects the full simulation (`RTIUP=16`, `MTMF=STMF=1`). The final system bin also records completed downtime in the earlier start interval after repair finishes beyond the report window. The [author replay](review/author-window-validation-2026-09-30.json) passes 171 checks; a separate [independent replay](review/independent-window-2026-09-30.json) passes 67.
+
+The sign-off separates report-window exposure from full-run outcomes and records raw hashes. Raw files remain under ignored `runs/`. This one-seed result does not establish a general result-window rule or cross-engine equivalence.
