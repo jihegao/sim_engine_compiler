@@ -1,0 +1,7 @@
+# A13.var01 multiple START predecessors
+
+This three-way comparison derives from the accepted [A13 START source](../A13-start-dependence-v1.0.0/cli-scope-signoff-2026-09-30.md). EARLY (8–9) and LATE (8–12) each use a separate aircraft; FOLLOW is scheduled at 10 with a third aircraft. The [frozen contract](contract.json), [builder](build.py), [exact diff](exact-diff.json), guarded [session-0 SSH runner](run_native_ssh.ps1), and [CLI scope sign-off](cli-scope-signoff-2026-10-01.md) define the reproducible boundary. Raw native files remain in ignored `runs/` under three immutable run IDs.
+
+The no-row control and EARLY-only START row have the same native event log and launch FOLLOW at 10. Adding a LATE START row shifts FOLLOW launch to 12, matching LATE's success and return timestamp. All three missions succeed, with 48 half-hour System and Stock bins and three aircraft ready at the end. The native log places the hour-12 FOLLOW start before LATE's completion/arrival lines, so these lines do not establish the internal same-time return-before-launch order. This result covers one fixed-seed unit and does not generalize to failed, absent, repeated, cross-unit or continuous predecessors.
+
+Recheck frozen sources with `python build.py` and `python describe_diff.py`. Replay sealed evidence with `python validate.py` and `python review/independent_readonly.py`. Fresh native execution requires a new run ID, the pinned installed SIMLOX environment, session-0 SSH, and the host-wide mutex. Do not reuse or overwrite existing run directories.

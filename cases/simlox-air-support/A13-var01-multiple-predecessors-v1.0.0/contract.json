@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var01",
+  "version": "1.0.0-candidate",
+  "parent": "A13.start_single_predecessor.1.0.0",
+  "parent_input_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+  "mechanism": "Compare no START row, one EARLY START row, and two EARLY/LATE START rows for one FOLLOW mission",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [188, 287, 288, 289],
+    "tables": ["MissionDependence", "MissionType", "OperationProfile"]
+  },
+  "configuration": {
+    "aircraft": 3,
+    "unit": "TEACH-UNIT",
+    "seed": "1",
+    "simulation_hours": 24,
+    "predecessors": [
+      {"type": "EARLY", "scheduled_hour": 8, "duration_hours": 1, "expected_return_hour": 9},
+      {"type": "LATE", "scheduled_hour": 8, "duration_hours": 4, "expected_return_hour": 12}
+    ],
+    "dependent": {"type": "FOLLOW", "scheduled_hour": 10, "duration_hours": 2, "delay_limit_hours": 4},
+    "variants": {"control": [], "single": ["EARLY"], "multiple": ["EARLY", "LATE"]},
+    "failure_modes": 0
+  },
+  "predeclared_behavior_gate": [
+    "all three sources roundtrip every populated business table exactly and convert with zero errors",
+    "all three runs produce a valid nonempty SXO, native event log, and JSON report with 48 half-hour System and Stock bins",
+    "EARLY and LATE launch at hour 8 and return at hours 9 and 12 in every variant",
+    "FOLLOW launches at hour 10 in the control and single-EARLY variants, but at hour 12 with both START rows, then succeeds at hour 14",
+    "all three missions succeed with no cancellation or failure; final aircraft ready quantity is 3",
+    "all native raw files, source versions, and independent read-only replay are sealed and checked"
+  ],
+  "limits": [
+    "One fixed-seed three-aircraft unit, two simultaneously scheduled FIXED precedents, one dependent mission",
+    "No inference about absent, failed, cross-unit, repeated-identity, CONTINUOUS, or post-horizon predecessors",
+    "No GUI-only behavior or cross-engine equivalence claim"
+  ]
+}
