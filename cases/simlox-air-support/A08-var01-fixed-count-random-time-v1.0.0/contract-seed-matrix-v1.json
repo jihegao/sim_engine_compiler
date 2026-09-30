@@ -1,0 +1,28 @@
+{
+  "schema": "simlox-a08-var01-seed-matrix-contract/v1",
+  "status": "predeclared_candidate",
+  "reason": "The native 32-replication run reports NREP=32 and aggregate bins but its event log exposes only one replication. A separately sealed matrix of one-replication runs is required to observe all mission timelines directly.",
+  "parent_contract_sha256": "74a262377013bda2db0d08330594ff94b786bf2e1e2c5cd434b6d7c8a995fa26",
+  "aggregate_input_sha256": "df7ecf0549fc8b1a506095194b97dac810afc395a76b4c478cfe43eec1838920",
+  "seed_manifest_sha256": "c5b2044e2038e22008fc956f5895fbcdc6b1f8dd1ca80676f5b544b724eef335",
+  "seed_generator_sha256": "0f58a931fd7fd619062bf9f0a9a13fc08fdbf696ec1f8b666ac13433f7d6c49c",
+  "seed_range_inclusive": [1, 32],
+  "exact_seed_delta": "From the frozen aggregate A08 input, set Control.NREPS 32 to 1, Control.RSEED to the seed number as a string, and ProblemDescription.PDESC to a seed-specific label. Every other row and table stays unchanged.",
+  "execution": [
+    "One session-0 SSH batch holds the host-wide Global\\SimloxIssue18NativeQueue mutex for all 32 seed runs and checks GUI PID 13340 before and after each native step.",
+    "Each seed has a unique immutable versioned subdirectory with copied input, import/export/calc/jsonreport logs and files, exact 13-source-table roundtrip, per-step record, raw SHA-256 seals and an outer source-hash-before/after closure.",
+    "Any failed native command, missing output, changed source, altered GUI, missing seed, or roundtrip mismatch fails the batch; no partial matrix is published as accepted."
+  ],
+  "predeclared_acceptance": [
+    "All 32 seeds convert with zero errors and classified warnings; each one-replication report has NREP=1 and 72 aligned half-hour bins.",
+    "Each seed logs exactly three distinct fixed-template mission starts in [8,20), with matching success/completion two hours later, no cancellation, failure, repair or stock demand, and three aircraft ready at report end.",
+    "The 32 ordered start-time triples must not all be identical; preserve all 96 raw timestamps and their seed identities. Report observed sample mean, sample variance and nominal 95 percent Student-t half-width, targeting at most one hour; this is a precision description, not proof of uniformity or stream independence.",
+    "Compare the one-replication seed-1 timeline with the earlier 32-replication run's logged timeline only as an observed same-seed check. Do not assume equal random streams across different NREPS controls or external engines.",
+    "Reconcile each seed's two-hour missions and six aircraft operation-hours with its own report; compare only compatible aggregate quantities with the 32-replication report, because the batch uses distinct explicit RSEED values.",
+    "A separate read-only reviewer replays the manifest, generated source hashes, each raw closure, all event/report ledgers and the statistics without importing author validation."
+  ],
+  "limits": [
+    "The 32 seeds form a fixed convenience matrix, not a random sample of seed values. Confidence half-width is a nominal descriptive interval conditional on native outputs; it cannot establish true RNG distribution or independence.",
+    "Random mission quantity, equal spacing, zero period, invalid combinations, GUI visual behavior and cross-engine equivalence remain unverified."
+  ]
+}

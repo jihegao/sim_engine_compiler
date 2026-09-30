@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A08",
+  "variant_id": "A08.var01",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A02",
+    "package": "../A02-single-aircraft-repeated-missions",
+    "input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8"
+  },
+  "native_input_sha256": "df7ecf0549fc8b1a506095194b97dac810afc395a76b4c478cfe43eec1838920",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 180, 271, 273, 274, 275, 553, 795],
+    "interpretation": "RANDOM initiation with fixed IQTY=3 and IDISP=RANDOM draws three independent uniform start times in one IPER=12 period per replication. IQTYD remains empty; MPAT remains the parent's fixed mission pattern."
+  },
+  "exact_delta": [
+    "Control.NREPS changes 1 to 32; seed, simulation end and report interval remain fixed.",
+    "SystemDeployment.QTYPS changes 1 to 3 and Unit.DESCR changes only a label, so all three missions can start even if their random times cluster.",
+    "Three A02 scheduled OperationProfile rows at 8, 20 and 32 become one RANDOM row at STIM=8, IQTY=3, IQTYD empty, IPER=12, IDISP=RANDOM; DTIM remains the parent's one-third hour.",
+    "ProblemDescription.PDESC changes only a label; MissionType remains the accepted two-hour fixed template with 0.25 outbound/return fractions and zero failure rate. All 26 other tables remain identical."
+  ],
+  "configuration": {
+    "replications": 32,
+    "missions_per_replication": 3,
+    "period_start_hour": 8,
+    "period_end_hour": 20,
+    "mission_duration_hours": 2,
+    "deployed_aircraft": 3,
+    "simulation_and_report_end_hour": 36,
+    "result_interval_hours": 0.5,
+    "seed": "1"
+  },
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source/raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip; zero conversion errors and classified warnings.",
+    "If the native event log includes every replication, require exactly 32 replication groups and three distinct fixed-template mission starts per group, all in [8,20), each with its own success/completion two hours later; no cancellation, failure or stock demand. If the native event log omits groups, classify the per-replication timing claim unverified and do not publish it from aggregate reports alone.",
+    "Require at least two distinct realized start-time triples across replications. Retain the exact 96 native start times rather than treating seed 1 as a portable random stream.",
+    "Calculate sample mean, sample variance and a 95 percent Student-t confidence half-width for the 96 start times, targeting at most one hour half-width. Report the observed estimate and precision without claiming that one fixed-seed sample proves a uniform law or independent streams.",
+    "Reconcile 72 aligned half-hour system and stock bins as averages over 32 replications; expected completed mission operation is six aircraft-hours per replication and three aircraft ready at the end. Do not multiply averaged rows into per-replication event claims.",
+    "A separate read-only reviewer replays source delta, raw seals, event groups, statistics and aggregate ledgers without importing author validation."
+  ],
+  "limits": [
+    "One fixed quantity of three, one period, one seed and 32 native replications. Random mission quantity, equidistant layout, zero period and invalid combinations require separate variants.",
+    "A finite sample and a confidence interval estimate precision of its mean; they do not prove the native generator's distribution or independence. GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
