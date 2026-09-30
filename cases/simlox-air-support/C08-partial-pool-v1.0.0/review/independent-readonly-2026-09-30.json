@@ -1,0 +1,1080 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C08.var03.partial_pool",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 263,
+  "passed_count": 263,
+  "failures": [],
+  "decision": "GO_bounded_two_crew_staggered_partial_pool",
+  "accepted_scope": "For this fixed-seed staggered two-crew pair, the unlimited control works one crew from 23.5-24 and two through 25, pauses at shift end, then finishes at 26.5/27. MAXUT=1 reaches the two-crew-hour first-shift pool limit at 24.75, stops with 0.75/1.25 hours remaining, resets at 26 and finishes at 26.75/27.25. Both runs succeed in separate missions 28-29 and 28.5-29.5.",
+  "metric_interpretation": "Both have four resource-hours of positive work; NRW records 2 versus 2.5 resource-hours of waiting. Every numeric/null field in the 72 half-hour resource, system and stock ledgers is checked, including partial bins, and terminal ready2.",
+  "limits": [
+    "One fixed-seed stagger interval, two-crew pool, single station and two-window schedule on this executable. Other intervals, pool sizes, daily MUTILF interaction, GUI visuals and cross-engine equivalence remain unverified.",
+    "Session/GUI/mutex continuity is replayed from sealed metadata; no native SIMLOX rerun was performed."
+  ],
+  "checks": [
+    {
+      "name": "contract/diff identity and accepted parent list",
+      "passed": true
+    },
+    {
+      "name": "manual fingerprint/pages",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: parent and child hashes",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact three-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionType",
+        "OperationProfile",
+        "ProblemDescription"
+      ]
+    },
+    {
+      "name": "stagger-unlimited: NOS/MNOS 2→1 plus description",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: only second 28.5 scheduled mission added",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: common two-crew two-window source",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: run source/parent identity",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SSH session0/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: frozen source/runtime bytes",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: closure and invocation seals",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: five ordered successful steps",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: planned commands executed",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: 24 populated tables and null placeholders",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: zero conversion errors, warnings108/126",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: two staggered mission orders and distinct aircraft",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: two shift windows",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: first crew at 23.5, second at 24",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: shift stop and next shift completion",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: two successful staggered missions and ready2",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: six parseable native report tables",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: mission summary and four work/two or 2.5 wait hours",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults expected fields present",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NR",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRLA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRMA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRMO",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRN",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRRI",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRRO",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRRT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: ResourceResults exact 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults expected fields present",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin FTMO",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NDAM",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NFAIL",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NPMS",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NPMT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NPSTA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NPSUC",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NRCFG",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NREPT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NROBT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYAL",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYDT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYLA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYMA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYMC",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYMR",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYMS",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYMT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYPM",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYRP",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYSW",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYTP",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYUA",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYUH",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYWI",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin NSYWR",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin STACC",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin STF",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin STLOW",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin STREQ",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin SYDT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: SystemResults exact 72-bin SYDTU",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults expected fields present",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NBO",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NBOU",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NDD",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NDF",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NDP",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NDR",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NLD",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin NWT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin PNB",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin ROS",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin ROST",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin WT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin WTS",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: StockTotalResults exact 72-bin WTT",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: terminal ready2, no work/wait",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: parent and child hashes",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact three-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionType",
+        "OperationProfile",
+        "ProblemDescription"
+      ]
+    },
+    {
+      "name": "stagger-maxut: NOS/MNOS 2→1 plus description",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: only second 28.5 scheduled mission added",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: common two-crew two-window source",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: run source/parent identity",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SSH session0/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: frozen source/runtime bytes",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: closure and invocation seals",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: five ordered successful steps",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: planned commands executed",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: 24 populated tables and null placeholders",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: zero conversion errors, warnings108/126",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: two staggered mission orders and distinct aircraft",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: two shift windows",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: first crew at 23.5, second at 24",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: pooled MAXUT at 24.75",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: reset26 and completions26.75/27.25",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: two successful staggered missions and ready2",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: six parseable native report tables",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: mission summary and four work/two or 2.5 wait hours",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults expected fields present",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NR",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRLA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRMA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRMO",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRN",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRRI",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRRO",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRRT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: ResourceResults exact 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults expected fields present",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin FTMO",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NDAM",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NFAIL",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NPMS",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NPMT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NPSTA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NPSUC",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NRCFG",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NREPT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NROBT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYAL",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYDT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYLA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYMA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYMC",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYMR",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYMS",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYMT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYPM",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYRP",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYSW",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYTP",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYUA",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYUH",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYWI",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin NSYWR",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin STACC",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin STF",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin STLOW",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin STREQ",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin SYDT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: SystemResults exact 72-bin SYDTU",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults expected fields present",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NBO",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NBOU",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NDD",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NDF",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NDP",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NDR",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NLD",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin NWT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin PNB",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin ROS",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin ROST",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin WT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin WTS",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: StockTotalResults exact 72-bin WTT",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: terminal ready2, no work/wait",
+      "passed": true
+    },
+    {
+      "name": "pair differs only MAXUT plus description",
+      "passed": true
+    },
+    {
+      "name": "pair event logs differ as expected",
+      "passed": true
+    },
+    {
+      "name": "pair report delta limited to resource/system/description",
+      "passed": true
+    },
+    {
+      "name": "evidence index pinned pair inventory",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: evidence index path and top-level hashes",
+      "passed": true
+    },
+    {
+      "name": "stagger-unlimited: evidence index raw hashes",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: evidence index path and top-level hashes",
+      "passed": true
+    },
+    {
+      "name": "stagger-maxut: evidence index raw hashes",
+      "passed": true
+    }
+  ]
+}

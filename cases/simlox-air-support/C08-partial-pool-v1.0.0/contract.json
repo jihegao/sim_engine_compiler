@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-c08-partial-pool-contract/v1",
+  "case_id": "C08",
+  "variant_id": "C08.var03",
+  "version": "1.0.0-candidate",
+  "accepted_parent_publication_ids": ["C07.var04.repeat_nested_two_window.1.0.0", "C08.var02.shift_maxut_one.1.0.0"],
+  "accepted_parent_input_sha256": ["e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e", "00e660275ace4d71d41cdafa725da2b552baeea9604756d94ad6b07de846e9d5"],
+  "input_sha256": {
+    "stagger-unlimited": "f69be976c2afa0515670f76737397b3fc1258b0fcc16a1243086ded579f34ee4",
+    "stagger-maxut": "415c1a918dd643f3db869e28c02ceebbde68c887847df222ec3780ae9c4deb75"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_physical_pages": [296, 402, 403, 404, 422, 423],
+  "business_delta": "Against each accepted two-aircraft formation parent, MissionType.NOS and MNOS change 2 to 1 and a second OperationProfile row schedules the same one-aircraft mission at 28.5 after the 28.0 first mission; description labels provenance. This creates half-hour staggered crew-dependent preparation on the retained two-crew pool and 23-25/26-28 shift windows. Between the two child inputs, the sole business difference is ShiftResource.MAXUT unset versus 1.0 hour per crew; descriptions differ for provenance.",
+  "pre_run_hypothesis": "The first aircraft should begin two-hour preparation at 23.5 and the second at 24.0, leaving one of two crew busy for the initial half-hour and both busy afterward. Under MAXUT=1, the two-crew pool has two crew-hours in the first shift, provisionally reached at 24.75 (0.5 hour with one worker plus 0.75 hour with two). The limit may stop active work; the native event sequence must establish the actual rule, remaining times, second-shift reset and mission outcomes. The unlimited pair is a control for shift and scheduling effects. No behavior is accepted before native event and ledger replay.",
+  "acceptance_requires": ["accepted parent fingerprints and frozen exact deltas", "guarded serial session-0 SSH runs preserving GUI PID 13340", "24 row-containing source tables including all-null placeholders roundtrip exactly in each run", "zero conversion errors and nonempty valid output and report", "direct event proof of staggered starts, one-busy/two-busy intervals, limit timing and any stop/reset", "resource-time integral and wait ledger matched to events in both runs", "mission, system, stock and terminal-state ledgers", "sealed local raw artifacts and independent read-only replay"],
+  "limitations": ["One fixed-seed, single-station, two-crew staggered pair on the installed executable.", "Other stagger intervals, pool sizes, daily MUTILF interaction, GUI visuals and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
