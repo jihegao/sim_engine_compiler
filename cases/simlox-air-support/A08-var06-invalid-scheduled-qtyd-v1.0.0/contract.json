@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-air-support-negative-case-contract/v1",
+  "case_id": "A08",
+  "variant_id": "A08.var06",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A08.var02",
+    "package": "../A08-var02-random-count-equidist-v1.0.0",
+    "input_sha256": "54e1fab467ede59829b0c8994aa4d72f1e08878cf7a39532c6fe61364ca87c84"
+  },
+  "native_input_sha256": "8313773e7dd0bb94914454b248745dbf42b0f6874ac03c41b54c9ac864fce4fa",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [271, 273, 274, 275, 795],
+    "interpretation": "The installed manual says IQTYD is allowed only with ITYPE=RANDOM and identifies native converter error #212 for a distribution under SCHEDULED. This deliberately invalid model is a negative capability case, not a runnable mission behavior case."
+  },
+  "exact_delta": [
+    "From accepted A08.var02, OperationProfile.ITYPE changes RANDOM to SCHEDULED while IQTYD=<POISSON>, IQTY=3, IDISP=EQUIDIST, STIM=8 and IPER=12 remain.",
+    "ProblemDescription.PDESC changes only a provenance label; the other 29 tables are identical."
+  ],
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run holds the host-wide mutex, preserves GUI PID 13340 and seals input, parent, contract, builder, checker, runner and raw native outputs.",
+    "Native JSON import and export succeed, then an exact row-containing roundtrip confirms the 13 populated source tables are unchanged.",
+    "Native calculation rejects the invalid combination with converter error #212, `Initiation quantity distribution (IQTYD) only allowed for random initiation types (ITYPE)`, and does not produce a valid simulation/report. The CLI process exit code alone is not considered rejection proof.",
+    "Warnings and any additional diagnostics must be classified. If native calculation accepts the input or produces a valid report, do not publish the rejection hypothesis.",
+    "A separate read-only reviewer replays parent/source delta, sealed raw artifacts, guarded invocation, roundtrip and exact diagnostic without importing author validation."
+  ],
+  "limits": [
+    "This negative case covers one installed SIMLOX 2017 executable and one SCHEDULED+<POISSON> input. It establishes converter rejection, not mission behavior, distribution behavior or general error precedence.",
+    "GUI visual content and cross-engine behavior remain unverified."
+  ]
+}
