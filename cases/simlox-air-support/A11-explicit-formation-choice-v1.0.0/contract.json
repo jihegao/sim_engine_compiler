@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A11",
+  "version": "1.0.0",
+  "parent": "A11.mixed_type_minimum.1.0.0",
+  "requires": ["A11"],
+  "mechanism": "Explicit MissionFormation priorities and complete-formation fallback override MissionSystem quantity constraints",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [184, 185, 281, 282, 292, 293, 294],
+    "tables": ["Formation", "FormationSystem", "MissionFormation", "MissionSystem"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "mission": "BASIC-MISSION at hour 8, duration 2, two-aircraft total",
+    "formations": {
+      "FORM-AB": "one TEACH-AIR-01 plus one TEACH-AIR-02",
+      "FORM-AA": "two TEACH-AIR-01"
+    },
+    "inherited_quantity_rule": "MissionSystem.NOS=MNOS=1 for each A and B",
+    "variants": {
+      "ab-high": "AB priority 1, AA priority 2, A2+B1 deployed",
+      "aa-high": "AA priority 1, AB priority 2, A2+B1 deployed",
+      "b-missing": "AB priority 1, AA priority 2, only A2 deployed"
+    }
+  },
+  "hypotheses_to_test": [
+    "AB-high flies A+B when both complete formations are available",
+    "AA-high flies A+A despite inherited MissionSystem minimum B1",
+    "B-missing falls back from unavailable high-priority AB to complete lower-priority AA",
+    "All three runs launch a full two-aircraft formation at hour 8 and complete at hour 10"
+  ],
+  "limits": [
+    "One fixed mission and two complete formations only",
+    "No failure, aircraft becoming ready later, formation reconfiguration, or positive-duration preparation",
+    "ALOAA continuation-only, equal-priority rejection, multiple missions, GUI-specific behavior and cross-engine parity remain unverified"
+  ]
+}
