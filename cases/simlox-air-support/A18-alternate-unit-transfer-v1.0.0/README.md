@@ -1,0 +1,7 @@
+# A18 v1.0.0 diagnostic: generated alternate default mission
+
+Status: **NO-GO for alternate transfer; not published**. This frozen A17-derived probe used one ordinary aircraft, two aircraft at a proposed alternate unit, an `AlternateUnit` row, and a single scheduled two-aircraft mission at the ordinary unit. Its input was SHA-256 `2b1fe62f253cb5f3333cc1620737f892e2bd0f2e2fcf52e3197ed9d22db4995e`; the [pre-run contract](contract.json) was SHA-256 `e691a6c785c7235aeae29be63c4ef3cc89885081f43db12c6605844ad60f9b6b`.
+
+Guarded native run `a18-enabled-v100-20261001-01` passed all five CLI steps, exactly roundtripped 14 populated source tables and converted with zero errors. Its ignored raw [closure](runs/a18-enabled-v100-20261001-01/closure.json) SHA-256 is `c2d348cb7f7c977bc26f6780366a8eaa8612825127ee867b9a8872df96cda24a`. The alternate unit had no explicit `Operations` row, so SIMLOX generated a default mission at hour 0, occupying its two aircraft through hour 36. The planned ordinary-unit mission then waited and cancelled at 8.33333. The run cannot test the intended transfer. The disabled input was generated but was not natively run in this version.
+
+The versioned [v1.0.1 follow-up](../A18-alternate-unit-transfer-v1.0.1/README.md) explicitly suppresses the default mission. The [v1.0.2 accepted scope](../A18-alternate-unit-transfer-v1.0.2/README.md) tests a structural `AlternateUnit` contrast. Raw SXI/SXO/log/report artifacts remain local under ignored `runs/`.

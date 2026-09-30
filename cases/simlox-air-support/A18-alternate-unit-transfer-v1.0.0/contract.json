@@ -1,0 +1,30 @@
+{
+  "schema": "simlox-a18-alternate-unit-contract/v1",
+  "case_id": "A18",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "A17.two_units.1.0.0",
+  "parent_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "enabled_input_sha256": "2b1fe62f253cb5f3333cc1620737f892e2bd0f2e2fcf52e3197ed9d22db4995e",
+  "disabled_input_sha256": "6a461d5642e5234e71e316915d68ec365069e9358d5545629a54b7f6bb35a9a9",
+  "exact_diff_sha256": "6df2cec207b976ced1d189180b272b618ff4e37736eea9098cd31e86a59f8677",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [187, 307, 308],
+  "business_delta": "From accepted A17, retain two explicit units at BASE-01 and BASE-02, but remove the group and give the one scheduled two-aircraft BASIC-MISSION to ordinary TEACH-UNIT. Keep one aircraft at the ordinary unit; deploy two at TEACH-UNIT-2. Add AlternateUnit TEACH-UNIT to TEACH-UNIT-2 with PRI=1. The two child inputs differ only in Control.ENALU Y versus N and description. Seed, horizon, mission type, schedule and support data are otherwise unchanged.",
+  "hand_timeline_hypothesis": "With ENALU=Y, the ordinary unit is one aircraft short of MNOS=2 at the hour-7 mission call. The two-ready-aircraft alternate should receive the whole mission, start both aircraft at hour 8, succeed at hour 10 and return them to its unit. With ENALU=N, the original unit should remain short, not start a mission and cancel at the hour-8.3333 deadline. Native timestamps and allocation messages decide discrepancies.",
+  "pre_run_metric_hypothesis": "Enabled should give one started/successful fixed wave and four aircraft-hours, with MSTF=MSUF=MTMF=STMF=1 for the two-aircraft two-hour mission. Disabled should give no launched wave, zero operation hours and zero fixed start/success factors. The enabled versus disabled pair should have identical source rows except description and ENALU.",
+  "acceptance_requires": [
+    "accepted A17 parent, installed source hashes, deterministic builder and exact parent/control deltas",
+    "fresh paired five-step session-0 SSH native runs under host mutex and GUI PID13340 guard",
+    "exact populated business-table import/export roundtrips and zero conversion errors for both variants",
+    "enabled native events explicitly identify alternate unit's two aircraft and one successful two-aircraft mission; disabled has no launch or success",
+    "System/Stock interval ledgers, fixed summary factors, absence of faults and terminal readiness reconcile to both event histories",
+    "sealed raw SHA-256 artifacts and separate independent read-only replay"
+  ],
+  "diagnostic_rule": "If AlternateUnit input is rejected, unintended default missions appear, a different unit supplies the mission, the disabled control starts, or native ledgers do not reconcile, retain immutable runs as diagnostics and do not publish the transfer claim.",
+  "limitations": [
+    "One seed, one scheduled fixed demand, one alternate unit and no failures or resource contention.",
+    "Two-alternate priority ordering, delayed alternate readiness, reassignment after call, ENALU failure branches, explicit formations, GUI and cross-engine behavior remain outside this claim."
+  ],
+  "publication_state": "not_published"
+}

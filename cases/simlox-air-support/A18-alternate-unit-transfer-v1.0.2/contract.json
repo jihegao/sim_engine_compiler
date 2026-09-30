@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-a18-alternate-unit-contract/v1",
+  "case_id": "A18",
+  "version": "1.0.2-candidate",
+  "parent_publication_id": "A17.two_units.1.0.0",
+  "parent_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "configured_input_sha256": "0cc2a25c572e9b2f4f1f3054ef139ebfbb749324318d0302d5e99fcfc36c859a",
+  "absent_input_sha256": "eaae8621e88a74fc6ed800ab04b87a623f85623c0401c4c2db34ea5eb96d57d3",
+  "exact_diff_sha256": "728683ea17a8a8b819d3123c5086e833b43bb290b642e1ca2c63252e7f6b269f",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [187, 307, 308],
+  "prior_diagnostics": [
+    "v1.0.0: the alternate unit generated a default 0–36 mission because it lacked an explicit Operations profile; transfer could not occur",
+    "v1.0.1: an explicit zero-quantity alternate profile fixed that setup, but ENALU=Y and ENALU=N produced byte-identical event logs despite exact input roundtrip; the documented switch did not isolate transfer in this tested model"
+  ],
+  "business_delta": "From accepted A17, retain two explicit units at BASE-01 and BASE-02 but remove the group. Schedule one two-aircraft BASIC-MISSION at ordinary TEACH-UNIT with one deployed aircraft. Deploy two at TEACH-UNIT-2; give that unit an explicit ALT-IDLE IQTY=0 Operations profile to prevent a generated default mission. Set Control.ENALU=Y in both variants. The configured variant adds exactly one AlternateUnit row TEACH-UNIT to TEACH-UNIT-2 with PRI=1; the absent control omits the table. Both inputs otherwise differ only in description.",
+  "hand_timeline_hypothesis": "In the configured variant, the hour-7 call at ordinary TEACH-UNIT initially allocates its one aircraft, then moves the whole mission to ready TEACH-UNIT-2, releases the ordinary aircraft, allocates the two alternate aircraft, starts at hour 8 and succeeds at hour 10. With no AlternateUnit row, the original unit remains one aircraft short, waits and cancels at hour 8.3333. ALT-IDLE creates no mission in either variant.",
+  "pre_run_metric_hypothesis": "Configured gives one started/successful fixed wave, two sorties, four aircraft-hours and MSTF=MSUF=MTMF=STMF=1. Absent gives no launch, zero operating aircraft-hours and zero fixed start/success factors. Both end with three ready aircraft and no failures, repairs or stock demand.",
+  "acceptance_requires": [
+    "accepted A17 parent, installed source hashes, deterministic builder and exact parent/control deltas",
+    "fresh paired five-step session-0 SSH native runs under host mutex and GUI PID13340 guard",
+    "exact 14/13 populated business-table import/export roundtrips and zero conversion errors",
+    "configured native event log explicitly shows original aircraft released, whole mission moved to TEACH-UNIT-2, its two aircraft launched and mission succeeded; absent control has no move, launch or success",
+    "no unintended default mission, reconciled System/Stock interval ledgers, absence of faults and three terminal-ready aircraft in both variants",
+    "sealed raw SHA-256 artifacts and separate independent read-only replay"
+  ],
+  "diagnostic_rule": "If the absent control transfers or launches, a default mission appears, the configured run lacks explicit release and transfer, or ledgers do not reconcile, keep immutable runs as diagnostics and do not publish this claim.",
+  "limitations": [
+    "One seed, one scheduled fixed demand, one alternate unit and no failures or resource contention.",
+    "Multiple-alternate priority ordering, delayed alternate readiness, reassignment after call, preparation failures and explicit formations remain unverified.",
+    "ENALU=N did not suppress transfer in the v1.0.1 pair; broader ENALU semantics, GUI and cross-engine behavior remain unverified."
+  ],
+  "publication_state": "not_published"
+}
