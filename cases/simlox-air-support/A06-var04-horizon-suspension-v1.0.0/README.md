@@ -1,0 +1,7 @@
+# A06.var04 stop during an extendable mission suspension
+
+This bounded child derives from the accepted [A06 extendable mission](../A06-extendable-prepared-gap-v1.0.0/cli-scope-signoff-2026-09-30.md). It moves the simulation and both report ends from hour 16 to **12.5**, inside the parent's observed second suspension, and changes a descriptive label. The [frozen contract](contract.json), [builder](build.py), and [exact diff](exact-diff.json) bind those fields to the accepted parent.
+
+The guarded native run repeats the accepted event log through the stop. The mission starts at 8, suspends 9.8829–10.3829, then suspends again at 12.2431. At 12.5 the second replacement is still preparing and the failed aircraft is still under direct repair; no second resumption, mission completion, or success event has occurred. Twenty-five half-hour report bins end at 12.5. They integrate 7.486288 aircraft operation hours and 0.756856 suspended aircraft-hour. The [author replay](review/author-horizon-validation-2026-09-30.json) passes 169 checks and an [independent replay](review/independent-horizon-2026-09-30.json) passes 65.
+
+The [CLI sign-off](cli-scope-signoff-2026-09-30.md) records the event prefix, raw hashes, report reconciliation and limits. The final report bin holds interval averages, not a point-in-time terminal snapshot. About 0.256856 active mission-hour remains by calculation from `DURN` and operating exposure; SIMLOX does not report that remainder directly here. Raw native files remain under ignored `runs/`.
