@@ -1,0 +1,61 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "variant_id": "A14.var03",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A14.var01",
+    "input": "../A14-continuous-end-abort-v1.0.1/control-input.json",
+    "sha256": "f81445ad2daba09321e7a55ad67c5355b7e4a14ec3a58bbf10fbfcd18b343376"
+  },
+  "structural_donors": {
+    "turnround": {
+      "input": "../B04-cross-midnight-turnround-v1.0.1/turnround-input.json",
+      "sha256": "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5"
+    },
+    "dependence": {
+      "input": "../A14-continuous-end-abort-v1.0.1/dependent-input.json",
+      "sha256": "67484243a3b35395e21dcd6554a95c2637986086c4523d5e1ba99e2890d21de3"
+    }
+  },
+  "source": {
+    "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 180, 181, 182, 188, 287, 288, 289],
+    "installed_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "inputs_sha256": {
+    "regenerative-control": "08bae91cb7508b50f38d724165fb1306677da989eec1a847392b32d80bcd760e",
+    "regenerative-zero": "ffcc14b83d28dab4f917e339c07172c1e4bd098f76f371a2cfd4979514839fb7",
+    "regenerative-tolerant": "41d9346c23bd2efbc9ef9411a5ca99c95190c7ddb11d77cab69fba0318e20250",
+    "fixed-control": "0f8c2452c47add9fb8fd1f76dce2fac2919a4e80584c6a054ba3534cf5f27fad",
+    "fixed-tolerant": "21af387dd7f45c88bad3baaa621ae1385f6e9489e2e46220e8b429ec8ce44875"
+  },
+  "exact_diff_sha256": "e5e35e277b360778a36b1212f9076add6a2e755bce8e19b511d8684773b1432b",
+  "model": {
+    "unit": "TEACH-UNIT",
+    "fleet": "two nonfailing TEACH-AIR-01 aircraft",
+    "support": "one-aircraft fixed sub-missions of four hours; 25% outbound and 25% return fractions; half-hour post-mission turnround",
+    "regenerative_period_hours": [8.0, 14.5],
+    "fixed_support_start_hours": [8.0],
+    "execute": "one-aircraft continuous mission from hour 8 to 14.25",
+    "dependency": "EXECUTE continuously depends on the SUPPORT profile instance beginning at hour 8; MUTD=N",
+    "dttol_hours": {"regenerative-zero": 0.0, "regenerative-tolerant": 0.51, "fixed-tolerant": 0.51},
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false
+  },
+  "predeclared_hypotheses": [
+    "Each source imports/exports every populated business table exactly, converts with zero errors and yields valid nonempty SXO, event log, JSON report, and 32 half-hour System and Stock bins.",
+    "In the regenerative control, SUPPORT launches a first child at 8 and returns near 12; positive turnround delays the next child, creating a measurable gap between sub-missions. EXECUTE launches at 8 and reaches its planned end near 14.25.",
+    "If the first regenerative child completes near hour 12 and the next cannot launch before its half-hour turnround ends near 12.5, the DTTOL=0 dependent EXECUTE aborts at the first-child completion, with no hour-14.25 success. The DTTOL=0.51 dependent remains operating across the no-longer-than-half-hour submission gap and succeeds near 14.25. Any other outcome makes this frozen candidate a diagnostic.",
+    "The fixed SUPPORT comparison launches at 8 and completes near 12; even DTTOL=0.51 does not bridge a completed fixed predecessor, so the dependent EXECUTE ends early near 12 while its no-row control reaches 14.25.",
+    "Every run retains two-aircraft conservation, explicit half-hour SUPPORT turnround work in native events and SystemResults, no failures, corrective repair, PM or stock movement, matching event and report mission identities, and terminal ready two after turnround completes. The separate reviewer independently replays these facts from sealed raw inputs and outputs."
+  ],
+  "decision_rule": "Publish only a bounded native-observed contrast that passes all source, converter, event, half-hour ledger, terminal, and independent replay gates. If a predeclared timeline or gap mechanism is contradicted, retain v1.0.0 as an excluded diagnostic and design a new version before a fresh native run.",
+  "limits": [
+    "One installed executable, seed, unit, two-aircraft schedule, regenerative period, half-hour turnround and two tolerance values; no general DTTOL law.",
+    "Same-time internal event priority, failures, shortages, GUI visual behavior and cross-engine equivalence remain unverified."
+  ]
+}

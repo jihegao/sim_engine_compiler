@@ -1,0 +1,66 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "variant_id": "A14.var03",
+  "case_version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A14.var01",
+    "input": "../A14-continuous-end-abort-v1.0.1/control-input.json",
+    "sha256": "f81445ad2daba09321e7a55ad67c5355b7e4a14ec3a58bbf10fbfcd18b343376"
+  },
+  "structural_donors": {
+    "turnround": {"input": "../B04-cross-midnight-turnround-v1.0.1/turnround-input.json", "sha256": "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5"},
+    "dependence": {"input": "../A14-continuous-end-abort-v1.0.1/dependent-input.json", "sha256": "67484243a3b35395e21dcd6554a95c2637986086c4523d5e1ba99e2890d21de3"}
+  },
+  "source": {
+    "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 180, 181, 182, 188, 287, 288, 289],
+    "installed_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "inputs_sha256": {
+    "regenerative-control": "08bae91cb7508b50f38d724165fb1306677da989eec1a847392b32d80bcd760e",
+    "regenerative-zero": "ffcc14b83d28dab4f917e339c07172c1e4bd098f76f371a2cfd4979514839fb7",
+    "regenerative-tolerant": "41d9346c23bd2efbc9ef9411a5ca99c95190c7ddb11d77cab69fba0318e20250",
+    "fixed-control": "0f8c2452c47add9fb8fd1f76dce2fac2919a4e80584c6a054ba3534cf5f27fad",
+    "fixed-tolerant": "21af387dd7f45c88bad3baaa621ae1385f6e9489e2e46220e8b429ec8ce44875"
+  },
+  "exact_diff_sha256": "e5e35e277b360778a36b1212f9076add6a2e755bce8e19b511d8684773b1432b",
+  "model": {
+    "unit": "TEACH-UNIT",
+    "fleet": "two nonfailing TEACH-AIR-01 aircraft",
+    "support": "one-aircraft fixed sub-missions of four hours; 25% outbound and 25% return fractions; half-hour post-mission turnround",
+    "regenerative_period_hours": [8.0, 14.5],
+    "fixed_support_start_hours": [8.0],
+    "execute": "one-aircraft continuous mission from hour 8 to 14.25",
+    "dependency": "EXECUTE continuously depends on the SUPPORT profile instance beginning at hour 8; MUTD=N",
+    "dttol_hours": {"regenerative-zero": 0.0, "regenerative-tolerant": 0.51, "fixed-tolerant": 0.51},
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false
+  },
+  "excluded_diagnostic": {
+    "package": "../A14-var03-regenerative-gap-v1.0.0",
+    "reason": "The frozen v1.0.0 prediction that DTTOL=0 aborts EXECUTE at first regenerative child completion was contradicted: it suspended from 12 to 12.5, resumed, and succeeded at 14.25. The native observation is retained as diagnostic, not retroactively accepted under that contract.",
+    "run_closure_sha256": {
+      "regenerative-control": "8be0b4ba4dd7d5ca750787d6dc498b7c2a18150f52c6b65ccdfc3c9ad588045f",
+      "regenerative-zero": "f537e058cf30630545dbb9d5c9f435505e513768b4bc7ace179ef3203c0778e4",
+      "regenerative-tolerant": "0ae86d3620e5f5f4f881215156f983ffc2dd7c4f320c0a19bb514c195b934676",
+      "fixed-control": "c07ef837adc3e58efc66a42ba989e2243d245b8148747ffa38394653de3e927a",
+      "fixed-tolerant": "b917fa252cce9be7b112cdcd7ced127b916d2f9955ddd85b1b85b9b9eea13767"
+    }
+  },
+  "predeclared_acceptance": [
+    "Each fresh run uses session-0 SSH, the global native mutex, and GUI PID 13340 identity guard; source and raw bytes are hash-sealed before/after. Every source imports/exports its 14 or 15 populated business tables exactly, converts with zero errors and yields valid SXO, event log and JSON report.",
+    "All regenerative runs launch SUPPORT children at 8 and 12.5 after a first completion at 12 and a half-hour turnround, creating a half-hour submission gap. Both children succeed/complete by 14.5; EXECUTE launches at 8 and reaches planned completion at 14.25.",
+    "At DTTOL=0 the regenerative-dependent EXECUTE suspends 12–12.5, then resumes and succeeds at 14.25. At DTTOL=0.51 it has no positive gap suspension and succeeds at 14.25; the no-row control also has no gap suspension.",
+    "The fixed SUPPORT mission launches at 8 and succeeds/completes at 12. Fixed-control EXECUTE succeeds at 14.25; with DTTOL=0.51 dependency it aborts at 12 despite tolerance and has no 14.25 success. A same-time zero-duration suspension/resume at hour 8 may occur in the dependent fixed run and is not counted as positive suspended exposure.",
+    "All runs have 32 aligned half-hour SystemResults and StockTotalResults bins, two-aircraft conservation and terminal ready two. The regenerative control/tolerant/zero runs have 12.25/12.25/11.75 aircraft operating hours and 0/0/0.5 suspended hours; each has one aircraft-hour of SUPPORT turnround. Fixed control/tolerant have 10.25/8 operating hours, zero positive suspended hours and half an aircraft-hour of SUPPORT turnround. No failures, corrective repair, PM or stock movement occur.",
+    "ResultSummary factors, per-mission events, both aircraft identities, allocation, return/turnround and terminal ledgers are verified against raw outputs. A separate read-only reviewer replays these assertions without importing the author checker."
+  ],
+  "limits": [
+    "One installed executable, seed, unit, two-aircraft schedule, half-hour turnround and two tolerance values; no general DTTOL law.",
+    "The zero-tolerance regenerative gap suspends in this setup; no general abort rule, same-time internal priority, failures, shortages, GUI visuals or cross-engine equivalence is established."
+  ]
+}

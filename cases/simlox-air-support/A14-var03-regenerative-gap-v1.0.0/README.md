@@ -1,0 +1,19 @@
+# A14.var03 regenerative gap and fixed predecessor candidate
+
+This unpublished v1.0.0 candidate tests the installed manual's distinction between DTTOL during a regenerative sub-mission gap and completion of a fixed predecessor. Its exact model parent is the published A14.var01 no-row control. Published B04 supplies the typed half-hour `MissionTurnround` table; published A14.var01 supplies the explicit CONTINUOUS dependence table. The three source fingerprints and five child input fingerprints are frozen in [contract.json](contract.json); [exact-diff.json](exact-diff.json) records every parent-to-child table change and four pairwise contrasts.
+
+All five inputs deploy two nonfailing aircraft and schedule one continuous EXECUTE mission from hour 8 through 14.25. SUPPORT uses one aircraft for four-hour fixed sub-missions and has a half-hour post-mission turnround. In the regenerative trio its period runs 8–14.5; the fixed pair schedules just one SUPPORT mission at hour 8. The controls omit `MissionDependence`; dependent inputs add one CONTINUOUS row with `DTTOL=0` or `0.51`. The frozen contract predicts a measurable regenerative submission gap, an early end with zero tolerance, uninterrupted EXECUTE with 0.51-hour tolerance, and an early abort for a completed fixed predecessor. It expects the explicit turnround to appear in the event and system ledgers. Any contradicted prediction makes this version a diagnostic rather than a published acceptance.
+
+The inputs are reproducible with `python build.py` and the source delta is checked with `python describe_diff.py`. All five runs were executed through guarded session-0 SSH under `Global\SimloxIssue18NativeQueue`; the pre-run review initially found two contract defects and then recorded GO after correction. All five sources exactly roundtripped their 14/15 populated tables, converted with zero errors and yielded valid reports. The GUI stayed PID 13340/session 1. Raw output remains under ignored `runs/`.
+
+**Decision: excluded diagnostic, NO-GO.** The frozen v1.0.0 contract predicted that the zero-tolerance regenerative gap would abort EXECUTE near hour 12. Instead, native EXECUTE suspended at 12, resumed at 12.5 and succeeded at 14.25. Its half-hour suspended exposure is reflected in SystemResults. The tolerant regenerative variant had no positive gap suspension and also succeeded at 14.25. Both SUPPORT children launched at 8 and 12.5, with a half-hour turnround after the first child. The fixed-predecessor contrast behaved as predicted: no-row EXECUTE succeeded at 14.25, while DTTOL=0.51 EXECUTE aborted at fixed SUPPORT completion at 12. This evidence is diagnostic only; the contradicted abort hypothesis is not accepted for publication.
+
+| Variant | Immutable run ID suffix | Closure SHA-256 | Operating / suspended / turnround aircraft-hours |
+| --- | --- | --- | --- |
+| regenerative-control | `a14-var03-regenerative-control-v100-20261001-01` | `8be0b4ba4dd7d5ca750787d6dc498b7c2a18150f52c6b65ccdfc3c9ad588045f` | 12.25 / 0 / 1 |
+| regenerative-zero | `a14-var03-regenerative-zero-v100-20261001-01` | `f537e058cf30630545dbb9d5c9f435505e513768b4bc7ace179ef3203c0778e4` | 11.75 / 0.5 / 1 |
+| regenerative-tolerant | `a14-var03-regenerative-tolerant-v100-20261001-01` | `0ae86d3620e5f5f4f881215156f983ffc2dd7c4f320c0a19bb514c195b934676` | 12.25 / 0 / 1 |
+| fixed-control | `a14-var03-fixed-control-v100-20261001-01` | `c07ef837adc3e58efc66a42ba989e2243d245b8148747ffa38394653de3e927a` | 10.25 / 0 / 0.5 |
+| fixed-tolerant | `a14-var03-fixed-tolerant-v100-20261001-01` | `b917fa252cce9be7b112cdcd7ced127b916d2f9955ddd85b1b85b9b9eea13767` | 8 / 0 / 0.5 |
+
+The revised [v1.0.1 candidate](../A14-var03-regenerative-gap-v1.0.1/README.md) freezes this observed timeline before fresh runs; it must pass native and independent replay gates in its own right.
