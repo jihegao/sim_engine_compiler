@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-j07-fixed-regenerative-denominator-contract/v1",
+  "case_id": "J07",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "A07.regenerative_relief.1.0.0",
+  "mechanism_donor": "J07.var02.formation_and_denied_fixed_demand.1.0.0",
+  "parent_input_sha256": "fed4f8343d203fc250d8b3508f3f5f9fe76ecbd1a86646d5965531d246b89240",
+  "input_sha256": "0b98b8c6816a0923113c1b9e77c5af5493c93104b2bd0dc06bb6552533c1fc3e",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [180, 181, 271, 273, 552, 553, 566, 568],
+  "business_delta": "From accepted A07, leave two deployed aircraft, seed 1, SIMPE/RCEND36, one regenerative profile row at hour 8 with IPER8, and all support data unchanged. Append FIXED-OK (NOS=MNOS=1) and FIXED-DENY (NOS=MNOS=3) MissionType rows, both four-hour copies of the regenerative mission template. Append scheduled fixed OperationProfile rows at hours 20 and 28 with IQTY1, IPER0, DTIM1/3. Change only ProblemDescription otherwise. The input changes exactly three tables.",
+  "hand_timeline_hypothesis": "The A07 regenerative period creates four successful child missions starting at 8, 10, 12 and 14 and ending by 16. Both aircraft are then ready. The one-aircraft fixed demand starts at 20 and succeeds at 24. The later three-aircraft fixed demand cannot meet MNOS3 with two deployed aircraft, so waits and cancels after the one-third-hour delay without launching. Native event timestamps decide any discrepancy.",
+  "pre_run_metric_hypothesis": "If regenerative children are excluded from the fixed start/success numerators and denominators, the two scheduled fixed demands give MSTF=MSUF=1/2. If all successful regenerative children were counted as fixed demands, the five starts/successes out of six planned missions would instead give 5/6. The all-unit FixedMissionResultsTotal should show NMREQ2, NMSTA1 and NMSUC1, corroborating the fixed-only denominator. A07's regenerative-only ResultSummary.MSTF=MSUF=0 is a parent control. Mission/system time factors include regenerative activity and may have an estimated denominator, so their values are observed and reconciled separately rather than used to infer fixed-count denominators.",
+  "acceptance_requires": ["accepted A07 parent and J07.var02 denied-demand mechanism lineage with exact three-table input diff and installed source hashes", "fresh five-step session-0 SSH native run under the host mutex and GUI PID13340 guard", "exact 13 populated business-table roundtrip and zero conversion errors", "four regenerative child successes, one fixed successful wave, one denied fixed demand, per-aircraft event and interval ledger, 72 System/Stock bins and terminal readiness", "native ResultSummary MSTF/MSUF 0.5 plus native FixedMissionResultsTotal NMREQ2/NMSTA1/NMSUC1 from guarded report-only settings", "sealed raw SHA-256 artifacts and separate independent read-only replay"],
+  "diagnostic_rule": "If mixed profile import fails, event order differs, fixed demand unexpectedly launches, or native fixed totals do not support the denominator, preserve immutable runs as diagnostics and do not publish the denominator claim.",
+  "limitations": ["One seed, one no-failure regenerative period followed by two fixed demands; one fixed demand is deliberately impossible.", "Regenerative child-count behavior under failures, partial mid-mission outcomes, unit/group/type reporting and GUI/cross-engine behavior remain outside this claim."],
+  "publication_state": "not_published"
+}
