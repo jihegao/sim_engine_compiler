@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A06",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "package": "../A05-var02-prepared-spare-probe-v1.0.0",
+    "input_sha256": "b7ca5f4d6152e2c166b1ba7fe8b41246c24782a50d56b2bcc773f86f176d3f4d"
+  },
+  "native_input_sha256": "5b53aa2cbaacb283e15bb7e7852afba215ec7fe5961434c3c2ce6f06768125c7",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 182, 183, 265, 266],
+    "interpretation": "EXTENDABLE compensates suspended mission time by extending completion until requested active mission time DURN has accrued."
+  },
+  "exact_delta": [
+    "MissionType.MPAT changes CONTINUOUS to EXTENDABLE.",
+    "ProblemDescription.PDESC changes descriptive label only.",
+    "Three deployed aircraft, NOS=MNOS=2, four-hour DURN, fixed half-hour replacement preparation, system failure/repair, seed, schedule and 16-hour horizon remain unchanged."
+  ],
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source and raw SHA-256 seals, four CLI steps and exact source roundtrip.",
+    "Conversion must have zero errors; classify warnings and record actual stochastic failure events without presuming the parent random stream is identical.",
+    "If a finite suspension occurs and replacement restores the required two aircraft, compare its duration with the parent and test whether the extendable mission completes after four active hours rather than at the parent's fixed hour-12 end.",
+    "Reconcile mission start, suspension/resumption and completion markers, aircraft allocations/preparation/repair, report time fractions and system-hour integrals, aligned half-hour bins, stock and terminal state.",
+    "If no finite suspension occurs, or the resulting active duration differs from DURN, preserve the run as a probe and do not claim the planned A06 behavior."
+  ],
+  "limits": [
+    "One fixed seed; failure onset is stochastic and observed, not controlled. The catalog's deterministic unavailable interval is not supplied.",
+    "A06.var01 no-interruption, multiple interruptions, report-window crossing, and unfinished-at-horizon boundaries remain separate.",
+    "No GUI visual observation or cross-engine equivalence is claimed."
+  ]
+}
