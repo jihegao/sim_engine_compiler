@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A08",
+  "variant_id": "A08.var03",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A08",
+    "variant_id": "A08.var02",
+    "package": "../A08-var02-random-count-equidist-v1.0.0",
+    "input_sha256": "54e1fab467ede59829b0c8994aa4d72f1e08878cf7a39532c6fe61364ca87c84"
+  },
+  "native_input_sha256": "cdaa80fae6d4d67107f9fb8e3bf47b4888259ee4e48e8f0a803f4c6285f3ff7a",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 180, 271, 273, 274, 275],
+    "interpretation": "RANDOM initiation draws mission quantity from IQTY=3 and IQTYD=<POISSON>, then independently draws each start time uniformly within [STIM=8, STIM+IPER=20) when IDISP=RANDOM. Eight deployed aircraft are a capacity control for observed clustered starts; they do not change the specified count or time distributions."
+  },
+  "exact_delta": [
+    "OperationProfile.IDISP changes EQUIDIST to RANDOM; ITYPE=RANDOM, IQTY=3, IQTYD=<POISSON>, STIM=8, IPER=12 and the fixed two-hour mission template remain.",
+    "SystemDeployment.QTYPS changes 3 to 8 so random clusters can start without an incidental aircraft shortage in the planned sample.",
+    "ProblemDescription.PDESC and Unit.DESCR change only provenance labels; the other 27 tables, 32 replications, seed, zero failure rate and report horizon remain identical."
+  ],
+  "configuration": {
+    "replications": 32,
+    "poisson_mean_parameter": 3,
+    "period_start_hour": 8,
+    "period_end_hour": 20,
+    "mission_duration_hours": 2,
+    "deployed_aircraft": 8,
+    "simulation_and_report_end_hour": 36,
+    "result_interval_hours": 0.5,
+    "seed": "1"
+  },
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH aggregate run with host-wide mutex, GUI PID 13340 identity guard, source/raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip; zero conversion errors and classified warnings.",
+    "Require NREP=32 and 72 aligned half-hour system and stock bins. If its native event log exposes only one replication, do not infer the other 31 counts or timelines from averaged reports.",
+    "Across directly observable one-replication runs, require nonnegative realized counts, every start in [8,20), distinct printed start times when the count exceeds one, success/completion two hours after each start, no shortage/cancellation/failure/repair/stock demand, and reported aircraft operation exposure equal to twice the realized count.",
+    "At least two realized counts and at least one count-three-or-higher run with start gaps unequal to the EQUIDIST layout must be observed. This tests stochastic count and time placement in the finite sample without proving either underlying law.",
+    "Retain every count and timestamp with its replication identity. Report count sample mean, sample variance and nominal two-sided 95 percent Student-t half-width on 32 per-run counts, targeting at most one mission. For timing, compute each nonzero-count run's mean start time first, then report the nominal Student-t half-width across those run means using its actual degrees of freedom, targeting at most 1.5 hours. Also report the pooled start mean only as a descriptive event-level value, not as an independent-sample confidence interval.",
+    "A separate read-only reviewer replays source delta, raw seals, event identities and timings, statistics and report ledgers without importing author validation."
+  ],
+  "limits": [
+    "One <POISSON> quantity parameter, one 12-hour period, one aggregate seed, 32 aggregate replications, eight deployed aircraft and a separate explicit-seed matrix. Zero-count and high-count capacity boundaries are verified only if actually drawn.",
+    "The fixed convenience seed set and nominal confidence intervals do not prove the native Poisson or uniform laws or seed independence. GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
