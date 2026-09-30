@@ -1,0 +1,17 @@
+{
+  "schema": "simlox-c07-elapsed-day-boundary-contract/v1",
+  "case_id": "C07",
+  "variant_id": "C07.var03",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C07.cross_shift_positive_gap.1.0.0",
+  "parent_input_sha256": "5674f271d59e1026d16c094ea08f78b59fdb50c9e4d818cb35e48d57edd2faad",
+  "input_sha256": "b3780ff767af1653372e8dbd3f367f1fef9829b5fbf324cf6f354a19df558046",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_physical_pages": [227, 418, 419, 420, 421],
+  "business_contract": "Use the accepted C07 DRAOS=N two-aircraft, two-hour crew-dependent preparation model. Change only ShiftProfile windows to elapsed hours 23-24 and 25-27, active ShiftResource.QTY to two equal to nominal capacity, planned mission start to hour 28, and the description. The mission request remains four and a half hours before the planned start, at hour 23.5. The 24-25 interval is a positive gap between explicit shifts; DRAOS=N makes crew unavailable then.",
+  "changed_tables": ["OperationProfile", "ProblemDescription", "ShiftProfile", "ShiftResource"],
+  "expected_native_hypothesis": "Both aircraft should work in parallel from 23.5-24, stop with 1.5 hours remaining, wait through 24-25, resume at 25, finish at 26.5 and fly the 28-29 formation. Native behavior, timing and ledgers remain hypotheses until a guarded run and independent replay.",
+  "acceptance_requires": ["exact source roundtrip", "zero conversion errors", "valid nonempty native event log and report", "per-aircraft stop, resume, completion and mission events", "resource use and wait bins and totals", "terminal system and stock ledger checks", "independent read-only replay"],
+  "limitations": ["This models an elapsed 24-hour boundary, not a named calendar day or verified weekend rule.", "Two explicit non-repeating shifts, one station, one resource, one seed and DRAOS=N only.", "Repeating or nested shifts, true weekend profile, DRAOS=Y, MAXUT, GUI behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
