@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A06",
+  "variant_id": "A06.var04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A06",
+    "package": "../A06-extendable-prepared-gap-v1.0.0",
+    "input_sha256": "5b53aa2cbaacb283e15bb7e7852afba215ec7fe5961434c3c2ce6f06768125c7"
+  },
+  "native_input_sha256": "45d034bc31e24655bbae47d4deb8d47c362e5b35ca0e8d5c538788a9dae5b0da",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 182, 183, 265, 266],
+    "interpretation": "An extendable mission does not complete until its active DURN has accrued; a stop inside suspension can leave active work outstanding."
+  },
+  "exact_delta": [
+    "Control.SIMPE and Control.RCEND change from 16.0 to 12.5 hours.",
+    "Both ResultCollection.RCEND rows change from 16.0 to 12.5 hours.",
+    "ProblemDescription.PDESC changes descriptive label only; all aircraft, mission, preparation, failure/repair, seed and schedule fields stay fixed."
+  ],
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source and raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip.",
+    "Conversion must have zero errors; classify warnings. Compare all pre-horizon mission and failure events to the accepted parent without assuming equality merely from the fixed seed.",
+    "If the second suspension begins before 12.5 and its replacement has not attached, require no mission completion or success before stop, a retained suspended aircraft, replacement preparation and failed-aircraft repair still unfinished, and report intervals ending at 12.5.",
+    "Reconcile observed active and suspended time from log events with report aircraft-hour integrals and terminal state; distinguish a directly reported remainder from one inferred by subtracting active time from DURN.",
+    "If the stop is not inside an observed suspension or the native report does not expose enough state, retain the run as a probe and publish only what is directly supported."
+  ],
+  "limits": [
+    "One fixed seed and stochastic failure timing; the horizon was chosen from an accepted observed event and does not establish a general stopping rule.",
+    "Any remaining active duration calculated from printed event timestamps is an inference, not a native remaining-work field.",
+    "Other stop boundaries, GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}

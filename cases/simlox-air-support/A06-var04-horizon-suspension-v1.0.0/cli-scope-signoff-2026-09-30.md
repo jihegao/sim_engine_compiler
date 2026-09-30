@@ -1,0 +1,28 @@
+# A06.var04 unfinished extendable mission at hour-12.5 stop: CLI scope sign-off (2026-09-30)
+
+**Decision:** `native_behavior_accepted_cli_scope`, `reusable_published` for one fixed-seed extendable mission whose simulation and report stop falls inside its second observed suspension. The accepted conclusion is an unfinished mission with a retained suspended aircraft, a replacement preparation and a direct repair in progress at the stop, evidenced by the event prefix and incomplete event pairs. A point-in-time terminal inventory or native remaining-work value is not claimed.
+
+## Source and exact delta
+
+The accepted [A06 extendable parent](../A06-extendable-prepared-gap-v1.0.0/cli-scope-signoff-2026-09-30.md) input SHA-256 is `5b53aa2cbaacb283e15bb7e7852afba215ec7fe5961434c3c2ce6f06768125c7`. The [child input](native-input.json) SHA-256 is `45d034bc31e24655bbae47d4deb8d47c362e5b35ca0e8d5c538788a9dae5b0da`. The [exact diff](exact-diff.json) SHA-256 is `8dcd0078193e1e2ca1d892876688806d96878ad5f4a6b535ee1acbac51888269`: `Control.SIMPE` and `Control.RCEND` change 16→12.5 hours, both `ResultCollection.RCEND` rows change 16→12.5 hours, and `ProblemDescription.PDESC` changes a label. The other 28 tables, aircraft, `MPAT=EXTENDABLE`, `DURN=4`, two-aircraft minimum, fixed preparation, failure/repair, seed and schedule stay unchanged. The [contract](contract.json) SHA-256 `69e31dcc3537cc2eb85baf3bf48e8688932fe515842a572f747dd1b3e0a1a32d` declared the stop-time and evidence conditions before the native run.
+
+The installed SIMLOX 2017 manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`. Physical PDF pages 179, 182–183 and 265–266 describe extendable missions, suspension while below minimum, and completion after requested active mission time. The installed dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Neither proprietary file is uploaded.
+
+## Sealed native result
+
+Run `a06-var04-horizon-suspension-v100-ssh-20260930-01` used session-0 SSH with an `sshd.exe` ancestor, the host-wide `Global\SimloxIssue18NativeQueue` mutex, and GUI PID 13340/session-1 identity guard. Import, export, calculation, report and exact source roundtrip checker exited zero. All 16 row-containing source business tables roundtripped exactly. Conversion errors were zero; warning #108 enables event logging and #126 denotes the teaching aircraft with no items. The native JSON writer's trailing commas are normalized only in a parser copy; raw bytes and hashes are retained.
+
+| Raw artifact | SHA-256 |
+| --- | --- |
+| `invocation.json` | `b1eaf277d73be4e6798eaea2ac0aefd4567782b41203081e8eb02ea68075079c` |
+| `closure.json` | `49aec24e6612457386bb0a0373417537b0aa5392fabe05a0eb41297a1d60e9ce` |
+| `model.log` | `e3b8ff21c05446f7bc2f3ea152a7851c249b605d3b8ad1a2d361639dd9fae335` |
+| `report-raw.json` | `3181e2accae8b754f0e6c368b819763e1e3c71d386d3fd50f81c12be5e2eb310` |
+
+From the first hour-7 mission event through the stop, the child event lines exactly match the accepted A06 parent prefix. Aircraft #0/#1 start at hour 8. #0 fails and the mission suspends at **9.8829**; prepared #2 attaches and the mission resumes at **10.3829**. #1 fails at **12.2431**; #2 is named as retained on the suspended mission. Repaired #0 starts replacement preparation and #1 starts direct repair at the same timestamp. The child log ends while both tasks remain open: there is no #0 attachment, second resumption, mission success/completion, second repair completion, or fourth preparation completion before **12.5**. The parent later resumes at 12.7431 and completes at 13, but those later events are not attributed to the stopped child.
+
+The 25 aligned half-hour report bins cover 0–12.5. They integrate **7.4862882495 aircraft mission-hours** (`NSYMO=STACC`), **0.7568558604 suspended aircraft-hour** (`NSYMS`), **0.7568558604 repair aircraft-hour** (`NSYRP`), and **1.7568558604 preparation aircraft-hours** (`NSYMP`). There are two failures, one completed repair, four preparation starts and three completions; stock demand/backorder remain zero. `MTMF=STMF≈0.9357860088` matches 7.486288 aircraft-hours out of eight prescribed. The final 12–12.5 bin contains interval averages: its ready, preparing, repairing and suspended columns are **not** instantaneous values at 12.5. The open-event interpretation supplies the in-progress conclusion. Subtracting 7.486288 aircraft-hours divided by two aircraft from `DURN=4` gives approximately **0.2568558753 active hour remaining**; this is an inference and not a native remaining-work field.
+
+The [author validator](validate_horizon.py), SHA-256 `eeca49e87184c67f211df8ef8057009593bbc9ecf4558f8680498826073c1b39`, passes [169/169 checks](review/author-horizon-validation-2026-09-30.json), SHA-256 `6088eb58ffe24e145988486125d927eff1d01304d1a051e9bd6ba76f17d6c759`. A separate [independent read-only replay](review/independent_horizon_readonly.py), SHA-256 `108218e113541f4c85ba3b606f24cf43726f235124397e0e9a0284c47800473d`, passes [65/65 checks](review/independent-horizon-2026-09-30.json), SHA-256 `2fc6ac983fd99ec30538e418b5de8030f06a2f531448fe9a35ca857cc46d8494`, without importing the author validator. Raw native files remain in ignored local `runs/`.
+
+This evidence is specific to installed SIMLOX executable SHA-256 `fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0`, one seed and the observed stochastic failure times. The hour-12.5 stop was selected from the accepted parent event timeline; it does not establish a general stopping rule or the catalog's deterministic unavailable interval. Other horizons, GUI visual content and cross-engine equivalence remain unverified. Issue #18 stays open.
