@@ -1,0 +1,658 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C06.var04",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 158,
+  "passed_count": 158,
+  "failures": [],
+  "decision": "GO_bounded_rprob_zero_one_endpoints",
+  "accepted_scope": "With both resource capacities zero, RPROB 0 yields no typed resource demand for either aircraft: both INSPECT preparation subtasks perform from 7.5 to 7.83333 without a typed allocation, and the 8-9 mission succeeds. At RPROB 1 both aircraft test and fail primary/alternative availability, wait without booking or work, then cancel at 8.66667 and return ready. Resource stock/use and stock events stay zero in both sealed runs.",
+  "metric_interpretation": "At RPROB 0 the generic subtask 'books resources' and 'frees resources' lines do not name an allocated P-CREW or P-ALT and do not establish a resource booking. Typed event lines and ResourceResults.NR/NRUM/NRMA/NRMO are zero. At RPROB 1, ResourceResults.NRW and SystemResults.NSYMP show waiting demand in bins 7.5-8=2, 8-8.5=2, 8.5-9=2/3; NRW is not booked work time.",
+  "limits": [
+    "Only deterministic RPROB zero/one endpoints under one fixed seed and zero capacity of both types; no inference about intermediate Bernoulli frequency, per-aircraft independence, or nonzero resource capacity.",
+    "INSPECT identity is source/roundtrip bound; the native log labels generic subtasks.",
+    "SSH/GUI/queue continuity is replayed from sealed metadata; this reviewer did not observe or rerun native SIMLOX live."
+  ],
+  "checks": [
+    {
+      "name": "contract identity and accepted both-zero parent",
+      "passed": true
+    },
+    {
+      "name": "manual fingerprint/pages",
+      "passed": true
+    },
+    {
+      "name": "frozen unpublished candidate",
+      "passed": true
+    },
+    {
+      "name": "frozen two-table change set",
+      "passed": true
+    },
+    {
+      "name": "unique 31-table parent",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: source hash and copied run input",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact frozen parent delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "rprob-0: only intended tables differ",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: endpoint description",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: only RPROB endpoint changes resource demand",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: both resource stocks stay zero",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: fixed INSPECT source and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: session-zero SSH and queue",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: invocation and closure seal",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: 20 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: zero conversion errors/two known warnings",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: initial zero resource inventory",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: no typed resource booking/release",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: aircraft 0 source-bound task starts",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: aircraft 0 no sampled demand",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: aircraft 0 fixed task completes without typed release",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: aircraft 1 source-bound task starts",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: aircraft 1 no sampled demand",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: aircraft 1 fixed task completes without typed release",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: generic book/free text is not typed allocation",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: one successful 8-9 mission",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: terminal two aircraft ready at 9",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: mission summary endpoint",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: zero resource stock/use and expected waiting total",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: exact NRW waiting bins; zero elsewhere",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: zero typed resource stock/use in every bin",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: system preparation bins and terminal readiness",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: system operation endpoint",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: no stock events in any bin",
+      "passed": true
+    },
+    {
+      "name": "rprob-0: terminal inventory and waiting clear",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: source hash and copied run input",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact frozen parent delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription"
+      ]
+    },
+    {
+      "name": "rprob-1: only intended tables differ",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: endpoint description",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: only RPROB endpoint changes resource demand",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: both resource stocks stay zero",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: fixed INSPECT source and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: session-zero SSH and queue",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: invocation and closure seal",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: 20 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: zero conversion errors/two known warnings",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: initial zero resource inventory",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: no typed resource booking/release",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: aircraft 0 source-bound task starts",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: aircraft 0 both availability tests fail",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: aircraft 0 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: aircraft 1 source-bound task starts",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: aircraft 1 both availability tests fail",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: aircraft 1 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exactly two failed tests per resource",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: finite-deadline cancellation, no work/launch",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: terminal two aircraft ready at 8.66667",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: mission summary endpoint",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: zero resource stock/use and expected waiting total",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: exact NRW waiting bins; zero elsewhere",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: zero typed resource stock/use in every bin",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: system preparation bins and terminal readiness",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: system operation endpoint",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: no stock events in any bin",
+      "passed": true
+    },
+    {
+      "name": "rprob-1: terminal inventory and waiting clear",
+      "passed": true
+    },
+    {
+      "name": "exact pairwise endpoint delta",
+      "passed": true
+    }
+  ]
+}

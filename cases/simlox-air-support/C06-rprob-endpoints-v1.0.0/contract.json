@@ -1,0 +1,23 @@
+{
+  "schema": "simlox-c06-rprob-endpoints-contract/v1",
+  "case_id": "C06",
+  "variant_id": "C06.var04",
+  "version": "1.0.0-candidate",
+  "parent_case": "C06.both_resource_zero.1.0.0",
+  "parent_input_sha256": "05c6da90b5c8e509ea57132026d781822e1399d7693f469ec08c307bff9342cc",
+  "input_sha256": {
+    "rprob-0": "cf4e6f3a79843905a585394c5aa752a85a9e2e516e9674c398acd55c8299855d",
+    "rprob-1": "0e548e167a48aed7e76dfeec5b0fbdfbb817f41bc3c88e0b1e246396ab218fa4"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [397, 398, 399, 407, 408, 409, 412, 413, 414],
+  "pre_run_business_contract": "From accepted C06 both-resource-zero input, keep both P-CREW and P-ALT allocations at zero. Only vary the SubTaskResource.RPROB probability of requiring one resource for the 20-minute INSPECT from one to zero, with a descriptive label change. Mission, deadline, seed, one preparation subtask per aircraft and ARTF two remain unchanged.",
+  "changed_tables_only": ["ProblemDescription", "SubTaskResource"],
+  "expected_native_hypothesis": {
+    "rprob-0": "No resource demand is sampled for either aircraft, INSPECT executes its fixed 20-minute duration without booking, and the mission can launch and succeed.",
+    "rprob-1": "Both aircraft demand a preparation resource, wait without booking, and the mission cancels at the retained finite deadline as in the accepted parent."
+  },
+  "acceptance_requires": ["exact populated-table roundtrip", "zero conversion errors", "nonempty event log and report", "per-aircraft resource demand and timing", "mission/resource/inventory/terminal ledger", "independent read-only replay"],
+  "limitations": ["Endpoints alone do not validate intermediate Bernoulli frequency or independent per-aircraft sampling.", "Both resource types are zero-capacity; interaction with nonzero capacity is untested."],
+  "publication_state": "not_published"
+}
