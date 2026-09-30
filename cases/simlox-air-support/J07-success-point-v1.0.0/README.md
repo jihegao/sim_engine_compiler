@@ -1,0 +1,11 @@
+# J07.var04 success-point result calculation, v1.0.0
+
+This paired experiment asks how SIMLOX counts a mission that passes `MissionType.MSUCPT` but later aborts. It reuses the accepted [D06 explicit failure and direct repair](../D06-explicit-position-direct-repair-v1.0.0/cli-scope-signoff-2026-09-30.md) model as a byte-identical control. The child changes only `MSUCPT` from 1 to 0.75 and the description. The earlier J07.var01–02 publication establishes the formation and denominator prerequisite; this package isolates one aircraft to observe the success-point rule.
+
+`build.py` checks the accepted parent hash and regenerates both frozen inputs and `exact-diff.json`. `contract.json` records the source, pre-run hypothesis and diagnostic rule. The [sign-off](cli-scope-signoff-2026-10-01.md) reports actual native behavior and limits.
+
+The full-completion control has missions at 8–10, 20–22 and 32–34. One aircraft fails at 9.8829 and 33.8602, aborting the first and third missions. In the child, the calculated 75% points are 9.5 and 33.5, before those failures. The two native runs have the same non-success events and identical 72-bin System and Stock results. `ResultSummary.MSUF` changes from about 1/3 to 1. The native log emits `mission success` for the child’s aborted missions at 10 and 34; there is no separate logged success event at 9.5 or 33.5.
+
+Run `python build.py` to check frozen files. On the pinned Windows host, run `run_native_ssh.ps1` through authenticated session-0 SSH for each variant with a fresh run ID, sequentially. It requires the installed SIMLOX executable, the active original GUI PID 13340, and the host-wide `Global\SimloxIssue18NativeQueue` mutex. Each immutable ignored `runs/` directory holds import/export, calculation, JSON report, logs, exact source roundtrip, invocation and SHA closure. `python validate.py` replays the author assertions; `review/independent_readonly.py` provides a separately written raw replay. Raw native files, the proprietary manual and dictionary stay local.
+
+This scope supports a fixed-seed, retrospective success classification for two aborted missions that passed the configured fraction. It does not establish an observable success event at the threshold, a general stochastic result law, partial formation success, GUI display or cross-engine equivalence.
