@@ -1,0 +1,28 @@
+# A05.var03 lower active-mission continuation minimum: CLI scope sign-off (2026-09-30)
+
+**Decision:** `native_behavior_accepted_cli_scope`, `reusable_published` for one fixed-seed four-hour continuous mission with `MNOS=2`, `MNOSA=1`, and two observed system failures. After each failure, the surviving aircraft operates while a replacement undergoes fixed half-hour preparation; the mission ends at its original hour 12 without whole-mission suspension. This accepts only the tested configuration and observed run.
+
+## Source and exact delta
+
+The accepted [prepared distinct-replacement parent](../A05-var02-prepared-spare-probe-v1.0.0/cli-scope-signoff-2026-09-30.md) input SHA-256 is `b7ca5f4d6152e2c166b1ba7fe8b41246c24782a50d56b2bcc773f86f176d3f4d`. The [child input](native-input.json) SHA-256 is `586e9b765dd5ab69e578fa3d2ed18262b5b6148fc48862c14e6c95846241d1fa`. The [exact parent diff](exact-diff.json) SHA-256 is `56f9bcc7641dcf917c009d7bc45bdd98b8de4cde04dc7fe90c28887768e865a1`: `MissionType.MNOSA` changes `null` (default `MNOS=2`) to `1`, and `ProblemDescription.PDESC` changes a descriptive label. The remaining 29 tables, `NOS=MNOS=2`, three deployed aircraft, fixed half-hour preparation, system failure rate and direct repair, seed, schedule, and horizon are identical. The [contract](contract.json) SHA-256 `7156b13649541dafafee0354ab64731c186930cef8118fe782365df5a77ae348` was frozen before execution. Its final limit says “one stochastic failure onset,” but the native run has **two** observed failures. The predeclared acceptance explicitly required recording actual events without assuming the parent's random stream; this sign-off corrects that limit to two observed stochastic failures, with timing uncontrolled.
+
+The installed SIMLOX 2017 manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`. Physical PDF page 264 defines `MNOSA` as the minimum to continue an active mission and `MNOS` as the minimum to start or resume one; pages 182–183 and 266 describe continuous mission suspension and its fixed calendar end. Pages 551–553 and 558–559 define `MSTF`/`MSUF` for fixed missions, excluding this continuous mission. The installed dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Neither proprietary file is uploaded.
+
+## Sealed native result and review
+
+Run `a05-var03-mnosa-one-v100-ssh-20260930-01` used session-0 SSH with an `sshd.exe` ancestor, the host-wide `Global\SimloxIssue18NativeQueue` mutex, and the GUI PID 13340/session-1 identity guard. Import, export, calculation, report, and exact source roundtrip checker all exited zero. All 16 row-containing source business tables roundtripped exactly. Conversion had zero errors; warning #108 enables event logging and #126 denotes the teaching aircraft with no items. The native JSON writer emits trailing commas, so read-only replay parsing normalizes a copy while retaining raw bytes and hashes.
+
+| Raw artifact | SHA-256 |
+| --- | --- |
+| `invocation.json` | `2aab22d66323fc27ec788dc59825fad74e2aad7dc1fc8fcf69f3a7a337462d72` |
+| `closure.json` | `05f49a6456d80572876f3b9c1892ec482757027ce94617f4e378541ec722fc8f` |
+| `model.log` | `3eee96e18be305a93eb2b9f2cf8cbe1138ddff9298ac298a8acc4d3f70b86a00` |
+| `report-raw.json` | `6cdbbd5ac4dc5eaceb168256b5fc79dfe6e7a98afde7f97206d20f940fc0a242` |
+
+Aircraft #0 and #1 are allocated at hour 7, prepare concurrently 7–7.5, and start at hour 8. At **9.8829**, #0 incurs a critical random system failure and leaves. #1 remains on the mission; ready #2 is allocated and prepares 9.8829–10.3829, while #0 receives direct repair over the same interval. #2 attaches at **10.3829**. At **11.1325**, #1 fails and leaves. #2 remains on the mission; repaired #0 is allocated and prepares 11.1325–11.6325, while #1 receives direct repair. #0 attaches at **11.6325**. The log has no mission suspension or resumption marker, and #2/#0 complete at hour 12. The first failure timestamp matches the parent; subsequent events differ with the continuation rule, so a shared random stream is not assumed.
+
+The 32 aligned half-hour report bins cover hours 0–16 and integrate **seven aircraft mission-hours** (`NSYMO=STACC`), **zero suspended aircraft-hours** (`NSYMS`), **one repair aircraft-hour** (`NSYRP`), and **two preparation aircraft-hours** (`NSYMP`). There are two failures and two repairs, four preparation starts and completions, no stock demand or backorder, and three ready aircraft at the end. `MTMF=1` reflects an active four-hour mission; `STMF=0.875` reflects seven of eight possible aircraft-hours at the two-aircraft desired strength. The hour-12 success event coexists with `MSTF=MSUF=0` because those fractions exclude continuous missions.
+
+The [author validator](validate_mnosa.py) passes [195/195 checks](review/author-mnosa-validation-2026-09-30.json), covering source identity, raw seals, guarded execution, exact events and report integrals. A separate reviewer wrote a [read-only replay](review/independent_mnosa_readonly.py) without importing the author validator; its [68/68 result](review/independent-mnosa-2026-09-30.json) independently verifies the bounded conclusion. Raw files remain in ignored local `runs/`.
+
+This evidence is specific to installed SIMLOX executable SHA-256 `fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0`, one seed and the two observed stochastic failures. The third aircraft is a system-level ready spare rather than stocked materiel. Starting below `MNOS`, resuming a previously suspended mission below `MNOS`, other `MNOSA` thresholds, deterministic failure timing, GUI visual content, and cross-engine equivalence remain unverified. Issue #18 stays open.
