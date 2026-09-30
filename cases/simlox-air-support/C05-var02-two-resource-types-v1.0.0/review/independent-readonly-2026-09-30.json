@@ -1,0 +1,622 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C05.var02",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 135,
+  "passed_count": 135,
+  "failures": [],
+  "decision": "GO_bounded_two_type_resource_observation",
+  "accepted_scope": "In this fixed two-aircraft, two-hour mission, each aircraft requires one MISSION-CREW and one MISSION-RADIO. With two radios, both aircraft book both types at hour 7, launch at 8, succeed and complete at 10, and release both types. With zero radios, both crew checks pass but both radio checks fail before any booking, and the mission cancels at 8.33333. Both runs return two ready aircraft and their initial resource inventory.",
+  "limits": [
+    "One fixed seed, one formation, one site and two extreme radio capacities only; radio capacity one and mixed availability remain unverified.",
+    "The catalog one-hour mission, separate preparation resource, alternate timing and seeds remain unverified.",
+    "ResourceResults is aggregated over types, so type-specific bookings and release are established by the sealed event log, corroborated by aggregate report totals.",
+    "SSH session, GUI continuity, and queue evidence are replayed from sealed records; this reviewer did not observe a live native run."
+  ],
+  "checks": [
+    {
+      "name": "contract identity and accepted C05 parent SHA",
+      "passed": true
+    },
+    {
+      "name": "manual fingerprint and printed pages",
+      "passed": true
+    },
+    {
+      "name": "frozen unpublished contract",
+      "passed": true
+    },
+    {
+      "name": "frozen changed table list",
+      "passed": true
+    },
+    {
+      "name": "parent unique 32 tables",
+      "passed": true
+    },
+    {
+      "name": "radio-2: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "radio-2: source and copied input SHA",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact four-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionResource",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation"
+      ]
+    },
+    {
+      "name": "radio-2: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "radio-2: description row",
+      "passed": true
+    },
+    {
+      "name": "radio-2: two distinct special resources",
+      "passed": true
+    },
+    {
+      "name": "radio-2: crew 2 and radio capacity at base",
+      "passed": true
+    },
+    {
+      "name": "radio-2: one of each type per aircraft",
+      "passed": true
+    },
+    {
+      "name": "radio-2: no ground preparation resource demand",
+      "passed": true
+    },
+    {
+      "name": "radio-2: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "radio-2: SSH session 0 and queue",
+      "passed": true
+    },
+    {
+      "name": "radio-2: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "radio-2: current source/runtime seals and unchanged before/after",
+      "passed": true
+    },
+    {
+      "name": "radio-2: invocation and closure seal",
+      "passed": true
+    },
+    {
+      "name": "radio-2: complete raw seal inventory",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "radio-2: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "radio-2: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "radio-2: native command arguments match invocation",
+      "passed": true
+    },
+    {
+      "name": "radio-2: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "radio-2: 16 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip MissionResource",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "radio-2: import and export complete",
+      "passed": true
+    },
+    {
+      "name": "radio-2: zero conversion errors, two known warnings",
+      "passed": true
+    },
+    {
+      "name": "radio-2: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "radio-2: single two-aircraft wave ordered",
+      "passed": true
+    },
+    {
+      "name": "radio-2: initial two-type stock",
+      "passed": true
+    },
+    {
+      "name": "radio-2: both crew checks OK",
+      "passed": true
+    },
+    {
+      "name": "radio-2: radio check outcome",
+      "passed": true
+    },
+    {
+      "name": "radio-2: exact per-type allocation/release ledger",
+      "passed": true,
+      "detail": [
+        [
+          7.0,
+          "MISSION-CREW",
+          "book",
+          1
+        ],
+        [
+          7.0,
+          "MISSION-RADIO",
+          "book",
+          1
+        ],
+        [
+          7.0,
+          "MISSION-CREW",
+          "book",
+          0
+        ],
+        [
+          7.0,
+          "MISSION-RADIO",
+          "book",
+          0
+        ],
+        [
+          10.0,
+          "MISSION-CREW",
+          "release",
+          1
+        ],
+        [
+          10.0,
+          "MISSION-RADIO",
+          "release",
+          1
+        ],
+        [
+          10.0,
+          "MISSION-CREW",
+          "release",
+          2
+        ],
+        [
+          10.0,
+          "MISSION-RADIO",
+          "release",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "radio-2: per-type stock stays bounded and returns",
+      "passed": true
+    },
+    {
+      "name": "radio-2: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "radio-2: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "radio-2: mission summary metrics",
+      "passed": true
+    },
+    {
+      "name": "radio-2: resource total reconciles 36-hour event ledger",
+      "passed": true
+    },
+    {
+      "name": "radio-2: terminal inventory and two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "radio-2: both aircraft book both resources",
+      "passed": true
+    },
+    {
+      "name": "radio-2: 8-10 two-aircraft mission and success",
+      "passed": true
+    },
+    {
+      "name": "radio-2: resource report holds four then releases",
+      "passed": true
+    },
+    {
+      "name": "radio-2: system report launch and recovery",
+      "passed": true
+    },
+    {
+      "name": "radio-0: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "radio-0: source and copied input SHA",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact four-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionResource",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation"
+      ]
+    },
+    {
+      "name": "radio-0: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "radio-0: description row",
+      "passed": true
+    },
+    {
+      "name": "radio-0: two distinct special resources",
+      "passed": true
+    },
+    {
+      "name": "radio-0: crew 2 and radio capacity at base",
+      "passed": true
+    },
+    {
+      "name": "radio-0: one of each type per aircraft",
+      "passed": true
+    },
+    {
+      "name": "radio-0: no ground preparation resource demand",
+      "passed": true
+    },
+    {
+      "name": "radio-0: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "radio-0: SSH session 0 and queue",
+      "passed": true
+    },
+    {
+      "name": "radio-0: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "radio-0: current source/runtime seals and unchanged before/after",
+      "passed": true
+    },
+    {
+      "name": "radio-0: invocation and closure seal",
+      "passed": true
+    },
+    {
+      "name": "radio-0: complete raw seal inventory",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "radio-0: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "radio-0: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "radio-0: native command arguments match invocation",
+      "passed": true
+    },
+    {
+      "name": "radio-0: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "radio-0: 16 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip MissionResource",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "radio-0: import and export complete",
+      "passed": true
+    },
+    {
+      "name": "radio-0: zero conversion errors, two known warnings",
+      "passed": true
+    },
+    {
+      "name": "radio-0: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "radio-0: single two-aircraft wave ordered",
+      "passed": true
+    },
+    {
+      "name": "radio-0: initial two-type stock",
+      "passed": true
+    },
+    {
+      "name": "radio-0: both crew checks OK",
+      "passed": true
+    },
+    {
+      "name": "radio-0: radio check outcome",
+      "passed": true
+    },
+    {
+      "name": "radio-0: exact per-type allocation/release ledger",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "radio-0: per-type stock stays bounded and returns",
+      "passed": true
+    },
+    {
+      "name": "radio-0: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "radio-0: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "radio-0: mission summary metrics",
+      "passed": true
+    },
+    {
+      "name": "radio-0: resource total reconciles 36-hour event ledger",
+      "passed": true
+    },
+    {
+      "name": "radio-0: terminal inventory and two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "radio-0: radio failure blocks bookings of both types",
+      "passed": true
+    },
+    {
+      "name": "radio-0: deadline cancellation, no launch",
+      "passed": true
+    },
+    {
+      "name": "radio-0: report has no assigned or operating resources",
+      "passed": true
+    },
+    {
+      "name": "pair differs only in radio capacity and description",
+      "passed": true
+    }
+  ]
+}

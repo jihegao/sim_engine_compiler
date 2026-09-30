@@ -1,0 +1,23 @@
+{
+  "schema": "simlox-c05-var02-two-resource-types-contract/v1",
+  "case_id": "C05",
+  "variant_id": "C05.var02",
+  "version": "1.0.0-candidate",
+  "parent_case": "C05.mission_resource_capacity.1.0.0",
+  "parent_input_sha256": "d2ea6e874eff82f1e50f271051010985c28adfba7aab94d2a0a0b343b989e865",
+  "input_sha256": {
+    "radio-2": "408552a0a0403df79654c30b3dbd5c1e0c990430116a0f0415dc8b15bc7006e7",
+    "radio-0": "aef07e9340e6504b7aa1d1f33e9c470572948f3c6560abe67b29dbbdcbbbaa80"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [300, 301, 302, 412, 413, 414],
+  "pre_run_business_contract": "Keep the accepted C05 two-aircraft, two-hour formation and crew pool of two. Each aircraft additionally requires one distinct SPECIAL MISSION-RADIO resource. Radio capacity is two or zero. One system must not reserve crew until all its required resource types are available.",
+  "changed_tables_only": ["ProblemDescription", "Resource", "ResourceAllocation", "MissionResource"],
+  "expected_native_hypothesis": {
+    "radio-2": "two aircraft reserve both resource types, launch together and release both types after the mission",
+    "radio-0": "neither aircraft reserves crew or radio, the formation cannot launch and the deadline cancels it"
+  },
+  "acceptance_requires": ["exact populated-table roundtrip", "zero conversion errors", "nonempty valid native output", "event-level all-types allocation and release ledger", "report metrics and terminal state", "independent read-only replay"],
+  "limitations": ["Only radio capacities two and zero are probed; asymmetrical one-capacity and mixed per-aircraft availability remain unverified.", "This two-hour slice does not include the catalog's one-hour form or a distinct ground-preparation resource.", "Expected outcomes remain hypotheses until raw native evidence and independent replay pass."],
+  "publication_state": "not_published"
+}
