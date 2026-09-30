@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "input": "../A05-continuous-baseline-v1.0.1/native-continuous.json",
+    "input_sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+    "signoff": "../A05-continuous-baseline-v1.0.1/cli-scope-signoff-2026-09-30.md"
+  },
+  "requires": ["A05", "A09", "A13"],
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [188, 287, 288, 289],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "tables": ["MissionType", "OperationProfile", "MissionDependence"]
+  },
+  "model": {
+    "unit": "TEACH-UNIT",
+    "aircraft_ready_at_zero": 2,
+    "missions": ["SUPPORT", "EXECUTE"],
+    "mission_schedule_hour": 8,
+    "mission_duration_hours": 4,
+    "each_mission_NOS_MNOS": 1,
+    "pattern": "CONTINUOUS",
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false
+  },
+  "inputs_sha256": {
+    "control": "47e9c68a9026048c422f97de14a162f200bc977a2c4ae1a611305696e859c3fa",
+    "oneway": "3dd4b6d23b24ac33e6913a48f8953ee3dc950ac321a591efa3e268bb0627792f",
+    "mutual": "15b920fd1d4fe4b9657994e9865143dae52aff05fff4e18b6ca008f7c559c3f7",
+    "opposing": "2c568136e037aaeac30d77ac515d12f322e443c1ae7e2ce385848f7e7b575978"
+  },
+  "exact_diff_sha256": "2f83700fdc5f094adb471359ca6cc720f0e84b5a39d21fcfa2502cd9e7da75d8",
+  "hypotheses_to_test": [
+    "Control: both missions launch near hour 8 and complete near hour 12 with separate aircraft.",
+    "One-way CONTINUOUS: EXECUTE waits until SUPPORT is active, then both operate in parallel without deadlock.",
+    "MUTD=Y on one CONTINUOUS row: both missions become ready and launch together, avoiding the circular wait.",
+    "Two opposing ordinary CONTINUOUS rows with MUTD=N: both missions wait and fail to launch before their delay limits, reproducing the manual's deadlock warning.",
+    "Each run has exact source-row import/export, zero conversion errors, nonempty valid output, aligned 32 half-hour system and stock bins, reconciled aircraft ledger, event and metric consistency, and terminal ready aircraft."
+  ],
+  "gate": "Native runs decide these hypotheses; any contradiction is preserved as a diagnostic, not silently accepted.",
+  "limits": [
+    "Only A14 DTYPE=CONTINUOUS baseline and MUTD/deadlock contrast in one explicit unit; DTTOL, gaps, cross-unit identity and MissionDependenceProfile remain unverified.",
+    "One seed, no failures or resource contention. GUI behavior and cross-engine equivalence unverified."
+  ]
+}

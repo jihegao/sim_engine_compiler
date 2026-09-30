@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "case_version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "input": "../A05-continuous-baseline-v1.0.1/native-continuous.json",
+    "input_sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+    "signoff": "../A05-continuous-baseline-v1.0.1/cli-scope-signoff-2026-09-30.md"
+  },
+  "requires": ["A05", "A09", "A13"],
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [188, 287, 288, 289],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "inputs_sha256": {
+    "control": "f81445ad2daba09321e7a55ad67c5355b7e4a14ec3a58bbf10fbfcd18b343376",
+    "dependent": "67484243a3b35395e21dcd6554a95c2637986086c4523d5e1ba99e2890d21de3"
+  },
+  "exact_diff_sha256": "3669fb6886d969f0fb4fd18306053eef085bff25ec181dff561f1ff11ac35680",
+  "model": {
+    "unit": "TEACH-UNIT",
+    "aircraft_ready_at_zero": 2,
+    "schedule_hour": 8,
+    "support": {"type": "SUPPORT", "pattern": "CONTINUOUS", "duration_hours": 2, "NOS": 1, "MNOS": 1},
+    "execution": {"type": "EXECUTE", "pattern": "CONTINUOUS", "duration_hours": 4, "NOS": 1, "MNOS": 1},
+    "dependency": "EXECUTE CONTINUOUS depends on SUPPORT at hour 8; MUTD=N; DTTOL unset",
+    "control": "same model without MissionDependence",
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false
+  },
+  "predeclared_acceptance": [
+    "Guarded session-0 SSH, host-wide serial mutex and GUI PID 13340 identity remain stable; input, source scripts and raw outputs are hash-sealed.",
+    "Both source models import and export all populated business rows exactly, convert with zero errors, and generate nonempty valid reports.",
+    "Control SUPPORT and EXECUTE launch at hour 8 on separate aircraft; SUPPORT completes near hour 10 and EXECUTE succeeds near hour 12.",
+    "With the one CONTINUOUS dependence row, SUPPORT launches at hour 8 and its completion near hour 10 aborts the still-running EXECUTE. The event log, mission report, half-hour aircraft-state bins and terminal ready count must agree.",
+    "The 32 half-hour system and stock bins reconcile with two aircraft, no random failure or maintenance, no stock demand, and a terminal two-ready state.",
+    "A separate reviewer replays source deltas, immutable native closure and timeline/ledger assertions without importing the author validator."
+  ],
+  "excluded_diagnostic": {
+    "package": "../A14-continuous-mutual-v1.0.0",
+    "reason": "The two opposing ordinary rows launched concurrently instead of the predeclared deadlock; MUTD and opposing-row branches were not behaviorally distinct under that schedule."
+  },
+  "limits": [
+    "This slice establishes only one explicit CONTINUOUS row's predecessor-completion abort, with no DTTOL and no mid-mission suspension.",
+    "MUTD/deadlock, DTTOL, regenerative gaps, cross-unit identity, hierarchy and MissionDependenceProfile remain unverified.",
+    "One seed, no failures or resource contention; GUI and cross-engine behavior unverified."
+  ]
+}

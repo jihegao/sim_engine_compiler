@@ -54,6 +54,8 @@ The [D13.var03 static MAXPM comparison](D13-var02-maxpm-two-v1.0.0/catalog-id-er
 
 The [D13.var01 local PM activation profile](D13-var01-pm-activation-v1.0.0/cli-scope-signoff-2026-09-30.md) derives from D03 with one local `CAL24` PM restriction: disabled 0–30 hours and enabled 30–60 while global `Control.ENPM` stays on. PM is absent at the hour-24 due boundary, then performs 30–31 and 55–56; all three missions succeed. The 63-check author and 51-check independent replays passed. Counter accumulation during disablement is inferred from timing, with no direct per-counter trace; other activation schedules remain unverified.
 
+The [A14.var01 continuous-dependence slice](A14-continuous-end-abort-v1.0.1/cli-scope-signoff-2026-10-01.md) derives two concurrent continuous missions from accepted A05. One explicit dependency aborts EXECUTE at hour 10 when SUPPORT completes; without the row EXECUTE succeeds at hour 12. Author and independent replays passed 587 and 169 checks. The earlier [simultaneous MUTD/deadlock probe](A14-continuous-mutual-v1.0.0/README.md) contradicted its frozen deadlock hypothesis and is retained as an unpublished diagnostic. DTTOL, MUTD behavior, regenerative gaps and profile dependence remain open.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
