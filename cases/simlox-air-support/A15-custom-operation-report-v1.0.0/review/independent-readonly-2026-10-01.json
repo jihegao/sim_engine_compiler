@@ -1,0 +1,106 @@
+{
+  "schema": "simlox-a15-operation-report-independent/v1",
+  "passed": true,
+  "verdict": "bounded_GO",
+  "check_count": 650,
+  "failures": [],
+  "script_sha256": "807d4d39a147c80a793d41ac0a92c7fa798641b04e96596f20dc0afdd3b40f9f",
+  "source_hashes": {
+    "settings": "c2f9862c89f2aae0200d8f7a4f16a2e21b7c6ff896b42548c41b98e673f3f9b7",
+    "default": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "builder": "4b8bb25189f62f34fc253cd4a6874de11cb69c9a0e07577c52782f0e28e267d7",
+    "runner": "29e3aa528ac11647839796f51249fad9144c70c075880eb59ceae5a3121e62b1"
+  },
+  "success": {
+    "per-hour": {
+      "table_names": [
+        "MissionOperation",
+        "MissionOperationAccumulated",
+        "MissionOperationTotal",
+        "MissionOperationTotalAccumulated",
+        "ProblemDescription",
+        "ResultSummary",
+        "StockTotalResults",
+        "SystemResults"
+      ],
+      "accumulated": {
+        "OPHOURS": 2,
+        "KM": 120
+      },
+      "per_horizon_hour": {
+        "OPHOURS": 0.0555555559694767,
+        "KM": 3.3333332538604736
+      },
+      "report_sha256": "990abdb0ea37941a57fa14b93fba63e34dd28029489d661b5af900434224c2ab",
+      "run_id": "a15-soacc-hour-remapped-20261001-01",
+      "closure_sha256": "41d4879d81dfd7055df9535ba80210160b9813c2984866519d0c8e02eeed8b85"
+    },
+    "per-mission": {
+      "table_names": [
+        "MissionOperation",
+        "MissionOperationAccumulated",
+        "MissionOperationTotal",
+        "MissionOperationTotalAccumulated",
+        "ProblemDescription",
+        "ResultSummary",
+        "StockTotalResults",
+        "SystemResults"
+      ],
+      "accumulated": {
+        "OPHOURS": 2,
+        "KM": 120
+      },
+      "per_horizon_hour": {
+        "OPHOURS": 0.0555555559694767,
+        "KM": 3.3333332538604736
+      },
+      "report_sha256": "1013fb2183fd2f629f13aae8ca3036cc8aa5898678b7b62f56de087c943aaa4d",
+      "run_id": "a15-soacc-mission-remapped-20261001-01",
+      "closure_sha256": "8efd5da23fccedadb723195506a0cc44d7dca8e0370261bb6fa99ac2a85e6d71"
+    }
+  },
+  "excluded_probes": [
+    {
+      "run_id": "a15-soacc-hour-diagnostic-20261001-01",
+      "fallback": true,
+      "tables": [
+        "ProblemDescription",
+        "ResultSummary",
+        "StockTotalResults",
+        "SystemResults"
+      ],
+      "closure_sha256": "0471125ac5d988ec68ef5694307929f89ce419ecb17f64be31f01ac3ccec3578"
+    },
+    {
+      "run_id": "a15-soacc-hour-relocated-20261001-01",
+      "fallback": true,
+      "tables": [
+        "MissionOperation",
+        "MissionOperationAccumulated",
+        "ProblemDescription",
+        "ResultSummary",
+        "StockTotalResults",
+        "SystemResults"
+      ],
+      "closure_sha256": "5e639a6c8a2447a2468da01456537a1cdd30cc676a9c51c93382f41330a838f2"
+    },
+    {
+      "run_id": "a15-soacc-hour-descriptor-20261001-01",
+      "fallback": false,
+      "tables": [
+        "ProblemDescription",
+        "ResultSummary",
+        "StockTotalResults",
+        "SystemResults"
+      ],
+      "closure_sha256": "94f02e2e159e10a001236b4e0d9026f7137724572b7873c8412a54460d4ad63a"
+    }
+  ],
+  "scope": "Report-only re-export of two accepted A15 SXOs with one local remapped settings file; observed SOACC 120 user-defined KM units over one successful 8-10 mission",
+  "limits": [
+    "KM is a user label, not measured physical distance",
+    "MissionOperationTotal is normalized over 36-hour report horizon, not the accumulated 120",
+    "No partial mission, failure/PM clock, cross-engine, or GUI visual behavior claim"
+  ]
+}
