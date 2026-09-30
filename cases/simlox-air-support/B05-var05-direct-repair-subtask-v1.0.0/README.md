@@ -1,0 +1,11 @@
+# B05.var05: predefined direct repair subtask
+
+This bounded case derives from the published [D01 direct system repair](../D01-system-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md), parent input SHA-256 `d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450`. The child adds `Tasks.TID=B05-DIRP`, links it through `SystemRepair.DIRPTID`, and specifies a single `TaskBreakDown` SEQ1 `<REPAIR>` subtask with DURN=0.5 hour. Its nominal main `DIRPT=4` hours tests the documented breakdown override. The built-in ID is referenced directly, without a user-defined `SubTaskType` row. Only ProblemDescription, SystemRepair, Tasks and TaskBreakDown differ from D01.
+
+The guarded session-0 SSH native run `b05-var05-direct-20260930-01` completed import, export, calculation, JSON report and exact source roundtrip. The converter reported zero errors and warnings #108/#126. Both fixed-seed critical system failures triggered direct repair: SEQ1 ran 10–10.5 and 34–34.5, and the aircraft returned ready after each. The 8–10 and 32–34 missions aborted; the 20–22 mission succeeded. All ResultSummary, 72 SystemResults bins and 72 StockTotalResults bins equal the published D01 report; only ProblemDescription differs. The parent has an implicit SEQ0 direct repair whereas this child logs explicit SEQ1.
+
+The [contract](contract.json) and [exact four-table diff](exact-diff.json) were frozen before native execution. The [author replay](review/author-native-validation-2026-09-30.json) passes. Raw `.sxi`, `.sxo`, logs and reports remain in ignored local `runs/` and are sealed by closure SHA-256 `549a90c24b38d3826bf3153bf1dfeb138d4289b4a2b5618d9150b0b1dbbc794a`.
+
+The independent [read-only replay](review/independent-readonly-2026-09-30.json) passed 88/88 checks with zero failures and gave GO for this bounded direct repair native CLI candidate.
+
+Rebuild with `python build.py` and `python describe_diff.py`; replay the local sealed run with `python validate_native.py` and the independent read-only reviewer. Fresh native execution requires a unique run ID, session-0 SSH, the global Issue #18 mutex and preserved GUI. This case does not establish direct item repair, added inspection/resource subtasks, alternate seeds, GUI-only behavior or cross-engine parity.

@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B05",
+  "variant_id": "B05.var05",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D01.system_direct.1.0.0",
+  "parent_input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450",
+  "mechanism": "One direct system repair task references the mandatory native <REPAIR> subtask for a fixed half-hour; the parent direct-repair control has no task breakdown.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [400, 401, 402, 403, 404],
+    "tables": ["SystemRepair", "Tasks", "SubTaskType", "TaskBreakDown"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "aircraft": "<TEACH-AIR-01,0>",
+    "failure_seed": "1",
+    "direct_repair_task": "B05-DIRP",
+    "nominal_main_DIRPT_hours": 4,
+    "predefined_REPAIR_DURN_hours": 0.5
+  },
+  "hypotheses_to_test": [
+    "The direct repair task converts with a direct <REPAIR> reference and no user-defined SubTaskType row.",
+    "The half-hour subtask overrides the four-hour DIRPT, repair completes and the aircraft returns ready.",
+    "The failure and repair reconcile with the published D01 control except for the explicitly changed task breakdown and nominal main time.",
+    "All 16 populated tables roundtrip exactly, native outputs are nonempty, raw artifacts are sealed, and GUI/mutex guards hold."
+  ],
+  "limits": [
+    "One fixed-seed direct system repair only; direct item repair, resources, additional subtasks and alternative timing remain unverified.",
+    "GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
