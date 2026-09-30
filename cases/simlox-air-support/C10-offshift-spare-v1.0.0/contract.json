@@ -1,0 +1,22 @@
+{
+  "schema": "simlox-c10-offshift-spare-contract/v1",
+  "case_id": "C10",
+  "variant_id": "C10.var03",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C10.var02.operational_crew_failure_spare.1.0.0",
+  "parent_variant": "oper-one-spare",
+  "parent_input_sha256": "e34ce47cc2d26fa74fb9a90766cfd426caae0ff7b4a7fc75038867762d7b4278",
+  "schema_source_input_sha256": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+  "input_sha256": {
+    "onshift-three": "4e8ffe8bad98d5313279c189aeb8947db64f2f04d61789c0a6c5db134d011d92",
+    "onshift-two-offshift-one": "7d11ed709942d00fdbdab558bfabb82471f38b3f3a3098df33171df96c38922d"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [221, 418, 419, 421, 422],
+  "business_delta": "From accepted C10.var02 three-crew operational-failure input, attach CREW-DAY ShiftProfile 7-10, set Control.DRAOS=N and ResourceStationData.SHPID=CREW-DAY. ShiftResource schedules either all three allocated P-CREW or only two, leaving one off shift. The paired children differ only in ShiftResource.QTY 3 versus 2, aside from description; RMTBF=0.5, RMDT=0.25, seed 1, two half-hour preparations at 7.5, mission and 36-hour horizon remain unchanged.",
+  "pre_run_hypothesis": "If a resource fails while both scheduled crew are performing preparation in the two-on-shift child, the third allocated but off-shift crew may replace it and allow both tasks to continue. The three-on-shift control has one idle on-shift spare. Shift construction or stochastic timing may prevent an informative failure; then retain raw runs as diagnostics only. Native events and resource capacity, task, mission, system, stock and terminal ledgers determine the bounded conclusion; individual crew identity may remain unobservable.",
+  "acceptance_requires": ["accepted C10.var02 parent and C07 shift-schema source fingerprints", "guarded serial session-0 SSH native runs preserving GUI PID 13340", "all row-containing input tables roundtrip exactly", "zero conversion errors and nonempty valid output/report", "direct failure and repair event during concurrent preparations plus evidence of two-versus-three on-shift capacity and any task interruption or continuity", "mission, resource/system/stock ledgers and terminal state", "sealed local raw evidence and independent read-only replay"],
+  "limitations": ["One seed and one 7-10 shift with RMTBF=0.5 and RMDT=0.25 on the installed executable.", "The log identifies a P-CREW pool, not individual workers; replacement may be inferred only at pool level.", "Other shift patterns, off-shift policy outside this window, GUI visual behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
