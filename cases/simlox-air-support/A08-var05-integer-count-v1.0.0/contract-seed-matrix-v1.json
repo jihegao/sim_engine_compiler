@@ -1,0 +1,27 @@
+{
+  "schema": "simlox-a08-var05-seed-matrix-contract/v1",
+  "status": "predeclared_candidate",
+  "reason": "The 32-replication aggregate report averages bins while its event log may expose only one replication. Separate one-replication runs observe each selected count and timeline directly.",
+  "parent_contract_sha256": "fb6ada009a9b78241e4ef2bd2a5607cd1d31a16d8734b67b7447908e0daf355d",
+  "aggregate_input_sha256": "0c90c4965583bcd69e99d06054c5712b81f63dbce60ad5e1710efa56dd1e002d",
+  "seed_manifest_sha256": "3f192db6ec526f4762631b0ce8f48e4797e9ffc3fbd09590a90ad674cbc3a73d",
+  "seed_generator_sha256": "9096311c2534608ff62480e571c3018a56af84055c23f780e897db10a8a711bc",
+  "seed_range_inclusive": [1, 32],
+  "exact_seed_delta": "From the frozen aggregate A08.var05 input, set Control.NREPS 32 to 1, Control.RSEED to the seed number as a string, and ProblemDescription.PDESC to a seed-specific label. Every other row and table stays unchanged.",
+  "execution": [
+    "One session-0 SSH batch holds Global\\SimloxIssue18NativeQueue for all 32 seeds and checks GUI PID 13340 before and after every native step.",
+    "Each seed has an immutable run subdirectory with copied input, import/export/calc/report files, exact 14-table source roundtrip, per-step record and raw SHA-256 seals. The batch seals source hashes before and after.",
+    "Any failed command, missing output, changed source or GUI, absent seed or roundtrip mismatch fails the batch."
+  ],
+  "predeclared_acceptance": [
+    "All 32 seeds convert with zero errors and classified warnings; each report has NREP=1 and 72 aligned half-hour bins.",
+    "Each event log realizes either one or five missions, both counts occur in the matrix, and starts follow 8+12*k/n for k=0..n-1 for realized n. Each mission succeeds and completes two hours after its start, with no cancellation, failure, repair or stock demand.",
+    "Each report integrates exactly 2n aircraft operation-hours and ends with three ready aircraft. Count mean, sample variance and nominal two-sided Student-t half-width use one observation per seed and target at most one mission half-width.",
+    "Seed 1 may be compared with the aggregate exposed log only as an observed same-seed check; distinct runs are not conflated.",
+    "An independent read-only reviewer replays manifest, generated inputs, source and raw hashes, event groups, statistics and ledgers without importing author validation."
+  ],
+  "limits": [
+    "The 32 seeds are a fixed convenience matrix, not a random sample of seed values; observed counts cannot prove the specified 0.5/0.5 law or RNG independence.",
+    "Other integer distribution forms, zero count, GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
