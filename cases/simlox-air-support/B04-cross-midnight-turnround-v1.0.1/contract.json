@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B04",
+  "version": "1.0.1",
+  "parent": "B02.serial_preparation.1.0.2",
+  "requires": ["B02", "A02"],
+  "mechanism": "Post-mission turnround delays availability and the next mission's two-step preparation across midnight",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [181, 182, 183, 305, 306, 307],
+    "tables": ["MissionTurnround", "MissionPreparation", "TaskBreakDown", "OperationProfile"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT with one TEACH-AIR-01",
+    "first_mission": "BASIC-MISSION scheduled at hour 21.5, two-hour duration, return hour 23.5",
+    "second_mission": "same mission type scheduled at hour 24.75, notice at 23.75, with 0.5-hour serial preparation and 1.0-hour permitted delay",
+    "paired_control": "same two-wave schedule and second-wave one-hour delay allowance, no MissionTurnround row",
+    "turnround_variant": "same two-wave schedule and second-wave one-hour delay allowance; MissionTurnround.DURN=1.0 hour for BASIC-MISSION/TEACH-AIR-01/BASE-01, no resources or subtasks"
+  },
+  "hypotheses_to_test": [
+    "Both variants import/export exact source business rows, convert without errors, and complete two missions with one physical aircraft",
+    "Control first mission returns at 23.5, second preparation occurs 23.75-24.25, second launch is 24.75 and completion 26.75",
+    "Turnround variant starts post-mission work after return at 23.5 and finishes at 24.5, across the hour-24 day boundary",
+    "While turnround is active at the second notice hour 23.75 the aircraft is not assigned to the next mission; after release it completes the same serial preparation and launches at hour 25, completing at 27",
+    "The aircraft is ready at hour 36; no failure, PM, item demand or stock movement occurs"
+  ],
+  "limits": [
+    "One fixed mission type and one aircraft; no turnaround resource demand, repair, arbitrary day schedule or general same-time ordering",
+    "The earlier 1.0.0 probe with inherited 0.333333-hour delay cancelled its second wave at 24.3333 before turnround ended; its outcome is not used as accepted success evidence",
+    "No GUI-specific behavior or cross-engine parity"
+  ]
+}
