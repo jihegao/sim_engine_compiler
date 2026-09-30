@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-j07-unit-type-report-contract/v1",
+  "case_id": "J07",
+  "variant_id": "J07.var05",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "A17.two_units.1.0.0",
+  "parent_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "input_sha256": "5609881f54c47c024b1b41f338bf0dd0e04e20e49a41d42b1a81642bdab54f55",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [546, 550, 552, 553, 558, 559, 560],
+  "business_delta": "From accepted A17, retain two explicit one-aircraft units, separate stations and their UnitGroup membership, the same 36-hour simulation, seed, support data and readiness. Replace the original two-aircraft group-owned BASIC-MISSION with one-aircraft MISSION-A assigned to TEACH-UNIT; append the same-duration one-aircraft MISSION-B assigned to TEACH-UNIT-2. Each unit owns its own fixed schedule at hour 8. Only MissionType, OperationProfile, Operations and ProblemDescription differ from A17.",
+  "prior_diagnostic": "A separate sealed J07.var05 candidate with this input and group-rollup as an acceptance requirement failed independent review. Under the native report settings, selecting TEACH-GROUP returned no mission tables for unit-owned profiles; a group-owned A17 control did return a group row. This narrower contract is frozen before fresh native runs and makes no group-rollup claim.",
+  "pre_run_hypothesis": "Two independent one-aircraft fixed missions are ordered at 7, launch at 8 and succeed at 10, leaving both aircraft ready. The all-unit fixed result should show 2 requested/started/succeeded missions, 4 requested/accomplished mission-hours and 4 requested/accomplished aircraft-hours. Each selected unit and each selected mission type should show one wave, 2 mission-hours and 2 aircraft-hours; corresponding pairs should sum to all-unit. System and Stock have 72 half-hour bins over 0–36, with two operating aircraft over 8–10 and no backorders. The group selector should have no mission result rows because no group-owned profile exists; the accepted A17 group-owned parent should have one group row with 4 aircraft-hours and no member-unit mission rows. Any mismatch is diagnostic, not acceptance.",
+  "report_method": "Guarded report-only passes on sealed SXO with local derivatives of fingerprinted installed Default.sxs. Six MissionSettings table flags are changed from N to Y; report selectors choose all units, each unit, each mission type, and negative group views. Parent A17 SXO is reported with the same settings as a group-owned positive control. The installed settings file and GUI are untouched.",
+  "acceptance_requires": ["pinned accepted A17 parent, installed manual/dictionary and exact four-table source delta", "fresh session-0 SSH import/export/calc/default report with host queue and GUI PID13340 guard", "exact 15 business-table source roundtrip, zero conversion errors and sealed raw artifacts", "two per-unit/per-type event and aircraft-hour ledgers plus 72 System and Stock bins and terminal state", "native fixed mission and mission-time all/unit/type tables with exact additive numerators and denominators", "negative group selector and positive group-owned A17 parent control, without asserting member-unit rollup", "independent read-only replay without author validator imports"],
+  "limitations": ["This is a bounded unit and mission-type reporting slice of J07.var05; group aggregation of member-unit missions is not established and the full planned variant remains open.", "One seed, two deterministic concurrent two-hour fixed missions, no failures or support-resource competition.", "Regenerative denominator exclusion, mid-mission partial outcome, GUI rendering and cross-engine parity remain unverified."],
+  "publication_state": "not_published"
+}
