@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var02",
+  "version": "1.0.0-candidate",
+  "parent": "A13.start_single_predecessor.1.0.0",
+  "parent_input_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+  "structural_source": "A17.two_units.1.0.0",
+  "structural_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "mechanism": "A RECON mission owned by one explicit unit precedes a FOLLOW mission owned by a different explicit unit",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [188, 287, 288, 289, 308, 309],
+    "tables": ["Station", "Unit", "SystemDeployment", "Operations", "OperationProfile", "MissionDependence"]
+  },
+  "configuration": {
+    "seed": "1",
+    "simulation_hours": 24,
+    "aircraft": 2,
+    "predecessor": {"unit": "TEACH-UNIT", "station": "BASE-01", "type": "RECON", "scheduled_hour": 8, "duration_hours": 4},
+    "dependent": {"unit": "TEACH-UNIT-2", "station": "BASE-02", "type": "FOLLOW", "scheduled_hour": 10, "duration_hours": 2, "delay_limit_hours": 4},
+    "control": "same two-unit source without MissionDependence table",
+    "failure_modes": 0
+  },
+  "predeclared_behavior_gate": [
+    "both sources exactly roundtrip all populated business rows and native conversion reports zero errors",
+    "both sources yield valid nonempty SXO, event log and JSON report with 48 half-hour System and Stock bins",
+    "RECON allocates the BASE-01 unit aircraft, launches at 8, succeeds and returns at 12 in both runs",
+    "FOLLOW allocates the BASE-02 unit aircraft before its scheduled start, launches at 10 without START and at 12 with cross-unit START, and succeeds/returns at 12/14",
+    "no cancellation, shortage or failure; 6 total operating aircraft-hours; both aircraft ready at 24",
+    "source, raw closure, resource/stock ledgers, summary, terminal state and independent read-only replay agree"
+  ],
+  "limits": [
+    "One fixed-seed pair of explicit units and bases with exactly one aircraft and one fixed mission per unit",
+    "The group-owned mission identity branch of A13.var02 is not tested here",
+    "Same-time success/completion/return/launch ordering is not resolved by displayed timestamps",
+    "No failure, repeated identity, implicit unit, cross-engine or GUI visual claim"
+  ]
+}

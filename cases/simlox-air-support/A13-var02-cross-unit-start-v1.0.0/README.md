@@ -1,0 +1,7 @@
+# A13.var02 cross-explicit-unit START dependence
+
+This bounded pair extends the accepted [A13 START case](../A13-start-dependence-v1.0.0/cli-scope-signoff-2026-09-30.md) with the accepted [A17 two-unit layout](../A17-multi-unit-group-v1.0.0/cli-scope-signoff-2026-09-29.md). RECON belongs to `TEACH-UNIT` at BASE-01; FOLLOW belongs to `TEACH-UNIT-2` at BASE-02. The no-row control and one cross-unit START row differ only in that dependency table and the description. Read the [CLI scope sign-off](cli-scope-signoff-2026-10-01.md) for the source hashes, sealed native run IDs, evidence and limits.
+
+FOLLOW assigns its own aircraft at hour 9 in both runs. It launches at hour 10 in the control and hour 12 with the cross-unit row; both missions succeed, and both aircraft return to their home bases. The hour-12 text does not resolve the internal order of RECON return and FOLLOW launch. The unit-group-owned branch of A13.var02 remains unverified.
+
+The [contract](contract.json), [builder](build.py), [exact diff](exact-diff.json), paired input files, guarded [session-0 SSH runner](run_native_ssh.ps1), [author replay](validate.py), and separate [independent replay](review/independent_readonly.py) support this result. Raw native files remain in ignored `runs/`. Rebuild sources with `python build.py` and `python describe_diff.py`; replay the raw evidence with `python validate.py` and `python review/independent_readonly.py`. A fresh native execution needs a new run ID under the pinned environment and host mutex.

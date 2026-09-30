@@ -1,0 +1,61 @@
+{
+  "schema": "simlox-a13-var02-independent-readonly/v1",
+  "passed": true,
+  "verdict": "GO",
+  "check_count": 1434,
+  "failures": [],
+  "details": {
+    "source": {
+      "changed_tables": [
+        "MissionDependence",
+        "OperationProfile",
+        "Operations",
+        "ProblemDescription",
+        "Station",
+        "SystemDeployment",
+        "Unit"
+      ],
+      "pair_changed_tables": [
+        "MissionDependence",
+        "ProblemDescription"
+      ],
+      "parent_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+      "a17_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974"
+    },
+    "runs": {
+      "control": {
+        "run_id": "a13-var02-cross-control-v100-20261001-01",
+        "closure_sha256": "fb58bccb7f0487fd4498223a7cf5e4c12a0551bdb4ab723d2e2b5ccbbc5b489e",
+        "invocation_sha256": "9dbc6079a15670cd21a2caf7d04f639ee083f94c1079dde1c00ce837ff0244ab",
+        "model_log_sha256": "21f72cd6c1d3825e074c9c5c5660896fefe26c39d3ae8a946990269dd1d1bc55",
+        "report_sha256": "d5c769f8e27c179acd9c83d85166d788b098598ed63d2dbb117cfd400a95975b",
+        "follow_launch_hour": 10,
+        "metrics": {
+          "system_bins": 48,
+          "stock_bins": 48,
+          "aircraft_operating_hours": 6.0,
+          "terminal_ready": 2
+        }
+      },
+      "dependency": {
+        "run_id": "a13-var02-cross-dependency-v100-20261001-01",
+        "closure_sha256": "f93187ed503ef0c570d9f4ad7e23aa7ddab26b388932ab1895a35946c95488fb",
+        "invocation_sha256": "6b913c356035c98f5a40d320b669ce1d7824369de57f9d7302c06e73381b3be0",
+        "model_log_sha256": "b02c61f9fe10dda873cb38770cfc0677920b672a257104469df22477c478c180",
+        "report_sha256": "96ccce1b9f964d912b54145bc4ad4a1ae004e8935c3b054826602d2dcddc16d5",
+        "follow_launch_hour": 12,
+        "metrics": {
+          "system_bins": 48,
+          "stock_bins": 48,
+          "aircraft_operating_hours": 6.0,
+          "terminal_ready": 2
+        }
+      }
+    }
+  },
+  "scope": "one fixed-seed pair of two explicit units; observed cross-unit START launch delay",
+  "limits": [
+    "Displayed hour-12 RECON success, FOLLOW start, RECON completion and BASE-01 arrival do not establish strict internal return-before-launch order.",
+    "Unit-group-owned dependence, failure, repeated identity, other seeds, GUI visual behavior and cross-engine parity are untested."
+  ]
+}
