@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A12",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "A11.mixed_type_minimum.1.0.0",
+  "parent_input_sha256": "4e1387b15457485de42ae20b1f0ed6382c013603c0bfc6de75d753339c2a7213",
+  "instructional_prerequisites": ["B01.fixed_prep.1.0.1", "B04.cross_midnight_turnround.1.0.1"],
+  "mechanism": "Two simultaneous fixed missions compete for a three-aircraft mixed-type pool; reversing only MissionType.PRI selects which mission gets the available complete A+B pair before launch.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [184, 185, 186, 187, 266, 302, 303, 304],
+    "tables": ["MissionType", "MissionSystem", "OperationProfile", "MissionPreparation", "SystemDeployment"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "deployed": {"TEACH-AIR-01": 2, "TEACH-AIR-02": 1},
+    "mission_types": ["BASIC-MISSION", "SECOND-MISSION"],
+    "both_require": "two systems with one minimum A and one minimum B",
+    "both_scheduled_at_hour": 8,
+    "both_notice_at_hour": 7,
+    "both_duration_hours": 2,
+    "both_preparation_hours_per_system": 0.5,
+    "both_delay_allowance_hours": 0.3333333333333333,
+    "variants": {
+      "basic-high": {"BASIC-MISSION_PRI": 1, "SECOND-MISSION_PRI": 2},
+      "second-high": {"BASIC-MISSION_PRI": 2, "SECOND-MISSION_PRI": 1}
+    }
+  },
+  "hypotheses_to_test": [
+    "Only the higher-priority mission obtains a complete A+B pair, prepares, launches at hour 8 and completes at hour 10.",
+    "The lower-priority mission cannot reach its required A+B minimum within its admissible launch window and cancels; the exact native cancellation timestamp is to be observed.",
+    "Swapping only the two priority values reverses the winning mission without changing aircraft, resource, stock, failure, or PM inputs.",
+    "Native event and half-hour report ledgers reconcile each mission, system preparation (including any partial low-priority assignment), operation, cancellation, and terminal ready state."
+  ],
+  "limits": [
+    "This pair tests priority under simultaneous calls and a fixed mixed-type minimum; it does not infer generic ready, soon-ready or confiscation order.",
+    "B04 return/turnround is an accepted instructional prerequisite but is not exercised in this slice.",
+    "Equal priority, active preparation confiscation, noncritical faults, resource waiting, later readiness, GUI-specific behavior, and cross-engine parity remain unverified."
+  ]
+}
