@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var03",
+  "version": "1.0.1-candidate",
+  "parent": "A13.start_single_predecessor.1.0.0",
+  "parent_input_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+  "structural_source": "B01.fixed_prep.1.0.1",
+  "structural_input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+  "mechanism": "A FOLLOW aircraft performs a positive fixed preparation task before its START dependency permits mission launch",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [181, 182, 188, 287, 288, 289, 294, 297],
+    "tables": ["MissionDependence", "MissionType", "OperationProfile", "MissionPreparation", "Tasks"]
+  },
+  "configuration": {
+    "seed": "1",
+    "simulation_hours": 24,
+    "unit": "TEACH-UNIT",
+    "aircraft": 2,
+    "predecessor": {"type": "RECON", "scheduled_hour": 8, "duration_hours": 4},
+    "dependent": {"type": "FOLLOW", "scheduled_hour": 10, "duration_hours": 2, "delay_limit_hours": 4, "preparation_task": "PREP-FIXED", "preparation_hours": 0.5},
+    "control": "same preparation source without MissionDependence table",
+    "failure_modes": 0
+  },
+  "predeclared_behavior_gate": [
+    "both sources exactly roundtrip all populated business rows and native conversion reports zero errors",
+    "both sources yield valid nonempty SXO, event log and JSON report with 48 half-hour System and Stock bins",
+    "the FOLLOW aircraft performs one positive half-hour preparation before its scheduled hour-10 launch in the no-row control and before waiting until hour 12 with START",
+    "RECON launches at 8 and succeeds/returns at 12 in both runs; FOLLOW launches at 10/12 and succeeds/returns at 12/14 in control/dependency",
+    "no cancellation, shortage or failure; six total mission operating aircraft-hours; both aircraft ready at 24",
+    "source, raw closure, preparation/resource/stock ledgers, summary, terminal state and independent read-only replay agree"
+  ],
+  "limits": [
+    "One fixed-seed pair in one explicit unit with one fixed preparation row for the dependent mission",
+    "The no-preparation and no-dependence baselines are accepted separately; this pair isolates START when both models include preparation",
+    "An excluded v1.0.0 diagnostic had valid native output but its sealed author replay expected one preparation lifecycle and one-space subtask formatting; the native log also records an instantaneous RECON preparation and uses two spaces before subtask text",
+    "Same-time success/completion/return/launch ordering is not resolved by displayed timestamps",
+    "No resource-constrained preparation, repeated mission, failure, cross-engine or GUI visual claim"
+  ]
+}
