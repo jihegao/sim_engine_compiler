@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A12",
+  "variant_id": "A12.var04",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "A12.simultaneous_priority_contention.1.0.0",
+  "parent_input_sha256": "300f3129b1f5d78018ad00875b545ffc1d7619dde5c3086c7a8bf0abb145094a",
+  "mechanism": "A later-called higher-priority mission requests the A+B pair while both aircraft are preparing for a lower-priority mission; the paired control reverses only the two mission priorities.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [184, 185, 186, 187, 266, 270, 271, 272, 273, 302, 303, 304],
+    "tables": ["MissionType", "MissionSystem", "OperationProfile", "MissionPreparation"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "deployed": {"TEACH-AIR-01": 2, "TEACH-AIR-02": 1},
+    "BASIC-MISSION": {"notice_hour": 7, "scheduled_hour": 8, "A_B_minimum": [1, 1]},
+    "SECOND-MISSION": {"notice_hour": 7.25, "scheduled_hour": 8.25, "A_B_minimum": [1, 1]},
+    "preparation_hours_per_aircraft": 0.5,
+    "variants": {
+      "early-high": {"BASIC-MISSION_PRI": 1, "SECOND-MISSION_PRI": 2},
+      "late-high": {"BASIC-MISSION_PRI": 2, "SECOND-MISSION_PRI": 1}
+    }
+  },
+  "hypotheses_to_test": [
+    "In both variants BASIC-MISSION is called first and begins preparing a complete A+B pair at hour 7.",
+    "In late-high, SECOND-MISSION is called at hour 7.25 while BASIC-MISSION preparation is active; the later higher-priority mission takes an A+B pair containing at least one system previously assigned to BASIC-MISSION, and both mission/aircraft assignment and preparation lifecycles are observable.",
+    "In early-high, the later lower-priority mission cannot take BASIC-MISSION's required A+B pair; BASIC-MISSION launches and succeeds if no unrelated native behavior intervenes.",
+    "Each run has at most one successful mission, with cancellation and exact preparation/turnround timing determined from raw native events and reconciled to the report bins.",
+    "Source roundtrip is exact, conversion has zero errors, native reports are nonempty, stock and maintenance ledgers reconcile, and all aircraft are ready at the end."
+  ],
+  "limits": [
+    "The pair is a deterministic one-unit A+A+B pool with two fixed missions and no explicit resources, failures, repair, or PM.",
+    "The expected confiscation identity and timing are hypotheses, not assumptions from the author builder.",
+    "This slice does not include predefined refuelling or payload subtasks, equal-priority ties, soon-ready maintenance, GUI-only behavior, or cross-engine parity."
+  ]
+}
