@@ -1,0 +1,30 @@
+{
+  "schema": "simlox-c06-rprob-half-matrix-contract/v1",
+  "case_id": "C06",
+  "variant_id": "C06.var04",
+  "version": "1.0.0-candidate",
+  "parent_case": "C06.rprob_endpoints.1.0.0",
+  "parent_input_sha256": "0e548e167a48aed7e76dfeec5b0fbdfbb817f41bc3c88e0b1e246396ab218fa4",
+  "input_sha256": {
+    "seed-01": "01796f2ce78932cef0ddf06348744f4107e0802e64b8baed731b21bdd9d9a429",
+    "seed-02": "9012d7c3010087f9387259e47e7917219d7a714582da85b1c7f79e4c5d069128",
+    "seed-03": "3057653b688b2b1c0cd8ad80b8370a98380ce8e0e391b2837891c1d1d5656118",
+    "seed-04": "f9a832a1112e31d869e3dff6504203b9d788f3a9027c89974e1ab64e30f835a6",
+    "seed-05": "89bbf857bd473c88f1333fbd2805b3a0e40ff2ecd16721052367b4005472c915",
+    "seed-06": "cca397abbf76f488e32c02003d3253ccb31f15b97150d92e76cb0a2425abedd1",
+    "seed-07": "a978797d07afdb17721251bef77b7b60ff5d1830ed409b2db0c6cebb589c7dae",
+    "seed-08": "464d24e8d27716b8db6b5e818a93e550da190f22757d66c2f286046d56dadf6d",
+    "seed-09": "b670be7efc375bc30f57d324c94898b78d21b155f279003ed1301db3f84ed24e",
+    "seed-10": "a086836e4c88c12b4672fcbedbd2af00ee340b0d5e878a2b22b22e8e4f029007",
+    "seed-11": "3df75f1b6a3c1885cc7cca0a2e18e2ca42bd421214810e57dc3d6578a6cf845d",
+    "seed-12": "9f82fcd0fdce5e3da3b0a94a44baa8c66dd4e858dd2b17a406b6cbbddd429d49"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [397, 398, 399, 407, 408, 409, 412, 413, 414],
+  "pre_run_business_contract": "From accepted C06 RPROB-one endpoint with P-CREW and P-ALT allocations zero, set SubTaskResource.RPROB=0.5 for one INSPECT preparation subtask per aircraft and set explicit Control.RSEED to strings 1 through 12, one native replication per frozen input. Preserve formation, 20-minute work duration, deadline, resource capacity and all other parameters. Keep each per-aircraft native event trace to classify whether typed resource demand was actually requested; do not infer the draws from success alone.",
+  "changed_tables_only": ["ProblemDescription", "SubTaskResource", "Control"],
+  "expected_native_hypothesis": "Depending on the seed, each aircraft may or may not need the resource. With both resource types at zero, an aircraft that needs one should wait until mission cancellation, while an aircraft that does not should perform the fixed preparation without typed allocation. The mission should succeed only if both aircraft finish preparation before the finite deadline.",
+  "acceptance_requires": ["exact populated-table roundtrip for every run", "zero conversion errors", "nonempty event log and report", "per-aircraft observed demand/work/wait classification", "mission/resource/inventory/terminal reconciliation by seed", "independent read-only replay"],
+  "limitations": ["Twelve fixed seeds are an observational matrix, not an estimate or test of a 0.5 Bernoulli law, independence, or random-stream stability across versions.", "Both resource types are zero-capacity; nonzero-capacity interaction is untested."],
+  "publication_state": "not_published"
+}
