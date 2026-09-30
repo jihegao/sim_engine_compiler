@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A10",
+  "version": "1.0.0",
+  "parent": "A01.single_aircraft_single_mission.1.0.0",
+  "requires": ["A01"],
+  "mechanism": "A deployed aircraft without explicit Operations receives a generated default mission profile from per-aircraft operating-hour and mission-rate utilization",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [194, 195, 196, 276, 277, 278, 279, 280],
+    "tables": ["SystemDeployment", "SystemDeploymentUtilization", "Operations", "OperationProfile", "MissionType"]
+  },
+  "configuration": {
+    "parent": "A01 one aircraft, one scheduled mission",
+    "system_deployment_utilization_ophours_per_hour": 0.25,
+    "mission_rate_per_hour": 0.08333333333333333,
+    "explicit_operations": "removed",
+    "variants": {"48h": "48-hour horizon", "50h": "50-hour horizon with two-hour remainder"}
+  },
+  "hypotheses_to_test": [
+    "The 48-hour run generates four implicit missions of three hours each, centered in consecutive 12-hour cycles",
+    "The 50-hour run generates four implicit missions of 3.125 hours each; no fifth mission is launched in the two-hour remainder",
+    "The generated mission and profile identities remain distinct from the removed explicit A01 identifiers",
+    "Both runs have zero conversion errors, source-faithful import/export, and no failures or maintenance"
+  ],
+  "ambiguity": "Printed page 194 states a mclen comparison inconsistent with page 195 examples. The exact native event times, not that comparison, decide this case.",
+  "limits": [
+    "One deployed aircraft, one unit, fixed deterministic utilization; no multiple types or explicit-profile suppression comparison",
+    "GUI Profile View rendering and cross-engine parity remain unverified"
+  ]
+}
