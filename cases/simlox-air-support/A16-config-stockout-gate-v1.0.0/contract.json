@@ -1,0 +1,13 @@
+{
+  "case_id": "A16",
+  "version": "1.0.0-candidate",
+  "parent_case": "A16-two-config-reconfiguration-v1.0.0",
+  "parent_sha256": "07d92a51632b770dfda9d71fdcf042bd73642cc64433171a71e4bab8d76f1ef7",
+  "zero_stock_method_case": "E02-zero-stock-local-backorder-v1.0.0",
+  "zero_stock_method_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+  "input_sha256": "a48974857c750982ffc381dde6287906376b1d6d686a2830296ac99c948f37a5",
+  "delta": "Only ProblemDescription and TEACH-LRU-B StockAllocation.STSIZ 1 to 0 differ from the baseline; source keeps CBSID A/B, all tasks, mission demand and seed unchanged.",
+  "pre_run_hypotheses": ["A configuration fits for first mission and leaves one A LRU installed", "B requirement at hour 19 cannot book the B LRU, so A-to-B reconfiguration does not start", "second B mission cannot launch and terminates unsuccessfully at its latest start limit", "third base mission removes A and succeeds, restoring A stock; B remains zero throughout"],
+  "acceptance": ["exact parent-to-child diff and native import/export roundtrip with zero conversion errors", "event chronology distinguishes B item demand or shortage from started reconfiguration and records the second mission terminal state", "stock A/B identities and balances reconcile with the baseline", "System and Stock report metrics and terminal state reconcile with events"],
+  "limits": ["one item type and one stockout timing", "no replenishment or mechanic resource contention", "GUI-only behavior and cross-engine parity unverified"]
+}
