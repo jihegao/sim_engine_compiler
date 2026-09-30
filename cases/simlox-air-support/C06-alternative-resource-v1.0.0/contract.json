@@ -1,0 +1,24 @@
+{
+  "schema": "simlox-c06-alternative-resource-contract/v1",
+  "case_id": "C06",
+  "version": "1.0.0-candidate",
+  "parent_case": "C03.shared_crew.1.0.2",
+  "parent_input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+  "input_sha256": {
+    "primary-2-artf-2": "28e9b354d2ea8248fa494b0c4503130157c70f2e14f5a2be3d014040895c59f0",
+    "primary-0-artf-1": "3bc9aeb5ce1d66be1fe399c349dfcadac4460b1d43225fe0132a0ba684638a81",
+    "primary-0-artf-2": "42aeabcf2f7ca79efc568c515bfd5989715cdc0270f59acaad3bfe46c974bd1f"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [397, 398, 399, 407, 408, 409, 412, 413, 414],
+  "pre_run_business_contract": "Start with accepted C03 two-aircraft shared-crew formation. One fixed 20-minute INSPECT preparation subtask per aircraft requires P-CREW with RPROB=1, and permits P-ALT as ARID. P-ALT capacity is two. Vary primary P-CREW capacity two versus zero and alternative time factor ARTF one versus two, without introducing stochastic need.",
+  "changed_tables_only": ["ProblemDescription", "MissionPreparation", "Tasks", "TaskBreakDown", "SubTaskResource", "Resource", "ResourceAllocation"],
+  "expected_native_hypothesis": {
+    "primary-2-artf-2": "primary P-CREW is selected and the 20-minute task duration is unaffected by ARTF",
+    "primary-0-artf-1": "alternative P-ALT is selected and the task lasts 20 minutes",
+    "primary-0-artf-2": "alternative P-ALT is selected and the task lasts 40 minutes"
+  },
+  "acceptance_requires": ["exact populated-table roundtrip", "zero conversion errors", "nonempty event log and report", "per-aircraft selected resource and task start/end timestamps", "resource release, mission and terminal state", "independent read-only replay"],
+  "limitations": ["Only one alternative type and ARTF one or two are tested; multiple simultaneous alternatives and maximum-factor rule remain unverified.", "RPROB remains one; probabilistic demand belongs to separate C06 variants.", "The hypotheses are not accepted outcomes until native evidence and independent replay pass."],
+  "publication_state": "not_published"
+}

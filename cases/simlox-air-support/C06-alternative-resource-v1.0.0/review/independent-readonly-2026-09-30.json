@@ -1,0 +1,1029 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C06",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 226,
+  "passed_count": 226,
+  "failures": [],
+  "decision": "GO_bounded_alternative_resource_selection_and_timing",
+  "accepted_scope": "For this fixed one-hour, two-aircraft mission, a 20-minute INSPECT preparation subtask per aircraft uses primary P-CREW when two are available despite ARTF=2. With zero primary and two P-ALT, each selects P-ALT. ARTF=1 retains 7.5-7.83333 preparation and 8-9 mission timing; ARTF=2 extends preparation to 8.16667 and shifts the mission to 8.16667-9.16667. Selected resources release at preparation completion; all variants finish with two ready aircraft.",
+  "limits": [
+    "One fixed seed, one site, one alternative type, primary capacity two/zero and ARTF one/two only; mixed shortages, multiple alternatives, and any maximum-factor rule remain unverified.",
+    "RPROB is one, so probabilistic need is untested.",
+    "INSPECT identity is bound by source/roundtrip; native event log labels generic subtasks.",
+    "ResourceResults aggregates types; per-type selection is established by sealed event logs and corroborated by aggregate report totals.",
+    "SSH/GUI/queue continuity is replayed from sealed records; this reviewer did not observe or rerun native SIMLOX live."
+  ],
+  "checks": [
+    {
+      "name": "contract identity and accepted C03 staffing-2 parent",
+      "passed": true
+    },
+    {
+      "name": "manual fingerprint/pages",
+      "passed": true
+    },
+    {
+      "name": "frozen candidate contract",
+      "passed": true
+    },
+    {
+      "name": "frozen seven-table change scope",
+      "passed": true
+    },
+    {
+      "name": "unique parent tables",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: source SHA and copied run input",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact seven-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionPreparation",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation",
+        "SubTaskResource",
+        "TaskBreakDown",
+        "Tasks"
+      ]
+    },
+    {
+      "name": "primary-2-artf-2: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact source description",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: fixed 20-minute preparation",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: RPROB1, ARID P-ALT and ARTF",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: two resource types/capacities",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: resource table schemas preserved",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: invocation identity and source",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: session-zero SSH and queue",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: GUI preserved",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: source/runtime seals before and after",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: sealed invocation/closure",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: complete raw file inventory",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: 20 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: report generated",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: one two-aircraft mission ordered",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: initial primary and alternative inventory",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: exact selected resource booking/release ledger",
+      "passed": true,
+      "detail": [
+        [
+          7.5,
+          "P-CREW",
+          "book",
+          1
+        ],
+        [
+          7.5,
+          "P-CREW",
+          "book",
+          0
+        ],
+        [
+          7.83333,
+          "P-CREW",
+          "release",
+          1
+        ],
+        [
+          7.83333,
+          "P-CREW",
+          "release",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "primary-2-artf-2: only chosen resource booked",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: primary availability outcome",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: alternative test only when needed",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: aircraft 0 selection and task duration",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: aircraft 0 completion and release",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: aircraft 1 selection and task duration",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: aircraft 1 completion and release",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: mission launch, success and completion",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: terminal two-aircraft readiness",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: one successful mission in summary",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: aggregate resource utilization reconciles duration",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: terminal resource, stock and system state",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: report preparation and operation bins",
+      "passed": true
+    },
+    {
+      "name": "primary-2-artf-2: on-time mission report bins",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: source SHA and copied run input",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact seven-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionPreparation",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation",
+        "SubTaskResource",
+        "TaskBreakDown",
+        "Tasks"
+      ]
+    },
+    {
+      "name": "primary-0-artf-1: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact source description",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: fixed 20-minute preparation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: RPROB1, ARID P-ALT and ARTF",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: two resource types/capacities",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: resource table schemas preserved",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: invocation identity and source",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: session-zero SSH and queue",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: GUI preserved",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: source/runtime seals before and after",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: sealed invocation/closure",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: complete raw file inventory",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: 20 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: report generated",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: one two-aircraft mission ordered",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: initial primary and alternative inventory",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: exact selected resource booking/release ledger",
+      "passed": true,
+      "detail": [
+        [
+          7.5,
+          "P-ALT",
+          "book",
+          1
+        ],
+        [
+          7.5,
+          "P-ALT",
+          "book",
+          0
+        ],
+        [
+          7.83333,
+          "P-ALT",
+          "release",
+          1
+        ],
+        [
+          7.83333,
+          "P-ALT",
+          "release",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "primary-0-artf-1: only chosen resource booked",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: primary availability outcome",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: alternative test only when needed",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: aircraft 0 selection and task duration",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: aircraft 0 completion and release",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: aircraft 1 selection and task duration",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: aircraft 1 completion and release",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: mission launch, success and completion",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: terminal two-aircraft readiness",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: one successful mission in summary",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: aggregate resource utilization reconciles duration",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: terminal resource, stock and system state",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: report preparation and operation bins",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-1: on-time mission report bins",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: source SHA and copied run input",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact seven-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionPreparation",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation",
+        "SubTaskResource",
+        "TaskBreakDown",
+        "Tasks"
+      ]
+    },
+    {
+      "name": "primary-0-artf-2: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact source description",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: fixed 20-minute preparation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: RPROB1, ARID P-ALT and ARTF",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: two resource types/capacities",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: resource table schemas preserved",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: invocation identity and source",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: session-zero SSH and queue",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: GUI preserved",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: source/runtime seals before and after",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: sealed invocation/closure",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: complete raw file inventory",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: 20 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: report generated",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: one two-aircraft mission ordered",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: initial primary and alternative inventory",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: exact selected resource booking/release ledger",
+      "passed": true,
+      "detail": [
+        [
+          7.5,
+          "P-ALT",
+          "book",
+          1
+        ],
+        [
+          7.5,
+          "P-ALT",
+          "book",
+          0
+        ],
+        [
+          8.16667,
+          "P-ALT",
+          "release",
+          1
+        ],
+        [
+          8.16667,
+          "P-ALT",
+          "release",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "primary-0-artf-2: only chosen resource booked",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: primary availability outcome",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: alternative test only when needed",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: aircraft 0 selection and task duration",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: aircraft 0 completion and release",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: aircraft 1 selection and task duration",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: aircraft 1 completion and release",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: mission launch, success and completion",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: terminal two-aircraft readiness",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: one successful mission in summary",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: aggregate resource utilization reconciles duration",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: terminal resource, stock and system state",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: report preparation and operation bins",
+      "passed": true
+    },
+    {
+      "name": "primary-0-artf-2: delay visible across 8 and 9 report bins",
+      "passed": true
+    },
+    {
+      "name": "ARTF1 versus ARTF2 differs only in descriptor and factor",
+      "passed": true
+    },
+    {
+      "name": "primary2 versus primary0 at ARTF2 differs only in capacity and descriptor",
+      "passed": true
+    }
+  ]
+}
