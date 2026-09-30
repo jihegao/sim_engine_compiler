@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "version": "1.0.0",
+  "parent": "A02.repeated.1.0.0",
+  "requires": ["A02"],
+  "mechanism": "One explicit MissionDependence START row blocks FOLLOW launch until RECON succeeds and returns",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [188, 287, 288, 289],
+    "tables": ["MissionDependence", "MissionType", "OperationProfile"]
+  },
+  "configuration": {
+    "aircraft": 2,
+    "unit": "TEACH-UNIT",
+    "predecessor": {"type": "RECON", "scheduled_hour": 8, "duration_hours": 4, "success_fraction_setting": 0.25},
+    "dependent": {"type": "FOLLOW", "scheduled_hour": 10, "duration_hours": 2},
+    "delay_limit_hours": 4,
+    "control": "same model without MissionDependence row"
+  },
+  "hypotheses_to_test": [
+    "RECON starts at hour 8 and completes/returns at hour 12; the native log's success event timing is checked without inferring an earlier success point",
+    "The second aircraft permits FOLLOW launch near hour 10 without the dependency",
+    "With START dependency, FOLLOW may allocate before return but cannot launch before RECON returns",
+    "Both missions succeed and the dependent launch remains within its delay limit"
+  ],
+  "limits": [
+    "One precedent and one dependent mission in one explicit unit only",
+    "Both missions are FIXED, so the manual's conflicting statement about which side must be FIXED is not resolved",
+    "Failure, multiple precedents, cross-unit identity, repetition, and CONTINUOUS dependence remain unverified"
+  ]
+}

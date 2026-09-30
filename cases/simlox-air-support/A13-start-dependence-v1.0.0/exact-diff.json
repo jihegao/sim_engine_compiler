@@ -1,0 +1,219 @@
+{
+  "schema": "simlox-a13-exact-source-diff/v1",
+  "parent_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+  "control_sha256": "fcfa0c086085bfca72b49afe922f6968ec1d1597354cedb7e0c1230a1f5be42f",
+  "dependent_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+  "parent_to_control": {
+    "Control": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "RCEND",
+          "before": 36.0,
+          "after": 24.0
+        },
+        {
+          "row": 0,
+          "field": "SIMPE",
+          "before": 36.0,
+          "after": 24.0
+        }
+      ],
+      "added_rows": [],
+      "removed_rows": [],
+      "columns_changed": false
+    },
+    "MissionType": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "DESCR",
+          "before": "Two-hour generic mission",
+          "after": "Four-hour fixed predecessor"
+        },
+        {
+          "row": 0,
+          "field": "DURN",
+          "before": 2.0,
+          "after": 4.0
+        },
+        {
+          "row": 0,
+          "field": "MSUCPT",
+          "before": 1,
+          "after": 0.25
+        },
+        {
+          "row": 0,
+          "field": "MTID",
+          "before": "BASIC-MISSION",
+          "after": "RECON"
+        }
+      ],
+      "added_rows": [
+        {
+          "MTID": "FOLLOW",
+          "DESCR": "Two-hour fixed dependent",
+          "NOS": 1,
+          "MNOS": 1,
+          "MNOSA": null,
+          "DURN": 2.0,
+          "DURND": null,
+          "MSUCPT": 1.0,
+          "TFOUT": 0.25,
+          "TFRET": 0.25,
+          "MPAT": null,
+          "PRI": 1,
+          "NOPER": 1.0,
+          "MFF": null,
+          "SYACF": null,
+          "SYACP": null,
+          "NOTE": null
+        }
+      ],
+      "removed_rows": [],
+      "columns_changed": false
+    },
+    "OperationProfile": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "DTIM",
+          "before": 0.3333333333333333,
+          "after": 4.0
+        },
+        {
+          "row": 0,
+          "field": "SPRID",
+          "before": "BASIC-MISSION",
+          "after": "RECON"
+        },
+        {
+          "row": 1,
+          "field": "DTIM",
+          "before": 0.3333333333333333,
+          "after": 4.0
+        },
+        {
+          "row": 1,
+          "field": "SPRID",
+          "before": "BASIC-MISSION",
+          "after": "FOLLOW"
+        },
+        {
+          "row": 1,
+          "field": "STIM",
+          "before": 20.0,
+          "after": 10.0
+        }
+      ],
+      "added_rows": [],
+      "removed_rows": [
+        {
+          "PRID": "BASIC-SCHEDULE",
+          "SPRID": "BASIC-MISSION",
+          "STIM": 32.0,
+          "ITYPE": "SCHEDULED",
+          "IQTY": 1,
+          "IQTYD": null,
+          "IPER": 0,
+          "IDISP": null,
+          "DTIM": 0.3333333333333333,
+          "XCOORD": null,
+          "YCOORD": null,
+          "NOTE": null
+        }
+      ],
+      "columns_changed": false
+    },
+    "ProblemDescription": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "PDESC",
+          "before": "A01/A02 generic one-aircraft teaching case; no J35/F35 equivalence",
+          "after": "A13 two-aircraft no-dependence control"
+        }
+      ],
+      "added_rows": [],
+      "removed_rows": [],
+      "columns_changed": false
+    },
+    "ResultCollection": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "RCEND",
+          "before": 36.0,
+          "after": 24.0
+        },
+        {
+          "row": 1,
+          "field": "RCEND",
+          "before": 36.0,
+          "after": 24.0
+        }
+      ],
+      "added_rows": [],
+      "removed_rows": [],
+      "columns_changed": false
+    },
+    "SystemDeployment": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "QTYPS",
+          "before": 1,
+          "after": 2
+        }
+      ],
+      "added_rows": [],
+      "removed_rows": [],
+      "columns_changed": false
+    },
+    "Unit": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "DESCR",
+          "before": "One-aircraft teaching unit",
+          "after": "Two-aircraft dependency unit"
+        }
+      ],
+      "added_rows": [],
+      "removed_rows": [],
+      "columns_changed": false
+    }
+  },
+  "control_to_dependent": {
+    "MissionDependence": {
+      "added_rows": [
+        {
+          "DUNID": "TEACH-UNIT",
+          "DMTID": "FOLLOW",
+          "DSTIM": 10.0,
+          "PUNID": "TEACH-UNIT",
+          "PMTID": "RECON",
+          "PSTIM": 8.0,
+          "DTYPE": "START",
+          "MUTD": null,
+          "DTTOL": null,
+          "NOTE": null
+        }
+      ]
+    },
+    "ProblemDescription": {
+      "changed_cells": [
+        {
+          "row": 0,
+          "field": "PDESC",
+          "before": "A13 two-aircraft no-dependence control",
+          "after": "A13 paired two-aircraft START dependence; predecessor returns at 12"
+        }
+      ],
+      "added_rows": [],
+      "removed_rows": [],
+      "columns_changed": false
+    }
+  }
+}

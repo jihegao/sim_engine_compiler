@@ -1,0 +1,21 @@
+# A13 explicit START dependency: CLI scope sign-off (2026-09-30)
+
+**Decision:** `native_behavior_accepted` for the bounded paired START-dependency behavior below; `reusable_published` after merge to `simlox/main`. The rest of A13 remains open under Issue #18.
+
+## Source and lineage
+
+The accepted A02 parent source is SHA-256 `84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8`. The [control](control-input.json) source is `fcfa0c086085bfca72b49afe922f6968ec1d1597354cedb7e0c1230a1f5be42f`; the [dependent](dependent-input.json) source is `954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246`. The [exact diff](exact-diff.json) is `9b0def470e5ccab79901f4c2e5a4908179e07d020baef5f7e69078a85f88a747`. The control changes seven planned parent tables to make a two-aircraft, two-mission comparison. The dependent adds one `MissionDependence` START row and changes only its description. The [contract](contract.json) SHA-256 is `0848fece2eb9461dd1ae5f0491680785a15e6b3c83aa9c52d62a69ed70956521`.
+
+The local SIMLOX 2017 manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`. Pages 188 and 287–289 define start dependencies and source fields. Pages 188/289 describe a FIXED predecessor, while page 287 describes a FIXED dependent. Both missions are default-FIXED in this model; the role conflict is not adjudicated here. The proprietary manual remains local.
+
+## Native evidence
+
+The guarded session-0 SSH queue ran final control `a13-control-20260930-03` and dependent `a13-dependent-20260930-03`, preserving GUI PID 13340 and the host mutex. Both completed import, export, calculation, JSON report, and roundtrip checking with unchanged source hashes, zero conversion errors, and only warnings #108/#126. Their closure SHA-256 values are `09f4bea6b2d4f235db4bcc52b2d0cedcd10ef037edefd87a90b4471cab1c0dbb` and `d64ba301a8ab7b89cbf23f5e0c6ec60fed2dfd3c123f9a57a7b42f2e8b1b8f49`; each seals 12 raw files. Source-row roundtrip is exact over 13 control and 14 dependent populated tables. Both reports have 48 half-hour system and stock bins, all three mission/system summary fractions `MSTF`, `MSUF`, `STMF` equal one, six aircraft operating hours, and two aircraft ready at the end.
+
+RECON launches at hour 8 and its logged success and completion occur at hour 12 in both runs. FOLLOW allocates the second aircraft at hour 9 in both runs. It launches at hour 10 and completes at 12 in the control; with the START row it launches at hour 12 and completes at 14. The hour 10–10.5 system report bin shows two systems on mission in the control and one with the dependency. This supports the claim that this one START row prevents FOLLOW launch before RECON returns while allowing assignment to proceed. Same-time success, completion, and return do not resolve their internal order. Although `MSUCPT=0.25` is configured, the native log emits `mission success` at hour 12, so no earlier logged success is claimed.
+
+The [source-bound author validator](validate_native.py), SHA-256 `042b25595d0dd63c2f3a21b93501236d4cc0116cc385c5f45fe68df8dc711d79`, passes its [saved replay](review/author-native-validation-2026-09-30.json), SHA-256 `90e51d1469f04e4c0110a1755ddebb8087c06f7c550b942fcb5c761478c16794`. A [separate read-only reviewer](review/independent_start_readonly.py), SHA-256 `ef9a24fdb983059810209f5124f273789a6c1dfaf8e364781ecd5586a5ff14c8`, passes [55/55 checks](review/independent-start-2026-09-30.json), SHA-256 `577785276edbcf41e7611451b63fcbaf7b4071572573b79f7e1de5e041a7b5ff`, without author validator imports or native re-execution.
+
+Raw native files remain in ignored local `runs/`; earlier `-01` and `-02` exploratory runs are preserved but excluded from this decision. Reproduce source with `python build.py` and `python describe_diff.py`; replay final evidence with `python validate_native.py` and `python review/independent_start_readonly.py`. Fresh native execution requires a new run ID and the pinned local GUI/session environment.
+
+Unverified: failed or incomplete predecessor, multiple precedents, cross-unit or group dependencies, repeated mission identities, different mission modes, continuous dependencies, GUI-only behavior, and Python/Rust parity. Issue #18 remains open.
