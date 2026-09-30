@@ -1,0 +1,504 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "A15",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 119,
+  "passed_count": 119,
+  "failures": [],
+  "decision": "GO_bounded_source_acceptance_and_observable_mission_only",
+  "accepted_scope": "These two sealed CLI runs accept and roundtrip custom KM OperationParameter and MissionTypeUtilization source; both convert with zero errors, produce byte-identical event logs, equal non-description report tables, and one successful 8-10 mission ending ready.",
+  "rejected_claims": [
+    "Neither default JSON report selects MissionOperation; SOACC is absent. Do not claim 120 accomplished custom units or equality of custom exposure from these runs.",
+    "The 60 1/HOUR and 120 1/MISSION values are source settings only; one full mission cannot establish behavior for partial missions, failures, other seeds, or fleet aggregation."
+  ],
+  "manual_observation": "The SHA-pinned SIMLOX 2017 manual (printed pp. 183-184 and 267-270) describes custom operation parameters, MissionTypeUtilization time/mission rates, and MissionOperation.SOACC as the operation result. Its substantive text was inspected separately; this standard-library replay verifies the manual's byte hash.",
+  "checks": [
+    {
+      "name": "contract identity and A01 parent",
+      "passed": true
+    },
+    {
+      "name": "frozen A01 parent SHA",
+      "passed": true
+    },
+    {
+      "name": "manual SHA and cited printed pages",
+      "passed": true
+    },
+    {
+      "name": "case publication remains pending",
+      "passed": true
+    },
+    {
+      "name": "A01 source table names unique",
+      "passed": true
+    },
+    {
+      "name": "per-hour: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "per-hour: frozen source SHA and sealed copy",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact A01 parent delta",
+      "passed": true,
+      "detail": [
+        "MissionTypeUtilization",
+        "OperationParameter",
+        "ProblemDescription"
+      ]
+    },
+    {
+      "name": "per-hour: only intended source tables changed",
+      "passed": true
+    },
+    {
+      "name": "per-hour: custom operation KM row",
+      "passed": true
+    },
+    {
+      "name": "per-hour: MissionTypeUtilization schema",
+      "passed": true
+    },
+    {
+      "name": "per-hour: one intended UTIL/UTILU row",
+      "passed": true
+    },
+    {
+      "name": "per-hour: source report selection excludes MissionOperation",
+      "passed": true
+    },
+    {
+      "name": "per-hour: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "per-hour: session-0 SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "per-hour: preserved GUI identity",
+      "passed": true
+    },
+    {
+      "name": "per-hour: source/runtime seals before and after",
+      "passed": true
+    },
+    {
+      "name": "per-hour: invocation seal and closure identity",
+      "passed": true
+    },
+    {
+      "name": "per-hour: complete sealed raw file set",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "per-hour: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "per-hour: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "per-hour: native step commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "per-hour: step timestamps in sequence",
+      "passed": true
+    },
+    {
+      "name": "per-hour: 14 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip MissionTypeUtilization",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "per-hour: exact populated roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "per-hour: import/export logs",
+      "passed": true
+    },
+    {
+      "name": "per-hour: zero conversion errors and simulation completed",
+      "passed": true
+    },
+    {
+      "name": "per-hour: report generation completed",
+      "passed": true
+    },
+    {
+      "name": "per-hour: single mission 8-10 succeeds",
+      "passed": true
+    },
+    {
+      "name": "per-hour: terminal system ready",
+      "passed": true
+    },
+    {
+      "name": "per-hour: four exported report tables",
+      "passed": true
+    },
+    {
+      "name": "per-hour: MissionOperation.SOACC absent",
+      "passed": true
+    },
+    {
+      "name": "per-hour: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "per-hour: one mission success in summary",
+      "passed": true
+    },
+    {
+      "name": "per-hour: system operation and terminal readiness bins",
+      "passed": true
+    },
+    {
+      "name": "per-hour: SIMLOX report trailing comma parsed structurally",
+      "passed": true
+    },
+    {
+      "name": "per-mission: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "per-mission: frozen source SHA and sealed copy",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact A01 parent delta",
+      "passed": true,
+      "detail": [
+        "MissionTypeUtilization",
+        "OperationParameter",
+        "ProblemDescription"
+      ]
+    },
+    {
+      "name": "per-mission: only intended source tables changed",
+      "passed": true
+    },
+    {
+      "name": "per-mission: custom operation KM row",
+      "passed": true
+    },
+    {
+      "name": "per-mission: MissionTypeUtilization schema",
+      "passed": true
+    },
+    {
+      "name": "per-mission: one intended UTIL/UTILU row",
+      "passed": true
+    },
+    {
+      "name": "per-mission: source report selection excludes MissionOperation",
+      "passed": true
+    },
+    {
+      "name": "per-mission: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "per-mission: session-0 SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "per-mission: preserved GUI identity",
+      "passed": true
+    },
+    {
+      "name": "per-mission: source/runtime seals before and after",
+      "passed": true
+    },
+    {
+      "name": "per-mission: invocation seal and closure identity",
+      "passed": true
+    },
+    {
+      "name": "per-mission: complete sealed raw file set",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "per-mission: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "per-mission: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "per-mission: native step commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "per-mission: step timestamps in sequence",
+      "passed": true
+    },
+    {
+      "name": "per-mission: 14 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip MissionTypeUtilization",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "per-mission: exact populated roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "per-mission: import/export logs",
+      "passed": true
+    },
+    {
+      "name": "per-mission: zero conversion errors and simulation completed",
+      "passed": true
+    },
+    {
+      "name": "per-mission: report generation completed",
+      "passed": true
+    },
+    {
+      "name": "per-mission: single mission 8-10 succeeds",
+      "passed": true
+    },
+    {
+      "name": "per-mission: terminal system ready",
+      "passed": true
+    },
+    {
+      "name": "per-mission: four exported report tables",
+      "passed": true
+    },
+    {
+      "name": "per-mission: MissionOperation.SOACC absent",
+      "passed": true
+    },
+    {
+      "name": "per-mission: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "per-mission: one mission success in summary",
+      "passed": true
+    },
+    {
+      "name": "per-mission: system operation and terminal readiness bins",
+      "passed": true
+    },
+    {
+      "name": "per-mission: SIMLOX report trailing comma parsed structurally",
+      "passed": true
+    },
+    {
+      "name": "exact pairwise source delta",
+      "passed": true
+    },
+    {
+      "name": "byte-identical event logs",
+      "passed": true
+    },
+    {
+      "name": "report tables equal except description",
+      "passed": true
+    },
+    {
+      "name": "distinct expected report descriptions",
+      "passed": true
+    }
+  ]
+}
