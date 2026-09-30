@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-a18-alternate-unit-contract/v1",
+  "case_id": "A18",
+  "version": "1.0.1-candidate",
+  "parent_publication_id": "A17.two_units.1.0.0",
+  "parent_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "enabled_input_sha256": "c2837b5aa5a191b8a2e0c4b3c5e1cbf450cacd9fc211bb03b5bc6d8c1c7eae99",
+  "disabled_input_sha256": "ee3cfbb25f13851269b65073ff7c92ae9caeec37502e9431bb91a87764f39960",
+  "exact_diff_sha256": "ddbd31cf43caa7fac39ed6426fbb4c5a9052d91d82ee38996a0973647cae1890",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [187, 307, 308],
+  "diagnostic_parent_candidate": "A18-alternate-unit-transfer-v1.0.0",
+  "diagnostic_failure": "The v1.0.0 enabled run imported and exactly roundtripped, but SIMLOX generated a 0–36 default mission for the alternate unit because it lacked an explicit Operations row. Both alternate aircraft were consumed before the planned mission call, so the transfer hypothesis failed. Its frozen source and raw run remain separate and unpublished.",
+  "business_delta": "From accepted A17, retain two explicit units at BASE-01 and BASE-02 but remove the group. Give the scheduled two-aircraft BASIC-MISSION to ordinary TEACH-UNIT with one deployed aircraft. Deploy two at TEACH-UNIT-2 and add AlternateUnit TEACH-UNIT to TEACH-UNIT-2 with PRI=1. Unlike v1.0.0, give the alternate an explicit ALT-IDLE Operations profile with a scheduled IQTY=0 row, preventing generated default missions. The enabled/disabled inputs differ only in Control.ENALU Y/N and description. Seed, horizon, mission type and support data remain unchanged.",
+  "hand_timeline_hypothesis": "With ENALU=Y, the ordinary unit is one aircraft short of MNOS=2 when BASIC-MISSION is called at hour 7. The two-ready-aircraft alternate should receive the whole mission, start at hour 8, succeed at hour 10 and return its aircraft. With ENALU=N, the original unit should remain short, never launch and cancel by the hour-8.3333 deadline. The ALT-IDLE row creates no mission. Native event timestamps decide any discrepancy.",
+  "pre_run_metric_hypothesis": "Enabled should give one started/successful fixed wave, two sorties and four aircraft-hours, with MSTF=MSUF=MTMF=STMF=1. Disabled should give no launched wave or operating hours and zero fixed start/success factors. Both variants should end with three ready aircraft and no failures, repairs or stock demand.",
+  "acceptance_requires": [
+    "accepted A17 parent, installed source hashes, deterministic builder and exact parent/control deltas",
+    "fresh paired five-step session-0 SSH native runs under host mutex and GUI PID13340 guard",
+    "exact 14 populated business-table import/export roundtrips and zero conversion errors for both variants",
+    "enabled events identify two TEACH-UNIT-2 aircraft and one successful BASIC-MISSION; disabled has no launch or success and no default mission occurs in either run",
+    "System/Stock interval ledgers, fixed summary factors, absence of faults and three terminal-ready aircraft reconcile to events",
+    "sealed raw SHA-256 artifacts and separate independent read-only replay"
+  ],
+  "diagnostic_rule": "If an unintended default mission appears, transfer is absent, the wrong unit supplies the mission, the disabled control launches, or ledgers do not reconcile, preserve immutable runs as diagnostics and do not publish the transfer claim.",
+  "limitations": [
+    "One seed, one scheduled fixed demand, one alternate unit and no failures or resource contention.",
+    "Multiple-alternate priority ordering, delayed alternate readiness, reassignment after call, preparation failures, explicit formations, GUI and cross-engine behavior remain outside this claim."
+  ],
+  "publication_state": "not_published"
+}

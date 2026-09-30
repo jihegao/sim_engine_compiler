@@ -1,0 +1,20 @@
+{
+  "schema": "simlox-a18-alternate-unit-author-validation/v1",
+  "passed": true,
+  "checks": 852,
+  "decision": "bounded_go_structural_alternate_unit_transfer",
+  "runs": {
+    "configured": "a18-configured-v102-20261001-01",
+    "absent": "a18-absent-v102-20261001-01"
+  },
+  "diagnostics": [
+    "a18-enabled-v100-20261001-01",
+    "a18-enabled-v101-20261001-01",
+    "a18-disabled-v101-20261001-01"
+  ],
+  "finding": "One explicit AlternateUnit row transfers the single two-aircraft fixed mission at hour 7, releases the ordinary aircraft, launches two alternate aircraft at hour 8 and succeeds at hour 10. Without the row, the mission cancels at 8.33333. ENALU=N in an earlier paired probe did not suppress transfer despite exact roundtrip and remains a limitation.",
+  "limitations": [
+    "One seed, one alternate, no faults or resource contention.",
+    "Alternate priority and delayed readiness, ENALU switch semantics, GUI and cross-engine behavior remain unverified."
+  ]
+}
