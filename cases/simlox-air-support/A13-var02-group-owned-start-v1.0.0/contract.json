@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var02",
+  "version": "1.0.0-candidate",
+  "parent": "A13.var02_cross_unit_start.1.0.0",
+  "parent_input_sha256": "9bd317fdbd356c039c5db85dfb75077d78b1cb524cf52e845854e5754a30472a",
+  "structural_source": "A17.two_units.1.0.0",
+  "structural_input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "mechanism": "A two-aircraft RECON mission owned by a unit group precedes FOLLOW owned by a third explicit unit",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [188, 287, 288, 289, 308, 309],
+    "tables": ["Station", "Unit", "UnitGroup", "UnitGroupMember", "SystemDeployment", "MissionType", "Operations", "OperationProfile", "MissionDependence"]
+  },
+  "configuration": {
+    "seed": "1",
+    "simulation_hours": 24,
+    "aircraft": 3,
+    "predecessor": {"unit_group": "TEACH-GROUP", "member_units": ["TEACH-UNIT", "TEACH-UNIT-2"], "type": "RECON", "scheduled_hour": 8, "duration_hours": 4, "required_aircraft": 2},
+    "dependent": {"unit": "TEACH-UNIT-3", "station": "BASE-03", "type": "FOLLOW", "scheduled_hour": 10, "duration_hours": 2, "delay_limit_hours": 4},
+    "control": "same three-aircraft source without MissionDependence table",
+    "failure_modes": 0
+  },
+  "predeclared_behavior_gate": [
+    "both sources exactly roundtrip all populated business rows and native conversion reports zero errors",
+    "both sources yield valid nonempty SXO, event log and JSON report with 48 half-hour System and Stock bins",
+    "group-owned RECON allocates both member-unit aircraft, launches at 8, succeeds and returns to each home base at 12 in both runs",
+    "FOLLOW uses only the third-unit aircraft, launches at 10 without START and at 12 with group-owned START, and succeeds/returns at 12/14",
+    "no cancellation, shortage or failure; 10 total operating aircraft-hours; all three aircraft ready at 24",
+    "source, raw closure, resource/stock ledgers, summary, terminal state and independent read-only replay agree"
+  ],
+  "limits": [
+    "One fixed-seed pair with one two-member group, one third explicit unit, and one fixed mission per owner",
+    "Same-time success/completion/return/launch ordering is not resolved by displayed timestamps",
+    "No failure, repeated identity, implicit unit, cross-engine or GUI visual claim"
+  ]
+}
