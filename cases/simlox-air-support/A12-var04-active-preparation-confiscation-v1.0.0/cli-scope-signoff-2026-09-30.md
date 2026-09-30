@@ -1,0 +1,24 @@
+# A12.var04 active-preparation confiscation: CLI scope signoff
+
+**Decision:** `native_behavior_accepted` for the deterministic paired active-preparation transfer below; `reusable_published` after merge to `simlox/main`. The complete A12.var04 variant, broader A12 method and other scheduling conditions remain unverified.
+
+The accepted parent is A12 simultaneous priority contention 1.0.0, frozen input SHA-256 `300f3129b1f5d78018ad00875b545ffc1d7619dde5c3086c7a8bf0abb145094a`. The parent already binds the accepted A11 typed A+B minimum and B01 fixed preparation. Frozen `early-high`/`late-high` input SHA-256 values are `de69780b98779f8cf76f61f391bd4ecae97fe0f660fd6b8f26a5e61384174551` / `499e2b056b72cda8d4ada7918e65c692e06a3d2b5b8c852e2cba9a8177e6c88e`. The [exact source diff](exact-diff.json) SHA-256 is `a805c7f1a99f482016f9194a6867e174821404271305677526d4fbee2e2b995c`, and pre-run [contract](contract.json) SHA-256 is `4fac6f6555b1c6c2b7873ea51089897e7bdbd3ce72087b18c7e996908ca8d652`. Both children move SECOND's start from 8 to 8.25, so BASIC calls at 7 and SECOND at 7.25 during BASIC's 7–7.5 preparation. The pair differs only in `MissionType.PRI` 1↔2 and descriptive text. All 16 populated source tables roundtrip exactly in each run.
+
+The installed 2017 SIMLOX manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`. Printed pages 184–187 describe ready-pool search followed by lower-priority mission confiscation, selecting a system already in preparation and proportionally unpreparing it; page 266 defines mission priority; pages 270–273 define profile scheduling. The observed zero-duration turnround marker has reduction factor 0.5, matching 0.25 of 0.5 preparation hours already performed; this input specifies no positive `MissionTurnround` duration, so no positive unpreparation work is claimed.
+
+Sealed session-0 SSH run IDs `a12-var04-early-high-20260930-01` and `a12-var04-late-high-20260930-01` have closure SHA-256 `c02b66fb1e2f7853855eef1d4f31fc3729bdcd20997b6c6879c415e7426e0023` and `0539f1c405992c584891dc1639ce92679ea63cd55ca4a4df5afbc325cd96385f`. Both completed guarded import, export, calculation, JSON report and exact source roundtrip with zero conversion errors, warning #108 and two #126 warnings. The global Issue #18 mutex and GUI PID 13340/session 1 were preserved. Raw `.sxi`, `.sxo`, logs and reports stay in local ignored `runs/`.
+
+| Event | `early-high` control | `late-high` transfer |
+| --- | --- | --- |
+| BASIC takes A#0+B#2 and prepares | 7–7.5 | Starts 7; B#2 stopped at 7.25, A#0 finishes 7.5 |
+| SECOND calls and takes ready A#1 | 7.25 | 7.25 |
+| Transfer of B#2 from active preparation | None | BASIC gives away B#2 at 7.25; SECOND preassigns it, original subtask/task stop, BASIC prep ends, factor-0.5 same-time turnround, SECOND allocates it |
+| SECOND preparation | A#1 7.25–7.75 | A#1+B#2 7.25–7.75 |
+| Cancelled mission | SECOND at 8.08333 | BASIC at 7.83333 |
+| Successful mission | BASIC A#0+B#2, 8–10 | SECOND A#1+B#2, 8.25–10.25 |
+
+The raw event order proves transfer **after B#2 had started BASIC preparation**, and the control demonstrates that the same later mission with lower priority cannot take B#2 from BASIC. In the late-high run the interrupted B#2 task contributes 0.25 hour, making preparation exposure 1.75 aircraft-hours versus control 1.5. Both runs have four operation aircraft-hours, one success among two called (`MTMF=MSTF=MSUF=STMF=0.5`), 72 half-hour system and stock bins, no observed failure/PM or stock demand, and three ready aircraft at hour 36. Event-derived `NSYRY`, `NSYMA`, `NSYMP`, `NSYMR`, `NSYMO`, `NSYA`, `FTMO` and `STACC` reconcile bin by bin. `STREQ` has the same raw series in both runs and differs from actual flight occupancy at edge bins; its precise semantics remain unresolved and are not used as an operation-occupancy assertion.
+
+The [author validator](validate_native.py) SHA-256 is `10eb827d9e9d1125d8a51b28b5f123e7c6edaace88e0f009974a769c21e9c009`; its [passing report](review/author-native-validation-2026-09-30.json) SHA-256 is `6882dfbeea37d252d1eca1ca20707b953f63116447a6a8bcb2d6419de5b3d048`. The separate standalone [read-only reviewer](review/independent_confiscation_readonly.py) did not import author scripts or invoke SIMLOX; script SHA-256 `6d01a324035e53fa9366b4b4221581c42541b1ad3ea4fe9ef42f67d8bd1027e0`, [122/122 passing report](review/independent-confiscation-2026-09-30.json) SHA-256 `8c99aa4371bedf88c0c770bc8ee05aaedb3022160bcec6040e09d9d879e2b149`.
+
+Rebuild with `python build.py` and `python describe_diff.py`, then replay sealed evidence using `python validate_native.py` and the separate reviewer. A fresh run requires new run IDs, guarded session-0 SSH and the host-wide mutex. No predefined refuelling/payload subtask, positive unpreparation duration, resource wait, equal-priority tie, later maintenance readiness, GUI-only behavior or cross-engine parity is accepted here.
