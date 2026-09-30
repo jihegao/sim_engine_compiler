@@ -1,0 +1,767 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C07.var05.invalid_shifts",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 184,
+  "passed_count": 184,
+  "failures": [],
+  "decision": "GO_bounded_rejection_and_clamp",
+  "accepted_scope": "Explicit half-hour shift overlap yields converter error #250; repeated interval shorter than shift duration yields both #249 and #250. Both calc commands exit zero but stop before simulation with four-byte unusable .sxo files and no report. A QTY3 active shift against nominal deployment2 produces warning #60, zero errors, effective capacity2, and a valid native outcome byte-identical to the accepted explicit control log, with report tables equal except description.",
+  "metric_interpretation": "For overcapacity, ResourceResults.NRW is waiting demand rather than booked work. Exact 72-bin ledgers show four crew-hours positive work, two resource-hours waiting, resource capacity two, mission success and terminal two ready aircraft.",
+  "limits": [
+    "Negative overlap runners exercised import, export, calc and roundtrip check, not jsonreport. Their calc exit code zero is not acceptance; converter error text and unusable output are decisive.",
+    "These are one explicit overlap, one repeated-interval overlap and one resource/station overcapacity input on this installed executable. No generic invalid-shift resolution or multi-resource clamping claim follows.",
+    "Calendar recurrence, MAXUT, GUI visual behavior and cross-engine equivalence remain unverified. SSH/GUI/queue continuity is replayed from sealed metadata; the reviewer did not rerun native SIMLOX."
+  ],
+  "checks": [
+    {
+      "name": "contract identity and unpublished candidate",
+      "passed": true
+    },
+    {
+      "name": "installed manual fingerprint and pages",
+      "passed": true
+    },
+    {
+      "name": "explicit accepted parent fingerprint",
+      "passed": true
+    },
+    {
+      "name": "repeated accepted parent fingerprint",
+      "passed": true
+    },
+    {
+      "name": "accepted explicit raw control available",
+      "passed": true
+    },
+    {
+      "name": "overlap: unique 35-table source",
+      "passed": true
+    },
+    {
+      "name": "overlap: source/run/contract/diff SHA",
+      "passed": true
+    },
+    {
+      "name": "overlap: correct accepted parent selected",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact two-table parent delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "ShiftProfile"
+      ]
+    },
+    {
+      "name": "overlap: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "overlap: only label plus one business field changes",
+      "passed": true
+    },
+    {
+      "name": "overlap: second explicit STIM alone 26 to 24.5",
+      "passed": true
+    },
+    {
+      "name": "overlap: invocation identity, path and source",
+      "passed": true
+    },
+    {
+      "name": "overlap: session-zero SSH/queue mutex",
+      "passed": true
+    },
+    {
+      "name": "overlap: GUI preserved in recorded steps",
+      "passed": true
+    },
+    {
+      "name": "overlap: current source/runtime match frozen before seals",
+      "passed": true
+    },
+    {
+      "name": "overlap: before/after source seals and invocation hash",
+      "passed": true
+    },
+    {
+      "name": "overlap: complete raw file inventory",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal import.log",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal run.log",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal input.json",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal export.log",
+      "passed": true
+    },
+    {
+      "name": "overlap: raw byte seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact step sequence, exit code and statuses",
+      "passed": true
+    },
+    {
+      "name": "overlap: planned commands and step chronology",
+      "passed": true
+    },
+    {
+      "name": "overlap: 24 populated business tables and unique roundtrip",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "overlap: 35-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "overlap: exact converter rejection diagnostics",
+      "passed": true
+    },
+    {
+      "name": "overlap: calc exits zero but simulation not started",
+      "passed": true
+    },
+    {
+      "name": "overlap: 4-byte unusable result; no log/report/export step",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: unique 35-table source",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: source/run/contract/diff SHA",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: correct accepted parent selected",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact two-table parent delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "ShiftProfile"
+      ]
+    },
+    {
+      "name": "repeated-overlap: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: only label plus one business field changes",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: IINT alone 3 to 1.5",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: invocation identity, path and source",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: session-zero SSH/queue mutex",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: GUI preserved in recorded steps",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: current source/runtime match frozen before seals",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: before/after source seals and invocation hash",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: complete raw file inventory",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal import.log",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal run.log",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal input.json",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal export.log",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: raw byte seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact step sequence, exit code and statuses",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: planned commands and step chronology",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: 24 populated business tables and unique roundtrip",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: 35-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: exact converter rejection diagnostics",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: calc exits zero but simulation not started",
+      "passed": true
+    },
+    {
+      "name": "repeated-overlap: 4-byte unusable result; no log/report/export step",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: unique 35-table source",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: source/run/contract/diff SHA",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: correct accepted parent selected",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact two-table parent delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "ShiftResource"
+      ]
+    },
+    {
+      "name": "over-capacity: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: only label plus one business field changes",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: QTY alone 2 to 3; nominal deployment remains 2",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: invocation identity, path and source",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: session-zero SSH/queue mutex",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: GUI preserved in recorded steps",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: current source/runtime match frozen before seals",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: before/after source seals and invocation hash",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: complete raw file inventory",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal import.log",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal model.log",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal run.log",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal input.json",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal export.log",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: raw byte seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact step sequence, exit code and statuses",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: planned commands and step chronology",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: 24 populated business tables and unique roundtrip",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: 35-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: warning #60 plus #108/#126; zero errors",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: simulation and JSON report completed",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: QTY3 survives exact native import/export",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: native event log byte-identical to accepted explicit control",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: effective free capacity two, never three",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: mission 28-29 success, terminal ready2",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: report tables equal control except description",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: one successful mission summary",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: resource totals two nominal/effective, work4 wait2",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact 72-bin NRUM ledger",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact 72-bin NRW ledger",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact 72-bin NRA ledger",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact 72-bin NSYRY ledger",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact 72-bin NSYMA ledger",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact 72-bin NSYMP ledger",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: exact 72-bin NSYMO ledger",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: resource count two and zero mission booking",
+      "passed": true
+    },
+    {
+      "name": "over-capacity: zero stock movement and terminal ready2",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-c07-invalid-shifts-contract/v1",
+  "case_id": "C07",
+  "variant_id": "C07.var05",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C07.var04.repeat_nested_two_window.1.0.0",
+  "parent_input_sha256": {
+    "explicit": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+    "repeated": "32f79158605a426edc80052f1188ec0c65f91d468d10a07ab748b7f0839c053e"
+  },
+  "input_sha256": {
+    "overlap": "b44334b8850d090d1456123f571315864801c25ae9cb25ccfa9677f1e2a1dd10",
+    "repeated-overlap": "730d4e30fbb6ce4202d3e53d8d27ed4789bb6f2eca491c790dc6b86fb55f65ac",
+    "over-capacity": "4a0a996203e494de5892aa30f7e6cd720b3079ed6433022e9f40f42830c165b3"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_physical_pages": [419, 420, 421, 799, 843],
+  "variants": {
+    "overlap": {
+      "parent": "explicit",
+      "business_delta": "Only the second explicit ShiftProfile.STIM changes from 26 to 24.5, overlapping the first 23-25 window by half an hour; ProblemDescription changes for provenance.",
+      "native_hypothesis": "Manual error #250 (Shifts overlap) should reject calculation; import/export may still succeed. CLI exit code alone is not rejection evidence."
+    },
+    "repeated-overlap": {
+      "parent": "repeated",
+      "business_delta": "Only the repeated ShiftProfile.IINT changes from 3 to 1.5, less than its two-hour duration; ProblemDescription changes for provenance.",
+      "native_hypothesis": "Manual error #249 should reject overlapping repeated windows at calculation; import/export may still succeed."
+    },
+    "over-capacity": {
+      "parent": "explicit",
+      "business_delta": "Only ShiftResource.QTY changes from 2 to 3 while nominal ResourceAllocation.RQTY stays 2; ProblemDescription changes for provenance.",
+      "native_hypothesis": "Manual warning #60 should clamp active shift capacity to deployed two, with zero conversion errors and valid native report equivalent to the explicit parent apart from description. Source QTY3 should survive import/export."
+    }
+  },
+  "acceptance_requires": ["frozen source/version and exact parent delta", "guarded serial session-0 SSH runs with GUI and host-wide queue", "source import/export business-row roundtrip", "for rejected overlap variants, exact native diagnostic and absence of usable result/report", "for over-capacity, zero conversion errors, warning #60, typed effective capacity and full event/resource/system/stock ledger comparison", "sealed raw artifacts and independent read-only replay"],
+  "limitations": ["These are one explicit overlap, one repeated-interval overlap and one resource/station over-capacity input against an installed executable.", "No generic overlap resolution, simultaneous multiple-resource clamping, MAXUT, GUI visual behavior or cross-engine equivalence is implied."],
+  "publication_state": "not_published"
+}
