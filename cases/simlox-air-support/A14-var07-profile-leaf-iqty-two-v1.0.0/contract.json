@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-air-support-negative-case-contract/v1",
+  "case_id": "A14",
+  "variant_id": "A14.var07",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A14.var06",
+    "package": "../A14-profile-repeated-v1.0.1",
+    "input_sha256": "11993115206c2176c45f83e4706ede703b5f1a994ed7c0ad737fe37c07c759cb",
+    "signoff": "../A14-profile-repeated-v1.0.1/cli-scope-signoff-2026-10-01.md"
+  },
+  "native_input_sha256": "0cf06efc8fc50f1ac2771e904dd7dd84dc503e4ee1a72b8fc1ce47e9e15c77cf",
+  "exact_diff_sha256": "540bc2ac838e22d0047e5ad29de9868392f3e5fc5c87aaccd30fd91221bea2a6",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_page": 290,
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "interpretation": "The manual says a MissionDependenceProfile DMTID/PMTID leaf must have IQTY=1 for the specified PRID because more than one mission is ambiguous. It does not state a particular converter error code."
+  },
+  "delta": "Only A14-WAVE -> EXECUTE at relative STIM=8 changes OperationProfile.IQTY from 1 to 2; ProblemDescription changes only a provenance label. The MissionDependenceProfile row and all other source tables remain byte-for-byte identical as parsed tables.",
+  "predeclared_native_acceptance": [
+    "One immutable session-0 SSH run preserves GUI PID 13340 and the host-wide native mutex, and seals the parent/input/contract/builder/diff/checker/runner/executable fingerprints before and after execution.",
+    "Native JSON import and export succeed, and all 14 populated source business tables roundtrip exactly, including the IQTY=2 EXECUTE leaf and unchanged MissionDependenceProfile row.",
+    "Native calculation rejects the ambiguous profile leaf with at least one conversion error associated with MissionDependenceProfile or leaf initiation quantity, and produces no valid simulation output or report. Process exit code zero alone is not acceptance or rejection proof.",
+    "If calculation accepts the input, has no relevant converter error, or creates a valid simulation/report, the rejection hypothesis is NO-GO and no native mission behavior is published from this candidate.",
+    "A separate reviewer independently replays source and sealed raw evidence without importing the author's validator before any publication."
+  ],
+  "limits": [
+    "This negative probe covers one installed SIMLOX 2017 executable, one two-level repeated profile and one EXECUTE leaf IQTY change. It does not establish a general ambiguity rule or error precedence.",
+    "GUI visual content and cross-engine behavior remain unverified."
+  ]
+}
