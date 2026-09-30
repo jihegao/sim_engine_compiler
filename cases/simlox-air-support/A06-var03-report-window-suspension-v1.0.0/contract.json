@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A06",
+  "variant_id": "A06.var03",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A06",
+    "package": "../A06-extendable-prepared-gap-v1.0.0",
+    "input_sha256": "5b53aa2cbaacb283e15bb7e7852afba215ec7fe5961434c3c2ce6f06768125c7"
+  },
+  "native_input_sha256": "0fcd389734758af9b0c5c1b5ae4adfbca27135153954384b2cf7333ac4c9b3ff",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 182, 183, 265, 266],
+    "interpretation": "An extendable mission can remain suspended across a result-window end while simulation continues to eventual completion."
+  },
+  "exact_delta": [
+    "Control.RCEND changes from 16.0 to 12.5 hours while Control.SIMPE stays 16.0 hours.",
+    "Both ResultCollection.RCEND rows change from 16.0 to 12.5 hours.",
+    "ProblemDescription.PDESC changes descriptive label only; all aircraft, mission, preparation, failure/repair, seed and schedule fields stay fixed."
+  ],
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source and raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip.",
+    "Conversion must have zero errors; classify warnings. Compare the complete simulation event log to the accepted A06 parent without assuming identical stochastic events merely from the fixed seed.",
+    "If the second suspension spans the 12.5 report end and the simulation continues to completion, require an event-log resumption and completion after 12.5 while the result bins stop at 12.5. Compare the 0–12.5 result integrals with the accepted A06.var04 simulation-stop control, distinguishing any summary result differences.",
+    "Do not infer post-12.5 operation from truncated result bins. Reconcile the report-window totals and separately state any full-run conclusion supported by the later event log.",
+    "If the report end changes simulation behavior or its output fails to expose the intended distinction, retain the run as a probe and publish only directly supported behavior."
+  ],
+  "limits": [
+    "One fixed seed and observed stochastic failure times; the report end was chosen from an accepted event timeline, not a deterministic unavailable interval.",
+    "Report-window totals and full-simulation outcomes have different time scopes and must not be conflated.",
+    "Other result windows, GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
