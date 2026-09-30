@@ -1,0 +1,9 @@
+# A14 DTTOL prepared-gap scheduling diagnostic (v1.0.0)
+
+**Decision: NO-GO for the five-run tolerance comparison.** The first, no-dependency control showed a valid half-hour SUPPORT suspension, but it occurred after EXECUTE had already completed. The other four frozen inputs were not run because they could not measure the declared dependency tolerance in this schedule.
+
+The accepted A05 prepared-spare input SHA-256 b7ca5f4d6152e2c166b1ba7fe8b41246c24782a50d56b2bcc773f86f176d3f4d is the parent. The contract, deterministic builder and exact diff were frozen before native execution. Exact-diff SHA-256 is 080b1152b43c906a23cc8e2579107a20aabf3db3e6d5514f52e4dbc3e16cde2a. The frozen control input SHA-256 is f9341e525ae78313b355042296b059bc4751a00eb23914b22a11322c0b846b25.
+
+Native run a14-dttol-control-v100-20261001-01 completed import/export, calculation, report and exact source roundtrip under the session-0 SSH/host-wide mutex/GUI PID 13340 guards. All 16 populated source business tables roundtripped exactly; conversion reported zero errors and warnings #108/#126. Invocation SHA-256 is 2bd6a81c88509cab7efce21bff3082bc42917178aaa9970959db5ecfc42650c0, closure SHA-256 6524f9bfcd3c217c50a13226c13d766298b007121c27ba3f2c5ff215381d8550, event-log SHA-256 0bcf41e6818c3b62d0f096a02f22163541839d8ca6e94bc7ad0492175147b3d2 and raw-report SHA-256 6c8c239180d015a29b589b56df6d715b68c01a76c4bec3b8676f59d7e0ef81ef.
+
+Both missions start at hour 8. EXECUTE has an instantaneous replacement after a failure at 9.8829 and succeeds at hour 11. SUPPORT suffers a separate failure at 11.1325, suspends, prepares a replacement for 0.5 hour, resumes at 11.6325 and succeeds at hour 12. Thus the dependent mission would no longer be active during the SUPPORT gap; this control cannot support a DTTOL boundary claim. The raw run remains in ignored local runs/. The [v1.0.1 probe](../A14-dttol-prepared-gap-v1.0.1/README.md) extends EXECUTE through the observed gap.

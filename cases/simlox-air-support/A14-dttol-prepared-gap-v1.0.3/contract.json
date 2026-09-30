@@ -1,0 +1,113 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "variant_id": "A14.var02",
+  "case_version": "1.0.3-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "package": "../A05-var02-prepared-spare-probe-v1.0.0",
+    "input_sha256": "b7ca5f4d6152e2c166b1ba7fe8b41246c24782a50d56b2bcc773f86f176d3f4d",
+    "signoff": "../A05-var02-prepared-spare-probe-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [
+      188,
+      287,
+      288,
+      289
+    ],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "inputs_sha256": {
+    "control": "6756a61111bd1db6378353c4fe2c093f1d466ee4fa6a4ca7759600c35d8908c1",
+    "zero": "f3bee7f935580fd90d5a60f6aa66c0307762c12d67b5c2ad575e8ddb6ecdfd3f",
+    "below": "f995814acac489ec3d1dd382da952957ab5c6f7b19a1a4e36f4cf6b67b9b433f",
+    "edge": "3018ba6ae23aa95fb0c1c1a209d6dfa733daf50d8a1a59a0f2cbdedab5f28c52",
+    "above": "7823e5c922680cd04b6592920c14ad5a62c7b1857df5d9f7f27ee632e77ee00b"
+  },
+  "exact_diff_sha256": "2537166e6183b56586914e0c247d4fefdda0991412ade955bb4d9037c140211b",
+  "model": {
+    "unit": "TEACH-UNIT",
+    "deployed_aircraft": 4,
+    "support": {
+      "type": "SUPPORT",
+      "pattern": "CONTINUOUS",
+      "start_hour": 8,
+      "duration_hours": 4,
+      "NOS": 2,
+      "MNOS": 2,
+      "fixed_preparation_hours": 0.5
+    },
+    "execution": {
+      "type": "EXECUTE",
+      "pattern": "CONTINUOUS",
+      "start_hour": 8,
+      "duration_hours": 3.9,
+      "NOS": 1,
+      "MNOS": 1
+    },
+    "dependency": "EXECUTE continuously depends on SUPPORT at hour 8; MUTD=N; DTTOL is the only semantic difference between dependent inputs",
+    "tolerance_hours": {
+      "zero": 0,
+      "below": 0.49,
+      "edge": 0.5,
+      "above": 0.51
+    },
+    "control": "identical four-aircraft model without MissionDependence",
+    "failure": "accepted A05 stochastic system FRT=300000 operating hours with seed 1 and half-hour direct repair",
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "system_types": {
+      "SUPPORT": "TEACH-AIR-01, three deployed, FRT=300000 OPHOURS, half-hour direct repair",
+      "EXECUTE": "EXEC-AIR-01, one deployed, FRT=0"
+    },
+    "type_requirements": {
+      "SUPPORT": "MissionSystem requires two TEACH-AIR-01",
+      "EXECUTE": "MissionSystem requires one EXEC-AIR-01"
+    }
+  },
+  "predeclared_hypotheses": [
+    "All five byte-identical v1.0.2 model inputs reproduce the same typed assignment: two TEACH-AIR-01 on SUPPORT, one EXEC-AIR-01 on EXECUTE, one ready support spare. Exact 17/18 populated source business tables roundtrip, conversion has zero errors and only logging/no-items warnings.",
+    "Each run has the same SUPPORT critical failure and 0.5-hour suspension, with a prepared TEACH-AIR-01 replacement, and the same EXECUTE no-failure clock. If SUPPORT failure identity or gap timing differs across variants, the tolerance contrast is NO-GO.",
+    "With no dependency, EXECUTE stays operating through the SUPPORT gap and succeeds at scheduled hour 11.9; SUPPORT succeeds at hour 12.",
+    "With DTTOL=0, EXECUTE suspends at SUPPORT gap onset and resumes when SUPPORT resumes, with 0.5 hour of dependent suspended exposure; it is not predicted to abort.",
+    "With DTTOL=0.49, EXECUTE suspends at gap onset plus 0.49 hours and resumes at gap end, with approximately 0.01 hour of dependent suspended exposure.",
+    "With DTTOL=0.5, an event at the exact gap end may record a same-time suspend/resume but yields zero duration of dependent suspended exposure. With DTTOL=0.51, no gap-related EXECUTE suspension occurs.",
+    "All five EXECUTE missions succeed at hour 11.9 and all SUPPORT missions succeed at hour 12. Full event identities, preparation/failure/repair ledgers, 32 half-hour System/Stock bins, summary factors and terminal four-ready state must reconcile.",
+    "A separate reviewer must replay the source and raw evidence without importing the author validator. Any failed hypothesis remains diagnostic rather than silently accepted."
+  ],
+  "limits": [
+    "This is a reproducibility check of one fixed-seed stochastic half-hour SUPPORT gap in one explicit unit, not a general DTTOL law or deterministic failure schedule.",
+    "DTTOL effects with absent predecessor, longer gap, multiple precedents, other mission patterns, cross-unit/profile dependence, GUI visual content and cross-engine equivalence remain unverified."
+  ],
+  "requires": [
+    "A05",
+    "A11",
+    "A13",
+    "A14.var01"
+  ],
+  "schema_source": {
+    "case_id": "A11",
+    "package": "../A11-mixed-type-minimum-v1.0.0",
+    "input_sha256": "4e1387b15457485de42ae20b1f0ed6382c013603c0bfc6de75d753339c2a7213",
+    "table": "MissionSystem"
+  },
+  "excluded_diagnostics": [
+    {
+      "package": "../A14-dttol-prepared-gap-v1.0.0",
+      "reason": "EXECUTE ended before SUPPORT gap."
+    },
+    {
+      "package": "../A14-dttol-prepared-gap-v1.0.1",
+      "reason": "Dependency changed which aircraft failed; SUPPORT gap absent in dependent runs."
+    },
+    {
+      "package": "../A14-dttol-prepared-gap-v1.0.2",
+      "reason": "All survived, but the frozen expected abort below tolerance was false; the observed suspension threshold informs this new pre-run replay contract."
+    }
+  ],
+  "prior_diagnostic": "The same frozen native inputs in v1.0.2 showed matched SUPPORT failure timing but contradicted an abort hypothesis. This v1.0.3 contract is frozen before new native runs to test reproducibility of the observed suspend/resume threshold."
+}
