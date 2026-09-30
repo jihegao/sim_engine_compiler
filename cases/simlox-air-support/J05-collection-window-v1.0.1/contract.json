@@ -1,0 +1,23 @@
+{
+  "schema": "simlox-j05-collection-window-contract/v1",
+  "case_id": "J05",
+  "variant_ids": ["J05.var01", "J05.var02"],
+  "version": "1.0.1-candidate",
+  "parent_publication_id": "A01.normal.1.0.0",
+  "parent_input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+  "input_sha256": {
+    "baseline": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "global-window": "e08a094aba3d0fe70c63aced459ea73ff582cdf8d1a61b5e52d22ed9bfaada15",
+    "system-override": "28ad0e43701d4eba1276a391992b67495506afc9076e80065b583d0932d28f6d"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [230, 231, 532, 533],
+  "source_dictionary_lines": [137, 143, 689, 694],
+  "business_delta": "The baseline is accepted A01 byte-for-byte. Global-window keeps SIMPE=36, seed 1 and the 8-10 mission, sets Control.RCINT=.25, RCSTA=7.5, RCEND=9, and removes two optional ResultCollection rows. System-override keeps that global window but adds only a SYSTEM ResultCollection row RCINT=.5, RCSTA=0, RCEND=36. Descriptions label provenance.",
+  "diagnostic_provenance": "The frozen v1.0.0 diagnostic triplet demonstrated that this installed -jsonreport exports SystemResults and StockTotalResults but no MissionResults table. Its original requirement for direct MISSION interval evidence is not satisfiable from that report. This v1.0.1 contract narrows the observable claim before three fresh guarded native runs; the diagnostic runs are excluded from publication evidence.",
+  "pre_run_hypothesis": "All runs retain identical full event logs through the 8-10 mission and 36-hour horizon. Baseline SystemResults and StockTotalResults each cover 0-36 in 72 half-hour bins. Global-window changes both to six quarter-hour bins 7.5-9. The SYSTEM ResultCollection override restores only SystemResults to 0-36 half-hour bins while StockTotalResults remains on the global window. Interval state and stock quantities should agree with the event ledger. ResultSummary remains a full-simulation summary.",
+  "acceptance_requires": ["accepted A01 source and installed manual/dictionary hashes", "three fresh guarded serial session-0 SSH native runs preserving GUI PID 13340", "all row-containing source tables roundtrip exactly and zero conversion errors", "same full simulation event timeline through mission success and horizon despite early collection end", "event-derived SystemResults intervals, StockTotalResults zero-stock ledger, and SYSTEM-specific override relative to stock", "sealed raw artifacts and independent read-only replay"],
+  "limitations": ["One seed and one deterministic mission.", "Native -jsonreport exposes no MissionResults interval table here; direct MISSION collection override and mission interval values remain unverified.", "ResultCollectionProfile, SNAPSHOT and other result types remain unverified.", "GUI visual behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
