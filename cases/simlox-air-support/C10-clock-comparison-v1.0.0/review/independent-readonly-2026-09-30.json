@@ -1,0 +1,998 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C10.var01.calendar_operation_clock",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 245,
+  "passed_count": 245,
+  "failures": [],
+  "decision": "GO_bounded_calendar_vs_operation_clock",
+  "accepted_scope": "With only ResourceStationData.RFTT changed, the fixed-seed calendar trace contains 15 P-CREW failures before the 7.5 preparations, whereas the operation-time parent has none. Calendar failures interrupt both preparations, delaying mission to 8.47761-9.47761; operation-time failure interrupts one, delaying mission to 8.25-9.25. Both succeed and return two aircraft ready. The calendar trace ends with one crew failed at hour 36.",
+  "metric_interpretation": "Resource work/wait/failure and system preparation/ready/mission occupancy in every half-hour report bin are reconstructed from raw event intervals, allowing 0.0002 on bin averages for printed timestamp rounding. Other numeric/null fields and all stock bins are checked directly. NRF is failed-resource exposure, not a count of distinct crew.",
+  "limits": [
+    "One seed, one 0.5-hour MTBF, one 0.25-hour MDT, one 36-hour schedule and this executable. The log labels the P-CREW pool, not individual workers or internal clock counters; the conclusion is the observed timing contrast.",
+    "Other seeds, off-shift spare behavior, GUI visuals and cross-engine equivalence remain unverified. Session/GUI/queue claims are replayed from sealed metadata; no native rerun."
+  ],
+  "checks": [
+    {
+      "name": "accepted parent source and child source hashes",
+      "passed": true
+    },
+    {
+      "name": "contract/diff identity and parent scope",
+      "passed": true
+    },
+    {
+      "name": "accepted parent scope signoff",
+      "passed": true
+    },
+    {
+      "name": "manual/dictionary fingerprints and field semantics",
+      "passed": true
+    },
+    {
+      "name": "exact two-table source delta",
+      "passed": true
+    },
+    {
+      "name": "failure parameters and fixed mission retained",
+      "passed": true
+    },
+    {
+      "name": "operation: run identity/source",
+      "passed": true
+    },
+    {
+      "name": "operation: session0 SSH/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "operation: current source/runtime bytes match frozen seals",
+      "passed": true
+    },
+    {
+      "name": "operation: closure source and invocation seals",
+      "passed": true
+    },
+    {
+      "name": "operation: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal import.log",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal model.log",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal run.log",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal input.json",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal export.log",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "operation: raw byte seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "operation: five ordered successful steps",
+      "passed": true
+    },
+    {
+      "name": "operation: planned command arguments executed",
+      "passed": true
+    },
+    {
+      "name": "operation: 21 populated tables and 3 null placeholders",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "operation: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "operation: zero errors/warnings108,126 and report",
+      "passed": true
+    },
+    {
+      "name": "operation: balanced task intervals and pool bounds",
+      "passed": true
+    },
+    {
+      "name": "operation: six parsed report tables",
+      "passed": true
+    },
+    {
+      "name": "calendar: run identity/source",
+      "passed": true
+    },
+    {
+      "name": "calendar: session0 SSH/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "calendar: current source/runtime bytes match frozen seals",
+      "passed": true
+    },
+    {
+      "name": "calendar: closure source and invocation seals",
+      "passed": true
+    },
+    {
+      "name": "calendar: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal import.log",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal model.log",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal run.log",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal input.json",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal export.log",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "calendar: raw byte seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "calendar: five ordered successful steps",
+      "passed": true
+    },
+    {
+      "name": "calendar: planned command arguments executed",
+      "passed": true
+    },
+    {
+      "name": "calendar: 21 populated tables and 3 null placeholders",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "calendar: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "calendar: zero errors/warnings108,126 and report",
+      "passed": true
+    },
+    {
+      "name": "calendar: balanced task intervals and pool bounds",
+      "passed": true
+    },
+    {
+      "name": "calendar: six parsed report tables",
+      "passed": true
+    },
+    {
+      "name": "operation parent has no failure before 7.5",
+      "passed": true
+    },
+    {
+      "name": "calendar has 15 idle failures before 7.5",
+      "passed": true
+    },
+    {
+      "name": "calendar event counts and failed terminal crew",
+      "passed": true
+    },
+    {
+      "name": "operation active failure/wait and mission",
+      "passed": true
+    },
+    {
+      "name": "calendar active failures/waits and delayed mission",
+      "passed": true
+    },
+    {
+      "name": "both missions succeed and terminal aircraft ready",
+      "passed": true
+    },
+    {
+      "name": "operation: summary and event-integrated totals",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NR",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRA",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRF",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRLA",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRMA",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRMO",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRN",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRRI",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRRO",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRRT",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRUM",
+      "passed": true
+    },
+    {
+      "name": "operation: ResourceResults event-derived full NRW",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full FTMO",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NDAM",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NFAIL",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NPMS",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NPMT",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NPSTA",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NPSUC",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NRCFG",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NREPT",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NROBT",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYA",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYAL",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYDT",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYLA",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYMA",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYMC",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYMO",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYMP",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYMR",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYMS",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYMT",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYPM",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYRP",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYRY",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYSW",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYTP",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYUA",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYUH",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYWI",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full NSYWR",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full STACC",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full STF",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full STLOW",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full STREQ",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full SYDT",
+      "passed": true
+    },
+    {
+      "name": "operation: SystemResults event-derived full SYDTU",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NBO",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NBOU",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NDD",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NDF",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NDP",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NDR",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NLD",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full NWT",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full PNB",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full ROS",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full ROST",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full WT",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full WTS",
+      "passed": true
+    },
+    {
+      "name": "operation: StockTotalResults event-derived full WTT",
+      "passed": true
+    },
+    {
+      "name": "operation: terminal report and failure distinction",
+      "passed": true
+    },
+    {
+      "name": "calendar: summary and event-integrated totals",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NR",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRA",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRF",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRLA",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRMA",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRMO",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRN",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRRI",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRRO",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRRT",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRUM",
+      "passed": true
+    },
+    {
+      "name": "calendar: ResourceResults event-derived full NRW",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full FTMO",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NDAM",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NFAIL",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NPMS",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NPMT",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NPSTA",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NPSUC",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NRCFG",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NREPT",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NROBT",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYA",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYAL",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYDT",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYLA",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYMA",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYMC",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYMO",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYMP",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYMR",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYMS",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYMT",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYPM",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYRP",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYRY",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYSW",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYTP",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYUA",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYUH",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYWI",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full NSYWR",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full STACC",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full STF",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full STLOW",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full STREQ",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full SYDT",
+      "passed": true
+    },
+    {
+      "name": "calendar: SystemResults event-derived full SYDTU",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NBO",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NBOU",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NDD",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NDF",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NDP",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NDR",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NLD",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full NWT",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full PNB",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full ROS",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full ROST",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full WT",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full WTS",
+      "passed": true
+    },
+    {
+      "name": "calendar: StockTotalResults event-derived full WTT",
+      "passed": true
+    },
+    {
+      "name": "calendar: terminal report and failure distinction",
+      "passed": true
+    },
+    {
+      "name": "clock contrast in resource failures and waiting",
+      "passed": true
+    },
+    {
+      "name": "calendar evidence index pinned identity",
+      "passed": true
+    },
+    {
+      "name": "calendar index accepted parent raw linkage",
+      "passed": true
+    },
+    {
+      "name": "accepted parent index pinned and full raw reconciliation",
+      "passed": true
+    },
+    {
+      "name": "calendar evidence index raw hashes",
+      "passed": true
+    }
+  ]
+}
