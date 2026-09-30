@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A11",
+  "version": "1.0.0",
+  "parent": "A03.formation.1.0.1",
+  "requires": ["A03"],
+  "mechanism": "MissionSystem per-system-type NOS=MNOS=1 prevents an untyped total two-aircraft demand from taking both available A aircraft",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [184, 188, 302, 303, 304],
+    "tables": ["MissionType", "MissionSystem", "SystemDeployment"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "aircraft_type_A": {"sid": "TEACH-AIR-01", "quantity": 2},
+    "aircraft_type_B": {"sid": "TEACH-AIR-02", "quantity": 1},
+    "mission": {"mtid": "BASIC-MISSION", "scheduled_hour": 8, "duration_hours": 2, "total_nominal": 2, "total_minimum": 2},
+    "required_pair": "MissionSystem rows set NOS=MNOS=1 for each type",
+    "control": "same mixed deployment and total mission demand without MissionSystem rows"
+  },
+  "hypotheses_to_test": [
+    "The no-MissionSystem control selects both type-A aircraft at hour 8",
+    "The MissionSystem pair selects one type-A and one type-B aircraft at hour 8",
+    "Both two-aircraft waves complete successfully at hour 10, with a third aircraft ready"
+  ],
+  "limits": [
+    "Only one fixed mission in one explicit unit with ready aircraft, no failures, and zero-duration preparation events",
+    "No inference about type preference under shortage or changing availability",
+    "Explicit Formation/FormationSystem/MissionFormation alternatives, MNOSA, and ALOAA remain unverified"
+  ]
+}
