@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-a15-two-unit-custom-exposure-contract/v1",
+  "case_id": "A15",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent_publication_id": "J07.var05.unit_type_report_selection.1.0.0",
+  "parent_package": "J07-unit-type-report-v1.0.0",
+  "parent_input_sha256": "5609881f54c47c024b1b41f338bf0dd0e04e20e49a41d42b1a81642bdab54f55",
+  "mechanism_reference": "A15.custom_km_full_mission_soacc.1.0.0",
+  "input_sha256": {
+    "a-hour-b-mission": "a236ee5e6f5faf7cfe6f48174e471e00c92beafe823152f265d3f8c0ae139e19",
+    "a-mission-b-hour": "696951bf181ad582bc21af5de9822232a362c88a4bb95ee25e24c1f8d836c9f5"
+  },
+  "builder_sha256": "413591e4cd15f58e281cbe290d3ecbab94d0c39910a1d297825e6b5525e69017",
+  "exact_diff_sha256": "4daa2824bbb89a0eedfa0a2455085c944f057d2b5c90666e5a9575b03b622625",
+  "diff_builder_sha256": "e6b89b130962ea3f93ea2aae836fc5f7da2d081e10d5a4f64a13a6ed2ec3c2ff",
+  "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "manual_printed_pages": [183, 184, 267, 268, 269, 270, 608, 609, 610, 611],
+  "source_delta": "Keep J07's two one-aircraft units, separate unit-owned fixed mission profiles, two mission types, 8-10 timing, seed, support, result windows and all other parent tables. Replace the OperationParameter all-null placeholder with custom KM, add MissionTypeUtilization rows for both mission types, and update ProblemDescription. The paired inputs swap only rate and unit values between MISSION-A and MISSION-B plus description.",
+  "configuration": {
+    "system_type": "TEACH-AIR-01",
+    "unit_a": "TEACH-UNIT",
+    "unit_b": "TEACH-UNIT-2",
+    "mission_a": "MISSION-A",
+    "mission_b": "MISSION-B",
+    "mission_start_hour": 8,
+    "mission_end_hour": 10,
+    "simulation_end_hour": 36,
+    "operation_parameter": "KM",
+    "a-hour-b-mission": {"MISSION-A": [60, "1/HOUR"], "MISSION-B": [120, "1/MISSION"]},
+    "a-mission-b-hour": {"MISSION-A": [120, "1/MISSION"], "MISSION-B": [60, "1/HOUR"]}
+  },
+  "pre_run_hypotheses": [
+    "Both inputs import/export all populated source tables exactly, convert without errors, simulate two successful 8-10 unit-owned missions and leave both aircraft ready.",
+    "Native MissionOperationAccumulated KM increases by 30 each half-hour during both missions. Each unit's MissionOperationTotalAccumulated SOACC is 120 in both paired runs regardless of which rate form it receives.",
+    "All-unit MissionOperationTotalAccumulated SOACC is 240 and equals the sum of the two selected unit views. MissionOperationTotal average values must be interpreted against the 36-hour result horizon, not treated as mission totals.",
+    "The rate-swapped pair has equal event and observable operation outcomes except for descriptive source labels. Raw native artifacts, settings and source hashes are sealed under the session-0 SSH mutex and GUI guard."
+  ],
+  "acceptance_requires": [
+    "published J07 parent and exact three-table source delta",
+    "fresh guarded session-0 SSH import/export/calc and zero conversion errors for both variants",
+    "valid nonempty SXO, model event logs, default report and exact source roundtrip",
+    "valid report settings without fallback for all-unit and both unit selections",
+    "per-unit and all-unit SOACC ledger reconciliation, event timeline, report bins, stock and resource negatives, terminal readiness",
+    "raw invocation/closure SHA-256 evidence and independent read-only replay"
+  ],
+  "limits": [
+    "Two unit-owned one-aircraft missions rather than two aircraft in one formation mission; group-member aggregation is not claimed.",
+    "Only completed full fixed missions; partial missions, failures, PM consumption, other seeds and mission forms remain unverified.",
+    "KM is an abstract user-defined unit, not physically validated kilometres. GUI rendering and cross-engine parity remain unverified."
+  ]
+}
