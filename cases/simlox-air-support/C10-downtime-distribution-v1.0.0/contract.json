@@ -1,0 +1,18 @@
+{
+  "schema": "simlox-c10-downtime-distribution-contract/v1",
+  "case_id": "C10",
+  "variant_id": "C10.var04",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C10.var02.operational_crew_failure_spare.1.0.0",
+  "parent_input_sha256": "c334c1d6c0efa89f9ff70151a45180cac53b9ae05bf1a783219b566f41dbd62b",
+  "child_input_sha256": "24c8d3c6c16b9f5354063673c24b3dbccdc84329627ab870aba695ce0c485865",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [221, 754],
+  "source_dictionary_lines": [673, 679],
+  "business_delta": "From accepted C10.var02 operational two-crew no-spare source, set only ResourceStationData.RMDTD from null to <EXP>; RMTBF=0.5 hour, RFTT=OPERATION, RMDT=0.25 hour, seed 1, preparation, mission and 36-hour horizon stay fixed. ProblemDescription labels provenance.",
+  "pre_run_hypothesis": "The accepted parent repairs its active-preparation failure exactly 0.25 hour after failure. The optional <EXP> downtime distribution should produce a non-fixed repair interval with the same mean. Native events must establish the actual duration and its effect on interrupted preparation and mission. A matching or absent repair event does not establish a positive distribution contrast.",
+  "acceptance_requires": ["accepted source and installed manual/dictionary fingerprints", "guarded serial session-0 SSH native run preserving GUI PID 13340", "all row-containing input tables roundtrip exactly and zero conversion errors", "direct resource failure and repair events with a demonstrable downtime-duration contrast", "task, mission, resource, system, stock and terminal-state ledgers", "sealed local raw artifacts and independent read-only replay"],
+  "limitations": ["One seed and one mean downtime on the installed executable.", "Distribution shape, other seeds and parameter values, GUI behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}

@@ -1,0 +1,524 @@
+{
+  "schema": "simlox-c10-var04-independent-readonly/v1",
+  "case_id": "C10.var04",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 119,
+  "passed_count": 119,
+  "failures": [],
+  "decision": "GO_bounded_one_sample_downtime_contrast",
+  "observed": {
+    "fixed": {
+      "failure": 7.73494,
+      "repair": 7.98494,
+      "downtime": 0.25,
+      "resume": 7.98494,
+      "preparation_end": 8.25,
+      "mission_start": 8.25,
+      "mission_success": 9.25,
+      "resource_hours": {
+        "NRUM": 1.0,
+        "NRF": 0.25,
+        "NRW": 0.25
+      }
+    },
+    "exponential": {
+      "failure": 7.73494,
+      "repair": 8.3441,
+      "downtime": 0.6091599999999993,
+      "resume": 8.0,
+      "preparation_end": 8.26506,
+      "mission_start": 8.26506,
+      "mission_success": 9.26506,
+      "resource_hours": {
+        "NRUM": 1.0,
+        "NRF": 0.6091618239879608,
+        "NRW": 0.26506078243255615
+      }
+    }
+  },
+  "scope": "The <EXP> child yielded a 0.60916h repair versus the fixed parent's 0.25h. The stopped task resumed at hour 8 when another crew became free, before the failed crew repaired at 8.3441; mission success was 9.26506 versus 9.25.",
+  "limits": [
+    "One fixed seed and one sampled resource downtime cannot establish the exponential distribution's shape or mean.",
+    "The pool-level log does not identify individual crew; the alternative worker at hour 8 is inferred from release/allocation events and capacity, not named.",
+    "GUI/session/mutex claims are replayed from sealed metadata; native SIMLOX was not rerun."
+  ],
+  "checks": [
+    {
+      "name": "source and contract fingerprints",
+      "passed": true
+    },
+    {
+      "name": "accepted parent closure fingerprint",
+      "passed": true
+    },
+    {
+      "name": "accepted parent publication identity",
+      "passed": true
+    },
+    {
+      "name": "installed manual, dictionary and executable",
+      "passed": true
+    },
+    {
+      "name": "RMDTD accepts direct <EXP>",
+      "passed": true
+    },
+    {
+      "name": "exact 32-table parent delta",
+      "passed": true
+    },
+    {
+      "name": "one-field RMDTD delta",
+      "passed": true
+    },
+    {
+      "name": "unchanged crew, seed and horizon",
+      "passed": true
+    },
+    {
+      "name": "fixed: closure binds invocation",
+      "passed": true
+    },
+    {
+      "name": "fixed: source hashes unchanged",
+      "passed": true
+    },
+    {
+      "name": "fixed: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "fixed: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "fixed: no runner error",
+      "passed": true
+    },
+    {
+      "name": "fixed: five ordered guarded steps",
+      "passed": true
+    },
+    {
+      "name": "fixed: session-0 SSH, mutex and GUI",
+      "passed": true
+    },
+    {
+      "name": "fixed: actual source input bound",
+      "passed": true
+    },
+    {
+      "name": "exponential: closure binds invocation",
+      "passed": true
+    },
+    {
+      "name": "exponential: source hashes unchanged",
+      "passed": true
+    },
+    {
+      "name": "exponential: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "exponential: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "exponential: no runner error",
+      "passed": true
+    },
+    {
+      "name": "exponential: five ordered guarded steps",
+      "passed": true
+    },
+    {
+      "name": "exponential: session-0 SSH, mutex and GUI",
+      "passed": true
+    },
+    {
+      "name": "exponential: actual source input bound",
+      "passed": true
+    },
+    {
+      "name": "run source/runtime fingerprints",
+      "passed": true
+    },
+    {
+      "name": "21 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "exact child native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "roundtrip checker reports pass",
+      "passed": true
+    },
+    {
+      "name": "fixed: zero conversion errors; classified warnings",
+      "passed": true
+    },
+    {
+      "name": "fixed: native outputs nonempty",
+      "passed": true
+    },
+    {
+      "name": "exponential: zero conversion errors; classified warnings",
+      "passed": true
+    },
+    {
+      "name": "exponential: native outputs nonempty",
+      "passed": true
+    },
+    {
+      "name": "fixed: one failure/repair and actual downtime",
+      "passed": true
+    },
+    {
+      "name": "fixed: stopped task and resumption",
+      "passed": true
+    },
+    {
+      "name": "fixed: preparation and same-ID mission success",
+      "passed": true
+    },
+    {
+      "name": "fixed: second aircraft prep ends at 8",
+      "passed": true
+    },
+    {
+      "name": "fixed: six report tables",
+      "passed": true
+    },
+    {
+      "name": "fixed: resource 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "fixed: system 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "fixed: stock 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "fixed: event-derived 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "fixed: event-derived 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "fixed: event-derived 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "fixed: event-derived 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "fixed: event-derived 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "fixed: event-derived 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "fixed: event-derived 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "fixed: zero system failures and terminal readiness",
+      "passed": true
+    },
+    {
+      "name": "fixed: zero stock movement and backorders",
+      "passed": true
+    },
+    {
+      "name": "fixed: one successful formation and 36h summary",
+      "passed": true
+    },
+    {
+      "name": "fixed: resource total matches bins",
+      "passed": true
+    },
+    {
+      "name": "fixed: one crew-hour work, failed duration, waiting duration",
+      "passed": true
+    },
+    {
+      "name": "fixed: terminal resources ready",
+      "passed": true
+    },
+    {
+      "name": "exponential: one failure/repair and actual downtime",
+      "passed": true
+    },
+    {
+      "name": "exponential: stopped task and resumption",
+      "passed": true
+    },
+    {
+      "name": "exponential: preparation and same-ID mission success",
+      "passed": true
+    },
+    {
+      "name": "exponential: second aircraft prep ends at 8",
+      "passed": true
+    },
+    {
+      "name": "exponential: six report tables",
+      "passed": true
+    },
+    {
+      "name": "exponential: resource 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "exponential: system 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "exponential: stock 72 contiguous half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "exponential: event-derived 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "exponential: event-derived 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "exponential: event-derived 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "exponential: event-derived 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "exponential: event-derived 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "exponential: event-derived 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "exponential: event-derived 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "exponential: zero system failures and terminal readiness",
+      "passed": true
+    },
+    {
+      "name": "exponential: zero stock movement and backorders",
+      "passed": true
+    },
+    {
+      "name": "exponential: one successful formation and 36h summary",
+      "passed": true
+    },
+    {
+      "name": "exponential: resource total matches bins",
+      "passed": true
+    },
+    {
+      "name": "exponential: one crew-hour work, failed duration, waiting duration",
+      "passed": true
+    },
+    {
+      "name": "exponential: terminal resources ready",
+      "passed": true
+    },
+    {
+      "name": "distribution sample differs from fixed downtime",
+      "passed": true
+    },
+    {
+      "name": "child resumes on freed crew before repair",
+      "passed": true
+    },
+    {
+      "name": "child hour-8 release precedes stopped task rebooking",
+      "passed": true
+    }
+  ]
+}
