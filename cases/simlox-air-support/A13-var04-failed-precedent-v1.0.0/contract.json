@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A13",
+    "package": "../A13-start-dependence-v1.0.0",
+    "input_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+    "signoff": "../A13-start-dependence-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual": "installed SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [188, 263, 266, 267, 287, 289],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "hypothesis": "Manual p188 says a START-dependent mission immediately aborts during call or assignment if any precedent lands without reaching the fixed mission success point with MNOS; otherwise it may assign systems but cannot launch until precedents complete."
+  },
+  "inputs_sha256": {
+    "failure-control": "7494c4b977702dd80b2ceca221957ddd44a00ba18ca47346da7775bfeff28864",
+    "failure-dependency": "d2edc75628829eeb9ded72d78723084e222996f20915c0bdf5ce3945bdb6cbc5"
+  },
+  "exact_diff_sha256": "0025030340e8bc516abcdadc933462e4b853af6d0c4269636604baadc6705e38",
+  "model": {
+    "unit": "TEACH-UNIT",
+    "aircraft_ready_at_zero": 2,
+    "precedent": "RECON fixed at hour 8, duration 4, one aircraft, MSUCPT 0.25 and MNOS 1",
+    "dependent": "FOLLOW fixed at hour 10, duration 2, one aircraft, allocation may begin at 9",
+    "dependency": "one explicit FOLLOW START depends on RECON at hour 8; paired control omits only this row and changes label",
+    "failure": "System.FRT 0 to 300000 per million OPHOURS, one half-hour direct system repair at BASE-01, seed 1; FOLLOW MissionType.MFF 1e-6 to suppress a later independent FOLLOW failure. Both inputs share all failure settings.",
+    "horizon_hours": 24,
+    "result_interval_hours": 0.5
+  },
+  "predeclared_native_gate": [
+    "Both frozen inputs derive exactly from the accepted A13 dependency model; the only control-versus-dependency semantic delta is the one MissionDependence START row. Every populated source business row imports and exports exactly.",
+    "The guarded session-0 SSH runner preserves GUI PID 13340 and Global\\SimloxIssue18NativeQueue, verifies source/executable fingerprints before and after, and seals all raw artifacts without overwriting prior runs.",
+    "Both models must convert with zero errors and produce a valid SXO, event log and complete 48-bin System and Stock reports. A zero calc exit code alone is insufficient.",
+    "The seed must cause RECON's assigned aircraft to have a critical system failure before RECON's logged success/return, and the failed predecessor must land without a native mission success event. Failure identity and timing must match between the control and dependency runs. If these conditions fail, this candidate is diagnostic NO-GO.",
+    "The no-row control must allow FOLLOW to launch and complete without its own critical failure; otherwise the dependency effect is not isolated and the candidate is NO-GO.",
+    "The START-row run must show whether FOLLOW can assign before RECON's failed return and then abort/cancel rather than launch after a failed precedent. Accept only what individual native events and reconciled 48-bin aircraft, failure, repair and stock ledgers prove; a contradictory or ambiguous timeline is NO-GO.",
+    "A separate read-only reviewer independently replays frozen source, raw closure, native events and report ledgers without importing the author validator."
+  ],
+  "limits": [
+    "One fixed seed and one failure mechanism; stochastic failure time is observed, not predicted by the seed or assumed to generalize.",
+    "This probe covers a failed predecessor. An unfinished, absent or multiple predecessor, cross-unit identity, GUI visual content and cross-engine behavior remain unverified."
+  ]
+}
