@@ -1,0 +1,699 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C05.ground_prep_separation",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 147,
+  "passed_count": 147,
+  "failures": [],
+  "decision": "GO_bounded_ground_preparation_separation",
+  "accepted_scope": "With two GROUND-TECH resources, both preparation tasks use technicians from 7 to 7.5 and release them before the 8-10 mission while two distinct MISSION-CREW resources remain held; mission succeeds and crew releases at 10. With zero technicians, crew is reserved at 7 but both preparation tasks wait; the mission cancels at 7.83333, both tasks stop, crew releases, and both aircraft return ready.",
+  "limits": [
+    "One fixed two-aircraft wave, two-hour mission, one site, and ground capacities two/zero only; capacity one and alternate timing/seeds remain unverified.",
+    "No turnaround-preparation or multiple ground-resource types tested.",
+    "ResourceResults aggregates types, so the type-specific allocation/release claim comes from sealed event logs corroborated by aggregate report bins and totals.",
+    "SSH/GUI/queue evidence is replayed from sealed metadata; the reviewer did not observe or rerun native SIMLOX live."
+  ],
+  "checks": [
+    {
+      "name": "contract and accepted C05 parent",
+      "passed": true
+    },
+    {
+      "name": "manual fingerprint and cited pages",
+      "passed": true
+    },
+    {
+      "name": "frozen unpublished contract",
+      "passed": true
+    },
+    {
+      "name": "frozen six-table change scope",
+      "passed": true
+    },
+    {
+      "name": "parent unique 32-table source",
+      "passed": true
+    },
+    {
+      "name": "ground-2: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "ground-2: source SHA and copied run input",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact six-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionPreparation",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation",
+        "TaskResource",
+        "Tasks"
+      ]
+    },
+    {
+      "name": "ground-2: all other A03/C05 tables exact",
+      "passed": true
+    },
+    {
+      "name": "ground-2: description exact",
+      "passed": true
+    },
+    {
+      "name": "ground-2: crew and distinct ground tech source",
+      "passed": true
+    },
+    {
+      "name": "ground-2: crew two, ground capacity exact",
+      "passed": true
+    },
+    {
+      "name": "ground-2: half-hour mission preparation",
+      "passed": true
+    },
+    {
+      "name": "ground-2: ground preparation task",
+      "passed": true
+    },
+    {
+      "name": "ground-2: only ground tech TaskResource",
+      "passed": true
+    },
+    {
+      "name": "ground-2: mission crew MissionResource unchanged",
+      "passed": true
+    },
+    {
+      "name": "ground-2: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "ground-2: session-zero SSH and queue",
+      "passed": true
+    },
+    {
+      "name": "ground-2: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "ground-2: source/runtime hashes and frozen before/after",
+      "passed": true
+    },
+    {
+      "name": "ground-2: sealed invocation and closure",
+      "passed": true
+    },
+    {
+      "name": "ground-2: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "ground-2: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "ground-2: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "ground-2: native step arguments match invocation",
+      "passed": true
+    },
+    {
+      "name": "ground-2: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "ground-2: 19 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip MissionResource",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip TaskResource",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "ground-2: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "ground-2: zero conversion errors and expected warnings",
+      "passed": true
+    },
+    {
+      "name": "ground-2: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "ground-2: one two-aircraft mission ordered",
+      "passed": true
+    },
+    {
+      "name": "ground-2: initial two-type resource stock",
+      "passed": true
+    },
+    {
+      "name": "ground-2: both aircraft reserve mission crew at hour 7",
+      "passed": true
+    },
+    {
+      "name": "ground-2: ground technician check result",
+      "passed": true
+    },
+    {
+      "name": "ground-2: exact separate resource event ledgers",
+      "passed": true,
+      "detail": [
+        [
+          7.0,
+          "MISSION-CREW",
+          "book",
+          1
+        ],
+        [
+          7.0,
+          "MISSION-CREW",
+          "book",
+          0
+        ],
+        [
+          7.0,
+          "GROUND-TECH",
+          "book",
+          1
+        ],
+        [
+          7.0,
+          "GROUND-TECH",
+          "book",
+          0
+        ],
+        [
+          7.5,
+          "GROUND-TECH",
+          "release",
+          1
+        ],
+        [
+          7.5,
+          "GROUND-TECH",
+          "release",
+          2
+        ],
+        [
+          10.0,
+          "MISSION-CREW",
+          "release",
+          1
+        ],
+        [
+          10.0,
+          "MISSION-CREW",
+          "release",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "ground-2: ledger stock bounds and restoration",
+      "passed": true
+    },
+    {
+      "name": "ground-2: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "ground-2: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "ground-2: mission summary",
+      "passed": true
+    },
+    {
+      "name": "ground-2: aggregate resource total reconciles ledger",
+      "passed": true
+    },
+    {
+      "name": "ground-2: terminal ready and no resource in use",
+      "passed": true
+    },
+    {
+      "name": "ground-2: both prep tasks perform half-hour",
+      "passed": true
+    },
+    {
+      "name": "ground-2: ground release precedes crew-held launch",
+      "passed": true
+    },
+    {
+      "name": "ground-2: mission success and crew release at 10",
+      "passed": true
+    },
+    {
+      "name": "ground-2: report distinguishes prep and operation",
+      "passed": true
+    },
+    {
+      "name": "ground-2: system report launch and ready return",
+      "passed": true
+    },
+    {
+      "name": "ground-0: unique 32 source tables",
+      "passed": true
+    },
+    {
+      "name": "ground-0: source SHA and copied run input",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact six-table parent delta",
+      "passed": true,
+      "detail": [
+        "MissionPreparation",
+        "ProblemDescription",
+        "Resource",
+        "ResourceAllocation",
+        "TaskResource",
+        "Tasks"
+      ]
+    },
+    {
+      "name": "ground-0: all other A03/C05 tables exact",
+      "passed": true
+    },
+    {
+      "name": "ground-0: description exact",
+      "passed": true
+    },
+    {
+      "name": "ground-0: crew and distinct ground tech source",
+      "passed": true
+    },
+    {
+      "name": "ground-0: crew two, ground capacity exact",
+      "passed": true
+    },
+    {
+      "name": "ground-0: half-hour mission preparation",
+      "passed": true
+    },
+    {
+      "name": "ground-0: ground preparation task",
+      "passed": true
+    },
+    {
+      "name": "ground-0: only ground tech TaskResource",
+      "passed": true
+    },
+    {
+      "name": "ground-0: mission crew MissionResource unchanged",
+      "passed": true
+    },
+    {
+      "name": "ground-0: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "ground-0: session-zero SSH and queue",
+      "passed": true
+    },
+    {
+      "name": "ground-0: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "ground-0: source/runtime hashes and frozen before/after",
+      "passed": true
+    },
+    {
+      "name": "ground-0: sealed invocation and closure",
+      "passed": true
+    },
+    {
+      "name": "ground-0: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "ground-0: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "ground-0: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "ground-0: native step arguments match invocation",
+      "passed": true
+    },
+    {
+      "name": "ground-0: step timestamps ordered",
+      "passed": true
+    },
+    {
+      "name": "ground-0: 19 row-containing input tables",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip MissionResource",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip TaskResource",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "ground-0: import/export complete",
+      "passed": true
+    },
+    {
+      "name": "ground-0: zero conversion errors and expected warnings",
+      "passed": true
+    },
+    {
+      "name": "ground-0: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "ground-0: one two-aircraft mission ordered",
+      "passed": true
+    },
+    {
+      "name": "ground-0: initial two-type resource stock",
+      "passed": true
+    },
+    {
+      "name": "ground-0: both aircraft reserve mission crew at hour 7",
+      "passed": true
+    },
+    {
+      "name": "ground-0: ground technician check result",
+      "passed": true
+    },
+    {
+      "name": "ground-0: exact separate resource event ledgers",
+      "passed": true,
+      "detail": [
+        [
+          7.0,
+          "MISSION-CREW",
+          "book",
+          1
+        ],
+        [
+          7.0,
+          "MISSION-CREW",
+          "book",
+          0
+        ],
+        [
+          7.83333,
+          "MISSION-CREW",
+          "release",
+          1
+        ],
+        [
+          7.83333,
+          "MISSION-CREW",
+          "release",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "ground-0: ledger stock bounds and restoration",
+      "passed": true
+    },
+    {
+      "name": "ground-0: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "ground-0: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "ground-0: mission summary",
+      "passed": true
+    },
+    {
+      "name": "ground-0: aggregate resource total reconciles ledger",
+      "passed": true
+    },
+    {
+      "name": "ground-0: terminal ready and no resource in use",
+      "passed": true
+    },
+    {
+      "name": "ground-0: both prep tasks wait without ground bookings",
+      "passed": true
+    },
+    {
+      "name": "ground-0: cancel and stop both tasks at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "ground-0: report temporary crew assignment and task waiting",
+      "passed": true
+    },
+    {
+      "name": "ground-0: system report ready by hour 8",
+      "passed": true
+    },
+    {
+      "name": "pair differs only by ground capacity and description",
+      "passed": true
+    }
+  ]
+}
