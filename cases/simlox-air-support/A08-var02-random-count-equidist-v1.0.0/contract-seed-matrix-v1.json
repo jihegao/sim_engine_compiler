@@ -1,0 +1,28 @@
+{
+  "schema": "simlox-a08-var02-seed-matrix-contract/v1",
+  "status": "predeclared_candidate",
+  "reason": "A separately frozen one-replication seed matrix permits direct count and even-spacing checks if the 32-replication native event log exposes only one replication, as observed for A08.var01.",
+  "parent_contract_sha256": "0fc833d717cb26fb7a331f3b0da2d1dbfa762379ffd64b32d9f43b3ac29acbe7",
+  "aggregate_input_sha256": "54e1fab467ede59829b0c8994aa4d72f1e08878cf7a39532c6fe61364ca87c84",
+  "seed_manifest_sha256": "f864321ee5071bf046768e8772732a9c44d00c8451dd27fa39be7486cb8588a4",
+  "seed_generator_sha256": "1addfc5a94ff7d40cec0451990573ce44546985fd840224fefdceac25873c24f",
+  "seed_range_inclusive": [1, 32],
+  "exact_seed_delta": "From the frozen aggregate A08.var02 input, set Control.NREPS 32 to 1, Control.RSEED to the seed number as a string, and ProblemDescription.PDESC to a seed-specific label. Every other row and table stays unchanged.",
+  "execution": [
+    "One session-0 SSH batch holds the host-wide Global\\SimloxIssue18NativeQueue mutex for all 32 seed runs and checks GUI PID 13340 before and after each native step.",
+    "Each seed has a unique immutable versioned subdirectory with copied input, import/export/calc/jsonreport logs and files, exact source-table roundtrip, per-step record, raw SHA-256 seals and an outer source-hash-before/after closure.",
+    "Any failed native command, missing output, changed source, altered GUI, missing seed, or roundtrip mismatch fails the batch; no partial matrix is published as accepted."
+  ],
+  "predeclared_acceptance": [
+    "All 32 seeds convert with zero errors and classified warnings; each one-replication report has NREP=1 and 72 aligned half-hour bins.",
+    "For each seed, the number of logged mission starts is the realized nonnegative count. For n>0, starts must equal STIM+IPER*k/n for k=0..n-1 to printed-time tolerance, with each fixed-template mission successful and complete two hours after its own start. For n=0, require no mission start or success. Reject shortage, cancellation, failure, repair and stock demand.",
+    "Each seed's reported aircraft operation exposure must equal two hours times its realized count within report-bin rounding tolerance; terminal readiness must be three aircraft. The 32 counts must include at least two distinct values.",
+    "Retain all count and start observations with seed identities. Report count sample mean, sample variance and nominal two-sided 95 percent Student-t mean half-width using 32 per-seed counts and target half-width at most one mission. This describes the fixed convenience matrix and is not proof of the Poisson law or seed independence.",
+    "Compare the seed-1 timeline with the aggregate log only as an observed same-seed consistency check. Do not treat the 32 explicit RSEED runs as the aggregate's hidden replications or force their pooled mean to equal the aggregate averaged report.",
+    "A separate read-only reviewer replays the manifest, generated source hashes, every raw closure, event counts/timings, ledgers and statistics without importing author validation."
+  ],
+  "limits": [
+    "The 32 seeds form a fixed convenience matrix, not a random sample of seed values. Nominal Student-t inference presumes independent observations and cannot establish the generator's distribution or independence.",
+    "Random placement, other quantity distributions, zero period, invalid combinations, GUI visuals and cross-engine equivalence remain unverified."
+  ]
+}

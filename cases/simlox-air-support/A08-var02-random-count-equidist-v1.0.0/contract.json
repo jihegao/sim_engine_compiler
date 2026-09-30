@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A08",
+  "variant_id": "A08.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A08",
+    "variant_id": "A08.var01",
+    "package": "../A08-var01-fixed-count-random-time-v1.0.0",
+    "input_sha256": "df7ecf0549fc8b1a506095194b97dac810afc395a76b4c478cfe43eec1838920"
+  },
+  "native_input_sha256": "54e1fab467ede59829b0c8994aa4d72f1e08878cf7a39532c6fe61364ca87c84",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 180, 271, 273, 274, 275],
+    "interpretation": "RANDOM initiation with IQTY=3 and IQTYD=<POISSON> draws a nonnegative stochastic mission count in one IPER=12 period. IDISP=EQUIDIST places n positive-count starts evenly over [8,20), beginning at 8. The expected count is the IQTY parameter; the actual count must come from native events."
+  },
+  "exact_delta": [
+    "OperationProfile.IQTYD changes empty to <POISSON> and IDISP changes RANDOM to EQUIDIST; STIM=8, IQTY=3, IPER=12, DTIM=one-third hour and ITYPE=RANDOM remain fixed.",
+    "ProblemDescription.PDESC and Unit.DESCR change only provenance labels. All 28 other tables, three deployed aircraft, 32 replications, mission template, seed, zero failure rate and report horizon remain identical."
+  ],
+  "configuration": {
+    "replications": 32,
+    "poisson_mean_parameter": 3,
+    "period_start_hour": 8,
+    "period_end_hour": 20,
+    "mission_duration_hours": 2,
+    "deployed_aircraft": 3,
+    "simulation_and_report_end_hour": 36,
+    "result_interval_hours": 0.5,
+    "seed": "1"
+  },
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH aggregate run with host-wide mutex, GUI PID 13340 identity guard, source/raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip; zero conversion errors and classified warnings.",
+    "Require NREP=32 and 72 aligned half-hour system and stock bins. Do not infer 32 per-replication mission counts from averaged reports or a single exposed event log.",
+    "If all replication event groups are exposed, require the realized nonnegative count in each, starts at 8+12*k/n for k=0..n-1 when n>0, all missions successful two hours later, no cancellation/failure/stock demand, and report aircraft operation exposure equal to twice the group count. Otherwise leave those counts unverified from the aggregate alone.",
+    "Across observable independent native runs, retain actual per-replication counts and estimate their sample mean, variance and nominal 95 percent Student-t half-width; target at most one mission half-width. Require at least two distinct realized counts and no mission or stock shortage before publishing this bounded no-failure layout.",
+    "A separate read-only reviewer must replay source delta, raw seals, event counts/timings, statistics and report ledgers without importing the author validator."
+  ],
+  "limits": [
+    "One Poisson-parameter value of 3, one 12-hour period, one aggregate seed, 32 aggregate replications and three deployed aircraft. Random start placement, other count distributions, zero period and invalid combinations require separate variants.",
+    "A finite seed matrix and nominal confidence interval cannot prove the native Poisson law or independence. GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
