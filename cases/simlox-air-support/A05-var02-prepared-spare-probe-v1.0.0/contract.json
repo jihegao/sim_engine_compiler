@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A05",
+  "variant_id": "A05.var02",
+  "case_version": "prepared-spare-1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "package": "../A05-var02-distinct-spare-probe-v1.0.0",
+    "input_sha256": "aab1e4050a107e8490716a9306d9eb461b5c4a0c88430c157a2699afc5a120bb"
+  },
+  "preparation_source": {
+    "case_id": "B01",
+    "package": "../B01-fixed-preparation-v1.0.1",
+    "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b"
+  },
+  "native_input_sha256": "b7ca5f4d6152e2c166b1ba7fe8b41246c24782a50d56b2bcc773f86f176d3f4d",
+  "exact_delta": [
+    "ProblemDescription.PDESC changes descriptive label only.",
+    "MissionPreparation and Tasks each receive exactly one accepted B01 row, specifying half-hour fixed BASIC-MISSION preparation at BASE-01.",
+    "The three deployed systems, two-system minimum, continuous mission, failure/repair configuration, seed, schedule and horizon remain the accepted parent values."
+  ],
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source and raw SHA-256 seals, four CLI steps, and exact row-containing source roundtrip.",
+    "Convert with zero errors and classify warnings. Verify all aircraft preparation intervals from native events; do not assume the added task delays a replacement until the raw log and report show it.",
+    "If a mission aircraft fails during hour 8-12, reconcile whether an initially ready distinct aircraft is allocated, prepared, attached and causes a finite suspension interval, or whether a repaired system takes its place.",
+    "Verify exact event times, 32 half-hour result bins, fractional mission/aircraft operating and suspension exposure, repair, stock and terminal states; record any failure repair extending beyond mission end.",
+    "Do not publish a generic A05.var02 rule or a predeclared deterministic failure interval from this one fixed-seed stochastic run."
+  ],
+  "limits": [
+    "The failure process is stochastic; preparation duration is deterministic but failure onset is observed rather than controlled.",
+    "A third deployed aircraft is a system-level ready spare, not a stocked item.",
+    "No GUI visual observation or cross-engine equivalence is claimed."
+  ]
+}
