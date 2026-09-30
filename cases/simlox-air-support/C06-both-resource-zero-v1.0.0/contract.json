@@ -1,0 +1,16 @@
+{
+  "schema": "simlox-c06-both-resource-zero-contract/v1",
+  "case_id": "C06",
+  "version": "1.0.0-candidate",
+  "parent_case": "C06.alternative_resource_artf.1.0.0",
+  "parent_input_sha256": "42aeabcf2f7ca79efc568c515bfd5989715cdc0270f59acaad3bfe46c974bd1f",
+  "input_sha256": "05c6da90b5c8e509ea57132026d781822e1399d7693f469ec08c307bff9342cc",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [397, 398, 399, 407, 408, 409, 412, 413, 414],
+  "pre_run_business_contract": "From accepted C06 primary-zero/ARTF-two parent, set only P-ALT capacity two to zero and update the description. Both preparation resource types have zero allocated units; each of two aircraft still requires primary P-CREW or alternative P-ALT for the fixed INSPECT preparation. Keep RPROB one, ARTF two, mission schedule, two-aircraft minimum, delay/cancellation parameters and seed unchanged.",
+  "changed_tables_only": ["ProblemDescription", "ResourceAllocation"],
+  "expected_native_hypothesis": "Neither resource books; both aircraft wait for preparation resources, the formation never launches, and native output records cancellation or unfinished waiting according to the retained C03 deadline. No work should complete or inventory move.",
+  "acceptance_requires": ["exact populated-table roundtrip", "zero conversion errors", "nonempty event log and report", "per-aircraft waiting and zero resource booking", "mission outcome and terminal state", "independent read-only replay"],
+  "limitations": ["This is one fixed-seed all-zero allocation boundary with a retained finite mission deadline, not a generic indefinite wait or horizon-unfinished result.", "Other resource capacities, alternative types, ARTF values and RPROB below one remain unverified."],
+  "publication_state": "not_published"
+}
