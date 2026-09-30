@@ -1,0 +1,15 @@
+{
+  "case_id": "A16",
+  "version": "1.0.0-candidate",
+  "parent_case": "E01-local-spare-explicit-replacement-v1.0.0",
+  "parent_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+  "schema_donor_case": "A11-mixed-type-minimum-v1.0.0",
+  "schema_donor_sha256": "4e1387b15457485de42ae20b1f0ed6382c013603c0bfc6de75d753339c2a7213",
+  "related_accepted_method": "G03-effective-item-contrast-v1.0.0 validates BSID material participation; this test uses distinct CBSID configuration behavior",
+  "input_sha256": "07d92a51632b770dfda9d71fdcf042bd73642cc64433171a71e4bab8d76f1ef7",
+  "configuration": {"base_sid": "TEACH-AIR-01", "config_a_sid": "TEACH-CONF-A", "config_b_sid": "TEACH-CONF-B", "config_a_added_item": "TEACH-LRU-A", "config_b_added_item": "TEACH-LRU-B", "all_item_failure_rates": 0},
+  "parameters": {"seed": "1", "horizon_hours": 36, "result_interval_hours": 0.5, "scheduled_missions": [{"hour": 8, "mission_type": "CONF-A-MISSION", "required_sid": "TEACH-CONF-A"}, {"hour": 20, "mission_type": "CONF-B-MISSION", "required_sid": "TEACH-CONF-B"}, {"hour": 32, "mission_type": "BASE-MISSION", "required_sid": "TEACH-AIR-01"}], "duration_hours_each": 2, "notice_hours_each": 1, "initial_spares_each_config_item": 1, "remove_hours": 0.16666666666666666, "replace_hours": 0.3333333333333333},
+  "pre_run_hypotheses": ["base aircraft is reconfigured to A before first mission using one A LRU from local stock", "A is removed and B fitted before second mission; A returns to local stock while one B leaves stock", "B is removed before third mission and returns to local stock", "all three missions launch with the explicitly requested SID and succeed", "explicit REMOVE and REPLACE subtask durations govern reconfiguration work"],
+  "acceptance": ["all source business rows roundtrip exactly with zero conversion errors", "event log shows configuration type changes, item removals/fits and mission allocation in expected order", "stock item identities and balances reconcile with each transition", "System and Stock interval reports reconcile with individual events and one ready aircraft at horizon"],
+  "limits": ["one deterministic schedule and seed", "no resource-capacity contention in this first configuration sequence", "no failures or PM during reconfiguration", "GUI-only behavior and cross-engine parity unverified"]
+}
