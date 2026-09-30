@@ -1,0 +1,23 @@
+{
+  "schema": "simlox-c07-offshift-contract/v1",
+  "case_id": "C07",
+  "version": "1.0.0-candidate",
+  "parent_case": "C03.shared_crew.1.0.2",
+  "parent_input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+  "input_sha256": {
+    "draos-y": "fc7ca3caeefee1190a8497c8e5a32a463a96d17c426d4d97ee57673b49405a94",
+    "draos-n": "7f4e36bb0b4076c3f9645fa13e715e8827b6c348c906fd89dc3fead0cff8e2d5"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [227, 417, 418, 419, 421, 422, 423],
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_dictionary_lines": [673, 681, 709, 724],
+  "pre_run_business_contract": "From accepted C03 staffing-2, add a P-CREW shift profile and station attachment with two units active from 07:45 to 10:00; retain two allocated personnel and the 08:00 two-aircraft mission. Toggle only Control.DRAOS (Y versus N) and description. Preparation requests start at 07:30 and require 30 minutes per aircraft, so the pair isolates off-shift capacity before the shift starts.",
+  "changed_tables_from_parent": ["Control", "ProblemDescription", "ResourceStationData", "Shift", "ShiftProfile", "ShiftResource"],
+  "changed_tables_within_pair": ["Control", "ProblemDescription"],
+  "expected_native_hypothesis": "DRAOS=Y can draw the two nominally allocated crew off shift and prepare both aircraft by 08:00. DRAOS=N has zero crew until 07:45, so both wait, prepare from 07:45 to 08:15, and may launch within the one-hour departure delay. Native timing and report ledgers decide the outcome.",
+  "acceptance_requires": ["exact populated-table roundtrip", "zero conversion errors", "native event and report evidence for both variants", "off-shift waiting and work timing", "independent read-only replay"],
+  "limitations": ["One fixed first-day shift, one resource type, two aircraft and one seed; no cross-shift pause or resume yet.", "No recurring day, overlap, capacity-limit or absent-row case yet."],
+  "publication_state": "not_published"
+}
+
