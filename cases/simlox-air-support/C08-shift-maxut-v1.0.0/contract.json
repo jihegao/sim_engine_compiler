@@ -1,0 +1,16 @@
+{
+  "schema": "simlox-c08-shift-maxut-contract/v1",
+  "case_id": "C08",
+  "variant_id": "C08.var02",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C07.var04.repeat_nested_two_window.1.0.0",
+  "parent_input_sha256": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+  "input_sha256": "00e660275ace4d71d41cdafa725da2b552baeea9604756d94ad6b07de846e9d5",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_physical_pages": [422, 423],
+  "business_delta": "The only business field changed is ShiftResource.MAXUT for P-CREW at BASE-01 during DAY-OPEN, from unset to 1.0 hour. ProblemDescription changes for provenance. Nominal RQTY and shift QTY stay two; explicit windows stay 23-25 and 26-28; DRAOS=N.",
+  "pre_run_hypothesis": "Manual says one hour per crew yields a two-crew-hour pool budget per shift. Both aircraft begin two-hour preparation at 23.5. The first shift should stop both after one hour of work at 24.5, then reset at the 26 start of the second shift. Each should finish at 27 and the fixed 28-29 two-aircraft formation should succeed. This is a hypothesis until native events and report ledgers confirm it.",
+  "acceptance_requires": ["frozen accepted parent and exact one-field business delta", "guarded serial session-0 SSH native run without disturbing GUI PID 13340", "24 row-containing source tables, including three all-null placeholders, roundtrip exactly", "zero conversion errors and valid nonempty SXO/report", "native event proof of positive stop at limit and reset/resumption next shift", "resource usage ledger totals four crew-hours with at most two crew-hours in each shift", "mission/system/stock ledgers and terminal state", "sealed local raw artifacts and independent read-only replay"],
+  "limitations": ["This is one fixed-seed two-crew two-window MAXUT input on the installed executable.", "Daily MUTILF, station override, partial-pool utilization, exact-limit completion and general MAXUT policy remain unverified."],
+  "publication_state": "not_published"
+}
