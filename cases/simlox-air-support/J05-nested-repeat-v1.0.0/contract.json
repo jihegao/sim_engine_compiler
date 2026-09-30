@@ -1,0 +1,20 @@
+{
+  "schema": "simlox-j05-nested-repeat-contract/v1",
+  "case_id": "J05",
+  "variant_ids": ["J05.var04"],
+  "version": "1.0.0-candidate",
+  "parent_publication_ids": ["A01.normal.1.0.0", "J05.var03.system_continuous_snapshot_mix.1.0.1"],
+  "parent_input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+  "direct_control_input_sha256": "0eaa2c466e196f471bde4054f278bd018bae5f3eea2e15b9d0f21dba96223e38",
+  "nested_input_sha256": "f14aadd297fb97cb5031726c6da6acf0060fe051c73a65ae271489369874c5f1",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [230, 231, 532, 533, 534, 535, 536, 537],
+  "source_dictionary_lines": [689, 690, 691, 692, 693, 694, 695, 696, 697, 698, 699, 700, 701, 702],
+  "business_delta": "A01 baseline and accepted J05.var03 direct control are byte-identical to their published sources. The candidate changes only the description, SYSTEM ResultCollection RCPID from J05MIX to J05TOP, and ResultCollectionProfile rows. J05SEG contains CONTINUOUS 0-0.5 at RCINT 0.5 followed by SNAPSHOT at 0.5. J05TOP references J05SEG at 7.75 with IQTY 2 and IINT 2, expecting starts 7.75 and 9.75. Global snapshot times 6/14, SIMPE 36, seed 1, and mission behavior are unchanged.",
+  "pre_run_hypothesis": "Native import/export retains the exact 13/16/16 populated source tables and conversion has zero errors. Event logs are byte-identical across baseline, direct control, and nested repeat, with mission start 8, success/ready 10, and stop 36. The nested repeat has the same System bins 7.75-8.25 and 9.75-10.25 as the direct control, each with NSYMO and STACC 0.5. Stock remains 72 half-hour bins. With replication report settings enabled on sealed SXO files, direct and nested SystemResultsReplicationSnapshot each have 8.25 ready0 assigned1 operating1 and 10.25 ready1 assigned0 operating0, overriding global 6/14. Native output, including error behavior and profile expansion, is decisive; equivalence must not be inferred from authored rows.",
+  "acceptance_requires": ["pinned source and accepted-parent fingerprints", "fresh guarded serial session-0 SSH native runs preserving GUI PID 13340", "exact source roundtrip and zero conversion errors", "full identical event logs, System interval and Stock ledger comparison", "native snapshot rows from report-only passes on sealed SXO with pinned local settings", "raw SHA closure and independent read-only replay"],
+  "diagnostic_rule": "If import/export alters source business rows, conversion errors appear, or native interval/snapshot output differs from the direct control, preserve the run as a diagnostic and do not publish J05.var04 accepted scope.",
+  "limitations": ["One seed and one deterministic mission.", "One nested subprofile repeated twice; deeper hierarchies and overlap/error limits remain unverified.", "MISSION intervals, other result types, GUI display and cross-engine behavior remain unverified."],
+  "publication_state": "not_published"
+}
