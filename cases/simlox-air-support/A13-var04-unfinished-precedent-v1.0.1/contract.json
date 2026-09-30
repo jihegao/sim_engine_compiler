@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var04",
+  "case_version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A13",
+    "package": "../A13-start-dependence-v1.0.0",
+    "input_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+    "signoff": "../A13-start-dependence-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual": "installed SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [188, 265, 287, 289],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "hypothesis": "START allows FOLLOW assignment before RECON completes but does not allow FOLLOW launch while RECON is still on mission and has not returned. A simulation stop inside RECON's mission bounds must not be mistaken for predecessor failure or cancellation."
+  },
+  "inputs_sha256": {
+    "unfinished-control": "f2fe8b8ed9f90709ed757cfba34ceee9c27a30a4c87fa6a5b36cf4dcf69039d5",
+    "unfinished-dependency": "f93cb837c42d0c0b0f49e43f142f390c4c03b936fc685f21dc79ee4e9a2ef513"
+  },
+  "exact_diff_sha256": "4b77e8da05b4a6eed522fada0e3678708a6ad878141d9a846e42d126df21a009",
+  "model": {
+    "unit": "TEACH-UNIT",
+    "aircraft_ready_at_zero": 2,
+    "precedent": "one fixed RECON starts hour 8, nominal duration 4, expected return hour 12 without failure",
+    "dependent": "one fixed FOLLOW scheduled hour 10, nominal duration 2, may assign at hour 9",
+    "dependency": "one explicit FOLLOW START depends on RECON at hour 8; paired control omits only this row and changes label",
+    "delta_from_parent": "Control.SIMPE/RCEND and both explicit ResultCollection MISSION/SYSTEM RCEND values 24 to 11 hours, plus provenance label; all other input fields remain inherited from accepted A13",
+    "horizon_hours": 11,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false
+  },
+  "predeclared_native_gate": [
+    "The paired source inputs differ only in one MissionDependence START row and provenance label; each exact parent delta is recorded. The 13 control and 14 dependency populated source business tables must import and export exactly.",
+    "Fresh immutable session-0 SSH native runs use Global\\SimloxIssue18NativeQueue and preserve GUI PID 13340/session/start identity. Source and raw outputs must be fingerprinted before and after execution.",
+    "Both runs convert with zero errors and produce valid SXO, native event logs, and 22 aligned half-hour System and Stock report bins for 0–11. A zero calc exit code alone is insufficient.",
+    "RECON must launch at 8 and remain on mission at the hour-11 stop, with no RECON completion, cancellation, failure, repair or logged success. If the engine truncates, completes or rejects it unexpectedly, the candidate is NO-GO for the planned unfinished-precedent comparison.",
+    "The no-row control must assign FOLLOW at 9 and launch it at 10; it is still nominally underway at the hour-11 stop. The START-row input must assign FOLLOW at 9 but not launch it by hour 11. No cancellation or failure may be silently called a successful wait; inspect individual events and report ledgers.",
+    "Every half-hour system and stock ledger, summary metric and terminal state must reconcile with the observed event timeline, including work still in progress at the stop. A separate read-only reviewer independently checks frozen source, closures and behavior without importing the author validator."
+  ],
+  "limits": [
+    "This is an observation at one premature simulation stop, not evidence of what the engine would do after the stop or with a genuinely missing/never-returning precedent.",
+    "The inherited RECON MSUCPT=0.25 may mark internal success before hour 11 even though no success event is logged; this probe tests the separate return requirement, not failure to reach the success point.",
+    "No multiple precedents, other schedules, failures, cross-unit identities, GUI visual evidence or cross-engine parity are accepted."
+  ],
+  "excluded_diagnostic": {
+    "package": "../A13-var04-unfinished-precedent-v1.0.0",
+    "reason": "Static-only pre-run NO-GO: Control.SIMPE/RCEND were shortened to 11, but explicit ResultCollection MISSION/SYSTEM RCEND stayed at 24, conflicting with the predeclared 22-bin 0–11 report gate. No v1.0.0 native run occurred."
+  }
+}
