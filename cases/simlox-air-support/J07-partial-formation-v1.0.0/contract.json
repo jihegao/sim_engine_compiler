@@ -1,0 +1,21 @@
+{
+  "schema": "simlox-j07-partial-formation-contract/v1",
+  "case_id": "J07",
+  "variant_id": "J07.var03",
+  "version": "1.0.0-candidate",
+  "parent_publication_ids": ["A03.formation.1.0.1", "J05.var05.collection_end_vs_simulation_period.1.0.0", "J07.var02.formation_and_denied_fixed_demand.1.0.0"],
+  "input_sha256": {
+    "full-control": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "strict-shortage": "b4074a56007fc989e20025932741d3dc40d7207f23b2c6908dfd10eff98c3a03",
+    "partial-minimum": "90c89f8fa4fc7202d5b461a022a7219c0eae436aa842be410018dc16c96f17f6"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [263, 264, 552, 553],
+  "business_delta": "The full-control input is byte-identical to accepted A03, with one scheduled 8-10 mission, nominal NOS=2, minimum MNOS=2, and two deployed aircraft. The strict-shortage input reduces only SystemDeployment.QTYPS from 2 to 1 and changes the label, keeping NOS=MNOS=2. The partial-minimum input has the same single deployed aircraft, reduces MissionType.MNOS from 2 to 1 while keeping nominal NOS=2, and changes the label. Seed 1, DURN=2, MSUCPT=1, TFOUT=TFRET=0.25, SIMPE=36, half-hour result windows and all support tables remain unchanged.",
+  "pre_run_hypothesis": "All three 13-row-containing-table source inputs roundtrip exactly with zero conversion errors. The full-control reproduces A03: one wave starts at 8, succeeds at 10 with two aircraft, 4 aircraft operation hours and all four summary factors 1. The strict-shortage control cannot meet MNOS=2 with one deployed aircraft and should cancel before starting; its mission/system factors should be zero if the scheduled demand is counted. The partial-minimum child should start at 8 with the only aircraft and succeed at 10 because allocated count equals MNOS=1, despite nominal NOS=2. If STMF uses the nominal NOS target, it should be 2/4=0.5 while MTMF, MSTF and MSUF are 1. Native event and report evidence are decisive; do not infer this from the inputs alone.",
+  "acceptance_requires": ["accepted A03/J05/J07 lineage and installed source fingerprints", "three fresh guarded serial session-0 SSH native runs preserving GUI PID 13340", "exact source roundtrip and zero conversion errors", "separate mission wave and aircraft sortie counts, scheduled demand and cancellation timeline", "hand-integrated System and Stock interval ledgers, global factor denominators and terminal state", "raw SHA closures and independent read-only replay without author imports"],
+  "diagnostic_rule": "If one-aircraft partial minimum still cancels or the native output does not distinguish target shortfall from mission success, retain the probe as diagnostic and do not claim partial-success semantics. A successful mission with one aircraft demonstrates nominal target shortfall in this setup, not a partially successful mission outcome or a generic policy for all formations.",
+  "limitations": ["One fixed seed, one unit, one two-hour mission without faults or resource competition.", "Partial mission outcome after mid-mission aircraft loss, unit/group/type aggregate J07.var05 and regenerative denominator exclusion remain unverified; J07.var04 has a separate bounded result-classification publication.", "GUI display and cross-engine behavior remain unverified."],
+  "publication_state": "not_published"
+}

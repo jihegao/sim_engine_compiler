@@ -1,0 +1,11 @@
+# J07.var03 nominal two-aircraft target with one aircraft, v1.0.0
+
+This package tests one bounded meaning of the catalog’s partial-success variant: the mission’s nominal target is two aircraft (`NOS=2`), but its permitted start minimum is one (`MNOS=1`). It compares the accepted A03 two-aircraft formation with two single-aircraft shortage inputs, one retaining the strict minimum of two and one lowering the minimum to one. See the [sign-off](cli-scope-signoff-2026-10-01.md) for native results and limits.
+
+`build.py` checks the accepted A03 parent SHA-256 and freezes all three inputs and [exact parent diffs](exact-diffs.json). The strict shortage changes deployment quantity 2→1 only. The partial minimum uses the same one-aircraft deployment and changes `MissionType.MNOS` 2→1 while `NOS=2` remains. Descriptive labels distinguish the three runs. [contract.json](contract.json) records the pre-run hypothesis and source fingerprints.
+
+The native full control flies one two-aircraft wave from 8 to 10. The strict shortage allocates the only aircraft but cancels at 8.33333 without launching. The relaxed minimum flies that one aircraft from 8 to 10 and succeeds. Its global `STMF` is 2/4=0.5; `MTMF`, `MSTF` and `MSUF` are each 1. Thus the nominal aircraft-hour target is only half met while SIMLOX counts the mission as successful. This is not evidence of a mid-mission partial outcome.
+
+Run `python build.py` to check the frozen inputs. On the pinned Windows host, run `run_native_ssh.ps1` through authenticated session-0 SSH for each variant with a fresh run ID, sequentially. The runner requires the installed SIMLOX executable, the original GUI PID 13340 and `Global\SimloxIssue18NativeQueue`. It seals each immutable ignored `runs/` directory after import, export, calculation, JSON report and source-roundtrip checking. `python validate.py` replays the author assertions against the listed local runs; `review/independent_readonly.py` provides a separately written replay. Raw native runs and proprietary manuals remain local.
+
+The accepted scope is one fixed-seed, unfaulted mission with one unit and a nominal two-aircraft target. Mid-mission loss or one of two aircraft failing, other mission types, group/type aggregation, regenerative denominators, GUI rendering and cross-engine behavior remain unverified.
