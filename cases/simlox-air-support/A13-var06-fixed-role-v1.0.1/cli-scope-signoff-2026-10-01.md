@@ -1,0 +1,29 @@
+# A13.var06 START role matrix: CLI scope sign-off (2026-10-01)
+
+**Decision:** `native_behavior_accepted` for this bounded FIXED-precedent role matrix; `reusable_published` after merge to `simlox/main`. This is one A13 variant, not completion of A13 or Issue #18.
+
+## Frozen source and question
+
+The [accepted A13 dependent input](../A13-start-dependence-v1.0.0/dependent-input.json) is SHA-256 `954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246`. Its RECON precedent and FOLLOW dependent are both default FIXED. The installed SIMLOX 2017 manual, SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`, says on pages 188 and 289 that a START precedent must be FIXED, while page 287 says the dependent must be FIXED. The data dictionary is SHA-256 `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. The proprietary sources remain local.
+
+The [frozen contract](contract.json) SHA-256 is `91c140b3ec55ea1f9290587570313f05ab695a09aebb4f625e26101803b62288`; the [exact diff](exact-diff.json) SHA-256 is `8fe235546fa32d75dddf9d3609bea28fc4dc951f9391144b241744e7cf14a8d1`. The five source SHA-256 values are: FIXED/FIXED `89288c18fb3f35b7004f1acfafe97e035f80d60360766d2e913a3ee948078243`; CONTINUOUS precedent control `7efb0a73129bbe1cb79b4f6a967254d29d05f1f971ea220cb2ebec255e6e220e`; CONTINUOUS precedent with START `4730d68f18bc62d1a504c77cabd50dd1ee9b5c97a42b7c35949c84dec02ff483`; CONTINUOUS dependent control `0249c134b2c5e8249c4391006c3708f2a172bc2893e1ceacdb4ef191c0716897`; CONTINUOUS dependent with START `639a1869203c89f86470d6efc828f7cfb5f1060048c24469d699d73c3e68f4c7`.
+
+The non-FIXED role changes `MissionType.MPAT` to CONTINUOUS and clears `TFOUT` and `TFRET`; accepted A05 evidence shows CONTINUOUS with those travel fractions triggers converter #335. Each matched control removes only the dependency row and changes the provenance label. The v1.0.0 static candidate retained the fractions and failed independent pre-run review; **no v1.0.0 native run occurred**. Its contract SHA-256 is `00fc1d7f77c0ffc1ce282accf31a7fb268e9f7f5ac63f727a87f1f88927a02a0` and it is excluded from publication.
+
+## Native result
+
+The guarded session-0 SSH queue ran five fresh immutable v1.0.1 IDs, each suffixed `-20261001-01` and prefixed `a13-var06-`: `fixed-fixed-v101`, `prec-cont-control-v101`, `prec-cont-dependency-v101`, `dep-cont-control-v101`, and `dep-cont-dependency-v101`. It preserved GUI PID 13340 and the host mutex. Every source business table imported and exported exactly. Converter warnings #108/#126 occurred throughout; the four valid runs had zero converter errors and complete reports. The CONTINUOUS-precedent dependency run had one converter error and no report.
+
+| Input | Native observation | Closure SHA-256 |
+| --- | --- | --- |
+| FIXED/FIXED reference | RECON launches 8, succeeds/returns 12; FOLLOW allocated 9, launches 12, succeeds 14. | `e2c24a1938bf2bb9f8aed024e637ba97d788badf52e8df6774111b13a73fb481` |
+| CONTINUOUS precedent, no row | Converts; RECON launches 8 and succeeds 12; FOLLOW launches 10 and succeeds 12. | `19e5a8cd55f26fcf11592d81fc0b1267055cd41ea0bd1cecc48067341c2c75ce` |
+| CONTINUOUS precedent, START row | Converter rejects `MissionDependence` with **#223**, requiring FIXED precedent `TEACH-UNIT/RECON//8.000000`. Calculation exits zero but SXO is only four bytes; no native event log or JSON report exists. | `3827c900622c16e389a0a55c2f85310e4f4964d17212798a631f367d043a38ed` |
+| CONTINUOUS dependent, no row | Converts; RECON launches 8 and succeeds 12; FOLLOW launches 10 and succeeds 12. | `c87b5a335f0464031521d721b3acde714c86fad88dee121ee709413bf42bdcdd` |
+| CONTINUOUS dependent, START row | Converts. FOLLOW is assigned 9, starts 10, immediately suspends 10–12, resumes when RECON returns 12, and logs success at 12. | `4d8e6fd25267744c0020733645a347f73a83cc6091292d4d3839c48d1e1764ec` |
+
+Each valid report has 48 half-hour System and Stock bins, no failures, repairs or stock demand, and two ready aircraft at hour 24. The FIXED reference and controls each have six aircraft operating hours and zero suspended hours, with MTMF/MSTF/MSUF/STMF equal to one. The CONTINUOUS-dependent START run has four operating hours and two FOLLOW suspended hours; MTMF/STMF are approximately 2/3 while MSTF/MSUF are one. Its `mission success` event occurs with zero positive FOLLOW operating time after suspension. That event is reported as observed and does not establish ordinary CONTINUOUS task accomplishment.
+
+The [author validator](validate.py), SHA-256 `02c19c28147b93c0e3f06c4e924ee39087ed4f1f4d9a4343caa3e0968608e322`, passes [1,393/1,393 checks](review/author-validation-2026-10-01.json), SHA-256 `ff8eb20533dd4a75db883b737d3b98251e44979832a4b43bf4728fe003900dcb`. A [separate read-only reviewer](review/independent_readonly.py), SHA-256 `31f6901f728b571ef3aa606873df44468e355a85f9a19e54433e2bc4960a4d46`, passes [10,979/10,979 checks](review/independent-readonly-2026-10-01.json), SHA-256 `0753a1ba4dbf3c169a0ca0e16dda0386b5be93dbe91f843c7424e8d575820eb1`. The reviewer independently checked the manual conflict, exact role changes, source and raw seals, host guards, roundtrips, events, all report bins, factors, and terminal state without author-validator imports or native re-execution. Raw files remain in ignored local `runs/`; the independent report records selected raw hashes for each run.
+
+This supports the **observed converter requirement for a FIXED precedent in this one case**, and the specific accepted suspended CONTINUOUS-dependent behavior. It does not settle the manual's conflicting dependent-role sentence or establish a general START grammar or error precedence. Other schedules, failed or multiple precedents, cross-unit identity, GUI visual behavior, and Python/Rust equivalence remain unverified. Issue #18 stays open.

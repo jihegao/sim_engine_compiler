@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-air-support-role-matrix-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var06",
+  "case_version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A13",
+    "package": "../A13-start-dependence-v1.0.0",
+    "input_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+    "signoff": "../A13-start-dependence-v1.0.0/cli-scope-signoff-2026-09-30.md"
+  },
+  "source": {
+    "manual": "installed SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [188, 287, 288, 289],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "conflict": "Pages 188 and 289 say START requires a FIXED precedent with a mission success point; page 287 says the dependent mission must be FIXED. The accepted A13 source has both roles FIXED and cannot distinguish these statements."
+  },
+  "model": {
+    "unit": "TEACH-UNIT",
+    "aircraft_ready_at_zero": 2,
+    "precedent": {"MTID": "RECON", "scheduled_start_hour": 8, "duration_hours": 4, "aircraft": 1},
+    "dependent": {"MTID": "FOLLOW", "scheduled_start_hour": 10, "duration_hours": 2, "aircraft": 1},
+    "dependency": "FOLLOW START depends on RECON; DTYPE=START; DTTOL and MUTD unset",
+    "delay_limit_hours": 4,
+    "horizon_hours": 24,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false,
+    "delta": "Each non-fixed role changes MissionType.MPAT from null/default FIXED to CONTINUOUS and clears TFOUT/TFRET from 0.25 to null, plus a provenance label. Accepted A05 established that the travel fractions are forbidden for CONTINUOUS missions (converter #335). The matched control removes only MissionDependence and changes the label. Other mission fields remain identical."
+  },
+  "inputs_sha256": {
+    "fixed-fixed": "89288c18fb3f35b7004f1acfafe97e035f80d60360766d2e913a3ee948078243",
+    "prec-cont-control": "7efb0a73129bbe1cb79b4f6a967254d29d05f1f971ea220cb2ebec255e6e220e",
+    "prec-cont-dependency": "4730d68f18bc62d1a504c77cabd50dd1ee9b5c97a42b7c35949c84dec02ff483",
+    "dep-cont-control": "0249c134b2c5e8249c4391006c3708f2a172bc2893e1ceacdb4ef191c0716897",
+    "dep-cont-dependency": "639a1869203c89f86470d6efc828f7cfb5f1060048c24469d699d73c3e68f4c7"
+  },
+  "exact_diff_sha256": "8fe235546fa32d75dddf9d3609bea28fc4dc951f9391144b241744e7cf14a8d1",
+  "pre_run_revision": "The v1.0.0 static candidate (contract SHA-256 00fc1d7f77c0ffc1ce282accf31a7fb268e9f7f5ac63f727a87f1f88927a02a0) retained TFOUT=TFRET=0.25 on CONTINUOUS roles. Separate pre-run review found accepted A05 converter error #335 for that configuration, so the controls could not isolate the START role. No v1.0.0 native run was started. This v1.0.1 source correction and contract are frozen before native execution.",
+  "predeclared_native_gate": [
+    "Five fresh immutable session-0 SSH runs under Global\\SimloxIssue18NativeQueue preserve GUI PID 13340 and seal all source and raw fingerprints before and after execution.",
+    "Every variant imports and exports every populated source business row exactly. A calc process exit code of zero never substitutes for checking converter errors, valid SXO, native event log and report.",
+    "The FIXED/FIXED reference reproduces accepted A13: RECON launches 8 and succeeds/returns 12; FOLLOW allocates at 9, launches after return at 12 and succeeds 14. Its report has 48 half-hour System and Stock bins and two ready aircraft at the 24-hour end.",
+    "Each CONTINUOUS-role no-dependency control must convert with zero errors, launch its missions near 8 and 10 and produce a complete event log and report; otherwise the role-isolation matrix is NO-GO.",
+    "For each CONTINUOUS-role dependency input, native conversion may reject that role as incompatible with START. Such a result is accepted only as a bounded conversion rejection if the error is relevant to MissionDependence/START or the mission pattern, there is no valid SXO/report, and its matched control is valid. If conversion accepts it, publish behavior only after individual launch/completion events, 48-bin ledgers, metrics and terminal state independently reconcile. Unexpected partial outputs or unrelated errors are NO-GO.",
+    "A separate read-only reviewer independently checks the manual conflict, exact source roles, all immutable raw seals and branch-specific acceptance without importing the author implementation."
+  ],
+  "limits": [
+    "This role matrix tests only one explicit START dependency, two no-failure aircraft and one schedule on one installed SIMLOX 2017 executable. It cannot establish the general START rule or error precedence.",
+    "CONTINUOUS-role inputs clear TFOUT and TFRET because accepted A05 demonstrated converter error #335 otherwise. MSUCPT remains inherited and its effect, if any, must be checked from native evidence.",
+    "GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
