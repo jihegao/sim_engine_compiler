@@ -1,0 +1,26 @@
+{
+  "schema": "simlox-a08-var04-seed-matrix-contract/v1",
+  "status": "predeclared_candidate",
+  "reason": "The native 32-replication report averages bins while its event log may expose only one replication. Separate one-replication runs observe each selected timeline directly.",
+  "parent_contract_sha256": "161e8e3caf53bb314e042e525bd544c9222d273de7c187881f8080ff9d8ee77c",
+  "aggregate_input_sha256": "bae76ba5a88871129fb2669a8d04744745b8831f11d0dec96c7594d621793485",
+  "seed_manifest_sha256": "ce971c2ff06054752e272feffd4e78a09102052e0903c6cb64b8cdd155af1348",
+  "seed_generator_sha256": "3cb251644a73b2c9698fa55698c638e7ce5b5037dc34c8250a4490b094baa23c",
+  "seed_range_inclusive": [1, 32],
+  "exact_seed_delta": "From the frozen aggregate A08.var04 input, set Control.NREPS 32 to 1, Control.RSEED to the seed number as a string, and ProblemDescription.PDESC to a seed-specific label. Every other row and table stays unchanged.",
+  "execution": [
+    "One session-0 SSH batch holds Global\\SimloxIssue18NativeQueue for all 32 seeds and checks GUI PID 13340 before and after every native step.",
+    "Each seed has an immutable run subdirectory with copied input, import/export/calc/report files, exact 13-table source roundtrip, per-step record and raw SHA-256 seals. The batch seals source hashes before and after.",
+    "Any failed command, missing output, changed source or GUI, absent seed or roundtrip mismatch fails the batch."
+  ],
+  "predeclared_acceptance": [
+    "All 32 seeds convert with zero errors and classified warnings; each report has NREP=1 and 72 aligned half-hour bins.",
+    "Each seed logs exactly three mission starts at hour 8, matching successes and completions at hour 10, no cancellation, failure, repair or stock demand, six aircraft operation-hours and three ready at report end.",
+    "The seed-1 log may match the aggregate exposed timeline; the distinct runs are not conflated.",
+    "An independent read-only reviewer replays manifest, generated inputs, source and raw hashes, event ledgers and report checks without importing author validation."
+  ],
+  "limits": [
+    "This is a fixed convenience matrix of 32 seeds and one fixed three-mission configuration; it does not prove all native seeds or other zero-period distributions.",
+    "GUI visual content and cross-engine equivalence are unverified."
+  ]
+}

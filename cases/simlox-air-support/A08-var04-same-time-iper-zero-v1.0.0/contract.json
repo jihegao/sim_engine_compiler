@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A08",
+  "variant_id": "A08.var04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A08.var01",
+    "package": "../A08-var01-fixed-count-random-time-v1.0.0",
+    "input_sha256": "df7ecf0549fc8b1a506095194b97dac810afc395a76b4c478cfe43eec1838920"
+  },
+  "native_input_sha256": "bae76ba5a88871129fb2669a8d04744745b8831f11d0dec96c7594d621793485",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [271, 273, 274, 275],
+    "interpretation": "The manual describes IPER=0 as initiating every mission at the same time. This candidate retains accepted ITYPE=RANDOM, fixed IQTY=3 and IDISP=RANDOM while changing only IPER=12 to 0. Native conversion and events decide whether that combination is supported."
+  },
+  "exact_delta": [
+    "OperationProfile.IPER changes 12 to 0; STIM=8, ITYPE=RANDOM, IQTY=3, empty IQTYD, IDISP=RANDOM and fixed two-hour mission pattern remain unchanged.",
+    "ProblemDescription.PDESC changes only a label; all other tables and rows are byte-equivalent after JSON parsing to accepted A08.var01."
+  ],
+  "configuration": {
+    "replications": 32,
+    "missions_per_replication": 3,
+    "start_hour": 8,
+    "mission_duration_hours": 2,
+    "deployed_aircraft": 3,
+    "simulation_and_report_end_hour": 36,
+    "result_interval_hours": 0.5,
+    "seed": "1"
+  },
+  "predeclared_native_acceptance": [
+    "Guarded session-0 SSH under the host-wide mutex preserves GUI PID 13340, seals immutable sources and raw outputs, completes four native CLI steps, and returns zero conversion errors with classified warnings.",
+    "Exact source-row import/export identity across 13 populated tables; nonempty native report and 72 aligned half-hour bins with NREP=32.",
+    "The aggregate log's exposed group contains exactly three missions at hour 8; each succeeds and completes at hour 10. Aggregate reports reconcile six aircraft mission-operation hours per replication and three aircraft ready at hour 36, with no failure, repair, shortage or stock demand.",
+    "Because the aggregate log may omit replication groups, a separately predeclared 32-seed one-replication matrix is required to observe all 32 timelines; every seed must show the same three-at-8, three-at-10 pattern and matching reports. The seed-1 timeline may be compared with the aggregate log only as an observed same-seed check.",
+    "A separate read-only reviewer replays source delta, raw seals, event groups and ledgers without importing author validation."
+  ],
+  "limits": [
+    "One fixed count, one STIM and zero IPER with three aircraft. The seed matrix only tests these 32 native seeds; it does not establish general random-number-generator behavior or other combinations.",
+    "GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
