@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B05",
+  "variant_id": "B05.var04",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "E01.local_spare.1.0.0",
+  "parent_input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+  "mechanism": "Reverse mandatory <REMOVE> then <REPLACE> order in one otherwise identical E01 local spare replacement task, retaining each type's duration; test native converter rejection.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [400, 401, 402, 403],
+    "tables": ["ProblemDescription", "SystemRepair", "Tasks", "TaskBreakDown"]
+  },
+  "configuration": {
+    "positive_control": "E01-SURP SEQ1 <REMOVE> ten minutes then SEQ2 <REPLACE> twenty minutes",
+    "invalid_child": "E01-SURP SEQ1 <REPLACE> twenty minutes then SEQ2 <REMOVE> ten minutes",
+    "local_spare": 1,
+    "fixed_seed": "1"
+  },
+  "hypotheses_to_test": [
+    "The invalid reversed order imports/exports with exact 20 populated table roundtrip, permitting a converter-level diagnostic.",
+    "Native calculation reports at least one explicit conversion error for replacement order and yields no valid simulation output.",
+    "Any process exit code of zero does not override converter rejection; no mission behavior is accepted from this child.",
+    "Raw artifacts are sealed and GUI/mutex guards hold."
+  ],
+  "limits": [
+    "This tests one reversed-order local spare replacement source only; omission, repetition, added custom subtasks and other repair paths are unverified.",
+    "GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
