@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A06",
+  "variant_id": "A06.var01",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "package": "../A05-continuous-baseline-v1.0.1",
+    "input_sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea"
+  },
+  "native_input_sha256": "6d508cb4af5f997785be802c0527cd6f50918cde78714406ae2106e7b421ca6c",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [179, 182, 183, 265, 266],
+    "interpretation": "An extendable mission uses the requested active mission duration; with no suspension its completion should coincide with a continuous mission's fixed-calendar end."
+  },
+  "exact_delta": [
+    "MissionType.MPAT changes CONTINUOUS to EXTENDABLE.",
+    "ProblemDescription.PDESC changes a descriptive label only.",
+    "All aircraft, deployment, mission duration, minimum, preparation, failure, repair, seed, schedule and reporting rows remain fixed."
+  ],
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source and raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip.",
+    "Zero conversion errors, nonempty event log and 32 aligned half-hour report bins through hour 16.",
+    "One mission starts at hour 8 with two prepared aircraft, no suspension, failures, repairs or stock demand, completes with success at hour 12; both aircraft finish ready.",
+    "Compare mission and aircraft event timelines and the per-bin system and stock ledgers against the accepted A05 continuous control. Evaluate summary metrics separately, and report any legitimate mission-pattern-specific difference.",
+    "A separate read-only reviewer replays frozen source delta and sealed native artifacts without importing author validation."
+  ],
+  "limits": [
+    "One two-aircraft, fixed-seed, no-failure configuration proves only this no-interruption equality, not generic equivalence.",
+    "Interruption, result-window crossing and unfinished-at-horizon cases have separate accepted evidence; GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
