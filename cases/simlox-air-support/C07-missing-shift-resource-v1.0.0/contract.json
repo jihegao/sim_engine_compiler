@@ -1,0 +1,20 @@
+{
+  "schema": "simlox-c07-missing-shift-resource-contract/v1",
+  "case_id": "C07",
+  "variant_id": "C07.var02",
+  "version": "1.0.0-candidate",
+  "parent_case": "C07.cross_shift_positive_gap.1.0.0",
+  "parent_input_sha256": "cab26bedc1c5bbadadc82476c34e6e4bd6e71624bebeebe46e4ca342a616674d",
+  "input_sha256": {
+    "qty-zero": "f7cb574c61dae7383e175403664eaac5cc85cde3551e46a7be3a8af4e66e46de",
+    "row-absent": "022bb73c6479b126bc5d6412141dfe19bbbc5a121323e430984340c047cc891e"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [227, 418, 419, 421, 422],
+  "pre_run_business_contract": "From accepted C07 cross-shift DRAOS=Y model, retain two nominal P-CREW, two one-hour active shifts at 08:00-09:00 and 10:00-11:00, a two-hour preparation request per aircraft at 07:30, and the planned 12:00 formation. Compare an explicit ShiftResource.QTY=0 row with a missing ShiftResource row for the same shift/station/resource. No-shift capacity remains two because DRAOS=Y. The only source changes from parent are the resource row and descriptive label.",
+  "changed_tables_from_parent": ["ProblemDescription", "ShiftResource"],
+  "expected_native_hypothesis": "Both variants should expose zero crew during either active shift, while the off-shift periods retain nominal two-person availability. Each aircraft may work 07:30-08:00, pause while the first shift is active, resume 09:00-10:00, pause during the second shift, then complete after 11:00. The native import, event log and report must establish actual timing and whether missing-row and explicit-zero behavior coincide; no mission outcome is presumed.",
+  "acceptance_requires": ["exact source roundtrip despite empty ShiftResource table", "zero conversion errors", "native event and report evidence for both variants", "typed active-shift zero capacity and off-shift return", "explicit-zero versus missing-row comparison", "independent read-only replay"],
+  "limitations": ["One resource type, station, seed and repeated use of one shift ID in two explicit first-day windows.", "Does not establish missing rows for multiple resource types, overlapping/recurring shifts, DRAOS=N or MAXUT."],
+  "publication_state": "not_published"
+}

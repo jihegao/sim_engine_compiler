@@ -1,0 +1,745 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C07.var02.missing_shift_resource",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 179,
+  "passed_count": 179,
+  "failures": [],
+  "decision": "GO_bounded_explicit_zero_equals_missing_row",
+  "accepted_scope": "In one DRAOS=Y two-shift, one-resource, one-seed model, an explicit ShiftResource.QTY=0 row and an absent row both expose zero crew during 8-9 and 10-11 shifts, two off shift, identical byte-level native event logs, and identical parsed reports except description. Each aircraft performs 7.5-8, pauses until 9, performs 9-10, pauses until 11, finishes 11.5; the 12-13 mission succeeds.",
+  "roundtrip_interpretation": "The explicit-zero source has 24 row-containing tables and exactly roundtrips. The absent-row source has 23 row-containing tables and all 23 exactly roundtrip. Native export creates one all-null ShiftResource placeholder row for the absent source table; it is not a source row and is not treated as exact table equality.",
+  "metric_interpretation": "ResourceResults.NRW is waiting demand, not booked work. Each accepted run records four crew-hours of positive work and four resource-hours of waiting across the two zero-capacity shifts; exact 72-bin resource/system/stock ledgers pass.",
+  "limits": [
+    "Earlier qty-zero -01 and row-absent -01 are excluded diagnostics; the latter's old checker rejected the native all-null placeholder. Only both immutable -02 runs are accepted.",
+    "One station, one resource type, one seed, two first-day shifts and DRAOS=Y. This does not establish behavior for multiple resource types, recurring/overlapping shifts, DRAOS=N, or MAXUT.",
+    "The index's dictionary fingerprint is consistent with the prior C07 contract declaration; its original file is unavailable for independent hashing. The installed manual PDF is hashed.",
+    "SSH/GUI/queue evidence is replayed from sealed metadata; this reviewer did not rerun native SIMLOX."
+  ],
+  "checks": [
+    {
+      "name": "accepted C07 cross-shift Y parent fingerprint",
+      "passed": true
+    },
+    {
+      "name": "contract identity and candidate state",
+      "passed": true
+    },
+    {
+      "name": "manual fingerprint and cited pages",
+      "passed": true
+    },
+    {
+      "name": "declared source change scope",
+      "passed": true
+    },
+    {
+      "name": "index identity and exactly accepted pair",
+      "passed": true
+    },
+    {
+      "name": "index manual/native hashes and dictionary declaration",
+      "passed": true
+    },
+    {
+      "name": "earlier diagnostic runs explicitly excluded",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: unique 35-table source",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: source/run/contract/diff byte identity",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact parent table delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "ShiftResource"
+      ]
+    },
+    {
+      "name": "qty-zero: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: source description and DRAOS Y",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact ShiftResource source row semantics",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: two nominal crew and two active shifts retained",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: invocation run identity and source",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: session-zero SSH/mutex guard",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: GUI preserved across five steps",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: current frozen source/runtime byte hashes",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: before/after seals and invocation hash",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal import.log",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal model.log",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal run.log",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal input.json",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal export.log",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: raw byte seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: planned commands and chronology",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: index identity/path/raw fingerprints",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: index complete raw inventory equals closure",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: variant-specific populated source count",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact populated native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: explicit zero row exact roundtrip",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: 35-form import/export",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: JSON report export complete",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: mission requests two systems",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: shift 0 capacity at 0",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: shift 1 capacity at 8",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: shift 2 capacity at 9",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: shift 3 capacity at 10",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: shift 4 capacity at 11",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: aircraft 0 positive initial work",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: aircraft 0 gap work and second stop",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: aircraft 0 final resume and completion",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: aircraft 1 positive initial work",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: aircraft 1 gap work and second stop",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: aircraft 1 final resume and completion",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: typed crew allocations and returns",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: mission 12-13 success and terminal ready",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: one successful mission summary",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: resource total four work/four wait hours",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact 72-bin NRUM ledger",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact 72-bin NRW ledger",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact 72-bin NRA ledger",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact 72-bin NSYRY ledger",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact 72-bin NSYMA ledger",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact 72-bin NSYMP ledger",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: exact 72-bin NSYMO ledger",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: nominal crew count and zero mission booking",
+      "passed": true
+    },
+    {
+      "name": "qty-zero: zero stock events and terminal resource state",
+      "passed": true
+    },
+    {
+      "name": "row-absent: unique 35-table source",
+      "passed": true
+    },
+    {
+      "name": "row-absent: source/run/contract/diff byte identity",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact parent table delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "ShiftResource"
+      ]
+    },
+    {
+      "name": "row-absent: all other parent tables identical",
+      "passed": true
+    },
+    {
+      "name": "row-absent: source description and DRAOS Y",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact ShiftResource source row semantics",
+      "passed": true
+    },
+    {
+      "name": "row-absent: two nominal crew and two active shifts retained",
+      "passed": true
+    },
+    {
+      "name": "row-absent: invocation run identity and source",
+      "passed": true
+    },
+    {
+      "name": "row-absent: session-zero SSH/mutex guard",
+      "passed": true
+    },
+    {
+      "name": "row-absent: GUI preserved across five steps",
+      "passed": true
+    },
+    {
+      "name": "row-absent: current frozen source/runtime byte hashes",
+      "passed": true
+    },
+    {
+      "name": "row-absent: before/after seals and invocation hash",
+      "passed": true
+    },
+    {
+      "name": "row-absent: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal import.log",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal model.log",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal run.log",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal input.json",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal export.log",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "row-absent: raw byte seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "row-absent: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "row-absent: planned commands and chronology",
+      "passed": true
+    },
+    {
+      "name": "row-absent: index identity/path/raw fingerprints",
+      "passed": true
+    },
+    {
+      "name": "row-absent: index complete raw inventory equals closure",
+      "passed": true
+    },
+    {
+      "name": "row-absent: variant-specific populated source count",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact populated native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "row-absent: empty source row/native all-null placeholder",
+      "passed": true
+    },
+    {
+      "name": "row-absent: 35-form import/export",
+      "passed": true
+    },
+    {
+      "name": "row-absent: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "row-absent: JSON report export complete",
+      "passed": true
+    },
+    {
+      "name": "row-absent: mission requests two systems",
+      "passed": true
+    },
+    {
+      "name": "row-absent: shift 0 capacity at 0",
+      "passed": true
+    },
+    {
+      "name": "row-absent: shift 1 capacity at 8",
+      "passed": true
+    },
+    {
+      "name": "row-absent: shift 2 capacity at 9",
+      "passed": true
+    },
+    {
+      "name": "row-absent: shift 3 capacity at 10",
+      "passed": true
+    },
+    {
+      "name": "row-absent: shift 4 capacity at 11",
+      "passed": true
+    },
+    {
+      "name": "row-absent: aircraft 0 positive initial work",
+      "passed": true
+    },
+    {
+      "name": "row-absent: aircraft 0 gap work and second stop",
+      "passed": true
+    },
+    {
+      "name": "row-absent: aircraft 0 final resume and completion",
+      "passed": true
+    },
+    {
+      "name": "row-absent: aircraft 1 positive initial work",
+      "passed": true
+    },
+    {
+      "name": "row-absent: aircraft 1 gap work and second stop",
+      "passed": true
+    },
+    {
+      "name": "row-absent: aircraft 1 final resume and completion",
+      "passed": true
+    },
+    {
+      "name": "row-absent: typed crew allocations and returns",
+      "passed": true
+    },
+    {
+      "name": "row-absent: mission 12-13 success and terminal ready",
+      "passed": true
+    },
+    {
+      "name": "row-absent: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "row-absent: one successful mission summary",
+      "passed": true
+    },
+    {
+      "name": "row-absent: resource total four work/four wait hours",
+      "passed": true
+    },
+    {
+      "name": "row-absent: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact 72-bin NRUM ledger",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact 72-bin NRW ledger",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact 72-bin NRA ledger",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact 72-bin NSYRY ledger",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact 72-bin NSYMA ledger",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact 72-bin NSYMP ledger",
+      "passed": true
+    },
+    {
+      "name": "row-absent: exact 72-bin NSYMO ledger",
+      "passed": true
+    },
+    {
+      "name": "row-absent: nominal crew count and zero mission booking",
+      "passed": true
+    },
+    {
+      "name": "row-absent: zero stock events and terminal resource state",
+      "passed": true
+    },
+    {
+      "name": "pair differs exactly in description and ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "accepted model logs byte-identical",
+      "passed": true
+    },
+    {
+      "name": "parsed reports equal except description",
+      "passed": true
+    }
+  ]
+}
