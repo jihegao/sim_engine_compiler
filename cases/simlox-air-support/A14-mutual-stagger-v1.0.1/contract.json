@@ -1,0 +1,63 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "variant_ids": ["A14.var04", "A14.var05"],
+  "case_version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A05",
+    "input": "../A05-continuous-baseline-v1.0.1/native-continuous.json",
+    "input_sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+    "signoff": "../A05-continuous-baseline-v1.0.1/cli-scope-signoff-2026-09-30.md"
+  },
+  "requires": ["A05", "A09", "A13", "A14.var01"],
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [287, 288, 289],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "tables": ["MissionType", "OperationProfile", "MissionDependence"],
+    "interpretation": "MUTD=Y is the manual's mutual-dependence form. Two opposing ordinary rows are a distinct model encoding. The manual's stated deadlock distinction is a hypothesis to test against native evidence, not an assumed outcome."
+  },
+  "model": {
+    "unit": "TEACH-UNIT",
+    "aircraft_ready_at_zero": 2,
+    "support": {"pattern": "CONTINUOUS", "scheduled_start_hour": 8.0, "duration_hours": 2, "NOS": 1, "MNOS": 1, "delay_limit_hours": 0.3333333333333333},
+    "execute": {"pattern": "CONTINUOUS", "scheduled_start_hour": 8.1, "duration_hours": 4, "NOS": 1, "MNOS": 1, "delay_limit_hours": 0.3333333333333333},
+    "horizon_hours": 16,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false,
+    "variants": {
+      "control": "no MissionDependence",
+      "oneway": "EXECUTE at 8.1 depends CONTINUOUS on SUPPORT at 8.0, MUTD=N",
+      "mutual": "one EXECUTE-to-SUPPORT CONTINUOUS row with MUTD=Y",
+      "opposing": "two ordinary CONTINUOUS rows, EXECUTE-to-SUPPORT and SUPPORT-to-EXECUTE, each MUTD=N"
+    }
+  },
+  "inputs_sha256": {
+    "control": "9735fb952230fdc73ecfed0232b24593665649cd975394556740af34ba64464d",
+    "oneway": "281de20b7645115ac5b03d89e53f8ee2100d64921cf0b8bbadb02a70d29c5a98",
+    "mutual": "2a171ae186c532ecd8bdee154e08c895f92b8f9f5e5feed2b8c89c30ed60389c",
+    "opposing": "5488e751c4e723bbf647491889036f191e84e4c97ebed1fae5a6de678aaf3621"
+  },
+  "exact_diff_sha256": "530637c4f9c1b6939a83b742db7b30b6ee380ed9e38132f9a3ee6b2b56f151c0",
+  "prior_diagnostics": [
+    "A14-continuous-mutual-v1.0.0 same-time candidate was NO-GO: opposing ordinary rows unexpectedly launched and its event log matched MUTD=Y.",
+    "A14-mutual-stagger-v1.0.0 at 8.0/8.1 was NO-GO for its frozen deadlock contrast: opposing and MUTD=Y event logs were byte-identical. Its raw runs are retained separately and do not serve as accepted runs here."
+  ],
+  "predeclared_native_acceptance": [
+    "Four fresh immutable session-0 SSH runs preserve GUI PID 13340 and the host-wide native mutex; each source and raw artifact is fingerprinted before/after execution.",
+    "All four input variants import/export every populated source business row exactly, convert with zero errors, and produce valid nonempty model, native event log and report.",
+    "Control SUPPORT starts at 8.0 and succeeds at 10.0; EXECUTE starts at 8.1 and succeeds at 12.1.",
+    "One-way SUPPORT starts at 8.0; EXECUTE starts at 8.1 and aborts when SUPPORT completes at 10.0.",
+    "MUTD=Y suspends SUPPORT from 8.0 to 8.1, then SUPPORT and EXECUTE operate together; SUPPORT succeeds and EXECUTE aborts at 10.0.",
+    "Two opposing MUTD=N rows produce the same individual event sequence as MUTD=Y in this staggered no-failure model. If they instead deadlock or diverge, this bounded equivalence hypothesis is NO-GO.",
+    "All 32 half-hour System and Stock bins reconcile with two ready aircraft at hour 16, zero failures, repairs and stock demand; native operation exposures and MTMF/STMF values distinguish control, one-way and mutual/opposing. A separate reviewer independently replays raw evidence without importing the author validator."
+  ],
+  "limits": [
+    "This contract retests a previously observed boundary with a fresh pre-run declaration and fresh runs. It does not retroactively accept either NO-GO diagnostic.",
+    "Only one explicit unit, two no-failure continuous missions and a 0.1-hour stagger are covered; event equality here does not establish general MUTD equivalence or refute all manual deadlock cases.",
+    "Other schedules, readiness or resource constraints, DTTOL, GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
