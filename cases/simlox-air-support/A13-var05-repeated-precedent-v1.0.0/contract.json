@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A13",
+  "variant_id": "A13.var05",
+  "version": "1.0.0-candidate",
+  "parent": "A13.start_single_predecessor.1.0.0",
+  "parent_input_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+  "structural_source": "A13.var01_two_fixed_start_predecessors.1.0.0",
+  "structural_input_sha256": "1d2226850d07d7caf5f58e825bb2d3fdf498f7626fb58e4a6ed4bcfa469d18ae",
+  "mechanism": "An explicit START key names RECON at hour 8 when the operational profile creates two RECON instances at that same time",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [188, 271, 274, 287, 288, 289],
+    "tables": ["SystemDeployment", "OperationProfile", "MissionDependence"]
+  },
+  "configuration": {
+    "seed": "1",
+    "simulation_hours": 24,
+    "unit": "TEACH-UNIT",
+    "aircraft": 3,
+    "predecessor": {"type": "RECON", "scheduled_hour": 8, "profile_iqty": 2, "profile_iper": 0, "duration_hours": 4},
+    "dependent": {"type": "FOLLOW", "scheduled_hour": 10, "profile_iqty": 1, "duration_hours": 2, "delay_limit_hours": 4},
+    "control": "same repeated RECON profile without MissionDependence table",
+    "failure_modes": 0
+  },
+  "predeclared_behavior_gate": [
+    "both sources exactly roundtrip all populated business rows, 13 control and 14 dependency",
+    "the no-row control converts with zero errors, yields valid nonempty SXO/event/report, and demonstrates two same-time RECON mission identities plus one FOLLOW without capacity shortage",
+    "the dependency source either rejects the ambiguous RECON predecessor key in native conversion with a specific diagnostic and invalid SXO, or it remains an unaccepted diagnostic requiring a new discriminator; do not infer a general rule from process exit alone",
+    "all invocation, source, helper, raw closure and terminal-state claims are checked, with a separate read-only replay"
+  ],
+  "limits": [
+    "One fixed-seed same-unit repeat count IQTY=2 with zero profile period and one explicit predecessor START key",
+    "A converter rejection would establish only installed-version input acceptance for this exact repeated key; it cannot establish mission behavior",
+    "An accepted dependency simulation, if any, requires separate identification of which or how many RECON instances gate FOLLOW",
+    "Dependent-side repetition, nonzero periods, differing units/types, failures, GUI visual behavior and cross-engine parity remain unverified"
+  ]
+}
