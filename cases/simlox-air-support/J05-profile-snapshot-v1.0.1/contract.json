@@ -1,0 +1,24 @@
+{
+  "schema": "simlox-j05-profile-snapshot-contract/v1",
+  "case_id": "J05",
+  "variant_ids": ["J05.var03"],
+  "version": "1.0.1-candidate",
+  "parent_publication_id": "A01.normal.1.0.0",
+  "parent_input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+  "input_sha256": {
+    "baseline": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "snapshot-control": "4a1233759a3354a1e61a3f5b7463846ac3726ffc0b0f5211c4b617c578d60b28",
+    "mixed-profile": "0eaa2c466e196f471bde4054f278bd018bae5f3eea2e15b9d0f21dba96223e38"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [230, 231, 531, 532, 533, 534, 535, 536, 537],
+  "source_dictionary_lines": [650, 655, 689, 702, 725, 726],
+  "diagnostic_provenance": "The frozen v1.0.0 triplet converted and simulated with zero errors, but its native export removed the incorrectly authored key marker on SnapshotResultTimes.SSTIM; exact source roundtrip therefore failed. v1.0.1 removes only that marker before fresh guarded runs. The v1.0.0 runs are diagnostic and excluded from acceptance.",
+  "business_delta": "The A01 baseline is byte-identical. Snapshot-control adds SnapshotResultTimes 8.25/10.25 and one ReplicationResultControlSystem row TOTAL=TIME=SNAPS=Y for the teaching aircraft/unit, plus a description. Mixed-profile changes the global snapshot times to 6/14, adds a SYSTEM ResultCollection RCPID J05MIX with direct fields [1,0,36], and defines two CONTINUOUS half-hour bins crossing mission start/success plus SNAPSHOT points at their ends 8.25/10.25. SIMPE=36, seed1, A01 mission and all behavior tables remain unchanged.",
+  "pre_run_hypothesis": "Native import/export should retain every source business row, and conversion should have zero errors. All three native event logs should be byte-identical, with mission start8, success10, and full horizon36. Snapshot-control should retain default half-hour System/Stock intervals and expose direct 8.25/10.25 system snapshots if the CLI report supports them. Mixed-profile should use SYSTEM profile over its direct RCINT/RCSTA/RCEND fields and global SnapshotResultTimes: continuous System intervals 7.75-8.25 and 9.75-10.25, each with one-half operating fraction, plus system snapshots at 8.25/10.25. Stock should remain 0-36 half-hour. Report table names and same-time snapshot semantics must be observed, not assumed.",
+  "acceptance_requires": ["accepted A01 and installed manual/dictionary fingerprints", "three guarded serial session-0 SSH native runs preserving GUI PID 13340", "exact source roundtrip and zero conversion errors", "identical full event logs and independent event/stock/result ledgers", "directly observed continuous interval versus instantaneous snapshot values and profile override in native output", "sealed raw artifacts and independent read-only replay"],
+  "diagnostic_rule": "If native output does not expose snapshot rows or the profile fails conversion, preserve the frozen run as diagnostic and do not publish J05.var03 as accepted; investigate another native result export surface before classifying capability.",
+  "limitations": ["One seed and one deterministic mission.", "Nested/repeated ResultCollectionProfile rows for J05.var04 remain unverified.", "MISSION per-type interval output, GUI display and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
