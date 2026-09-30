@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-c08-daily-mutilf-exact-diff/v1",
+  "accepted_parent_sha256": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+  "variants": {
+    "no-shift-control": {
+      "parent": "C07-repeat-nested-v1.0.0\\explicit-input.json",
+      "parent_sha256": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+      "input_sha256": "9fab93b5101e77a156f7b04d8d15039fc05ec3c81de965695ff2fd5e46baefcf",
+      "changed_tables": [
+        "ProblemDescription",
+        "ResourceStationData"
+      ],
+      "business_delta": "ResourceStationData.SHPID CREW-DAY to null",
+      "unchanged_table_count": 33
+    },
+    "zero-budget": {
+      "parent": "no-shift-control",
+      "parent_sha256": "9fab93b5101e77a156f7b04d8d15039fc05ec3c81de965695ff2fd5e46baefcf",
+      "input_sha256": "09c54340d7afbe501e01967ec94276c14f346fbbba3268f3e05378c9ae7d72ec",
+      "changed_tables": [
+        "ProblemDescription",
+        "Resource"
+      ],
+      "business_delta": "Resource.MUTILF null to 0",
+      "unchanged_table_count": 33
+    },
+    "finite-budget": {
+      "parent": "no-shift-control",
+      "parent_sha256": "9fab93b5101e77a156f7b04d8d15039fc05ec3c81de965695ff2fd5e46baefcf",
+      "input_sha256": "4b08b2ca4469d9f12a601b766607173f22b730837e9839880d712b40d9508322",
+      "changed_tables": [
+        "ProblemDescription",
+        "Resource"
+      ],
+      "business_delta": "Resource.MUTILF null to 0.03125",
+      "unchanged_table_count": 33
+    },
+    "station-override": {
+      "parent": "finite-budget",
+      "parent_sha256": "4b08b2ca4469d9f12a601b766607173f22b730837e9839880d712b40d9508322",
+      "input_sha256": "86e0919d4a4063d95829fcdb26d5a48eb32e912ebfff10536055e9bd795cddc5",
+      "changed_tables": [
+        "ProblemDescription",
+        "ResourceStationData"
+      ],
+      "business_delta": "ResourceStationData.MUTILF null to 1",
+      "unchanged_table_count": 33
+    }
+  }
+}
