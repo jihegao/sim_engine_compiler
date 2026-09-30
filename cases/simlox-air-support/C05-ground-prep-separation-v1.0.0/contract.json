@@ -1,0 +1,23 @@
+{
+  "schema": "simlox-c05-ground-prep-separation-contract/v1",
+  "case_id": "C05",
+  "variant_id": "C05.ground_prep_separation",
+  "version": "1.0.0-candidate",
+  "parent_case": "C05.mission_resource_capacity.1.0.0",
+  "parent_input_sha256": "d2ea6e874eff82f1e50f271051010985c28adfba7aab94d2a0a0b343b989e865",
+  "input_sha256": {
+    "ground-2": "ab61f461aa8c6e5afd2e16e361f5cecc3c1acf7be464b9cbb284ac3cd24bba48",
+    "ground-0": "c5495e0d404642339f0d89706d6b9e7b4b13dd16cc53179ee95d190e68209def"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [181, 182, 294, 295, 296, 297, 300, 301, 302, 407, 408, 409, 412, 413, 414],
+  "pre_run_business_contract": "Keep the accepted C05 two-aircraft, two-hour mission and MISSION-CREW pool of two. Add a half-hour MissionPreparation for each aircraft, requiring one distinct SPECIAL GROUND-TECH from a pool of two or zero. The notice at hour 7 precedes planned launch at hour 8. Mission crew is a MissionResource; ground technician is only a TaskResource on GROUND-PREP.",
+  "changed_tables_only": ["ProblemDescription", "Resource", "ResourceAllocation", "MissionPreparation", "Tasks", "TaskResource"],
+  "expected_native_hypothesis": {
+    "ground-2": "both aircraft prepare with distinct ground technician bookings, release ground technicians before launch, launch at hour 8 with mission crew still held, and release mission crew at hour 10",
+    "ground-0": "mission crew may be reserved before preparation; ground technicians cannot be booked; the mission does not launch and any reserved mission crew is released at cancellation"
+  },
+  "acceptance_requires": ["exact populated-table roundtrip", "zero conversion errors", "nonempty native event log and report", "separate ground and mission resource event ledger", "mission result and terminal readiness", "independent read-only replay"],
+  "limitations": ["This slice retains the accepted two-hour A03/C05 mission rather than the catalog's one-hour duration.", "It does not test turnaround preparation, multiple ground-resource types, or partial capacity one.", "The hypotheses are not accepted outcomes until raw native evidence and independent replay pass."],
+  "publication_state": "not_published"
+}
