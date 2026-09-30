@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B05",
+  "variant_id": "B05.var01",
+  "version": "1.0.1",
+  "publication_state": "not_published",
+  "parent": "B02.serial_prep.1.0.2",
+  "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "instructional_prerequisite": "A12.var04.active_preparation_confiscation.1.0.0",
+  "mechanism": "A previously flown aircraft completes REFUELLING for lower-priority BASIC preparation, then is confiscated by later higher-priority SECOND; a direct reference to the built-in REFUELLING subtask should be omitted during SECOND's new preparation while an ordinary equal-duration INSPECT control repeats.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [184, 185, 186, 187, 226, 266, 296, 400, 401, 402, 403, 404],
+    "tables": ["MissionType", "OperationProfile", "MissionPreparation", "Tasks", "SubTaskType", "TaskBreakDown"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "aircraft": "<TEACH-AIR-01,0>",
+    "BASIC-MISSION": {"PRI": 2, "scheduled_hours": [2, 8], "notice_hours": [1, 7]},
+    "SECOND-MISSION": {"PRI": 1, "scheduled_hour": 8.25, "notice_hour": 7.25},
+    "all_missions_duration_hours": 2,
+    "prep_task": "PREP-FIXED",
+    "prep_steps": "ten-minute SEQ1 followed by twenty-minute SERVICE SEQ2",
+    "variants": {"inspect-control": "SEQ1=INSPECT", "refuelling": "SEQ1=<REFUELLING> (built-in reference; no SubTaskType definition)"}
+  },
+  "hypotheses_to_test": [
+    "The first BASIC mission flies and returns before the hour-7 preparation, creating post-flight refuelling need in the child.",
+    "At the hour-7 BASIC call, the REFUELLING child executes positive-duration SEQ1, then enters SERVICE while the aircraft is confiscated at the 7.25 SECOND call.",
+    "SECOND preparation omits positive REFUELLING work after confiscation but still executes SERVICE; the INSPECT control repeats its ten-minute SEQ1 when SECOND preparation begins.",
+    "Raw subtask starts, completions, skips or zero-duration markers, mission transfers, flight and cancellation events, report bins and terminal state are reconciled without inferring unreported fuel quantity.",
+    "All source business tables roundtrip exactly, conversion errors are zero, native outputs are nonempty, GUI PID and queue guards hold, and the raw files are sealed."
+  ],
+  "limits": [
+    "Only one deterministic aircraft with one earlier flight and one active-preparation confiscation; fuel quantity, tanks and consumption are not modeled.",
+    "A failed observation is retained as a capability probe, not published as verified refuelling omission.",
+    "Payloading, unloading, later flight reset, remote PM reset, resource waiting, GUI-only behavior and cross-engine parity remain unverified."
+  ]
+}
