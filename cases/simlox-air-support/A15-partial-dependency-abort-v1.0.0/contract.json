@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-a15-partial-dependency-abort-contract/v1",
+  "case_id": "A15",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent_publication_id": "A14.var01.continuous_predecessor_end_abort.1.0.1",
+  "mechanism_reference": "A15.custom_km_full_mission_soacc.1.0.0",
+  "parents": {
+    "control": {"path": "../A14-continuous-end-abort-v1.0.1/control-input.json", "sha256": "f81445ad2daba09321e7a55ad67c5355b7e4a14ec3a58bbf10fbfcd18b343376"},
+    "dependent": {"path": "../A14-continuous-end-abort-v1.0.1/dependent-input.json", "sha256": "67484243a3b35395e21dcd6554a95c2637986086c4523d5e1ba99e2890d21de3"}
+  },
+  "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "manual_printed_pages": [262, 268, 269, 608, 609, 610, 611],
+  "builder_sha256": "69a651783fac55542b586ad3a9dd9520119241fe93d5fbb843d486ff305299ff",
+  "diff_builder_sha256": "7f66d5bd61496ab1c84be4f9d8d55c2ac6f44a51485166c0d835d65ee8058aef",
+  "exact_diff_sha256": "46d6494ae42130c3201a0f71f60f08360a79abba62e351fdebb3b59fa6a54ae9",
+  "inputs_sha256": {
+    "control-hour": "d3ea6e2d53be0f21cf6ec8d2f4fb8d07d7a1f259164c08897801a01bb9081d6a",
+    "control-mission": "3c04d01c43413f2833aee490936ec22c0c20eca349714dc4969a95df03ad60af",
+    "dependent-hour": "344fcc84b836a5509e451ddd7e00a1aafd53d782901392fc05030f41d2302316",
+    "dependent-mission": "d0b075d5542410876d614dd77f014da8a83846d2db38f99a09822ead95f8cc81"
+  },
+  "source_delta": "Each child preserves its published A14 parent except description, the all-null OperationParameter placeholder changed to custom KM, and one added MissionTypeUtilization row for EXECUTE. Hourly variants configure 60 KM 1/HOUR. Per-mission variants configure 240 KM 1/MISSION, equivalent over the planned four-hour EXECUTE mission. Control/dependent inputs at the same rate differ only in the parent MissionDependence row and description.",
+  "configuration": {
+    "system_type": "TEACH-AIR-01",
+    "unit": "TEACH-UNIT",
+    "aircraft_count": 2,
+    "support": "CONTINUOUS SUPPORT with one aircraft, 8-10",
+    "execution": "CONTINUOUS EXECUTE with one other aircraft, planned 8-12",
+    "dependent_abort": "SUPPORT success at 10 aborts EXECUTE at 10 through one accepted CONTINUOUS MissionDependence row",
+    "control_completion": "EXECUTE succeeds at 12 without dependence",
+    "simulation_end_hour": 16,
+    "result_interval_hours": 0.5,
+    "failure_enabled": false
+  },
+  "pre_run_hypotheses": [
+    "All four inputs import/export the author-supplied populated tables exactly, convert with zero errors, and preserve their respective accepted A14 control or dependent event timelines and terminal two-ready state.",
+    "The two control rate forms each yield cumulative EXECUTE KM SOACC=240 after its full 8-12 mission; the hourly dependent yields 120 for its active 8-10 interval.",
+    "If native 1/MISSION utilization is prorated by actual active time on dependency abort, dependent-mission SOACC will equal 120; if it is charged at a different point or amount, report the observed contrast and reject equivalence for that branch.",
+    "Operation report half-hour bins, total accumulated SOACC and 16-hour-horizon averages must reconcile with the observed events; zero failure, maintenance, resource and stock demand should remain unchanged from the parents."
+  ],
+  "acceptance_requires": [
+    "exact source/parent lineage and four-way contrast, frozen before native execution",
+    "fresh guarded session-0 SSH import, export, calculation and valid output for each tested branch",
+    "zero conversion errors, source roundtrip, event/terminal/ledger reconciliation",
+    "valid MissionOperation report settings without loader fallback and raw closure hashes",
+    "separate read-only reviewer replay of every published claim"
+  ],
+  "limits": [
+    "This tests one deterministic CONTINUOUS dependency abort, not random failure, fixed/extendable mission partial exposure, or a mission suspended then resumed.",
+    "MissionOperation results are per selected unit, not per serial-numbered aircraft; no shared-formation per-aircraft disaggregation is claimed.",
+    "KM is an abstract user-defined unit rather than independently validated physical kilometres. Other seeds, GUI rendering and cross-engine parity remain unverified."
+  ]
+}
