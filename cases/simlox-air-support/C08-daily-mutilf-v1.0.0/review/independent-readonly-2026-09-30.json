@@ -1,0 +1,2138 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C08.var01.daily_mutilf",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 526,
+  "passed_count": 526,
+  "failures": [],
+  "decision": "GO_bounded_four_variant_daily_mutilf",
+  "accepted_scope": "On this fixed-seed two-aircraft, no-active-shift, one-station model, MUTILF=0 blocks work and cancels at 27; MUTILF=0.03125 gives 2.5 pool crew-hours of work across the day boundary, then time-out at 24.75 with 0.75h per aircraft left and cancellation at 29. Station MUTILF=1 overrides resource MUTILF=0.03125 and exactly reproduces the no-shift control event log and report values except description; both finish preparation at 25.5 and succeed at 29.",
+  "metric_interpretation": "ResourceResults.NRUM is positive booked work; NRW is waiting, including partial 24.5-25 bin in finite-budget. All numeric cells in all 72 resource, system and stock bins are checked against the observed timeline, with zero expected for unlisted fields.",
+  "limits": [
+    "Four fixed-seed cases only. General daily reset, other MUTILF values, sequential jobs, multiple resource/station models, shift interactions and cross-engine behavior remain unverified.",
+    "SSH/GUI/mutex evidence is replayed from sealed invocation/closure metadata; this review did not rerun native SIMLOX."
+  ],
+  "checks": [
+    {
+      "name": "accepted parent identity",
+      "passed": true
+    },
+    {
+      "name": "contract and diff identities",
+      "passed": true
+    },
+    {
+      "name": "manual bytes and pages",
+      "passed": true
+    },
+    {
+      "name": "evidence index frozen identity and four-run inventory",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: source/lineage fingerprints",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact two-table delta and unchanged 33",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "ResourceStationData"
+      ]
+    },
+    {
+      "name": "no-shift-control: single business field delta",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: fixed no-shift model",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: run identity and source linkage",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: session-zero SSH/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: current source/runtime hashes match frozen seals",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: before/after seals and closure",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: evidence index path/top-level hashes",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: evidence index complete raw reconciliation",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: five guarded steps",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: planned commands executed",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: 24 populated tables and 3 all-null placeholders",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: conversion and report generation",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: no active shift in native events",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: two-aircraft mission ordered and terminal ready",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: six parseable native report tables",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: source/lineage fingerprints",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact two-table delta and unchanged 33",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "Resource"
+      ]
+    },
+    {
+      "name": "zero-budget: single business field delta",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: fixed no-shift model",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: run identity and source linkage",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: session-zero SSH/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: current source/runtime hashes match frozen seals",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: before/after seals and closure",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: evidence index path/top-level hashes",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: evidence index complete raw reconciliation",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: five guarded steps",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: planned commands executed",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: 24 populated tables and 3 all-null placeholders",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: conversion and report generation",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: no active shift in native events",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: two-aircraft mission ordered and terminal ready",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: six parseable native report tables",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: source/lineage fingerprints",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact two-table delta and unchanged 33",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "Resource"
+      ]
+    },
+    {
+      "name": "finite-budget: single business field delta",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: fixed no-shift model",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: run identity and source linkage",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: session-zero SSH/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: current source/runtime hashes match frozen seals",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: before/after seals and closure",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: evidence index path/top-level hashes",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: evidence index complete raw reconciliation",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: five guarded steps",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: planned commands executed",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: 24 populated tables and 3 all-null placeholders",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: conversion and report generation",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: no active shift in native events",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: two-aircraft mission ordered and terminal ready",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: six parseable native report tables",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "station-override: source/lineage fingerprints",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact two-table delta and unchanged 33",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "ResourceStationData"
+      ]
+    },
+    {
+      "name": "station-override: single business field delta",
+      "passed": true
+    },
+    {
+      "name": "station-override: fixed no-shift model",
+      "passed": true
+    },
+    {
+      "name": "station-override: run identity and source linkage",
+      "passed": true
+    },
+    {
+      "name": "station-override: session-zero SSH/mutex/GUI",
+      "passed": true
+    },
+    {
+      "name": "station-override: current source/runtime hashes match frozen seals",
+      "passed": true
+    },
+    {
+      "name": "station-override: before/after seals and closure",
+      "passed": true
+    },
+    {
+      "name": "station-override: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "station-override: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "station-override: evidence index path/top-level hashes",
+      "passed": true
+    },
+    {
+      "name": "station-override: evidence index complete raw reconciliation",
+      "passed": true
+    },
+    {
+      "name": "station-override: five guarded steps",
+      "passed": true
+    },
+    {
+      "name": "station-override: planned commands executed",
+      "passed": true
+    },
+    {
+      "name": "station-override: 24 populated tables and 3 all-null placeholders",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip ResourceStationData",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip Shift",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip ShiftProfile",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip ShiftResource",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "station-override: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "station-override: conversion and report generation",
+      "passed": true
+    },
+    {
+      "name": "station-override: no active shift in native events",
+      "passed": true
+    },
+    {
+      "name": "station-override: two-aircraft mission ordered and terminal ready",
+      "passed": true
+    },
+    {
+      "name": "station-override: six parseable native report tables",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72 contiguous bins",
+      "passed": true
+    },
+    {
+      "name": "control/override byte-identical native event logs",
+      "passed": true
+    },
+    {
+      "name": "control/override report equality except description",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: aircraft 0 work and finish",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: aircraft 1 work and finish",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: 28-29 successful mission",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: mission summary and resource totals",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: work/wait integral totals",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NR",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRLA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRMA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRMO",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRN",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRRI",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRRO",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRRT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ResourceResults 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin FTMO",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NDAM",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NFAIL",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NPMS",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NPMT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NPSTA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NPSUC",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NRCFG",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NREPT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NROBT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYAL",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYDT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYLA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYMA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYMC",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYMR",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYMS",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYMT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYPM",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYRP",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYSW",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYTP",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYUA",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYUH",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYWI",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin NSYWR",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin STACC",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin STF",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin STLOW",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin STREQ",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin SYDT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: SystemResults 72-bin SYDTU",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NBO",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NBOU",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NDD",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NDF",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NDP",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NDR",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NLD",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin NWT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin PNB",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin ROS",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin ROST",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin WT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin WTS",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: StockTotalResults 72-bin WTT",
+      "passed": true
+    },
+    {
+      "name": "no-shift-control: ready two, no active work/wait at horizon",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: aircraft 0 never starts positive work",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: aircraft 1 never starts positive work",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: zero work and cancellation27",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: mission summary and resource totals",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: work/wait integral totals",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NR",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRLA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRMA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRMO",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRN",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRRI",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRRO",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRRT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ResourceResults 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin FTMO",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NDAM",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NFAIL",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NPMS",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NPMT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NPSTA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NPSUC",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NRCFG",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NREPT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NROBT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYAL",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYDT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYLA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYMA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYMC",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYMR",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYMS",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYMT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYPM",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYRP",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYSW",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYTP",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYUA",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYUH",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYWI",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin NSYWR",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin STACC",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin STF",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin STLOW",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin STREQ",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin SYDT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: SystemResults 72-bin SYDTU",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NBO",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NBOU",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NDD",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NDF",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NDP",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NDR",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NLD",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin NWT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin PNB",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin ROS",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin ROST",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin WT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin WTS",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: StockTotalResults 72-bin WTT",
+      "passed": true
+    },
+    {
+      "name": "zero-budget: ready two, no active work/wait at horizon",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: aircraft 0 works then stops with 0.75h left",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: aircraft 1 works then stops with 0.75h left",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: day reset, 24.75 limit and cancellation29",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: mission summary and resource totals",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: work/wait integral totals",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NR",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRLA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRMA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRMO",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRN",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRRI",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRRO",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRRT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ResourceResults 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin FTMO",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NDAM",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NFAIL",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NPMS",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NPMT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NPSTA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NPSUC",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NRCFG",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NREPT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NROBT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYAL",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYDT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYLA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYMA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYMC",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYMR",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYMS",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYMT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYPM",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYRP",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYSW",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYTP",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYUA",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYUH",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYWI",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin NSYWR",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin STACC",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin STF",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin STLOW",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin STREQ",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin SYDT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: SystemResults 72-bin SYDTU",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NBO",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NBOU",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NDD",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NDF",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NDP",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NDR",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NLD",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin NWT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin PNB",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin ROS",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin ROST",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin WT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin WTS",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: StockTotalResults 72-bin WTT",
+      "passed": true
+    },
+    {
+      "name": "finite-budget: ready two, no active work/wait at horizon",
+      "passed": true
+    },
+    {
+      "name": "station-override: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "station-override: aircraft 0 work and finish",
+      "passed": true
+    },
+    {
+      "name": "station-override: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "station-override: aircraft 1 work and finish",
+      "passed": true
+    },
+    {
+      "name": "station-override: 28-29 successful mission",
+      "passed": true
+    },
+    {
+      "name": "station-override: mission summary and resource totals",
+      "passed": true
+    },
+    {
+      "name": "station-override: work/wait integral totals",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NR",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRA",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRF",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRLA",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRMA",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRMO",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRN",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRRI",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRRO",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRRT",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRUM",
+      "passed": true
+    },
+    {
+      "name": "station-override: ResourceResults 72-bin NRW",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin FTMO",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NDAM",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NFAIL",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NPMS",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NPMT",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NPSTA",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NPSUC",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NRCFG",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NREPT",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NROBT",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYA",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYAL",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYDT",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYLA",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYMA",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYMC",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYMO",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYMP",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYMR",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYMS",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYMT",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYPM",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYRP",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYRY",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYSW",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYTP",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYUA",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYUH",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYWI",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin NSYWR",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin STACC",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin STF",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin STLOW",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin STREQ",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin SYDT",
+      "passed": true
+    },
+    {
+      "name": "station-override: SystemResults 72-bin SYDTU",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults field inventory",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NBO",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NBOU",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NDD",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NDF",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NDP",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NDR",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NLD",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin NWT",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin PNB",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin ROS",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin ROST",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin WT",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin WTS",
+      "passed": true
+    },
+    {
+      "name": "station-override: StockTotalResults 72-bin WTT",
+      "passed": true
+    },
+    {
+      "name": "station-override: ready two, no active work/wait at horizon",
+      "passed": true
+    }
+  ]
+}

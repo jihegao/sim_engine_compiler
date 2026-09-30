@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-c08-daily-mutilf-contract/v1",
+  "case_id": "C08",
+  "variant_id": "C08.var01",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C07.var04.repeat_nested_two_window.1.0.0",
+  "parent_input_sha256": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+  "input_sha256": {
+    "no-shift-control": "9fab93b5101e77a156f7b04d8d15039fc05ec3c81de965695ff2fd5e46baefcf",
+    "zero-budget": "09c54340d7afbe501e01967ec94276c14f346fbbba3268f3e05378c9ae7d72ec",
+    "finite-budget": "4b08b2ca4469d9f12a601b766607173f22b730837e9839880d712b40d9508322",
+    "station-override": "86e0919d4a4063d95829fcdb26d5a48eb32e912ebfff10536055e9bd795cddc5"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_physical_pages": [414, 416, 417, 419, 423],
+  "model": "Two nominal P-CREW at BASE-01, two aircraft requiring separate two-hour crew-dependent preparation from hour 23.5 for a planned 28-29 formation, one seed and a 36-hour horizon. DRAOS=N. The active ResourceStationData.SHPID link is removed in all variants, leaving shift definition source tables unreferenced; native evidence must verify no active shift behavior. Other configuration stays inherited from accepted C07.var04 explicit input.",
+  "lineage": {
+    "no-shift-control": "Accepted C07 input except SHPID CREW-DAY to null and description.",
+    "zero-budget": "No-shift control except Resource.MUTILF null to 0 and description.",
+    "finite-budget": "No-shift control except Resource.MUTILF null to 0.03125 and description.",
+    "station-override": "Finite-budget input except ResourceStationData.MUTILF null to 1 and description. Resource.MUTILF remains 0.03125."
+  },
+  "pre_run_hypotheses": {
+    "no-shift-control": "With no active shift and default daily utilization 1, both aircraft can prepare continuously from 23.5 to 25.5 and complete the 28-29 formation.",
+    "zero-budget": "A zero daily budget may stop crew-dependent preparation immediately, causing the scheduled mission to fail or cancel; converter acceptance must be checked separately.",
+    "finite-budget": "MUTILF=0.03125 gives 0.75 hour per crew and 1.5 crew-hours for the two-crew pool per 24-hour day. After the hour-24 daily reset, work may stop at 24.75 with 0.75 hour left for each aircraft and stay pending through the 36-hour horizon; exact native events determine whether the 28-29 mission can proceed.",
+    "station-override": "Station MUTILF=1 should override Resource.MUTILF=0.03125 at BASE-01 and restore the no-shift control timing and results."
+  },
+  "acceptance_requires": ["accepted parent and exact per-variant business deltas frozen before native execution", "guarded serial session-0 SSH execution and preservation of GUI PID 13340", "exact native import/export roundtrip of all row-containing source tables", "zero conversion errors and valid nonempty result/report for each positively accepted input", "event proof of actual usage stop or lack of stop and mission/terminal outcome", "resource pool-hour and waiting ledgers with system/stock report bins", "sealed raw artifact hashes and independent read-only replay without author imports"],
+  "limitations": ["This is a fixed-seed, two-aircraft, one-resource, one-station probe with preparation beginning near an elapsed-day boundary.", "A successful result will not establish general daily reset, all MUTILF values, sequential task scheduling, multiple resources/stations, shift/no-shift interactions or cross-engine equivalence."],
+  "publication_state": "not_published"
+}
