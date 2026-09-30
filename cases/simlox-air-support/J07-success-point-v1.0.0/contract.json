@@ -1,0 +1,20 @@
+{
+  "schema": "simlox-j07-success-point-contract/v1",
+  "case_id": "J07",
+  "variant_id": "J07.var04",
+  "version": "1.0.0-candidate",
+  "parent_publication_ids": ["D06.position_direct_cm.1.0.0", "J07.var01.single_aircraft_metric_control.1.0.0", "J07.var02.formation_and_denied_fixed_demand.1.0.0"],
+  "input_sha256": {
+    "full-completion-control": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+    "early-success-point": "8117e6f073104b61fe59a52790d22bcf05b85132e75f1bc5d260652dcf67c1be"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [262, 265, 551, 552, 553],
+  "business_delta": "Copy the accepted D06 position-failure input byte-identically as a control. In the child change MissionType.BASIC-MISSION.MSUCPT from 1 to 0.75 and the descriptive label; keep the one aircraft, failure mode, repair path, schedule at 8/20/32, seed 1, two-hour duration, SIMPE 36 and result windows unchanged. The fixed native failure events in the control occur near 9.8829 and 33.8602; each is after its 0.75 success point at 9.5 or 33.5, but before nominal mission completion at 10 or 34.",
+  "pre_run_hypothesis": "Manual p265 defines MSUCPT as a result-calculation threshold with no direct simulation effect. Both inputs should roundtrip exactly with zero conversion errors. The complete mission at 20-22 succeeds in both. The 8-10 and 32-34 missions in the D06 control abort after failure. If the child preserves the event trajectory, threshold 0.75 may count those aborted missions as successful after reaching 9.5 and 33.5 even though the aircraft does not complete them. Native event and summary output are decisive; do not infer from the field alone. If failure timestamps or availability differ, analyze cause before any publication.",
+  "acceptance_requires": ["accepted D06 parent fingerprint and installed manual/dictionary fingerprints", "two fresh guarded serial session-0 SSH native runs preserving GUI PID 13340", "exact source business row roundtrip and zero conversion errors", "per-mission start, threshold, failure, abort and complete timeline with aircraft states", "System and Stock interval ledgers, global summary metrics and terminal state", "raw SHA closures and separate independent read-only replay without author imports"],
+  "diagnostic_rule": "If the only observed difference is an input field and no native output distinguishes success before completion, retain this as a diagnostic, not a published J07.var04 result. Do not treat a mission still flying at its threshold as a completed mission.",
+  "limitations": ["The D06 mechanism donor has one aircraft and stochastic native failures under one fixed seed; the broader J07 formation prerequisite was separately accepted in J07.var02.", "Partial success J07.var03, unit/group/type aggregation J07.var05, regenerative denominator exclusion, GUI and cross-engine behavior remain unverified."],
+  "publication_state": "not_published"
+}
