@@ -1,0 +1,22 @@
+{
+  "schema": "simlox-c10-resource-failure-contract/v1",
+  "case_id": "C10",
+  "variant_id": "C10.var02",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C03.shared_crew.1.0.2",
+  "parent_input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+  "schema_source_input_sha256": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+  "input_sha256": {
+    "oper-no-spare": "c334c1d6c0efa89f9ff70151a45180cac53b9ae05bf1a783219b566f41dbd62b",
+    "oper-one-spare": "e34ce47cc2d26fa74fb9a90766cfd426caae0ff7b4a7fc75038867762d7b4278"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [221, 412, 416, 417, 754],
+  "source_dictionary_lines": [673, 679],
+  "business_delta": "From accepted C03 two-crew formation, add station-specific P-CREW resource failure data: RMTBF=0.5 hour, RFTT=OPERATION and RMDT=0.25 hour, with no shift. The paired input adds exactly one idle spare crew by changing ResourceAllocation.RQTY from two to three. Descriptions identify provenance; seed 1, both aircraft, half-hour crew-dependent preparation, 8-9 mission, and 36-hour horizon remain unchanged.",
+  "pre_run_hypothesis": "Under operational exposure, failure generation should occur while the crew is working, not during the long idle period. A fixed seed with RMTBF=0.5 may yield one or more failures during the two concurrent 7.5-8.0 preparations, but that is not guaranteed. The spare variant is intended to distinguish replacement by an idle crew from interruption/wait in the two-crew variant. Native events must establish the actual failure times, any active-task stop or replacement, repair completion, mission outcome, and resource/terminal ledgers. If neither run has an informative failure, retain them as diagnostics and do not publish the positive mechanism.",
+  "acceptance_requires": ["accepted C03 parent and dictionary/model-schema fingerprints", "guarded serial session-0 SSH native runs preserving GUI PID 13340", "all row-containing input tables roundtrip exactly", "zero conversion errors and valid nonempty native output/report", "direct resource failure and repair events with operational exposure and comparison of spare versus no spare", "task ownership, crew availability, mission, system, stock and terminal-state ledgers", "sealed local raw artifacts and independent read-only replay"],
+  "limitations": ["One fixed seed, one mean time between failure, one mean downtime and one two-aircraft preparation interval on the installed executable.", "Calendar failure time, off-shift spares, other seeds, GUI visual behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
