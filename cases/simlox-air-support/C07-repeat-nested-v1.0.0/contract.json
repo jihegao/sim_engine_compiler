@@ -1,0 +1,21 @@
+{
+  "schema": "simlox-c07-repeat-nested-contract/v1",
+  "case_id": "C07",
+  "variant_id": "C07.var04",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C07.var03.elapsed_day_boundary.1.0.0",
+  "parent_input_sha256": "b3780ff767af1653372e8dbd3f367f1fef9829b5fbf324cf6f354a19df558046",
+  "input_sha256": {
+    "explicit": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+    "repeated": "32f79158605a426edc80052f1188ec0c65f91d468d10a07ab748b7f0839c053e",
+    "nested": "b8098b71dcec1f2bf49674c0fbbd7c84c36a03b2dc7468af2118c07e7eae3189"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_physical_pages": [418, 419, 420, 421],
+  "business_contract": "From the accepted C07 cross-day DRAOS=N parent, keep two aircraft, two nominal and active P-CREW, two-hour crew-dependent preparation requested at 23.5 for a planned 28-29 mission, and a 36-hour horizon. Change only ShiftProfile and the description. The explicit control uses DAY-OPEN windows 23-25 and 26-28. The repeated candidate uses one DAY-OPEN row STIM23 ETIM25 IQTY2 IINT3, hypothesized to generate the same windows. The nested candidate defines CREW-BLOCK as DAY-OPEN local 1-3 and references CREW-BLOCK from CREW-DAY at start22 with IQTY2 IINT3, hypothesized to generate the same two windows.",
+  "changed_tables_from_parent_each": ["ProblemDescription", "ShiftProfile"],
+  "expected_native_hypothesis": "If repeat and nested expansion work as documented, both aircraft work 23.5-25, pause during 25-26 with 0.5 hour remaining, resume 26-26.5, then complete the 28-29 formation. Resource use should total four crew-hours and waiting two resource-hours. Actual shift expansion, event timing, report ledgers and nested converter acceptance must be established by guarded native runs, not presumed.",
+  "acceptance_requires": ["exact source business-table roundtrip and zero conversion errors for each accepted variant", "nonempty valid event log and report", "explicit generated shift windows", "per-aircraft work, pause/resume, mission and terminal events", "72-bin resource, system and stock ledgers", "comparison of normalized behavior and report tables across accepted variants", "independent read-only replay"],
+  "limitations": ["One first-to-second elapsed-day pair, not automatic calendar/weekly recurrence.", "Nested profile ETIM null on a subprofile reference follows the manual's explicit-shift-only ETIM wording but native converter handling is unverified before the run.", "Overlaps, capacity-limit errors, MAXUT, GUI behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
