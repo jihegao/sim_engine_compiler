@@ -1,0 +1,11 @@
+# J05.var04: nested repeated collection profile
+
+This bounded case compares a `ResultCollectionProfile` subprofile repeated twice with the accepted [J05.var03 direct profile](../J05-profile-snapshot-v1.0.1/README.md). The [contract](contract.json) freezes three inputs: unchanged A01, byte-identical J05.var03 direct control, and a child that changes only [three tables](exact-diff.json). `J05SEG` collects a half-hour continuous interval and a snapshot at its endpoint. `J05TOP` repeats that segment at 7.75 and 9.75 with `IQTY=2` and `IINT=2`.
+
+Fresh guarded session-0 SSH runs passed exact source roundtrip for 13/16/16 populated tables and zero converter errors. All three event logs are byte-identical. Native System output has the same 7.75–8.25 and 9.75–10.25 half-hour averages for direct and nested profiles, while Stock keeps 72 half-hour zero-demand bins. Report-only passes on sealed `.sxo` files expose the same instantaneous replication snapshots at 8.25 and 10.25. The installed report settings and GUI were unchanged; raw runs and a one-byte local settings copy remain ignored under `runs/`.
+
+The [CLI scope sign-off](cli-scope-signoff-2026-10-01.md) records the raw IDs, hashes, numerical ledgers, independent replay, and limits. This case covers one nested subprofile repeated twice. Deeper nesting, overlap/error behavior, MISSION and other result types, GUI display, and cross-engine behavior remain unverified.
+
+## Reproduce on the pinned host
+
+Run `python build.py` to recheck the frozen inputs. In an authenticated session-0 SSH shell, run `run_native_ssh.ps1` serially with `-Variant baseline`, `direct-control`, and `nested-repeat`, each with a fresh run ID. The runner enforces `Global\SimloxIssue18NativeQueue` and GUI PID 13340. Run `python make_report_settings.py` to verify the installed settings fingerprint and create its ignored one-byte copy. Use `report_existing_sxo_ssh.ps1` in the same SSH mode for the two sealed child `.sxo` files with `-SettingsMode replications` and fresh report IDs. Run `python validate.py` and `python review/independent_readonly.py` to replay the published run IDs; changed IDs need a fresh contract and expected-ledger comparison. Never edit the installed `Default.sxs`.
