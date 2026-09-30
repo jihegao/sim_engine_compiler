@@ -1,0 +1,13 @@
+# B05.var03: predefined inspection in one preparation task
+
+This pair derives from published [B02 serial preparation](../B02-serial-preparation-v1.0.2/evidence-2026-09-29.md), parent input SHA-256 `fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34`. The ordinary control retains custom `INSPECT` at preparation SEQ1. The child uses native predefined `<INSPECT>` at the same ten-minute duration; SEQ2 is the same twenty-minute `SERVICE`. Apart from descriptive text, that SEQ1 identifier is the complete pairwise source difference. The built-in ID is referenced directly and is not redefined in `SubTaskType`.
+
+Both guarded native runs perform SEQ1 7–7.16667, SEQ2 7.16667–7.5, launch one mission at 8, complete it successfully at 10 and return the aircraft ready. Their raw `model.log` files are byte identical. `ResultSummary`, all 72 half-hour `SystemResults` bins and all 72 `StockTotalResults` bins are identical; the raw report files differ in `ProblemDescription`. The log calls both versions generic `subtask`, so the built-in identity comes from the frozen input and exact native roundtrip, not from a special log label. This is one deterministic equivalence observation, not a general guarantee for every task type or resource configuration.
+
+Sealed session-0 SSH runs `b05-var03-ordinary-20260930-01` and `b05-var03-predefined-20260930-01` have closure SHA-256 `f8edd2fa92e8dc68e37a87b7f457b9fe644e89baa963424ab9a34eaf2ee14245` / `e47ddd60c4ccba0750ddebacd948a1feedfcb46322eb6f288d82843d2b3fdad4`. Five native steps complete per run, with zero conversion errors, warnings #108/#126, exact roundtrip of 17 populated source tables, the host-wide mutex and GUI PID 13340/session 1 guard. Raw `.sxi`, `.sxo`, logs and reports remain local under ignored `runs/`.
+
+The installed manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`. Printed pages 400–404 say `<INSPECT>` is allowed in all task types and that TaskBreakDown subtasks run in strict sequence with durations overriding the main task time. The [contract](contract.json) and [exact diff](exact-diff.json) were frozen before native execution.
+
+Rebuild with `python build.py` and `python describe_diff.py`; replay local sealed runs with `python validate_native.py` and the independent read-only reviewer. Fresh native execution requires unique run IDs, session-0 SSH, the global Issue #18 mutex and preserved GUI. Other task types, resources, inspection findings, GUI-only behavior and cross-engine parity remain unverified.
+
+The independent [read-only replay](review/independent-readonly-2026-09-30.json) passed 156/156 checks with zero failures and gave GO for this bounded preparation native CLI candidate.

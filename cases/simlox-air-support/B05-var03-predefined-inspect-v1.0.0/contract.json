@@ -1,0 +1,36 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B05",
+  "variant_id": "B05.var03",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "B02.serial_prep.1.0.2",
+  "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "mechanism": "Compare a custom ordinary INSPECT subtask with native predefined <INSPECT> under one identical two-step mission preparation and one successful mission.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [400, 401, 402, 403, 404],
+    "tables": ["MissionPreparation", "Tasks", "SubTaskType", "TaskBreakDown"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "aircraft": "<TEACH-AIR-01,0>",
+    "mission": "BASIC-MISSION",
+    "scheduled_hour": 8,
+    "nominal_duration_hours": 2,
+    "notice_hour": 7,
+    "preparation": "SEQ1 ten-minute ordinary INSPECT control versus built-in <INSPECT> child; SEQ2 twenty-minute SERVICE shared"
+  },
+  "hypotheses_to_test": [
+    "The built-in <INSPECT> reference resolves directly without duplicate SubTaskType definition and converts with zero errors.",
+    "Both variants perform positive ten-minute SEQ1 then twenty-minute SEQ2, launch at 8, succeed at 10 and return ready.",
+    "Native event identities, duration, all report bins and terminal state reconcile with the exact pairwise source delta.",
+    "All populated source tables roundtrip exactly, native outputs are nonempty, raw artifacts are sealed, and GUI/mutex guards hold."
+  ],
+  "limits": [
+    "This tests one mission-preparation use of <INSPECT>; other task categories, resources and inspection findings are unverified.",
+    "An ordinary custom INSPECT ID is not the same native identifier as <INSPECT>.",
+    "GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
