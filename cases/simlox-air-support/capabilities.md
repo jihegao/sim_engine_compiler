@@ -1,6 +1,6 @@
 # Capability index
 
-The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](catalog-v2.json) are frozen planning snapshots: 108 cases, 579 named variants and 133 mapped input tables do not mean those scopes are published. The [publication index](publication-index-v1.json) lists **59 accepted bounded CLI scopes covering 32 distinct case IDs** as of 2026-09-30. Each linked sign-off or evidence report defines the verified behavior and limits. Full manual-method coverage, GUI-specific behavior and cross-engine equivalence require their own evidence. The [manual coverage](manual-coverage-v2.json) and [findings](known-issues/manual-review-v2.md) retain the broader unverified methods and source conflicts.
+The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](catalog-v2.json) are frozen planning snapshots: 108 cases, 579 named variants and 133 mapped input tables do not mean those scopes are published. The [publication index](publication-index-v1.json) lists **60 accepted bounded CLI scopes covering 33 distinct case IDs** as of 2026-09-30. Each linked sign-off or evidence report defines the verified behavior and limits. Full manual-method coverage, GUI-specific behavior and cross-engine equivalence require their own evidence. The [manual coverage](manual-coverage-v2.json) and [findings](known-issues/manual-review-v2.md) retain the broader unverified methods and source conflicts.
 
 | Need | Smallest accepted scope | Evidence and important limit |
 | --- | --- | --- |
@@ -21,6 +21,7 @@ The [progressive catalog v2](progressive-catalog-v2.md) and [machine catalog](ca
 | Two explicit units supplying a formation | [A17](A17-multi-unit-group-v1.0.0/cli-scope-signoff-2026-09-29.md) | One aircraft from each unit; selection priority and transfer remain unverified. |
 | Fixed and serial mission preparation | [B01](B01-fixed-preparation-v1.0.1/evidence-2026-09-29.md), [B02](B02-serial-preparation-v1.0.2/evidence-2026-09-29.md) | Fixed preparation and explicit ordered 10/20-minute work. |
 | Different cold and hot preparation | [B03](B03-explicit-cold-hot-v1.0.2/evidence-2026-09-29.md) | Explicit mission types select the recipe; no automatic sortie-history switch. |
+| Cross-midnight post-flight turnround delaying the next mission | [B04 bounded pair](B04-cross-midnight-turnround-v1.0.1/cli-scope-signoff-2026-09-30.md) | One-hour turnround runs 23.5–24.5; second allocation waits until 24.5 and launch moves from control 24.75 to 25. Both missions succeed; resource waiting and other boundaries unverified. |
 | Personnel and equipment capacity | [C01](C01-personnel-capacity-v1.0.2/evidence-2026-09-29.md), [C02](C02-joint-resources-v1.0.2/evidence-2026-09-29.md) | Specialty/quantity controls and one joint crew-device request. |
 | Two aircraft sharing preparation crew | [C03](C03-shared-crew-formation-v1.0.2/evidence-2026-09-29.md) | Capacity two, one and zero in one fixed formation. |
 | Fixed formation cutoff and cancellation cleanup | [C04](C04-deadline-cancellation-v1.0.0/evidence-2026-09-29.md) | Five accepted CLI runs; its short-horizon waiting probe failed and remains unpublished. |
