@@ -1,0 +1,3 @@
+# A13.var04 v1.0.0 static diagnostic — NO-GO
+
+The [independent pre-run review](review/pre-run-2026-10-01.md) rejected this frozen candidate. RECON retains `MSUCPT=0.25`, which places its internal success point at hour 9 in the planned 8–12 mission. The proposed failure near hour 9.8829 might therefore occur after success, so the source cannot isolate a failed START precedent. No native v1.0.0 run was started. This package is not published; the corrected source is in [v1.0.1](../A13-var04-failed-precedent-v1.0.1/README.md), and the accepted result is in [v1.0.2](../A13-var04-failed-precedent-v1.0.2/cli-scope-signoff-2026-10-01.md).

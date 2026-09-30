@@ -1,0 +1,478 @@
+{
+  "schema": "simlox-air-support-exact-table-diff/v1",
+  "parent_sha256": "954e40c17ba0f34f041c405076195fa2d1ac8b471d65e7de4b441e51fa8a5246",
+  "variants": {
+    "failure-control": {
+      "input_sha256": "7494c4b977702dd80b2ceca221957ddd44a00ba18ca47346da7775bfeff28864",
+      "changed_tables": {
+        "ProblemDescription": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "A13 paired two-aircraft START dependence; predecessor returns at 12"
+                ]
+              ]
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "A13 failed fixed RECON predecessor without START row"
+                ]
+              ]
+            }
+          ]
+        },
+        "System": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "TEACH-AIR-01",
+                  "Generic teaching aircraft",
+                  null,
+                  0,
+                  "OPHOURS",
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "TEACH-AIR-01",
+                  "Generic teaching aircraft",
+                  null,
+                  300000,
+                  "OPHOURS",
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ]
+        },
+        "SystemRepair": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": []
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "TEACH-AIR-01",
+                  "BASE-01",
+                  0.5,
+                  0.0,
+                  1.0,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ]
+        },
+        "MissionType": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "RECON",
+                  "Four-hour fixed predecessor",
+                  1,
+                  1,
+                  null,
+                  4.0,
+                  null,
+                  0.25,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                [
+                  "FOLLOW",
+                  "Two-hour fixed dependent",
+                  1,
+                  1,
+                  null,
+                  2.0,
+                  null,
+                  1.0,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "RECON",
+                  "Four-hour fixed predecessor",
+                  1,
+                  1,
+                  null,
+                  4.0,
+                  null,
+                  0.25,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                [
+                  "FOLLOW",
+                  "Two-hour fixed dependent",
+                  1,
+                  1,
+                  null,
+                  2.0,
+                  null,
+                  1.0,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  1e-06,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ]
+        },
+        "MissionDependence": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "TEACH-UNIT",
+                  "FOLLOW",
+                  10.0,
+                  "TEACH-UNIT",
+                  "RECON",
+                  8.0,
+                  "START",
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": []
+            }
+          ]
+        }
+      },
+      "unchanged_tables": [
+        "Control",
+        "ControlParameters",
+        "GlobalParameters",
+        "Item",
+        "ItemReorder",
+        "ItemRepair",
+        "ItemReplacement",
+        "ItemStructure",
+        "MaterielPM",
+        "MissionPreparation",
+        "OperationParameter",
+        "OperationProfile",
+        "Operations",
+        "PMLocation",
+        "Resource",
+        "ResourceAllocation",
+        "ResultCollection",
+        "Station",
+        "StationStructure",
+        "StockAllocation",
+        "SubTaskResource",
+        "SubTaskType",
+        "SystemDeployment",
+        "TaskBreakDown",
+        "TaskResource",
+        "Tasks",
+        "Unit"
+      ]
+    },
+    "failure-dependency": {
+      "input_sha256": "d2edc75628829eeb9ded72d78723084e222996f20915c0bdf5ce3945bdb6cbc5",
+      "changed_tables": {
+        "ProblemDescription": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "A13 paired two-aircraft START dependence; predecessor returns at 12"
+                ]
+              ]
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "A13 failed fixed RECON predecessor with START-dependent FOLLOW"
+                ]
+              ]
+            }
+          ]
+        },
+        "System": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "TEACH-AIR-01",
+                  "Generic teaching aircraft",
+                  null,
+                  0,
+                  "OPHOURS",
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "TEACH-AIR-01",
+                  "Generic teaching aircraft",
+                  null,
+                  300000,
+                  "OPHOURS",
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ]
+        },
+        "SystemRepair": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": []
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "TEACH-AIR-01",
+                  "BASE-01",
+                  0.5,
+                  0.0,
+                  1.0,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ]
+        },
+        "MissionType": {
+          "before": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "RECON",
+                  "Four-hour fixed predecessor",
+                  1,
+                  1,
+                  null,
+                  4.0,
+                  null,
+                  0.25,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                [
+                  "FOLLOW",
+                  "Two-hour fixed dependent",
+                  1,
+                  1,
+                  null,
+                  2.0,
+                  null,
+                  1.0,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "after": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "RECON",
+                  "Four-hour fixed predecessor",
+                  1,
+                  1,
+                  null,
+                  4.0,
+                  null,
+                  0.25,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                [
+                  "FOLLOW",
+                  "Two-hour fixed dependent",
+                  1,
+                  1,
+                  null,
+                  2.0,
+                  null,
+                  1.0,
+                  0.25,
+                  0.25,
+                  null,
+                  1,
+                  1.0,
+                  1e-06,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "unchanged_tables": [
+        "Control",
+        "ControlParameters",
+        "GlobalParameters",
+        "Item",
+        "ItemReorder",
+        "ItemRepair",
+        "ItemReplacement",
+        "ItemStructure",
+        "MaterielPM",
+        "MissionDependence",
+        "MissionPreparation",
+        "OperationParameter",
+        "OperationProfile",
+        "Operations",
+        "PMLocation",
+        "Resource",
+        "ResourceAllocation",
+        "ResultCollection",
+        "Station",
+        "StationStructure",
+        "StockAllocation",
+        "SubTaskResource",
+        "SubTaskType",
+        "SystemDeployment",
+        "TaskBreakDown",
+        "TaskResource",
+        "Tasks",
+        "Unit"
+      ]
+    }
+  }
+}
