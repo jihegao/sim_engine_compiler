@@ -1,0 +1,25 @@
+{
+  "case_id": "G03",
+  "version": "1.0.0-candidate",
+  "scope": "effective BSID inherited/additional/excluded item evidence from fixed-seed traditional LRU failures",
+  "parents": {
+    "add": {"case": "G03-base-variant-structure-v1.0.1", "sha256": "82e7b380402fc1e91afa3ffb104b6e99220094cf2fe3139a6c13a74e4a6327ad"},
+    "exclude": {"case": "G03-base-variant-structure-v1.0.1", "sha256": "79622dcc60d7172b3d09812f82e581d2e8a9f779790f24ab236508916a3875c2"},
+    "repair_method": {"case": "D01-installed-lru-direct-repair-v1.0.0", "sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93"}
+  },
+  "parameters": {"seed": "1", "horizon_hours": 36, "report_interval_hours": 0.5, "scheduled_missions_hours": [8, 20, 32], "duration_hours": 2, "positive_item_frt_per_million_ophours": 300000, "other_item_frt": 0, "local_spares_of_positive_item": 1, "system_repair_hours": 0.5, "item_repair_hours": 1},
+  "inputs_sha256": {
+    "base-control": "246449c7aeb1866bb73cdd73e810dc2da8b1fd7ffdb804742b72f6c3a7bc63b5",
+    "add-inherited": "6c8f06d94422bbafe901c44712e1a47a43582048cb5e6e5ff67b16cd820c38b9",
+    "add-extra": "c12e1ae3ddb58e0daa4432e243e547b1fd4a174244dff93861ba86b84679f497",
+    "exclude-base": "5599a24ad957b967bae70d857944773e218b10820f2046213297945c19f19148"
+  },
+  "pre_run_hypotheses": [
+    "base-control produces a TEACH-LRU-BASE failure under the D01 fixed seed and positive OPHOURS FRT",
+    "add-inherited produces a TEACH-LRU-BASE failure while TEACH-VAR-ADD is deployed, demonstrating propagation from BSID base",
+    "add-extra produces a TEACH-LRU-ADD failure while TEACH-VAR-ADD is deployed, demonstrating variant addition",
+    "exclude-base produces no TEACH-LRU-BASE failure under identical positive base-item FRT and seed, and native event logging schedules no finite next random failure, supporting QTYPM=0 exclusion relative to base-control"
+  ],
+  "acceptance": ["all four inputs preserve source rows after native import/export and convert with zero errors", "positive branches identify the expected item in individual failure events and inventory/repair ledgers", "excluded branch operates missions without a base-item failure and logs no finite next random failure, while base control has a finite clock and fails", "report and terminal states reconcile with event logs"],
+  "limits": ["failure absence alone is not proof of item exclusion at a single seed", "a single deterministic seed and failure rate do not prove all stochastic paths", "GUI rendering and cross-engine parity unverified", "A16 CBSID reconfiguration is separate"]
+}
