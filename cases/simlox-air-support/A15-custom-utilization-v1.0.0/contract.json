@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A15",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "A01.normal.1.0.0",
+  "parent_input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+  "mechanism": "Compare equal custom KM exposure on one two-hour BASIC-MISSION using MissionTypeUtilization at 60 KM per hour versus 120 KM per mission.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [183, 184, 267, 268, 269, 270],
+    "tables": ["OperationParameter", "MissionTypeUtilization", "MissionType", "ResultCollection"]
+  },
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "mission": "BASIC-MISSION",
+    "scheduled_hour": 8,
+    "mission_hours": 2,
+    "custom_OPID": "KM",
+    "per_hour": {"UTIL": 60, "UTILU": "1/HOUR"},
+    "per_mission": {"UTIL": 120, "UTILU": "1/MISSION"}
+  },
+  "hypotheses_to_test": [
+    "Both custom OperationParameter and MissionTypeUtilization variants import/export and convert without errors.",
+    "Both variants complete one successful 8–10 mission and report the same per-system custom KM SOACC total of 120.",
+    "Native report bins and event timing reconcile with the frozen pairwise source delta; any partial-mission claim requires separate evidence.",
+    "All 14 row-containing source tables, including two all-null placeholders, roundtrip exactly; raw artifacts are sealed and GUI/mutex guards hold."
+  ],
+  "limits": [
+    "KM is a user label for abstract custom-operation units, not a physically validated distance measurement.",
+    "One aircraft and one full fixed mission only; fleet aggregation, partial missions, failure/PM exposure, custom clocks and other seeds remain unverified.",
+    "GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
