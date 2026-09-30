@@ -1,0 +1,23 @@
+{
+  "schema": "simlox-c10-mission-resource-failure-window-contract/v1",
+  "case_id": "C10",
+  "variant_id": "C10.var05",
+  "version": "1.0.1-candidate",
+  "parent_publication_id": "C05.mission_resource_capacity.1.0.0",
+  "parent_input_sha256": "d2ea6e874eff82f1e50f271051010985c28adfba7aab94d2a0a0b343b989e865",
+  "schema_source_input_sha256": "e585322b00f7697c2a4e37b5844ffb031b376fcf5756c52d0f146375f9d9a30e",
+  "input_sha256": {
+    "five-hour-control": "cd3a757cda6464584a8edd4542533019068551fc8bab47e6fe0058cb3785a00c",
+    "five-hour-failure": "876abeefe8bea39458bc93f3f809c88e9c97e03adf47cbbeff607f994f543396"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [221],
+  "source_dictionary_lines": [673, 679],
+  "business_delta": "From accepted C05 capacity-2, change MissionType description and DURN from 2 to 5 hours in both children, retaining scheduled start 8, two mission crew, two aircraft, seed 1 and 36-hour horizon. The failure child adds only ResourceStationData for MISSION-CREW at BASE-01 with RMTBF=3, RFTT=OPERATION and RMDT=.25, plus provenance description.",
+  "prior_diagnostic": "Frozen two-hour child c10-mission-crew-failure-20260930-01 converted and ran without an in-flight crew failure; at launch its next logged failure times were beyond the hour-10 mission end. Its input and raw run remain local diagnostics, excluded from this candidate's positive evidence.",
+  "pre_run_hypothesis": "The five-hour control should complete normally. The failure child provides a longer 8-13 in-flight window for an assigned-crew failure; the prior diagnostic logged next failure times 11.655 and 12.025 after launch, but altered duration can change draws. Native events must establish an actual in-flight failure, abort/return path, formation outcome, repair and terminal ledgers. If no in-flight failure occurs, retain both runs as diagnostics and do not publish a positive mechanism.",
+  "acceptance_requires": ["accepted C05 parent and source fingerprints", "both new children through guarded serial session-0 SSH preserving GUI PID 13340", "all row-containing source tables roundtrip exactly and zero conversion errors", "same-window control succeeds and failure child directly logs crew failure while assigned on mission, aircraft return/abort and formation outcome", "mission/resource/system/stock/terminal ledgers", "sealed raw artifacts and independent read-only replay"],
+  "limitations": ["One seed, five-hour formation and MTBF/MDT setting on the installed executable.", "Other mission resource types, probability law, GUI behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
