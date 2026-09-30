@@ -1,0 +1,3 @@
+# A13.var04 unfinished-precedent v1.0.0 — static NO-GO
+
+This candidate shortens `Control.SIMPE/RCEND` to hour 11 but leaves the inherited explicit MISSION and SYSTEM `ResultCollection.RCEND` at hour 24. Its [independent pre-run review](review/pre-run-2026-10-01.md) rejected the frozen 22-bin report gate before any native execution. It is retained as an unpublished source diagnostic. The corrected report windows are in [v1.0.1](../A13-var04-unfinished-precedent-v1.0.1/README.md); the later [v1.0.2 sign-off](../A13-var04-unfinished-precedent-v1.0.2/cli-scope-signoff-2026-10-01.md) covers only converter rejection.
