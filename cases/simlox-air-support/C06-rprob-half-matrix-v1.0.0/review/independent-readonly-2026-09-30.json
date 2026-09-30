@@ -1,0 +1,3977 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "C06.var04.rprob_half_matrix",
+  "review_date": "2026-09-30",
+  "passed": true,
+  "check_count": 968,
+  "passed_count": 968,
+  "failures": [],
+  "decision": "GO_bounded_twelve_seed_observed_patterns",
+  "observed_patterns": {
+    "seed-01": "ND",
+    "seed-02": "DN",
+    "seed-03": "ND",
+    "seed-04": "DN",
+    "seed-05": "NN",
+    "seed-06": "DD",
+    "seed-07": "NN",
+    "seed-08": "ND",
+    "seed-09": "DN",
+    "seed-10": "NN",
+    "seed-11": "DD",
+    "seed-12": "NN"
+  },
+  "accepted_scope": "In twelve fixed RPROB=0.5 native runs with both resource capacities zero, each aircraft's observed typed-demand/work trace is classified N (no typed resource need, 20-minute preparation completes) or D (both resource tests fail and preparation waits). All four NN/ND/DN/DD patterns appear. NN launches at 8 and succeeds at 9; mixed patterns cancel at 9 after one preparation completes; DD cancels at 8.66667. All runs end with two ready aircraft, zero typed resource allocation/use, and zero stock events.",
+  "metric_interpretation": "Generic 'books resources' text on an N subtask does not establish P-CREW or P-ALT allocation. Typed resource event lines and NR/NRUM/NRMA/NRMO are zero. ResourceResults.NRW reports waiting demand, not booked work; the exact 72-bin waiting and SystemResults.NSYMP/NSYMO ledgers are checked for each seed.",
+  "limits": [
+    "Twelve fixed seeds show observed pattern coverage only; they do not establish a 0.5 Bernoulli law, independent per-aircraft sampling, or random-stream stability.",
+    "Both resource capacities are zero, so interactions with available resources remain untested.",
+    "INSPECT identity is source/roundtrip bound; the native event log uses generic subtask labels.",
+    "SSH/GUI/queue continuity is replayed from sealed metadata; this reviewer did not rerun or observe native SIMLOX live."
+  ],
+  "checks": [
+    {
+      "name": "evidence index identity and twelve unique entries",
+      "passed": true
+    },
+    {
+      "name": "evidence index manual and native fingerprints",
+      "passed": true
+    },
+    {
+      "name": "contract identity and accepted RPROB-one parent",
+      "passed": true
+    },
+    {
+      "name": "manual fingerprint/pages",
+      "passed": true
+    },
+    {
+      "name": "frozen unpublished candidate",
+      "passed": true
+    },
+    {
+      "name": "frozen source change scope",
+      "passed": true
+    },
+    {
+      "name": "unique 31-table parent",
+      "passed": true
+    },
+    {
+      "name": "seed-01: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-01: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact parent delta",
+      "passed": true,
+      "detail": [
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-01: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-01: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-01: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-01: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-01: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-01: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-01: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-01: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-01: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-01: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-01: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-01: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-01: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-01: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-01: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-01: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-01: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-01: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-01: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-01: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-01: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "ND"
+    },
+    {
+      "name": "seed-01: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-01: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-01: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-01: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-01: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-01: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-01: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-01: aircraft 0 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-01: aircraft 0 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-01: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-01: aircraft 1 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-01: aircraft 1 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-01: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-01: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-01: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-01: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-01: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-01: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-01: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-01: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-01: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-01: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-01: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-02: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-02: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-02: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-02: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-02: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-02: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-02: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-02: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-02: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-02: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-02: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-02: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-02: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-02: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-02: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-02: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-02: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-02: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-02: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-02: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-02: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-02: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-02: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "DN"
+    },
+    {
+      "name": "seed-02: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-02: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-02: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-02: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-02: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-02: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-02: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-02: aircraft 0 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-02: aircraft 0 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-02: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-02: aircraft 1 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-02: aircraft 1 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-02: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-02: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-02: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-02: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-02: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-02: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-02: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-02: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-02: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-02: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-02: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-03: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-03: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-03: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-03: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-03: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-03: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-03: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-03: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-03: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-03: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-03: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-03: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-03: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-03: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-03: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-03: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-03: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-03: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-03: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-03: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-03: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-03: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-03: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "ND"
+    },
+    {
+      "name": "seed-03: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-03: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-03: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-03: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-03: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-03: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-03: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-03: aircraft 0 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-03: aircraft 0 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-03: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-03: aircraft 1 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-03: aircraft 1 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-03: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-03: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-03: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-03: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-03: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-03: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-03: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-03: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-03: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-03: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-03: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-04: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-04: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-04: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-04: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-04: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-04: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-04: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-04: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-04: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-04: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-04: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-04: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-04: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-04: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-04: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-04: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-04: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-04: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-04: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-04: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-04: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-04: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-04: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "DN"
+    },
+    {
+      "name": "seed-04: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-04: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-04: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-04: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-04: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-04: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-04: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-04: aircraft 0 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-04: aircraft 0 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-04: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-04: aircraft 1 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-04: aircraft 1 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-04: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-04: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-04: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-04: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-04: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-04: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-04: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-04: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-04: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-04: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-04: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-05: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-05: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-05: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-05: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-05: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-05: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-05: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-05: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-05: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-05: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-05: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-05: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-05: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-05: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-05: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-05: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-05: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-05: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-05: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-05: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-05: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-05: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-05: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "NN"
+    },
+    {
+      "name": "seed-05: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-05: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-05: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-05: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-05: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-05: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-05: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-05: aircraft 0 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-05: aircraft 0 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-05: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-05: aircraft 1 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-05: aircraft 1 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-05: successful 8-9 mission",
+      "passed": true
+    },
+    {
+      "name": "seed-05: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-05: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-05: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-05: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-05: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-05: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-05: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-05: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-05: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-05: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-06: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-06: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-06: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-06: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-06: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-06: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-06: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-06: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-06: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-06: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-06: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-06: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-06: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-06: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-06: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-06: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-06: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-06: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-06: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-06: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-06: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-06: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-06: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "DD"
+    },
+    {
+      "name": "seed-06: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-06: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-06: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-06: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-06: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-06: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-06: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-06: aircraft 0 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-06: aircraft 0 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-06: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-06: aircraft 1 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-06: aircraft 1 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-06: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-06: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-06: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-06: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-06: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-06: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-06: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-06: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-06: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-06: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-06: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-07: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-07: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-07: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-07: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-07: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-07: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-07: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-07: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-07: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-07: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-07: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-07: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-07: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-07: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-07: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-07: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-07: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-07: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-07: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-07: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-07: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-07: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-07: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "NN"
+    },
+    {
+      "name": "seed-07: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-07: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-07: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-07: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-07: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-07: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-07: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-07: aircraft 0 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-07: aircraft 0 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-07: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-07: aircraft 1 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-07: aircraft 1 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-07: successful 8-9 mission",
+      "passed": true
+    },
+    {
+      "name": "seed-07: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-07: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-07: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-07: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-07: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-07: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-07: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-07: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-07: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-07: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-08: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-08: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-08: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-08: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-08: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-08: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-08: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-08: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-08: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-08: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-08: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-08: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-08: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-08: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-08: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-08: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-08: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-08: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-08: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-08: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-08: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-08: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-08: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "ND"
+    },
+    {
+      "name": "seed-08: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-08: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-08: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-08: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-08: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-08: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-08: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-08: aircraft 0 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-08: aircraft 0 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-08: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-08: aircraft 1 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-08: aircraft 1 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-08: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-08: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-08: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-08: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-08: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-08: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-08: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-08: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-08: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-08: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-08: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-09: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-09: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-09: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-09: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-09: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-09: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-09: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-09: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-09: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-09: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-09: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-09: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-09: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-09: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-09: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-09: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-09: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-09: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-09: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-09: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-09: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-09: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-09: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "DN"
+    },
+    {
+      "name": "seed-09: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-09: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-09: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-09: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-09: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-09: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-09: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-09: aircraft 0 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-09: aircraft 0 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-09: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-09: aircraft 1 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-09: aircraft 1 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-09: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-09: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-09: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-09: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-09: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-09: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-09: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-09: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-09: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-09: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-09: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-10: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-10: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-10: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-10: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-10: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-10: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-10: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-10: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-10: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-10: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-10: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-10: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-10: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-10: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-10: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-10: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-10: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-10: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-10: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-10: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-10: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-10: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-10: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "NN"
+    },
+    {
+      "name": "seed-10: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-10: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-10: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-10: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-10: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-10: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-10: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-10: aircraft 0 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-10: aircraft 0 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-10: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-10: aircraft 1 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-10: aircraft 1 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-10: successful 8-9 mission",
+      "passed": true
+    },
+    {
+      "name": "seed-10: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-10: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-10: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-10: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-10: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-10: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-10: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-10: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-10: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-10: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-11: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-11: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-11: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-11: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-11: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-11: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-11: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-11: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-11: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-11: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-11: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-11: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-11: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-11: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-11: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-11: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-11: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-11: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-11: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-11: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-11: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-11: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-11: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "DD"
+    },
+    {
+      "name": "seed-11: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-11: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-11: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-11: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-11: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-11: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-11: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-11: aircraft 0 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-11: aircraft 0 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-11: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-11: aircraft 1 failed primary and alternative tests",
+      "passed": true
+    },
+    {
+      "name": "seed-11: aircraft 1 waiting stopped at cancellation",
+      "passed": true
+    },
+    {
+      "name": "seed-11: finite-deadline cancellation and no launch",
+      "passed": true
+    },
+    {
+      "name": "seed-11: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-11: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-11: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-11: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-11: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-11: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-11: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-11: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-11: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-11: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "seed-12: unique 31-table source",
+      "passed": true
+    },
+    {
+      "name": "seed-12: frozen input and run copy SHA",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact parent delta",
+      "passed": true,
+      "detail": [
+        "Control",
+        "ProblemDescription",
+        "SubTaskResource"
+      ]
+    },
+    {
+      "name": "seed-12: only expected tables differ",
+      "passed": true
+    },
+    {
+      "name": "seed-12: all other parent tables exact",
+      "passed": true
+    },
+    {
+      "name": "seed-12: description seed tag",
+      "passed": true
+    },
+    {
+      "name": "seed-12: RPROB half with zero resource capacities",
+      "passed": true
+    },
+    {
+      "name": "seed-12: explicit frozen seed and one replication",
+      "passed": true
+    },
+    {
+      "name": "seed-12: fixed INSPECT and schedule retained",
+      "passed": true
+    },
+    {
+      "name": "seed-12: invocation identity/source",
+      "passed": true
+    },
+    {
+      "name": "seed-12: session-zero SSH and mutex",
+      "passed": true
+    },
+    {
+      "name": "seed-12: GUI identity preserved",
+      "passed": true
+    },
+    {
+      "name": "seed-12: source/runtime seals before/after",
+      "passed": true
+    },
+    {
+      "name": "seed-12: invocation/closure seal",
+      "passed": true
+    },
+    {
+      "name": "seed-12: complete raw inventory",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal report-export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal roundtrip-validation.json",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal import.log",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal model.log",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal model.sxo",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal run.log",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal report-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal roundtrip-raw.json",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal input.json",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal export.log",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal model.sxi",
+      "passed": true
+    },
+    {
+      "name": "seed-12: raw seal steps.json",
+      "passed": true
+    },
+    {
+      "name": "seed-12: five successful ordered steps",
+      "passed": true
+    },
+    {
+      "name": "seed-12: native commands match invocation",
+      "passed": true
+    },
+    {
+      "name": "seed-12: ordered step timestamps",
+      "passed": true
+    },
+    {
+      "name": "seed-12: 20 row-containing source tables",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip Control",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip ControlParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip GlobalParameters",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip MissionPreparation",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip MissionType",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip OperationParameter",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip OperationProfile",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip Operations",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip ProblemDescription",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip Resource",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip ResourceAllocation",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip ResultCollection",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip Station",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip SubTaskResource",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip SubTaskType",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip System",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip SystemDeployment",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip TaskBreakDown",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip Tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact native roundtrip Unit",
+      "passed": true
+    },
+    {
+      "name": "seed-12: 31-form import/export complete",
+      "passed": true
+    },
+    {
+      "name": "seed-12: zero conversion errors and two known warnings",
+      "passed": true
+    },
+    {
+      "name": "seed-12: report generation complete",
+      "passed": true
+    },
+    {
+      "name": "seed-12: observed per-aircraft pattern",
+      "passed": true,
+      "detail": "NN"
+    },
+    {
+      "name": "seed-12: index identity and original local path",
+      "passed": true
+    },
+    {
+      "name": "seed-12: index raw byte fingerprints",
+      "passed": true
+    },
+    {
+      "name": "seed-12: index outcome inferred from log",
+      "passed": true
+    },
+    {
+      "name": "seed-12: one two-aircraft mission assigned",
+      "passed": true
+    },
+    {
+      "name": "seed-12: zero initial and typed resource allocation",
+      "passed": true
+    },
+    {
+      "name": "seed-12: generic books count tracks no-demand tasks",
+      "passed": true
+    },
+    {
+      "name": "seed-12: aircraft 0 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-12: aircraft 0 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-12: aircraft 0 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-12: aircraft 1 preparation start",
+      "passed": true
+    },
+    {
+      "name": "seed-12: aircraft 1 no typed demand and fixed work",
+      "passed": true
+    },
+    {
+      "name": "seed-12: aircraft 1 completes at 7.83333",
+      "passed": true
+    },
+    {
+      "name": "seed-12: successful 8-9 mission",
+      "passed": true
+    },
+    {
+      "name": "seed-12: terminal two ready aircraft",
+      "passed": true
+    },
+    {
+      "name": "seed-12: six report tables and structural parse",
+      "passed": true
+    },
+    {
+      "name": "seed-12: 72 complete half-hour bins",
+      "passed": true
+    },
+    {
+      "name": "seed-12: mission summary matches pattern",
+      "passed": true
+    },
+    {
+      "name": "seed-12: resource total zero stock/use, expected waiting",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact NRW waiting ledger over all 72 bins",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact NSYMP preparation ledger over all bins",
+      "passed": true
+    },
+    {
+      "name": "seed-12: exact NSYMO mission operation ledger",
+      "passed": true
+    },
+    {
+      "name": "seed-12: zero typed resource stock/use every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-12: zero stock events every bin",
+      "passed": true
+    },
+    {
+      "name": "seed-12: terminal inventory, waiting and readiness",
+      "passed": true
+    },
+    {
+      "name": "seed-12: assignment/return report boundary",
+      "passed": true
+    },
+    {
+      "name": "all four observed patterns represented",
+      "passed": true
+    }
+  ]
+}
