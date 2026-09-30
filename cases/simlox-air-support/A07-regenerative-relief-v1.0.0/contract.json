@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A07",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A02",
+    "package": "../A02-single-aircraft-repeated-missions",
+    "input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8"
+  },
+  "native_input_sha256": "fed4f8343d203fc250d8b3508f3f5f9fe76ecbd1a86646d5965531d246b89240",
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [91, 179, 180, 181, 182, 271, 273, 274, 275, 795, 964],
+    "interpretation": "REGENERATIVE is an OperationProfile initiation type for a fixed mission; successor sub-missions start before the predecessor's on-station phase ends so their on-station coverage can meet. IQTY and IQTYD must be empty."
+  },
+  "exact_delta": [
+    "SystemDeployment.QTYPS changes 1 to 2 and Unit.DESCR changes only a label.",
+    "MissionType.DURN changes 2 to 4 hours and MissionType.DESCR changes only a label; MPAT remains the parent's default FIXED, NOS=MNOS=1, TFOUT=TFRET=0.25, NOPER=1.",
+    "Three A02 scheduled OperationProfile rows at 8, 20 and 32 are replaced by one REGENERATIVE row at 8 with IPER=8, IQTY/IQTYD/DTIM empty.",
+    "ProblemDescription.PDESC changes a descriptive label. All 26 other source tables remain identical, including zero failure rate, seed and report horizon."
+  ],
+  "configuration": {
+    "regeneration_start_hour": 8,
+    "regeneration_period_hours": 8,
+    "mission_duration_hours": 4,
+    "outbound_fraction": 0.25,
+    "return_fraction": 0.25,
+    "mission_desired_aircraft": 1,
+    "mission_minimum_aircraft": 1,
+    "deployed_aircraft": 2,
+    "simulation_and_report_end_hour": 36,
+    "result_interval_hours": 0.5,
+    "seed": "1",
+    "failures_enabled": false
+  },
+  "hand_timeline_hypothesis": {
+    "nominal_sub_mission_starts_hours": [8, 10, 12, 14],
+    "nominal_outbound_arrivals_hours": [9, 11, 13, 15],
+    "nominal_predecessor_return_starts_hours": [11, 13, 15],
+    "coverage_hypothesis": "Continuous on-station coverage from hour 9 to 15 if the fourth final sub-mission starts at 14 and immediately returns after reaching station. The native event order and terminal truncation decide whether that final zero-on-station sub-mission actually occurs."
+  },
+  "predeclared_native_acceptance": [
+    "One immutable guarded session-0 SSH run with host-wide mutex, GUI PID 13340 identity guard, source/raw SHA-256 seals, four CLI steps and exact row-containing source roundtrip.",
+    "Zero conversion errors; classify warnings. If the native converter rejects the fixed-mission regenerative profile, preserve the sealed probe and publish only the capability limit with its exact error code.",
+    "Require at least two distinct, successful, overlapping sub-missions with ordered OUT, ON STATION and BACK phases. Compare actual notification, departure, arrival, return and successor timestamps to the hand timeline; investigate any difference rather than changing the expected values retroactively.",
+    "Reconcile every event to 72 aligned half-hour system and stock bins, mission/system operating integrals, zero failure, repair and inventory activity, and two-aircraft terminal readiness. Check that child missions and report intervals have finite counts.",
+    "An independent read-only reviewer replays source delta and raw artifacts without importing the author validator."
+  ],
+  "limits": [
+    "One fixed mission template, one no-failure seed and a nondegenerate eight-hour regeneration period; failure-driven early relief, zero on-station time and resource shortage require separate variants.",
+    "The manual's initiation and phase rules are source expectations, while the exact successor event order remains subject to native observation. GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
