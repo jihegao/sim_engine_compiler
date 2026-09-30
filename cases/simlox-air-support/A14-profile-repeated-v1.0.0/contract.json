@@ -1,0 +1,64 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A14",
+  "variant_id": "A14.var06",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "A14.var01",
+    "package": "../A14-continuous-end-abort-v1.0.1",
+    "input_sha256": "f81445ad2daba09321e7a55ad67c5355b7e4a14ec3a58bbf10fbfcd18b343376",
+    "signoff": "../A14-continuous-end-abort-v1.0.1/cli-scope-signoff-2026-10-01.md"
+  },
+  "profile_donor": {
+    "case_id": "A09",
+    "package": "../A09-hierarchical-operation-profile-v1.0.1",
+    "input_sha256": "e795c5fcf563f8e42ab9e9cb161a925bec3b06157cbbecde7901e99bfec91d85",
+    "signoff": "../A09-hierarchical-operation-profile-v1.0.1/cli-scope-signoff-2026-09-29.md"
+  },
+  "requires": ["A05", "A09", "A13", "A14.var01"],
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [287, 288, 289, 290],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "tables": ["OperationProfile", "MissionDependence", "MissionDependenceProfile"]
+  },
+  "model": {
+    "unit": "TEACH-UNIT",
+    "deployed_ready_aircraft": 2,
+    "profile": "BASIC-SCHEDULE repeats A14-WAVE twice with IQTY=2 and IPER=48 hours; child SUPPORT and EXECUTE each have IQTY=1 at relative STIM=8",
+    "expected_wave_start_hours": [8, 32],
+    "support": {"pattern": "CONTINUOUS", "duration_hours": 2, "NOS": 1, "MNOS": 1},
+    "execute": {"pattern": "CONTINUOUS", "duration_hours": 4, "NOS": 1, "MNOS": 1},
+    "dependency": "EXECUTE depends CONTINUOUS on SUPPORT with MUTD=N and no DTTOL",
+    "variants": {
+      "control": "no dependence row",
+      "explicit": "two MissionDependence records identifying EXECUTE/SUPPORT at 8 and 32",
+      "profile": "one MissionDependenceProfile record at PRID=A14-WAVE with DSTIM=PSTIM=8, expanding to both occurrences"
+    },
+    "horizon_hours": 40,
+    "result_interval_hours": 0.5,
+    "random_seed": "1",
+    "failures_enabled": false
+  },
+  "inputs_sha256": {
+    "control": "ebbc28a0337410542eb67a78d9161bbca966ed91ec92e37021ef2d2b75aa8254",
+    "explicit": "1f2f70aedaa346d75c8b5eeffe88947216da3e643f52eea6de80897bd9c32bef",
+    "profile": "7cc231074f863e96db018876e5864cf2ba45a21555c66f5d60ed7aa607635408"
+  },
+  "exact_diff_sha256": "1111663f96542d3fb1b8e8ba23ac30b52377bf01370391ed6d8e33a364eb1c75",
+  "predeclared_hypotheses": [
+    "All three models import/export every populated source business row exactly, convert with zero errors, produce nonempty valid model/report and preserve GUI PID 13340.",
+    "The accepted A09 root recipe expands the two single-quantity SUPPORT/EXECUTE children at hours 8 and 32, with no extra or omitted mission instances.",
+    "No-dependency control launches both missions at 8 and 32: SUPPORT succeeds at 10/34 and EXECUTE succeeds at 12/36.",
+    "The explicit two-row branch launches both missions at 8 and 32, SUPPORT succeeds at 10/34 and EXECUTE aborts at each matching SUPPORT completion.",
+    "The one-row MissionDependenceProfile branch yields the same mission and aircraft event timeline as explicit rows, including both EXECUTE aborts; their event logs should be byte-identical after excluding only source-description effects if any.",
+    "All 80 half-hour System and Stock bins, operation exposure, summary factors and terminal two-ready state reconcile. A separate reviewer independently replays raw source and native closures without importing the author validator."
+  ],
+  "gate": "If profile import/conversion, wave identity or explicit/profile behavior contradicts the frozen hypotheses, preserve a NO-GO diagnostic and do not publish equivalence.",
+  "limits": [
+    "Only one two-level profile with a repeating root, IQTY=1 leaves, two waves and one explicit unit is tested; this is not a general expansion algorithm.",
+    "IQTY>1 leaf ambiguity, deeper hierarchy, overlaps, other dependency types, DTTOL, MUTD, GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
