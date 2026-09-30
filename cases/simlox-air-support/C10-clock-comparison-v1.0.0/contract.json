@@ -1,0 +1,20 @@
+{
+  "schema": "simlox-c10-clock-comparison-contract/v1",
+  "case_id": "C10",
+  "variant_id": "C10.var01",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C10.var02.operational_crew_failure_spare.1.0.0",
+  "parent_variant": "oper-no-spare",
+  "parent_input_sha256": "c334c1d6c0efa89f9ff70151a45180cac53b9ae05bf1a783219b566f41dbd62b",
+  "parent_native_run_id": "c10-oper-no-spare-20260930-01",
+  "child_input_sha256": "f05e8b157671eb95f96ed95f360d3e4dbcbc097e3508ba08511c0ab3799f13f7",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "source_manual_physical_pages": [221, 412, 416, 417, 754],
+  "source_dictionary_lines": [673, 679],
+  "business_delta": "Change only ResourceStationData.RFTT from OPERATION to CALENDAR for P-CREW/BASE-01, retaining RMTBF=0.5 hour, RMDT=0.25 hour, pool quantity two, no shift, seed one, two concurrent half-hour preparations at 7.5, one formation mission and 36-hour horizon. ProblemDescription labels provenance.",
+  "pre_run_hypothesis": "The calendar clock should permit one or more crew failures during the idle 0-7.5 hour period, unlike the accepted operational-clock parent which has no failure before the two preparations begin at 7.5. Native event times, repairs, active-task effects, mission outcome, resource/system/stock ledgers and terminal state determine the accepted bounded result. If no pre-preparation calendar failure occurs or the output lacks a valid comparison, preserve the run as diagnostic only.",
+  "acceptance_requires": ["accepted C10.var02 parent input and sealed operation-clock native evidence", "guarded session-0 SSH native execution preserving GUI PID 13340", "all row-containing input tables roundtrip exactly", "zero conversion errors and valid nonempty native output/report", "direct calendar failure and repair events before the 7.5 preparations contrasted with the operational parent", "task, crew capacity, mission, system, stock and terminal-state ledgers", "sealed local raw artifacts and independent read-only replay"],
+  "limitations": ["One fixed seed, one MTBF/MDT and one 36-hour schedule on the installed executable.", "The native log identifies a P-CREW pool, not individual worker identities or internal clock counters.", "Other seeds, off-shift spare behavior, GUI visual behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
