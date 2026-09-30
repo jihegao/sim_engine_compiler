@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-c07-cross-shift-contract/v1",
+  "case_id": "C07",
+  "version": "1.0.0-candidate",
+  "parent_case": "C07.var01.first_day_offshift_draos.1.0.0",
+  "parent_input_sha256": "fc7ca3caeefee1190a8497c8e5a32a463a96d17c426d4d97ee57673b49405a94",
+  "input_sha256": {
+    "draos-y": "cab26bedc1c5bbadadc82476c34e6e4bd6e71624bebeebe46e4ca342a616674d",
+    "draos-n": "5674f271d59e1026d16c094ea08f78b59fdb50c9e4d818cb35e48d57edd2faad"
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_pages": [227, 418, 419, 420, 421, 422, 423],
+  "pre_run_business_contract": "From accepted C07 DRAOS=Y input, retain two nominal P-CREW at BASE-01 but reduce each active shift to one. Use explicit 08:00-09:00 and 10:00-11:00 windows with a positive 09:00-10:00 gap. The two aircraft request two hours of crew-dependent preparation at 07:30 for a 12:00 planned formation mission with one-hour allowable delay. Compare only Control.DRAOS=Y/N plus label within the pair.",
+  "changed_tables_within_pair": ["Control", "ProblemDescription"],
+  "expected_native_hypothesis": "Y permits two crew before 08:00 and during the 09:00-10:00 gap, but the one-crew shift limits simultaneous work during 08:00-09:00 and 10:00-11:00. N has zero off-shift crew, so tasks wait before 08:00 and during the positive one-hour gap; an in-progress task may stop at 09:00 and resume at 10:00. Native evidence must establish exact aircraft selection, completion, mission result and report ledgers; no outcome is presumed.",
+  "acceptance_requires": ["exact 24-row-containing-table roundtrip", "zero conversion errors", "explicit shift start/end and positive gap", "per-aircraft task stop/resume or precise unsupported finding", "typed resource bookings", "mission and resource/system report ledgers", "independent read-only replay"],
+  "limitations": ["Two explicit first-day shifts only; no recurring schedule, overlap, absent ShiftResource row or MAXUT result.", "One fixed seed, two aircraft, nominal two crew and one in-shift crew."],
+  "publication_state": "not_published"
+}
