@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B05",
+  "variant_id": "B05.var02",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "B02.serial_prep.1.0.2",
+  "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+  "instructional_prerequisite": "B05.var01.completed_refuelling_omission.1.0.1",
+  "mechanism": "Successful two-hour mission following a positive PAYLOADING preparation; compare predefined UNLOADING during post-mission turnround with an equal-duration ordinary SERVICE control.",
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "printed_pages": [226, 400, 401, 402, 403, 404],
+    "tables": ["MissionPreparation", "MissionTurnround", "Tasks", "TaskBreakDown"]
+  },
+  "configuration": {
+    "unit": "TEACH-UNIT",
+    "aircraft": "<TEACH-AIR-01,0>",
+    "mission": "BASIC-MISSION",
+    "scheduled_hour": 8,
+    "duration_hours": 2,
+    "notice_hour": 7,
+    "preparation": "<PAYLOADING> ten minutes, SERVICE twenty minutes",
+    "turnround": "ordinary SERVICE ten-minute control versus predefined <UNLOADING> ten-minute child"
+  },
+  "hypotheses_to_test": [
+    "Both variants perform PAYLOADING for positive ten-minute duration before the successful 8-10 mission.",
+    "After mission success, built-in UNLOADING is explicitly skipped or causes zero duration while ordinary SERVICE control performs positive ten-minute work.",
+    "The resulting readiness and report bins reconcile; every other business source field and mission outcome matches.",
+    "All populated source tables roundtrip exactly, conversion errors are zero, raw artifacts are sealed, and GUI/mutex guards hold."
+  ],
+  "limits": [
+    "This is only the successful-mission branch of B05.var02; a failed-mission UNLOADING positive branch remains unverified.",
+    "Payload quantity and failure-state mechanics are not directly measured.",
+    "Other built-in subtasks, resources, GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
