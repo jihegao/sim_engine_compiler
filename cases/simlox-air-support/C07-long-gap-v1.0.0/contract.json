@@ -1,0 +1,17 @@
+{
+  "schema": "simlox-c07-long-gap-contract/v1",
+  "case_id": "C07",
+  "variant_id": "C07.var03",
+  "version": "1.0.0-candidate",
+  "parent_publication_id": "C07.var03.elapsed_day_boundary.1.0.0",
+  "parent_input_sha256": "b3780ff767af1653372e8dbd3f367f1fef9829b5fbf324cf6f354a19df558046",
+  "input_sha256": "f22349f7a53ebd78355398fdef44cdb0685ac568563107726f33a05bcc3ee042",
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "source_manual_physical_pages": [227, 266, 296, 418, 419, 420, 421],
+  "business_contract": "From the accepted two-aircraft cross-day DRAOS=N model, use explicit two-crew shifts 119-120 and 168-170 with a 48-hour inactive gap. Extend SIMPE and the control and ResultCollection result ends to 180, plan the mission at 171, and set NOPER to 51.5 so the preparation request occurs at 119.5. Keep two-hour crew-dependent preparation, nominal and active crew two, one seed and all other source tables unchanged.",
+  "changed_tables": ["Control", "MissionType", "OperationProfile", "ProblemDescription", "ResultCollection", "ShiftProfile"],
+  "expected_native_hypothesis": "Both aircraft may work 119.5-120, stop with 1.5 hours remaining, wait through 120-168, resume 168-169.5 and fly 171-172. Expect 360 half-hour report bins. The event, resource-wait accounting, report and terminal result must be determined from native evidence before acceptance.",
+  "acceptance_requires": ["exact source business-table roundtrip", "zero conversion errors", "nonempty valid event log and report", "per-aircraft positive work, stop/resume, completion and mission outcome", "360-bin resource and system ledgers and stock movement", "terminal state", "independent read-only replay"],
+  "limitations": ["The 120-168 inactive interval is weekend-sized but has no weekday or date anchor; no calendar-weekend rule is demonstrated.", "Only two explicit non-repeating shifts, one station, one resource, one seed and DRAOS=N are covered.", "Weekly recurrence, nested/overlapping shifts, DRAOS=Y, MAXUT, GUI behavior and cross-engine equivalence remain unverified."],
+  "publication_state": "not_published"
+}
