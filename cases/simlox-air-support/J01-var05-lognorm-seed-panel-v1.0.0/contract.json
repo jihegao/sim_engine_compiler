@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-j01-var05-lognorm-seed-panel-contract/v1",
+  "case_id": "J01",
+  "variant_id": "J01.var05",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J01.var01@1.0.0",
+  "parent_input_sha256": "b7e8e737e8ad9c0ce4700f6b7a9b7fcfe9b332100210793977b2230f4dca4409",
+  "panel_diff_sha256": "6d77167fcaae05d68cc29533ae7698c78e1157c7e6a6ff71299868e9eb1f02b6",
+  "seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [510, 511, 543, 544, 545]
+  },
+  "business_delta": "Seed 01 changes only accepted J01.var01 MissionPreparation.DURND to PREP-LGN and its TimeDistributions row to PREP-LGN/PFAC=1/<LOGNORM>/PARAM1=0.5 location/PARAM2=0.25 scale. The other eleven inputs differ from seed 01 only in Control.RSEED; every input keeps NREPS=1, DURN=0.5, one aircraft and one scheduled mission.",
+  "expected_observation": {
+    "native_runs": 12,
+    "preparation_samples": 12,
+    "preparation_start_hour": 7,
+    "lognorm_location_parameter": 0.5,
+    "lognorm_scale_parameter": 0.25,
+    "positive_support": true,
+    "minimum_distinct_samples": 2,
+    "mission_start_rule": "max(8, preparation_end_hour)",
+    "mission_success_rule": "mission_start_hour + 2",
+    "frozen_notice_overrun_seeds": [],
+    "system_result_bins_per_run": 72
+  },
+  "limits": "One seed per run and twelve observed draws. Separate diagnostic runs showed no one-hour notice overrun for these fixed seeds; fresh accepted runs must reproduce that classification. The installed manual prints <LOGNORMAL> while the dictionary lists <LOGNORM>; native import/export must resolve the token. Descriptive sample statistics do not establish the underlying probability law, parameterization beyond this input, full tail, independence, other J01 variants or cross-engine equivalence."
+}
