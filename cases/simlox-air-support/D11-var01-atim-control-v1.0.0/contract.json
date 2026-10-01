@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-d11-atim-control-v100-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var01",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D10-var01-missions-v1.0.0",
+  "parent_input_sha256": "6607991260e3f911d0121c7949443409a57937e95f80c7e4f3a2faa6ac20ba72",
+  "input_sha256": "94c0addbaff610b656b25dd328949ea9710ab9a593cafebe488f7bfca665ead8",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [202, 204, 370, 372, 373, 374],
+  "scope": "one aircraft, five fixed missions, one-hour PM with MISSIONS=4 and ATIM=0",
+  "delta": [
+    "accepted D10.var01 PMINT=2 changes to PMINT=4 with ATIM=DTIM=0",
+    "PM/task IDs and descriptive labels change; five mission waves and one-hour task remain unchanged"
+  ],
+  "fixed_input": {
+    "mission_starts_hours": [8, 16, 20, 48, 52],
+    "mission_durations_hours": [4, 1, 1, 1, 1],
+    "pmid": "MS4",
+    "pm_interval": {"OPID": "MISSIONS", "PMINT": 4, "ATIM": 0, "DTIM": 0},
+    "pm_task_hours": 1,
+    "horizon_hours": 60,
+    "seed": "1"
+  },
+  "hand_expected": {
+    "mission_completions_hours": [12, 17, 21, 49, 53],
+    "no_pm_after_third_mission_hour": 21,
+    "one_pm_after_fourth_mission": {"start_hour": 49, "end_hour": 50},
+    "no_second_pm_through_hour": 60,
+    "all_five_missions_successful": true,
+    "terminal_ready": true
+  },
+  "acceptance": [
+    "exact input roundtrip, zero native conversion errors, nonempty SXO/event/report",
+    "five individually identified missions and the one PM task/subtask timeline match hand expectation",
+    "all 120 half-hour System and Stock-total bins reconcile with eight flight and one PM aircraft-hours",
+    "source and raw closure hashes, SSH/mutex/GUI guard and independent read-only replay pass"
+  ],
+  "limits": [
+    "one fixed mission-count threshold without anticipation or deferment",
+    "control does not establish ATIM/DTIM rounding or conflicts"
+  ]
+}
