@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E06",
+  "variant_id": "E06.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "two-level cumulative direct-repair fraction boundaries 0 and 1",
+  "parent": {
+    "case_id": "E05",
+    "input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca"
+  },
+  "support_prerequisite": {
+    "case_id": "E04",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [214, 215, 216, 340, 341, 342],
+    "interpretation": "DIRPF is an accumulated direct-repair capability at each station. A failed item's complexity is drawn once; if above the base threshold, the item travels to the next support level. The top level has capability 1.0."
+  },
+  "native_input_sha256": {
+    "local": "b460c6948c2299c521fb9e24c69c1ebc7dfd976702b5e380b13b5f5abf666b95",
+    "upstream": "7febb8c32afaa24fbf3bad94ba240e53236d8967c6fe6df51b4cfb7686828b0d"
+  },
+  "model_delta": {
+    "common": "E05 plus E04's BASE-01 to DEPOT-01 support row and depot station; retain E05 local stock 1, add depot stock 0 and depot ItemRepair DIRPF 1, DIRPT 1 hour; retain 2-hour upward/downward transport.",
+    "sole_arm_difference": "BASE-01 ItemRepair DIRPF 1.0 in local arm, 0.0 in upstream arm; all other rows except descriptive PDESC identical."
+  },
+  "configuration": {
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "system_and_item_frt_per_million_ophours": 450000,
+    "base_stock": 1,
+    "depot_stock": 0,
+    "direct_repair_hours": 1,
+    "transport_hours_each_way": 2
+  },
+  "predeclared_native_acceptance": [
+    "Both frozen inputs import and export all populated business rows exactly, convert with zero errors, calculate, and produce nonempty event and JSON reports under guarded session-0 SSH.",
+    "The local arm routes removed LRUs to BASE-01 ItemRepair; the upstream arm routes them to DEPOT-01 across the accepted two-hour upward support link. Trace physical item identities, stock, repair timing, mission and system impact for every observed demand.",
+    "All native steps exit zero; raw artifacts, invocation and source closure are hashed; 72 half-hour report intervals and terminal quantities reconcile with events; a separate reviewer replays assertions read-only."
+  ],
+  "limits": [
+    "Boundary fractions demonstrate deterministic station routing under one fixed seed. Intermediate accumulated fractions require a separate native sample panel and are not accepted by this scope.",
+    "Partial discard, SURPF, CMF, PRU/DU categories, multiple bases, GUI visual behavior and cross-engine equivalence are outside this scope."
+  ]
+}

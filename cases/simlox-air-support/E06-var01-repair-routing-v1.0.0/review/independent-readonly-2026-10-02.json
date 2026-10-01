@@ -1,0 +1,111 @@
+{
+  "schema": "independent-e06-var01-readonly/v1",
+  "reviewer": "a17_static_reviewer",
+  "verdict": "GO bounded fixed-seed DIRPF station-routing CLI evidence",
+  "checks_passed": 158,
+  "checks_total": 158,
+  "failures": [],
+  "raw_seals": 24,
+  "outcomes": {
+    "local": {
+      "run_id": "e06-local-v100-ssh-20261002-01",
+      "input_sha256": "b460c6948c2299c521fb9e24c69c1ebc7dfd976702b5e380b13b5f5abf666b95",
+      "model_log_sha256": "63c5a1897fce61d3c695ce6082b993a233bf380f122a34904faf471f0a878923",
+      "report_sha256": "6d13c7f0e6445e028945ddf779da50db461038b9e8bc8274fed2b91e0c381342",
+      "converter_errors_warnings_notes": [
+        0,
+        1,
+        0
+      ],
+      "critical_failures": [
+        9.25527,
+        21.9597,
+        33.3079
+      ],
+      "mission_aborts": [
+        9.25527,
+        21.9597,
+        33.3079
+      ],
+      "mission_successes": [],
+      "item_repair_starts_time_station_instance": [
+        [
+          "9.92193",
+          "BASE-01",
+          "1"
+        ],
+        [
+          "22.1667",
+          "BASE-01",
+          "2"
+        ],
+        [
+          "33.9746",
+          "BASE-01",
+          "3"
+        ]
+      ],
+      "base_restock_time_station_instance": [
+        [
+          "10.9219",
+          "BASE-01",
+          "1"
+        ],
+        [
+          "23.1667",
+          "BASE-01",
+          "2"
+        ],
+        [
+          "34.9746",
+          "BASE-01",
+          "3"
+        ]
+      ],
+      "terminal_ready": 1,
+      "terminal_stock_PNB": 1
+    },
+    "upstream": {
+      "run_id": "e06-upstream-v100-ssh-20261002-01",
+      "input_sha256": "7febb8c32afaa24fbf3bad94ba240e53236d8967c6fe6df51b4cfb7686828b0d",
+      "model_log_sha256": "e0b62898e35bb8824281aa0fc5413bf7018d37f1479d55209a1c2a5d43b5f374",
+      "report_sha256": "39d30402efb382f6f7b06104531ebd525f9b2be207995b8e00f70a50e562e5e2",
+      "converter_errors_warnings_notes": [
+        0,
+        1,
+        0
+      ],
+      "critical_failures": [
+        9.25527
+      ],
+      "mission_aborts": [
+        9.25527
+      ],
+      "mission_successes": [
+        22.0,
+        34.0
+      ],
+      "item_repair_starts_time_station_instance": [
+        [
+          "11.9219",
+          "DEPOT-01",
+          "1"
+        ]
+      ],
+      "base_restock_time_station_instance": [
+        [
+          "14.9219",
+          "BASE-01",
+          "1"
+        ]
+      ],
+      "terminal_ready": 1,
+      "terminal_stock_PNB": 1
+    }
+  },
+  "limitations": [
+    "The two arms diverge in later stochastic failures (local three, upstream one); only the shared first failure is a matched routing contrast.",
+    "Native StockTotalResults.NBO remains zero even though the upstream event log records a depot backorder from 9.92193 to 12.9219; event-level and aggregate report scopes differ.",
+    "Boundary DIRPF 1/0 at one seed does not establish intermediate accumulated-fraction behavior, GUI behavior, or cross-engine equivalence."
+  ]
+}
