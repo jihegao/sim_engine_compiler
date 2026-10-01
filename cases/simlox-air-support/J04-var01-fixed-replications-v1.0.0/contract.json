@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-j04-var01-fixed-replications-contract/v1",
+  "case_id": "J04",
+  "variant_id": "J04.var01",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J02.var03@1.0.0",
+  "parent_input_sha256": "2edd37fb063ac7f1d5a1ee17ea10779ac699fce75f4288e81b4026a3ff8a933f",
+  "input_sha256": "4a4e2df598a515762b1c4de8894c139c6ac6bce40c523d7e5f0720514f7f5579",
+  "exact_diff_sha256": "017b98698b894a7ca48a8c212c415344e09dde72c67cd6eb39d34b4e67f47917",
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [
+      229,
+      230,
+      233,
+      551,
+      552,
+      553
+    ]
+  },
+  "business_delta": "Against accepted J02.var03 Poisson formation-count seed-01 input, change only Control.NREPS 1 to 16 and Control.TCLEV null to explicit 0.0; all other controls, random mechanism, twelve-aircraft capacity, schedule, horizon and result interval remain.",
+  "expected_observation": {
+    "fresh_accepted_runs": 2,
+    "run_ids": [
+      "j04-var01-fixed-reps-accepted-20261001-03",
+      "j04-var01-fixed-reps-accepted-20261001-04"
+    ],
+    "nrep": 16,
+    "seed": "1",
+    "tclev": 0.0,
+    "result_bins_per_run": 72,
+    "summary_fractions": {
+      "MTMF": 1,
+      "MSTF": 1,
+      "MSUF": 1,
+      "STMF": 1
+    },
+    "summary_relative_errors": {
+      "RSMTMF": 0,
+      "RSMSTF": 0,
+      "RSMSUF": 0,
+      "RSSTMF": 0
+    },
+    "average_aircraft_flight_hours": 6.25,
+    "terminal_ready_aircraft": 12,
+    "first_replication_event_log_matches_accepted_parent_seed_1": true,
+    "average_operating_aircraft_at_hour_8": 3.125,
+    "inferred_average_two_aircraft_formations_at_hour_8": 1.5625
+  },
+  "limits": "Two fixed-input fixed-seed sixteen-replication runs test NREP and repeatability of aggregate results. ENLOG exposes the first replication only; aggregate averages do not reveal the other fifteen mission counts or event timelines. RSMTMF is zero because the observed target fraction is 1; this does not estimate the variance of mission counts or prove a population law. TCLEV>0 stopping, NREPS cap under nonconvergence, thread changes, GUI visual behavior and cross-engine parity remain unverified. The failed first diagnostic closure and successful second diagnostic are excluded from acceptance. The first accepted pair IDs 01/02 is superseded because its original contract mislabeled 3.125 aircraft as formations; its raw and source evidence is retained separately."
+}
