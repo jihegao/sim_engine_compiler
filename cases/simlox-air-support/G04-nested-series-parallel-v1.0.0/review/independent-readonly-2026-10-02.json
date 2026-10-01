@@ -1,0 +1,68 @@
+{
+  "accepted_raw_seal_count": 24,
+  "accepted_runs": {
+    "and": {
+      "closure_sha256": "3e6f597c47c52e945ed40be90995a7c5c4bc5a8c4b10f7336ad68e274aac603a",
+      "events": {
+        "first_failure_hour": 8.62763,
+        "first_position": "POS-B",
+        "mission_return_hour": 23.2498,
+        "outcome": "abort",
+        "repair_end_hour": 23.7498,
+        "second_failure_hour": 16.7498,
+        "second_position": "POS-C",
+        "second_status": "critical"
+      },
+      "failure_count": 2,
+      "flight_hours": 15.249790668487549,
+      "input_sha256": "658cdfcc374a13754c0980888137dd05bb0b94c4dfad5386bab5292fc414dd15",
+      "log_sha256": "0a3f380e0137503c1cd4ba41cb66ed6fb0cf17c5789f185217d9658bde66c2bf",
+      "msuf": 0,
+      "mtmf": 0.5865303874015808,
+      "nrep": 1,
+      "repair_elapsed_hours": 0.5,
+      "repair_task_count": 2,
+      "report_sha256": "eeda9a8d18d89cd096ada974dbeb67a4576ad79257d5ee17a339819779292a3d",
+      "run_id": "g04-nested-and-v100-ssh-20261002-01",
+      "terminal_ready": 1
+    },
+    "or": {
+      "closure_sha256": "98e9686ee2a13420475045f5b220bc4941112bfaa96697c069bf1f7511e6d0f0",
+      "events": {
+        "first_failure_hour": 8.62763,
+        "first_position": "POS-B",
+        "mission_return_hour": 34.0,
+        "outcome": "success",
+        "repair_end_hour": 34.5,
+        "second_failure_hour": 16.7498,
+        "second_position": "POS-C",
+        "second_status": "noncritical"
+      },
+      "failure_count": 2,
+      "flight_hours": 26.0,
+      "input_sha256": "2c26b7dc894ea74a7de7da6e647d235b0aa5e8eb11aa33069f184d3f9be8aa64",
+      "log_sha256": "69995e8efb851b70f610504204f321c00ad3ffc768725a55ed7ab91c4ecdcf1e",
+      "msuf": 1,
+      "mtmf": 1,
+      "nrep": 1,
+      "repair_elapsed_hours": 0.5,
+      "repair_task_count": 2,
+      "report_sha256": "5b013cd48bcf20ab3cca943a9c7b0be7783b331e23174726186ee8e1c414da49",
+      "run_id": "g04-nested-or-v100-ssh-20261002-01",
+      "terminal_ready": 1
+    }
+  },
+  "case": "G04-nested-series-parallel-v1.0.0",
+  "checks_passed": 3342,
+  "checks_total": 3342,
+  "failures": [],
+  "limits": [
+    "This tests one observed B/C failure combination and a healthy A, not a complete nested Boolean truth table.",
+    "One seed/replication cannot establish population reliability, other failure orders or same-time events.",
+    "No passive switching, online maintenance, QTYPB>1, GUI RBD view or cross-engine parity claim follows."
+  ],
+  "passed": true,
+  "schema": "g04-nested-series-parallel-independent-readonly/v1",
+  "scope": "At fixed seed one, POS-B fails at8.62763 and POS-C at16.7498 in both arms while POS-A has no configured failure. Native events and 72-bin ledgers show the A OR (B AND C) mission succeeds at34 and A AND (B OR C) aborts on the second failure at16.7498; two direct half-hour CM tasks start after each return.",
+  "verdict": "GO"
+}
