@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-issue18-g05-overlapping-switches-contract/v1",
+  "case_id": "G05",
+  "variant_id": "G05.var05",
+  "case_slice": "Two concurrent passive branch activations after operated-branch failures",
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G05-passive-threshold-v1.0.0/two-input.json",
+    "sha256": "f09cc7e9d8f1843148b537125760dc02adfb51bdc1c634e5e03e138af19bb8c4",
+    "accepted_run_id": "g05-nbreq-two-v100-ssh-20261002-01",
+    "accepted_scope": "two initially operated B/A, one C standby, NBREQ=NBOP=2, TSWOV=0.5h; B failure starts C activation and A fails later"
+  },
+  "sources": {
+    "short_sha256": "8739ac36a0bed2109e4c8c8804b536d618ce6cb8a716f4c8c2e36923a2cdf873",
+    "long_sha256": "c7888560e5ae71357ff7cea412c801b56c8e41cd45ab3a61452f0c9202cd0ef2"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "mission": {"start_hour": 8, "duration_hours": 26, "scheduled_end_hour": 34},
+    "rbd": "G05-PASSIVE, NBREQ=NBOP=2, ONLM=N; B/A priority1/2 initially operated, C/D priority3/4 passive and nonfailing",
+    "switch_duration_hours": {"short": 0.5, "long": 4.0},
+    "failure_modes": "unchanged FM-POS-B 600000 and FM-POS-A 300000 per million operating hours; C/D no configured mode",
+    "repair": "unchanged B/A half-hour direct system CM after return",
+    "stock": "unchanged zero-demand configuration"
+  },
+  "source_delta": "From accepted three-branch two-operated parent, add POS-D and one TEACH-LRU-01 on D to MaterielPosition/MaterielStructure/MaterielOperationalModes/RBDParallelStructure, and change descriptive text to four branches. The short arm keeps TSWOV=0.5. The long arm differs from the short arm only in RBDParallel.TSWOV 0.5→4.0 h and ProblemDescription.PDESC. This pair isolates switch-duration overlap within the same four-branch topology.",
+  "manual_basis": "Installed SIMLOX 2017 manual pp197–200 and 455–458 define passive parallel operation, NBREQ/NBOP counting, PRIO and TSWOV. The direct G05.var02 parent is accepted native evidence for two initially operated branches and one activation.",
+  "pre_run_hypotheses": {
+    "accepted_parent": "With three branches and TSWOV0.5, B fails h8.62763, B→C completes h9.12763, and A fails h11.5942. These are observations, not asserted unchanged draws in the new four-branch pair.",
+    "short_control": "If draws remain stable, B→C finishes before A fails, then A→D finishes 0.5 h later; the two activation intervals do not overlap.",
+    "long_overlap": "If B and A failure instants remain separated by about 2.9666 h, TSWOV4.0 causes A→D activation to start while B→C remains pending. Their logged intervals should overlap, and system-level NSYSW should integrate the union of activation intervals rather than their sum if occupancy is a state indicator.",
+    "alternatives": "Fourth-branch insertion or long activation may change random scheduling, branch choice, NBREQ state or mission outcome. Record the actual events and report bins; do not preaccept predicted times, success or overlap.",
+    "observability": "Positive overlap requires two raw switch-start events with distinct destination branches, first switch still pending at second start, both completion events, identified operated-branch faults, and report-bin reconciliation. Two faults or a long aggregate NSYSW alone are insufficient."
+  },
+  "acceptance_gates": [
+    "Frozen parent and paired source hashes, exact parent-to-short and short-to-long deltas, installed source hashes",
+    "Two separate session-0 SSH runs under one host-wide native mutex, unique run directories, preserved GUI PID 13340",
+    "Each arm imports/exports/calculates/reports with exact authored-row roundtrip and zero converter errors",
+    "Actual switch and failure intervals, mission outcome, 72-bin System/Stock ledgers reconciled by author and independent read-only reviewer",
+    "Raw invocation, logs, models, reports and closures SHA-256 sealed for both runs"
+  ],
+  "limits": [
+    "One fixed seed and repetition, one two-operated four-branch passive RBD, one short and one four-hour TSWOV pair.",
+    "The short-to-long pair isolates TSWOV within four branches; adding D relative to the three-branch parent is a necessary capacity change and may alter random scheduling.",
+    "If two overlapping native switch intervals are not observed, retain the run as a diagnostic probe and do not publish G05.var05.",
+    "Unavailable preferred standby G05.var04, nested propagation G05.var06 beyond its own published scope, GUI view and cross-engine parity are separate."
+  ]
+}
