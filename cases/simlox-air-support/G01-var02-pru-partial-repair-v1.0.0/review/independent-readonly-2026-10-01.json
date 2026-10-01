@@ -1,0 +1,20 @@
+{
+  "schema": "simlox-g01-var02-paired-independent-review/v1",
+  "local_branch": "repair",
+  "passed": true,
+  "verdict": "GO",
+  "check_count": 7717,
+  "failure_count": 0,
+  "failures": [],
+  "observed": {
+    "repair_seed_1": "failed PRU3 transported to depot and directly repaired 12.1667-13.1667; returned to depot stock",
+    "discard_seed_2": "failed PRU3 discarded at depot 23.4887; one-unit reorder delivers new PRU4 at 24.4887",
+    "seed_2_late_repair": "failed PRU5 starts depot direct repair 35.6549; no completion before 36-hour horizon"
+  },
+  "scope": "Two fixed seeds under identical PRU source policy except Control.RSEED show repair and discard/reorder paths, with typed physical identities and sealed CLI evidence.",
+  "limits": [
+    "The two outcomes do not establish a 50/50 frequency law or branch independence.",
+    "Seed-2 PRU5 remains under depot repair at hour 36 although the aircraft is ready; do not claim all maintenance complete or full depot stock.",
+    "Other fractions, stations, seeds, SPRU, GUI simulation and cross-engine parity remain unverified."
+  ]
+}

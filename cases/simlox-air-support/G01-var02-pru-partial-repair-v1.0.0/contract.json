@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "variant_id": "G01.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G01.var03",
+    "version": "1.0.0",
+    "scope": "accepted primary DU discard and depot reorder topology",
+    "input_sha256": "c409f4b210b9f60e5f36bf6b15f56aaba95f4b08b4f6b6de290b60d65086d7d9"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [210, 211, 212, 241, 247, 339, 340, 341, 343, 344, 345],
+    "boundary": "PRU is a partially repairable primary item. At the end support position it may be repaired or discarded; ItemRepair DIRPF is accumulated and ItemReorder DISCF controls reorder-position discard flow."
+  },
+  "native_input_sha256": "496547b6a7194f3e3fd0e18e54baa2affbf548f7f4f9e12f33c81a6b1aa6166a",
+  "configuration": {
+    "item": "TEACH-PRU-01",
+    "repair_and_reorder_station": "DEPOT-01",
+    "direct_repair_fraction": 0.5,
+    "discard_fraction": 0.5,
+    "direct_repair_hours": 1.0,
+    "reorder_lead_hours": 1.0,
+    "depot_to_base_transport_hours": 2.0,
+    "opening_base_stock": 1,
+    "opening_depot_stock": 2,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36
+  },
+  "predeclared_diagnostic_acceptance": [
+    "All populated tables round-trip exactly; native import, export, calculation, report and round-trip check complete with zero conversion errors and nonempty event/report output.",
+    "A failed installed PRU is exchanged through the inherited 10-minute REMOVE and 20-minute REPLACE system task, and the aircraft returns ready.",
+    "The removed PRU reaches DEPOT-01. The event ledger must identify either a direct repair and stock return or an explicit discard and reorder. Both outcomes in one trial are not assumed; an outcome without a decisive individual event is inconclusive.",
+    "Reconcile physical PRU identities, base/depot stock and transport, mission outcomes, report intervals, metrics, and terminal state. A partial repair claim requires separate native observations of repair and discard paths under frozen source-bound runs.",
+    "Preserve source and raw artifact hashes, maintain the host-wide mutex and GUI identity, then independently replay read-only assertions before any publication."
+  ],
+  "limits": [
+    "This first fixed-seed run is a diagnostic candidate. A single stochastic branch does not establish the full 50/50 policy or both PRU outcomes.",
+    "SPRU, other fractions, stations, seeds, GUI-specific behavior, and cross-engine equivalence remain unverified."
+  ]
+}
