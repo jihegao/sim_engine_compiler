@@ -1,0 +1,47 @@
+{
+  "accepted_parent_run": "g05-unavailable-v103-ssh-20261002-01",
+  "accepted_raw_seal_count": 12,
+  "accepted_run": {
+    "closure_sha256": "5f212938e949a977b9fe3568cc5c642725b619729daf20b8b0e817f8035de6dc",
+    "events": {
+      "A_CM_end_hour": 34.5,
+      "A_CM_start_hour": 34,
+      "B_CM_planned_end_hour": 74,
+      "B_CM_start_hour": 34,
+      "B_repair_unfinished_at_horizon": true,
+      "first_failure_hour": 8.94145,
+      "first_switch_end": 9.44145,
+      "mission_event_outcome": "success",
+      "return_hour": 34,
+      "second_failure_hour": 17.5636,
+      "second_switch_end": 18.0636
+    },
+    "horizon_observed_repair_occupancy_hours": 2.0,
+    "input_sha256": "1bb1a9b9f9e583f2dd087b4e99f179f2194fbb1af92051a56ff14eafa3dea7e3",
+    "log_sha256": "865921dcc530d58ec3c4723fc700cd4ec00bc35da9a36db6acc6af1f64db65e8",
+    "mstf": 0,
+    "msuf": 0,
+    "mtmf": 1,
+    "nrep": 1,
+    "operating_hours": 25.0,
+    "report_sha256": "7081e25c15f7db6ab1ac9500c6d22badaa404cf2aa501f1f7c48d5b33e6662fe",
+    "run_id": "g06-deferred-v100-ssh-20261002-01",
+    "stmf": 0.9615384340286255,
+    "switch_hours": 1.0,
+    "terminal_ready": 0,
+    "terminal_under_repair": 1
+  },
+  "case": "G06-online-direct-cm-v1.0.0",
+  "checks_passed": 1732,
+  "checks_total": 1732,
+  "failures": [],
+  "limits": [
+    "This isolates ONLM only for one continuous mission and direct CM without replacement, resource contention or stock demand.",
+    "Both arms log mission success while ResultSummary.MSTF and MSUF are zero; retain event and summary observations separately.",
+    "One seed and horizon36 do not establish general repair policy, failure-clock semantics, fixed/extendable mission behavior, GUI view or cross-engine parity."
+  ],
+  "passed": true,
+  "schema": "g06-online-direct-cm-independent-readonly/v1",
+  "scope": "The child changes only ONLM Y to N plus description. Identical fixed-seed B/A failures and B-to-A/A-to-C switches accompany the same continuous mission success event at34. With ONLM Y, B/A direct CM starts at each failure and A completes18.0636. With ONLM N, both tasks start at return34; A completes34.5, B40h remains unfinished at horizon. All 72 report bins match except the NREPT completed-repair marker moves from [18,18.5) to [34.5,35).",
+  "verdict": "GO"
+}

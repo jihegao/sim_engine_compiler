@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-issue18-g06-online-direct-cm-contract/v1",
+  "case_id": "G06",
+  "variant_id": "G06.var01",
+  "case_slice": "ONLM Y versus N for one continuous passive RBD with direct system CM",
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G05-unavailable-standby-v1.0.3/unavailable-input.json",
+    "sha256": "b0d79caeb71dbf991291b9122dff3139bc52c27e2c014b5bf624632539101f0d",
+    "accepted_run_id": "g05-unavailable-v103-ssh-20261002-01",
+    "scope": "continuous mission, passive B/A/C, B 40h online direct CM after first failure, A 0.5h online direct CM after second failure; mission success event h34, B CM open at horizon36"
+  },
+  "child_sha256": "1bb1a9b9f9e583f2dd087b4e99f179f2194fbb1af92051a56ff14eafa3dea7e3",
+  "exact_diff_sha256": "2f3dd160cbc1129391e39c094c195d4170d1936397b68ec161d53958bff0a371",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "source_delta": "Only RBDParallel.ONLM Y→N and ProblemDescription.PDESC. Both arms use identical MPAT=CONTINUOUS with TFOUT/TFRET null, 26h 8–34 mission, seed1, passive B/A/C priority, NBOP=NBREQ=1, TSWOV0.5, B direct CMT40 and A direct CMT0.5. No stocked replacement or resource demand is configured.",
+  "manual_basis": "Installed manual pp198–199 and 455–457 describe parallel online repair for continuous/extendable missions and deferred repair when ONLM=N. Accepted G05.var04 parent is a direct observed ONLM=Y arm for the same source model.",
+  "pre_run_hypotheses": {
+    "parent": "The accepted Y arm starts B's 40h CM at B failure h8.94145 and A's 0.5h CM at A failure h17.5636; A completes CM h18.0636 during the mission, B remains open at horizon36.",
+    "deferred": "If only ONLM changes repair timing, the N arm will retain comparable operated B/A faults and B→A→C switches but start direct CM no earlier than mission return h34. The raw event trace and report decide; exact failure times are not preaccepted.",
+    "alternatives": "ONLM could alter failure scheduling, system readiness, branch selection, mission outcome or postreturn repair behavior. If the child does not show two comparable failures and a clear deferred start, retain it as diagnostic only.",
+    "observability": "Positive ONLM contrast requires source-isolated ONLM delta, guarded import/export/calc/report, raw B/A failure and CM task start/completion times in both arms, explicit mission interval, and reconciled System/Stock report bins. Aggregate NREPT alone is insufficient."
+  },
+  "acceptance_gates": [
+    "Frozen accepted Y source/run, child source and exact two-table diff",
+    "Guarded session-0 SSH native run under host mutex with GUI PID13340 preserved",
+    "Exact 23 populated-table roundtrip and zero converter errors",
+    "Raw event proof of ONLM=N postmission CM starts versus ONLM=Y in-mission starts, with report-bin and stock reconciliation",
+    "SHA-256 sealed raw files and independent read-only review"
+  ],
+  "limits": [
+    "One seed, one 26h continuous mission, direct CM without physical issue or resource use, and one passive B/A/C RBD.",
+    "This bounds ONLM timing for direct CM only; replacement, SRU/PRU, resource contention, locality, shortage, fixed/extendable contrasts and whole-block failure are separate G06 slices.",
+    "If the native child lacks a clear deferred-vs-online contrast, do not publish G06.var01."
+  ]
+}

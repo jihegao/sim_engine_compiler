@@ -1,0 +1,7 @@
+# G06 online versus deferred direct CM
+
+This bounded `G06.var01` pair uses the [accepted G05.var04 continuous passive RBD](../G05-unavailable-standby-v1.0.3/README.md) as its `ONLM=Y` arm. The child changes only `RBDParallel.ONLM` to `N` and the problem description. Both arms retain the same fixed seed, 8–34 continuous mission, B/A failure modes, passive B→A→C topology, B 40-hour and A half-hour direct system CM, and zero-demand stock configuration.
+
+Both guarded native traces show B failing h8.94145 and A failing h17.5636, with B→A and A→C finishing h9.44145 and h18.0636. The mission logs record success h34. Under `ONLM=Y`, B's 40-hour CM starts at its failure and A's half-hour CM starts at A's failure, completing h18.0636. Under `ONLM=N`, both CM tasks start after return at h34 and A completes h34.5. B stays under repair through h36 in both arms. The 72 System bins are identical except the `NREPT` completed-repair marker moves from [18,18.5) to [34.5,35); all Stock bins and summary fields match.
+
+The [contract](contract.json), [exact diff](exact-diff.json), [CLI sign-off](cli-scope-signoff-2026-10-02.md), and [evidence index](evidence-index.json) bind this observation. Author replay passes 34/34 checks and independent read-only replay passes 1,732/1,732. This case covers direct CM timing only; item replacement, resources, locality, shortage, other mission patterns and whole-block failure remain separate.
