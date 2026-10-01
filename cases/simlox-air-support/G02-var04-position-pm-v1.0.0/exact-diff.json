@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-g02-var04-parent-exact-diff/v1",
+  "parent_input_sha256": "5ef40eb302544e551282dd7dd3617a6ae160954f600dea605f26140ea551a19e",
+  "pm_template_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "full_document_equality_after_listed_changes_verified_by": "validate_matrix.py and independent read-only replay",
+  "common_changes": [
+    "ProblemDescription.PDESC: arm provenance text",
+    "Control.SIMPE and RCEND: 36 -> 60 hours",
+    "Control.ENPM: N -> Y",
+    "ResultCollection MISSION and SYSTEM RCEND: 36 -> 60 hours"
+  ],
+  "variants": {
+    "no-pm": {
+      "input_sha256": "94aff427384105878219342e818eff1a5fdef490a9e096682848333a28fb0d0f",
+      "additional_changes": []
+    },
+    "pos-a-only": {
+      "input_sha256": "e7421f653c89021abaedf47f5f5f0df427d5db1ac4102f9beb490edb2bd0666c",
+      "additional_changes": [
+        "MaterielPM PM-POS-A bound to POS-A with CALHOURS PMINT24 and ATIM=DTIM0",
+        "Tasks, SubTaskType, TaskBreakDown and PMLocation define one-hour direct base PM"
+      ]
+    },
+    "pos-b-only": {
+      "input_sha256": "c518a8e23d75fc361f5773bafd104c697bc26be7ccbba990d372c5af94e3bdd8",
+      "additional_changes": [
+        "MaterielPM PM-POS-B bound to POS-B with CALHOURS PMINT36 and ATIM=DTIM0",
+        "Tasks, SubTaskType, TaskBreakDown and PMLocation define half-hour direct base PM"
+      ]
+    },
+    "both": {
+      "input_sha256": "4b4778c75605369963dd6b2a3192fd1fcce942523fac38826db3ea586c3e8777",
+      "additional_changes": [
+        "Both position-specific MaterielPM rows and complete task definitions"
+      ]
+    }
+  },
+  "excluded_diagnostic_runs": ["g02-var04-no-pm-20261002-01", "g02-var04-pos-a-only-20261002-01"]
+}
