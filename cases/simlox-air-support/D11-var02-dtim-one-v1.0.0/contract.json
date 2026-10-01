@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-d11-dtim-one-v100-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var02",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D11-var02-dtim-control-v1.0.0",
+  "parent_input_sha256": "29e7cdb16e9ab376641edf774a5fc91eb9c44283fd997fa435b79b48423fe901",
+  "input_sha256": "2e2f0c95ffd2e590c47ad7bfa1c016434aeaf6575d393ebe42cd5060c72632ce",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "scope": "one aircraft; MISSIONS=4, ATIM=0, DTIM=1; six fixed mission requests, one noncritical PM task and one opportunistic PM work interval",
+  "fixed_input": {
+    "mission_starts_hours": [8, 16, 20, 24, 25.25, 26.5],
+    "mission_durations_hours": [4, 1, 1, 1, 1, 1],
+    "pmid": "MS4",
+    "pm_interval": {"OPID": "MISSIONS", "PMINT": 4, "ATIM": 0, "DTIM": 1},
+    "manual_integer_delay": "ceil(1 * 4) = 4 extra missions",
+    "pm_task_hours": 1,
+    "horizon_hours": 60,
+    "seed": "1"
+  },
+  "exact_expected_timeline": {
+    "mission_start_hours": [8, 16, 20, 24, 25.25, 26.5],
+    "mission_success_hours": [12, 17, 21, 25, 26.25, 27.5],
+    "pm_status_at_return_hours": {"25": "Non-Critical", "26.25": "Non-Critical", "27.5": "Non-Critical"},
+    "pm_task_start_hour": 25,
+    "pm_task_pause_hour": 25,
+    "pm_task_continue_hour": 27.5,
+    "pm_subtask_work_hours": [27.5, 28.5],
+    "pm_task_completion_hour": 28.5,
+    "report_system_stock_bins": 120,
+    "flight_aircraft_hours": 9,
+    "pm_aircraft_hours": 1,
+    "terminal_ready": 1
+  },
+  "acceptance": ["fresh source-bound guarded session-0 SSH run distinct from probe", "exact 18 populated-table import/export and zero conversion errors", "separate event, summary, 120-bin and raw-seal replay", "independent read-only review and static review"],
+  "limits": ["same one-hour PM work as the DTIM=0.3 pair because no further mission requests follow sixth return", "eighth-return critical boundary and general DTIM=1 behavior unverified", "GUI-only behavior and cross-engine equivalence unverified"]
+}
