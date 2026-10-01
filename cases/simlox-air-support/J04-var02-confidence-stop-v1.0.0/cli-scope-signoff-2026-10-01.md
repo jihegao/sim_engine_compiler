@@ -1,0 +1,9 @@
+# J04.var02 bounded CLI scope
+
+Status: two fresh accepted runs, author pair replay, independent read-only review, and local catalog tests passed; PR gates pending.
+
+Parent `J04.var01@1.0.0` seed-01 SHA-256 `4a4e2df598a515762b1c4de8894c139c6ac6bce40c523d7e5f0720514f7f5579`. Accepted exact input SHA-256 `f3f41a145ed539b6ed057499ea5860ec5d16418ac2d2ea98365ebbdb0de859d9` changes only NREPS16→256 and TCLEV0→0.09. The installed manual pages 229–233 specify the maximum and target rule. The fixed seed, Poisson formation count, aircraft, schedule and result window remain.
+
+Accepted IDs `j04-var02-confidence-stop-accepted-20261001-01` and `-02` are fresh guarded session-0 SSH runs. Four native steps and GUI coexistence checks passed in each; converter errors were zero, with classified warnings #108/#211/#126. Each has 11 raw seals. Author replay and separate independent read-only replay (GO, 6,940/6,940 checks) passed source/invocation/closure/manifest bindings, 14 populated-table business roundtrips, NREP81 below cap256, final RSMTMF0.079545453 below TCLEV0.09, four corresponding mission fractions 0.814814806, 72 aligned aggregate System/Stock bins, 3.209876537 mean operating aircraft at h8–10, 6.419753075 mean aircraft flight hours, and terminal twelve ready. Both aggregate reports and first-replication logs are identical. First-only ENLOG matches the accepted parent.
+
+Excluded probes show cap32 at TCLEV0.01 and0.09, stop19 at TCLEV0.3 with high-threshold warning #104, and stop81 at TCLEV0.09 with cap256. The observed NREP and final relative error do not reveal the ten consecutive intermediate errors. Other eighty per-replication event histories/counts, other seeds, general stopping boundaries, precision of other metrics, thread effects, GUI visual behavior and cross-engine parity remain unverified. The PR must publish only this exact-input early-stop scope after independent read-only acceptance.
