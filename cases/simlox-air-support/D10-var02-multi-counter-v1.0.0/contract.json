@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-d10-multicounter-v100-contract/v1",
+  "case_id": "D10",
+  "variant_id": "D10.var02",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D10-var01-missions-v1.0.0",
+  "parent_input_sha256": "6607991260e3f911d0121c7949443409a57937e95f80c7e4f3a2faa6ac20ba72",
+  "input_sha256": "0083ffd0038017be0078d9afd5a9e892b3df8c7ae5eafd89b8280950816aa829",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [202, 203, 204, 370, 371, 372, 373, 374, 375, 376],
+  "scope": "one aircraft, one PM identified by MISSIONS=2 with added OPHOURS=3 and CALHOURS=24 intervals",
+  "delta": [
+    "add exactly two MaterielPMInterval rows keyed by MS2: OPHOURS=3 and CALHOURS=24",
+    "retain parent MaterielPM MISSIONS=2, five fixed missions, and one-hour PM task"
+  ],
+  "fixed_input": {
+    "mission_starts_hours": [8, 16, 20, 48, 52],
+    "mission_durations_hours": [4, 1, 1, 1, 1],
+    "pmid": "MS2",
+    "pm_intervals": [
+      {"OPID": "MISSIONS", "PMINT": 2},
+      {"OPID": "OPHOURS", "PMINT": 3},
+      {"OPID": "CALHOURS", "PMINT": 24}
+    ],
+    "atim": 0,
+    "dtim": 0,
+    "pm_task_hours": 1,
+    "horizon_hours": 60,
+    "seed": "1"
+  },
+  "hand_expected": {
+    "ophours_wins_after_four_hour_first_mission": {"pm_start_hour": 12, "pm_end_hour": 13},
+    "mission_counter_wins_after_two_one_hour_missions": {"pm_start_hour": 21, "pm_end_hour": 22},
+    "calendar_counter_wins_after_no_flight_gap": {"pm_start_hour": 46, "pm_end_hour": 47},
+    "mission_counter_wins_again_after_two_more_one_hour_missions": {"pm_start_hour": 53, "pm_end_hour": 54},
+    "no_extra_pm_through_hour": 60,
+    "all_five_missions_complete": true,
+    "no_failure_or_stock_demand": true
+  },
+  "acceptance": [
+    "exact author-populated table roundtrip, zero native conversion errors, nonempty native SXO/report/event log",
+    "each PM initiation is isolated by one preceding threshold while competing counters have not reached theirs",
+    "the later PM times exclude independent per-counter scheduling without reset in this fixed timeline",
+    "all 120 half-hour System and Stock result bins reconcile with events, eight mission operation hours and four PM-hours",
+    "terminal one aircraft ready, no active PM, failure or backorder",
+    "separate read-only reviewer replays frozen raw evidence"
+  ],
+  "limits": [
+    "one fixed seed and three thresholds; ties, alternative timing, nonzero ATIM/DTIM, ENREG and MNOCC remain unverified",
+    "GUI-only behavior and cross-engine equivalence unverified"
+  ]
+}
