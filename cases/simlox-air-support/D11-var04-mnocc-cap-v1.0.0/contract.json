@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-d11-mnocc-cap-v100-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var04",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D10-var02-multi-counter-v1.0.0",
+  "parent_input_sha256": "0083ffd0038017be0078d9afd5a9e892b3df8c7ae5eafd89b8280950816aa829",
+  "input_sha256": {
+    "MNOCC=0": "d6bacab5d9ccf99154eb95d7c2b324493bfdc6eca8576d0b76d2cf95a2dee9a3",
+    "MNOCC=1": "548e89ae0e7fede7f604bd7d886a9219b70122530f92fb9a1baa34c6eb3bdd73",
+    "MNOCC=2": "fb0c75f5bf08ba560cb12a2a9ac7bcb91edf1dc01e983d0e47020cdc92c3c7fc"
+  },
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [374, 375],
+  "scope": "one aircraft and one three-counter PM task, comparing MNOCC=0/1/2 over a 60-hour fixed timeline",
+  "delta": [
+    "each branch changes only MaterielPM.MNOCC from omitted to the stated nonnegative integer and updates ProblemDescription",
+    "retain D10.var02's five missions, MISSIONS=2, OPHOURS=3 and CALHOURS=24 intervals, one-hour task, seed and result horizon"
+  ],
+  "fixed_input": {
+    "mission_starts_hours": [8, 16, 20, 48, 52],
+    "mission_durations_hours": [4, 1, 1, 1, 1],
+    "pmid": "MS2",
+    "pm_intervals": {"MISSIONS": 2, "OPHOURS": 3, "CALHOURS": 24},
+    "atim": 0,
+    "dtim": 0,
+    "pm_task_hours": 1,
+    "horizon_hours": 60,
+    "seed": "1"
+  },
+  "hand_expected_hypothesis": {
+    "MNOCC=0": {"actual_pm_work_spans": []},
+    "MNOCC=1": {"actual_pm_work_spans": [[12, 13]]},
+    "MNOCC=2": {"actual_pm_work_spans": [[12, 13], [21, 22]]},
+    "all_five_missions_complete": true,
+    "no_failure_or_stock_demand": true
+  },
+  "acceptance": [
+    "exact author-populated table roundtrip, zero converter errors, nonempty native event log and report for all three branches",
+    "individual task and subtask work events confirm the occurrence cap, including zero actual work at MNOCC=0",
+    "all System and Stock bins reconcile with flight and actual PM work; terminal aircraft ready with no active PM or backorder",
+    "source-locked session-0 serial runner preserves GUI process identity and seals raw artifacts",
+    "independent read-only review replays native evidence without importing the author validator"
+  ],
+  "limits": [
+    "these hypotheses are not accepted behavior until the three native runs and independent review pass",
+    "related PM counter effects require a separate model and remain unverified in this group",
+    "prelife, other seeds, alternative thresholds, GUI-only behavior and cross-engine equivalence remain unverified"
+  ]
+}
