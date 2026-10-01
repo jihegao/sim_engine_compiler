@@ -1,0 +1,79 @@
+{
+  "schema": "simlox-j03-var01-time-two-point-contract/v1",
+  "case_id": "J03",
+  "variant_id": "J03.var01",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J01.var01@1.0.0",
+  "parent_input_sha256": "b7e8e737e8ad9c0ce4700f6b7a9b7fcfe9b332100210793977b2230f4dca4409",
+  "panel_diff_sha256": "08e5ef3e0c9aa389c3b10ab962c8eabb7f6f7bdb49e6d5d25c1581e5d4a1e320",
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [
+      510,
+      511,
+      541,
+      542,
+      543,
+      544,
+      545
+    ]
+  },
+  "business_delta": "Against accepted J01.var01 PREP-DET <DETERM>0.5 PFAC1, replace the one TimeDistributions row with two PREP-DET <DETERM> rows for 0.25 and 0.75 hour at PFAC0.5 each. Keep B01 mission preparation, one aircraft, scheduled hour8 mission start, one-hour notice, two-hour mission and hour36 horizon. Seeds 02-32 change only Control.RSEED.",
+  "expected_observation": {
+    "native_runs": 32,
+    "seed_range_inclusive": [
+      1,
+      32
+    ],
+    "frozen_preparation_hours_by_seed": [
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.25,
+      0.75,
+      0.25
+    ],
+    "frozen_frequencies": {
+      "0.25": 15,
+      "0.75": 17
+    },
+    "frozen_sample_mean": 0.515625,
+    "frozen_sample_variance": 0.06426411290322581,
+    "preparation_start_hour": 7,
+    "mission_start_hour": 8,
+    "mission_completion_hour": 10,
+    "deployed_aircraft": 1,
+    "system_result_bins_per_run": 72
+  },
+  "limits": "Thirty-two excluded diagnostic seeds fixed this reproducibility panel. The two-point configuration specifies PFAC0.5 for each <DETERM> support point, but the fixed seed set cannot prove population mixture weights, stream independence, unobserved behavior, GUI-only results or cross-engine parity."
+}
