@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-j04-var02-confidence-stop-contract/v1",
+  "case_id": "J04",
+  "variant_id": "J04.var02",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J04.var01@1.0.0",
+  "parent_input_sha256": "4a4e2df598a515762b1c4de8894c139c6ac6bce40c523d7e5f0720514f7f5579",
+  "input_sha256": "f3f41a145ed539b6ed057499ea5860ec5d16418ac2d2ea98365ebbdb0de859d9",
+  "exact_diff_sha256": "09c20588bf81ab98439ac81b18604c850211e3716140344ea4c7a450c6a756c6",
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [229, 230, 233, 551, 552, 553]
+  },
+  "business_delta": "Against accepted J04.var01 fixed-seed input, change only Control.NREPS 16 to 256 and Control.TCLEV 0 to 0.09. Retain the Poisson formation count, RSEED=1, twelve aircraft, mission schedule, reporting interval, and horizon.",
+  "expected_observation": {
+    "fresh_accepted_runs": 2,
+    "run_ids": ["j04-var02-confidence-stop-accepted-20261001-01", "j04-var02-confidence-stop-accepted-20261001-02"],
+    "maximum_nreps": 256,
+    "actual_nrep": 81,
+    "tclev": 0.09,
+    "seed": "1",
+    "result_bins_per_run": 72,
+    "mtmf": 0.8148148059844971,
+    "rsmtmf": 0.07954545319080353,
+    "mean_operating_aircraft_at_hour_8": 3.209876537322998,
+    "mean_aircraft_flight_hours": 6.419753074645996,
+    "terminal_ready_aircraft": 12,
+    "first_replication_event_log_matches_accepted_parent_seed_1": true
+  },
+  "limits": "Exact-input positive-TCLEV run shows NREP81 below maximum256 and final RSMTMF below0.09. Aggregate report and first-only ENLOG do not expose the rolling ten-replication criterion, other eighty per-replication mission counts or event timelines. Three diagnostic thresholds remain excluded. This does not establish general stopping, precision of all metrics, other seeds, GUI visual content, or cross-engine parity."
+}
