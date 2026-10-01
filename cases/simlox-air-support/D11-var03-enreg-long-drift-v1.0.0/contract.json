@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-d11-enreg-long-drift-v100-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var03",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D03-calendar-pm-v1.0.0",
+  "parent_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "input_sha256": "76836c8b1dd8f9d5552e9fb908b766e80995bc9fdcd7b7967f75a73de6f6b7c5",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [204, 370, 372, 373, 374],
+  "scope": "one aircraft, CALHOURS=24 PM, ENREG=N and a 26-hour mission crossing the 24 and 48-hour planned PM slots",
+  "delta": ["accepted D03 third 2-hour mission at32 becomes a distinct 26-hour mission at23.5", "Control and result windows extend 60 to84 hours", "MaterielPM.ENREG explicitly N and description changes; one-hour PM task and no-failure seed stay fixed"],
+  "fixed_input": {"mission_starts_hours": [8, 20, 23.5], "mission_durations_hours": [2, 2, 26], "pmid": "CAL24", "pm_interval": {"OPID": "CALHOURS", "PMINT": 24, "ATIM": 0, "DTIM": 0, "ENREG": "N"}, "pm_task_hours": 1, "horizon_hours": 84, "seed": "1"},
+  "hand_expected_hypothesis": {"mission_returns_hours": [10, 22, 49.5], "planned_slots_during_long_mission_hours": [24, 48], "first_actual_work": [49.5, 50.5], "second_actual_work": [74.5, 75.5], "second_due_basis": "24 calendar hours from delayed first PM completion", "three_missions_successful": true},
+  "acceptance": ["exact source roundtrip, zero conversion errors, nonempty native SXO/event/report and sealed raw artifacts", "individual mission and PM work events establish that two planned calendar slots occur during the long flight", "all 168 half-hour System/Stock bins and summary/terminal state reconcile", "separate read-only independent replay passes"],
+  "limits": ["post-delay PM schedule is a native hypothesis until raw replay", "one fixed long mission and one 24-hour PM; other delays and PM types unverified"]
+}

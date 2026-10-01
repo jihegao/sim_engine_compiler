@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-d11-enreg-long-regular-v100-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var03",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D11-var03-enreg-long-drift-v1.0.0",
+  "parent_input_sha256": "76836c8b1dd8f9d5552e9fb908b766e80995bc9fdcd7b7967f75a73de6f6b7c5",
+  "input_sha256": "a7f41c9e202c136760ea22c67aecf5abe52a55331c60590694ca012521a34f30",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [204, 370, 372, 373, 374],
+  "scope": "same 26-hour mission and 24-hour calendar PM as long-drift control, with ENREG=Y",
+  "delta": ["only MaterielPM.ENREG changes from N to Y plus a descriptive label", "long mission, result window, PM task, seed and no-failure aircraft remain equivalent"],
+  "fixed_input": {"mission_starts_hours": [8, 20, 23.5], "mission_durations_hours": [2, 2, 26], "pmid": "CAL24", "pm_interval": {"OPID": "CALHOURS", "PMINT": 24, "ATIM": 0, "DTIM": 0, "ENREG": "Y"}, "pm_task_hours": 1, "horizon_hours": 84, "seed": "1"},
+  "hand_expected_hypothesis": {"mission_returns_hours": [10, 22, 49.5], "planned_slots_during_long_mission_hours": [24, 48], "first_actual_work": [49.5, 50.5], "no_separate_catch_up_for_hour_48_slot": true, "second_actual_work": [72, 73], "second_due_basis": "original 24-hour grid after skipped hour-48 slot", "three_missions_successful": true},
+  "acceptance": ["exact source roundtrip, zero conversion errors, nonempty native SXO/event/report and sealed raw artifacts", "no back-to-back catch-up PM after long flight; actual second PM work at original 72-hour slot contrasts with N", "all 168 half-hour System/Stock bins and summary/terminal state reconcile", "separate read-only independent replay passes"],
+  "limits": ["omission and return to schedule are native hypotheses until raw replay", "one fixed calendar PM, long mission and seed; noncalendar PM and other delays unverified"]
+}

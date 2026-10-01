@@ -1,0 +1,17 @@
+# Independent static review — D11.var03 ENREG=Y regular schedule
+
+**Verdict: bounded static GO.** This read-only review covers frozen input and sealed native run `d11-enreg-regular-v100-ssh-20261001-01` against the ENREG=N control. A separate independent raw event and per-bin replay remains the publication gate.
+
+## Source and provenance
+
+- Direct parent ENREG=N input SHA-256: `61643f14212e7195437da7d95da91458472b29ac65555287cf968c66aee61bb1`; frozen ENREG=Y input: `3e64d0d817e1185cc95f826f0c5940bbfcf1bb9ee3f7af79d2046b91e11a2370`. Exact-diff SHA-256: `d89085b2810b257eef63347ff3fec6083844e6a774536f521d30c8a8298e9a5d`. Only `MaterielPM.ENREG` N→Y and descriptive `ProblemDescription` change; 29 tables, including the three mission rows, 24-hour CALHOURS interval, one-hour PM task, seed, and 60-hour horizon, are unchanged. The accepted D03 grandparent input SHA-256 is `5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32`.
+- Installed manual SHA-256: `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`; dictionary SHA-256: `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Manual physical p. 374 states that ENREG=Y retains the originally planned PM schedule after a delay; the dictionary lists ENREG as optional Y/N with default N. The 48-hour second PM was a pre-run hypothesis.
+- Session-0 SSH/`sshd.exe` ancestry, host-wide mutex, GUI PID 13340 active-session preflight and identity checks around each CLI step, immutable run path, and source/raw closure are present. All five steps exited 0 with GUI identity preserved. Independent read-only checks found the invocation SHA, all 12 raw byte counts/hashes, and source pre/post hashes consistent. The checker passed all 18 row-containing source tables. Conversion had zero errors and warnings #108 (logging) and #126 (itemless system).
+
+## Native observation and pair contrast
+
+- The same aircraft succeeds on missions 8–10, 20–22, and 23.5–25.5. The first PM, due during the third mission at 24, actually performs 25.5–26.5 in both variants. In this Y run the second PM task and subtask perform 48–49, on the original 24/48-hour calendar grid. The N control instead performs the second PM 50.5–51.5. This 2.5-hour difference is linked to the sole behavioral input change, ENREG.
+- Both summaries have identical values, with MTMF=MSTF=MSUF=STMF=1. Both reports contain 120 half-hour system and 120 stock rows; each integrates six operating and two PM aircraft-hours, has NBO=0, and ends with one ready aircraft in [59.5,60). Stock rows match across the pair. System rows differ in PM occupancy, readiness/unavailability, NPMS/NPMT, and downtime markers around the second PM. The first NPMS marker is [24,24.5), whereas actual first PM work starts at 25.5; exact times come from task/subtask events. Tiny numerical spill in boundary bins should be treated as floating-point report noise.
+- Raw `model.log` SHA-256: `e0af682f137b4f9257f2e3e3cef901eedbefd1ee9ca8cb9ac4cffd80ea1e645e`; report SHA-256: `c7f75ee08147d732bd77ed0fa8a3fcb60bc39dc638c4f949dc9d54e694355ab0`; closure SHA-256: `302566829caa88f79acbf1ef1387486a068161cc04704812a9439e277695b1fd`.
+
+**Limits:** This supports original-calendar-grid retention for one short mission-induced delay, one aircraft, one seed, and a one-hour PM. It does not prove the manual's omitted-PM behavior when the delay spans another scheduled PM, nor behavior with ATIM/DTIM, MNOCC, resource waits, or other calendars. A separate independent replay should gate publication.

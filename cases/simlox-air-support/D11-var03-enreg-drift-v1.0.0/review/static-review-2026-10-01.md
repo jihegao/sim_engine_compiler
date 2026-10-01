@@ -1,0 +1,17 @@
+# Independent static review — D11.var03 ENREG=N drift control
+
+**Verdict: bounded static GO.** This read-only review covers the frozen source and sealed native run `d11-enreg-drift-v100-ssh-20261001-01`. A separate independent raw event and per-bin replay remains the publication gate.
+
+## Source and provenance
+
+- Accepted D03 calendar PM parent input SHA-256: `5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32`. Frozen control input: `61643f14212e7195437da7d95da91458472b29ac65555287cf968c66aee61bb1`. Exact-diff SHA-256: `6b160a428710adf7d39ff5725fbaa937f4375e4bb17508d8f8a786b9c09e605d`. Only `OperationProfile` (third start 32→23.5), `MaterielPM` (ENREG null→explicit N), and `ProblemDescription` change; 28 tables remain unchanged. Missions start 8, 20, 23.5, each for two hours; `CAL24` remains CALHOURS/24 with ATIM=DTIM=0 and a one-hour PM task. Seed 1, one aircraft, and the 60-hour horizon remain fixed.
+- The installed manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`; dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Manual physical p. 374 says ENREG=N bases the next PM on the interval after a delay; dictionary `MaterielPM.ENREG` permits Y/N and defaults to N. The predicted 50.5-hour second PM was explicitly a pre-run hypothesis.
+- The runner checks session-0 SSH and `sshd.exe` ancestry, obtains the host-wide mutex, verifies GUI PID 13340 in an active session before launch and preserves process/session/start identity around each CLI step, and records source hashes and raw closure. All five steps exited 0 and retained GUI identity. The closure's invocation SHA, 12 raw byte counts/hashes, and before/after source fingerprints match on independent read-only recomputation. The 18 row-containing source tables pass import/export. Conversion reports zero errors and warnings #108 (logging) and #126 (itemless system).
+
+## Native observation
+
+- The same aircraft completes the three missions at 10, 22, and 25.5. The first calendar PM is due at 24 while it is on the third mission; the PM task and subtask actually perform from 25.5 to 26.5. The second PM task and subtask perform from 50.5 to 51.5, 24 hours after that first completion. Do not equate the first `SystemResults.NPMS` marker in [24,24.5) with physical PM work.
+- `ResultSummary` has MTMF=MSTF=MSUF=STMF=1. The 120 half-hour `SystemResults` bins integrate to six aircraft-hours operating and two aircraft-hours in PM; 120 `StockTotalResults` bins have NBO=0. The final [59.5,60) system bin is ready with no operation, PM, or failure occupancy. The paired ENREG=Y report has identical summary and stock rows; the system-row differences track the shifted second PM and associated ready/unavailable/downtime markers.
+- Raw `model.log` SHA-256: `a5d132276f6375be404a82d20294a367eddaa3ac2f6a9768ee52f7f8e2fef58e`; report SHA-256: `6cc0bdddbb4e70711ffa2a68f1970b4ed9e9e89bb2c28a46e2ff22cf9ceb7aab`; closure SHA-256: `5767b6e0017e9f8e77fa5a1f3fac7156b6f851afcc1beac50bb5f8995d48e490`.
+
+**Limits:** This establishes the observed drift only for one 1.5-hour mission-induced delay, one calendar PM, one aircraft, and one seed. Tiny floating-point fractions appear in adjacent PM boundary bins, so use the log for exact task times and integrate report occupancy with tolerance. It does not establish omission of a PM scheduled during a longer delay or behavior under nonzero ATIM/DTIM, MNOCC, resource waits, or other schedules.

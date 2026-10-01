@@ -1,0 +1,13 @@
+# D11.var03 long-delay ENREG=N: bounded CLI signoff
+
+**Decision:** `native_behavior_accepted_cli_scope` for one 26-hour mission delaying a 24-hour calendar PM beyond the next planned slot, with `ENREG=N`. Publication requires merge to `simlox/main`. This does not complete D11 or Issue #18.
+
+Accepted D03 parent input SHA-256 `5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32`; installed manual SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3` (physical pp. 204, 370, 372–374); dictionary SHA-256 `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`.
+
+Frozen [contract](contract.json) SHA-256 `a9046aa1018639d12f983ac8978300d74b89b468b76f2d4afabba0ce5a9b7d0a`; [input](native-input.json) SHA-256 `76836c8b1dd8f9d5552e9fb908b766e80995bc9fdcd7b7967f75a73de6f6b7c5`; [exact parent diff](exact-diff.json) SHA-256 `7ebe7f3efef2e5a02f6f140aced29fd860cc3cec143844c6053e9c669b1bb7a7`. The third mission becomes `LONG-MISSION` at 23.5–49.5, Control and two ResultCollection windows extend to 84 hours, `ENREG=N` is explicit, and description changes; 25 tables remain equal. The first two missions, one-hour PM task, interval and seed stay fixed.
+
+Guarded session-0 SSH run `d11-enreg-long-drift-v100-ssh-20261001-01` completed five native steps and exact 18-table roundtrip under `Global\SimloxIssue18NativeQueue`, preserving GUI PID 13340/session 1/start identity. Conversion errors were zero; #108 logging and #126 item-free warnings were expected. The closure seals 12 raw artifacts with unchanged source hashes; its SHA-256 is `a4d5dd91f650225d8210493ee89d68404730675679c2338a17cc98423da5c4c7`.
+
+All three missions succeed, with the long flight at 23.5–49.5 crossing planned PM slots 24 and 48. The first report `NPMS` marker is at 24, while actual PM task/subtask work occurs once on return at 49.5–50.5. The next PM works 74.5–75.5, 24 hours after first completion. All 168 half-hour System and Stock-total bins reconcile 30 flight and two PM aircraft-hours, no failure or stock demand, summary factors 1 and terminal ready. [Author replay](review/author-validation-2026-10-01.json) passes 2,077/2,077 checks; [independent read-only replay](review/independent-readonly-2026-10-01.json) separately checks raw evidence. The [evidence index](evidence-index.json) hashes local ignored `runs/` artifacts.
+
+The [ENREG=Y pair](../D11-var03-enreg-long-regular-v1.0.0/cli-scope-signoff-2026-10-01.md) tests omission and grid retention. This fixed schedule does not establish generic catch-up behavior, other intervals or mission conflicts, GUI-only behavior or cross-engine equivalence.
