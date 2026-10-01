@@ -1,0 +1,5 @@
+# G01.var02: secondary SPRU depot repair branch
+
+This bounded CLI package derives from the accepted [G01.var03 nested DP topology](../G01-var03-dp-discard-reorder-v1.0.0/cli-scope-signoff-2026-10-01.md). Its [seed-7 companion](../G01-var02-spru-discard-reorder-v1.0.0/README.md) differs only in `Control.RSEED` and observes repair, discard/reorder, and an unfinished later repair. The two runs demonstrate observed branches under one SPRU policy, not a 50/50 frequency law.
+
+The [pre-run contract](contract.json), [native input](native-input.json), [exact parent diff](exact-diff.json), [signoff](cli-scope-signoff-2026-10-01.md), and [evidence index](evidence-index.json) define the accepted scope. Run `build.py` and `describe_diff.py` to check source bytes and table delta, `validate_native.py runs/g01-var02-spru-v100-ssh-20261001-01` for author replay, and `review/independent_readonly.py` for separate paired raw replay. Original SXI/SXO, event log, report, invocation and closure stay local under ignored `runs/g01-var02-spru-v100-ssh-20261001-01/`.
