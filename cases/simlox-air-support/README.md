@@ -90,6 +90,8 @@ The [G02.var05 invalid-reference matrix](G02-var05-invalid-references-v1.0.0/cli
 
 The [G02.var04 position-specific PM matrix](G02-var04-position-pm-v1.0.0/cli-scope-signoff-2026-10-02.md) adds separate calendar PM tasks bound to POS-A and POS-B, with a no-PM control and combined arm. Four guarded native runs, 48 accepted raw seals and 282 independent checks show A work at 24–25 and 49–50 hours, B at 36–36.5, and all three in the combined arm. Start and completion bins reconcile independently; two earlier task-schema diagnostics are sealed and excluded. Failure-count differences are not attributed to PM.
 
+The [C09.var04 primary-maintenance remote-resource matrix](C09-var04-remote-maintenance-resource-v1.0.0/cli-scope-signoff-2026-10-02.md) compares a local mechanic, one borrowed from BASE-02, and the same route with task-level `ENRMS=N`. Three guarded native runs, 36 raw seals and 244 independent checks show two direct system repairs in local and borrowed arms, outward transport of 0.25 hour, return transport of 0.5 hour, and no completed repair by hour 36 when borrowing is disabled. The 72-bin System and aggregate Resource reports reconcile failures, repairs, terminal readiness and resource conservation. This is one fixed-seed direct primary-maintenance result.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
