@@ -1,0 +1,36 @@
+{
+  "schema": "simlox-c09-var04-parent-exact-diff/v1",
+  "parent_case": "C03@1.0.2/staffing-2",
+  "parent_input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+  "repair_template_case": "D01@1.0.0",
+  "repair_template_input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+  "unchanged_from_parent": "All model tables and values except the listed rows; build.py copies the parent and applies only these changes.",
+  "common_changes": [
+    "ProblemDescription.PDESC identifies arm.",
+    "System.FRT becomes 2000000 failures per million OPHOURS; OPID remains OPHOURS.",
+    "SystemRepair adds one D01-shaped direct repair row for TEACH-AIR-01 at BASE-01 with DIRPT=0.5, DIRPF=1 and DIRPTID=C09-DIRP.",
+    "Tasks adds C09-DIRP and TaskBreakDown adds C09-DIRP/<REPAIR> SEQ=1 DURN=0.5 hour.",
+    "Station adds BASE-02; Resource adds special P-MECH.",
+    "ResourceAllocation adds one AIR_BASIC/P-MECH row with RQTY=1; TaskResource adds C09-DIRP/P-MECH with QTY=1 and RPROB=1."
+  ],
+  "variants": {
+    "local": {
+      "input_sha256": "1f7e87b3c7886f6b05ff2b2d9f04ee1a98e64445f8f5d6b660595eb2c5845730",
+      "allocation_station": "BASE-01",
+      "ENRMS": "Y",
+      "remote_route": null
+    },
+    "remote": {
+      "input_sha256": "c0602d0a6bb3ee4603ac3be636ba81474dfbde33837f6a368ecdc6ded7e29ba1",
+      "allocation_station": "BASE-02",
+      "ENRMS": "Y",
+      "remote_route": {"RID": "P-MECH", "STID": "BASE-01", "RSTID": "BASE-02", "TFRS": 0.25, "TTRS": 0.5, "TTRSS": 0.125, "time_unit": "hour"}
+    },
+    "remote-disabled": {
+      "input_sha256": "bc2b346e311650a0c5913e8b05662cd440e1ede9049ca20869d3b001f1274552",
+      "allocation_station": "BASE-02",
+      "ENRMS": "N",
+      "remote_route": {"RID": "P-MECH", "STID": "BASE-01", "RSTID": "BASE-02", "TFRS": 0.25, "TTRS": 0.5, "TTRSS": 0.125, "time_unit": "hour"}
+    }
+  }
+}

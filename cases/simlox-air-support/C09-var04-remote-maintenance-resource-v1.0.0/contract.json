@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-c09-var04-remote-maintenance-contract/v1",
+  "case_id": "C09",
+  "variant_id": "C09.var04",
+  "version": "1.0.0-candidate",
+  "parent_case": "C03@1.0.2/staffing-2",
+  "parent_input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+  "repair_template_case": "D01@1.0.0",
+  "repair_template_input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+  "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_pdf_pages": [[399, 400], [414, 416]],
+  "input_sha256": {
+    "local": "1f7e87b3c7886f6b05ff2b2d9f04ee1a98e64445f8f5d6b660595eb2c5845730",
+    "remote": "c0602d0a6bb3ee4603ac3be636ba81474dfbde33837f6a368ecdc6ded7e29ba1",
+    "remote-disabled": "bc2b346e311650a0c5913e8b05662cd440e1ede9049ca20869d3b001f1274552"
+  },
+  "common_delta": "From the accepted C03 two-crew formation, seed direct system failures at 2,000,000 failures per million operating hours and add a D01-shaped primary system repair at BASE-01. Its C09-DIRP task lasts 0.5 hour and requires one special P-MECH. Add BASE-02 while retaining the C03 mission and crew configuration.",
+  "variants": {
+    "local": "P-MECH allocated at BASE-01; no remote-support route.",
+    "remote": "P-MECH allocated only at BASE-02; ResourceRemoteSupport permits BASE-01 to borrow it with TFRS=0.25, TTRS=0.5 and TTRSS=0.125 hour; TaskResource.ENRMS=Y.",
+    "remote-disabled": "Same remote allocation and route as remote, but TaskResource.ENRMS=N disables remote support for C09-DIRP."
+  },
+  "predeclared_acceptance": [
+    "All three frozen inputs import and export without losing or altering any authored populated table row.",
+    "At least one first-replication primary system repair is visible so a local/remote/disabled comparison is meaningful.",
+    "Native event or report evidence distinguishes the remote arm's borrowing and return from the local control and ENRMS=N arm; otherwise publish only a verifiable limitation, not a behavioral success claim.",
+    "Run source hashes, native steps, GUI continuity and raw outputs are sealed and independently reviewed."
+  ],
+  "limits": [
+    "A fixed seed and one native replication do not estimate failure or borrowing frequencies.",
+    "The task is direct primary system repair; mission-resource, replacement and secondary-maintenance remote support are outside scope.",
+    "No general cost, performance, cross-engine parity or GUI visual claim is inferred."
+  ]
+}
