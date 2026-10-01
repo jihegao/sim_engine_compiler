@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-issue18-h01-var01-certain-attrition-contract/v1",
+  "case_id": "H01",
+  "variant_id": "H01.var01",
+  "case_slice": "per-mission damage probability DAMP=0 versus DAMP=1 with observable attrition consequence",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "path": "../A02-single-aircraft-repeated-missions/native-input.json",
+    "sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "scope": "one aircraft, three scheduled two-hour fixed missions at h8, h20, h32, no ordinary failures, 36h horizon"
+  },
+  "source_sha256": {
+    "zero": "5c5b26aae958c4fa610d05f2cc82445bfb0fb13159dc4e6b5dace2375be2f638",
+    "certain": "f519cd4549db879505c16bd5d4affb7e34f1db6227e71bebc27738442489d4f0"
+  },
+  "exact_diff_sha256": "3b3266332d74c9bf230dd5e09d1ff2b37d7828eff438c4681f31b7e6732e22f4",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp192–193 and 436–439: MissionDamage.DAMP is probability per mission, its event time is uniformly drawn within that mission, each damage type occurs at most once per mission, and DAMP is disallowed for continuous missions. DamageItem IID=<ATTRITION> with PROB=1 is a documented loss consequence; pp425–426. Dictionary rows for DamageType, MissionDamage, DamageItem pin column order and default types.",
+  "source_delta": "A02 to zero arm adds exactly DamageType, MissionDamage and DamageItem plus PDESC. Both arms retain the same A02 aircraft, fixed mission type, three schedules, seed1, 36h horizon, and zero ordinary system failure frequency. The added consequence is BATTLE-LOSS with DamageItem IID=<ATTRITION> and PROB=1. Zero to certain changes only MissionDamage.DAMP 0→1 and PDESC; DAMRT remains null in both.",
+  "pre_run_hypotheses": {
+    "zero": "DAMP=0 should produce no BATTLE-LOSS event and preserve three completed missions at h10, h22 and h34, subject to native validation.",
+    "certain": "DAMP=1 should generate one BATTLE-LOSS occurrence during the first launched mission h8–10; the explicit attrition consequence should lose the only aircraft and prevent later completed sorties. Exact stochastic event time is not preaccepted.",
+    "alternatives": "The converter may reject a null DAMRT or the attrition IID, the engine may skip the damage, schedule it outside the first mission, or report a consequence other than permanent loss. Such evidence remains diagnostic and cannot be published as H01.var01.",
+    "observability": "Positive acceptance requires native event identity/time and attrition/mission outcome in both arms, exact authored-table roundtrip, zero converter errors, reconciled 72-bin System/Stock and mission summaries, raw seals and independent read-only replay. DAMP=1 does not fix event time."
+  },
+  "acceptance_gates": [
+    "Frozen accepted A02 parent, two source hashes and exact parent→zero→certain diff",
+    "Independent static review before two serial guarded session-0 SSH native runs under host mutex with GUI PID13340 preserved",
+    "Exact authored-table roundtrip and zero converter errors in both arms",
+    "Raw damage/attrition and mission event comparison plus System/Stock/ResultSummary reconciliation",
+    "SHA-256 sealed raw evidence and independent read-only replay"
+  ],
+  "limits": [
+    "One seed, one system, one damage type and guaranteed attrition consequence; no item damage or repair is modeled.",
+    "DAMP=0/1 endpoints only; intermediate probability, DAMRT rate/repetition, continuous-mission restriction and multiple aircraft remain other H01 variants.",
+    "If either arm lacks a clear native damage/no-damage contrast, retain this pair as diagnostic only."
+  ]
+}
