@@ -1,0 +1,37 @@
+{
+  "schema": "simlox-j04-var04-thread-repro-contract/v1",
+  "case_id": "J04",
+  "variant_id": "J04.var04",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J04.var03@1.0.0",
+  "parent_input_sha256": "2fa710997450dcd32190145e4df3d6c0e2e81c76b1236e174af0685c0a80c991",
+  "input_sha256": "2fa710997450dcd32190145e4df3d6c0e2e81c76b1236e174af0685c0a80c991",
+  "exact_diff_sha256": "f47a3b7d53d8f4d4a038f0761f5499750493e7bfe7069b845f22ee164962c3d0",
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3"
+  },
+  "business_delta": "Use the accepted J04.var03 seed-01 model byte-for-byte. Change only native calc CLI -threads 1 to -threads 2; retain the same executable, control settings, seed, scenario, and one-thread accepted baseline.",
+  "expected_observation": {
+    "fresh_thread_two_runs": 2,
+    "run_ids": ["j04-var04-thread2-accepted-20261001-01", "j04-var04-thread2-accepted-20261001-02"],
+    "parent_thread_one_run_ids": ["j04-var03-nreps-cap-accepted-20261001-01", "j04-var03-nreps-cap-accepted-20261001-02"],
+    "calc_threads": 2,
+    "parent_calc_threads": 1,
+    "seed": "1",
+    "nrep": 32,
+    "tclev": 0.09,
+    "mtmf": 0.84375,
+    "rsmtmf": 0.11425267904996872,
+    "result_bins_per_run": 72,
+    "mean_operating_aircraft_at_hour_8": 3.5,
+    "mean_aircraft_flight_hours": 7.0,
+    "terminal_ready_aircraft": 12,
+    "parent_report_raw_sha256": "15687df9d5893444416b8d7638c42b6090150703c8a8be7c03e871d111fbec34",
+    "parent_first_replication_log_sha256": "2899cf8e0c38cccc81b53fdad021ade6a7cfa904768255d4afa74484c6fe3279"
+  },
+  "limits": "Exact-input seed-01 comparison of two accepted -threads 1 parent runs and two fresh -threads 2 runs. It tests equality of raw JSON report and first-only ENLOG on this native installation. It does not expose the other thirty-one per-replication event histories/counts or establish general parallel determinism, scaling, other thread counts, seeds, GUI visual content, or cross-engine parity."
+}
