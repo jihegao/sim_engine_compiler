@@ -1,0 +1,82 @@
+{
+  "schema": "simlox-j03-var02-time-mix-contract/v1",
+  "case_id": "J03",
+  "variant_id": "J03.var02",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J01.var02@1.0.1",
+  "parent_input_sha256": "ee867ced23e4fa2d988e22fa13742055b5cdbbc64df875030feab5bf7060c724",
+  "panel_diff_sha256": "819d94cd59569a3a2b86b8b3a57b9d9a5cb640a306b6e28ecc3bc31313d80b3f",
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [
+      510,
+      511,
+      541,
+      542,
+      543,
+      544,
+      545
+    ]
+  },
+  "business_delta": "Against accepted J01.var02 PREP-RCT <RECT>0.25..0.75 PFAC1, replace the one TimeDistributions row with PREP-RCT <DETERM>0.25 and <RECT>0.5..0.75 rows at PFAC0.5 each. Retain mandatory MissionPreparation.DURN=0.5 and DURND=PREP-RCT, one aircraft, scheduled hour8 mission, one-hour notice, two-hour mission and hour36 horizon. Seeds 02-32 change only Control.RSEED.",
+  "expected_observation": {
+    "native_runs": 32,
+    "seed_range_inclusive": [
+      1,
+      32
+    ],
+    "frozen_preparation_hours_by_seed": [
+      0.683064,
+      0.285714,
+      0.62062,
+      0.285714,
+      0.84389,
+      0.285714,
+      0.781446,
+      0.607366,
+      0.285714,
+      0.830637,
+      0.285714,
+      0.768193,
+      0.285714,
+      0.705748,
+      0.817384,
+      0.285714,
+      0.754939,
+      0.285714,
+      0.692495,
+      0.285714,
+      0.630051,
+      0.741686,
+      0.285714,
+      0.679242,
+      0.285714,
+      0.616798,
+      0.285714,
+      0.840068,
+      0.285714,
+      0.285714,
+      0.603545,
+      0.285714
+    ],
+    "frozen_support_class_counts": {
+      "scaled_deterministic_spike": 15,
+      "scaled_rectangular_interval": 17
+    },
+    "frozen_sample_mean": 0.5157150625,
+    "frozen_sample_variance": 0.051992252105995965,
+    "observed_minimum": 0.285714,
+    "observed_maximum": 0.84389,
+    "preparation_start_hour": 7,
+    "mission_start_hour": 8,
+    "mission_completion_hour": 10,
+    "deployed_aircraft": 1,
+    "system_result_bins_per_run": 72
+  },
+  "inference": "The configured base-component mean is 0.4375 hour and MissionPreparation.DURN is 0.5 hour; their ratio is 8/7. The observed .285714 spike matches .25*(8/7), and all other observed durations lie inside [.5*(8/7),.75*(8/7)]. The installed manual p511 says DURN and DURND interact when both specified, but it does not state this scaling formula. Treat the ratio as a bounded inference, not a documented general rule.",
+  "limits": "Thirty-two excluded diagnostic seeds fixed the reproducibility panel. These fixed observations cannot prove component selection probabilities, a conditional RECT population law, exact scalar normalization algorithm, stream independence, unobserved tails, GUI-only results or cross-engine parity."
+}
