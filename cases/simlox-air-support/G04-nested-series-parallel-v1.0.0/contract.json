@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-issue18-g04-nested-series-parallel-contract/v1",
+  "case_id": "G04",
+  "case_slice": "G04.var04 nested A OR (B AND C) versus A AND (B OR C)",
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G04-three-branch-threshold-v1.0.0/one-input.json",
+    "sha256": "cfdf287c4de93638e8117c71ad3de1846da3c62c24254bf7d2a3f0f7c7c0c4d7",
+    "acceptance": "accepted fixed-seed three-position one-of-three active RBD source"
+  },
+  "source_sha256": {
+    "or": "2c26b7dc894ea74a7de7da6e647d235b0aa5e8eb11aa33069f184d3f9be8aa64",
+    "and": "658cdfcc374a13754c0980888137dd05bb0b94c4dfad5386bab5292fc414dd15"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "one_mission": {"start_hour": 8, "duration_hours": 26, "scheduled_end_hour": 34},
+    "positions": ["POS-A", "POS-B", "POS-C"],
+    "failure_modes": {"POS-A": "none", "POS-B": "FM-POS-B, 600000 per million operating hours", "POS-C": "FM-POS-C, 300000 per million operating hours"},
+    "nested_rbd": {
+      "or": "G04-ROOT-OR: POS-A OR G04-SER-BC(POS-B AND POS-C)",
+      "and": "G04-ROOT-AND: POS-A AND G04-PAR-BC(POS-B OR POS-C)",
+      "parallel_nbreq": 1,
+      "parallel_nbop": 2,
+      "tswov_hours": 0,
+      "onlm": "N",
+      "qtypb_each": 1,
+      "nested_subblock_opmid": null,
+      "leaf_opmid": "G04-OPS"
+    },
+    "repair": "parent half-hour direct system CM retained; CMLocation.FMID follows FM-POS-A to FM-POS-C relocation",
+    "stock": "unchanged parent zero-demand configuration"
+  },
+  "hypotheses_to_test_natively": [
+    "The nested block references import, export and convert without error, including the leaf and subblock mode bindings.",
+    "Both arms record the same two distinct POS-B/POS-C failure samples before the scheduled mission end and before repair.",
+    "With POS-A healthy, A OR (B AND C) remains functional after both B and C fail and the long mission succeeds.",
+    "With POS-A healthy, A AND (B OR C) remains functional after the first B/C failure but aborts after the second.",
+    "Native events, report bins and repair tasks reconcile; aggregate MSUF alone does not prove the nested Boolean condition."
+  ],
+  "acceptance_gates": [
+    "frozen parent/source hashes and exact structural delta; installed manual, dictionary and executable hashes",
+    "session-0 SSH with sshd ancestor, host-wide native mutex, GUI PID 13340 identity and unique run directories",
+    "native import/export/calc/report and exact authored-row roundtrip with zero converter errors",
+    "author event and ledger replay plus independent read-only review on raw evidence",
+    "raw invocation, logs, model, report and closure files sealed by SHA-256 evidence index"
+  ],
+  "limits": [
+    "One fixed seed and a nonfailing POS-A distinguish only one observed failure combination, not a full truth table or population reliability.",
+    "This pair does not test A failure, alternate failure orders, same-time failures, QTYPB>1, nested passive switching, GUI RBD view or cross-engine parity."
+  ]
+}
