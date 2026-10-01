@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-g02-var01-position-modes-probe-contract/v1",
+  "case_id": "G02",
+  "variant_id": "G02.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "D06",
+    "package": "D06-explicit-position-direct-repair-v1.0.0",
+    "input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78"
+  },
+  "other_accepted_prerequisite": "D03.calendar_pm.1.0.0",
+  "input_sha256": "5ef40eb302544e551282dd7dd3617a6ae160954f600dea605f26140ea551a19e",
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [250, 251, 252, 253, 355, 356, 357, 364, 365, 366, 367, 369, 370],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "delta": "Keep D06's one aircraft, two positions of the same LRU, one-replication seed 1, 36-hour schedule and direct half-hour local CM. Add only FM-POS-B (MID POS-B, FRQ 600000 per million OPHOURS) and its same-system BASE-01 CMLocation row; change ProblemDescription text for provenance. Existing FM-POS-A remains FRQ 300000.",
+  "pre_run_hypothesis": "Native conversion and business roundtrip pass with zero errors; the fixed seed produces at least one position-B failure attributable to FM-POS-B, and observed position-specific A/B events reconcile to the complete failure and direct CM ledger. The exact event times and counts are observations, not predeclared predictions.",
+  "acceptance_requires": [
+    "Guarded session-0 SSH with host-wide Issue #18 mutex and preservation of GUI PID 13340.",
+    "Four native steps succeed, nonempty SXI/SXO/report and log, zero conversion errors, and exact row-containing table roundtrip.",
+    "Native individual events identify the failure mode and position; repair start/completion, mission outcome, 72-bin resource/state ledger and terminal state reconcile.",
+    "Source-bound raw SHA-256 seals and a separate read-only replay without author implementation imports."
+  ],
+  "limitations": [
+    "One seed and only two fixed position rates; a run cannot infer population frequency or general rate propagation.",
+    "QTYPM/ENVF propagation, position-specific PM, replacements, invalid references, GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
