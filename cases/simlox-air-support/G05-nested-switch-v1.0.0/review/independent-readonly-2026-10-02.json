@@ -1,0 +1,39 @@
+{
+  "accepted_parent_run": "g05-passive-half-v100-ssh-20261002-01",
+  "accepted_raw_seal_count": 12,
+  "accepted_run": {
+    "closure_sha256": "a8e18e35faddbff78bf7287369fe2adce62bc0f5f8bed2ad4ce1ccb5d360e0b8",
+    "events": {
+      "first_failure_hour": 8.94145,
+      "mission_outcome": "abort",
+      "repair_end_hour": 24.5636,
+      "return_hour": 24.0636,
+      "second_failure_hour": 17.5636,
+      "switch_end": 9.44145
+    },
+    "input_sha256": "acefc1855fe55cdb9f977c5545ad3d5f780dfc78687c17aa9ce74acbb765dd62",
+    "log_sha256": "9a5fa49fa1d091ace96d8e3a98e1937d8082310f543b291778575ed0f57dfd77",
+    "msuf": 0,
+    "mtmf": 0.6178310513496399,
+    "nrep": 1,
+    "operating_hours": 15.563607186079025,
+    "report_sha256": "90016adffa821eba1f58ff5a70f0487a54684ef3c348a874932772a1a59da9c6",
+    "run_id": "g05-nested-v100-ssh-20261002-01",
+    "stmf": 0.5986002683639526,
+    "system_switchover_hours": 0.4999999925494194,
+    "terminal_ready": 1
+  },
+  "case": "G05-nested-switch-v1.0.0",
+  "checks_passed": 1742,
+  "checks_total": 1742,
+  "failures": [],
+  "limits": [
+    "The text log names the G05-PASSIVE child, not a separate G05-ROOT-SERIES state transition; root propagation is inferred jointly from exact source topology, aircraft criticality/mission abort, NSYSW and the accepted parent contrast.",
+    "One seed, a nonfailing C leaf and one B/A failure order do not prove a general nested truth table or other priority/standby states.",
+    "No unavailable preferred standby, overlapping switches, GUI RBD view or cross-engine parity claim follows."
+  ],
+  "passed": true,
+  "schema": "g05-nested-switch-independent-readonly/v1",
+  "scope": "The authored/roundtripped series root contains a passive B/A child and nonfailing C leaf. At fixed seed1, B failure8.94145 starts child B-to-A switch to9.44145; SystemResults records 0.5h system SWITCHOVER. A failure17.5636 is critical, aborts the mission, and both B/A repairs run after return24.0636 to ready24.5636. The accepted three-branch passive parent with the same B/A event times succeeds, supporting propagation of this child's unavailability through the series root for this trace.",
+  "verdict": "GO"
+}

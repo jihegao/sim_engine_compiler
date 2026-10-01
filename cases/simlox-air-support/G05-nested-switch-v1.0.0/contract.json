@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-issue18-g05-nested-switch-contract/v1",
+  "case_id": "G05",
+  "variant_id": "G05.var06",
+  "case_slice": "Nested series propagation of a passive parallel switchover and terminal fault",
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G05-passive-switchover-v1.0.0/half-input.json",
+    "sha256": "d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20",
+    "accepted_run_id": "g05-passive-half-v100-ssh-20261002-01",
+    "accepted_scope": "one operated of B/A/C, B→A→C with two noncritical failures and mission success"
+  },
+  "topology_template": {
+    "path": "../G04-nested-series-parallel-v1.0.0/and-input.json",
+    "sha256": "658cdfcc374a13754c0980888137dd05bb0b94c4dfad5386bab5292fc414dd15",
+    "usage": "RBDSeries and RBDSeriesStructure column schemas only; source is derived from the G05 parent"
+  },
+  "source_sha256": "acefc1855fe55cdb9f977c5545ad3d5f780dfc78687c17aa9ce74acbb765dd62",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "mission": {"start_hour": 8, "duration_hours": 26, "scheduled_end_hour": 34},
+    "root": "G05-ROOT-SERIES: G05-PASSIVE AND nonfailing POS-C",
+    "passive_child": "G05-PASSIVE: NBREQ=NBOP=1, POS-B PRIO1 operated, POS-A PRIO2 passive, TSWOV=0.5h, ONLM=N",
+    "failures": "unchanged FM-POS-B 600000 and FM-POS-A 300000 per million operating hours; POS-C has no mode",
+    "repair": "unchanged half-hour direct system CM after return",
+    "stock": "unchanged zero-demand configuration"
+  },
+  "source_delta": "Keep every material, failure, mission, seed, report and repair row. Move POS-C from passive priority-3 branch to a nonfailing series leaf. Set the system operating-mode root to G05-ROOT-SERIES, add RBDSeries and RBDSeriesStructure rows, and update descriptions. The nested child uses OPMID=null as in the installed manual p770 example.",
+  "manual_basis": "Installed SIMLOX 2017 manual pp197–200 and 455–458 define passive parallel operation and switch state; p770 provides a nested block encoding with null OPMID. The direct G05 parent and G04 nested template are independently accepted CLI packages.",
+  "pre_run_hypotheses": {
+    "first_failure": "If fixed-seed draws remain stable, operated B fails around h8.94145 and B→A switches over 0.5h. The nested series system should carry an observable switchover state without treating nonfailing C as a standby replacement.",
+    "second_failure": "If activated A fails around h17.5636, the two-branch passive child has no functional branch, so the series root should become unavailable/critical and the mission should abort. Do not preaccept exact event times if the topology changes draws.",
+    "alternative": "If source import rejects nested placement, if POS-C remains in the passive child, or if the log/report lacks a traceable nested state, retain as a diagnostic probe and do not publish G05.var06.",
+    "observability": "Require raw B→A start/stop, root/aircraft state timeline, A failure and mission outcome; reconcile half-hour SystemResults switch, unavailable/operating, failure, repair and stock bins. Summary success alone is insufficient."
+  },
+  "acceptance_gates": [
+    "Frozen parent, template, input and exact six-table topology delta; installed source hashes",
+    "Session-0 SSH with sshd ancestor, host-wide native mutex, preserved GUI PID 13340, unique run directory",
+    "Native import/export/calc/report, exact authored-row roundtrip and zero converter errors",
+    "Event-level and report-bin proof of nested switch state and terminal fault propagation, with independent read-only replay",
+    "Raw invocation, logs, model, report and closure SHA-256 seals in evidence index"
+  ],
+  "limits": [
+    "One fixed seed and repetition, one two-branch passive child under a nonfailing series leg, and one chosen 0.5h switch do not establish a general nested RBD truth table.",
+    "This case does not resolve unavailable preferred standby G05.var04 or overlapping switches G05.var05.",
+    "GUI RBD rendering and cross-engine equivalence remain unverified."
+  ]
+}
