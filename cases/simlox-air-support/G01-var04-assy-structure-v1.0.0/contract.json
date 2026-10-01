@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "case_version": "1.0.0-candidate",
+  "variant_id": "G01.var04",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G01",
+    "variant_id": "G01.var01",
+    "version": "1.0.1",
+    "behavior_scope": "one accepted E01-derived LRU/SRU local replacement chain",
+    "input_sha256": "9c25a414615ac4ea523ee989385a913c692923e04bc41c6984b6866e86204bb9",
+    "signoff": "../G01-var01-lru-sru-v1.0.1/cli-scope-signoff-2026-10-01.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [240, 241, 247, 346],
+    "source_boundary": "ASSY has physical meaning but no logistics role, cannot carry FRT or other non-description item fields, and is not itself demanded or repaired. When an ASSY lies between a system and a replaceable LRU in ItemStructure, ItemReplacement must link the system directly to the LRU in the logistics breakdown."
+  },
+  "native_input_sha256": "3bff001536557156d3b417c273065b8dfcc439d7e57dc626b20d635e12c83b14",
+  "delta": {
+    "tables": ["ProblemDescription", "Item", "ItemStructure", "ItemReplacement"],
+    "mechanism": "Insert one TYPE=ASSY between TEACH-AIR-01 and TEACH-LRU-01 in physical ItemStructure; retain LRU-to-SRU relation. Add a direct TEACH-AIR-01-to-TEACH-LRU-01 ItemReplacement row with E01's explicit 10-minute REMOVE and 20-minute REPLACE task. Do not stock, repair or replace the ASSY.",
+    "identities": {"system": "TEACH-AIR-01", "assy": "TEACH-ASSY-01", "lru": "TEACH-LRU-01", "sru": "TEACH-SRU-01", "base": "BASE-01"}
+  },
+  "configuration": {
+    "assy_frt": null,
+    "assy_stock": 0,
+    "lru_frt_hours": 300000,
+    "sru_frt_hours": 300000,
+    "opening_lru_stock": 1,
+    "opening_sru_stock": 1,
+    "system_to_lru_replacement_hours": 0.5,
+    "lru_to_sru_replacement_hours": 0.75,
+    "sru_direct_repair_hours": 1.0,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "Import/export preserves all author-populated rows and the physical system-to-ASSY-to-LRU-to-SRU structure plus direct system-to-LRU ItemReplacement; all native steps return zero and conversion errors are zero.",
+    "Native events show at least one critical installed-LRU failure in the aircraft, issue of an LRU spare to repair the system, explicit REMOVE then REPLACE, and restored aircraft readiness. The physical ASSY may appear in a connection path but must not be the demanded, issued, repaired or stocked identity.",
+    "The removed LRU's nested SRU failure leads to one SRU spare issue, 0.75-hour LRU subitem replacement despite the 1.5-hour general LRU SURP, one-hour direct repair of the removed SRU, and return of both repaired item types to their local stocks.",
+    "Reconcile individual event identities, resource/no-resource statements, item inventory sequences, missions, 72 half-hour system and stock report intervals, and terminal aircraft and inventory state without silent backorder or forwarding.",
+    "Seal source-bound invocation and closure with every raw file's length and SHA-256; independently replay acceptance read-only."
+  ],
+  "limits": [
+    "Only one physical ASSY wrapper, one LRU and one SRU at one local station are in scope. Other ASSY locations, branches, failure modes, quantities, repair levels and ItemReplacement precedence are not implied.",
+    "GUI-only rendering and cross-engine equivalence remain unverified."
+  ]
+}
