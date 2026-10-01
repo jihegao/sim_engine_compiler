@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "variant_id": "G01.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G01.var03",
+    "version": "1.0.0",
+    "scope": "accepted primary DU discard and depot reorder topology",
+    "input_sha256": "c409f4b210b9f60e5f36bf6b15f56aaba95f4b08b4f6b6de290b60d65086d7d9"
+  },
+  "related_repair_branch": "../G01-var02-pru-partial-repair-v1.0.0/contract.json",
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [210, 211, 212, 241, 247, 339, 340, 341, 343, 344, 345],
+    "boundary": "A PRU is partially repairable. The depot has accumulated DIRPF 0.5 and reorder-position DISCF 0.5. The individual decision may repair or discard; discarded units can trigger stock-based reorder."
+  },
+  "native_input_sha256": "879f6a31f4c2b3bfff5ccc87c35605b6043e3ae1b504df7824752351b33dc1e3",
+  "configuration": {
+    "item": "TEACH-PRU-01",
+    "depot": "DEPOT-01",
+    "direct_repair_fraction": 0.5,
+    "discard_fraction": 0.5,
+    "direct_repair_hours": 1.0,
+    "reorder_lead_hours": 1.0,
+    "depot_to_base_transport_hours": 2.0,
+    "opening_base_stock": 1,
+    "opening_depot_stock": 2,
+    "repetitions": 1,
+    "seed": "2",
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "All 22 author-populated tables round-trip exactly; five guarded stages exit zero, conversion errors are zero, and event/report output is nonempty and parseable.",
+    "A failed installed PRU is exchanged through the inherited 10-minute REMOVE and 20-minute REPLACE system task. Its physical identity is traced from the system through base-to-depot transport.",
+    "At least one failed PRU is explicitly discarded at DEPOT-01, has no direct repair or return-to-stock for that identity, and causes a one-unit depot reorder whose delivery follows the configured one-hour lead. The replenishment item's identity and depot stock balance must reconcile.",
+    "Any additional failure near the horizon is recorded without inventing completion after 36 hours. Reconcile mission outcomes, base/depot stocks, transport, 72 half-hour System/Stock intervals, failure/repair metrics, backlog, and terminal aircraft state.",
+    "Source and raw hashes close; a separate read-only reviewer replays the evidence. This case and the seed-1 repair branch together show both native outcomes under the same policy except for RSEED."
+  ],
+  "limits": [
+    "The two fixed seeds show both outcomes but do not establish a 50/50 statistical frequency law.",
+    "SPRU, other fractions, stations, seeds, GUI-specific behavior and cross-engine equivalence remain unverified."
+  ]
+}
