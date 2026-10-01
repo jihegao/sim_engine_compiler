@@ -1,0 +1,68 @@
+{
+  "accepted_raw_seal_count": 24,
+  "accepted_runs": {
+    "one": {
+      "closure_sha256": "3cb85dd085e2de9fb5c4d36344ff37b87d4669eef4b3f60824da31faf1cd8d3b",
+      "events": {
+        "first_failure_hour": 8.62763,
+        "first_position": "POS-B",
+        "mission_return_hour": 34.0,
+        "outcome": "success",
+        "repair_end_hour": 34.5,
+        "second_failure_hour": 16.7498,
+        "second_position": "POS-A",
+        "second_status": "noncritical"
+      },
+      "failure_count": 2,
+      "flight_hours": 26.0,
+      "input_sha256": "cfdf287c4de93638e8117c71ad3de1846da3c62c24254bf7d2a3f0f7c7c0c4d7",
+      "log_sha256": "a81700a4d11fabcfcc707e13f4b58af16e948a8677c41789da4ae88af730cc4d",
+      "msuf": 1,
+      "mtmf": 1,
+      "nrep": 1,
+      "repair_elapsed_hours": 0.5,
+      "repair_task_count": 2,
+      "report_sha256": "00b7b671edcebd95500f59dee19443e8c9e2d628ed29c14748fcc7cd84be15d5",
+      "run_id": "g04-kn-one-v100-ssh-20261002-01",
+      "terminal_ready": 1
+    },
+    "two": {
+      "closure_sha256": "a4c570f483bfb0943c0776d50e1e47d9e57bced1098f911ef76a9729d6fc9175",
+      "events": {
+        "first_failure_hour": 8.62763,
+        "first_position": "POS-B",
+        "mission_return_hour": 23.2498,
+        "outcome": "abort",
+        "repair_end_hour": 23.7498,
+        "second_failure_hour": 16.7498,
+        "second_position": "POS-A",
+        "second_status": "critical"
+      },
+      "failure_count": 2,
+      "flight_hours": 15.249790668487549,
+      "input_sha256": "38f85af4c121668eee3d31b07bb435b74571c5be6d63ddccff034549609ec319",
+      "log_sha256": "5d12d1018f2d640acde0abd5cd56be5c2cbb4b1f29a10a8592701a7ed4ac76b7",
+      "msuf": 0,
+      "mtmf": 0.5865303874015808,
+      "nrep": 1,
+      "repair_elapsed_hours": 0.5,
+      "repair_task_count": 2,
+      "report_sha256": "9dbc44fe8691e6c35dd54d45f3728689ecca4cd4f35fdc3b2f2f9b5b4d44aa24",
+      "run_id": "g04-kn-two-v100-ssh-20261002-01",
+      "terminal_ready": 1
+    }
+  },
+  "case": "G04-three-branch-threshold-v1.0.0",
+  "checks_passed": 3242,
+  "checks_total": 3242,
+  "failures": [],
+  "limits": [
+    "POS-C has no configured failure mode and no observed failure; this is a deliberately bounded threshold contrast.",
+    "One seed/replication does not establish population reliability or general thresholds across failure samples.",
+    "No passive operation, switchover, online maintenance, QTYPB>1, nested RBD, GUI RBD view or cross-engine parity claim follows."
+  ],
+  "passed": true,
+  "schema": "g04-three-branch-threshold-independent-readonly/v1",
+  "scope": "At fixed seed one, identical POS-B/POS-A samples leave the active 1-of-3 mission operational through hour34, while active 2-of-3 becomes critical on the second branch failure and aborts at16.7498. Both repairs start after each mission returns and finish in concurrent half-hour work; full 72-bin System/Stock ledgers reconcile.",
+  "verdict": "GO"
+}

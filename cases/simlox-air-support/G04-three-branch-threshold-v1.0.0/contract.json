@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-issue18-g04-three-branch-threshold-contract/v1",
+  "case_id": "G04",
+  "case_slice": ["G04.var02 active 1/3", "G04.var02 active 2/3"],
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G04-series-active-parallel-v1.0.1/parallel-input.json",
+    "sha256": "ea56a9daf8705189c9162529355b28636ef7db168987b17ee90cdedbe9bb4b6f",
+    "acceptance": "accepted fixed-seed two-position active parallel source"
+  },
+  "source_sha256": {
+    "one": "cfdf287c4de93638e8117c71ad3de1846da3c62c24254bf7d2a3f0f7c7c0c4d7",
+    "two": "38f85af4c121668eee3d31b07bb435b74571c5be6d63ddccff034549609ec319"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "one_mission": {"start_hour": 8, "duration_hours": 26, "scheduled_end_hour": 34},
+    "positions": ["POS-A", "POS-B", "POS-C"],
+    "failure_modes": {"POS-A": "FM-POS-A, 300000 per million operating hours", "POS-B": "FM-POS-B, 600000 per million operating hours", "POS-C": "no configured failure mode"},
+    "rbd": {"kind": "active_parallel", "nbop": 3, "nbreq_one": 1, "nbreq_two": 2, "tswov_hours": 0, "onlm": "N", "qtypb_each": 1},
+    "repair": "unchanged parent half-hour direct system CM, after failure affects mission outcome",
+    "stock": "unchanged parent zero-demand configuration"
+  },
+  "hypotheses_to_test_natively": [
+    "Both arms record identical POS-A and POS-B failure-mode times and identities before their first mission-outcome divergence; this is an intended comparability hypothesis, not an assumed result.",
+    "The active 1/3 arm remains functional after both configured positions fail while POS-C is up, and completes the long mission at hour 34.",
+    "The active 2/3 arm remains functional after the first branch failure but aborts its mission when a second distinct branch fails before repair.",
+    "Each recorded repair and status interval is reconciled from native events and half-hour report bins; no aggregate metric alone proves the threshold."
+  ],
+  "acceptance_gates": [
+    "parent and both source fingerprints, exact table-level delta, manual/dictionary/executable fingerprints",
+    "session-0 SSH, host-wide native mutex, GUI PID 13340 identity, unique run directories",
+    "native import/export/calc/report and exact authored row-table roundtrip with zero conversion errors",
+    "read-only author and independent event-level review of failures, threshold transitions, mission outcome, repair and report bins",
+    "raw invocation, logs, model, report and closure files hashed in an evidence index"
+  ],
+  "limits": [
+    "Single fixed seed and one repetition cannot establish population reliability.",
+    "This pair does not test POS-C failure, alternate branch rates, nonzero switching time, passive operation, online maintenance, QTYPB greater than one, nested RBD, GUI RBD view or cross-engine parity.",
+    "If the native engine changes failure samples between arms, the event-level contrast must be reframed or rejected rather than claiming a paired threshold test."
+  ]
+}
