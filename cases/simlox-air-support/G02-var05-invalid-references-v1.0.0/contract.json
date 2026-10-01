@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-g02-var05-invalid-reference-contract/v1",
+  "case_id": "G02",
+  "variant_id": "G02.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "package": "G02-var01-position-modes-v1.0.0",
+    "input_sha256": "5ef40eb302544e551282dd7dd3617a6ae160954f600dea605f26140ea551a19e"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [250, 251, 252, 253],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "input_sha256": {
+    "valid-control": "bf1e2752f9632507e3219fa68fc17b38c427041e1067f39031f02344daac0c97",
+    "missing-fmid-mid": "7d48a73baa43f56906b88a94ba7e12c8671d0aed36819fb835621d2c004223cc",
+    "missing-structure-mother": "6ff5e61a1f87c4f697dea37b23b1340ffef7096771bc2ed571a40d3394ac1b33"
+  },
+  "single_field_contrasts": {
+    "valid-control": "Published G02.var01 input except ProblemDescription provenance text; same seed 1, one replication, two positions and direct system CM.",
+    "missing-fmid-mid": "FailureMode.FM-POS-B.MID POS-B -> POS-MISSING; no MaterielPosition, Item or System defines that identifier.",
+    "missing-structure-mother": "MaterielStructure.POS-B.MMID TEACH-AIR-01 -> SYS-MISSING; no System, Item or MaterielPosition defines that mother."
+  },
+  "pre_run_hypothesis": "All three source inputs import and export with exact populated business rows. The valid control converts and reproduces G02.var01's fixed-seed native behavior. Each invalid reference is rejected by native input conversion with a form/record-localized diagnostic; no valid SXO or JSON report is produced. Exit status alone is not used to classify success or failure. Exact native error numbers are observations, not predeclared.",
+  "acceptance_requires": [
+    "Guarded session-0 SSH, host-wide Issue #18 mutex and GUI PID 13340 continuity for all three inputs.",
+    "Exact 18-populated-table import/export roundtrip and source/raw SHA-256 closure for every attempt.",
+    "Valid control completes native calculation/report with zero conversion errors and reconciles three FMID failures and direct repairs to the accepted G02.var01 fixed-seed report.",
+    "Both invalid inputs are rejected with a specific native converter diagnostic tied to the changed field, with invalid or absent SXO and no valid JSON report.",
+    "Independent read-only replay without author implementation imports."
+  ],
+  "limitations": [
+    "Only the two selected dangling references and installed SIMLOX version are tested; no general graph-validity rule or all missing-reference types are inferred.",
+    "Import/export identity can coexist with calculation rejection and does not imply a valid simulation.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
