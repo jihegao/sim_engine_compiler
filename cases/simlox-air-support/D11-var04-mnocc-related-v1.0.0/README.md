@@ -1,0 +1,7 @@
+# D11.var04: related PM consumes a capped occurrence
+
+This fixed-seed CLI pair derives from the accepted [D10.var01 mission-count PM](../D10-var01-missions-v1.0.0/README.md). It retains five fixed missions and the `MS2` task at a two-mission interval. It adds a three-mission `MS3` task whose `PMRID=MS2` identifies `MS2` as the smaller related action. The paired inputs set `MS2.MNOCC` to 2 or 3 and otherwise match exactly, apart from description.
+
+The [frozen contract](contract.json) recorded the pre-run prediction: `MS2` works at 17–18, `MS3` at 21–22, and `MS2` works again at 53–54 only when its cap is 3. `build.py` reproduces both [native inputs](native-related-cap-2.json); `describe_diff.py` checks parent and pairwise differences. The guarded session-0 [SSH runner](run_native_ssh.ps1) uses the host-wide Issue #18 mutex, source SHA-256 pins and preserved GUI PID/session/start identity. Raw SXI/SXO, event log, report, invocation and closure stay in local ignored `runs/`; `check_roundtrip.py` and `validate_native.py` replay source and native evidence.
+
+An earlier candidate used an undefined `INSPECT-LARGE` subtask type. The converter rejected it with error #2011 and produced no valid SXO. Its source bytes and [diagnosis](failed/rejected-subtask-id-20261001/diagnosis.md) are retained; only the corrected `-02` runs can support behavior. This pair remains a candidate until separate independent replay and static review pass.
