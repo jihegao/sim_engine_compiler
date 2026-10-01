@@ -1,0 +1,36 @@
+{
+  "schema": "simlox-d11-atim-one-probe-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "evidence_state": "native_capability_probe_only",
+  "parent": "D11-var01-atim-control-v1.0.0",
+  "parent_input_sha256": "94c0addbaff610b656b25dd328949ea9710ab9a593cafebe488f7bfca665ead8",
+  "input_sha256": "babd0a2b2d196eca238c647f645c63961e1410e511fe16e5f84d21b33e1d8c96",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [372, 373],
+  "scope": "probe the exact ATIM=1 boundary on the accepted five-mission MISSIONS=4 PM control",
+  "delta": ["only MaterielPM.ATIM changes from 0 to 1, plus ProblemDescription; all mission and task source rows stay fixed"],
+  "fixed_input": {
+    "mission_starts_hours": [8, 16, 20, 48, 52],
+    "mission_durations_hours": [4, 1, 1, 1, 1],
+    "pmid": "MS4",
+    "pm_interval": {"OPID": "MISSIONS", "PMINT": 4, "ATIM": 1, "DTIM": 0},
+    "pm_task_hours": 1,
+    "horizon_hours": 60,
+    "seed": "1"
+  },
+  "manual_derived_hypothesis": {
+    "integer_front_shift": "floor(1 * 4) = 4 missions",
+    "earliest_eligible_mission_count_after_prior_PM": 0,
+    "question": "Does the initial PM start before the first mission, and how often can the engine repeat PM without new mission use?"
+  },
+  "probe_acceptance_only": [
+    "source and parent SHA pins, exact author-populated table roundtrip, zero converter errors and valid nonempty native SXO/event/report",
+    "serial session-0 SSH run with preserved GUI identity and sealed raw artifacts",
+    "record every individual PM and mission event without interpreting a summary marker as work",
+    "no reusable behavior claim until a narrower timeline contract and separate read-only review are complete"
+  ]
+}
