@@ -1,0 +1,391 @@
+{
+  "schema": "simlox-g01-var03-dp-parent-diff/v1",
+  "parent_sha256": "9c25a414615ac4ea523ee989385a913c692923e04bc41c6984b6866e86204bb9",
+  "child_sha256": "a51598aed393f01fa4a6e28103ee4eed8aadec53114e3ed72e466f4a5126f226",
+  "changed_tables": [
+    "Item",
+    "ItemReorder",
+    "ItemRepair",
+    "ProblemDescription",
+    "Station",
+    "StationStructure",
+    "StockAllocation"
+  ],
+  "unchanged_tables": 24,
+  "changes": {
+    "Item": {
+      "before": [
+        [
+          "TEACH-LRU-01",
+          "Single replaceable teaching component",
+          null,
+          300000,
+          "OPHOURS",
+          "LRU",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "TEACH-SRU-01",
+          "Repairable subitem inside teaching LRU",
+          null,
+          300000,
+          "OPHOURS",
+          "SRU",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after": [
+        [
+          "TEACH-LRU-01",
+          "Single replaceable teaching component",
+          null,
+          300000,
+          "OPHOURS",
+          "LRU",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "TEACH-SRU-01",
+          "Discardable secondary item inside teaching LRU",
+          null,
+          300000,
+          "OPHOURS",
+          "DP",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    "ItemReorder": {
+      "before": [],
+      "after": [
+        [
+          "TEACH-SRU-01",
+          "DEPOT-01",
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    "ItemRepair": {
+      "before": [
+        [
+          "TEACH-LRU-01",
+          "BASE-01",
+          1.0,
+          1.5,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "TEACH-SRU-01",
+          "BASE-01",
+          1.0,
+          0.0,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after": [
+        [
+          "TEACH-LRU-01",
+          "BASE-01",
+          1.0,
+          1.5,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    "ProblemDescription": {
+      "before": [
+        [
+          "G01.var01 traditional LRU/SRU chain with local replacements"
+        ]
+      ],
+      "after": [
+        [
+          "G01.var03 DP discarded after LRU repair and depot reorder"
+        ]
+      ]
+    },
+    "Station": {
+      "before": [
+        [
+          "BASE-01",
+          "Teaching base",
+          1,
+          "WS",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after": [
+        [
+          "BASE-01",
+          "Teaching base",
+          1,
+          "WS",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "DEPOT-01",
+          "Teaching reorder depot",
+          1,
+          "DEPOT",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    "StationStructure": {
+      "before": [],
+      "after": [
+        [
+          "BASE-01",
+          "DEPOT-01",
+          2.0,
+          2.0,
+          null,
+          null,
+          1.0,
+          "FAST",
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    "StockAllocation": {
+      "before": [
+        [
+          "AIR_BASIC",
+          "TEACH-LRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "AIR_BASIC",
+          "TEACH-SRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after": [
+        [
+          "AIR_BASIC",
+          "TEACH-LRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "AIR_BASIC",
+          "TEACH-SRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "AIR_BASIC",
+          "TEACH-SRU-01",
+          "DEPOT-01",
+          2,
+          1,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    }
+  }
+}
