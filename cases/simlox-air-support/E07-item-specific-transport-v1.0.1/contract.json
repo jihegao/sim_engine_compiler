@@ -1,0 +1,24 @@
+{
+  "case_id": "E07",
+  "version": "1.0.1-candidate",
+  "scope": "one item-specific FAST support link for the same station pair as E04, with different fixed upward/downward times",
+  "parent_case": "E04-upstream-transport-fast-v1.0.0",
+  "parent_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+  "parent_native_control_run_id": "e04-fast-v100-ssh-20260929-01",
+  "input_sha256": "d42832b9e17b9a0c968a8bba7bcb1419eba06313097604fc0041baab5d132bc0",
+  "previous_diagnostic": "E07 v1.0.0 run e07-item-route-v100-20261001-01 produced native output but failed exact roundtrip because JSON export inserted ItemStationStructure.CFRMS and CTOMS null columns. This new candidate includes those columns and uses a fresh immutable run ID.",
+  "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "table_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_printed_pages": [316, 317, 318, 319],
+  "source_rule": "ItemStationStructure overrides StationStructure by record rather than by field; TFRMS is downward time, TTOMS upward faulty-item time; OPOL FAST transmits demand immediately.",
+  "delta": "Add one complete native-export-shaped ItemStationStructure row for TEACH-LRU-01, BASE-01 to DEPOT-01, with TFRMS 1 hour, TTOMS 3 hours, null CFRMS/CTOMS native-export columns, DFRAC 1 and OPOL FAST; retain the general StationStructure 2/2 FAST link and all stock/repair/mission source rows. Change only description otherwise.",
+  "parameters": {"seed": "1", "horizon_hours": 36, "result_interval_hours": 0.5, "general_down_hours": 2, "general_up_hours": 2, "item_down_hours": 1, "item_up_hours": 3, "initial_base_spares": 0, "initial_depot_spares": 1, "repair_hours_at_depot": 1},
+  "pre_run_hypotheses": [
+    "The source converts and all 22 row-containing business tables roundtrip exactly with zero errors.",
+    "The first failed LRU creates one local backorder and immediate depot demand under item-specific FAST policy.",
+    "The depot spare moves downward in one hour, rather than the general link's two hours; the removed faulty item moves upward in three hours, rather than two.",
+    "Physical item identities, backorder duration, system fit/readiness, depot repair and terminal stock reconcile without duplicate issue.",
+    "The remaining two scheduled missions succeed and 72 half-hour System/Stock bins reconcile with the observed events."
+  ],
+  "limits": ["one IID and one support link with DFRAC 1", "no two-depot route choice or DFRAC sampling", "no SystemStationStructure/CMStationStructure/PMStationStructure precedence", "no SLOW policy, profile transport, resource contention, GUI rendering or cross-engine parity"]
+}
