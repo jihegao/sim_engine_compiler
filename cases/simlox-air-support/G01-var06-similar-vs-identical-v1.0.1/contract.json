@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "case_version": "1.0.1-candidate",
+  "variant_id": "G01.var06",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E01",
+    "version": "1.0.0",
+    "input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+    "signoff": "../E01-local-spare-explicit-replacement-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [240, 242, 248, 255],
+    "source_boundary": "Item.NSIMI counts different similar items represented by one item record; they have identical data but cannot replace each other in the system. ItemStructure.QTYPM counts identical interchangeable children per mother. An NSIMI>1 item cannot have subitems. System FRT covers child FRT times ENVF times QTYPM times NSIMI."
+  },
+  "native_inputs_sha256": {
+    "identical": "fbec730d2279dfa501186101a64d061f21a580e8ce50ad4695fce2f454fa4347",
+    "similar": "65f0d216cf30dddbda24d9a58617ef5049ccd520891363c6b3bba06161f6c472"
+  },
+  "delta": {
+    "paired_mechanism": "From subitem-free accepted E01, each branch has two child-rate contributions and System.FRT 600000 and local LRU stock two. Identical branch uses ItemStructure.QTYPM=2 with Item.NSIMI default 1; similar branch uses QTYPM=1 with Item.NSIMI=2. Missions, task durations, seed and 36-hour horizon are inherited.",
+    "expected_changed_tables": {
+      "identical": ["ProblemDescription", "System", "ItemStructure", "StockAllocation"],
+      "similar": ["ProblemDescription", "System", "Item", "StockAllocation"]
+    }
+  },
+  "predeclared_native_acceptance": [
+    "Each source independently imports, exports and roundtrips every populated author table; native conversion has zero errors, five guarded steps succeed, and report/event log are nonempty.",
+    "Both inputs produce effective two-item aircraft material exposure or a native equivalent, with failures, removal/fit tasks, stock issue/return and final report metrics reconciled independently. The native evidence must distinguish identity behavior of identical versus similar items before any claim about non-interchangeability is published.",
+    "A source-only distinction may be published only as such if native events do not discriminate the two item classes; stochastic count differences alone do not establish interchangeability semantics.",
+    "No missing spare, backorder or cross-item substitution may be silently treated as success. Each branch's source and raw artifacts must be sealed to its own invocation and closure; independent read-only review is required."
+  ],
+  "limits": [
+    "One aircraft, one LRU item record, no SRU/subitems, one fixed seed and 36 hours. Similarity group IDs and nested repair chains are separate.",
+    "Stock size and system FRT differ from the E01 one-position parent in both branches. Without native discriminating evidence, the manual/source distinction alone does not establish runtime replacement behavior."
+  ]
+}
