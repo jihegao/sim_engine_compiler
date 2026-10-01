@@ -92,6 +92,8 @@ The [G02.var04 position-specific PM matrix](G02-var04-position-pm-v1.0.0/cli-sco
 
 The [C09.var04 primary-maintenance remote-resource matrix](C09-var04-remote-maintenance-resource-v1.0.0/cli-scope-signoff-2026-10-02.md) compares a local mechanic, one borrowed from BASE-02, and the same route with task-level `ENRMS=N`. Three guarded native runs, 36 raw seals and 244 independent checks show two direct system repairs in local and borrowed arms, outward transport of 0.25 hour, return transport of 0.5 hour, and no completed repair by hour 36 when borrowing is disabled. The 72-bin System and aggregate Resource reports reconcile failures, repairs, terminal readiness and resource conservation. This is one fixed-seed direct primary-maintenance result.
 
+The [C09.var01 travel-versus-local-wait matrix](C09-var01-travel-wait-v1.0.0/cli-scope-signoff-2026-10-02.md) keeps one local mechanic busy for half an hour and offers a second from BASE-02 with forward trips of 0.25, 0.5 or 0.75 hour. Three guarded native runs, 36 raw seals and 235 independent checks show borrowing only at 0.25 hour. The second repair then finishes at 9.28243 rather than 9.53243; at equal and longer trips, the local resource completes both repairs serially. Seventy-two report bins per arm reconcile two failures, two repairs and four aggregate resources. The short arm logs a one-unit return while the second repair is active, so individual mechanic identity is unverified.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
