@@ -1,0 +1,20 @@
+# G05.var04 unavailable preferred branch: bounded CLI sign-off
+
+**Decision:** accept and publish this one fixed-seed continuous-mission trace showing a higher-priority failed B branch under active online CM when A fails and C is selected. GUI rendering and cross-engine parity were not observed.
+
+## Source and native gates
+
+- Direct parent: accepted `G05-passive-switchover-v1.0.0/half-input.json`, SHA-256 `d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20`. Child input SHA-256 `b0d79caeb71dbf991291b9122dff3139bc52c27e2c014b5bf624632539101f0d`; [exact four-table diff](exact-diff.json) SHA-256 `9a36d19aab0d91789d4cff94a9698c80291fd87af8eca3766696b9a976dd4d11`.
+- Only `ProblemDescription.PDESC`, B `CMLocation.CMT` 0.5→40 h, `RBDParallel.ONLM` N→Y, and `MissionType` change. The latter sets `MPAT=CONTINUOUS`, clears `TFOUT` and `TFRET` 0.25→null, and updates `DESCR`. Seed, B/A failures, B/A/C priority, `NBOP=NBREQ=1`, `TSWOV=0.5`, 8–34 mission schedule, 36-hour horizon, stock and other source rows remain the parent values. This is a combined change.
+- Installed SIMLOX executable SHA-256 `fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0`; manual SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`; table dictionary SHA-256 `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Manual pp197–200 and 455–458 supply passive, priority and online-repair constraints. Accepted A05 continuous v1.0.1 supplies the converter-compatible travel-fraction pattern.
+- Run `g05-unavailable-v103-ssh-20261002-01` used session-0 SSH with `sshd.exe` ancestor, host mutex `Global\SimloxIssue18NativeQueue`, preserved GUI PID13340/session1/start identity, immutable run directory and five completed guarded steps. Conversion errors were zero; 23 populated authored tables roundtripped exactly. The evidence index seals 12 raw files. Author replay passes 23/23 (SHA-256 `78e7b1bbbfe0607423c1a03c9c166cf7338b1d701f78dd564de81ce61ff738ba`); independent read-only replay passes 1,584/1,584 GO (checker SHA-256 `c05adc7bf75a6756a2472b77d4ae821a7dded17bb9ce6dd6d9d8cc6411ae33e3`, verdict SHA-256 `682474ab3ea4a4e30133c90bdf2a23dcfe3f6d5460bfbf2017436559bb11113e`).
+
+## Observed event and report trace
+
+Operated POS-B fails noncritically at h8.94145 and its direct system CM task starts at that instant, with a 40-hour subtask planned. B→A switches h8.94145–9.44145. Operated POS-A fails noncritically at h17.5636, before B's CM completes; the log selects A→C h17.5636–18.0636. POS-A's half-hour online CM starts at h17.5636 and completes at h18.0636. The mission log records success and completion h34. The B task has no completion event by h36, and terminal SystemResults show `NSYRP=1`, `NSYRY=0`, `NSYUA=1`.
+
+All 72 half-hour System and Stock bins align. System `NSYSW` integrates to 1 hour; `NSYMO` to 25 hours; `NFAIL=2` and `NREPT=1` match the two faults and only A's completed CM. Stock demand, backorder and movement remain zero. For this continuous mission, ResultSummary has `MTMF=1`, `STMF≈0.961538`, while `MSTF=MSUF=0` despite the separate raw mission-success event. These fields are reported without recoding them as fixed-mission success fractions.
+
+## Excluded diagnostic and limits
+
+The frozen v1.0.2 run imported/exported but native calculation rejected inherited `TFOUT=TFRET=0.25` under `MPAT=CONTINUOUS` with converter error #335; its closure, log and four-byte `model.sxo` are pinned as excluded diagnostic evidence. An earlier fixed-pattern v1.0.1 draft failed independent static review before native execution. The direct parent used `ONLM=N`, default FIXED, and half-hour B CM; the child changes ONLM, MPAT and B CMT together. This trace supports B being unavailable under unfinished online CM when C is selected; it does not isolate which source change caused the outcome or prove a general branch-choice algorithm. Only one seed, one mission and this B/A/C topology were observed. GUI view and cross-engine equivalence remain unverified.

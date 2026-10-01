@@ -1,0 +1,5 @@
+# G05 continuous standby input diagnostic (excluded)
+
+This frozen `G05.var04` probe derived from the accepted half-hour passive parent. It changed B's direct CM time to 40 hours, enabled `ONLM=Y`, and changed the mission pattern to `CONTINUOUS`. It also cleared the stale fixed-mission description. The first two guarded native steps imported and exactly exported 23 populated authored tables, but calculation rejected the input with converter error **#335**: continuous or extendable missions cannot carry `TFOUT` and `TFRET`. The resulting `model.sxo` is only four bytes; no behavior report exists. The [closure](runs/g05-unavailable-v102-ssh-20261002-01/closure.json) seals the source and available raw diagnostic files locally; this version has no publication-index entry.
+
+The [v1.0.3 correction](../G05-unavailable-standby-v1.0.3/README.md) clears those two travel fractions as in accepted A05 continuous v1.0.1, with a new source hash and native run ID. The ignored `runs/` directory retains the diagnostic bytes.

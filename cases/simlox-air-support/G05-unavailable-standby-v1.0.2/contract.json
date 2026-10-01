@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-issue18-g05-unavailable-standby-contract/v3",
+  "case_id": "G05",
+  "variant_id": "G05.var04",
+  "publication_state": "not_published",
+  "case_slice": "A failed higher-priority branch is skipped at a later passive activation within one mission",
+  "parent": {
+    "path": "../G05-passive-switchover-v1.0.0/half-input.json",
+    "sha256": "d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20",
+    "accepted_run_id": "g05-passive-half-v100-ssh-20261002-01"
+  },
+  "source_sha256": "9ffe55395cfa78375b9d20eb8801242c15d2289abc42e4744e3a1826e850b578",
+  "exact_diff_sha256": "6dc5bd4b81a44bae210021d16e4a7007fa3c31c16140d870d9871e688794eadf",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "mission": {"start_hour": 8, "duration_hours": 26, "pattern": "CONTINUOUS", "scheduled_end_hour_without_interruption": 34},
+    "rbd": "passive B/A/C, B priority1 initially operated, A priority2 passive, C priority3 passive, NBREQ=NBOP=1, TSWOV=0.5 h, ONLM=Y",
+    "failure_modes": "unchanged operated B and A OPHOURS modes; C has none",
+    "repair": "B direct system CM CMT40 h, A direct system CM CMT0.5 h; otherwise inherited",
+    "stock": "inherited zero-demand configuration"
+  },
+  "source_delta": "Only ProblemDescription.PDESC, CMLocation FM-POS-B CMT 0.5→40 h, RBDParallel.ONLM N→Y and MissionType.MPAT null(default FIXED)→CONTINUOUS with its DESCR label. Schedule, duration, horizon, random seed, failure modes, priority order and TSWOV remain frozen from the accepted parent.",
+  "manual_basis": "Installed SIMLOX manual pp197–200 and 455–458 describes passive priorities and ONLM; pp198 and 456 constrain online repair to CONTINUOUS or EXTENDABLE missions. The unrun v1.0.1 draft kept default FIXED and failed independent static review, so this revision explicitly uses CONTINUOUS. The earlier two-mission draft also failed independent static review before native execution.",
+  "pre_run_hypotheses": {
+    "parent": "Under default FIXED and ONLM=N, B fails near h8.94145 and B→A completes near h9.44145; A later fails near h17.5636 and A→C completes near h18.0636. These are parent observations, not fixed predictions for changed MPAT and ONLM.",
+    "positive": "If B's long online CM begins after B fails and remains unfinished when operated A fails, native selection should skip still-unavailable higher-priority B and start A→C; the raw trace must name the fault, repair and branch choice.",
+    "alternatives": "Continuous mission scheduling may change failure draws or suspend the mission; online maintenance may still be disallowed for this direct CM, may block the aircraft, or may restore B before A fails by other means. Any such outcome stays an unpublished diagnostic until a positive trace meets the gate.",
+    "observability": "A mere successful mission or A→C event is insufficient. The trace must show B failed and under unfinished CM when A fails, plus distinct A→C activation and completion; report bins and stock ledger must reconcile."
+  },
+  "acceptance_gates": [
+    "Frozen parent and input hashes and exact four-table delta",
+    "Guarded session-0 SSH run under host mutex with GUI PID13340 preserved",
+    "Import/export/calc/report, exact authored-row roundtrip and zero converter errors",
+    "Raw event proof of B unavailable at A failure and C selected instead, with system and stock report reconciliation",
+    "Raw invocation, logs, models, reports and closure SHA-256 seals plus independent read-only review"
+  ],
+  "limits": [
+    "One fixed seed, one long forcing repair, one passive three-branch RBD and one mission.",
+    "CMT40 is a forcing condition, not an operational maintenance estimate.",
+    "ONLM=N versus Y is not an isolated paired contrast because B CMT and MPAT also change.",
+    "If the native trace does not show a higher-priority unavailable branch skipped, retain this as an unpublished diagnostic."
+  ]
+}
