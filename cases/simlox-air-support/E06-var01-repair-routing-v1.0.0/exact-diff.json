@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-e06-var01-exact-parent-diff/v1",
+  "direct_parent": "E05@1.0.0",
+  "parent_input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca",
+  "support_prerequisite": "E04@1.0.0/FAST",
+  "support_input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+  "changed_parent_tables": ["ProblemDescription", "Station", "StationStructure", "ItemRepair", "StockAllocation"],
+  "common_changes": [
+    "Append E04's DEPOT-01 station and BASE-01 to DEPOT-01 FAST support row with TFRMS=TTOMS=2 hours.",
+    "Append a depot ItemRepair row with DIRPF=1 and DIRPT=1 hour, copied from the E05 base row except station.",
+    "Append a depot AIR_BASIC StockAllocation row with STSIZ=0; retain E05 base STSIZ=1."
+  ],
+  "arms": {
+    "local": {"base_DIRPF": 1.0, "depot_DIRPF": 1.0, "input_sha256": "b460c6948c2299c521fb9e24c69c1ebc7dfd976702b5e380b13b5f5abf666b95"},
+    "upstream": {"base_DIRPF": 0.0, "depot_DIRPF": 1.0, "input_sha256": "7febb8c32afaa24fbf3bad94ba240e53236d8967c6fe6df51b4cfb7686828b0d"}
+  },
+  "sole_arm_differences": ["ProblemDescription.PDESC", "ItemRepair[BASE-01].DIRPF"],
+  "verification": "python check_model_delta.py"
+}
