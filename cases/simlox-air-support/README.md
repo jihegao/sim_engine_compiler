@@ -82,6 +82,8 @@ The [A14.var06 repeated profile slice](A14-profile-repeated-v1.0.1/cli-scope-sig
 
 The [A14.var07 leaf IQTY=2 negative slice](A14-var07-profile-leaf-iqty-two-v1.0.0/cli-scope-signoff-2026-10-01.md) changes one EXECUTE child quantity in that accepted profile from 1 to 2. All 14 populated source business tables import/export exactly, but native calculation reports `MissionDependenceProfile` error #514 and leaves only a four-byte invalid SXO with no report, despite exit code zero. Author and independent read-only replays each pass 41 checks. This publishes only the bounded conversion rejection; no mission behavior or general profile ambiguity rule is accepted.
 
+The [G02.var03 quantity and environment seed panel](G02-var03-quantity-environment-v1.0.1/cli-scope-signoff-2026-10-02.md) compares each single-factor POS-B intervention with a matched baseline at twelve seeds and 256 replications per arm. All 36 native runs and 432 raw seals pass independent replay; both aggregate failure-count contrasts increase at every seed. The earlier [fixed-seed probe](G02-var03-quantity-environment-v1.0.0/README.md) is excluded because it did not meet the uncertainty requirement. Exact doubling, factor equivalence and per-position aggregate attribution remain unverified.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
