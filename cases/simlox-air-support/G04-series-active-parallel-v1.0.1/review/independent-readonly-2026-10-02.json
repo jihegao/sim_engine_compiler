@@ -1,0 +1,106 @@
+{
+  "accepted_raw_seal_count": 24,
+  "accepted_runs": {
+    "parallel": {
+      "closure_sha256": "8a824b3dcb77aa88d59fe57de694a5abe2b279f16ca8f4000df13df4376cd23f",
+      "events": [
+        {
+          "failure_hour": 8.62763,
+          "mission_end_hour": 10,
+          "mission_id": 0,
+          "outcome": "success",
+          "position": "B",
+          "repair_end_hour": 10.5
+        },
+        {
+          "failure_hour": 20.8222,
+          "mission_end_hour": 22,
+          "mission_id": 1,
+          "outcome": "success",
+          "position": "B",
+          "repair_end_hour": 22.5
+        },
+        {
+          "failure_hour": 33.0996,
+          "mission_end_hour": 34,
+          "mission_id": 2,
+          "outcome": "success",
+          "position": "A",
+          "repair_end_hour": 34.5
+        }
+      ],
+      "failure_count": 3,
+      "flight_hours": 6.0,
+      "input_sha256": "ea56a9daf8705189c9162529355b28636ef7db168987b17ee90cdedbe9bb4b6f",
+      "log_sha256": "80ef65612564ba1dc2ed77cfb4b27d2dded03cdc86efb9bafc9cd87088751949",
+      "msuf": 1,
+      "mtmf": 1,
+      "nrep": 1,
+      "repair_count": 3,
+      "report_sha256": "166639f33550ade40fbcc42a76693158f35953ab7ca27396966f60e6832de8b2",
+      "run_id": "g04-parallel-v101-ssh-20261002-01",
+      "terminal_ready": 1
+    },
+    "series": {
+      "closure_sha256": "3e628ffd21bd9d15b73bbd18f6c9c7da68c39d8d2cfdf0a7ef1efcdc9dd081b9",
+      "events": [
+        {
+          "failure_hour": 8.62763,
+          "mission_end_hour": 9.12763,
+          "mission_id": 0,
+          "outcome": "abort",
+          "position": "B",
+          "repair_end_hour": 9.62763
+        },
+        {
+          "failure_hour": 20.8222,
+          "mission_end_hour": 21.3222,
+          "mission_id": 1,
+          "outcome": "abort",
+          "position": "B",
+          "repair_end_hour": 21.8222
+        },
+        {
+          "failure_hour": 33.0996,
+          "mission_end_hour": 33.5996,
+          "mission_id": 2,
+          "outcome": "abort",
+          "position": "A",
+          "repair_end_hour": 34.0996
+        }
+      ],
+      "failure_count": 3,
+      "flight_hours": 4.049385078251362,
+      "input_sha256": "3adc1cf0d75dd9418e816d0e06bdc502af5d37d975beafbba8f781c94d2763e8",
+      "log_sha256": "de7f832f35b8b1a0cb369af92abbd87809f7d1a242d9a75404cc89d8ba34a779",
+      "msuf": 0,
+      "mtmf": 0.6748974919319153,
+      "nrep": 1,
+      "repair_count": 3,
+      "report_sha256": "86434354db04b27131066cdb69342f176f6e133ac2563f8aa2a4724f7cef8a0e",
+      "run_id": "g04-series-v101-ssh-20261002-01",
+      "terminal_ready": 1
+    }
+  },
+  "case": "G04-series-active-parallel-v1.0.1",
+  "check_count": 3248,
+  "checks_passed": 3248,
+  "checks_total": 3248,
+  "excluded_diagnostic": {
+    "classification": "excluded_converter_diagnostic",
+    "closure_sha256": "a3ee852f9c66a8839e684011783a10dcffb3a21cfcc6c87ce952bbe6e7303f46",
+    "input_sha256": "84f07131fd3ad7a353d8a95404420375f5bee6b3d1d35dc3a8fec4f6ae1afb65",
+    "run_id": "g04-series-v100-ssh-20261002-01"
+  },
+  "failures": [],
+  "limits": [
+    "v1.0.0 error #464 is an excluded converter diagnostic with invalid four-byte SXO.",
+    "One seed and one mission mode do not establish population reliability, all Boolean RBDs or general failure-rate behavior.",
+    "Passive backup, switchover, online maintenance, QTYPB>1, nested or other RBDs, GUI visualization and cross-engine parity remain untested."
+  ],
+  "manual_basis": "Installed manual physical pp196-200,448-450,454-459,767-770: series requires every constituent; active parallel NBREQ1/NBOP2 can continue with one functional block; ONLM=N defers maintenance; explicit leaf modes bind positions.",
+  "passed": true,
+  "schema": "g04-series-active-parallel-independent-readonly/v1",
+  "scope": "For this seed and two direct positions, the same first POS-B failure aborts the series mission but leaves the active one-of-two parallel mission running to success. Both modes still receive half-hour local CM after mission return; three position-labelled failures and full 72-bin ledgers reconcile per arm.",
+  "verdict": "GO"
+}
