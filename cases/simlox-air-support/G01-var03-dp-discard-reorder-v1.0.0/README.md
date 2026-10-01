@@ -1,0 +1,7 @@
+# G01.var03: discardable secondary item and depot reorder
+
+This bounded CLI case derives from accepted [G01.var01 LRU/SRU repair](../G01-var01-lru-sru-v1.0.1/cli-scope-signoff-2026-10-01.md). Its [pre-run contract](contract.json), [native input](native-input.json), [exact parent diff](exact-diff.json), [signoff](cli-scope-signoff-2026-10-01.md), and [evidence index](evidence-index.json) define the published observation.
+
+Run `build.py` to verify source bytes against the accepted parent, `describe_diff.py` to verify the exact seven-table delta, and `validate_native.py runs/g01-var03-dp-v100-ssh-20261001-01` for the author replay. The separate [independent checker](review/independent_readonly.py) reads source and raw results without importing the author checker. Original SXI/SXO, event log, report, invocation, and closure remain local under ignored `runs/g01-var03-dp-v100-ssh-20261001-01/`.
+
+The nested former SRU is typed DP, its direct-repair row is removed, and a depot reorder position and transport link are added. In one seed, SIMLOX discards the failed DP individual, replenishes the base from depot stock in two hours, and delivers a newly reordered DP to the depot after one hour. The report's aggregate `NDF=1` is not a count of all physical item demands; the event log distinguishes the LRU, local DP, and depot DP demands. A primary DU and other stock/reorder policies remain unverified.
