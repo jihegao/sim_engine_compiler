@@ -1,0 +1,3 @@
+# Rejected native candidate: undefined subtask ID
+
+The immutable guarded run `d11-mnocc-related-2-v100-ssh-20261001-01` imported and exported the first candidate, but conversion rejected `TaskBreakDown` record 2 with error #2011: unknown `SUTID=INSPECT-LARGE`. No valid SXO or simulation result was produced. Its source input SHA-256 was `485eb577c73d595633f972cc93d9fbc337a36dd0b1cb97f506a5e9c2d0aa1262`; the unrun cap-3 companion source SHA-256 was `aae66e76c55f058da06c55c4ad0625f90b88344eaa51fc5b7041604e8c0e049e`. Both source bytes are retained here. The corrected candidate reuses the parent's defined `INSPECT` subtask type and must run under new immutable IDs. The failed run does not support any PM behavior claim.
