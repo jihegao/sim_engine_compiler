@@ -1,0 +1,21 @@
+# E06.var01 three-level accumulated repair-fraction CLI sign-off
+
+**Decision:** `native_behavior_accepted_cli_scope` for the predeclared 48-seed `DIRPF=0.2/0.7/1` panel. Publication on `simlox/main` remains conditional on exact-head PR gates and merge. This does not close E06 or E06.var01's other branches.
+
+## Source and native execution
+
+The direct parent is accepted E06.var01 upstream input SHA-256 `7febb8c32afaa24fbf3bad94ba240e53236d8967c6fe6df51b4cfb7686828b0d`; E04 support input SHA-256 is `2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1`. Installed manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3` (physical PDF pages 214–216, 340–342); dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Installed SIMLOX executable SHA-256 is `fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0`.
+
+The source contract SHA-256 is `881fa388bbbac19c0163b5b947ae43d94319d3754f94acfa2e38c57a975519b2`; frozen seed manifest SHA-256 is `1ff2c01493fe6634d71124c91a5803a67cda1b907120d217cc8803a2a36d38cf`, with sample seed-1 input SHA-256 `c1b0d9c49af16f1cd9bf41d8ee8b38bb6599952df1a6f3e2461c89d6bd3cc112`. The exact model delta adds WORKSHOP-01 and the DEPOT-01 to WORKSHOP-01 two-hour FAST link; sets cumulative direct-repair fractions to 0.2, 0.7 and 1.0; gives workshop zero stock; and extends Control and ResultCollection windows from 36 to 60 hours. The exact-delta checker found seven changed existing cells and four appended rows with no other source difference. Between seeds, only `Control.RSEED` changes.
+
+All 48 seeds, one replication each, ran serially under session-0 SSH and `Global\SimloxIssue18NativeQueue` while GUI PID 13340 stayed responsive. Every run completed native import, export, calculation, JSON report export and exact source roundtrip with zero exit codes. Conversion had zero errors and only inherited warning #108. Each roundtrip retained all 21 populated source tables and each report has 120 aligned half-hour System and Stock bins through hour 60. The 48 immutable local run directories hold 576 SHA-256 sealed raw files. `evidence-index.json` records every run and seal; bulky raw files remain in ignored `runs/`.
+
+## Observed native behavior and limits
+
+Forty-four of the 48 seeds produce a first failed-item repair complexity. Those first items route BASE-01/DEPOT-01/WORKSHOP-01 **6/24/14** times. Across all 89 logged critical failures, all 89 removed LRUs retain identity through one direct repair and return to BASE-01, with route counts **16/50/23**. A base repair has no transport; depot repair has one two-hour link each way; workshop repair has two two-hour links each way. Each item repair lasts one hour. Every critical failure corresponds to a same-time mission abort and a completed system repair; `SystemResults.NFAIL` and `NREPT` sum to the logged counts. Every run ends with one ready aircraft, zero aggregate `StockTotalResults.NBO`, and one base spare.
+
+The author source-bound replay passed **2,245/2,245 checks** with no differences; report SHA-256 is `2b0ac396db16cd3a3dae32ce3b6688ae11e612e77c77a292ca635c156cf2ca37`. Separate reviewer `/root/a17_static_reviewer` reconstructed source, closure, route and report checks without importing author validation code. The independent replay passed **4,244/4,244 checks** with bounded GO. Reviewer script SHA-256 is `4a0acd6ee29dcb3798146bfdca5a63751e57a141ab5639407e5c8274f06c5542`; review report SHA-256 is `98ac3047b6d8317ccba3bd13bc378c25268233a09b25d13dd3737e1d453c1ce7`.
+
+The earlier 1.0.0 candidate was rejected before publication because inherited `ResultCollection` mission/system windows stopped at hour 36, leaving 72 rather than 120 System bins. Its 48 diagnostic raw runs remain preserved locally and are excluded from acceptance. `diagnostic-predecessor.json` records the failed acceptance and source fingerprints.
+
+Observed route counts do not establish population 20/50/30 proportions or independence between random draws. No observed complexity equals exactly 0.2 or 0.7, so threshold equality is unverified. SURPF/CMF, partial discard, other repair categories, multiple bases, resource contention, GUI visual behavior, and cross-engine equivalence remain outside this scope.
