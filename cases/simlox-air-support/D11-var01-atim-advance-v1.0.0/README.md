@@ -1,0 +1,5 @@
+# D11.var01: anticipated mission-count maintenance
+
+This bounded CLI case changes `MaterielPM.ATIM` from zero to 0.3 in the [four-mission control](../D11-var01-atim-control-v1.0.0/README.md). With `PMINT=4`, the installed SIMLOX manual specifies an integer front shift of `floor(0.3 × 4)=1` mission. The five fixed aircraft missions remain at hours 8–12, 16–17, 20–21, 48–49 and 52–53. Native `MS4` preventive maintenance starts after the third return at hour 21 and finishes at 22, versus hours 49–50 in the control. All five missions succeed.
+
+The [frozen contract](contract.json), [input](native-input.json), [exact control diff](exact-diff.json), [scope signoff](cli-scope-signoff-2026-10-01.md), and [evidence index](evidence-index.json) define the evidence. Run `build.py` and `describe_diff.py` to replay source construction, then `validate_native.py runs/d11-atim-advance-v100-ssh-20261001-01` and `review/independent_readonly.py` for separate read-only checks. The guarded session-0 SSH runner is `run_native_ssh.ps1`; original SXI/SXO, event log and report stay under ignored `runs/`.

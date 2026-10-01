@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-d11-atim-advance-v100-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var01",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D11-var01-atim-control-v1.0.0",
+  "parent_input_sha256": "94c0addbaff610b656b25dd328949ea9710ab9a593cafebe488f7bfca665ead8",
+  "input_sha256": "d408ce1f556619cafd81a837b6cfead2a92de8083c651f7b0487575eef684fa3",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [202, 204, 370, 372, 373, 374],
+  "scope": "paired MISSIONS=4 PM with ATIM=0.3, one-mission anticipated window",
+  "delta": [
+    "only MaterielPM.ATIM changes from 0 to 0.3, plus a descriptive label",
+    "the five mission waves and fixed one-hour PM task are byte-equivalent to control"
+  ],
+  "fixed_input": {
+    "mission_starts_hours": [8, 16, 20, 48, 52],
+    "mission_durations_hours": [4, 1, 1, 1, 1],
+    "pmid": "MS4",
+    "pm_interval": {"OPID": "MISSIONS", "PMINT": 4, "ATIM": 0.3, "DTIM": 0},
+    "manual_integer_front_shift": "floor(0.3 * 4) = 1 mission",
+    "pm_task_hours": 1,
+    "horizon_hours": 60,
+    "seed": "1"
+  },
+  "hand_expected": {
+    "mission_completions_hours": [12, 17, 21, 49, 53],
+    "no_pm_after_second_mission_hour": 17,
+    "one_anticipated_pm_after_third_mission": {"start_hour": 21, "end_hour": 22},
+    "no_second_pm_through_hour": 60,
+    "all_five_missions_successful": true,
+    "terminal_ready": true
+  },
+  "acceptance": [
+    "exact input roundtrip, zero native conversion errors, nonempty SXO/event/report",
+    "individual event and 120-bin report contrast against frozen ATIM=0 control separates third-return from fourth-return PM",
+    "eight flight and one PM aircraft-hours, no failure or stock demand, terminal aircraft ready",
+    "source and raw closure hashes, SSH/mutex/GUI guard and independent read-only replay pass"
+  ],
+  "limits": [
+    "one fixed integer anticipation fraction and mission schedule; noninteger OPIDs and other fractions unverified",
+    "DTIM, ENREG, MNOCC, competing PMs, resources, GUI-only behavior and cross-engine equivalence unverified"
+  ]
+}

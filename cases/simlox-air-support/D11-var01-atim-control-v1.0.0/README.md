@@ -1,0 +1,5 @@
+# D11.var01: mission-count anticipation control
+
+This bounded CLI case inherits the accepted [D10 five-mission model](../D10-var01-missions-v1.0.0/README.md). One aircraft flies at hours 8–12, 16–17, 20–21, 48–49 and 52–53. Its one-hour `MS4` preventive maintenance uses `OPID=MISSIONS`, `PMINT=4`, `ATIM=0`, and `DTIM=0`. Native PM work occurs at hours 49–50, after the fourth return. All five missions succeed. The [paired ATIM 0.3 case](../D11-var01-atim-advance-v1.0.0/README.md) isolates anticipation.
+
+The [frozen contract](contract.json), [input](native-input.json), [exact parent diff](exact-diff.json), [scope signoff](cli-scope-signoff-2026-10-01.md), and [evidence index](evidence-index.json) define the evidence. Run `build.py` and `describe_diff.py` to replay source construction, then `validate_native.py runs/d11-atim-control-v100-ssh-20261001-01` and `review/independent_readonly.py` for separate read-only checks. The guarded session-0 SSH runner is `run_native_ssh.ps1`; original SXI/SXO, event log and report stay under ignored `runs/`.

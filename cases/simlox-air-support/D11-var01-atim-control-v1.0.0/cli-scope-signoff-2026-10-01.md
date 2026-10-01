@@ -1,0 +1,13 @@
+# D11.var01 ATIM control: bounded CLI signoff
+
+**Decision:** `native_behavior_accepted_cli_scope` for one fixed `MISSIONS=4`, `ATIM=0` preventive-maintenance threshold. Publication requires merge to `simlox/main`. This control does not complete D11 or Issue #18.
+
+The accepted D10 parent input SHA-256 is `6607991260e3f911d0121c7949443409a57937e95f80c7e4f3a2faa6ac20ba72`. Installed manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3` (physical pp. 202, 204, 370, 372–374); dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. The manual specifies integer anticipation for mission PM; this zero-ATIM model supplies its native control.
+
+Frozen [contract](contract.json) SHA-256 is `1b4670f824e386880f948338fc5ca0f96d780a24f599cfa966bbe4ec64df029b`; [input](native-input.json) SHA-256 is `94c0addbaff610b656b25dd328949ea9710ab9a593cafebe488f7bfca665ead8`. The [exact parent diff](exact-diff.json) SHA-256 is `2467d6880ddb9c2d441e33377bb374759c936c007e14521c5b62d5a32481f15e`; it changes `MaterielPM`, `PMLocation`, `ProblemDescription`, `TaskBreakDown`, and `Tasks`, retaining all five mission waves and the one-hour item-free PM task.
+
+Guarded session-0 SSH run `d11-atim-control-v100-ssh-20261001-01` completed import, export, calculation, JSON report and exact 18-table roundtrip under `Global\SimloxIssue18NativeQueue`, preserving GUI PID 13340/session 1/start identity. Converter errors were zero; #108 logging and #126 item-free warnings were expected. The closure seals 12 raw artifacts with unchanged source hashes; its SHA-256 is `3c230e01d97b1ea0e8f4ba24d272a3f80c8f688a398f6b301e46c80af1f60505`.
+
+Five missions succeed at hours 12, 17, 21, 49 and 53. The log identifies one `MS4` PM task and one-hour subtask at 49–50, after the fourth return, with none after the third. The report has 120 half-hour System and Stock-total bins, eight flight aircraft-hours, one PM aircraft-hour, no failures or stock demand, and a ready aircraft at hour 60. [Author read-only replay](review/author-validation-2026-10-01.json) passes 1,500/1,500 checks. [Independent raw replay](review/independent-readonly-2026-10-01.json) is separate. Raw SXI/SXO, log and report remain local under ignored `runs/`; [evidence index](evidence-index.json) supplies their IDs, lengths and SHA-256 hashes.
+
+The [paired ATIM 0.3 case](../D11-var01-atim-advance-v1.0.0/cli-scope-signoff-2026-10-01.md) tests the one-mission front shift. This fixed control does not establish other fractions, `DTIM`, `ENREG`, `MNOCC`, competing PM, resources, GUI-only behavior or cross-engine equivalence.
