@@ -1,0 +1,5 @@
+# A13.var03 first-run validator failure
+
+The original `-01` control and dependency guarded native runs completed import, export, calculation, JSON report and roundtrip with zero step errors. Both closures pin `validate.py` SHA-256 `6683f1817ef2ed9deef7a4fccaae07af7417aed0308e7baf9a1beb09b68d0f1c` (the exact pre-correction copy in this directory). The author replay then stopped at check 76, `control positive preparation work`.
+
+Native `model.log` writes two spaces after `Time: 9` before `subtask`; the old assertion required one. The next assertion would also have counted RECON's zero-duration generic `preparation started/ended` lines as a second positive preparation. Neither discrepancy is an observed failure of the modeled preparation. The corrected validator matches the native task/subtask work lines and counts the one positive system preparation task. The `-01` runs are retained as diagnostics; the later `-02` pair, with the corrected validator source pinned before execution, is the acceptance candidate.
