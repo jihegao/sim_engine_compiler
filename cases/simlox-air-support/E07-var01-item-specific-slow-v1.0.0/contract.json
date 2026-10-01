@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E07",
+  "variant_id": "E07.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "item-specific SLOW demand propagation on one accepted E07 repairable-LRU support link",
+  "direct_parent": {
+    "case_id": "E07",
+    "variant_id": "E07.var02",
+    "scope": "accepted item-specific FAST one-hour-down/three-hour-up transport override",
+    "input_sha256": "d42832b9e17b9a0c968a8bba7bcb1419eba06313097604fc0041baab5d132bc0",
+    "native_run_id": "e07-item-route-v101-20261001-01"
+  },
+  "support_prerequisite": {
+    "case_id": "E04",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [316, 317, 318, 319],
+    "interpretation": "For a repairable item, ItemStationStructure overrides a general StationStructure record. FAST sends demand to the supporting station when it arises locally; SLOW delays that demand until the faulty item arrives there. TFRMS measures replacement transport downward; TTOMS measures faulty-item transport upward."
+  },
+  "input_sha256": "dd48e77c354bcfa02c658baa67620a6fa4c7319b9d9d04c0d2a0e6be6adb6545",
+  "exact_parent_delta": "Change only ProblemDescription.PDESC and ItemStationStructure[TEACH-LRU-01,BASE-01,DEPOT-01].OPOL FAST to SLOW. Keep general StationStructure.OPOL FAST, its 2h/2h times, item-specific 1h down/3h up, DFRAC 1, stocks, repair, missions, seed and 36h report horizon unchanged.",
+  "parameters": {
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5,
+    "initial_base_spares": 0,
+    "initial_depot_spares": 1,
+    "general_up_hours": 2,
+    "general_down_hours": 2,
+    "item_up_hours": 3,
+    "item_down_hours": 1,
+    "depot_direct_repair_hours": 1
+  },
+  "predeclared_native_acceptance": [
+    "Guarded session-0 SSH native import, export, calculation, report export and source/roundtrip check complete while GUI PID 13340 stays responsive. Conversion has zero errors and only inherited ENLOG warning 108. All 22 populated business tables roundtrip exactly; report has 72 aligned half-hour System and Stock bins.",
+    "The accepted FAST parent and new SLOW arm share the first failed LRU instance and base backorder event. In SLOW, no depot issue occurs at base demand; physical faulty instance travels BASE-01 to DEPOT-01 in three hours, then depot demand and issue occur when it arrives. Replacement instance travels DEPOT-01 to BASE-01 in one hour, clears the base backorder and is fitted, and the system becomes ready. The faulty instance undergoes one-hour depot repair and returns to depot stock without duplication.",
+    "For the frozen seed, predict first critical failure at about 9.8829h, base backorder at 10h, faulty-item removal at about 10.1667h, depot arrival and issue at about 13.1667h, base replacement arrival at about 14.1667h and readiness at about 14.5h. Compare the FAST parent's depot issue at 10h and readiness at about 11.3333h. Reconcile one mission abort, one system repair, later mission success, ledger totals and terminal inventory.",
+    "Seal immutable raw run files and source hashes, then obtain a separate read-only reviewer replay without importing author validation code."
+  ],
+  "limits": [
+    "One fixed seed and one repairable item/link test demand timing, not population failure frequencies or FIFO backorder ordering.",
+    "The general link remains FAST. Multi-route DFRAC sampling, discardable items, transport policy profiles, other route override precedence, resource contention, GUI rendering and cross-engine equivalence remain outside scope."
+  ]
+}
