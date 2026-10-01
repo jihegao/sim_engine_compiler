@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "case_version": "1.0.0-candidate",
+  "variant_id": "G01.var05",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G01",
+    "variant_id": "G01.var01",
+    "version": "1.0.1",
+    "input_sha256": "9c25a414615ac4ea523ee989385a913c692923e04bc41c6984b6866e86204bb9",
+    "signoff": "../G01-var01-lru-sru-v1.0.1/cli-scope-signoff-2026-10-01.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [240, 248, 253, 255],
+    "source_boundary": "ItemStructure QTYPM gives the number of identical, interchangeable items per mother. For weighted system failure rate, the child item rate is multiplied by QTYPM; the parent rate must cover that contribution. Native instance identities and stock are tested below."
+  },
+  "native_input_sha256": "ef21268a1f4c024e0c5bea24136509446e356ea3214dedd694c67825f376f984",
+  "delta": {
+    "tables": ["ProblemDescription", "System", "ItemStructure", "StockAllocation"],
+    "mechanism": "Increase installed LRU QTYPM from one to two, match System.FRT to two child LRU rates (300000 to 600000 per million operating hours), and increase local LRU opening stock from one to two. Preserve the item definitions, SRU nesting, tasks, missions, seed and horizon.",
+    "identities": {"system": "TEACH-AIR-01", "lru": "TEACH-LRU-01", "sru": "TEACH-SRU-01", "base": "BASE-01"}
+  },
+  "configuration": {
+    "lru_qty_per_system": 2,
+    "system_frt_per_million_hours": 600000,
+    "lru_frt_per_million_hours": 300000,
+    "opening_lru_stock": 2,
+    "opening_sru_stock": 1,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "Import/export preserves all 21 author-populated tables and exact four-table delta; conversion errors are zero, all five guarded steps succeed, and report/event log are nonempty.",
+    "Native events identify two distinct initially installed LRU physical instance identities at the aircraft, or otherwise directly identify two interchangeable installed positions in a native artifact. A single observed failed LRU is insufficient to prove QTYPM expansion.",
+    "At least one failure follows the inherited SRU-caused LRU exchange and local repair route. LRU stock starts at two, any issued item is distinct from an installed item, and demand, stock, mission and terminal state reconcile without backorder or forwarding.",
+    "The parent and candidate reports are compared for their source and outcome scope, with 72 half-hour SystemResults and StockTotalResults intervals through 36 hours; stochastic counts need not equal the parent.",
+    "Invocation and closure bind the input, parent, builder, contract, checker, executable and raw-file hashes; an independent read-only reviewer replays acceptance."
+  ],
+  "limits": [
+    "This case compares QTYPM=1 and 2 in a single one-aircraft, fixed-seed native CLI scenario. NSIMI=2 is separate.",
+    "The FRT and local stock adjustments keep the doubled quantity runnable; this contrast does not isolate effects of QTYPM from those adjustments. GUI and other rates/seeds remain unverified."
+  ]
+}
