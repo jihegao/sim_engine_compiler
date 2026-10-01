@@ -1,0 +1,17 @@
+# Independent static review — D11.var03 long-delay ENREG=N control
+
+**Verdict: bounded static GO.** This read-only review covers the frozen input and sealed run `d11-enreg-long-drift-v100-ssh-20261001-01`. A separate independent raw event and per-bin replay remains the publication gate.
+
+## Source and provenance
+
+- Accepted D03 calendar PM parent input SHA-256: `5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32`. Frozen input: `76836c8b1dd8f9d5552e9fb908b766e80995bc9fdcd7b7967f75a73de6f6b7c5`. Exact-diff SHA-256: `7ebe7f3efef2e5a02f6f140aced29fd860cc3cec143844c6053e9c669b1bb7a7`. Six tables change: `Control` SIMPE/RCEND 60→84, both `ResultCollection` RCEND values 60→84, `MissionType` adds a 26-hour `LONG-MISSION`, `OperationProfile` replaces the third two-hour request at 32 with that long mission at 23.5, `MaterielPM.ENREG` null→N, and `ProblemDescription` changes. Twenty-five tables are unchanged; the one-hour CAL24 PM, ATIM=DTIM=0, one aircraft, no-failure system, and seed 1 remain fixed.
+- Installed manual SHA-256: `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`; dictionary SHA-256: `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. Manual physical p. 374 describes ENREG=N interval drift after delayed PM, and the dictionary accepts ENREG Y/N with N as default. The 74.5-hour second work period was a frozen pre-run hypothesis.
+- The runner requires session-0 SSH and `sshd.exe` ancestry, the global native mutex, GUI PID 13340 in an active session at preflight, and unchanged GUI process/session/start identity around each hidden CLI step. All five steps exited 0 with GUI identity preserved. Independent recomputation found the invocation SHA, all 12 raw file byte counts and hashes, and pre/post source hashes consistent with closure. The roundtrip checker passed 18 row-containing source tables. Conversion had zero errors and only warnings #108 (logging) and #126 (itemless system).
+
+## Native observation
+
+- The same aircraft succeeds on missions 8–10, 20–22, and `LONG-MISSION` 23.5–49.5. The long mission crosses nominal CAL24 grid hours 24 and 48. On return at 49.5, one critical PM task performs its subtask 49.5–50.5. The next PM performs 74.5–75.5, 24 hours after the delayed first completion. There is no PM work at 48 while the aircraft is on mission.
+- The report has 168 half-hour system and 168 stock rows. Operating occupancy integrates to 30 aircraft-hours and PM occupancy to two aircraft-hours. `ResultSummary` reports MTMF=MSTF=MSUF=STMF=1; stock NBO stays zero. The final [83.5,84) system bin is ready, with no operating, PM, or failure occupancy. The first `SystemResults.NPMS` marker is in [24,24.5), representing scheduled initiation accounting rather than actual subtask work at 49.5. The paired Y run has identical summary and stock values; its later PM shifts to 72–73.
+- Raw `model.log` SHA-256: `7837bc4093605974ffac9124323d07bee1bcc77c92111238accd5b8a51d48b62`; report SHA-256: `6b99046f6b740c82269d9fe3480e6493a99649da9098a31e1967eb769b6d7f73`; closure SHA-256: `a4d5dd91f650225d8210493ee89d68404730675679c2338a17cc98423da5c4c7`.
+
+**Limits:** This control shows one 26-hour mission-induced delay and subsequent drift, not a universal ENREG=N rule across delays or PM types. Tiny floating-point fractions appear in adjacent PM boundary bins; use log events for exact task times and integrate report occupancy with tolerance. Omission of the 48-hour planned slot is specifically assessed in the ENREG=Y companion, with the manual's calendar-only interpretation.

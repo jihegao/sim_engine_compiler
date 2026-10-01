@@ -1,0 +1,5 @@
+# D11.var03: long-delay calendar PM, drifting schedule
+
+This bounded CLI control derives from the accepted [D03 calendar PM](../D03-calendar-pm-v1.0.0/README.md). Two short missions fly at 8–10 and 20–22; a 26-hour mission flies at 23.5–49.5, crossing planned `CAL24` slots at hours 24 and 48. With explicit `ENREG=N`, first PM work starts on return at 49.5–50.5 and repeats at 74.5–75.5. The [paired ENREG=Y case](../D11-var03-enreg-long-regular-v1.0.0/README.md) checks omission of an intervening slot and return to the original grid.
+
+The [frozen contract](contract.json), [input](native-input.json), [exact parent diff](exact-diff.json), [scope signoff](cli-scope-signoff-2026-10-01.md) and [evidence index](evidence-index.json) bind source and native output. `build.py` and `describe_diff.py` replay source construction. `validate_native.py runs/d11-enreg-long-drift-v100-ssh-20261001-01` and `review/independent_readonly.py` replay raw evidence separately. The session-0 SSH runner is `run_native_ssh.ps1`; original SXI/SXO, event log and report remain local under ignored `runs/`.

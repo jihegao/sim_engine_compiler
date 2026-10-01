@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-d11-enreg-drift-v100-contract/v1",
+  "case_id": "D11",
+  "variant_id": "D11.var03",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D03-calendar-pm-v1.0.0",
+  "parent_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "input_sha256": "61643f14212e7195437da7d95da91458472b29ac65555287cf968c66aee61bb1",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [204, 370, 372, 373, 374],
+  "scope": "one aircraft, CALHOURS=24 one-hour PM, three fixed missions with one spanning the first due time, ENREG=N",
+  "delta": ["accepted D03 third mission start moves 32 to 23.5 so its two-hour flight spans hour24", "MaterielPM.ENREG is set explicitly to N, with a descriptive label; other mechanisms stay fixed"],
+  "fixed_input": {"mission_starts_hours": [8, 20, 23.5], "mission_durations_hours": [2, 2, 2], "pmid": "CAL24", "pm_interval": {"OPID": "CALHOURS", "PMINT": 24, "ATIM": 0, "DTIM": 0, "ENREG": "N"}, "pm_task_hours": 1, "horizon_hours": 60, "seed": "1"},
+  "hand_expected_hypothesis": {"mission_returns_hours": [10, 22, 25.5], "first_due_hour": 24, "first_actual_work": [25.5, 26.5], "second_actual_work": [50.5, 51.5], "second_due_basis": "24 calendar hours from delayed first PM completion", "three_missions_successful": true},
+  "acceptance": ["exact import/export roundtrip, zero conversion errors and nonempty native evidence", "individual mission and PM task/subtask events establish actual work times, not only NPMS markers", "all 120 half-hour System/Stock bins and terminal state reconcile", "sealed raw artifacts and separate independent read-only replay pass"],
+  "limits": ["second PM time is a pre-run native hypothesis", "one finite delay; omission during a long delay requires a separate case"]
+}

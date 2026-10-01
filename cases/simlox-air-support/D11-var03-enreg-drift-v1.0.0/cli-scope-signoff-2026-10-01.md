@@ -1,0 +1,13 @@
+# D11.var03 short-delay ENREG=N: bounded CLI signoff
+
+**Decision:** `native_behavior_accepted_cli_scope` for a fixed 24-hour calendar PM delayed by one two-hour mission, with `ENREG=N`. Publication requires merge to `simlox/main`. This does not complete D11 or Issue #18.
+
+Accepted D03 parent input SHA-256 `5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32`; installed manual SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3` (physical pp. 204, 370, 372–374); dictionary SHA-256 `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. The manual distinguishes retained original PM schedule (`ENREG=Y`) from interval drift (`N`).
+
+Frozen [contract](contract.json) SHA-256 `0756651a82e2855b7b3b14ab3fc8c05db464aaaf6344030f042bc2273cacd3aa`; [input](native-input.json) SHA-256 `61643f14212e7195437da7d95da91458472b29ac65555287cf968c66aee61bb1`; [exact parent diff](exact-diff.json) SHA-256 `6b160a428710adf7d39ff5725fbaa937f4375e4bb17508d8f8a786b9c09e605d`. The third mission moves 32→23.5 to cross the 24-hour PM slot, `MaterielPM.ENREG` becomes explicit N, and description changes; 28 tables remain equal. Seed, aircraft, 24-hour interval, one-hour PM task and 60-hour horizon stay fixed.
+
+Guarded session-0 SSH run `d11-enreg-drift-v100-ssh-20261001-01` completed five native steps and exact 18-table roundtrip under `Global\SimloxIssue18NativeQueue`, preserving GUI PID 13340/session 1/start identity. Conversion errors were zero; #108 logging and #126 item-free warnings were expected. The closure seals 12 raw artifacts with unchanged source hashes; its SHA-256 is `5767b6e0017e9f8e77fa5a1f3fac7156b6f851afcc1beac50bb5f8995d48e490`.
+
+All three missions succeed at 10, 22 and 25.5. The report `NPMS` marker at 24 records the calendar threshold while the aircraft flies; the first actual PM task/subtask works 25.5–26.5 after return. The second works 50.5–51.5, 24 hours after the delayed first completion. All 120 half-hour System and Stock-total bins reconcile six flight and two PM aircraft-hours, no failure or stock demand, summary factors 1 and terminal ready. [Author replay](review/author-validation-2026-10-01.json) passes 1,501/1,501 checks; [independent read-only replay](review/independent-readonly-2026-10-01.json) separately checks raw evidence. The [evidence index](evidence-index.json) hashes local ignored `runs/` artifacts.
+
+The [ENREG=Y pair](../D11-var03-enreg-regular-v1.0.0/cli-scope-signoff-2026-10-01.md) tests retention. The [long-delay pair](../D11-var03-enreg-long-regular-v1.0.0/cli-scope-signoff-2026-10-01.md) tests an intervening slot. Other intervals, mission delays, PM competition, GUI-only behavior and cross-engine equivalence remain unverified.

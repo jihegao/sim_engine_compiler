@@ -1,0 +1,5 @@
+# D11.var03: long-delay calendar PM, skipped slot
+
+This bounded CLI case changes only `MaterielPM.ENREG` from N to Y, plus a label, in the [long-delay control](../D11-var03-enreg-long-drift-v1.0.0/README.md). The 23.5–49.5 mission spans planned `CAL24` slots at 24 and 48. Both runs perform one delayed PM on return at 49.5–50.5. The `ENREG=Y` run creates no immediate catch-up PM for the hour-48 slot and next performs PM at the original hour-72 grid slot, 72–73, versus 74.5–75.5 with `ENREG=N`.
+
+The [frozen contract](contract.json), [input](native-input.json), [exact control diff](exact-diff.json), [scope signoff](cli-scope-signoff-2026-10-01.md) and [evidence index](evidence-index.json) bind source and native output. `build.py` and `describe_diff.py` replay source construction. `validate_native.py runs/d11-enreg-long-regular-v100-ssh-20261001-01` and `review/independent_readonly.py` replay raw evidence separately. The session-0 SSH runner is `run_native_ssh.ps1`; original SXI/SXO, event log and report remain local under ignored `runs/`.
