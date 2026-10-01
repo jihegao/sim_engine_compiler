@@ -1,0 +1,80 @@
+{
+  "schema": "simlox-j03-var04-nested-time-contract/v1",
+  "case_id": "J03",
+  "variant_id": "J03.var04",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J03.var01@1.0.0",
+  "parent_input_sha256": "3f5e689c17ebb2696b30daec24b35042b2ee96a507604f1cf42523a7581cb917",
+  "panel_diff_sha256": "863e7dfad4ebeacf43eade1a4c7f74b9523621508bbf2ffa9f58aedf4600c287",
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [
+      510,
+      511,
+      541,
+      542,
+      543,
+      544,
+      545
+    ]
+  },
+  "business_delta": "From accepted J03.var01 two-point PREP-DET time table, rename the inner two <DETERM> support rows at 0.25 and 0.75/PFAC0.5 to PREP-IN and add outer PREP-OUT/PFAC1/BASED=PREP-IN/PARAM1=0.5. MissionPreparation.DURND changes from PREP-DET to PREP-OUT; DURN0.5 and all other business fields stay. Seeds 02-32 change only Control.RSEED.",
+  "expected_observation": {
+    "native_runs": 32,
+    "seed_range_inclusive": [
+      1,
+      32
+    ],
+    "frozen_preparation_hours_by_seed": [
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.75,
+      0.25,
+      0.25,
+      0.75,
+      0.25
+    ],
+    "frozen_frequencies": {
+      "0.25": 15,
+      "0.75": 17
+    },
+    "frozen_sample_mean": 0.515625,
+    "frozen_sample_variance": 0.06426411290322581,
+    "preparation_start_hour": 7,
+    "mission_start_hour": 8,
+    "mission_completion_hour": 10,
+    "deployed_aircraft": 1,
+    "system_result_bins_per_run": 72,
+    "nested_parent_preparation_equivalent_for_fixed_seeds": true
+  },
+  "limits": "Thirty-two excluded diagnostic seeds fixed this reproducibility panel. One explicit reference layer reproduced the accepted J03.var01 preparation duration at every fixed seed. This does not establish general nesting equivalence, population mixture weights, stream independence, unobserved behavior, GUI-only results, or cross-engine parity."
+}
