@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-issue18-g05-passive-switchover-contract/v1",
+  "case_id": "G05",
+  "case_slice": ["G05.var01 zero versus positive TSWOV", "G05.var03 B/A/C priority sequence"],
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G04-three-branch-threshold-v1.0.0/one-input.json",
+    "sha256": "cfdf287c4de93638e8117c71ad3de1846da3c62c24254bf7d2a3f0f7c7c0c4d7",
+    "acceptance": "accepted fixed-seed active three-position one-of-three RBD source"
+  },
+  "source_sha256": {
+    "zero": "31bbdab28e169136cbd2383a6d70d0e4fd01f507eed2766a11d7d5f12f179cce",
+    "half": "d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "one_mission": {"start_hour": 8, "duration_hours": 26, "scheduled_end_hour": 34},
+    "rbd": {"root": "G05-PASSIVE", "kind": "parallel", "nbreq": 1, "nbop": 1, "branch_count": 3, "priority": ["POS-B:1", "POS-A:2", "POS-C:3"], "onlm": "N", "qtypb_each": 1},
+    "tswov_hours": {"zero": 0, "half": 0.5},
+    "failure_modes": {"POS-B": "FM-POS-B, 600000 per million operating hours", "POS-A": "FM-POS-A, 300000 per million operating hours", "POS-C": "no configured failure mode"},
+    "repair": "unchanged half-hour direct system CM after return",
+    "stock": "unchanged zero-demand configuration"
+  },
+  "manual_observation": "Installed manual pp197 and 199-200,455-458 says nonoperated passive branches do not generate failures; a failed operated branch activates the highest-priority functional passive branch (lowest PRIO); positive TSWOV can place the block/system in SWITCHOVER. Manual pp199 and 456 describe activation failure timing differently, so no clock-onset claim is preaccepted.",
+  "hypotheses_to_test_natively": [
+    "Both arms import/export/convert with zero errors and preserve exact B/A/C priority rows.",
+    "The first operated branch is POS-B, then POS-A is selected if B fails, then POS-C if A fails; native event evidence must identify branch selection rather than infer it solely from configured PRIO.",
+    "Nonoperated branches generate no failures before activation, consistent with the passive-state rule.",
+    "The positive-time arm spends an observable 0.5-hour interval in SWITCHOVER per completed switch and the zero-time arm does not; this is a hypothesis subject to native event and result-bin evidence.",
+    "Mission outcomes, failure samples, repair tasks and report bins are recorded separately for each arm; differing stochastic paths must not be described as identical draws."
+  ],
+  "acceptance_gates": [
+    "frozen parent/source hashes, exact table delta, installed manual/dictionary/executable hashes",
+    "session-0 SSH with sshd ancestor, host-wide native mutex, preserved GUI PID 13340, unique run directories",
+    "native import/export/calc/report and exact authored-row roundtrip with zero converter errors",
+    "event-level branch activation, failure, SWITCHOVER, mission and repair reconciliation by author and independent read-only reviewer",
+    "raw invocation, logs, model, report and closure SHA-256 seals in evidence index"
+  ],
+  "limits": [
+    "One fixed seed and one repetition cannot establish population reliability or all standby priorities.",
+    "Fixed mission behavior may not generalize to continuous or extendable missions, online repair, all NBREQ bounds, unavailable preferred standby, overlapping switches, nested standby, GUI RBD views or cross-engine parity."
+  ]
+}
