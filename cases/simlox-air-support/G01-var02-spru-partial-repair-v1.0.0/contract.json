@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "variant_id": "G01.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G01.var03",
+    "version": "1.0.0",
+    "scope": "accepted nested secondary DP and depot reorder topology",
+    "input_sha256": "a51598aed393f01fa4a6e28103ee4eed8aadec53114e3ed72e466f4a5126f226"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [210, 211, 212, 241, 247, 249, 339, 340, 341, 343, 344, 345],
+    "boundary": "SPRU is a partially repairable secondary item replaced in a repairable mother. At the depot end support position, direct repair or discard/reorder can follow the accumulated DIRPF and reorder-position DISCF settings."
+  },
+  "native_input_sha256": "61bf4bdcc18d3e039f7fcff835854030fa21c67f906e35ea4a01b6a48700bcb8",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "mother": "TEACH-LRU-01",
+    "secondary": "TEACH-SPRU-01",
+    "base": "BASE-01",
+    "depot": "DEPOT-01",
+    "direct_repair_fraction": 0.5,
+    "discard_fraction": 0.5,
+    "direct_repair_hours": 1.0,
+    "reorder_lead_hours": 1.0,
+    "depot_to_base_transport_hours": 2.0,
+    "opening_base_spru_stock": 1,
+    "opening_depot_spru_stock": 2,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "All 23 populated source tables round-trip exactly; five guarded native stages exit zero, conversion errors are zero, and events and report are nonempty and parseable.",
+    "A critical aircraft failure leads to the inherited LRU exchange. The removed failed LRU reveals its nested SPRU and receives a stocked replacement SPRU through the inherited item-specific replacement task.",
+    "The removed physical SPRU reaches the depot. Its individual event path must decide repair with an actual direct-repair task and stock return, or explicit discard with no repair and a one-unit reorder. Ambiguous individual evidence is inconclusive.",
+    "Reconcile LRU/SPRU identities, base/depot stock, transport, task timing, mission outcomes, 72 half-hour System/Stock bins, and terminal system/item state. A full partial-repair claim requires a separately frozen observation of the other SPRU branch.",
+    "Bind invocation and raw closure to source hashes; preserve the GUI and host-wide queue; obtain separate read-only replay before publication."
+  ],
+  "limits": [
+    "This seed-1 case alone establishes only the observed branch; it cannot prove a 50/50 frequency or both outcomes.",
+    "Other fractions, stations, seeds, GUI-only behavior and cross-engine equivalence remain unverified."
+  ]
+}
