@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-d10-missions-v100-contract/v1",
+  "case_id": "D10",
+  "variant_id": "D10.var01",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent": "D04-flight-hour-pm-v1.0.0",
+  "parent_input_sha256": "d0b0ee5b74f3afe5f05b418771774adcf8ef987b0f553f1bfd535874955c790a",
+  "input_sha256": "6607991260e3f911d0121c7949443409a57937e95f80c7e4f3a2faa6ac20ba72",
+  "installed_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_physical_pages": [202, 203, 204, 370, 371, 372, 373, 374, 375, 376],
+  "scope": "one aircraft, five fixed mission waves, one-hour PM every two completed missions",
+  "delta": [
+    "D04's PM interval OPHOURS=3 becomes MISSIONS=2; PM remains one fixed-hour INSPECT subtask at BASE-01",
+    "first mission duration changes to four hours; four one-hour missions follow at hours 16, 20, 48 and 52",
+    "descriptive and PM/task identifiers change without changing resource or inventory policy"
+  ],
+  "fixed_input": {
+    "mission_starts_hours": [8, 16, 20, 48, 52],
+    "mission_durations_hours": [4, 1, 1, 1, 1],
+    "pmid": "MS2",
+    "pm_interval": {"OPID": "MISSIONS", "PMINT": 2, "ATIM": 0, "DTIM": 0},
+    "pm_task_hours": 1,
+    "horizon_hours": 60,
+    "seed": "1"
+  },
+  "hand_expected": {
+    "first_two_missions_return_hours": [12, 17],
+    "first_pm_start_after_second_return_hour": 17,
+    "first_pm_completion_hour": 18,
+    "next_two_missions_return_hours": [21, 49],
+    "second_pm_start_after_fourth_return_hour": 49,
+    "second_pm_completion_hour": 50,
+    "fifth_mission_does_not_trigger_third_pm_through_hour": 60,
+    "all_five_missions_complete": true,
+    "no_failure_or_stock_demand": true
+  },
+  "acceptance": [
+    "exact author-populated table roundtrip, zero native conversion errors, nonempty native SXO/report/event log",
+    "individual mission and PM create/start/subtask/complete events match the fixed mission-count timeline",
+    "all 120 half-hour System and Stock result bins reconcile with events, total mission operation hours and two PM-hours",
+    "terminal one aircraft ready, no active PM, failure or backorder",
+    "separate read-only reviewer replays frozen raw evidence"
+  ],
+  "limits": [
+    "one fixed seed and one PM count interval; no stochastic, mission conflict, resources or GUI-only behavior claim",
+    "this control alone does not establish how multiple counters choose or reset"
+  ]
+}
