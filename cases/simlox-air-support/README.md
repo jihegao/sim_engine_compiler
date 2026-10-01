@@ -88,6 +88,8 @@ The [G02.var02 nested-position panel](G02-var02-nested-frequency-v1.0.0/cli-scop
 
 The [G02.var05 invalid-reference matrix](G02-var05-invalid-references-v1.0.0/cli-scope-signoff-2026-10-02.md) uses a positive G02.var01 control and two inputs with separate dangling `FailureMode.MID` and `MaterielStructure.MMID` references. All three inputs import/export exactly across 18 populated tables; the positive control matches its parent native event log and non-description reports. The negatives give localized #338/#342 and #350/#378 diagnostics, unusable four-byte SXOs and no reports despite calc exit code zero. Thirty raw seals and 198 independent checks support only these two installed-engine rejections.
 
+The [G02.var04 position-specific PM matrix](G02-var04-position-pm-v1.0.0/cli-scope-signoff-2026-10-02.md) adds separate calendar PM tasks bound to POS-A and POS-B, with a no-PM control and combined arm. Four guarded native runs, 48 accepted raw seals and 282 independent checks show A work at 24–25 and 49–50 hours, B at 36–36.5, and all three in the combined arm. Start and completion bins reconcile independently; two earlier task-schema diagnostics are sealed and excluded. Failure-count differences are not attributed to PM.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.

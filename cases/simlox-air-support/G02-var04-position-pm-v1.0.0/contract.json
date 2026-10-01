@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-g02-var04-position-specific-pm-contract/v1",
+  "case_id": "G02",
+  "variant_id": "G02.var04",
+  "version": "1.0.0-candidate",
+  "parent_case": "G02.var01@1.0.0",
+  "parent_input_sha256": "5ef40eb302544e551282dd7dd3617a6ae160954f600dea605f26140ea551a19e",
+  "pm_template_case": "D03@1.0.0",
+  "pm_template_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+  "input_sha256": {
+    "no-pm": "94aff427384105878219342e818eff1a5fdef490a9e096682848333a28fb0d0f",
+    "pos-a-only": "e7421f653c89021abaedf47f5f5f0df427d5db1ac4102f9beb490edb2bd0666c",
+    "pos-b-only": "c518a8e23d75fc361f5773bafd104c697bc26be7ccbba990d372c5af94e3bdd8",
+    "both": "4b4778c75605369963dd6b2a3192fd1fcce942523fac38826db3ea586c3e8777"
+  },
+  "design": {
+    "common": "Retain G02.var01 two-position explicit failure modes and three scheduled missions; extend horizon and collections to 60 hours; enable global PM for every arm.",
+    "no-pm": "No MaterielPM, PMLocation or TaskBreakDown rows.",
+    "pos-a-only": "One CALHOURS 24-hour, one-hour PM bound to POS-A, with a complete Tasks/SubTaskType/TaskBreakDown definition and direct system maintenance at BASE-01.",
+    "pos-b-only": "One CALHOURS 36-hour, half-hour PM bound to POS-B, with a complete Tasks/SubTaskType/TaskBreakDown definition and direct system maintenance at BASE-01.",
+    "both": "Both separately identified position-bound PM tasks."
+  },
+  "predeclared_acceptance": [
+    "All four frozen inputs import and export exactly across every populated business table, with no native conversion error.",
+    "The no-pm control produces no PM task event; each single-position arm logs its specified PMID; the combined arm logs both PMIDs in the first-replication event log.",
+    "Native report System and Stock bins align to the half-hour collection grid and reconcile PM task counts where exposed.",
+    "All run source hashes, invocation, GUI continuity and raw output files are SHA-256 sealed, then independently replayed without author-code imports."
+  ],
+  "excluded_diagnostics": [
+    {
+      "run_id": "g02-var04-no-pm-20261002-01",
+      "reason": "First source-bound control used the earlier incomplete PM builder; excluded after the builder changed."
+    },
+    {
+      "run_id": "g02-var04-pos-a-only-20261002-01",
+      "reason": "Earlier incomplete PM input omitted Tasks and SubTaskType; native converter returned TaskBreakDown and PMLocation #2010. Excluded from acceptance."
+    }
+  ],
+  "limits": [
+    "A fixed seed with one native replication does not estimate PM population frequencies.",
+    "The inherited explicit failure modes can affect task timing; due-time hypotheses are descriptive, not acceptance gates.",
+    "This does not establish QTYPM or ENVF propagation for PM, replacement multiplicity, GUI visual behavior or cross-engine parity."
+  ]
+}
