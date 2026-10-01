@@ -1,0 +1,66 @@
+{
+  "accepted_count": 1,
+  "accepted_var05": {
+    "calc_exit_code": 0,
+    "classification": "GO: accepted bounded PFAC-sum converter rejection #265",
+    "closure_sha256": "f42929c6b64322ef763278d7362209892cc9bae48ffcb5c16512aa0e303a6f71",
+    "raw_seal_count": 8,
+    "run_id": "j03-pfac-sum-accepted-20261001-01",
+    "runner_sha256": "af21288a25c87301b41414dd98094163aba6a459074ab75caa4a5702183fe61d",
+    "source_sha256": "ea0b7cadc031ad151a0933ac98d02d52570171161857fb951635e32d4ef0b5e7",
+    "variant_id": "J03.var05"
+  },
+  "case": "J03-invalid-distribution-boundaries-v1.0.0",
+  "check_count": 247,
+  "diagnostics": [
+    {
+      "arm": "pfac-sum",
+      "calc_exit_code": 0,
+      "classification": "GO: bounded PFAC-sum converter rejection (#265)",
+      "closure_sha256": "41be9c2793c314393c32a9469ae06c82dc1c80010d317e185ba1309d71a22392",
+      "raw_seal_count": 8,
+      "run_id": "j03-pfac-sum-probe-20261001-01",
+      "runner_sha256": "3b96df4fc43eadc8291baadd2a6088b1087276fcb2ca99897a6d554de43b47bd",
+      "source_sha256": "ea0b7cadc031ad151a0933ac98d02d52570171161857fb951635e32d4ef0b5e7",
+      "variant_id": "J03.var05"
+    },
+    {
+      "arm": "cycle",
+      "calc_exit_code": -1073741571,
+      "classification": "GO: bounded cycle capability limitation/process failure; no converter rejection established",
+      "closure_sha256": "56f5a14c88b477e667ba494a7f8c6da1e379c4507c4f72fc2eb7a1b96a69ddea",
+      "raw_seal_count": 8,
+      "run_id": "j03-cycle-probe-20261001-01",
+      "runner_sha256": "3b96df4fc43eadc8291baadd2a6088b1087276fcb2ca99897a6d554de43b47bd",
+      "source_sha256": "a197866800a9128a4387003697755a450bc548dbb247dfbd512f605e69e7ce48",
+      "unsealed_temp_name": "$17984@model.sxi$",
+      "unsealed_temp_sha256": "08a9547e7e4e5e5e21e24a48f5a84c28ccda53bc3fb997ae22a612f3523f2132",
+      "variant_id": "J03.var06"
+    },
+    {
+      "arm": "cycle",
+      "calc_exit_code": -1073741571,
+      "classification": "GO: bounded cycle capability limitation/process failure; no converter rejection established",
+      "closure_sha256": "43937b9193bfd949efe276f6cc04b4d517d39f00224d5451813f50c77b73d505",
+      "raw_seal_count": 8,
+      "run_id": "j03-cycle-probe-20261001-02",
+      "runner_sha256": "5231a7b531c2914cad200795e83bd0e33c28c7dd5968059964156773deb1b376",
+      "source_sha256": "a197866800a9128a4387003697755a450bc548dbb247dfbd512f605e69e7ce48",
+      "unsealed_temp_name": "$13280@model.sxi$",
+      "unsealed_temp_sha256": "08a9547e7e4e5e5e21e24a48f5a84c28ccda53bc3fb997ae22a612f3523f2132",
+      "variant_id": "J03.var06"
+    }
+  ],
+  "failures": [],
+  "limits": [
+    "The three probe runs are diagnostics; only the fresh PFAC-sum run is the bounded accepted negative case.",
+    "The two cycle process failures do not establish intended parser behavior or a general cycle-rejection rule.",
+    "Each cycle run left one unsealed temporary SXI copy in its run directory; each is identified and hashed separately."
+  ],
+  "passed": true,
+  "probe_count": 3,
+  "raw_seal_count": 32,
+  "schema": "j03-negative-distribution-accepted-and-probes-independent-readonly/v1",
+  "scope": "The fresh accepted PFAC-sum run establishes native converter rejection #265. Two separate cycle probes establish repeated guarded calc process stack overflow for this exact cyclic source, with no converter diagnostic or simulation behavior output.",
+  "verdict": "GO"
+}
