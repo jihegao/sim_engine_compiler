@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-issue18-g05-passive-threshold-contract/v1",
+  "case_id": "G05",
+  "case_slice": ["G05.var02 NBREQ boundary with one passive standby", "working / SWITCHOVER / unavailable states"],
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G05-passive-switchover-v1.0.0/half-input.json",
+    "sha256": "d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20",
+    "acceptance": "accepted fixed-seed B-to-A-to-C passive standby with half-hour TSWOV"
+  },
+  "source_sha256": {
+    "one": "b38650320f8cf8980ec0ccd6ccbfd09a01173ff5e8023f2b6a38a5e9bcf68ccd",
+    "two": "f09cc7e9d8f1843148b537125760dc02adfb51bdc1c634e5e03e138af19bb8c4"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "one_mission": {"start_hour": 8, "duration_hours": 26, "scheduled_end_hour": 34},
+    "rbd": {"root": "G05-PASSIVE", "kind": "parallel", "nbreq": {"one": 1, "two": 2}, "nbop": 2, "branch_count": 3, "priority": ["POS-B:1", "POS-A:2", "POS-C:3"], "tswov_hours": 0.5, "onlm": "N", "qtypb_each": 1},
+    "failure_modes": {"POS-B": "FM-POS-B, 600000 per million operating hours", "POS-A": "FM-POS-A, 300000 per million operating hours", "POS-C": "no configured failure mode"},
+    "repair": "unchanged half-hour direct system CM after return",
+    "stock": "unchanged zero-demand configuration"
+  },
+  "manual_observation": "Installed SIMLOX manual physical pp197-200,455-458: a parallel block works when operated branches >= NBREQ, is in SWITCHOVER when operated plus activating branches >= NBREQ, and is nonfunctional otherwise. NBOP=2<3 creates one passive branch. The manual states activated-branch failure generation starts on switch finish at p199 but on initiation at p456; this pair does not predecide that conflict.",
+  "hypotheses_to_test_natively": [
+    "Both arms import/export/convert with zero errors and preserve exactly the intended NBOP=2/NBREQ delta.",
+    "Native events identify the initially operated positions and the standby selected after the first operated-position failure; PRIO alone is insufficient to assert initial selection.",
+    "With NBREQ=1, one surviving operated branch may keep the system working through the first standby activation; the report should distinguish branch switchover from system SWITCHOVER.",
+    "With NBREQ=2, a first operated-branch failure may put the system in SWITCHOVER while the standby activates; a later loss below NBREQ without a spare may make it unavailable and alter mission outcome.",
+    "All failure samples, mission transitions, deferred CM and 72-bin System/Stock metrics must be recorded separately; matching random draws or event times are not preaccepted."
+  ],
+  "acceptance_gates": [
+    "frozen parent/source hashes, exact table delta, installed manual/dictionary/executable hashes",
+    "session-0 SSH with sshd ancestor, host-wide native mutex, preserved GUI PID 13340, unique run directories",
+    "native import/export/calc/report and exact authored-row roundtrip with zero converter errors",
+    "event-level branch, state, mission, repair and report reconciliation by author and independent read-only reviewer",
+    "raw invocation, logs, model, report and closure SHA-256 seals in evidence index"
+  ],
+  "limits": [
+    "One fixed seed and one repetition cannot establish population reliability or all priority permutations.",
+    "POS-C has no failure mode; unavailable preferred standby, simultaneous failures, overlapping switches, nested propagation, online repair, GUI RBD rendering and cross-engine parity remain separate cases."
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "accepted_raw_seal_count": 24,
+  "accepted_runs": {
+    "one": {
+      "closure_sha256": "03eafcd74518e9fca04a156b83e8617f556a1fccccbc648a4a5fdabc8e1f49d6",
+      "events": {
+        "branch_switch_end": 9.12763,
+        "branch_switch_start": 8.62763,
+        "first_failure_hour": 8.62763,
+        "mission_outcome": "success",
+        "repair_end_hour": 34.5,
+        "return_hour": 34,
+        "second_failure_hour": 11.5942
+      },
+      "input_sha256": "b38650320f8cf8980ec0ccd6ccbfd09a01173ff5e8023f2b6a38a5e9bcf68ccd",
+      "log_sha256": "6a95bb03085556cf7bca042ef77a73fb6fe8df021d9a4c7831a30dfcf4ee5d4b",
+      "msuf": 1,
+      "mtmf": 1,
+      "nrep": 1,
+      "operating_hours": 26.0,
+      "report_sha256": "7dca3b83605d16794b20c3def733932190867371adf4cc72121a03170acdb78a",
+      "run_id": "g05-nbreq-one-v100-ssh-20261002-01",
+      "stmf": 1,
+      "system_switchover_hours": 0.0,
+      "terminal_ready": 1
+    },
+    "two": {
+      "closure_sha256": "13576f4c018bb6f7ef3a2e2f46ae30b7c88c95000488df9fa485132178d52000",
+      "events": {
+        "branch_switch_end": 9.12763,
+        "branch_switch_start": 8.62763,
+        "first_failure_hour": 8.62763,
+        "mission_outcome": "abort",
+        "repair_end_hour": 15.6884,
+        "return_hour": 15.1884,
+        "second_failure_hour": 11.5942
+      },
+      "input_sha256": "f09cc7e9d8f1843148b537125760dc02adfb51bdc1c634e5e03e138af19bb8c4",
+      "log_sha256": "e953917decae6e561829eb7648a1122769692970f41b671963d2deef44ef4a0f",
+      "msuf": 0,
+      "mtmf": 0.27647578716278076,
+      "nrep": 1,
+      "operating_hours": 6.688370525836945,
+      "report_sha256": "8abd12694c17f2363c440db0cfb13a6656e9a1ea86e98d16234de5602c59cc19",
+      "run_id": "g05-nbreq-two-v100-ssh-20261002-01",
+      "stmf": 0.2572450339794159,
+      "system_switchover_hours": 0.5,
+      "terminal_ready": 1
+    }
+  },
+  "case": "G05-passive-threshold-v1.0.0",
+  "checks_passed": 3458,
+  "checks_total": 3458,
+  "failures": [],
+  "limits": [
+    "The log identifies a B-to-C switch, but does not list initial operated branches directly; B/A initial operation is inferred from B/A failure and C standby selection plus source priority.",
+    "One fixed seed and no C failure do not cover other priorities, NBREQ values, third-branch failure, or overlapping switches.",
+    "This pair does not resolve the manual's activation failure-clock onset discrepancy, nor demonstrate GUI view or cross-engine parity."
+  ],
+  "passed": true,
+  "schema": "g05-passive-threshold-independent-readonly/v1",
+  "scope": "For one fixed seed with NBOP=2 and B/A initially operated, B fails at8.62763 and a B-to-C branch switch lasts to9.12763 in both arms. NBREQ1 retains system operation and succeeds at34 with zero system NSYSW; NBREQ2 records 0.5h system SWITCHOVER and aborts on A failure at11.5942, returning15.1884. Both defer B/A half-hour CM until return and finish ready.",
+  "verdict": "GO"
+}
