@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G04",
+  "variant_ids": ["G04.var01", "G04.var02"],
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "one fixed-seed, two-position explicit series versus active one-of-two parallel RBD pair",
+  "direct_parent": {
+    "case_id": "G02",
+    "variant_id": "G02.var01",
+    "package": "G02-var01-position-modes-v1.0.0",
+    "input_sha256": "5ef40eb302544e551282dd7dd3617a6ae160954f600dea605f26140ea551a19e",
+    "behavior_scope": "two position-identified critical modes, direct half-hour CM and three scheduled missions"
+  },
+  "accepted_instructional_prerequisite": {
+    "case_id": "G01",
+    "variant_id": "G01.var01",
+    "package": "G01-var01-lru-sru-v1.0.1",
+    "behavior_scope": "explicit nested installed item failure, physical replacement and repair"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [196, 197, 198, 199, 200, 448, 449, 450, 454, 455, 456, 457, 458, 459, 767, 768, 769, 770, 771],
+    "interpretation": "An explicit mission operational mode maps the system to a root RBD. Each leaf position also needs a matching MaterielOperationalModes row with no child RBID, as shown on physical manual page 770 and required by native converter error #464 in the excluded v1.0.0 diagnostic. A series block requires both position blocks; an active parallel block with NBREQ=1 and NBOP=2 remains functional while at least one position functions. ONLM=N excludes online maintenance. Both positions are direct components of the accepted parent system."
+  },
+  "source_delta": "Both arms change only Control.RELOP to RBD and ProblemDescription, then add OperationalModes, MissionOperationalModes, MaterielOperationalModes, and either RBDSeries/RBDSeriesStructure or RBDParallel/RBDParallelStructure. Each block uses POS-A and POS-B once with G04-OPS child mode, and each leaf has a matching MaterielOperationalModes row with empty RBID. The parallel arm has NBREQ=1, NBOP=2, TSWOV=0, ONLM=N. Existing modes, stocks, CM rows, three missions, one replication, seed 1 and 36-hour horizon remain unchanged.",
+  "input_sha256": {
+    "series": "3adc1cf0d75dd9418e816d0e06bdc502af5d37d975beafbba8f781c94d2763e8",
+    "parallel": "ea56a9daf8705189c9162529355b28636ef7db168987b17ee90cdedbe9bb4b6f"
+  },
+  "predeclared_native_acceptance": [
+    "For each arm, guarded session-0 SSH import, export, calculation, JSON report and source roundtrip complete at zero exit codes with GUI PID 13340 preserved; conversion errors are zero and warning #108 alone is acceptable. The 23 row-containing authored tables must roundtrip exactly; valid event log and 72 aligned half-hour System and Stock bins must be present.",
+    "Each arm must show position-identified failures and the associated individual mission/CM events. Reconcile SystemResults failure, repair, mission-success and readiness intervals, plus StockTotalResults zero-demand/zero-backorder ledgers and terminal state.",
+    "The fixed seed should expose an isolated first POS-B branch failure during the first 8-10h mission, as in the accepted G02 parent. In the explicit series arm, one failed block makes the mission/system fail. In active parallel, if POS-A remains functional, the first POS-B failure must leave the mission operational through its planned end. Direct event and report evidence must establish the block-state contrast; source configuration or a summary alone is insufficient.",
+    "If the random event sequence differs from the parent or the contrast is not observed, retain the runs as diagnostic and revise the contract/new run with fresh IDs before accepting a narrower statement. No fixed event time is assumed as an assertion.",
+    "Seal raw artifacts and source hashes; obtain a separate read-only reviewer replay of both native arms without importing author validation code."
+  ],
+  "limits": [
+    "This is one seed, two direct position blocks and one mission mode; population reliability and all RBD Boolean structures are unverified.",
+    "Passive backup, switchover, online maintenance, QTYPB>1, nested series/parallel, bridge/tree, alternate mission modes, GUI RBD view and cross-engine parity remain separate scopes."
+  ]
+}
