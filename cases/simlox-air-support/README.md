@@ -86,6 +86,8 @@ The [G02.var03 quantity and environment seed panel](G02-var03-quantity-environme
 
 The [G02.var02 nested-position panel](G02-var02-nested-frequency-v1.0.0/cli-scope-signoff-2026-10-02.md) binds FM-POS-B to a child position under POS-B and tests separate ancestor QTYPM and ENVF changes across the same twelve-seed design. Its 36 native runs, 432 raw seals and 1,659 independent checks pass; the native first-replication logs identify the child path. All 36 non-description aggregate reports match the one-level panel for the same seed and arm, an observed panel result without a general equivalence claim.
 
+The [G02.var05 invalid-reference matrix](G02-var05-invalid-references-v1.0.0/cli-scope-signoff-2026-10-02.md) uses a positive G02.var01 control and two inputs with separate dangling `FailureMode.MID` and `MaterielStructure.MMID` references. All three inputs import/export exactly across 18 populated tables; the positive control matches its parent native event log and non-description reports. The negatives give localized #338/#342 and #350/#378 diagnostics, unusable four-byte SXOs and no reports despite calc exit code zero. Thirty raw seals and 198 independent checks support only these two installed-engine rejections.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
