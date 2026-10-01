@@ -1,0 +1,9 @@
+# J03.var04 bounded CLI acceptance scope
+
+Status: author panel and independent read-only replay GO; PR gates pending.
+
+The accepted parent is `J03.var01@1.0.0`, seed-01 SHA-256 `3f5e689c17ebb2696b30daec24b35042b2ee96a507604f1cf42523a7581cb917`. The exact model delta renames the inner two deterministic time rows to `PREP-IN`, adds one `PREP-OUT` reference row (`PFAC=1`, `BASED=PREP-IN`, `PARAM1=0.5`), and changes preparation `DURND` to `PREP-OUT`. `DURN=0.5` remains. Seeds 02–32 differ only in `Control.RSEED`.
+
+The installed manual pages 541–545 and database dictionary support this one-layer reference structure. Thirty-two excluded probes accepted the model natively and reproduced the parent preparation duration seed by seed. The frozen 32-seed sequence contains fifteen 0.25-hour and seventeen 0.75-hour preparations (mean 0.515625 hour, sample variance 0.06426411290322581).
+
+Thirty-two fresh accepted one-repetition session-0 SSH runs passed import/export/calc/JSON report with zero step and converter errors, under the preserved GUI and global mutex guard. Warnings #108 and #126 were classified. Per-run source/raw seals, 16 populated-table business roundtrips, exact preparation and mission events, 72 System/Stock bins, preparation and two-hour flight integrals, and terminal one-ready state passed. The author panel passed with 352 raw seals. Independent read-only replay passed 52,568/52,568 checks, including 352 raw seals, MTMF/STMF=1, STACC=2, and byte-identical model logs and JSON reports against each same-seed accepted J03.var01 parent. Its script and verdict are in `review/` and bound by `evidence-index.json`. Publication scope is limited to the fixed model, seeds, installed SIMLOX executable and one explicit reference layer; it does not claim general nesting equivalence or a population law.
