@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-j01-var06-normal-seed-panel-contract/v1",
+  "case_id": "J01",
+  "variant_id": "J01.var06",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J01.var01@1.0.0",
+  "parent_input_sha256": "b7e8e737e8ad9c0ce4700f6b7a9b7fcfe9b332100210793977b2230f4dca4409",
+  "panel_diff_sha256": "0dbeb7edca193e5e0bfbcac4032e53734d73f8b46ded04c6dc61720fc06d9569",
+  "seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [510, 511, 543, 544, 545]
+  },
+  "business_delta": "Seed 01 changes only accepted J01.var01 MissionPreparation.DURND to PREP-NRM and its TimeDistributions row to PREP-NRM/PFAC=1/<NORMAL>/PARAM1=0.5 mean/PARAM2=1.0 standard deviation. The other eleven inputs differ from seed 01 only in Control.RSEED; every input keeps NREPS=1, DURN=0.5, one aircraft and one scheduled mission.",
+  "expected_observation": {
+    "native_runs": 12,
+    "preparation_samples": 12,
+    "preparation_start_hour": 7,
+    "normal_mean_parameter_hour": 0.5,
+    "normal_standard_deviation_parameter_hour": 1.0,
+    "nonnegative_support": true,
+    "minimum_distinct_samples": 2,
+    "mission_start_rule": "max(8, preparation_end_hour)",
+    "mission_success_rule": "mission_start_hour + 2",
+    "frozen_zero_boundary_seeds": [1, 4, 6, 9],
+    "frozen_notice_overrun_seeds": [5, 8, 10],
+    "system_result_bins_per_run": 72
+  },
+  "limits": "One seed per run and twelve observed draws. Separate diagnostic runs show four exact zero-boundary draws and three one-hour notice overruns for these fixed seeds; fresh accepted runs must reproduce both classifications. Exact zeros and nonnegative observations are consistent with the manual's left truncation but do not identify the full generator algorithm. Descriptive sample statistics do not establish the underlying probability law, full tail, independence, other J01 variants or cross-engine equivalence."
+}
