@@ -1,0 +1,7 @@
+# E07 v1.0.0 independent diagnostic review
+
+**NO-GO for v1.0.0 acceptance.** The guarded run `e07-item-route-v100-20261001-01` completed native import, export, calculation, and JSON reporting with zero conversion errors, but its fifth step, the exact source roundtrip check, failed. The sealed closure records `roundtrip checker exit=1`. Closure SHA-256 is `311e5af8fe0ceca2425c0ee543421ebf52dd4568241e7d6fd967832a1b36ad00`; the raw export and checker-result SHA-256 values are `a7511e5b8d996914b6d55ada83fac537058f2e2e12bf84d2f2459dc57c4feef0` and `27bc3cabeaa186cd85ff0950c9960a3e30d2a9085c538f8b4edead3285339f1b`.
+
+I compared every populated source table with the native export. Twenty-one match exactly. The authored `ItemStationStructure` row has ten columns: `IID, STID, MSTID, TFRMS, TTOMS, DFRAC, OPOL, PFRMS, PTOMS, NOTE`. Native export has twelve, inserting nullable double columns `CFRMS` and `CTOMS` after `TTOMS`; both exported values are null. Every other value and the row identity match. The installed text dictionary omits these two columns, while the accepted E04 general `StationStructure` input contains them. The native export establishes their shape for this installed executable.
+
+The diagnostic log shows one-hour downward and three-hour upward transport, but it cannot satisfy the predeclared exact roundtrip gate. Those outcomes are retained as provenance and must not be used as v1.0.0 acceptance. A separately versioned v1.0.1 source includes both null columns and requires a fresh sealed run and independent replay.
