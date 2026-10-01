@@ -1,0 +1,5 @@
+# D11.var02: zero-deferment mission PM control
+
+This bounded CLI control derives from the accepted [D11.var01 four-mission PM](../D11-var01-atim-control-v1.0.0/README.md). One aircraft has six fixed mission requests at hours 8, 16, 20, 24, 25.25 and 26.5. A one-hour `MS4` task uses `MISSIONS=4`, `ATIM=DTIM=0`. At the fourth return, hour 25, native output labels the PM critical and performs it at 25–26. The fifth request cancels at 25.5833; the sixth succeeds at 26.5–27.5. The [paired DTIM 0.3 case](../D11-var02-dtim-defer-v1.0.0/README.md) keeps this schedule and changes only deferment plus a label.
+
+The [frozen contract](contract.json), [input](native-input.json), [exact parent diff](exact-diff.json), [scope signoff](cli-scope-signoff-2026-10-01.md), and [evidence index](evidence-index.json) identify the accepted source and raw run. `build.py` and `describe_diff.py` replay source construction. `validate_native.py runs/d11-dtim-control-v100-ssh-20261001-01` and `review/independent_readonly.py` replay native evidence separately. The guarded session-0 SSH runner is `run_native_ssh.ps1`; original SXI/SXO, event log and report remain under ignored `runs/`.
