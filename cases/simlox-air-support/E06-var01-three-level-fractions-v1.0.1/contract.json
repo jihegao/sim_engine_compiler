@@ -1,0 +1,67 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E06",
+  "variant_id": "E06.var01",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "three-level accumulated ItemRepair.DIRPF 0.2/0.7/1 across a predeclared 48-seed native panel",
+  "direct_parent": {
+    "case_id": "E06",
+    "variant_id": "E06.var01",
+    "scope": "accepted two-level 0/1 boundary routing",
+    "input_sha256": "7febb8c32afaa24fbf3bad94ba240e53236d8967c6fe6df51b4cfb7686828b0d"
+  },
+  "support_prerequisite": {
+    "case_id": "E04",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [
+      214,
+      215,
+      216,
+      340,
+      341,
+      342
+    ],
+    "interpretation": "The native engine draws a direct-repair complexity for each failed item and compares it to each station's accumulated DIRPF. The easiest 0.2 can repair at BASE-01; the next 0.5 at DEPOT-01; the remaining 0.3 at WORKSHOP-01, whose top-level fraction is 1.0."
+  },
+  "model_delta": {
+    "common": "From accepted E06.var01 upstream arm: base DIRPF 0→0.2; depot DIRPF 1→0.7; append WORKSHOP-01 station, DEPOT-01→WORKSHOP-01 two-hour FAST support link, ItemRepair DIRPF1/DIRPT1 row, and zero workshop stock. Extend simulation, Control report, and both ResultCollection mission/system horizons 36→60 hours to observe terminal return after third-wave failures. Retain all E05 aircraft, missions, failure rate, local spare and two-hour BASE→DEPOT transport.",
+    "per_seed": "Control.RSEED is the sole difference among seeds 1 through 48."
+  },
+  "native_panel": {
+    "seed_range_inclusive": [
+      1,
+      48
+    ],
+    "repetitions_per_seed": 1,
+    "horizon_hours": 60,
+    "report_interval_hours": 0.5,
+    "initial_base_stock": 1,
+    "depot_stock": 0,
+    "workshop_stock": 0,
+    "direct_repair_hours_each_station": 1,
+    "transport_hours_each_link_each_way": 2,
+    "seed_manifest_sha256": "1ff2c01493fe6634d71124c91a5803a67cda1b907120d217cc8803a2a36d38cf",
+    "sample_seed_1_input_sha256": "c1b0d9c49af16f1cd9bf41d8ee8b38bb6599952df1a6f3e2461c89d6bd3cc112"
+  },
+  "predeclared_native_acceptance": [
+    "All 48 predeclared seed inputs must be generated from the frozen builder, match their manifest SHA-256, import/export all populated business rows exactly, convert with zero errors and complete native calculation/report with nonempty logs and 120 aligned half-hour System and Stock bins.",
+    "For every observed removed LRU with a direct-repair complexity, trace its physical identity, station path, timed transport, repair start/completion, return to BASE-01 stock, associated system demand and mission impact. Local repairs must have complexity below 0.2, depot repairs between 0.2 and 0.7, and final workshop repairs at or above 0.7; no item may be counted twice or disappear.",
+    "At least 36 of 48 runs must contain an observed first failed-item direct-repair complexity, and first-failure routing must include at least three runs at each of the three levels. The observed sample frequencies are descriptive; no population probability or random-generator law is accepted from this panel.",
+    "Source and installed executable/manual/dictionary hashes must remain stable through each session-0 SSH run under the host-wide native queue while GUI PID 13340 remains responsive. Preserve immutable raw run directories and SHA-256 closures, then obtain separate read-only independent replay."
+  ],
+  "limits": [
+    "The 48-seed panel tests observed threshold classification and route conservation at these fractions, not exact 20/50/30 population frequencies or distributional independence.",
+    "SURPF, CMF, partial discard/DISCF, PRU/DU categories, multiple bases, resource contention, GUI visual behavior and cross-engine equivalence remain separate scopes."
+  ],
+  "diagnostic_predecessor": {
+    "version": "1.0.0-candidate",
+    "disposition": "rejected before publication",
+    "reason": "Inherited ResultCollection mission/system RCEND=36 while Control SIMPE/RCEND=60; system bins therefore stopped at 36 hours and failed the predeclared 120-bin acceptance. Raw local 48-seed diagnostic runs are preserved under the predecessor candidate."
+  }
+}
