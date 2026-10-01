@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-g02-var02-nested-frequency-panel-contract/v1",
+  "case_id": "G02",
+  "variant_id": "G02.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "G02-var01-position-modes-v1.0.0",
+    "input_sha256": "5ef40eb302544e551282dd7dd3617a6ae160954f600dea605f26140ea551a19e"
+  },
+  "accepted_one_level_reference": "G02.var03 quantity/environment seed panel v1.0.1; used for scope context, not pooled into the nested-panel hypothesis test",
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [250, 251, 252, 253],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "common_model": "One aircraft and the published three two-hour missions over 36 hours. From G02.var01 set both failure mode FRQ values to 50000 per million OPHOURS, NREPS to 256, and RSEED to the panel seed. Split POS-B's direct TEACH-LRU-01 child into POS-B -> POS-B-CH -> TEACH-LRU-01, and bind FM-POS-B to POS-B-CH while retaining its direct system CM location. POS-A remains unchanged apart from the common FRQ adjustment.",
+  "panel": {
+    "seeds": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    "variants_per_seed": ["nested-baseline", "nested-qty-two", "nested-env-two"],
+    "replications_per_variant_seed": 256
+  },
+  "single_factor_variants": {
+    "nested-baseline": "POS-B ancestor QTYPM=1, ENVF=1.0; child POS-B-CH QTYPM=1, ENVF=1.0",
+    "nested-qty-two": "Only POS-B ancestor QTYPM 1->2 relative to nested-baseline",
+    "nested-env-two": "Only POS-B ancestor ENVF 1.0->2.0 relative to nested-baseline"
+  },
+  "pre_run_hypothesis": "The nested branch imports, roundtrips and calculates. The native first-replication log identifies FM-POS-B on POS-B-CH with the POS-B ancestor in its connection path. If quantity and environment factors propagate down the MaterielStructure chain, each ancestor intervention increases aggregate SystemResults NFAIL and NREPT relative to the same-seed nested baseline.",
+  "pre_run_analysis": {
+    "primary_outcome": "Sum SystemResults NFAIL over the 72 nonoverlapping half-hour total unit/system bins, expressed as failures per 256 replications for each seed and arm.",
+    "paired_contrasts": ["nested-qty-two minus nested-baseline", "nested-env-two minus nested-baseline"],
+    "uncertainty": "Across twelve predeclared matched seeds, report each paired difference, mean, sample standard deviation and nominal Student t 95% interval. For direction use an exact one-sided sign test for positive differences with Bonferroni threshold 0.025 per contrast; zero differences are nonpositive.",
+    "acceptance_direction": "Each contrast requires positive mean difference and exact sign p<0.025. At least one first-replication event must show FM-POS-B on POS-B-CH under POS-B. No exact doubling or one-level/multilevel equivalence claim."
+  },
+  "acceptance_requires": [
+    "All 36 runs pass guarded session-0 SSH and the host-wide Issue #18 mutex with GUI PID 13340 continuity.",
+    "Four native steps, exact populated-table roundtrip, zero conversion errors, nonempty valid report/log, and 72 aligned System/Stock bins per run.",
+    "Source and twelve raw files per run sealed with invocation and closure SHA-256 values.",
+    "Independent read-only replay of all source, raw, paired outcomes and stated limitations."
+  ],
+  "limitations": [
+    "The first-only event log does not attribute 256-replication aggregate counts by position.",
+    "This panel does not establish exact rate multipliers, equivalence of one-level and two-level structure, physical replacement multiplicity, or general population laws.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}

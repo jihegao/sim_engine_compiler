@@ -84,6 +84,8 @@ The [A14.var07 leaf IQTY=2 negative slice](A14-var07-profile-leaf-iqty-two-v1.0.
 
 The [G02.var03 quantity and environment seed panel](G02-var03-quantity-environment-v1.0.1/cli-scope-signoff-2026-10-02.md) compares each single-factor POS-B intervention with a matched baseline at twelve seeds and 256 replications per arm. All 36 native runs and 432 raw seals pass independent replay; both aggregate failure-count contrasts increase at every seed. The earlier [fixed-seed probe](G02-var03-quantity-environment-v1.0.0/README.md) is excluded because it did not meet the uncertainty requirement. Exact doubling, factor equivalence and per-position aggregate attribution remain unverified.
 
+The [G02.var02 nested-position panel](G02-var02-nested-frequency-v1.0.0/cli-scope-signoff-2026-10-02.md) binds FM-POS-B to a child position under POS-B and tests separate ancestor QTYPM and ENVF changes across the same twelve-seed design. Its 36 native runs, 432 raw seals and 1,659 independent checks pass; the native first-replication logs identify the child path. All 36 non-description aggregate reports match the one-level panel for the same seed and arm, an observed panel result without a general equivalence claim.
+
 ## Find and reproduce
 
 - [Progressive catalog v2 / 渐进案例目录](progressive-catalog-v2.md): learning path, every case, minimal configuration and acceptance targets.
