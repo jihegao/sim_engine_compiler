@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-g02-var03-seed-panel-contract/v1",
+  "case_id": "G02",
+  "variant_id": "G02.var03",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "package": "G02-var01-position-modes-v1.0.0",
+    "input_sha256": "5ef40eb302544e551282dd7dd3617a6ae160954f600dea605f26140ea551a19e"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [250, 251, 252, 253],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "panel": {
+    "seeds": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    "variants_per_seed": ["baseline", "qty-two", "env-two"],
+    "replications_per_variant_seed": 256,
+    "horizon_hours": 36,
+    "position_a_and_b_failure_mode_frq_per_million_op_hours": 50000
+  },
+  "single_factor_variants": {
+    "baseline": "POS-B MaterielStructure QTYPM=1 and ENVF=1.0",
+    "qty-two": "Only POS-B MaterielStructure QTYPM=2 relative to same-seed baseline",
+    "env-two": "Only POS-B MaterielStructure ENVF=2.0 relative to same-seed baseline"
+  },
+  "pre_run_hypothesis": "For each matched seed, native aggregate SystemResults NFAIL and NREPT will be measured across all 72 half-hour bins. If documented MaterielStructure frequency propagation applies, each factor intervention should raise the seed-panel mean NFAIL relative to baseline. The first-replication event log is provenance and position evidence, not an aggregate estimator.",
+  "pre_run_analysis": {
+    "primary_outcome": "Sum SystemResults NFAIL for the total unit/system across 72 nonoverlapping half-hour bins, reported as failures per 256 replications for each seed and arm.",
+    "secondary_outcomes": ["NREPT by same bins", "ResultSummary mission counts and MTMF", "StockTotalResults state", "first-replication FMID log classification"],
+    "paired_contrasts": ["qty-two minus baseline", "env-two minus baseline"],
+    "uncertainty": "Across the twelve predeclared matched seeds, report each paired difference, the arithmetic mean, sample standard deviation, and Student t 95% interval. Use an exact one-sided sign test for positive differences with Bonferroni threshold 0.025 per contrast. Zero differences count as nonpositive. Report the count of positive seeds and exact p value.",
+    "acceptance_direction": "Both contrasts require positive mean difference and exact sign-test p < 0.025. Report magnitude descriptively without claiming an exact doubling or equivalence between interventions."
+  },
+  "acceptance_requires": [
+    "All 36 executions pass guarded session-0 SSH and host-wide Issue #18 mutex with GUI PID 13340 continuity.",
+    "Four native steps, exact populated-table roundtrip, zero conversion errors and nonempty valid report/log for every execution.",
+    "Source and twelve raw evidence files per run sealed with invocation and closure hashes.",
+    "Independent read-only replay of all source, raw, outcomes and statistical contrasts."
+  ],
+  "limitations": [
+    "Seed-matched aggregate counts do not establish exact physical replacement multiplicity, identical QTYPM and ENVF mechanisms, or population behavior outside the stated model and panel.",
+    "The ENLOG records only the first replication within each 256-replication run.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
