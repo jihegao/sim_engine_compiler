@@ -1,0 +1,124 @@
+{
+  "schema": "simlox-g05-passive-threshold-exact-diff/v1",
+  "parent_sha256": "d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20",
+  "source_sha256": {
+    "one": "b38650320f8cf8980ec0ccd6ccbfd09a01173ff5e8023f2b6a38a5e9bcf68ccd",
+    "two": "f09cc7e9d8f1843148b537125760dc02adfb51bdc1c634e5e03e138af19bb8c4"
+  },
+  "parent_to_arm": {
+    "one": {
+      "ProblemDescription": {
+        "before": [
+          [
+            "G05 passive standby, TSWOV=0.5 h"
+          ]
+        ],
+        "after": [
+          [
+            "G05 passive NBOP=2, NBREQ=1, TSWOV=0.5 h"
+          ]
+        ]
+      },
+      "RBDParallel": {
+        "before": [
+          [
+            "G05-PASSIVE",
+            "One operated of three with B/A/C priority",
+            1,
+            1,
+            0.5,
+            "N",
+            null
+          ]
+        ],
+        "after": [
+          [
+            "G05-PASSIVE",
+            "Two operated of three, NBREQ=1",
+            1,
+            2,
+            0.5,
+            "N",
+            null
+          ]
+        ]
+      }
+    },
+    "two": {
+      "ProblemDescription": {
+        "before": [
+          [
+            "G05 passive standby, TSWOV=0.5 h"
+          ]
+        ],
+        "after": [
+          [
+            "G05 passive NBOP=2, NBREQ=2, TSWOV=0.5 h"
+          ]
+        ]
+      },
+      "RBDParallel": {
+        "before": [
+          [
+            "G05-PASSIVE",
+            "One operated of three with B/A/C priority",
+            1,
+            1,
+            0.5,
+            "N",
+            null
+          ]
+        ],
+        "after": [
+          [
+            "G05-PASSIVE",
+            "Two operated of three, NBREQ=2",
+            2,
+            2,
+            0.5,
+            "N",
+            null
+          ]
+        ]
+      }
+    }
+  },
+  "one_to_two": {
+    "ProblemDescription": {
+      "before": [
+        [
+          "G05 passive NBOP=2, NBREQ=1, TSWOV=0.5 h"
+        ]
+      ],
+      "after": [
+        [
+          "G05 passive NBOP=2, NBREQ=2, TSWOV=0.5 h"
+        ]
+      ]
+    },
+    "RBDParallel": {
+      "before": [
+        [
+          "G05-PASSIVE",
+          "Two operated of three, NBREQ=1",
+          1,
+          2,
+          0.5,
+          "N",
+          null
+        ]
+      ],
+      "after": [
+        [
+          "G05-PASSIVE",
+          "Two operated of three, NBREQ=2",
+          2,
+          2,
+          0.5,
+          "N",
+          null
+        ]
+      ]
+    }
+  }
+}

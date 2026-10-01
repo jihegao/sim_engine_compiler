@@ -1,0 +1,7 @@
+# G05 passive two-operated threshold
+
+This pair derives from the [accepted G05 half-hour passive input](../G05-passive-switchover-v1.0.0/README.md). Three ordered branches remain POS-B `PRIO=1`, POS-A `PRIO=2`, POS-C `PRIO=3`, with POS-B and POS-A failure modes and no POS-C failure mode. Two branches now operate (`NBOP=2`) and one is passive. Both arms use `TSWOV=0.5`, `ONLM=N`, and the same fixed hour 8–34 mission; only the required count changes from `NBREQ=1` to `2`.
+
+`build.py`, `contract.json` and `exact-diff.json` freeze the source before native execution. The parent SHA-256 is `d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20`; one- and two-required input SHA-256 values are `b38650320f8cf8980ec0ccd6ccbfd09a01173ff5e8023f2b6a38a5e9bcf68ccd` and `f09cc7e9d8f1843148b537125760dc02adfb51bdc1c634e5e03e138af19bb8c4`.
+
+Both guarded native runs completed and roundtripped all 23 populated authored tables exactly. The same POS-B failure at hour 8.62763 activates POS-C until 9.12763; POS-A fails at 11.5942 in both arms. At `NBREQ=1`, the first switch does not put the system in report state `NSYSW`, the second fault is noncritical, and the mission succeeds at hour 34. At `NBREQ=2`, the first switch produces 0.5 hour of `NSYSW`; the second fault is critical, aborting the mission at hour 11.5942. See the [CLI sign-off](cli-scope-signoff-2026-10-02.md) and [evidence index](evidence-index.json) for the bounded acceptance and sealed raw files.
