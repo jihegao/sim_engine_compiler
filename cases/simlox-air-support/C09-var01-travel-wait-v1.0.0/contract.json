@@ -1,0 +1,31 @@
+{
+  "schema": "simlox-c09-var01-travel-vs-local-wait-contract/v1",
+  "case_id": "C09",
+  "variant_id": "C09.var01",
+  "version": "1.0.0-candidate",
+  "direct_behavior_parent": "C09.var04@1.0.0/local",
+  "catalog_parent": "C03",
+  "parent_input_sha256": "1f7e87b3c7886f6b05ff2b2d9f04ee1a98e64445f8f5d6b660595eb2c5845730",
+  "catalog_parent_input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+  "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_pdf_pages": [[399, 400], [414, 416]],
+  "input_sha256": {
+    "short": "739d7a9ad8e6759a20401a3bf65c63b13c39c42e035a7d9acc28af6f5fc83fe7",
+    "equal": "4595a90dafb24ebc4b36662dd2f5738d7f03f1001f4acb8347099f181c15a177",
+    "long": "0bf327220330d00b79de37e920ff62529cee0d40265e9d9a1f57f0b3cb165ae7"
+  },
+  "common_delta": "Keep C09.var04/local one BASE-01 mechanic, two simultaneous primary system repairs and all inherited mission/failure settings. Add one same-type mechanic at BASE-02 and a BASE-01 borrowing route. Only ProblemDescription.PDESC and ResourceRemoteSupport.TFRS vary across the three arms.",
+  "travel_hours": {"short": 0.25, "equal": 0.5, "long": 0.75},
+  "remote_route_common": {"RID": "P-MECH", "STID": "BASE-01", "RSTID": "BASE-02", "TTRS": 0.5, "TTRSS": 0.125, "time_unit": "hour"},
+  "predeclared_hypothesis": [
+    "At fixed seed, both aircraft fail at the same mission return and first repair occupies the one local mechanic for 0.5 hour.",
+    "The second repair has an estimated local resource wait of 0.5 hour; a 0.25-hour remote forward trip should be borrowed, while equal 0.5-hour and longer 0.75-hour trips should not be borrowed if the documented strict comparison is implemented.",
+    "All arms import/export exactly and convert with zero errors; native event logs and aggregate resource conservation decide the behavioral conclusion. If native estimated wait differs, report the observed boundary rather than treating the hypothesis as established."
+  ],
+  "limits": [
+    "A fixed seed and one replication cannot estimate borrowing frequency or establish every local-wait calculation rule.",
+    "This isolates one direct primary system repair resource at two stations; other tasks, shifts, multiple simultaneous remote resources and return-priority behavior are outside scope.",
+    "No general cost, performance, GUI visual or cross-engine claim is inferred."
+  ]
+}
