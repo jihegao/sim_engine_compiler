@@ -1,0 +1,73 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "case_version": "1.0.1-candidate",
+  "variant_id": "G01.var01",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E01",
+    "version": "1.0.0",
+    "behavior_scope": "one local spare, explicit LRU removal and fit, then local direct repair",
+    "input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+    "signoff": "../E01-local-spare-explicit-replacement-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [
+      238,
+      240,
+      241,
+      247,
+      249,
+      338,
+      340,
+      341,
+      346
+    ],
+    "source_boundary": "An SRU belongs to an LRU in ItemStructure. A child-caused LRU failure uses ItemRepair/ItemReplacement SURP to exchange the SRU; a removed faulty SRU can use direct repair. ItemReplacement overrides general SURP timing. The parent's intrinsic failure rate equals its child's rate, leaving no direct LRU failure residual."
+  },
+  "native_input_sha256": "9c25a414615ac4ea523ee989385a913c692923e04bc41c6984b6866e86204bb9",
+  "delta": {
+    "tables": [
+      "ProblemDescription",
+      "Item",
+      "ItemStructure",
+      "ItemRepair",
+      "ItemReplacement",
+      "StockAllocation"
+    ],
+    "mechanism": "Add one SRU beneath the accepted LRU with matching 300000-hour FRT, local one-unit SRU stock, 1.5-hour general LRU SURP and overriding 0.75-hour item-specific LRU/SRU replacement, plus one-hour SRU direct repair. Preserve the E01 aircraft, missions, LRU stock, and system removal/fit task.",
+    "identities": {
+      "system": "TEACH-AIR-01",
+      "mother": "TEACH-LRU-01",
+      "child": "TEACH-SRU-01",
+      "base": "BASE-01"
+    }
+  },
+  "configuration": {
+    "lru_frt_hours": 300000,
+    "sru_frt_hours": 300000,
+    "sru_per_lru": 1,
+    "opening_lru_stock": 1,
+    "opening_sru_stock": 1,
+    "lru_sru_replacement_hours": 0.75,
+    "sru_direct_repair_hours": 1.0,
+    "repetitions": 1,
+    "seed": "1",
+    "horizon_hours": 36,
+    "general_lru_surp_hours": 1.5
+  },
+  "predeclared_native_acceptance": [
+    "Import/export preserves every author-populated table and row including the new LRU/SRU relation and ItemReplacement; all native steps return zero, conversion errors are zero, and valid nonempty events and report are emitted.",
+    "At least one native critical aircraft failure identifies the installed LRU. When the removed LRU arrives for local repair, its event must identify the nested failed SRU; the aircraft receives a replacement LRU and returns ready after the inherited 10-minute REMOVE plus 20-minute REPLACE sequence.",
+    "The removed LRU enters a local SURP task, demands one SRU, receives a local stock issue, and completes in the item-specific 0.75 hours rather than the 1.5-hour general LRU SURP. The removed SRU then enters a one-hour local DIRP task and returns to SRU stock; the repaired LRU returns to LRU stock.",
+    "Reconcile the native event identities and times, LRU and SRU demand and stock ledgers, mission outcomes, system intervals, and terminal aircraft and inventory state without silently accepting backorders or forwarding.",
+    "Bind invocation and closure to the frozen input, parent, builder, contract, checker, executable, and raw-file hashes; independently replay acceptance read-only."
+  ],
+  "limits": [
+    "This first G01 variant accepts only one LRU/SRU chain. ASSY, quantities, other item types, residual direct LRU failures, parent rate errors, and additional repair levels remain planned.",
+    "GUI-only behavior, exact stochastic event times, and cross-engine equivalence are outside this bounded CLI acceptance."
+  ]
+}
