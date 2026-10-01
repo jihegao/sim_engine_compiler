@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-issue18-g05-activation-clock-contract/v1",
+  "case_id": "G05",
+  "case_slice": "Native discriminator for installed manual p199 versus p456 activated-branch failure timing",
+  "publication_state": "not_published",
+  "parent": {
+    "path": "../G05-passive-switchover-v1.0.0/half-input.json",
+    "sha256": "d5a38dcb0006f3a2dc6447bdafdeb5c5e5a98b8eb2ccb49db57fa2801ae76c20",
+    "accepted_run_id": "g05-passive-half-v100-ssh-20261002-01",
+    "acceptance": "fixed-seed one-operated-of-three passive B-to-A-to-C source with TSWOV=0.5 h"
+  },
+  "source_sha256": "13906f9ed1ba3e739072be50a8de93479cb8f339fa8f5ebe2f1b1a7ad20ea4a1",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "model": {
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "one_mission": {"start_hour": 8, "duration_hours": 26, "scheduled_end_hour": 34},
+    "rbd": {"root": "G05-PASSIVE", "kind": "parallel", "nbreq": 1, "nbop": 1, "branch_count": 3, "priority": ["POS-B:1", "POS-A:2", "POS-C:3"], "tswov_hours": 8.3, "onlm": "N", "qtypb_each": 1},
+    "failure_modes": {"POS-B": "FM-POS-B, 600000 per million operating hours", "POS-A": "FM-POS-A, 300000 per million operating hours", "POS-C": "no configured failure mode"},
+    "repair": "unchanged half-hour direct system CM after return",
+    "stock": "unchanged zero-demand configuration"
+  },
+  "manual_conflict": "Installed manual p199 says an activating block starts generating failures when switchover finishes; p456 says from initiation. A native event-level result can resolve observed failure timing for this configuration but not prove invisible internal clock creation or universal behavior.",
+  "discriminator_design": {
+    "accepted_parent_events": "B fails and B-to-A switch starts at h8.94145; TSWOV=0.5 finishes h9.44145; A fails h17.5636, 8.12215h after finish. The paired zero-time arm observed A failure at h17.0636.",
+    "single_input_delta": "RBDParallel.TSWOV 0.5 -> 8.3 hours, plus ProblemDescription.PDESC only",
+    "long_switch_if_b_stable": "B-to-A starts around h8.94145 and finishes around h17.24145; the prior 8.12215h A interval is shorter than the 8.3h activation window.",
+    "initiation_clock_hypothesis": "If an A failure event is generated during activation using the same interval, it may appear near h17.0636, before switch completion; native event trace decides.",
+    "completion_clock_hypothesis": "If failure event generation waits for activation completion, A may fail near h25.3636; native event trace decides.",
+    "interpretation_guard": "Different random draws or disrupted branch selection require narrower interpretation; no predicted event time is preaccepted. A post-completion failure supports observable timing for this seed, not a universal statement about internal RNG calls."
+  },
+  "acceptance_gates": [
+    "frozen direct parent/source hashes and exact two-table delta; installed manual/dictionary/executable hashes",
+    "session-0 SSH with sshd ancestor, host-wide native mutex, preserved GUI PID 13340, unique run directory",
+    "native import/export/calc/report, exact authored-row roundtrip, zero converter errors",
+    "native event timeline and System/Stock report bins reconciled against accepted parent by author and independent read-only reviewer",
+    "raw invocation, logs, model, report and closure SHA-256 seals in evidence index"
+  ],
+  "limits": [
+    "One fixed seed and repetition, one activated branch with an operating-hour failure mode, and one chosen 8.3-hour TSWOV do not establish population or all distributions/rates.",
+    "A native trace may establish observed event timing without revealing the internal failure-clock creation instant.",
+    "Remaining G05 priorities, unavailable standby, overlapping switches, nested propagation, GUI RBD rendering and cross-engine parity are separate work."
+  ]
+}
