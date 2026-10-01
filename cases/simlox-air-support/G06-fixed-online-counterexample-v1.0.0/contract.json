@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-issue18-g06-fixed-online-counterexample-contract/v1",
+  "case_id": "G06",
+  "variant_id": "G06.var04",
+  "case_slice": "fixed-mission non-applicability of parallel online direct CM",
+  "publication_state": "not_published",
+  "continuous_parent": {
+    "path": "../G05-unavailable-standby-v1.0.3/unavailable-input.json",
+    "sha256": "b0d79caeb71dbf991291b9122dff3139bc52c27e2c014b5bf624632539101f0d",
+    "accepted_run_id": "g05-unavailable-v103-ssh-20261002-01",
+    "scope": "ONLM=Y continuous mission, B/A faults at h8.94145/h17.5636 and direct CM starts at faults"
+  },
+  "fixed_sources_sha256": {
+    "Y": "ce407655c86e0af85460ba30d32eb28ffc93f54c1acc68bbf4d6fcbee79e723b",
+    "N": "06a3cb45320c90f4a90027f562c17e86be46b25bd62b9106b1f6ab0cbcc99aa8"
+  },
+  "exact_diff_sha256": "9d7a6b6212fb05f1ca2c0fd7001eaa7f4a6cb3591b358697046f109e296d91c3",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "source_delta": "The continuous parent to fixed Y changes only MPAT CONTINUOUS→null(default FIXED), TFOUT/TFRET null→0.25 fractions of DURN as in the accepted fixed G05 passive model, MissionType.DESCR and PDESC. For DURN=26h, each travel fraction corresponds to 6.5h. Fixed Y to fixed N changes only RBDParallel.ONLM Y→N and PDESC. Both fixed arms retain seed1, 26h 8–34 schedule, passive B/A/C priority, NBOP=NBREQ=1, TSWOV0.5, B direct CMT40, A direct CMT0.5, and no stocked replacement/resource demand.",
+  "manual_basis": "Installed manual pp198–199 and 455–457 says online repair applies to continuous or extendable mission patterns, not ordinary fixed missions. Manual p265 defines TFOUT/TFRET as fractions of total mission duration. The accepted G05 passive fixed source uses null MPAT with TFOUT=TFRET=0.25; these are valid fixed-pattern fields, not an independent repair mechanism.",
+  "pre_run_hypotheses": {
+    "fixed_Y": "With a fixed mission, ONLM=Y should not start B/A direct CM during the active mission; repair may begin at return, or conversion may reject the setting. Native output decides.",
+    "fixed_N": "The fixed ONLM=N control should make the same mission and direct-CM behavior as fixed ONLM=Y if the online flag is inapplicable. Exact failure times and report bins are not preaccepted.",
+    "alternatives": "The simulator may allow online CM despite the documented restriction, reject the input, change fault timing, abort the mission, or diverge between Y and N. Any such result requires diagnosis, not a negative-case claim.",
+    "observability": "A positive negative-case result needs both valid fixed arms, comparable B/A fault events, raw CM start times after mission return in both, native mission outcome, and reconciled System/Stock bins. Roundtrip or aggregate summaries alone are insufficient."
+  },
+  "acceptance_gates": [
+    "Frozen accepted continuous parent and exact parent→fixed-Y→fixed-N source diffs",
+    "Independent static review before two serial guarded session-0 SSH native runs under host mutex with GUI PID13340 preserved",
+    "Exact 23 populated-table roundtrip and zero converter errors for both fixed arms",
+    "Raw B/A fault and CM timing, mission event and full System/Stock-bin reconciliation across fixed Y/N plus continuous parent",
+    "SHA-256 sealed raw files and independent read-only replay"
+  ],
+  "limits": [
+    "One seed, one 26h mission, passive B/A/C RBD, direct CM only without item replacement or resource use.",
+    "The continuous-parent versus fixed-Y comparison changes MPAT and its required travel fractions together; only fixed Y versus fixed N isolates ONLM. This is not a proof for all mission types, resources, localities or whole-block failures.",
+    "If native evidence does not demonstrate comparable fixed Y/N postmission CM and a contrast with accepted continuous Y, retain as diagnostic only."
+  ]
+}
