@@ -1,0 +1,36 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G01",
+  "case_version": "1.0.0-candidate",
+  "variant_id": "G01.var06",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G01",
+    "variant_id": "G01.var06",
+    "version": "1.0.1",
+    "branch": "similar",
+    "input_sha256": "65f0d216cf30dddbda24d9a58617ef5049ccd520891363c6b3bba06161f6c472",
+    "signoff": "../G01-var06-similar-vs-identical-v1.0.1/cli-scope-signoff-2026-10-01.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [240, 242, 248],
+    "source_boundary": "NSIMI represents different similar items with identical data which cannot replace each other. The parent native run exposed separate similarity-index stocks but both were stocked at demand. This case seeks a demand against index 1 when its stock is empty and index 0 retains stock."
+  },
+  "native_input_sha256": "1f36f741513f21cf16a5c0a9665a670909fe2013ecf2d82cc6711ef00fda543a",
+  "delta": {
+    "tables": ["ProblemDescription", "ItemRepair", "StockAllocation"],
+    "mechanism": "Reduce source STSIZ from 2 to 1, applied per NSIMI index, and extend direct LRU repair from one to 30 hours. Keep item NSIMI2, QTYPM1, system/item rates, missions, seed, and horizon inherited."
+  },
+  "predeclared_native_acceptance": [
+    "All author-populated source tables roundtrip, conversion errors are zero, and all five guarded steps complete with the existing GUI preserved.",
+    "The first index-1 failure consumes its sole index-1 spare. The removed item remains under direct repair when a second index-1 demand arrives; the index-1 stock is empty, while index-0 stock still holds its one spare.",
+    "The second index-1 demand remains unfilled or backordered until the observation horizon; no index-0 item is issued to that demand. Native event identities, stock levels, backorder state, mission outcomes, report bins, and terminal states must reconcile without assuming that a missing issue alone proves a prohibition.",
+    "If native evidence does not show the concurrent index-1 shortage and index-0 spare, this run is diagnostic and cannot establish the non-interchangeability boundary. All source/run hashes and raw files must be sealed and independently replayed."
+  ],
+  "limits": [
+    "One aircraft, one seed, one similarity pair, one base station, 36 hours; it tests an indexed native stockout sequence, not all inventory policies or generic substitution.",
+    "The repair duration and stock size are changed together to create the boundary; any mission outcome difference is not an isolated NSIMI effect."
+  ]
+}
