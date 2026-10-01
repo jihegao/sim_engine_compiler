@@ -1,0 +1,27 @@
+{
+  "schema": "simlox-j02-determ-boundary-contract/v1",
+  "case_id": "J02",
+  "variant_ids": ["J02.var01", "J02.var04"],
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "parent_case": "J02.var02@1.0.0",
+  "parent_input_sha256": "35e68a4d352d3f4e7ff62d3bd9d2c087ca2510837c33c15ad31a3dfa5d6491fa",
+  "exact_diff_sha256": "3b84bf5da0ab144c810a0612740d89bed3aeeb043abc15cc1e4b8d8fd9662441",
+  "source": {
+    "database_dictionary": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "database_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [271, 273, 274, 542]
+  },
+  "business_delta": "Against accepted J02.var02 seed01, replace the one IntegerDistributions <IRECT> row with PFAC=1 <DETERM> COUNTD and reference COUNTD in OperationProfile.IQTYD. Keep RANDOM, IPER0, EQUIDIST, two-aircraft formation, hour8, two-hour mission and hour36 horizon. Count2 seeds differ only in RSEED; count0/4 boundary arms change PARAM1; count4 capacity contrast changes only QTYPS8 to QTYPS6.",
+  "arms": {
+    "determ-2-seed-01": {"variant_id": "J02.var01", "count": 2, "deployed_aircraft": 6, "seed": 1, "starts": 2, "successes": 2, "cancellations": 0, "input_sha256": "e4dc47f0693d45ed9fbf0f8f4e6e3e68fcf9639f6d843f90201ab5baf675762f"},
+    "determ-2-seed-02": {"variant_id": "J02.var01", "count": 2, "deployed_aircraft": 6, "seed": 2, "starts": 2, "successes": 2, "cancellations": 0, "input_sha256": "1a2336ad17de6f0b247febacdb4985cd402df19cb7244ce7b30e0dc75fe1503b"},
+    "zero-six": {"variant_id": "J02.var04", "count": 0, "deployed_aircraft": 6, "seed": 1, "starts": 0, "successes": 0, "cancellations": 0, "input_sha256": "acd0e0894e19553edc5b7717459f269e6a480b0e1546fcff0603412572f7eae7"},
+    "four-eight": {"variant_id": "J02.var04", "count": 4, "deployed_aircraft": 8, "seed": 1, "starts": 4, "successes": 4, "cancellations": 0, "input_sha256": "e8516a851f836d8e4272b886c2986b64ba327bed81cf8209eb23a99a040d1da8"},
+    "four-six": {"variant_id": "J02.var04", "count": 4, "deployed_aircraft": 6, "seed": 1, "starts": 3, "successes": 3, "cancellations": 1, "input_sha256": "ce351b9117c701d56cec3dad9c89bd32dafbf9ad78e927b2b4f43f632c6c0962"}
+  },
+  "expected_timeline": "Each demanded mission activates at hour7 for two aircraft. In count2 and count4/QTYPS8 arms all missions start at hour8, succeed and complete at hour10. Count0 activates none. Count4/QTYPS6 activates four, allocates six aircraft to missions1-3, starts those at hour8, cancels mission4 at 8.33333 after DTIM1/3, and completes three at hour10.",
+  "limits": "Five excluded diagnostic probes established this fixed-input timeline. Accepted fresh runs must reproduce it. Two deterministic seeds cannot establish general seed invariance; one capacity boundary cannot establish other shortage policies, GUI-only behavior, or cross-engine parity."
+}
