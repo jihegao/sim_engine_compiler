@@ -1,0 +1,57 @@
+{
+  "schema": "simlox-g12-var03-leaf-cm-pm-contract/v1",
+  "case_id": "G12",
+  "variant_id": "G12.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G12-var01-two-subsystems-v1.0.0",
+    "input_sha256": "25490c7da29019183ddc25aaed7953741bfc67261d535419941d56fc59767c7b",
+    "native_closure_sha256": "75b5a4e7d800f6a78eb5ae9dd16cee961ebbc054c489600369519c9b6f58068a"
+  },
+  "supporting_frequency_control": {
+    "package": "G12-var02-subsystem-frequency-v1.0.0",
+    "run_id": "g12-var02-seed02-baseline-20261003-01",
+    "native_closure_sha256": "e730094bc4dbc97d85b42188294c157cfbb12d024d6832bab77322986dc3915c",
+    "role": "A first-replication seed-2 child-B FRT50000 model printed next random failure time 12.9322 at h8. It is a prediction cue only, not an accepted outcome or general rate-scaling proof."
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [255, 259, 260],
+    "rule": "Lowest-level linked subsystems carry direct repair and preventive maintenance. A child failure can interrupt operation of the deployed composite; the event log must locate the effect before any sibling-stop claim."
+  },
+  "input": {"sha256": "0a4cdcdfb70aa586e80382ea0ce385c4b0cefbd957b542d80a478c73517d652e"},
+  "exact_diff_sha256": "656a399e51ccefb8dc7078c8881f6427d7fbf6e0fd350a48136855977ce67787",
+  "configuration": {
+    "deployed_top": "TEACH-AIR-01",
+    "linked_children": ["TEACH-SUB-A", "TEACH-SUB-B"],
+    "child_b_system_frt_per_million_op_hours": 500000,
+    "child_b_direct_repair_station": "BASE-01",
+    "child_b_direct_repair_hours": 0.5,
+    "child_a_calendar_pm": "CAL24, one hour, unchanged from accepted parent",
+    "seed": "2",
+    "replications": 1,
+    "horizon_hours": 60,
+    "top_frt": "computed",
+    "missions": "unchanged starts h8, h20, h32"
+  },
+  "pre_run_hypothesis": [
+    "The first seed-2 mission should experience at least one directly repairable linked-child failure during h8–10 under FRT500000. The supporting FRT50000 control prints a prospective failure h12.9322 when exposure begins h8, making a within-first-mission failure plausible but not guaranteed by a source-derived exact-time law.",
+    "Native events should identify the deployed composite mission impact, the failing child or repair target if exposed, a corrective maintenance start/completion at BASE-01, and the unchanged child-A CAL24 PM. Record the actual event order/timestamps and resource/stock effects; do not infer an internal sibling timeline absent a separate native identifier.",
+    "Report SystemResults, StockTotalResults, ResultSummary and terminal readiness must reconcile with the event log; a nonempty report alone is insufficient."
+  ],
+  "native_acceptance": [
+    "Guarded session-0 SSH import/export, calculation, report export, 22 populated authored-table exact roundtrip, and GUI PID13340/host mutex/registry/source continuity.",
+    "Zero converter errors/notes, all warnings individually classified, valid nonempty SXO/event log/report and 120 half-hour System/Stock bins.",
+    "At least one child-B failure and bounded leaf corrective maintenance event and at least one child-A CAL24 PM event; actual mission impact and terminal metrics traced against raw evidence.",
+    "Separate read-only reviewer replays source delta, raw seals, event chronology, ledgers and terminal state without importing author validation."
+  ],
+  "diagnostic_gate": "If native output rejects the input or does not expose the required child failure/leaf CM/PM chain, retain the sealed run as diagnostic and do not publish this positive scope. Revise under a new candidate version and run ID before any further native attempt.",
+  "limits": [
+    "One composite, two linked children, one nonzero child-B rate, one station, one seed and one replication. No rate inference or population claim follows; G12.var02 separately covers aggregate frequency contrasts.",
+    "The event log may name the top deployed system rather than the internal child. Source-bound attribution is not physical target observation unless the log exposes it.",
+    "Wrong-level repair/PM, other child types, resources, stocked items, GUI visuals, cross-engine behavior and general sibling outage remain unverified."
+  ]
+}
