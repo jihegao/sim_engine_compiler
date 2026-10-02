@@ -1,0 +1,9 @@
+# G11.var10 ASSY/MPID inheritance CLI sign-off — 2026-10-03
+
+**GO for this bounded installed-CLI observation.** Accepted G11.var04 explicit LRU-age input and native closure are pinned. The six-table delta inserts one structural ASSY between system and MPID and a matching inherited Prelife node, retaining fixed system age60, inherited MPID, explicit LRU age20, CAL100 monitored PM, one spare, seed1, IQTY0 and h96.
+
+- Guarded session-0 SSH run `g11-var10-assy-inherit-v100-ssh-20261003-01` completed five steps under the host mutex, preserved GUI PID13340 and restored the Prelife Log option to `NO`. Conversion had zero errors/notes and only warning #108. Exact import/export roundtrip retained 23 populated authored tables. The [evidence index](evidence-index.json) SHA-256 is `f27f82da9c687ace2576c1850192ab6190fee6cedbc5a29e95f66d27834f8791`, sealing 13 local raw files.
+- Native Prelife Log shows system/ASSY/MPID/LRU ages60/60/60/20. Original LRU ID0 first PM starts h80, system service completes h80.5, item service h81.25 and ID0 returns to stock. Candidate spare ID2 is issued versus parent spare ID1; this ID shift is an observation, while the internal allocation mechanism is unexposed. No ASSY demand or repair appears in events.
+- ResultSummary, SystemResults and StockTotalResults equal the accepted parent, with 192 contiguous half-hour System/Stock bins, terminal ready1/stock1, and no missions, resource booking or backorder. [Author replay](author-validation.json) passed 97/97; separate read-only [independent replay](independent-validation.json) passed 9,518/9,518. Static preflight was GO before native execution.
+
+The installed manual's physical pages 206 and 475 require intermediate ASSY/MPID prelife nodes when a lower child is prelifed and permit `INHERIT`. This case covers one chain and first LRU PM only. More structures, quantities, later cycles, GUI visual behavior and cross-engine parity are outside scope.

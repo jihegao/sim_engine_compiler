@@ -1,0 +1,9 @@
+# G11.var10: inherited ASSY and material-position prelife
+
+This bounded native case starts from the accepted G11.var04 explicit installed-LRU age input. It inserts a structural `TEACH-ASSY-01` between the system and `POS-A` material position and a matching `PL-ASSY` node in the Prelife hierarchy. The ASSY and position use `TYPE=INHERIT`; system age60 and installed monitored LRU age20 remain fixed. The six changed tables are Item, MaterielStructure, Prelife, PrelifeData, PrelifeStructure and ProblemDescription.
+
+The guarded session-0 SSH native run completed five steps with zero errors/notes and only warning #108. All 23 populated authored tables roundtripped exactly; 13 local raw artifacts are sealed in the [evidence index](evidence-index.json). The Prelife Log prints system→ASSY→position→LRU ages60→60→60→20. Original LRU physical ID0 enters PM at h80, system service ends h80.5, item service ends h81.25, and the removed item returns to stock. The candidate issues spare ID2; the accepted parent issues ID1. The event logs therefore differ in physical IDs. The observed ID shift is consistent with the added structural item, though internal ID allocation is not directly exposed.
+
+ResultSummary, SystemResults and StockTotalResults match the accepted parent. Each contains 192 half-hour System/Stock bins, terminal ready1/stock1 and no missions, resource booking, ASSY demand or backorder. [Author replay](author-validation.json) passed 97/97 checks; separately written [independent replay](independent-validation.json) passed 9,518/9,518. The [contract](contract.json), [exact parent diff](exact-diff.json) and [CLI sign-off](cli-scope-signoff-2026-10-03.md) define the accepted limits. Raw native outputs remain ignored under `runs/`.
+
+This covers one ASSY, one MPID, one LRU and its first PM. Additional hierarchies, multiplicities, later cycles, GUI visual behavior and cross-engine parity remain unverified.

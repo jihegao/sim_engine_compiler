@@ -1,0 +1,23 @@
+{
+  "checks_passed": 9518,
+  "checks_total": 9518,
+  "evidence": {
+    "closure_sha256": "08874fdf1fd40b19f4d5f774a9ac660aa2caf1d6bcadc969d80befc9da178955",
+    "input_sha256": "859db9ad998d8350b76bed1962473353015026b3e66ab6e31481f277774b0879",
+    "model_log_sha256": "8b84662dbc9a1722ad9d8dfbf2dbd4579060c9e17028dd2d2fff22e5fafe8ec7",
+    "prelife_log_sha256": "bc1ba237ad5d8aa18c9a5e0fa90c511f6a79da142288366964a60422a920961d",
+    "report_sha256": "506363f758f53b1ed5f287124c93ff6e26cd66f1d4089da255b45405404f9880"
+  },
+  "failures": [],
+  "finding": "An added physical ASSY and matching inherited Prelife node create the four-node system→ASSY→MPID→LRU path. The native Prelife Log shows ages60/60/60/20; the original LRU ID0 enters monitored PM at h80, spare LRU ID2 is issued, and ID0 returns to stock at h81.25. Non-description aggregate report tables match the accepted parent.",
+  "limits": [
+    "The child spare is physical ID2 while the accepted parent spare is ID1, consistent with the added ASSY node changing physical ID enumeration. Internal ID allocation is not directly exposed; native model logs are not byte-identical.",
+    "No ASSY logistics demand is observed in this one first-PM, one-ASSY/MPID/LRU, one-seed run; this does not prove absence for all hierarchies or operations.",
+    "The default report is aggregate System/Stock, so physical item identity and stock conservation rely on native event text.",
+    "No missions, later PM cycles, other hierarchies, GUI visual behavior, or cross-engine parity.",
+    "Registry restoration is supported by sealed guarded records, not an independent live registry read."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-g11-var10/v1",
+  "verdict": "GO: bounded ASSY/MPID prelife inheritance observation"
+}
