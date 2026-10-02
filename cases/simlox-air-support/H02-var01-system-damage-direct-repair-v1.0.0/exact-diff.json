@@ -1,0 +1,235 @@
+{
+  "schema": "simlox-h02-var01-system-direct-repair-exact-diff/v1",
+  "parent_sha256": "f519cd4549db879505c16bd5d4affb7e34f1db6227e71bebc27738442489d4f0",
+  "attrition_sha256": "f519cd4549db879505c16bd5d4affb7e34f1db6227e71bebc27738442489d4f0",
+  "system_sha256": "67eb54c6148cd17c43e050eaf3d310bf7f66b96452526614ca1af416c16d9bcb",
+  "added_tables": {
+    "DamageRepair": {
+      "name": "DamageRepair",
+      "columns": [
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "SID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "STID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "DIRPT",
+          "datatype": "double"
+        },
+        {
+          "name": "SURPT",
+          "datatype": "double"
+        },
+        {
+          "name": "DIRPF",
+          "datatype": "double"
+        },
+        {
+          "name": "SURPF",
+          "datatype": "double"
+        },
+        {
+          "name": "DIRPTID",
+          "datatype": "string"
+        },
+        {
+          "name": "SURPTID",
+          "datatype": "string"
+        },
+        {
+          "name": "DIRPD",
+          "datatype": "string"
+        },
+        {
+          "name": "SURPD",
+          "datatype": "string"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BATTLE-LOSS",
+              "TEACH-AIR-01",
+              "BASE-01",
+              1.0,
+              0.0,
+              1.0,
+              1.0,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "removed_tables": [],
+  "changed_tables": {
+    "DamageItem": {
+      "before": {
+        "name": "DamageItem",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "SID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "IID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "PROB",
+            "datatype": "double"
+          },
+          {
+            "name": "REPF",
+            "datatype": "double"
+          },
+          {
+            "name": "OPID",
+            "datatype": "string"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-LOSS",
+                "TEACH-AIR-01",
+                "<ATTRITION>",
+                1.0,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ]
+      },
+      "after": {
+        "name": "DamageItem",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "SID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "IID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "PROB",
+            "datatype": "double"
+          },
+          {
+            "name": "REPF",
+            "datatype": "double"
+          },
+          {
+            "name": "OPID",
+            "datatype": "string"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-LOSS",
+                "TEACH-AIR-01",
+                "<SYSTEM>",
+                1.0,
+                null,
+                null,
+                null
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "ProblemDescription": {
+      "before": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "H01 DAMP 1 certain attrition probe"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      },
+      "after": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "H02.var01 certain airframe damage with local one-hour direct repair"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      }
+    }
+  },
+  "unchanged_table_count": 32
+}

@@ -1,0 +1,66 @@
+{
+  "checks_passed": 7664,
+  "checks_total": 7664,
+  "failures": [],
+  "limits": [
+    "The child changes both consequence IID and adds DamageRepair; it does not isolate general fallback priority among damage replacement, damage repair and ordinary repair.",
+    "The warning #254 states DamageItem.REPF is ignored for system damage; this run does not vary that field.",
+    "One seed and one airframe do not establish other repair modes, fractions, shortages, damaged LRU behavior, GUI visual behavior or cross-engine parity."
+  ],
+  "observed": {
+    "attrition": {
+      "damage_times": [
+        8.78145
+      ],
+      "flight_hours": 0.7814456820487976,
+      "run_id": "h02-var01-attrition-v100-ssh-20261002-01",
+      "stock_bins": 72,
+      "summary": {
+        "MSTF": 0.3333333432674408,
+        "MSUF": 0,
+        "MTMF": 0.21357427537441254,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 0.21357427537441254
+      },
+      "system_bins": 72,
+      "terminal_lost": 1,
+      "terminal_ready": 0
+    },
+    "system": {
+      "damage_times": [
+        8.78145,
+        21.1446,
+        32.1965
+      ],
+      "flight_hours": 3.3190178722143173,
+      "run_id": "h02-var01-system-v100-ssh-20261002-01",
+      "stock_bins": 72,
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 0,
+        "MTMF": 0.5531696677207947,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 0.5531696677207947
+      },
+      "system_bins": 72,
+      "terminal_lost": 0,
+      "terminal_ready": 1
+    }
+  },
+  "passed": true,
+  "schema": "independent-h02-var01-readonly-review/v1",
+  "scope": "One fixed-seed configured contrast: certain <ATTRITION> permanently loses the aircraft after first-mission damage, whereas <SYSTEM> plus a local one-hour DamageRepair yields three damage/abort/return/direct-repair cycles and recovered readiness before later scheduled launches.",
+  "verdict": "GO"
+}
