@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var07",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "G11",
+    "variant_id": "G11.var01",
+    "package": "../G11-var01-fixed-system-prelife-v1.0.0",
+    "input_sha256": "a8836588aa09973b78195cf515cdc1ed4916c4f1653690e3bbd38fd0a5fb4bd2",
+    "native_closure_sha256": "29238ff0dfe1f92eca8876033987e2c6cdbd119335e51a625d82685076c45796"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 208, 209, 468, 469, 470],
+    "rule": "The first calendar PM occurs when total age next reaches a strictly greater multiple of PMINT. For PMINT100, ages60, 100 and120 should first reach PM at h40, h100 and h80 respectively."
+  },
+  "inputs": {
+    "above-control": {"sha256": "99f9a9790c086c1aaea9a0956990bda4f82906eecfa837fa0526aa0a1327dca0", "fixed_ages_calhours": [60, 120, 120]},
+    "equal-boundary": {"sha256": "8a4aba63adda8a10c0eb9c731c52be5fc1b47b35c3c605f9bafe073f13097d2f", "fixed_ages_calhours": [60, 100, 120]}
+  },
+  "exact_diff_sha256": "8a08562cdf48656d48d821f7735da7c88fd412c67c8928ff223c8d1febfcb1bb",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "deployed_count": 3,
+    "prelife_plid": "PL-SYS",
+    "prelife_plinds": ["BELOW", "MIDDLE", "ABOVE"],
+    "pm": {"PMID": "CAL100", "OPID": "CALHOURS", "PMINT": 100, "duration_hours": 1},
+    "scheduled_profile_starts_hours": [8, 20, 32],
+    "scheduled_profile_IQTY": 0,
+    "seed": "1",
+    "horizon_hours": 104,
+    "report_interval_hours": 0.5
+  },
+  "hypothesis_before_native": {
+    "above-control": "Prelife Log ages60/120/120; first CAL100 PM h40 for below and h80 for two above-cycle systems.",
+    "equal-boundary": "Prelife Log ages60/100/120; first CAL100 PM h40/h100/h80 respectively. Exact age100 does not produce an h0 PM."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms exact-roundtrip authored populated tables, convert with zero errors/notes and only inherited warnings #108/#126, calculate without runtime errors, seal source and raw evidence and preserve GUI PID13340 and registry option NO.",
+    "The pair differs only in the MIDDLE PrelifeData.AGE value 120 versus100 and description. Both deploy three systems with FIXED CALHOURS QTY1 rows, retain three referenced profile rows with IQTY0 and have no instantiated missions.",
+    "Native Prelife Log exposes fixed ages by PLIND. Each physical system has exactly one first CAL100 PM in the horizon: below age60 at h40, above age120 at h80 and equal age100 at h100. Control's two age120 systems both start at h80. No h0 PM occurs; every PM completes one hour later.",
+    "Both arms have 208 contiguous half-hour System/Stock bins, three PMs and terminal three ready systems. Event, resource and stock ledgers reconcile.",
+    "A separate reviewer independently replays the frozen source and raw evidence without importing author validation code."
+  ],
+  "limits": [
+    "Three same-type top-level systems, ages60/100/120, CALHOURS PMINT100, one seed, first PM and 104-hour horizon only. No general equality rule for other PM types or counters.",
+    "No missions, installed or stocked item prelife, GUI visual behavior, later PM cycles or cross-engine parity."
+  ]
+}

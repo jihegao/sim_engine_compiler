@@ -1,0 +1,9 @@
+# G11.var07 age-cycle boundary CLI sign-off — 2026-10-03
+
+**GO for this bounded installed-CLI observation.** Starting from accepted G11.var01 fixed-age source, both arms set three referenced profile quantities to zero and use FIXED CALHOURS ages in neutral `BELOW/MIDDLE/ABOVE` PLIND rows. The sole paired business delta is middle AGE120 versus AGE100; the description is a label. QTYPS3, CAL100, seed1 and 104-hour horizon are fixed.
+
+- Guarded session-0 SSH runs `g11-var07-above-control-v100-ssh-20261003-01` and `g11-var07-equal-boundary-v100-ssh-20261003-01` each completed five steps under the host mutex, preserved GUI PID13340 and restored the Prelife Log option to `NO`. Both converted with zero errors/notes and only warnings #108/#126, exactly roundtripped 20 populated authored tables and sealed 13 local raw files. The [evidence index](evidence-index.json) SHA-256 is `30a3c3a8fb0eb6ec453eb56ba05ff8e214ff45d58310e8840022d968a48c0e94`.
+- Native control Prelife Log ages are 60/120/120; first `CAL100` PMs start ID0 h40 and IDs1/2 h80. Native boundary Prelife Log ages are 60/100/120; first PMs start ID0 h40, ID2 h80, ID1 h100. No h0 PM occurs. All PMs finish one hour later. Each arm has 208 contiguous half-hour System/Stock bins, three PMs, terminal ready3 and no missions, resource or stock demand.
+- [Author replay](author-validation.json) passed 190/190 checks; separate read-only [independent replay](independent-verdict.json) passed 21,430/21,430. Static preflight was GO before native execution.
+
+The installed manual's physical PDF page 205 states that the first PM is at the first strictly greater interval multiple; the native event sequence confirms that rule for these three fixed CALHOURS ages and `PMINT=100`. No claim is made for other PM types, counters, later cycles, installed or stocked items, GUI visual behavior or cross-engine parity.
