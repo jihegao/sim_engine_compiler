@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D14",
+  "variant_ids": ["D14.var02", "D14.var03"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "D14",
+    "variant_id": "D14.var01",
+    "package": "../D14-var01-monitored-item-pm-v1.0.1",
+    "inputs": {
+      "monitored": {"sha256": "29dd9638ecaf5980b7ecf90ef41644afbbcca3a9b15f88dceb8f2fe3e5c32903", "native_closure_sha256": "7a0977eefefb06be79860ad0982efa2f8c0d4259c8b0905e2a17a5fca9122ead"},
+      "system-converted": {"sha256": "9e6f77519511e72eb732dc5c67b19a8dab16a166ca9d33a50917bb04b88ae9f9", "native_closure_sha256": "acd80471d0d298731102e8c9e08d12753557b35b77453c54eb213e0e919e0b85"}
+    }
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [202, 203, 204, 205, 210, 211, 217, 370, 371, 372, 373, 374, 387, 388, 390, 392, 393],
+    "rule": "MONIT=Y stores PM counters with each item individual. Item PM and system PM are distinct PMID tasks; the first counter reaching its own interval starts its task. Stocked item starts with zero age absent Prelife. MNOCC=1 permits one SYS-SWAP occurrence from simulation start. Scheduled removed items go to local overhaul and return to stock."
+  },
+  "inputs": {
+    "monitored": {"MONIT": "Y", "sha256": "0345fe8ff1c7e86a3332f4ef822adf92814e6a0562bb30cbfa305b4a89a00b7c"},
+    "system-converted": {"MONIT": "N", "sha256": "cd0bd500b3f7a5496fe730244e225484c79041ec33502a940e09c516ed4b3056"}
+  },
+  "exact_diff_sha256": "fad291803b7131004573178e1ca281bd7ea5fa404b8a5231ccfe9afdc39f6cf3",
+  "configuration": {
+    "system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "position": "POS-A", "station": "BASE-01",
+    "installed_initial": 1, "stock_initial": 1, "prelife_rows": 0,
+    "system_pm": {"PMID": "SYS-SWAP", "MID": "TEACH-AIR-01", "OPID": "OPHOURS", "PMINT": 2, "MNOCC": 1, "replacement_quantity": 1, "SCHED": "Y"},
+    "item_pm": {"PMID": "LRU-OP3", "MID": "TEACH-LRU-01", "OPID": "OPHOURS", "PMINT": 3, "replacement_quantity": 1, "SCHED": "Y"},
+    "mission_launch_hours": [8, 20, 32], "mission_duration_hours": 2,
+    "seed": "1", "horizon_hours": 36
+  },
+  "hypothesis_before_native": {
+    "common": "First two-hour mission triggers one-time SYS-SWAP at hour 10, removes the initially installed item, takes the stocked spare, overhauls the removed item and returns it to stock.",
+    "monitored": "The zero-age former spare accrues two operation hours by hour 22, below item PMINT=3, and four by hour 34, above it. LRU-OP3 therefore first triggers on that same physical item at hour 34, taking the overhauled original from stock.",
+    "system-converted": "With MONIT=N, LRU-OP3 uses a system-level counter. If SYS-SWAP does not reset this separate PMID counter, it reaches four total operation hours at hour 22 and triggers then, while the monitored item arm does not."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms must exactly roundtrip authored tables, calculate with zero conversion errors, valid nonempty event/report output, and no incomplete PM runtime warning.",
+    "The fixed three mission events, all system/item PM starts and completions, physical item IDs, stock issues/returns, and terminal state must be reconciled per arm from native events and aligned report bins.",
+    "The hypothesized timing contrast must be observed before using this as evidence for zero-age item counter behavior or reinstallation. If timing is equal or another task intervenes, restrict or reject the claimed scope.",
+    "A separate read-only reviewer must replay frozen input and raw evidence without importing the author implementation."
+  ],
+  "limits": [
+    "This is one item, one stock position, one seed, one scheduled system swap, one item PM interval, and zero implicit initial age; it does not establish general PM counter laws or prelife.",
+    "Counter age is inferred from isolated PM timing and item identities if observed; no direct per-item counter report is available.",
+    "GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
