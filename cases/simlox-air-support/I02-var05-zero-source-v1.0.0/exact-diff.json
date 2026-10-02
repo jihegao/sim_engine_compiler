@@ -1,0 +1,371 @@
+{
+  "schema": "simlox-i02-var05-zero-source-exact-diff/v1",
+  "accepted_parent_to_control": {
+    "before_sha256": "4842382bd3728f7f9520d3b20e1ad7148f7436f5132e9cc933773550d64b4560",
+    "after_sha256": "c7b4b0214bb9d5182711984d460eeff61cb31e06a0e62d019704f2723ca13c3e",
+    "changed_tables": {
+      "ItemTransfer": {
+        "before": {
+          "name": "ItemTransfer",
+          "columns": [
+            {
+              "name": "STFID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "STTID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "IID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "TFTIME",
+              "datatype": "double",
+              "key": true
+            },
+            {
+              "name": "TFQTY",
+              "datatype": "integer"
+            },
+            {
+              "name": "TFDT",
+              "datatype": "double"
+            },
+            {
+              "name": "NOTE",
+              "datatype": "string"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "<OUTSIDE>",
+                  "DEPOT-01",
+                  "TEACH-LRU-01",
+                  4.0,
+                  1,
+                  0.0,
+                  null
+                ],
+                [
+                  "DEPOT-01",
+                  "BASE-01",
+                  "TEACH-LRU-01",
+                  6.0,
+                  1,
+                  0.0,
+                  null
+                ]
+              ]
+            }
+          ]
+        },
+        "after": {
+          "name": "ItemTransfer",
+          "columns": [
+            {
+              "name": "STFID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "STTID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "IID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "TFTIME",
+              "datatype": "double",
+              "key": true
+            },
+            {
+              "name": "TFQTY",
+              "datatype": "integer"
+            },
+            {
+              "name": "TFDT",
+              "datatype": "double"
+            },
+            {
+              "name": "NOTE",
+              "datatype": "string"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "<OUTSIDE>",
+                  "DEPOT-01",
+                  "TEACH-LRU-01",
+                  4.0,
+                  1,
+                  0.0,
+                  null
+                ],
+                [
+                  "DEPOT-01",
+                  "BASE-01",
+                  "TEACH-LRU-01",
+                  2.0,
+                  1,
+                  0.0,
+                  null
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "ProblemDescription": {
+        "before": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "I02.var03 BETWEEN one LRU DEPOT-01 to BASE-01 at h6 after accepted h4 IN"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        },
+        "after": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "I02.var05 control h2 BETWEEN one LRU with depot initial stock one before h4 IN"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        }
+      }
+    },
+    "unchanged_table_count": 30
+  },
+  "matched_control_to_child": {
+    "before_sha256": "c7b4b0214bb9d5182711984d460eeff61cb31e06a0e62d019704f2723ca13c3e",
+    "after_sha256": "00cebb18be952522b1bbfd1885edc40f2c9b4da148d000cf5326309360cc6453",
+    "changed_tables": {
+      "ProblemDescription": {
+        "before": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "I02.var05 control h2 BETWEEN one LRU with depot initial stock one before h4 IN"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        },
+        "after": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "I02.var05 zero-source h2 BETWEEN one LRU with depot initial stock zero before h4 IN"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        }
+      },
+      "StockAllocation": {
+        "before": {
+          "columns": [
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "POINT"
+            },
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "IID"
+            },
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "STID"
+            },
+            {
+              "datatype": "integer",
+              "name": "STSIZ"
+            },
+            {
+              "datatype": "integer",
+              "name": "ROSIZ"
+            },
+            {
+              "datatype": "integer",
+              "name": "AINST"
+            },
+            {
+              "datatype": "integer",
+              "name": "ISTOH"
+            },
+            {
+              "datatype": "string",
+              "name": "PLID"
+            },
+            {
+              "datatype": "string",
+              "name": "NOTE"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "AIR_BASIC",
+                  "TEACH-LRU-01",
+                  "BASE-01",
+                  0,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                [
+                  "AIR_BASIC",
+                  "TEACH-LRU-01",
+                  "DEPOT-01",
+                  1,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "name": "StockAllocation"
+        },
+        "after": {
+          "columns": [
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "POINT"
+            },
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "IID"
+            },
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "STID"
+            },
+            {
+              "datatype": "integer",
+              "name": "STSIZ"
+            },
+            {
+              "datatype": "integer",
+              "name": "ROSIZ"
+            },
+            {
+              "datatype": "integer",
+              "name": "AINST"
+            },
+            {
+              "datatype": "integer",
+              "name": "ISTOH"
+            },
+            {
+              "datatype": "string",
+              "name": "PLID"
+            },
+            {
+              "datatype": "string",
+              "name": "NOTE"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "AIR_BASIC",
+                  "TEACH-LRU-01",
+                  "BASE-01",
+                  0,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                [
+                  "AIR_BASIC",
+                  "TEACH-LRU-01",
+                  "DEPOT-01",
+                  0,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "name": "StockAllocation"
+        }
+      }
+    },
+    "unchanged_table_count": 30
+  }
+}

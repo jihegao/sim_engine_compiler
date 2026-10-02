@@ -1,0 +1,43 @@
+{
+  "schema": "independent-i02-var05-zero-source-review/v1",
+  "case": "I02-var05-zero-source-v1.0.0",
+  "passed": true,
+  "verdict": "GO: bounded zero-source BETWEEN transfer backorder and later fulfillment",
+  "checks_passed": 1717,
+  "checks_total": 1717,
+  "failures": [],
+  "source_sha256": {
+    "parent": "4842382bd3728f7f9520d3b20e1ad7148f7436f5132e9cc933773550d64b4560",
+    "control": "c7b4b0214bb9d5182711984d460eeff61cb31e06a0e62d019704f2723ca13c3e",
+    "child": "00cebb18be952522b1bbfd1885edc40f2c9b4da148d000cf5326309360cc6453"
+  },
+  "native_closure_sha256": {
+    "control": "de034d9c48f711022bea3611b8201a695828b9c1043e3d1ae61935eb70ab1c58",
+    "child": "28b8946f97d53a380160eb7bba19d97951a1e9aab78a861be7c1a9866c63cf9f"
+  },
+  "report_closure_sha256": {
+    "control_depot": "662d0a13b765ea3a2d0d69fb9e3cd6a9de6e2af6c8e62ca38564c27d4a1ce648",
+    "control_base": "c4fcdf7a24127861b283339c384dfc4c3020d3958402974cddcf5e92637064f7",
+    "child_depot": "e3a17501d7f0c9e9360db263d78fe7f1b9014c5b26cf47d09c775016eec1015d",
+    "child_base": "0d931be1bf12fbdfc84c8d25a17b3738956e5dcf8cfafd25f84d7bdd03b2dabb"
+  },
+  "report_sha256": {
+    "control_depot": "b4d0a36c866b4749d705e69c75cd6ef7406a5351cb1700ebb04ab25ecdea295d",
+    "control_base": "94eec117c5fc2d3124ffe38652f140be5b1886fda6e0585b45235347990ffbf3",
+    "child_depot": "04a388eef6d340d80201b9f48ca89ae96395dd6106ec7aae2892c70c8a9d79e2",
+    "child_base": "771d9b2fb970c52f0271f9c27c72c4ddd237766b0d4de8f385745d269f289bc8"
+  },
+  "observations": {
+    "control": "Initial depot item ID0 transfers physically at h2; h4 IN supplies new depot item ID1; no transfer backorder.",
+    "zero_source": "Initial depot empty. h2 transfer task starts and arrives with zero physical items and opens transfer backorder1. h4 IN creates ID0, removes that backorder and a second BETWEEN task places ID0 at base.",
+    "nominal_caveat": "Child base STSZ=1 from h2, while base STOHA=0 until h4 physical arrival. Nominal target reflects request before performance.",
+    "later_demand": "Child h10 uses local ID0. Depot ordinary backorder1 runs h10–13.1667, clears on repaired ID1, and base receives ID1 h15.1667. Both arms have same mission, SystemResults and StockTotalResults rows.",
+    "terminal": "Control depot1/base1; child depot0/base1, one aircraft ready. Child transfer and ordinary backorders clear by horizon."
+  },
+  "limits": [
+    "Native selected table is ItemResults for IID/STID stock positions, not a mounted-item ledger.",
+    "Child base nominal STSZ rises at h2 before any physical arrival. Do not equate nominal stock with performed transfer; this narrows a literal manual nominal-on-performance reading.",
+    "Aggregate StockTotalResults NBO remains zero although position-scoped ItemResults shows the child depot ordinary backorder h10–13.1667.",
+    "One h2 zero-source BETWEEN before scheduled h4 IN against matched initial-one control, one seed/CLI. No general priority, multi-unit split, alternate timing, nonzero delay, procurement, GUI-visual or cross-engine inference."
+  ]
+}
