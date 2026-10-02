@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-i01-var03-level-apid-matrix-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var03.level-binding",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I01-var03-maintenance-station-v1.0.0",
+    "source": "../I01-var03-maintenance-station-v1.0.0/base-input.json",
+    "sha256": "4e16325638ff7aafcf47306101b42a780c02b06f957c0036317e300eb63abf72",
+    "merge_sha": "1f7b57591dc9efc45311241947931427575edbb2"
+  },
+  "sources_sha256": {
+    "basic-base": "483a99ec2c4512f2b02c7f67f08e76b7ac218470ba64b0ecadc91c1db4a9daae",
+    "depot-base": "7bfaf8c27031ecf2b3d40b6f0ac205e73f05d2a0596de0e98003d2ba0d8e1a14",
+    "basic-alternate": "db3bc659639c47111b3b0c194013b98f43cad98ba949b222ce2afd5bad6ecc81",
+    "depot-alternate": "4b5903ef79ff983a8c0850af02acec945e6a091f138a28e68976639e6396eb79",
+    "exact_diff": "9762c558f4f3d1dc3a35ab2c4a3a41c55c262ef34f2c160fa6320021e8823d0a"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp338-339 and 439-441 ties task-referenced ItemRepair activation to the referenced Tasks.TCID/TLID and selected APID's MaintenanceAllocation station. TaskLevel maps TLID to LEVL; in this matrix BASE has LEVL1 and ALT has LEVL2, so a positive result is level-aware binding, not an isolated proof that the TLID string alone caused it. Both Station.LEVL fields are blank.",
+  "controlled_design": "Both ItemRepair station rows always reference fixed task ID I01-LRU-DIRP of TCID LRU-CM, with equal one-hour repair. The two task rows have equal neutral description, TCID LRU-CM and empty NOTE; TID B=I01-LEVEL-B is inert. The alternate source layer swaps only their Tasks.TLID cells between BASE and ALT. Both APIDs allocate both TLIDs with crossed stations: AIR_BASIC BASE→BASE and ALT→DEPOT; AIR_DEPOT BASE→DEPOT and ALT→BASE. Stock is BASE1/DEPOT0 under both APIDs. Four inputs cross source layer and APID; within a layer only Control.APID and description change, while within an APID only the two Tasks.TLID cells and description change. No ItemReorder or ResourceAllocation business rows.",
+  "pre_run_hypotheses": {
+    "common": "All four runs should convert without error, reproduce the same first physical LRU ID1 failure h9.8829, base spare ID0 draw h10, aircraft readiness h10.5, and exact 24-table authored roundtrip. Any difference is diagnostic until explained.",
+    "station_matrix": {
+      "basic-base": "BASE-01 repair h10.1667-11.1667; local stock returns1",
+      "depot-base": "two-hour DEPOT transport; repair h12.1667-13.1667; two-hour return and BASE stock1 h15.1667",
+      "basic-alternate": "two-hour DEPOT transport; repair h12.1667-13.1667; two-hour return and BASE stock1 h15.1667",
+      "depot-alternate": "BASE-01 repair h10.1667-11.1667; local stock returns1"
+    },
+    "alternatives": "Converter may reject alternate level/unused task rows, or engine may choose different repair routing. Preserve contrary runs as diagnostics and do not publish positive level-aware binding without all four matched physical traces and independent replay."
+  },
+  "acceptance_gates": [
+    "Independent pre-run audit of four frozen inputs, exact 2x2 diff, runner and roundtrip checker",
+    "Four serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Each arm exact 24 authored row-containing table roundtrip, zero converter errors, valid SXO/report, no #2038/#241",
+    "Same failed physical ID, four-way repair station crossover, stock event balance, all System/Stock report bins and terminal state",
+    "SHA-256 sealed raw evidence, author assertions, independent read-only replay and final staged audit"
+  ],
+  "limits": [
+    "This is bounded task-level-aware binding and APID interaction for one LRU, two TLIDs with LEVL1/2, two stations and one seed. The inert Task B does not model competing live repair demand.",
+    "The experiment does not separate the TLID label from the linked numeric LEVL mapping. Category interactions, simultaneous three-allocation POINT selection, <NONE> reorder, generic station routing, GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
