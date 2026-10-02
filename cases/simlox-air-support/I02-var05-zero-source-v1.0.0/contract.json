@@ -1,0 +1,37 @@
+{
+  "schema": "simlox-i02-var05-zero-source-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var05.zero-source",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "I02-var03-between-transfer-v1.0.0",
+    "source_sha256": "4842382bd3728f7f9520d3b20e1ad7148f7436f5132e9cc933773550d64b4560"
+  },
+  "control_sha256": "c7b4b0214bb9d5182711984d460eeff61cb31e06a0e62d019704f2723ca13c3e",
+  "source_sha256": "00cebb18be952522b1bbfd1885edc40f2c9b4da148d000cf5326309360cc6453",
+  "exact_diff_sha256": "dec6de4351142dadee2cce8d2c87278242512f4319c45db6e55b30ef9490bdd0",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp225 and 476-478 describes BETWEEN demands, transfer backorders when source items are unavailable, split execution on later availability, and priority above ordinary demand. pp681-683 and 717 describe native item-position STSZ/STOHA; installed dictionary defines ItemTransfer and StockAllocation columns. This contract tests the behavior directly rather than assuming every manual claim is exact under the fixed model.",
+  "controlled_design": "Accepted I02.var03 has depot initial stock1, h4 IN1, and h6 BETWEEN1. Move the BETWEEN schedule to h2 in a frozen control, before the h4 IN, leaving all other business rows fixed. The matched child changes only AIR_BASIC DEPOT-01 StockAllocation.STSIZ from1 to0 plus description. At h2 the control should have source stock1 and child source stock0. Both arms keep BETWEEN TFQTY1/TFDT0, h4 IN1, item tracking, half-hour ITEM collection, seed1, support and repair routes, and 36h horizon. Parent→control changes transfer schedule and description; control→child changes initial stock and description; each comparison has 30 unchanged tables.",
+  "pre_run_hypotheses": {
+    "control": "With one initially available depot LRU, the h2 BETWEEN request should execute immediately with no transfer backorder. Physical ID and station-ledger timing must be observed.",
+    "zero_source": "With zero initial depot stock, the h2 BETWEEN should leave a one-unit transfer backorder rather than inventing a physical item. The h4 IN may satisfy that backorder, but exact event order, physical identity, nominal stock and later ordinary demand remain conditional.",
+    "alternatives": "Converter rejection, hidden initial stock, h2 physical transfer in zero arm, no source-bound report, unchanged zero/control behavior, or source/closure mismatch blocks a positive zero-source claim. Nominal target timing and aggregate metrics are observations, not preregistered success criteria."
+  },
+  "acceptance_gates": [
+    "Independent pre-run audit of parent/control/child source and exact deltas, manual/dictionary pins, and guarded native runners",
+    "Two serial session-0 SSH native runs under host-wide mutex preserving GUI PID13340",
+    "Exact 22 populated-table roundtrip per arm, zero converter errors, valid nonempty native output and sealed raw files",
+    "Direct physical item/transfer-backorder ledger and native 72-bin depot/base ItemResults STSZ/STOHA/NBO from both sealed SXOs",
+    "Author and independent read-only replays, final staged audit and bounded publication"
+  ],
+  "limits": [
+    "Positive evidence can cover one zero-source h2 BETWEEN before a scheduled h4 IN versus a matched one-unit control at one seed. It cannot establish arbitrary zero-stock timing, multi-unit split, general priority, reorder/procurement, positive delay, or standalone BETWEEN without later IN.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
