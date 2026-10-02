@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-g07-four-path-panel-contract/v1",
+  "case_id": "G07",
+  "variant_ids": ["G07.var01", "G07.var02"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G07-bridge-diagonal-v1.0.0",
+    "arm": "bridge",
+    "input_sha256": "ee8ae1ac8deb1edefd9bffca7d1f0f137948ea3d4643b5523635990127d276be",
+    "run_id": "g07-var01-bridge-v100-ssh-20261003-01",
+    "native_closure_sha256": "c5a9862e4511e40d1036c4b235891fd58a80e250dfcea8efc6035151d860b2f0",
+    "tested_unique_path": "LL+BR+UR with B=UL and A=LR failed"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [197, 198, 200, 451, 452],
+    "rule": "A five-block bridge functions if any of UL+UR, LL+LR, UL+BR+LR, or LL+BR+UR functions."
+  },
+  "input_sha256": {
+    "ulur": "de2048592999168639e3b9c5672c41b9c8acf924e940ee1b90a927099cd1354c",
+    "lllr": "6acfa22520ea299923e6004474d29bcec709ad80d9f3ad56064ca343a471acc2",
+    "ulbrlr": "eba0180ca70a37b189103848aa07c72048bd60344725718c1bcc65445ad04fef",
+    "allbroken": "347790dfeb69c932398e366dd71fca4aff142cd5a506171a057222518046ed52"
+  },
+  "exact_diff_sha256": "d4135eb03da405aba8827e387302a4077dbc92372f796b9a57fff27049f8364c",
+  "configuration": {
+    "common": "Accepted G07.var01 five-position physical system, LRU installations, B/A OPHOURS failure modes, half-hour direct system CM, G04-OPS mode, h8–34 mission, seed1, one replication and horizon36. Every arm changes only RBDBridge slot IDs/description and ProblemDescription.",
+    "ulur": "B=LL, A=BR; C=UL, D=UR, E=LR; after B/A only UL+UR remains.",
+    "lllr": "B=UL, A=BR; C=LL, D=LR, E=UR; after B/A only LL+LR remains.",
+    "ulbrlr": "B=UR, A=LL; C=UL, D=BR, E=LR; after B/A only UL+BR+LR remains.",
+    "accepted_parent": "B=UL, A=LR; C=LL, D=UR, E=BR; after B/A only LL+BR+UR remains.",
+    "allbroken": "B=UL, A=LL; C=UR, D=LR, E=BR; after B/A all four paths are broken."
+  },
+  "pre_run_hypotheses": [
+    "All four new arms import, roundtrip and calculate without converter errors or unreviewed diagnostics.",
+    "The same B and A failure identities/times occur across the four new arms and accepted parent. B first is noncritical in all; A remains noncritical and the mission succeeds in each single-path arm, while A is critical and the mission aborts in the all-broken arm.",
+    "The source-bound truth table has exactly one functional bridge path after B/A in each unique-path arm and zero in allbroken; the native event log may show only system criticality, not the active path label."
+  ],
+  "native_acceptance": [
+    "Four unique guarded session-0 SSH runs with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Each arm exact populated-table import/export roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Matched B/A events with expected A criticality and mission outcome, 72-bin report/CM/stock/terminal reconciliation, and independent read-only replay separate from author code."
+  ],
+  "diagnostic_gate": "Preserve any rejected or unmatched arm as diagnostic and revise under new version/run IDs; do not claim a complete G07 bridge truth table from this five-scenario panel.",
+  "limits": [
+    "Five fixed-seed B/A failure patterns including the accepted parent, with physical A/B identity reassigned to bridge slots; other failure combinations, simultaneous transitions, and population reliability remain unverified.",
+    "The native log does not name the active path; unique-path identity is inferred from sealed source and manual rule. No bridge online maintenance, nested bridge, GUI RBD visual or cross-engine claim."
+  ]
+}
