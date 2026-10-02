@@ -1,0 +1,181 @@
+{
+  "schema": "simlox-h01-var03-continuous-damp-exact-diff/v1",
+  "parent_sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+  "control_sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+  "damp_sha256": "c61974ba269c15afe3e39e76f396d503b08e522b3b97bbad8125e44c3a02071a",
+  "added_tables": {
+    "DamageItem": {
+      "name": "DamageItem",
+      "columns": [
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "SID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "IID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "PROB",
+          "datatype": "double"
+        },
+        {
+          "name": "REPF",
+          "datatype": "double"
+        },
+        {
+          "name": "OPID",
+          "datatype": "string"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BATTLE-LOSS",
+              "TEACH-AIR-01",
+              "<ATTRITION>",
+              1.0,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "DamageType": {
+      "name": "DamageType",
+      "columns": [
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "DESCR",
+          "datatype": "string"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BATTLE-LOSS",
+              "Guaranteed mission attrition probe",
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "MissionDamage": {
+      "name": "MissionDamage",
+      "columns": [
+        {
+          "name": "MTID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "SID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "DAMP",
+          "datatype": "double"
+        },
+        {
+          "name": "DAMRT",
+          "datatype": "double"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BASIC-MISSION",
+              "TEACH-AIR-01",
+              "BATTLE-LOSS",
+              1.0,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "removed_tables": [],
+  "changed_tables": {
+    "ProblemDescription": {
+      "before": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "A05 continuous four-hour two-aircraft control"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      },
+      "after": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "H01.var03 continuous DAMP=1 rejection probe"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      }
+    }
+  },
+  "unchanged_table_count": 30
+}

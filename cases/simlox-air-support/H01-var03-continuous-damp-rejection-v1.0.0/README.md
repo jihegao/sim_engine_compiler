@@ -1,0 +1,7 @@
+# H01.var03 continuous-mission DAMP rejection
+
+This bounded pair starts from the accepted [A05 continuous two-aircraft source](../A05-continuous-baseline-v1.0.1/cli-scope-signoff-2026-09-30.md). The control is byte-identical to that source. The child adds one `DamageType`, one `MissionDamage` with `DAMP=1` and null `DAMRT`, and one certain `<ATTRITION>` consequence in `DamageItem`; only `ProblemDescription` changes among existing tables. The mission stays `CONTINUOUS` with the same two aircraft, four-hour schedule, seed and horizon.
+
+The guarded session-0 SSH control converts with zero errors, starts at h8, succeeds at h12, and reports 32 aligned half-hour System and Stock bins with eight aircraft-hours of operation. The child imports and exports all 16 authored row tables exactly, but converter error #252 says `DAMP` is not allowed for continuous or extendable missions. Its SXO is the four-byte stub, and there is no child event log or report. A zero calculation exit code is not a successful conversion.
+
+The [frozen contract](contract.json), [exact source diff](exact-diff.json), [CLI sign-off](cli-scope-signoff-2026-10-02.md), and [evidence index](evidence-index.json) bind this observation. The accepted claim is a converter restriction for this installed SIMLOX version and model. No DAMP damage or attrition behavior was simulated in the child. `DAMRT`, intermediate `DAMP`, other mission patterns, GUI visual behavior, and cross-engine parity remain unverified.
