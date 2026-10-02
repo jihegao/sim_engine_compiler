@@ -1,0 +1,29 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G12",
+  "variant_id": "G12.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "D03",
+    "package": "../D03-calendar-pm-v1.0.0",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "native_closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [253, 259, 260],
+    "rule": "SystemStructure links two child systems to one operational mother; each child contains one LRU. Only the top system is deployed, while calendar PM is assigned to leaf child A, not the composite mother."
+  },
+  "input": {"sha256": "25490c7da29019183ddc25aaed7953741bfc67261d535419941d56fc59767c7b"},
+  "exact_diff_sha256": "ff3e19d45223a4874344e18246c16be17ea2b2037d73eebcc60a98359dae74e4",
+  "configuration": {"top_sid": "TEACH-AIR-01", "child_sids": ["TEACH-SUB-A", "TEACH-SUB-B"], "child_lrus": ["TEACH-LRU-A", "TEACH-LRU-B"], "system_structure_qty": [1, 1], "environment_factors": [1.0, 1.0], "leaf_pm_hours": 24, "leaf_pm_duration_hours": 1, "horizon_hours": 60, "seed": "1"},
+  "predeclared_native_acceptance": [
+    "Guarded session-0 SSH import/export exactly preserves every populated authored table, including SystemStructure and both child-to-item relations; converter errors and notes are zero and valid SXO, event log, and report are generated.",
+    "Only TEACH-AIR-01 is deployed. Native behavior identifies a leaf-child-A calendar PM, retains the two D03-parent mission completions before hour24 and third mission around hour32, and the mother aircraft's availability is reconciled through PM and terminal state.",
+    "Inspect all native warnings and runtime errors, individual PM events, SystemResults time bins, mission results and terminal readiness; do not infer subsystem-specific report rows if the installed CLI omits them.",
+    "Seal source and raw hashes, preserve GUI PID13340 and Prelife Log registry setting, and require independent read-only replay before publication. If the converter rejects or behavior differs, preserve as a diagnostic and revise the bounded claim rather than silently accepting."
+  ],
+  "limits": ["This first G12 variant fixes two leaf subsystems with one zero-failure LRU each and one leaf calendar PM; failure propagation, QTYPM/ENVF changes, wrong-level PM/repair, and independent child deployment remain separate variants.", "GUI visual behavior and cross-engine parity are unverified."]
+}
