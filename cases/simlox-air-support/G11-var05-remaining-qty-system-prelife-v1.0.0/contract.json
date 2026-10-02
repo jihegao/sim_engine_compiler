@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "G11",
+    "variant_id": "G11.var01",
+    "package": "../G11-var01-fixed-system-prelife-v1.0.0",
+    "input_sha256": "a8836588aa09973b78195cf515cdc1ed4916c4f1653690e3bbd38fd0a5fb4bd2",
+    "native_closure_sha256": "29238ff0dfe1f92eca8876033987e2c6cdbd119335e51a625d82685076c45796"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 208, 209, 468, 469, 470, 471],
+    "rule": "For a PLID with several PrelifeData rows, at most one blank QTY row receives all remaining materiel after explicit quantities. An explicit system QTY sum may not exceed SystemDeployment.QTYPS. A blank-QTY PLIND is displayed last in the Prelife Log."
+  },
+  "inputs": {
+    "explicit-two": {"sha256": "afd693a6609c2454b3ec71a1f663791b61a932831720070d164d371c6aff9be2", "qty_rows": [1, 1, 2]},
+    "remaining-blank": {"sha256": "056728b5db95e06d5152337c4ec4b706cc8c69981bb094fd4f8f85102875be71", "qty_rows": [1, 1, null]}
+  },
+  "exact_diff_sha256": "d717f8375b8b5eb56a3f82c8a1087c01ca4bbb4cdc8e0132a0a5480a468012b7",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "deployed_count": 4,
+    "prelife_plid": "PL-SYS",
+    "prelife_rows": ["AGE0", "AGE60", "AGE120"],
+    "fixed_ages_calhours": [0, 60, 120],
+    "pm": {"PMID": "CAL100", "OPID": "CALHOURS", "PMINT": 100, "duration_hours": 1},
+    "scheduled_profile_starts_hours": [8, 20, 32],
+    "scheduled_profile_IQTY": 0,
+    "missions_expected": 0,
+    "seed": "1",
+    "horizon_hours": 104,
+    "report_interval_hours": 0.5
+  },
+  "hypothesis_before_native": {
+    "explicit-two": "QTY1/1/2 assigns ages 0/60/120/120 to the four systems in source order; first CAL100 PM starts for IDs 0/1/2/3 at h100/h40/h80/h80.",
+    "remaining-blank": "QTY1/1/blank allocates both remaining systems to AGE120 and should reproduce ages 0/60/120/120 and the same first PM times. Two distinct h80 PM tasks may coincide."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms import/export exact populated authored tables, convert with zero errors and only inherited event-log #108/no-item #126 warnings, calculate without runtime errors, seal sources and raw outputs, and preserve GUI PID13340 and Prelife Log option NO.",
+    "The two arms differ only in the third PrelifeData.QTY cell (2 versus blank) and description; both have QTYPS4 and retain referenced OperationProfile rows with IQTY0.",
+    "Prelife Log shows one AGE0, one AGE60, and two AGE120 CALHOURS system records in both arms, with the blank-QTY PLIND last. First CAL100 PM starts at h40 for ID1, h80 for distinct IDs2 and3, and h100 for ID0; no mission runs.",
+    "Both arms have 208 contiguous half-hour System/Stock report bins and terminal four ready systems. Event, resource and stock ledgers and PM totals reconcile.",
+    "A separately written read-only reviewer replays the frozen source and raw evidence without importing author validation code."
+  ],
+  "limits": [
+    "Four same-type top-level systems, one blank-QTY row placed last, fixed CALHOURS ages, one seed, first PM only. Row reordering and multiple blank/overallocated negative cases are separate variants.",
+    "No instantiated missions, installed/stocked item prelife, other OPID or topology, GUI visual behavior, later PM cycles, or cross-engine parity."
+  ]
+}
