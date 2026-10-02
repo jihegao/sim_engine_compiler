@@ -1,0 +1,119 @@
+{
+  "checks_passed": 981,
+  "checks_total": 981,
+  "evidence": {
+    "monitored": {
+      "closure_sha256": "ef5694117dc43171508ac7d49065605b67f4c9be546900f09de5d9b76a245276",
+      "input_sha256": "48a3eea3f6f9c32fd79bcc9f544845e2e60f5767987b37605563b5bf2738c9dd",
+      "issued_item_ids": [
+        1,
+        0,
+        1
+      ],
+      "model_log_sha256": "d7cdd7a071d286d127ce59c6f06fe1b3734777871150e8d9d361741456cd20d1",
+      "pm_events": [
+        [
+          10.0,
+          0,
+          "SYS-SWAP"
+        ],
+        [
+          34.0,
+          2,
+          "LRU-OP3"
+        ],
+        [
+          46.0,
+          4,
+          "LRU-OP3"
+        ]
+      ],
+      "removed_item_ids": [
+        0,
+        1,
+        0
+      ],
+      "report_sha256": "167554f78fadba5d9603946881ac50360a3864bc7f3c2cc7377e241e5096ad87",
+      "returned_item_ids": [
+        0,
+        1,
+        0
+      ],
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 48,
+        "STMF": 1
+      }
+    },
+    "system-converted": {
+      "closure_sha256": "f59ac3c986fd37e532ccf25cd055c395103a14fd49d30b187c2deeb299c1008f",
+      "input_sha256": "e93643ecc8765a1a132b8c71445729fceff44b034059a4f2a2274879c1b47a37",
+      "issued_item_ids": [
+        0,
+        1,
+        2
+      ],
+      "model_log_sha256": "839e94a20dba8c9099ffff17e529528c65aeb710c690d8abba1c48e1716eff34",
+      "pm_events": [
+        [
+          10.0,
+          0,
+          "SYS-SWAP"
+        ],
+        [
+          22.0,
+          2,
+          "LRU-OP3"
+        ],
+        [
+          46.0,
+          4,
+          "LRU-OP3"
+        ]
+      ],
+      "removed_item_ids": [
+        1,
+        2,
+        3
+      ],
+      "report_sha256": "10d8202ab0b6c373f5ad572a4e62cae9b8b4ec0072e56bfc8046a894f4ec043a",
+      "returned_item_ids": [
+        1,
+        2,
+        3
+      ],
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 48,
+        "STMF": 1
+      }
+    }
+  },
+  "failures": [],
+  "finding": "In MONIT=Y, original item ID0 is removed at h10 for distinct-PMID SYS-SWAP, overhauled and stocked h11.25, then physically reinstalled h34. It operates in the h44–46 mission and is removed by LRU-OP3 at h46. The monitored former spare ID1 first receives LRU-OP3 at h34. In MONIT=N, the system-converted LRU-OP3 occurs at h22 and again h46 on successive IDs. All four missions succeed in both arms.",
+  "interpretation_limit": "The h46 MONIT=Y LRU-OP3 on reinstalled physical ID0 supports bounded persistence of the distinct LRU-OP3 eligibility across SYS-SWAP removal and item overhaul in this exact model. The log does not report a numeric per-item counter, so the value/reset mechanism is inferred from frozen source and event timing, not directly measured. NPMS marks h45 before h46 task work.",
+  "limits": [
+    "One aircraft, one stocked item, one seed, one SYS-SWAP and one post-reinstallation mission; no general age/counter law.",
+    "SYS-SWAP includes different-PMID item overhaul, so the result does not isolate all effects of maintenance on every counter.",
+    "No GUI-only or cross-engine parity claim."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d14-var03-post-reinstallation/v1",
+  "verdict": "GO: bounded post-reinstallation LRU-OP3 recurrence on physical ID0"
+}

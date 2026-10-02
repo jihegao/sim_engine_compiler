@@ -1,0 +1,114 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D14",
+  "variant_ids": [
+    "D14.var03"
+  ],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "D14",
+    "variant_ids": [
+      "D14.var02",
+      "D14.var03"
+    ],
+    "package": "../D14-var02-03-zero-age-reinstallation-v1.0.0",
+    "inputs": {
+      "monitored": {
+        "sha256": "0345fe8ff1c7e86a3332f4ef822adf92814e6a0562bb30cbfa305b4a89a00b7c",
+        "native_closure_sha256": "d4fb3ea7e60ae2b4a7cd8aaab6024d58c7be9db97b9eb7e0372f59fc19c13084"
+      },
+      "system-converted": {
+        "sha256": "cd0bd500b3f7a5496fe730244e225484c79041ec33502a940e09c516ed4b3056",
+        "native_closure_sha256": "fa68486b3a36b8c78482451f8ee4db5914a44bf70c69cd82b10344d0d94af332"
+      }
+    }
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [
+      202,
+      203,
+      204,
+      205,
+      210,
+      211,
+      217,
+      370,
+      371,
+      372,
+      373,
+      374,
+      387,
+      388,
+      390,
+      392,
+      393
+    ],
+    "rule": "MONIT=Y stores each item PM counter on the physical item. SYS-SWAP and LRU-OP3 are distinct PMIDs; a SYS-SWAP system replacement removes and overhauls original item ID0, returns it to stock, and LRU-OP3 later reinstalls it. This continuation tests whether the original item triggers its own LRU-OP3 after renewed operation."
+  },
+  "inputs": {
+    "monitored": {
+      "MONIT": "Y",
+      "sha256": "48a3eea3f6f9c32fd79bcc9f544845e2e60f5767987b37605563b5bf2738c9dd"
+    },
+    "system-converted": {
+      "MONIT": "N",
+      "sha256": "e93643ecc8765a1a132b8c71445729fceff44b034059a4f2a2274879c1b47a37"
+    }
+  },
+  "exact_diff_sha256": "7b36b6e061fad4a633ef34f990ce43b6094b3cbdb69b633e73e1fb4fbdd8a664",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "item": "TEACH-LRU-01",
+    "position": "POS-A",
+    "station": "BASE-01",
+    "installed_initial": 1,
+    "stock_initial": 1,
+    "prelife_rows": 0,
+    "system_pm": {
+      "PMID": "SYS-SWAP",
+      "MID": "TEACH-AIR-01",
+      "OPID": "OPHOURS",
+      "PMINT": 2,
+      "MNOCC": 1,
+      "replacement_quantity": 1,
+      "SCHED": "Y"
+    },
+    "item_pm": {
+      "PMID": "LRU-OP3",
+      "MID": "TEACH-LRU-01",
+      "OPID": "OPHOURS",
+      "PMINT": 3,
+      "replacement_quantity": 1,
+      "SCHED": "Y"
+    },
+    "mission_launch_hours": [
+      8,
+      20,
+      32,
+      44
+    ],
+    "mission_duration_hours": 2,
+    "seed": "1",
+    "horizon_hours": 48
+  },
+  "hypothesis_before_native": {
+    "common": "The accepted first three missions and exchange sequence recur. A fourth two-hour mission starts h44 after original monitored item ID0 was physically reinstalled at h34.",
+    "monitored": "If original item ID0 retains its two LRU-OP3 operation hours accumulated before SYS-SWAP and unrelated item overhaul, the fourth mission raises it to four and its LRU-OP3 PM starts h46. If that distinct counter reset, no LRU-OP3 PM should occur at h46.",
+    "system-converted": "The system-level LRU-OP3 counter was last reset at h22 and should reach its next threshold after missions ending h34 and h46, making a converted-arm PM at h46 a schedule control."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms must exactly roundtrip authored tables, calculate with zero conversion errors, valid nonempty event/report output, and no incomplete PM runtime warning.",
+    "Both arms must reconcile four mission outcomes, PMID-specific system/item PM starts/completions, physical item IDs, stock issues/returns, and 96 aligned half-hour report bins.",
+    "Full retained-counter inference for D14.var03 requires monitored physical ID0 to be the item on the fourth mission and LRU-OP3 at h46 after its earlier h8-10 use; any differing result narrows or rejects the inference.",
+    "A separate read-only reviewer must replay frozen input and raw evidence without importing the author implementation."
+  ],
+  "limits": [
+    "One seed, one aircraft, one stocked item, one system swap, one item PM interval, and one post-reinstallation mission only.",
+    "The SYS-SWAP removal includes a different-PMID item overhaul; this test isolates LRU-OP3 recurrence, not all maintenance effects on age.",
+    "Counter age is inferred from event timing and physical IDs, not directly exposed in native report.",
+    "GUI visual content and cross-engine equivalence remain unverified."
+  ]
+}
