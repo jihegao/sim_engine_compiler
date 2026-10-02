@@ -1,0 +1,29 @@
+{
+  "checks_passed": 6373,
+  "checks_total": 6373,
+  "evidence": {
+    "missions-plus-ophours": {
+      "closure_sha256": "5423ea00d5aacf08a8adf1c862fdb9b2ec4cc9b66f7efe86453f7fb4784121c7",
+      "input_sha256": "12c30f7306cc62c3667f3efb86c569ebe982fbb5dbc6f34d366dd5a8d8d98d6a",
+      "model_log_sha256": "6533e4ce2bf008f7a3a269a4a52543e8184ca54a4137634724e00b080a8f96b5",
+      "report_sha256": "5c1aeb39f220cccb738bb0b3ec855d8cce86c335182f455669a4527db5b09dbc",
+      "system_pm_hours": 1.5
+    },
+    "ophours-only": {
+      "closure_sha256": "412117706867517d77e4ec338da0c1c1a2305b01d6736eb3c9baf37c5e58dbca",
+      "input_sha256": "4e2ef5e138628b6afe9585afe140bab5a190bc77e3d7e6de18b1e1700c1c22d9",
+      "model_log_sha256": "3a32b458540ac3be1313f39841f0ce874633f65a34d68160d2819b067a30805c",
+      "report_sha256": "972420e3bcff2c82f54a7f70442bf831d4cc634e69d2e84b9f4b79d04e12854c",
+      "system_pm_hours": 1.0
+    }
+  },
+  "failures": [],
+  "finding": "Both arms complete four two-hour missions. A one-time SYS-SWAP at h10 replaces item ID0 with ID1. The MISSIONS2+OPHOURS5 arm has LRU-MIX at h34 on ID1 and h46 on reinstalled ID0; OPHOURS5-only has no h34 LRU-MIX and its first LRU-MIX is h46 on ID1. Full 96-bin System/Stock reports and terminal readiness reconcile.",
+  "limits": [
+    "The winning counter is not named in native logs or reports; MISSIONS attribution is an inference from the isolated source difference and threshold timing.",
+    "One seed, one aircraft, two physical LRUs, one system swap, and 48-hour horizon. No counter tie, other intervals, initial prelife, general scheduling, GUI visual, or cross-engine claim."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d14-var05/v1",
+  "verdict": "GO: bounded monitored-item multi-counter observation"
+}
