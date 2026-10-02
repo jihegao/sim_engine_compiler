@@ -1,0 +1,26 @@
+{
+  "schema": "independent-i02-var10-target-backorder-review/v1",
+  "passed": true,
+  "verdict": "GO: bounded h9 stocked target versus h11 target with ordinary backorder",
+  "checks_passed": 895,
+  "checks_total": 895,
+  "failures": [],
+  "raw_seals_checked": 32,
+  "source_sha256": {
+    "early": "ed117928b3e82c8194d0d7f56fc5fe43d0fdbf0f71c400813ad67644ae0d4e84",
+    "late": "5f342138a74e6453822b17684741af13ef3e5aa694d036455dfdcce53cd666f8"
+  },
+  "native_closure_sha256": {
+    "early": "396a98da0b25a48a9e578b4399482b3d1f040b7ef61c209da656dd03a4b4bd6c",
+    "late": "efe59e92ac3c6deca43104f692ba2a3a0a359d3583d2fe06b54438261ec27c44"
+  },
+  "observations": {
+    "early": "Physical depot ID0 moves to base h9 and stocks on hand; h10 aircraft repair uses it with no base backorder; ordinary ID1 replenishes h12, system ready h10.5.",
+    "late": "h10 aircraft demand opens base BO1; h11 scheduled BETWEEN ID1 reaches base and directly clears BO without adding on-hand; ordinary depot ID0 reaches base h12 and stocks it, system ready h11.3333.",
+    "reports": "Four 72-bin station ItemResults ledgers and full System/Stock tables reconcile; mission summaries and outcomes match, both terminal aircraft ready1/base stock1/depot stock1."
+  },
+  "limits": [
+    "One IID, two stations, zero-duration one-unit BETWEEN h9/h11 after h4 IN, fixed seed.",
+    "This shows one realized target-backorder routing difference, not general queue priority, arbitrary backorders, delays, GUI rendering or cross-engine behavior."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "simlox-i02-var10-target-backorder-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var10",
+  "version": "1.0.0-candidate",
+  "scope": "Matched one-unit zero-duration BETWEEN arrival at BASE-01 before versus after ordinary h10 item demand",
+  "direct_parent": {"package": "I02-var03-between-transfer-v1.0.0", "source_sha256": "4842382bd3728f7f9520d3b20e1ad7148f7436f5132e9cc933773550d64b4560", "native_control_run_id": "i02-var03-between-v100-ssh-20261002-01"},
+  "arm_sha256": {"early": "ed117928b3e82c8194d0d7f56fc5fe43d0fdbf0f71c400813ad67644ae0d4e84", "late": "5f342138a74e6453822b17684741af13ef3e5aa694d036455dfdcce53cd666f8"},
+  "exact_diff_sha256": "4a7573fe4339508164cd53935aeb2861d9f62b153ff1979c00e2571d0335e932",
+  "installed_source_sha256": {"simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0", "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"},
+  "manual_printed_pages": [225, 476, 477, 478, 681, 682, 683, 717],
+  "controlled_design": "Accepted I02.var03 h4 one-unit IN to DEPOT-01 and h6 one-unit BETWEEN to BASE-01 is the source parent. Keep the IN row, one LRU, depot opening stock1, base opening stock0, zero transfer duration, ordinary h10 failure/demand, Item.TRACK=Y, half-hour ITEM collection, seed1 and horizon36 fixed. Arm EARLY changes only BETWEEN TFTIME6→9 plus description; arm LATE changes only TFTIME6→11 plus description. The arms differ only TFTIME9→11 plus description. Native evidence decides whether target has ordinary backorder at arrival, whether it is served, and how its nominal/on-hand ledgers respond.",
+  "parameters": {"seed": "1", "horizon_hours": 36, "result_interval_hours": 0.5, "transfer_quantity": 1, "transfer_delay_hours": 0, "early_between_hour": 9, "late_between_hour": 11, "ordinary_failure_window_hour": 10},
+  "pre_run_hypotheses": [
+    "Both arms exactly roundtrip 22 populated authored tables, convert with zero errors and yield nonempty native output.",
+    "EARLY may stock BASE-01 at h9 before h10 ordinary demand and therefore have no target backorder at its transfer arrival. LATE may encounter a target ordinary backorder from h10 and deliver at h11; the physical log and base ItemResults.NBO/STSZ/STOHA decide.",
+    "A LATE transfer arriving at a target with backorder may clear that backorder before adding on-hand stock; check item identity, backorder removal, scheduled versus ordinary delivery, depot source conservation, system readiness and terminal state. If the target backorder does not occur or another route wins, classify the limitation rather than claiming priority."
+  ],
+  "acceptance_gate": "Publish a bounded target-with/without-backorder contrast only if direct physical events, two-station half-hour ItemResults, source and destination identities, selected/default business reports, guarded serial native closures and independent read-only replay reconcile both arms. Preserve a diagnostic limitation if the intended target-backorder contrast does not materialize.",
+  "limits": ["one LRU and two stations after an h4 IN, zero-duration one-unit BETWEEN at h9 versus h11, one seed", "ordinary demand and scheduled transfer timing are linked; no general queue priority, arbitrary target backorders, positive transfer duration, procurement, GUI visual or cross-engine claim"]
+}
