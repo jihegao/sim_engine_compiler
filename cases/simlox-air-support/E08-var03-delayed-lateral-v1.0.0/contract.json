@@ -1,0 +1,25 @@
+{
+  "schema": "simlox-e08-var03-delayed-lateral-contract/v1",
+  "case_id": "E08",
+  "variant_id": "E08.var03",
+  "version": "1.0.0-candidate",
+  "scope": "Matched DLAYL Y/N on a genuine lateral peer with an item in scheduled transit at the demand time",
+  "direct_parent": {"package": "E08-var01-immediate-lateral-v1.0.2", "source_sha256": "630d7600e7ff77ddb057f05af0852b4f41ed6335718570f9fcf5eddd9f51c474", "native_control_run_id": "e08-immediate-on-v102-ssh-20261002-01"},
+  "transfer_schema_donor": {"package": "I02-var04-between-delay-v1.0.0", "source_sha256": "607b5d5bc9d3c850b533b4bc50e202e6719c23182b47038fdf056222bfce2f39"},
+  "off_input_sha256": "00e2b99b30fef8e4e8b93dfeaf6d96bb9ebb2d183cf947124f6f307bd0944230",
+  "on_input_sha256": "a584fd84cd4948dfe4122f0d1cc963b9910449faf4fcc607a6c63fa09f808762",
+  "exact_diff_sha256": "e730ad9ac091f3848a2da98e51e24bb7c5a13c1a75a32e00966d6092c7b5bec0",
+  "installed_source_sha256": {"simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0", "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"},
+  "manual_printed_pages": [225, 319, 320, 321, 476, 477, 478],
+  "manual_basis": "LateralSupport.DLAYL allows considering lateral support when no peer has a free item now but one will soon be available (manual p320). ItemTransfer BETWEEN schedules physical stock with a positive TFDT; accepted I02.var04 observed delayed physical arrival.",
+  "controlled_design": "From accepted E08 ENLAT=Y IMMEDIATE source, change peer BASE-02 STSIZ1→0 and add one scheduled ItemTransfer BETWEEN of depot physical ID0 to peer at h9 with TFDT2, so it is in transit at BASE-01's h10 ordinary demand and scheduled to arrive peer h11. Keep depot initial stock1, base initial0, one IID, LAT-01, half-hour lateral transport, one-hour ordinary item downward transport, TRACK=Y, half-hour ITEM collection, seed1 and horizon36. The two child arms differ only DLAYL N/Y and descriptive text.",
+  "parameters": {"seed": "1", "horizon_hours": 36, "result_interval_hours": 0.5, "base_01_initial_spares": 0, "base_02_initial_spares": 0, "depot_initial_spares": 1, "scheduled_transfer_depart_hour": 9, "scheduled_transfer_duration_hours": 2, "first_aircraft_demand_hour": 10, "lateral_hours": 0.5, "ordinary_item_down_hours": 1, "lateral_rule": "IMMEDIATE"},
+  "pre_run_hypotheses": [
+    "Both arms import and exactly roundtrip 25 populated authored tables, convert with zero errors and yield nonempty native output.",
+    "The scheduled h9 transfer moves physical depot ID0 toward BASE-02 and arrives at h11, so the peer has no on-hand spare at the h10 BASE-01 shortage but a known future arrival.",
+    "With DLAYL=Y, the h10 shortage may reserve that future peer item for lateral shipment after its h11 arrival; with DLAYL=N, it may wait for ordinary support. The native event log and station ledgers, not the hypothesis, determine acceptance.",
+    "Transfer backorder, peer/ordinary backorder, item identities, arrivals, aircraft readiness, mission effects and terminal stock must reconcile in each arm."
+  ],
+  "acceptance_gate": "A positive DLAYL comparison requires the h9 transfer to execute and remain in transit at h10, the Y/N source contrast to be isolated, and a native physical-route or wait-time difference attributable to the switch. If Y/N behave alike, publish only a reproducible limitation or counterexample with the observed sequence; if the transfer or reporting fails, retain diagnostic only.",
+  "limits": ["one scheduled BETWEEN supply in transit toward an empty peer", "one IID, depot and peer, immediate lateral rule, fixed seed", "no general future-supply sources, priority, deeper chains, GUI rendering or cross-engine parity"]
+}
