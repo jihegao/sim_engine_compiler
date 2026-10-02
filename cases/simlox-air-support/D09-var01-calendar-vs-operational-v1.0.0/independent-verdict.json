@@ -1,0 +1,29 @@
+{
+  "checks_passed": 1640,
+  "checks_total": 1640,
+  "evidence": {
+    "calendar": {
+      "closure_sha256": "fb536519c47bb0d6bc1a3408066500fd310261d9c939c3796b3f62b02a7c9430",
+      "input_sha256": "c9645fcb8a567c89077e830916839a33dd63574b9249893f469a2ae47e5e6cce",
+      "model_log_sha256": "cec24b8f5de0156685a538bdeaa33cf48d10216b62e06e7dd9a8f314de0fb6f4",
+      "report_sha256": "c7b082f8aabc536c6b9d93cb999a59b0e7dd7a61da09f6d3548f66cc48f156b8"
+    },
+    "operational": {
+      "closure_sha256": "db74569ea507344fb3e23498167979bca5b898598b66d4832deb22ee63652b04",
+      "input_sha256": "1caac8f4cdb97a6e930b5d612360df601b541b75f99ce337f273aa334f4f460a",
+      "model_log_sha256": "2a2d9c8ff7ae9c5eeacfc66b70fb9b4cd7942610feacc8619a6c721e5448691b",
+      "report_sha256": "dceab8f38812b5f129fd86f79e47e5d02350c9bc881f59a9f1754d9de7db772a"
+    }
+  },
+  "failures": [],
+  "finding": "Both zero-stock arms continue after a noncritical h9.8829 fault and succeed at h10 while SURP waits for the same LRU ID0. CALENDAR escalates at h10.0829, repairs ID0 and clears backorder at h11.3329, then succeeds at h22. OPERATION remains pending through idle, launches h20, escalates/aborts at h20.0829, repairs ID0 and clears backorder at h21.4158. Both finish ready after the third mission succeeds.",
+  "limits": [
+    "One aircraft, LRU, seed, zero local stock and 0.2-hour limit; no general NCFTT clock law or other tolerance claim.",
+    "Native dictionary token is OPERATION; manual prose calls it OPERATIONAL. This replay verifies the installed source token and observed event timing.",
+    "The operational second mission aborts at h20.0829; physical repair begins only after return at h20.4158. Aggregate report bins are fractional at those boundaries.",
+    "GUI-only behavior and cross-engine parity untested."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d09-var01/v1",
+  "verdict": "GO: bounded calendar-versus-operation NCFTT contrast"
+}
