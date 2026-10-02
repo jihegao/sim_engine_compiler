@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-g12-var02-subsystem-frequency-contract/v1",
+  "case_id": "G12",
+  "variant_id": "G12.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G12-var01-two-subsystems-v1.0.0",
+    "input_sha256": "25490c7da29019183ddc25aaed7953741bfc67261d535419941d56fc59767c7b",
+    "native_closure_sha256": "75b5a4e7d800f6a78eb5ae9dd16cee961ebbc054c489600369519c9b6f58068a"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [252, 253, 255, 259, 260],
+    "rule": "Subsystem QTYPM and ENVF propagate failure frequency through SystemStructure; a subsystem can be a tightly linked part of a deployed top system. QTYPM may also propagate task frequency, so PM outcomes are secondary and separately described."
+  },
+  "input_manifest_sha256": "7d7551dee5f5ec2e94b558160538ce3d35430760ba8f36d5c68d0ed1feee197d",
+  "panel": {
+    "seeds": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    "arms_per_seed": ["baseline", "qty-two", "env-two"],
+    "replications_per_arm_seed": 256,
+    "horizon_hours": 60,
+    "child_b_system_frt_per_million_op_hours": 50000,
+    "child_b_direct_repair_hours": 0.5,
+    "top_frt": "computed from child structure",
+    "child_a_frt": 0,
+    "calendar_pm": "unchanged CAL24 on child A",
+    "missions": "unchanged h8, h20, h32 starts on one deployed top aircraft"
+  },
+  "single_factor_variants": {
+    "baseline": "TEACH-SUB-B SystemStructure QTYPM=1 ENVF=1.0",
+    "qty-two": "Only TEACH-SUB-B SystemStructure QTYPM=2 relative to same-seed baseline, apart from description",
+    "env-two": "Only TEACH-SUB-B SystemStructure ENVF=2.0 relative to same-seed baseline, apart from description"
+  },
+  "pre_run_analysis": {
+    "primary_outcome": "Aggregate total-unit/total-system SystemResults NFAIL summed over 120 nonoverlapping half-hour bins, per 256 replications for each arm and seed.",
+    "secondary_outcomes": ["NREPT in the same bins", "mission/PM summary and event chronology", "StockTotalResults", "terminal system readiness"],
+    "paired_contrasts": ["qty-two minus same-seed baseline", "env-two minus same-seed baseline"],
+    "uncertainty": "For twelve matched seeds, report each paired difference, arithmetic mean, sample standard deviation, and Student t 95% interval. Exact one-sided sign test counts strictly positive differences; zeros are nonpositive. Bonferroni threshold 0.025 per contrast.",
+    "acceptance_direction": "Both contrasts require positive mean difference and exact one-sided sign-test p < 0.025. Magnitude is descriptive; no exact rate multiplier or arm equivalence is claimed.",
+    "diagnostic_gate": "Before the full panel, run seed 2 baseline once. If conversion rejects the model, output is invalid, or relevant warning is unclassified, seal and report the diagnostic without running the remaining panel or publishing a positive result. A corrected contract/input must receive a new version and unique run ID."
+  },
+  "native_acceptance": [
+    "Each run uses guarded session-0 SSH, host-wide queue mutex, and preserves GUI PID13340 and the original Prelife Log option.",
+    "Each run has exact authored populated-table import/export roundtrip, zero conversion errors, reviewed warnings, nonempty valid SXO, event log and report.",
+    "Input and run source hashes and every local raw artifact are sealed; source and closure remain stable.",
+    "Independent read-only reviewer checks source contrast, raw seals, per-run metrics, statistical contrasts and scope without importing author validator."
+  ],
+  "limits": [
+    "This panel addresses aggregate failure-frequency propagation for one directly repairable child B in one two-child composite. It does not prove physical multiplicity, exact rate doubling, or equal mechanisms for QTYPM and ENVF.",
+    "The native event log records only the first replication of a multi-replication run. Aggregate per-subsystem causation and other child repair policies are not inferred from it.",
+    "Failure-induced effects on sibling operation, wrong-level repair/PM, GUI visuals, and cross-engine parity require separate evidence."
+  ]
+}
