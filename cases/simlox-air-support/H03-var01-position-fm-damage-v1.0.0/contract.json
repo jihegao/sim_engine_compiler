@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-h03-var01-position-fm-damage-contract/v1",
+  "case_id": "H03",
+  "variant_id": "H03.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "D06-explicit-position-direct-repair-v1.0.0",
+    "source": "../D06-explicit-position-direct-repair-v1.0.0/native-input.json",
+    "sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78"
+  },
+  "damage_reference": {
+    "package": "H02-var01-primary-lru-damage-v1.0.0",
+    "source": "../H02-var01-primary-lru-damage-v1.0.0/lru-input.json",
+    "sha256": "82564db9cd0d3f916a87264d16d390a42bf886f5748c843070bea20e6b1c4a92",
+    "use": "Accepted BATTLE-HIT DamageType and certain in-flight MissionDamage schema and configuration; not the behavioral parent."
+  },
+  "sources_sha256": {
+    "control": "d69c39f552b73292115e65cab4e55dfaaf4976488d6e83e55ba6338077506a19",
+    "mode": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c",
+    "exact_diff": "fecafd871994f7215dc11905befd3be7f1512f0326d4cafc6e3e601034e13cf2"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp192-193 defines damage consequences in DamageFailureMode and CM route by CMLocation; pp424-425 define keys, system/materiel-structure eligibility and independent PROB sampling. Installed dictionary requires a positive FailureMode.FRQ and the DamageFailureMode row keys/probability.",
+  "source_delta": "Accepted D06 explicit POS-A system CM source retains materiel position, FM-POS-A, BASE-01 CMLocation CMT0.5, fixed mission schedule, seed1 and horizon36. Both arms reduce the ordinary FM failure frequency from 300000 to positive 1e-9 per million operational hours to isolate damage consequences. Both add accepted H02 BATTLE-HIT DamageType and DAMP1 MissionDamage, plus DamageFailureMode for FM-POS-A at PROB0. The child changes only this PROB to 1 and description. No DamageItem consequence is present.",
+  "pre_run_hypotheses": {
+    "control": "BATTLE-HIT occurrences should occur during fixed missions without FM damage consequence, preserving mission progress in the absence of ordinary failure.",
+    "mode": "BATTLE-HIT should produce FM-POS-A damage consequences that route to accepted D06 BASE-01 CMLocation half-hour direct CM. Event identities, mission outcomes, report bins and terminal state determine the accepted bounded claim; times may differ between arms.",
+    "alternatives": "Converter error, ordinary failure, unrepairable FM consequence, mission cancellation or ledger mismatch is diagnostic only until explained. Positive FRQ1e-9 is not a zero-rate guarantee."
+  },
+  "excluded_prior_diagnostic": "Separate H03-var01-damage-failure-mode-v1.0.0 mixed traditional-LRU/FM probe logged both first-event consequences but native warning #242 incomplete system repair and no CM task, leaving terminal unavailable; its two runs are unpublished and cannot support this FM-only acceptance.",
+  "acceptance_gates": [
+    "Independent pre-run static review of accepted D06 direct parent, H02 damage reference, exact diff, manual/dictionary basis and guarded runner",
+    "Fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored row-containing table roundtrips and zero converter errors with valid SXO, event log and report",
+    "Damage and FM identities, direct CM route, mission outcomes, 72 System/Stock bins and terminal state reconcile for each accepted run",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "One position FM, one damage type and one seed do not prove multiple FMs, simultaneous item/FM consequences, already failed mode override, alternative stations, GUI visual behavior or cross-engine parity."
+  ]
+}
