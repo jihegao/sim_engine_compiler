@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-h01-var02-rate-no-consequence-contract/v1",
+  "case_id": "H01",
+  "variant_id": "H01.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "A02-single-aircraft-repeated-missions",
+    "source": "../A02-single-aircraft-repeated-missions/native-input.json",
+    "sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "scope": "one generic aircraft, three fixed two-hour missions at h8/20/32, no ordinary failures, seed1, horizon36"
+  },
+  "sources_sha256": {
+    "control": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "rate": "947fe484aad8aa8a971160baaddc56489a2cea78e1b0365fe955c59de04c7d65",
+    "exact_diff": "49659229552396b5879b01d683bab6d44fe6adbd57c071dea876dd643aca122c"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp192-193 and 437-439: DAMRT is an exponential time-to-damage rate per million mission hours and may generate several occurrences of one damage type in a mission. Occurrences happen only after mission start. DamageItem.PROB is an independent consequence probability between 0 and 1, including zero; pp425-426.",
+  "source_delta": "The control is byte-identical to accepted A02. The rate arm adds DamageType BATTLE-HIT, MissionDamage DAMP=0/DAMRT=3000000 per million mission hours, and DamageItem <ATTRITION>/PROB=0, plus a new ProblemDescription. All existing mission, system, schedule, seed, horizon and failure settings are identical. The zero-probability consequence is intended to let the sole aircraft survive repeated damage occurrences; it is not evidence of an attrition path.",
+  "pre_run_hypotheses": {
+    "control": "Native control should convert with zero errors and complete the three fixed missions at h10/22/34 with no damage, as in accepted A02.",
+    "rate": "If the native engine supports this configuration, it may log multiple BATTLE-HIT occurrences during one launched mission while the zero-probability consequence leaves the aircraft active. Exact counts and stochastic times are not preaccepted. Positive acceptance requires at least two distinct same-type occurrence timestamps within one mission interval, all after launch and before completion, with no attrition, plus reconciled reports.",
+    "alternatives": "Converter rejection, no damage occurrences, only one occurrence per mission, mission abort, attrition, or missing/ambiguous log identity is diagnostic only for this predeclared repeated-rate claim. A successful process exit is not native acceptance."
+  },
+  "acceptance_gates": [
+    "Independent static review of frozen source, exact diff, manual/dictionary basis and guarded runner before native execution",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact 13/16 authored row-table roundtrips, zero converter errors, valid SXO/event/report for both arms",
+    "Event-by-event repeated BATTLE-HIT within one mission, no prelaunch damage or attrition, and 72 aligned System/Stock bins with terminal reconciliation",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "One seed, one high rate, no actual consequence; this cannot estimate a population rate or verify exponential law, consequence frequency, item/system damage or repair.",
+    "DAMP/DAMRT mutual-exclusion rejection, continuous missions, multiple aircraft, GUI visual behavior and cross-engine parity are separate boundaries."
+  ]
+}
