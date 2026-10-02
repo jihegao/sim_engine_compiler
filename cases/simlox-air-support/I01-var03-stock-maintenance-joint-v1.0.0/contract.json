@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-i01-var03-joint-stock-maintenance-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var03.joint-stock-maintenance",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I01-var03-maintenance-station-v1.0.0",
+    "source": "../I01-var03-maintenance-station-v1.0.0/base-input.json",
+    "sha256": "4e16325638ff7aafcf47306101b42a780c02b06f957c0036317e300eb63abf72",
+    "merge_sha": "1f7b57591dc9efc45311241947931427575edbb2"
+  },
+  "sources_sha256": {
+    "one-base": "96dd5cb98a9e5847fc7ae0d4236d6214dbe1825fe5c89c9e87ad3c951621b049",
+    "one-depot": "9e4f082d8e8bb9dc00a0d45e3b1dba6045bd1cc64ffe822d855c539285b12589",
+    "two-base": "c33af33250be2eae5054a80d25ef73461c2deba927924cffd135fd5f396b9b19",
+    "two-depot": "24500b239791936a7adc7ff0e83c674da8e813f19ec76ba9dc1cfde90391f763",
+    "exact_diff": "d5b7d14d8d169acbce8f871d451b7d33b610d8d7d8531d1391cb3be46ef05c81"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp439-445 describes Control.APID selecting POINT groups in StockAllocation and MaintenanceAllocation; installed dictionary fixes STSIZ and MaintenanceAllocation POINT/TCID/TLID/STID fields. Manual pp338-339 ties task-referenced ItemRepair to selected category and level. This experiment checks their joint observability for one LRU; no ResourceAllocation business rows are authored.",
+  "controlled_design": "All four inputs have identical authored rows except Control.APID and ProblemDescription. AIR_BASIC and AIR_DEPOT each have BASE-01 STSIZ1 and DEPOT-01 STSIZ0; AIR_TWO_BASE and AIR_TWO_DEPOT each have BASE-01 STSIZ2 and DEPOT-01 STSIZ0. AIR_BASIC and AIR_TWO_BASE select LRU-CM/BASE repair at BASE-01; AIR_DEPOT and AIR_TWO_DEPOT select it at DEPOT-01. All four POINTs are complete for both allocation tables. ItemRepair task reference, station structure, one-hour repair rows, missions, seed and 36-hour horizon are fixed. ItemReorder and ResourceAllocation business rows are empty.",
+  "pre_run_hypotheses": {
+    "one_spare_controls": "Inactive extra POINT rows should leave AIR_BASIC and AIR_DEPOT physical repair routes, stock initialization and 72-bin reports identical to the accepted station parent arms, except source description and native metadata.",
+    "two_spare_arms": "AIR_TWO_BASE and AIR_TWO_DEPOT should initialize exactly two BASE spare LRUs, issue one after the first failure, and route the failed physical LRU to BASE versus DEPOT respectively. The number assigned to a physical item and later failure draw may shift; only observations supported by the native logs and reports can be accepted.",
+    "station_matrix": "One-base and two-base should repair locally; one-depot and two-depot should transport the failed LRU two hours to DEPOT for repair, then return it over two hours. Exact event times and terminal inventory must be confirmed from fresh native evidence.",
+    "alternatives": "Any converter rejection, missing selected stock or maintenance behavior, changed failure/mission background, unexpected repair route, stock imbalance or incomplete output is diagnostic. Do not publish joint selection unless all four arms and independent replay support a narrow claim."
+  },
+  "acceptance_gates": [
+    "Independent pre-run static audit of parent lineage, four frozen sources, exact APID-only 2x2 delta, native runner and roundtrip checker",
+    "Four fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Each arm exact authored-table roundtrip, zero converter errors, valid SXO/report and SHA-256 sealed raw evidence",
+    "Direct physical initial/issued/returned stock items and selected repair station observed; 72-bin System/Stock reports and terminal state reconciled",
+    "Author replay, separate independent read-only replay and final staged audit before bounded publication"
+  ],
+  "limits": [
+    "A positive result would establish only joint stock-size and maintenance-station POINT selection for one LRU, two stock levels, two stations and one seed. ResourceAllocation selection remains untested.",
+    "No procurement/reorder, stock shortage, category-level interaction, generic POINT selection, GUI visual behavior or cross-engine parity is claimed."
+  ]
+}
