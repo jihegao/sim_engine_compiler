@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var13",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [205, 206, 207, 208, 468, 469, 470, 471, 474, 475],
+    "rule": "For one PLID, at most one PrelifeData.QTY may be blank, explicit QTY sum must not exceed deployed/installed quantity, and sub-prelife structure must match the physical materiel path including intermediate positions."
+  },
+  "arms": {
+    "two-blank-qty": {
+      "accepted_parent": {"case_id": "G11", "variant_id": "G11.var05", "package": "../G11-var05-remaining-qty-system-prelife-v1.0.0", "input_sha256": "056728b5db95e06d5152337c4ec4b706cc8c69981bb094fd4f8f85102875be71", "native_closure_sha256": "8318e7e28e8e8b6238b2662e16d35fac2a2710b11dd8fecfa34c375d4d3582f9"},
+      "input_sha256": "b22c61bace73b790a99c48e10110275874ca445655bcfa62735747b325af1ca6",
+      "delta": "Change AGE60 QTY1 to blank while AGE120 QTY is already blank; four deployed systems otherwise unchanged.",
+      "pre_native_expected": "Converter or calculation rejects two blank QTY rows for PL-SYS; exact native error codes must be observed."
+    },
+    "overallocated-qty": {
+      "accepted_parent": {"case_id": "G11", "variant_id": "G11.var05", "package": "../G11-var05-remaining-qty-system-prelife-v1.0.0", "input_sha256": "afd693a6609c2454b3ec71a1f663791b61a932831720070d164d371c6aff9be2", "native_closure_sha256": "c7bbb656aec910fba20388022f11531db50c2bdefc1cf3d41c820db4106dac3a"},
+      "input_sha256": "d79e48dd7f2a7df9558d9bbf08141e6b561b22dfdcb62bf885808f40795e1e71",
+      "delta": "Change final AGE120 QTY2 to3, making PL-SYS QTY sum5 above QTYPS4; all else unchanged.",
+      "pre_native_expected": "Converter or calculation rejects QTY sum above deployed count; exact native error codes must be observed."
+    },
+    "missing-middle": {
+      "accepted_parent": {"case_id": "G11", "variant_id": "G11.var04", "package": "../G11-var04-inherit-item-prelife-v1.0.1", "input_sha256": "76cd71fe989b84a8f8c5c23007926a417c8f01c820cfc534846216e4a9fe7311", "native_closure_sha256": "60ae9d2e2feadb6843cec3d1bb53c7afa7b59fc9374d5a35018df1aa1a2cb4f7"},
+      "input_sha256": "d8d4a2371add8bf6810f5957db5e75afda6e17f5a17e23a11b8db1da4b3ab316",
+      "delta": "Omit PL-POS Prelife and PrelifeData node, connect PL-LRU directly to PL-SYS, while physical system→POS-A→LRU path is unchanged.",
+      "pre_native_expected": "Converter or calculation rejects missing intermediate prelife path; if installed CLI instead accepts it, preserve counterexample and limit any claim to this structure."
+    }
+  },
+  "exact_diff_sha256": "314bdabbeb553d4ab08c3889bb43b21c70dabc903900a42b1a69509c7b627566",
+  "predeclared_native_acceptance": [
+    "Use serial guarded session-0 SSH native CLI probes with source/raw closure, GUI PID13340 preservation and Prelife Log option restoration. A rejected arm is accepted only when observed native diagnostics identify the specific invalid boundary and no successful SXO/valid simulation is silently treated as rejected.",
+    "Import/export row preservation is checked if native export succeeds; conversion error and note/warning codes are captured exactly. A branch that runs successfully despite manual invalidity is a bounded manual-versus-installed-CLI counterexample, not silently called a rejection.",
+    "Separate reviewer independently replays frozen source and raw diagnostics without importing author validation code."
+  ],
+  "limits": [
+    "These are three single-row or single-intermediate-node negative probes from separate accepted parents; no general validation coverage or arbitrary malformed-input behavior is implied.",
+    "GUI visual behavior and cross-engine parity are unverified."
+  ]
+}
