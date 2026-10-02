@@ -1,0 +1,84 @@
+{
+  "checks_passed": 782,
+  "checks_total": 782,
+  "evidence": {
+    "monitored": {
+      "closure_sha256": "7a0977eefefb06be79860ad0982efa2f8c0d4259c8b0905e2a17a5fca9122ead",
+      "input_sha256": "29dd9638ecaf5980b7ecf90ef41644afbbcca3a9b15f88dceb8f2fe3e5c32903",
+      "issued_item_ids": [
+        1,
+        0,
+        1
+      ],
+      "model_log_sha256": "abe071ec6e02eee2791ca5ee42be2b30f019a6791e239c142f47391ee3ceecc4",
+      "removed_item_ids": [
+        0,
+        1,
+        0
+      ],
+      "report_sha256": "af51343b1419451c713fad4344eb43729c74f38bbf287e5f2433f9c4fc0a3c92",
+      "restocked_item_ids": [
+        0,
+        1,
+        0
+      ],
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      }
+    },
+    "system-converted": {
+      "closure_sha256": "acd80471d0d298731102e8c9e08d12753557b35b77453c54eb213e0e919e0b85",
+      "input_sha256": "9e6f77519511e72eb732dc5c67b19a8dab16a166ca9d33a50917bb04b88ae9f9",
+      "issued_item_ids": [
+        0,
+        1,
+        2
+      ],
+      "model_log_sha256": "33f91efb91c322c5aaf23692bc12e7939dc9837f588a01cd2b41a17e0633c846",
+      "removed_item_ids": [
+        1,
+        2,
+        3
+      ],
+      "report_sha256": "45ad4f30908b600f6967303230a6ab849844a81add5258da105914858c0778f4",
+      "restocked_item_ids": [
+        1,
+        2,
+        3
+      ],
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      }
+    }
+  },
+  "failures": [],
+  "finding": "Under matched scheduled PM and one spare, MONIT=Y alternates the same two physical item IDs 0/1 through three exchanges and returns each removed item after one-hour overhaul. MONIT=N logs removed item IDs 1/2/3 across the three exchanges, while issued spares are IDs 0/1/2; thus individual installed identity is not retained in the same way. Both arms complete PM system work in 0.5 hour and item overhaul in 1 hour at h10/22/34, succeed in all three missions, and have identical aggregate result ledgers.",
+  "limits": [
+    "The native events establish the observed physical ID sequences; they do not expose a PM counter-age field or prove its reset/persistence mechanism.",
+    "One zero-prelife item, one spare, one seed, OPHOURS=2, scheduled replacement and 36-hour horizon.",
+    "The earlier v1.0.0 missing-PMReplacement diagnostic is excluded; no other initial-age, multiple-counter, GUI-only or cross-engine claim."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d14-var01-v101/v1",
+  "verdict": "GO: bounded MONIT identity-retention versus observed recreation"
+}

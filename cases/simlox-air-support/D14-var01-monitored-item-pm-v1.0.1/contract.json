@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D14",
+  "variant_id": "D14.var01",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "D06",
+    "input": "../D06-explicit-position-direct-repair-v1.0.0/native-input.json",
+    "input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+    "native_closure_sha256": "afd8689161874d247dee92a6f6265211733375b8933f3fcd30bfb297cfe975c7"
+  },
+  "accepted_stock_donor": {
+    "case_id": "E01",
+    "input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+    "native_closure_sha256": "1713af4ca149f3fe3bd80bb8a033372475762eec787e36e38aeaddf8c385f5c6"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [202, 203, 210, 211, 217, 370, 371, 372, 373, 387, 388, 390, 392, 393],
+    "rule": "MONIT=Y stores item PM counters per individual; MONIT=N converts item-linked PM to system PM. Monitored items require MaterielStructure and must not use traditional ItemStructure/FRT CM. Item PM requires a scheduled PMReplacement removal and local PMLocation for both system work and removed item overhaul."
+  },
+  "arms": {
+    "monitored": {"MONIT": "Y", "input_sha256": "29dd9638ecaf5980b7ecf90ef41644afbbcca3a9b15f88dceb8f2fe3e5c32903"},
+    "system-converted": {"MONIT": "N", "input_sha256": "9e6f77519511e72eb732dc5c67b19a8dab16a166ca9d33a50917bb04b88ae9f9"}
+  },
+  "exact_diff_sha256": "574db345461b91e43e52d98199f936bcbc54a3db05b2d15c1a34d7d42e2bcb93",
+  "configuration": {
+    "system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "position": "POS-A",
+    "stock_station": "BASE-01", "stock_initial": 1, "installed_initial": 1,
+    "item_pm": "LRU-OP2", "operation_parameter": "OPHOURS", "pm_interval_hours": 2,
+    "system_removal_pm_turnaround_hours": 0.5, "item_overhaul_turnaround_hours": 1,
+    "pm_replacement": {"mother": "TEACH-AIR-01", "item": "TEACH-LRU-01", "quantity": 1, "fraction": 1, "scheduled": "Y"},
+    "mission_launch_hours": [8, 20, 32],
+    "mission_duration_hours": 2, "seed": "1", "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "Both frozen arms import/export exactly and calculate with zero conversion errors and nonempty reports.",
+    "Each arm has one installed item, one spare at zero initial age, no failure mode, no FRT branch, and an item-linked OPHOURS=2 PM.",
+    "The MONIT flag is the only behavioral input difference; descriptive PDESC is the only other arm difference.",
+    "After the first two-hour mission, event and report evidence must identify the PM trigger, physical removal, spare issue, item overhaul, task timing, inventory path, and terminal item/system state for each arm.",
+    "A separately written read-only replay must reconcile event log, item/stock and system reports, source hashes, and native closure."
+  ],
+  "limits": [
+    "This variant isolates MONIT=Y/N on a zero-prelife item with scheduled removal; it can establish identity retention only to the extent exposed by native item events and subsequent use.",
+    "An earlier frozen v1.0.0 candidate omitted PMReplacement. Its native run produced warning #243 (incomplete PM at end support station), left the aircraft unavailable after hour 10, and is excluded from acceptance.",
+    "Different initial ages, position-linked PM, nested replacement, and multiple counters remain other variants.",
+    "GUI content and cross-engine equivalence remain unverified."
+  ]
+}
