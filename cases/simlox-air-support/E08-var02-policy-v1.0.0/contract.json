@@ -1,0 +1,24 @@
+{
+  "case_id": "E08.var02",
+  "version": "1.0.0-candidate",
+  "scope": "One stocked peer and one stocked ordinary depot under LSRUL EXTENDED versus ADJACENT, compared with accepted IMMEDIATE",
+  "parent_case": "E08-var01-immediate-lateral-v1.0.2",
+  "parent_source_sha256": "630d7600e7ff77ddb057f05af0852b4f41ed6335718570f9fcf5eddd9f51c474",
+  "extended_source_sha256": "d8fcb966ea9afb1404549a47e1bf328eb89b620bae4b1fe7e2dd9184b0954737",
+  "adjacent_source_sha256": "66356dd329ccb8a733734ba2e471558ea328cc77dd5cd4275d9303fc53aaafa5",
+  "exact_diff_sha256": "44b74c8cd3c7cd8ae5788cbd0bd7a0637afa5848e74063c6991f56e6952dd997",
+  "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_printed_pages": [319, 320, 321, 325, 326],
+  "source_rule": "IMMEDIATE considers stocked peers at shortage except an earlier free ordinary shipment in transit. EXTENDED considers lateral only when there is no free stock in the ordinary chain up to the next stock station. ADJACENT applies EXTENDED to the nearest ordinary station.",
+  "controlled_delta": "From accepted E08 ENLAT=Y IMMEDIATE source, each child changes only LateralSupport.LSRUL to EXTENDED or ADJACENT and ProblemDescription.PDESC. All topology, stock, demand, transport, tracking, seed and reporting settings remain fixed.",
+  "parameters": {"seed": "1", "horizon_hours": 36, "result_interval_hours": 0.5, "base_01_initial_spares": 0, "base_02_initial_spares": 1, "depot_initial_spares": 1, "lateral_hours": 0.5, "ordinary_item_down_hours": 1.0, "delayed_lateral": "N"},
+  "pre_run_hypotheses": [
+    "Both sources import/export all populated authored tables exactly and calculate with zero conversion errors and nonempty native output.",
+    "At the h10 BASE-01 shortage, EXTENDED and ADJACENT find a free ordinary item at the next stock station DEPOT-01 and therefore do not draw the stocked BASE-02 peer.",
+    "The expected ordinary route is physical depot ID 0 departing h10 and arriving BASE-01 h11, as in the accepted ENLAT=N control; item ledgers, backorder duration, readiness and terminal stock should reconcile.",
+    "If either policy still selects lateral or has a distinct observed behavior, retain sealed output as a diagnostic and publish only the supported bounded classification."
+  ],
+  "acceptance_gate": "A positive policy comparison requires exact source deltas, two guarded native runs, per-item physical movement and station-specific ledgers, author and independent read-only replay, and explicit limits. No result summary alone suffices.",
+  "limits": ["one stocked next stock station and one stocked lateral peer", "one IID, fixed seed and immediate transport", "no unstocked ordinary chain, deeper chain, competing peer, DLAYL=Y, GUI rendering or cross-engine parity"]
+}
