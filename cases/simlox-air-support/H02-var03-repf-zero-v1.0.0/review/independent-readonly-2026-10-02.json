@@ -1,0 +1,83 @@
+{
+  "checks_passed": 7701,
+  "checks_total": 7701,
+  "failures": [],
+  "limits": [
+    "This pair tests REPF endpoints 1 and 0 on one seed, one primary LRU and an explicit DamageReplacement; intermediate probabilities and population frequencies remain untested.",
+    "The stock report PNB remains 1 after the first physical spare issue and becomes 0 at the second backorder; physical stock loss is established by item-level log events as well as the later stock-bin transition.",
+    "The pair does not establish general repair-data fallback priority or alternative stations.",
+    "GUI visual behavior and cross-engine parity are not tested."
+  ],
+  "observed": {
+    "discard": {
+      "damage_identity_times": [
+        [
+          8.78145,
+          1
+        ],
+        [
+          20.1965,
+          2
+        ]
+      ],
+      "flight_hours": 1.6743967533111572,
+      "run_id": "h02-var03-discard-v100-ssh-20261002-01",
+      "stock_bins": 72,
+      "summary": {
+        "MSTF": 0.6666666865348816,
+        "MSUF": 0,
+        "MTMF": 0.2790661156177521,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 0.2790661156177521
+      },
+      "system_bins": 72,
+      "terminal_lost": 0,
+      "terminal_ready": 0
+    },
+    "repairable": {
+      "damage_identity_times": [
+        [
+          8.78145,
+          1
+        ],
+        [
+          20.7434,
+          2
+        ],
+        [
+          32.3406,
+          3
+        ]
+      ],
+      "flight_hours": 3.2061075419187546,
+      "run_id": "h02-var03-repairable-v100-ssh-20261002-01",
+      "stock_bins": 72,
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 0,
+        "MTMF": 0.5343512296676636,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 0.5343512296676636
+      },
+      "system_bins": 72,
+      "terminal_lost": 0,
+      "terminal_ready": 1
+    }
+  },
+  "passed": true,
+  "schema": "independent-h02-var03-repf-endpoints-readonly-review/v1",
+  "scope": "One fixed-seed REPF endpoint contrast on the same damage/replacement/ItemRepair configuration. REPF=1 repairs and returns damaged LRU IDs 1/2/3 to BASE-01 stock, supporting three launches. REPF=0 discards damaged IDs 1/2 without item DIRP; the first local spare is issued, the second return creates a persistent backorder, and the third mission cancels.",
+  "verdict": "GO"
+}
