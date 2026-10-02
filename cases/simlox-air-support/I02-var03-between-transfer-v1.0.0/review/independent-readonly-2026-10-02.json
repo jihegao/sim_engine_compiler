@@ -1,0 +1,38 @@
+{
+  "schema": "independent-i02-var03-between-review/v1",
+  "case": "I02-var03-between-transfer-v1.0.0",
+  "passed": true,
+  "verdict": "GO: bounded observed BETWEEN transfer after IN and two-position stock response",
+  "checks_passed": 1338,
+  "checks_total": 1338,
+  "failures": [],
+  "native_run": "i02-var03-between-v100-ssh-20261002-01",
+  "report_only_runs": {
+    "depot": "i02-var03-depot-results-v100-ssh-20261002-01",
+    "base": "i02-var03-base-results-v100-ssh-20261002-01"
+  },
+  "source_sha256": "4842382bd3728f7f9520d3b20e1ad7148f7436f5132e9cc933773550d64b4560",
+  "native_closure_sha256": "e2b491828d3375b80a8aebbbbc7a8f048d25485495476e1d34d2103fc0c906ae",
+  "native_report_sha256": "07ee848fd6d4b33d37ffcb2dcd052a25c1e306f3497393570e8683c1a2dd2377",
+  "selected_report_sha256": {
+    "depot": "e55ba3c584c145ef003cc63b009a55a28312cce8142f2f96c2a50b663a581adf",
+    "base": "49b234c3ffe4cde05842f141bf5ce24ce6c5dc13666a58e1af58b4e58e415463"
+  },
+  "report_only_closure_sha256": {
+    "depot": "dbf5b3bb0bb38654565894527752fbc25ebef54bfe16b88131c3998024306ae6",
+    "base": "40ff393d0a3ce3db760a954a836ac37a4c198abbc87e79757105364bf68184b0"
+  },
+  "observations": {
+    "report_table_name": "ItemResults",
+    "report_positions": "TEACH-LRU-01 at DEPOT-01 and BASE-01 stock positions, distinct from aircraft mounted item",
+    "nominal_STSZ": "depot 1→2 h4→1 h6; base 0→1 h6; sum two after h4",
+    "on_hand_STOHA": "depot 1→2 h4→1 h6→0 h10→1 after repair h13.1667; base 0→1 h6→0 h10→1 h12",
+    "physical_transfer": "IN item ID1 stocked at depot h4; BETWEEN item ID0 moved depot→base h6",
+    "later_demand": "base uses local item ID0 h10 and is ready h10.5; depot item ID1 goes to base replenishment h10–12; failed item ID2 repaired and stocked at depot h13.1667"
+  },
+  "limits": [
+    "The native table is ItemResults with IID/STID stock-position fields; a literal ItemPositionResults table is absent.",
+    "STSZ is nominal station stock size and STOHA is on-hand. Neither is the mounted aircraft item count. ItemResultsTotal values are horizon averages, not terminal stock.",
+    "One zero-delay BETWEEN after an IN transfer, one LRU, two stations, one seed and this CLI only. No standalone BETWEEN, unavailable-stock split/backorder, nonzero delay, priority, reorder, GUI-visual or cross-engine conclusion."
+  ]
+}
