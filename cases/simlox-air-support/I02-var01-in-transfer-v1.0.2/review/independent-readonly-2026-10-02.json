@@ -1,0 +1,29 @@
+{
+  "schema": "independent-i02-var01-in-review/v1",
+  "case": "I02-var01-in-transfer-v1.0.2",
+  "passed": true,
+  "verdict": "GO: bounded observed IN transfer and depot item-position stock response",
+  "checks_passed": 650,
+  "checks_total": 650,
+  "failures": [],
+  "native_run": "i02-var01-in-v102-ssh-20261002-01",
+  "report_only_run": "i02-var01-item-results-v102-ssh-20261002-01",
+  "source_sha256": "85ee84d85e610f753215882fca59cc3331a9ce0f3313ae635f2a7422e8abcf4d",
+  "native_closure_sha256": "565d1384961fb235e150d94222d00268f300705893ee3115cb82291f52c40c4b",
+  "native_report_sha256": "029305d593c5658ca001ae71a65d6323146d7dd32076a9efb572eeb556290720",
+  "selected_report_sha256": "586168ef2401c48585266c079de9a77b4dde16fbcfb13b82f4001838f983ddaa",
+  "report_only_closure_sha256": "722cdad958d6a3ee2021eb26e8c2ece0534576f04cb9c0bbcce67161d34d55bc",
+  "observations": {
+    "report_table_name": "ItemResults",
+    "report_position": "TEACH-LRU-01 at DEPOT-01 (depot stock position, not the aircraft's mounted position)",
+    "nominal_STSZ": "1 before h4; 2 from h4 through h36",
+    "on_hand_STOHA": "1 before h4; 2 h4-h10; 1 h10-h13; fractional 1.6666666 in h13-h13.5 bin; 2 thereafter",
+    "physical_transfer": "one IN unit created, started, arrived and stocked at h4; distinct item ID 1",
+    "later_demand": "depot issues pre-existing item ID 0 at h10; base backorder h10-h12; failed item ID 2 repaired and returned to depot at h13.1667"
+  },
+  "limits": [
+    "The pre-run contract used the conditional label ItemPositionResults. The native table is ItemResults with IID/STID position fields; a literal ItemPositionResults table is absent.",
+    "The reported STSZ is nominal depot stock size, STOHA is on-hand depot stock. Neither is the mounted aircraft item count. ItemResultsTotal values are horizon averages, not terminal stock.",
+    "One scheduled zero-delay IN transfer, one LRU/depot, one fixed seed and this installed CLI only. No OUT, BETWEEN, delay, split, priority, reorder, GUI-visual or cross-engine conclusion."
+  ]
+}

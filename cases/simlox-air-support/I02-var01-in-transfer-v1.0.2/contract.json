@@ -1,0 +1,37 @@
+{
+  "schema": "simlox-i02-var01-in-transfer-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var01.IN",
+  "version": "1.0.2-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "E04-upstream-transport-fast-v1.0.0",
+    "source": "../E04-upstream-transport-fast-v1.0.0/native-input.json",
+    "sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1"
+  },
+  "source_sha256": "85ee84d85e610f753215882fca59cc3331a9ce0f3313ae635f2a7422e8abcf4d",
+  "exact_diff_sha256": "ca442900d9acc434da0e947f30a20804bd10f0a924e5dd6248e495513d27364f",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp225 and 476-478 describes ItemTransfer, IN via STFID=<OUTSIDE>, actual nominal/on-hand update at transfer, priority over ordinary demands, and TFDT optional; pp445-447 distinguishes nominal STSIZ from on-hand. Installed table dictionary defines seven ItemTransfer columns in key order. Manual pp682-684 and 717 state item-position STSZ/STOHA time-series require Item.TRACK=Y; the dictionary defines TRACK as Y/N with default N.",
+  "controlled_design": "One ItemTransfer row schedules one TEACH-LRU-01 from <OUTSIDE> into DEPOT-01 at h4 with TFDT0. E04 FAST has BASE stock0/DEPOT stock1. A third ResultCollection row requests ITEM half-hour results, and Item.TRACK=Y requests collection for the LRU; these two report controls are intended to expose STSZ/STOHA. Parent tasks, two-hour general support link, depot repair, seed1, missions and 36h horizon remain fixed. No ItemReorder business rows. Earlier v1.0.0 and v1.0.1 diagnostics showed physical arrival at h4; v1.0.1 lacked item-position tables and is not the publication candidate.",
+  "pre_run_hypotheses": {
+    "transfer": "Earlier sealed diagnostics showed one transfer arrival and physical DEPOT stock1\u21922 at h4. In this separately frozen v1.0.2 run, Item.TRACK=Y with ITEM ResultCollection should expose ItemPositionResults time-series with DEPOT STSZ/STOHA equal1 before h4 and 2 after h4, while physical transfer and source/closure fingerprints stay stable. Exact native report table name and row structure are conditional.",
+    "later_demand": "The later ordinary failure should be served by the existing E04 demand-support route; exact failure draw, item identity, demand timing, mission outcomes and report values remain conditional. Planned transfer and demand-triggered support are separate mechanisms.",
+    "alternatives": "Converter rejection, absent item-position result/STSZ/STOHA despite tracking, no native transfer event, stock/report mismatch, transfer duplication or changed source fingerprint is diagnostic; no positive nominal IN claim is published. Preserve contrary outcome."
+  },
+  "acceptance_gates": [
+    "Independent pre-run audit of accepted E04 parent, prior v1.0.0/v1.0.1 diagnostics, manual/dictionary pins, frozen v1.0.2 source and exact table delta",
+    "Session-0 SSH native run under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored-table roundtrip, zero conversion errors, valid SXO/report and sealed raw files",
+    "Physical transfer creation/arrival, tracked item-position STSZ and STOHA before/after h4, later stock/demand ledger, report intervals and terminal state reconciled",
+    "Author replay, independent read-only replay and final staged audit before publication"
+  ],
+  "limits": [
+    "A positive result would cover one scheduled IN transfer of one LRU to one depot at TFDT0 in one seed. It would not establish OUT, BETWEEN, delay, split transfer, backorder priority, reorder-point changes or generic transfer semantics.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
