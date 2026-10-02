@@ -1,0 +1,32 @@
+{
+  "schema": "independent-i02-var08-lateral-out-review/v1",
+  "case": "I02-var08-lateral-not-used-v1.0.0",
+  "passed": true,
+  "verdict": "GO: restricted h2 transfer demand does not initiate lateral; NO-GO: global transfer-never-uses-lateral wording",
+  "checks_passed": 1170,
+  "checks_total": 1170,
+  "failures": [],
+  "source_sha256": "b145cb2e71d72e90c1170ddd31b56faab639bccde93236bec7df2ba4c52d336c",
+  "native_closure_sha256": "e26e9b02301986ee09f23aa3946d8b50a75de2273f77c775b1ec357baab85453",
+  "selected_closure_sha256": {
+    "base01": "8b05cbbc9a98a9db9ff73efe8a1e47c716fdfbc1670e1dfdfc1f93338d93c78c",
+    "base02": "bf4bb443553a705488001e391656a36357a56404efb3c42817db5dc1142039de",
+    "depot": "ac629dbb5b47ab4c05f4ec769c62c112991f691a4fd353d5d40ff6dabcd2d5c1"
+  },
+  "selected_report_sha256": {
+    "base01": "d28e72a4d8ed65e80fe2d48e863cf17d8dd8894b3bc12b1597ada2751851da45",
+    "base02": "33631797bad6c62f964f0378a2df8842570f3ea4a3c6dae2f8493afeef6b0d77",
+    "depot": "06eac699e9ce56f9eae5ae9982f9889b40660242b9375231cddb7a8aa0576f03"
+  },
+  "observations": {
+    "h2": "OUT at empty BASE-01 makes transfer BO1; task starts/arrives with zero physical items; stocked BASE-02 peer remains untouched.",
+    "h10_to_10_5": "Ordinary aircraft demand triggers lateral BASE-02 item ID1 to BASE-01. Its arrival clears the older transfer BO and a new OUT task sends ID1 out; ordinary aircraft BO remains1.",
+    "downstream": "Aircraft never returns ready; scheduled missions 2 and3 cancel at 20.3333 and32.3333. Parent E08 ON control instead finishes ready and has two successful later missions.",
+    "terminal": "BASE-01 stock0/BO1, BASE-02 stock1, DEPOT stock1, aircraft not ready at h36. Item, System, Stock and Mission reports reconcile."
+  },
+  "limits": [
+    "The local h2 no-lateral response is supported. A blanket claim that transfers never use lateral is contradicted as a net-source claim: later ordinary lateral supply feeds the transfer BO and OUTs the peer's item.",
+    "The native log does not expose the simulator's internal consideration set at h2; claim only no observed h2 lateral issue/transport and unchanged peer stock.",
+    "One IID, one h2 OUT from empty local stock, one stocked peer, IMMEDIATE/DLAYL=N, one seed/CLI. No universal priority, all transfer types, other timing, GUI-visual or cross-engine inference."
+  ]
+}
