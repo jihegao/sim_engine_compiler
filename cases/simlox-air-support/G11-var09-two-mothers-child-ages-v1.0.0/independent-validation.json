@@ -1,0 +1,36 @@
+{
+  "checks_passed": 19024,
+  "checks_total": 19024,
+  "evidence": {
+    "age20-then60": {
+      "closure_sha256": "f8215c71cb32d1b24ad4d7f5edb65ca02a6fa891e6305b5aff1355a1e9dfc2d3",
+      "input_sha256": "b76c74e8da209347e06111759050c7aa3a4a50c016061a6c618e031983b6db98",
+      "model_log_sha256": "2a72e078bbee015f65f6ef81d7626e623df93f5c3637f1c293e0c79b57d2f6d2",
+      "prelife_log_sha256": "4704bebf0396846627d2b86f04e33be2d454f992223432b5bc58943acecdb362",
+      "report_sha256": "8a6e0838c93741722ed8f93813fdd08c6d23dc74f9faf0725ab98a3d3750b95f",
+      "stock_bins": 192,
+      "system_bins": 192
+    },
+    "age60-then20": {
+      "closure_sha256": "c0a1c8b33a4c3c588c4dcdac8cf67a32219f3e7ab81264283057f27918c54910",
+      "input_sha256": "44f4b95755331794fa8cc18c9a4ae43f73db7ff5b51fb734c3d12654f6c79858",
+      "model_log_sha256": "1d986eaaa7e1217e530026f7b7940dbe8475135108587f242b02b122d2d9258b",
+      "prelife_log_sha256": "5304fed3c9db9a805761622b5cf88e58ef94b363974b9927df027a6645692410",
+      "report_sha256": "9116e5eed7a51a50142a9dbbeb724090f3ec002e1f1bf58fd66c40c3b0f06866",
+      "stock_bins": 192,
+      "system_bins": 192
+    }
+  },
+  "failures": [],
+  "finding": "Two distinct system PLIND paths map to separate same-type installed LRU children. Swapping only their leaf ages 20/60 to 60/20 reverses which mother and original physical item enters monitored LRU-CAL100 PM at h40 versus h80. Each item PM lasts one hour, each original item returns to stock, aggregate reports match except description, and two systems are ready at horizon.",
+  "limits": [
+    "Two same-type mothers, one installed position/item each, one spare, one seed, CALHOURS and first monitored PMs only; no general multi-system mapping law.",
+    "The Prelife Log gives ordered SYS/POS/LRU PLIND paths but no numeric system/item IDs; physical ID association uses native PM/demand events.",
+    "Default reports aggregate across systems and stock; individual item conservation comes from native event text.",
+    "No stocked-item prelife, later PM cycles, other OPIDs, GUI visual, or cross-engine parity.",
+    "Registry restoration is supported by guarded invocation/closure records, not an independent live registry read."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-g11-var09/v1",
+  "verdict": "GO: bounded two-mother child-age assignment observation"
+}
