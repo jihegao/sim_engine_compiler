@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D09",
+  "variant_id": "D09.var01",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "D08",
+    "variant_id": "D08.var03",
+    "package": "D08-var03-criticality-v1.0.0",
+    "input_sha256": "cd549962924b57f4db8ccc9de906f6abd86af5c5057e4c413c2f9824bf46a01e",
+    "native_closure_sha256": "512f30614f3ce25ea4253afa6d708008f5c182a76366464709700f209879ffe0"
+  },
+  "stock_shortage_precedent": {
+    "case_id": "E02",
+    "package": "E02-zero-stock-local-backorder-v1.0.0",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "native_closure_sha256": "a8ec55f67c710be700cb4dc3663c7f79041d69c2021edb9924c1d0daddda04ef"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [190, 212, 213, 367, 368],
+    "interpretation": "Noncritical failure becomes critical when NCFTL is reached and active repair has not started. NCFTT selects calendar or operational exposure. A pending noncritical task can leave a system available for a new mission; escalation can abort mission operation and reprioritize waiting for spares/resources. Dictionary uses OPERATION as the NCFTT choice; manual prose calls it OPERATIONAL."
+  },
+  "arms": {
+    "calendar": {"input_sha256": "c9645fcb8a567c89077e830916839a33dd63574b9249893f469a2ae47e5e6cce", "item_ncftl_hours": 0.2, "item_ncftt": "CALENDAR", "stock_nominal": 0},
+    "operational": {"input_sha256": "1caac8f4cdb97a6e930b5d612360df601b541b75f99ce337f273aa334f4f460a", "item_ncftl_hours": 0.2, "item_ncftt": "OPERATION", "stock_nominal": 0}
+  },
+  "exact_diff_sha256": "5add849e4d34e9206cca47e9445ca1f12547fe905381c4c817e173a5eb4af68f",
+  "configuration": {"seed": "1", "repetitions": 1, "horizon_hours": 36, "mission_start_hours": [8, 20, 32], "one_aircraft": true, "one_traditional_lru": true, "local_spares": 0, "item_crit": 0, "item_ncftl_hours": 0.2},
+  "predeclared_hypotheses_not_outcomes": [
+    "Both arms retain the accepted parent's first noncritical in-mission LRU fault near h9.8829 and complete the h10 mission before the 0.2-hour limit.",
+    "With no local spare, the noncritical replacement task waits and active repair has not started at h10.",
+    "Calendar NCFTL expires near h10.0829 between missions; criticality escalation reinitiates spare/resource waiting and prevents an unchanged noncritical h20 mission start.",
+    "Operational NCFTL retains about 0.1171 hours exposure at h10 and does not advance while idle; if the aircraft takes the h20 mission with repair still pending, escalation is expected about 0.0829 hours into it, with abort and reprioritized repair.",
+    "Native event times, same-item repair/backorder handling, mission outcomes, result bins and terminal readiness are to be determined from sealed raw output; a failed hypothesis constrains acceptance rather than being rewritten."
+  ],
+  "native_acceptance_gates": [
+    "Frozen source hashes and exact deltas verified before native execution.",
+    "Session-0 SSH, host-wide mutex, active GUI PID 13340 identity, unchanged installed executable/manual/dictionary and zero conversion errors.",
+    "All authored row-containing tables import/export identically; valid nonempty SXO and event/result reports.",
+    "Independent read-only replay distinguishes calendar and operational escalation by individual event sequence, mission disposition, repair/stock queue and aligned report/terminal ledgers.",
+    "If native semantics differ, report a bounded counterexample or restriction without silently upgrading the planned claim."
+  ],
+  "limits": ["one aircraft", "one LRU", "one seed", "0.2-hour limit", "zero local spare", "no general tolerance law", "no GUI-only or cross-engine claim"]
+}
