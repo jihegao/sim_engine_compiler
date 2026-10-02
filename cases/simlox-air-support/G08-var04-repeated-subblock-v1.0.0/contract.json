@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-g08-repeated-subblock-contract/v1",
+  "case_id": "G08",
+  "variant_id": "G08.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G08-var03-nbreq-boundary-v1.0.0",
+    "arm": "high",
+    "input_sha256": "644ddfbc8743abd9f76866bb3b558776dbda295e6fd27fde43b178daa1a62051",
+    "run_id": "g08-var03-high-v100-ssh-20261003-01",
+    "native_closure_sha256": "56dbca15cdb332ee1b397d614c54cdd906588722bfe64bd20c239e3488ef4056"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [198, 200, 460, 461, 462],
+    "rule": "RBDTreeStructure.QTYPM is the number of identical descendants per mother. At NBREQ3, a three-leaf control loses one path after B fails, while an aligned fourth healthy C leaf leaves three complete paths."
+  },
+  "input_sha256": "697cfa5e90301b7d876cf8515247ae421ebab69a776da373c8294749adf0469c",
+  "exact_diff_sha256": "8522c14a648c3cb74190cd4899d9bbf1e2d27642b46942ca29626272dea165e1",
+  "configuration": "Accepted A-root NBREQ3 three-leaf B/C/D parent. Child changes only MaterielStructure.POS-C physical QTYPM1-to2, RBDTreeStructure A-to-C QTYPM1-to2, and description. POS-C has no failure mode. B/A modes/rates, mission, direct CM, seed1, one replication and horizon36 stay fixed.",
+  "pre_run_hypotheses": [
+    "The candidate imports/exports/calculates with zero converter errors or unreviewed diagnostics and exact populated-table roundtrip.",
+    "The first B failure remains at h8.62763, but is noncritical because two C descendants plus D leave three complete paths at NBREQ3. Accepted NBREQ3 parent B failure is critical and aborts. If the first-event identity/time changes, quarantine the candidate as diagnostic and revise under a new version.",
+    "If later A fails, it disables every descendant and aborts; native log may report system criticality without individual tree path labels."
+  ],
+  "native_acceptance": [
+    "One unique guarded session-0 SSH run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Matched first-event severity versus accepted NBREQ3 parent, 72-bin System/Stock reconciliation and independent read-only replay."
+  ],
+  "diagnostic_gate": "Retain rejected run and raw evidence as diagnostic; revise with new version/run ID instead of changing a frozen hypothesis.",
+  "limits": [
+    "One aligned physical/tree POS-C QTYPM1-to2 change; cannot isolate RBDTreeStructure.QTYPM alone. One A-root topology, healthy C, first B event, seed and replication.",
+    "Leaf-path count is inferred from source/manual; native logs do not name paths or separate healthy C copies. No arbitrary multiplicity, multi-root, other event orders, online maintenance, GUI drawing, population reliability or cross-engine claim."
+  ]
+}

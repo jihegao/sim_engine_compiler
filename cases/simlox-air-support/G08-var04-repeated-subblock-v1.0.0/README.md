@@ -1,0 +1,9 @@
+# G08.var04 repeated healthy descendant
+
+This case extends the accepted [G08.var03 NBREQ3 control](../G08-var03-nbreq-boundary-v1.0.0/cli-scope-signoff-2026-10-03.md). Root A has B/C/D descendants and requires three complete functional root-to-leaf paths. The child changes POS-C to two healthy physical copies and changes the A-to-C tree edge to `QTYPM=2`; the [exact diff](exact-diff.json) shows only these two aligned quantities and the description changing. The [contract](contract.json) pins the parent, installed manual, source and pre-run hypothesis.
+
+The accepted NBREQ3 control has three paths; B fails critically at h8.62763 and aborts. The child has four source-defined paths, including two identical C descendants. B fails at the same h8.62763 but is noncritical because three paths remain; A later fails critically at h16.7498 and aborts. Its event log is byte-identical to the accepted NBREQ2 single-C control. Native logs do not distinguish the two healthy C copies or name active paths.
+
+The guarded session-0 SSH run converted with zero errors/notes and reviewed warning #108, roundtripped all 23 populated tables, and produced 72 System/Stock half-hour bins reconciling two failures/repairs, no stock movement and terminal ready1. The [evidence index](evidence-index.json) seals 13 raw files locally. [Author replay](author-validation.json) passes 82/82; [independent replay](review/independent-validation-2026-10-03.json) checks the result separately.
+
+Physical and tree quantities change together, so this tests aligned repeated-descendant modeling, not the isolated effect of the tree QTYPM field. This is one healthy C, one seed and one topology; arbitrary multiplicity, failure of C, multi-root, other event orders, GUI drawing, online maintenance, population reliability and cross-engine parity remain open.
