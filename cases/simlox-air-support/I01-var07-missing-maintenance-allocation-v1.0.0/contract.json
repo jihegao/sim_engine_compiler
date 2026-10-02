@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-i01-var07-missing-selected-maintenance-allocation-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var07.missing-selected-category",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I01-var01-two-stock-points-v1.0.0",
+    "source": "../I01-var01-two-stock-points-v1.0.0/stocked-input.json",
+    "sha256": "9e88c4bb95e1ca1ad4ec255c0fb9996fcbab8cd80b61972771574eb416233bfb"
+  },
+  "source_provenance": "The frozen matching/other input bytes and builder/exact-diff originate from the earlier unpublished I01.var03 category probe. Its native runs were diagnostic only. This new I01.var07 contract is frozen before fresh guarded acceptance runs and reuses source bytes without promoting those earlier run IDs.",
+  "sources_sha256": {
+    "matching": "5201c389cccee418aec8aa8588e04e8b9f95ef7a77f4e8a633767f804a8a27fa",
+    "other": "c6d8c3ae578056a9236aa5e19c6889423a68670690cf327a5eaf86d863b58873",
+    "exact_diff": "a5b82da66d418462ea81b588923c7c5106b38cd71a6daec87dcd1e7b124b05c6"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp338-339 and 439-441 ties task-referenced ItemRepair to a MaintenanceAllocation row for the task category/level at the selected POINT. This negative case tests the native converter when the selected POINT has only an unrelated category, not when MaintenanceAllocation is wholly absent.",
+  "controlled_delta": "The matching input selects AIR_BASIC with MaintenanceAllocation LRU-CM/BASE/BASE-01. The other input differs only Control.APID AIR_BASIC→AIR_ALT and ProblemDescription; AIR_ALT has ALT-CM/BASE/BASE-01 but no LRU-CM row. Both inputs keep the ItemRepair.DIRPTID pointing to I01-LRU-DIRP of LRU-CM/BASE and equal local stock1, aircraft, seed, mission schedule and horizon. No ItemReorder row exists.",
+  "pre_run_expected_negative": {
+    "matching": "A fresh matching-control run should import/export 23 row-containing authored tables, convert with Errors:0, produce valid SXO/report, and show the failed-LRU DIRP return as a positive control. Any mismatch is a diagnostic.",
+    "other": "A fresh AIR_ALT run should import/export the same 23 authored tables, then emit TaskCategory rec1 error #2038 for missing maintenance allocation of LRU-CM at the selected POINT, report Errors:1, create no valid nonempty SXO (the earlier diagnostic yielded four bytes) and produce no JSON report. Calc exit code 0 alone is not success; the converter diagnostic is the accepted negative observation only if all pins and guards pass.",
+    "alternatives": "If the converter accepts AIR_ALT, emits a different error, produces a valid report, or fails import/export, do not accept this negative boundary; preserve the run as a new diagnostic. The earlier I01.var03 runs do not satisfy this contract's fresh-run gate."
+  },
+  "acceptance_gates": [
+    "Independent pre-run audit of this frozen negative contract, source bytes, exact diff and runner",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Both arms exact 23-table authored roundtrip; matching control zero converter errors and valid report",
+    "Other arm exact #2038 selected-category error, Errors:1, invalid/no report; no semantic simulation claim from that arm",
+    "SHA-256 sealed raw evidence, author assertions, independent read-only replay and final staged audit"
+  ],
+  "limits": [
+    "This is a bounded negative converter rule for a referenced LRU-CM/BASE ItemRepair when selected AIR_ALT lacks the matching category. It does not establish positive category/level/station filtering or general missing POINT behavior.",
+    "No valid simulation, inventory or readiness outcome may be inferred from the rejected arm. GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
