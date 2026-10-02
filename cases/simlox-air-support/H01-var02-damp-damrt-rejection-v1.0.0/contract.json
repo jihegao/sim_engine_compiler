@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-h01-var02-damp-damrt-rejection-contract/v1",
+  "case_id": "H01",
+  "variant_id": "H01.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "H01-var02-rate-no-consequence-v1.0.0",
+    "source": "../H01-var02-rate-no-consequence-v1.0.0/rate-input.json",
+    "sha256": "947fe484aad8aa8a971160baaddc56489a2cea78e1b0365fe955c59de04c7d65",
+    "scope": "one aircraft, three two-hour fixed missions at h8-10/h20-22/h32-34, DAMP=0, DAMRT=3000000 per million mission hours, no ordinary failures, zero-probability attrition consequence, seed1"
+  },
+  "sources_sha256": {
+    "control": "947fe484aad8aa8a971160baaddc56489a2cea78e1b0365fe955c59de04c7d65",
+    "simultaneous": "8c11802abd0a2576fe01c1ab8625efd066862561eb6fc0b28ec32eb23c0e4217",
+    "exact_diff": "16e361de224b20e8f4cdb5dbc5c5e949e738566da8388184fd1abd9d289fa8fb"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp437-439 says only one of MissionDamage.DAMP and DAMRT may be greater than zero for a mission type, damage type and system, and only one field may be used at a time.",
+  "source_delta": "The control is byte-identical to the accepted H01.var02 rate source. The child changes only MissionDamage.DAMP from 0 to 1 and ProblemDescription. DAMRT stays 3000000; all missions, seed, consequence probability, system and horizon are identical.",
+  "pre_run_hypotheses": {
+    "control": "The native control should convert with zero errors and reproduce the accepted fixed-seed rate events and 72-bin reports.",
+    "simultaneous": "The native converter should reject simultaneous positive DAMP and DAMRT with a relevant error before simulation. Import/export should still exactly roundtrip all 16 authored row-containing tables. No child event or report is required after rejection.",
+    "alternatives": "Acceptance of both positive fields, a different converter error unrelated to their exclusivity, mismatched roundtrip, or incomplete control is diagnostic only. A successful process exit alone is not acceptance."
+  },
+  "acceptance_gates": [
+    "Independent static review of frozen source, exact diff, installed manual/dictionary basis and guarded runner before native execution",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact 16/16 authored row-containing table roundtrips, zero control converter errors and a relevant simultaneous-fields child converter rejection",
+    "Valid control event/report reconciliation, child rejection without valid simulated result, SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "The claim concerns this installed converter and these exact positive values/model only; it does not establish other versions or every invalid input combination.",
+    "A rejected child yields no damage behavior claim. Intermediate DAMP, other rates/consequences, GUI visual behavior and cross-engine parity remain untested."
+  ]
+}
