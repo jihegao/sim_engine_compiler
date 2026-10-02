@@ -1,0 +1,33 @@
+{
+  "checks_passed": 1358,
+  "checks_total": 1358,
+  "evidence": {
+    "default": {
+      "closure_sha256": "9b715b36af0625ef6b59283b0f865b188670d93db5aedf60ee82e61714843593",
+      "input_sha256": "5be5592989ac38349141d22c9b9bd5f9db11029182f66bbb456207bb908ae030",
+      "model_log_sha256": "daeacfda91304217c1e3ac75e6842bd17de5ae2bac067fbf21aff82f96396fd5",
+      "report_sha256": "84a47a5f3ecc5ca3fae56e9acc46e0dc6d14c28f42db7473d17d4089dd8bb514"
+    },
+    "low": {
+      "closure_sha256": "db8b0cbd24d99b7ede89fe8c5d3842937de5f90e3c4e845a31cbd5d78901acf7",
+      "input_sha256": "f4e82b497668a016f79fd2e8f54f7c6df59e1b8a5a9a1f0c084eb8cfcb6b2d66",
+      "model_log_sha256": "0c3645f4b2c909abf2cd49c7abe77304ea842dd2f65084de56e399356fa2ba1f",
+      "report_sha256": "e74ac01f87e549fc09b1e8d4532db06e97b5b72dfa548085372059f8854f7738"
+    }
+  },
+  "failures": [],
+  "finding": "The omitted/default RISK MFF run reproduces accepted D05's failure at 22.6835, abort, five-hour CM and delayed serial PM. The 0.000001 MFF run has no observed failure/CM, succeeds in all three missions and performs two serial CAL24 PM jobs at hours 24-26 under one worker.",
+  "limits": [
+    "One fixed seed and one mission-type traditional operation-hour contrast; absence of failure in the low arm is not a reliability estimate.",
+    "Calendar-rate failures, other MFF values, overrides, criticality, GUI-only behavior and cross-engine parity remain untested.",
+    "ResourceResults.NRW is preserved as a native report field; it is not interpreted as booked work time. NRUM and event leases support worker occupancy.",
+    "ResourceResults.NRA stays at one even during a booking, so it is not treated as the free-worker complement of NRUM."
+  ],
+  "passed": true,
+  "runs": [
+    "d08-var01-default-v100-ssh-20261002-01",
+    "d08-var01-low-v100-ssh-20261002-01"
+  ],
+  "schema": "simlox-independent-readonly-d08-var01-mff/v1",
+  "verdict": "GO: bounded MFF fixed-seed contrast"
+}
