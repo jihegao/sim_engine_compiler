@@ -1,0 +1,9 @@
+# G08.var05 tree operational-mode selection
+
+This case tests the `MBOPM` and `SBOPM` selectors on the accepted [G08 A-root three-leaf tree](../G08-tree-root-panel-v1.0.0/cli-scope-signoff-2026-10-03.md). Two independent arms each define one operational mode with `USERT=0.75`: `mother75` selects it for POS-A in `MBOPM` on all three A-to-leaf edges; `sub75` selects it for POS-B in `SBOPM` on the A-to-B edge. The [contract](contract.json) and [exact diff](exact-diff.json) pin the four changed business tables per arm. Physical B/A failure inputs, NBREQ2, mission, seed, one replication, horizon and direct half-hour CM remain fixed.
+
+The accepted full-rate parent logs POS-B noncritical at h8.62763, then POS-A critical at h16.7498 with mission abort. With the A mother mode, B is noncritical at h8.68469 and A is critical at h19.5142 with abort. With the B descendant mode, A fails first at h8.75316, is critical, and aborts; no B failure is observed before that abort. These are observed sequences from one seed, not matched stochastic draws or a rate law. The native event log does not print selected tree modes or usage values; selection is checked in frozen source and exact native roundtrip.
+
+Both guarded session-0 SSH runs had zero converter errors/notes and reviewed warning #108, exact 23-populated-table roundtrips, and 72-bin System/Stock reconciliation. The [evidence index](evidence-index.json) seals 26 raw local files. [Author replay](author-validation.json) passes 166/166; [independent replay](review/independent-validation-2026-10-03.json) checks the bounded result separately.
+
+This establishes native acceptance and changed seeded event behavior for two `0.75` tree selector placements. Other rates, positions, nested mode switching, failure orders, online maintenance, GUI drawing, population reliability and cross-engine parity remain open.
