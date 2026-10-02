@@ -1,0 +1,107 @@
+{
+  "catalog_scope": {
+    "D14.var02": "GO only for the observed MONIT Y/N timing contrast with zero authored prelife: after the h10 SYS-SWAP, LRU-OP3 appears at h34 versus h22.",
+    "D14.var03": "RESTRICTED GO for the observed physical reinstallation of overhauled original item ID0 at h34 in the monitored arm. Full retained-counter behavior after reinstallation is untested: no subsequent mission occurs before the h36 horizon. A later mission and PM observation with a frozen prediction is needed for full var03 acceptance."
+  },
+  "checks_passed": 781,
+  "checks_total": 781,
+  "evidence": {
+    "monitored": {
+      "closure_sha256": "d4fb3ea7e60ae2b4a7cd8aaab6024d58c7be9db97b9eb7e0372f59fc19c13084",
+      "input_sha256": "0345fe8ff1c7e86a3332f4ef822adf92814e6a0562bb30cbfa305b4a89a00b7c",
+      "model_log_sha256": "4328c3e1df3d396c1e3a1154c689614ebc4ff2b84976afce6e4b38d0479a03a0",
+      "pm_events": [
+        [
+          10.0,
+          "SYS-SWAP",
+          0
+        ],
+        [
+          34.0,
+          "LRU-OP3",
+          2
+        ]
+      ],
+      "removed_item_ids": [
+        0,
+        1
+      ],
+      "report_sha256": "f0c6b00587c8b6ddaa3a070ee9e96feb0ebfdb389ebb31735a644cacd8baad1b",
+      "returned_item_ids": [
+        0,
+        1
+      ],
+      "spare_item_ids": [
+        1,
+        0
+      ],
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      }
+    },
+    "system-converted": {
+      "closure_sha256": "fa68486b3a36b8c78482451f8ee4db5914a44bf70c69cd82b10344d0d94af332",
+      "input_sha256": "cd0bd500b3f7a5496fe730244e225484c79041ec33502a940e09c516ed4b3056",
+      "model_log_sha256": "efbfcb49db16c60d5e42e8791755fb63d683b763399ea703520207ac2a061ae1",
+      "pm_events": [
+        [
+          10.0,
+          "SYS-SWAP",
+          0
+        ],
+        [
+          22.0,
+          "LRU-OP3",
+          2
+        ]
+      ],
+      "removed_item_ids": [
+        1,
+        2
+      ],
+      "report_sha256": "9a05d107287801be07e55814ef891c1a9f2de6c056d90ae78f79d23163ea665e",
+      "returned_item_ids": [
+        1,
+        2
+      ],
+      "spare_item_ids": [
+        0,
+        1
+      ],
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      }
+    }
+  },
+  "failures": [],
+  "finding": "Both arms perform one-time SYS-SWAP after the first h8–10 mission, replacing the installed item with a stocked spare and returning the removed physical item after one-hour overhaul. MONIT=Y next starts LRU-OP3 at h34 on the same former spare ID1 after its second and third two-hour sorties, while MONIT=N starts LRU-OP3 at h22 on successor ID2. All three missions succeed and both arms finish with one ready aircraft and no backorder.",
+  "interpretation_limit": "The timing and native item IDs support a bounded zero-initial-age/individual-monitoring interpretation, but no per-item PM counter age is directly reported. NPMS marks the item-PM threshold bin at h33 or h21, ahead of actual task work at h34 or h22.",
+  "limits": [
+    "One aircraft, one stocked item, one seed, one SYS-SWAP occurrence, OPHOURS intervals 2/3, and 36-hour horizon.",
+    "Only observed physical item identity and PM timing are accepted; no general reset, prelife, or counter progression law.",
+    "No GUI-only or cross-engine parity claim."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d14-var02-03/v1",
+  "verdict": "GO: bounded var02 timing; RESTRICTED var03 physical reinstallation only"
+}
