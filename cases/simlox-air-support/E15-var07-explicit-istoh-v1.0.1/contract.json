@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var07",
+  "case_version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "catalog_parent_prerequisite": {
+    "case_id": "E02",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "signoff": "../E02-zero-stock-local-backorder-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "direct_behavioral_donor": {
+    "case_id": "G01",
+    "variant_id": "G01.var03",
+    "input_sha256": "c409f4b210b9f60e5f36bf6b15f56aaba95f4b08b4f6b6de290b60d65086d7d9",
+    "signoff": "../G01-var03-du-discard-reorder-v1.0.0/cli-scope-signoff-2026-10-01.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [216, 218, 343, 345, 445, 446, 447],
+    "boundary": "Stock-based reorder for a DU at a DEPOT uses ROSIZ=2 and point STSIZ-ROSIZ=2. At a reorder position, omitted ISTOH defaults to STSIZ+AINST; explicit ISTOH changes initial physical stock only and must not be below the reorder point. Installed dictionary Item.TRACK collects item results and defaults to N; both arms now explicitly set TRACK=Y to expose station-specific ItemResults."
+  },
+  "arms": {
+    "default": {"input_sha256": "602dedfdb3491ab430abe4c68426c28203738fe1b2b1173d5d66955d00b6102e", "depot_stsiz": 4, "depot_rosiz": 2, "depot_ainst": null, "depot_istoh": null},
+    "explicit-three": {"input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f", "depot_stsiz": 4, "depot_rosiz": 2, "depot_ainst": null, "depot_istoh": 3}
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "reorder_station": "DEPOT-01",
+    "lead_hours": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "inherited_ordinary_demand": "One fixed-seed aircraft DU failure near h9.8829, local replacement at h10, one depot spare issues toward base at h10; no direct repair for the discardable DU."
+  },
+  "predeclared_native_acceptance": [
+    "Both frozen inputs and the accepted donor are source-bound. Only ProblemDescription, Item.TRACK=Y and the depot StockAllocation row change from the donor; the two E15 arms differ only in ProblemDescription and depot ISTOH. The 21 populated authored tables round-trip exactly.",
+    "Each guarded session-0 SSH run finishes import, export, calc, JSON report and checker with zero exits, zero converter errors, valid nonempty SXO and report, expected logging warning only, and preserved GUI PID 13340.",
+    "Both arms retain the donor's single aircraft DU failure, h10 local issue and discard, h10 depot-to-base issue, h12 base replenishment, mission outcomes and terminal aircraft readiness; physical identities are reconciled per arm.",
+    "Default ISTOH gives depot opening on-hand four; after one h10 depot issue its stock state is three, above reorder point two, with no reorder by h36. Explicit ISTOH=3 gives opening on-hand three; after the h10 depot issue stock state reaches two and initiates exactly one ROSIZ=2 reorder at h10, which delivers two newly identified DUs at h11 after LEADT=1 hour. If native timing differs, classify as a failed predeclared expectation and revise only in a fresh versioned run.",
+    "Selected station-specific ItemResults must be present with 72 half-hour bins in both arms and reconcile opening stock, one depot shipment, any reorder delivery, and terminal state. Stock/system summaries must also reconcile. Preserve original raw artifacts and seal hashes; a separate reviewer independently replays the frozen claims."
+  ],
+  "excluded_diagnostic": {
+    "path": "../E15-var07-explicit-istoh-v1.0.0/",
+    "reason": "The first paired runs produced the predicted events and valid default reports, but the predeclared selected station-specific ItemResults were absent because the donor's Item.TRACK was unset. Their later report probes are excluded from acceptance; this revision freezes TRACK=Y and requires a fresh paired native run."
+  },
+  "limits": [
+    "One fixed seed, one DU, one base/depot pair, stock-based ROSIZ=2, fixed one-hour lead, and one ordinary demand are in scope.",
+    "This pair does not establish time-based ROINT, multiple concurrent orders, random lead time, ISTOH at/below the reorder point, AINST, procurement after a planned transfer, other stations/seeds, GUI-only behavior or cross-engine parity.",
+    "It does not close E15, I02, I07 or Issue #18."
+  ]
+}

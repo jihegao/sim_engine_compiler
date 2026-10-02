@@ -1,0 +1,37 @@
+{
+  "accepted_runs": [
+    "e15-var07-default-v101-ssh-20261002-01",
+    "e15-var07-default-item-v101-ssh-20261002-01",
+    "e15-var07-explicit-three-v101-ssh-20261002-01",
+    "e15-var07-explicit-three-item-v101-ssh-20261002-01"
+  ],
+  "catalog_scope": "The raw replay GO applies only to default ISTOH versus explicit ISTOH=3 with STSIZ=4 and reorder point STSIZ-ROSIZ=2. Catalog E15.var07 plans default versus explicit ISTOH above nominal STSIZ; this tested explicit value is below nominal. Full catalog E15.var07 acceptance is therefore NOT established.",
+  "checks_passed": 1598,
+  "checks_total": 1598,
+  "evidence": {
+    "default": {
+      "input_sha256": "602dedfdb3491ab430abe4c68426c28203738fe1b2b1173d5d66955d00b6102e",
+      "item_closure_sha256": "640e77479b0930137ca7f97e1f346babc9de7132ec33cd6f9ca400fb8295b249",
+      "item_report_sha256": "d7ed894a40efefc577b0520a4bfb0387d9cb0ea907357eef2e058d1438d96499",
+      "model_log_sha256": "f7fb876b752fd8b824defa81bd014fd05a75921d12c352a6940e51b4730bffbf",
+      "native_closure_sha256": "f00b8fc07a4deb1db33b6142f0704e373a5db09197e8f6190fd0b22947e6feff"
+    },
+    "explicit-three": {
+      "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+      "item_closure_sha256": "1bf91edb10034e912a49e1b810f7d5697f351a0eb50d51cefd8fa24bcdc9bbb8",
+      "item_report_sha256": "5ff76859bb5f0173380619067caa633c2f413796e8705675f39bbba230959b1d",
+      "model_log_sha256": "06629a8dc4688786012a304b0e0d6b390a684349b6a280c00b3a6555e3ba5960",
+      "native_closure_sha256": "79e4729d44a4a3ed524ad9e0f0559c4d98c3aff64278bf553c3768f956c435e5"
+    }
+  },
+  "failures": [],
+  "limits": [
+    "One fixed seed, discardable DU, depot/base pair, stock-based ROSIZ=2, one ordinary demand, and one-hour lead; no general trigger law inferred.",
+    "No time-based, concurrent, random-lead, AINST, other-stock-level, GUI-only or cross-engine claim.",
+    "v1.0.0 is excluded: it had valid native outcomes but did not expose predeclared station ItemResults because Item.TRACK was unset."
+  ],
+  "observed": "At depot STSZ remains 4 in both arms. Default opening STOHA 4 falls to 3 at h10 with no reorder. Explicit ISTOH=3 falls to 2 at h10, initiates one two-DU order, and reaches 4 at h11 after one-hour lead; downstream mission and system/aggregate-stock reports match.",
+  "passed": true,
+  "schema": "simlox-independent-readonly-e15-var07-v101/v1",
+  "verdict": "GO: bounded explicit ISTOH stock-trigger contrast"
+}
