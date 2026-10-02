@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-g07-var04-bridge-operational-mode-contract/v1",
+  "case_id": "G07",
+  "variant_id": "G07.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G07-var03-bridge-failure-v1.0.0",
+    "arm": "brfirst",
+    "input_sha256": "b6c40f551355e63e7dc031311794b5dfe1fbda13164d4cffcfce12c1844e8dfd",
+    "run_id": "g07-var03-brfirst-v100-ssh-20261003-01",
+    "native_closure_sha256": "7b7149ad6f2561bf6098489547c1131375b1a3c71b8805e0695240223a4fe6b6"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [197, 198, 200, 451, 452],
+    "rule": "The bridge's five slots each name a materiel operational mode. All functional bridge blocks operate while the bridge operates; USERT is relative and multiplicative in RBDs."
+  },
+  "input_sha256": "07d8983a90312f81c7f314562d67472cc0e68f99aa8e010159cdceaf33d66b18",
+  "exact_diff_sha256": "5e3636e6b0030e4ae3cdd8f6c9e4eac3221fe7a8757cdee3f1e826a2861641d1",
+  "configuration": {
+    "parent": "Accepted G07.var03 B=BR/A=LL bridge, five installed LRUs, B/A OPHOURS failure modes, direct half-hour CM, G04-OPS h8–34 mission, seed1, one replication, horizon36, all bridge slots G04-OPS and all USERT1.",
+    "brhalf": "Define operational mode G07-BR-HALF; add POS-B's row for that mode with USERT0.5 and set only bridge BROPM to it; retain full-rate G04-OPS on the other four slots, physical installations, failure rates, mission, seed and repairs."
+  },
+  "pre_run_hypotheses": [
+    "The bridge BROPM selects the new POS-B mode; all 22 populated tables survive native import/export unchanged and calculation has zero errors or unreviewed diagnostics.",
+    "Relative to accepted B=BR USERT1, first B OPHOURS failure is later due to half-rate exposure while A's failure and mission outcome remain matched; if stochastic ordering changes, preserve the run as diagnostic and state the observed result.",
+    "With direct UL+UR route functional, B and A remain noncritical and the h8–34 mission succeeds. The log may not expose item-level USERT or an active path label."
+  ],
+  "native_acceptance": [
+    "Unique guarded session-0 SSH run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Compare B/A event identity and timing to accepted full-rate control, reconcile report and complete independent read-only replay."
+  ],
+  "diagnostic_gate": "Preserve any rejected or unmatched run as diagnostic and revise under a new version/run ID.",
+  "limits": [
+    "One bridge slot with a half-rate mode under one mission, seed and replication; other slots, modes, usage rates and failure combinations remain unverified.",
+    "Mode selection and path identity are source-bound; native logs do not directly name the active bridge path or item USERT. No GUI drawing, online maintenance or cross-engine claim."
+  ]
+}
