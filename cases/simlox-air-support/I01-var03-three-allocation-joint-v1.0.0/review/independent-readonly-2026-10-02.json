@@ -1,0 +1,67 @@
+{
+  "schema": "simlox-i01-var03-three-allocation-independent-readonly/v1",
+  "case": "I01-var03-three-allocation-joint-v1.0.0",
+  "passed": true,
+  "verdict": "GO — bounded simultaneous three-allocation APID selection",
+  "checks_passed": 2029,
+  "checks_total": 2029,
+  "failures": [],
+  "source_sha256": {
+    "one-base": "fd2fc5714d805cd6808e4da726e2a56b214022ec589593ec521240d974f1ae29",
+    "one-depot": "bc79c4efcbc8777c22e23c4ce941d961927360b5a14885c85a5424b3e531c6e8",
+    "two-base": "a6d10230e5440c643764c954715e28822a8ebed7c6dccdbb40ea131a6f84a5dd",
+    "two-depot": "78afc1450623bbd93cad4db36667587650ee52f5d76078442d3901411d2c1c58"
+  },
+  "runs": {
+    "one-base": {
+      "run_id": "i01-var03-three-one-base-v100-ssh-20261002-01",
+      "point": "AIR_BASIC",
+      "base_spares": 1,
+      "route": "BASE",
+      "closure_sha256": "06a037cce6bd8118bd3c963f026321ad604167504ecadbdc5eb409e510893de3",
+      "model_log_sha256": "1eb11b3b5fc692f5e9a9eb3fb06be2e7078bc817ca037a005381e1c4e0e0d5c1",
+      "report_raw_sha256": "46dc183c542818433e3fb163180c9987442d66d2d77f85070f8902832fe481f4"
+    },
+    "one-depot": {
+      "run_id": "i01-var03-three-one-depot-v100-ssh-20261002-01",
+      "point": "AIR_DEPOT",
+      "base_spares": 1,
+      "route": "DEPOT",
+      "closure_sha256": "8245dc26af4de1a72412c9ed0338384edfc913689574aca3ae74f19e2968dad6",
+      "model_log_sha256": "b5ae38cbe9863713c92302180dbafa45f83d62caf09277d4efcee2d122817285",
+      "report_raw_sha256": "f90e533d19b2ce468048bc44a62962957dcae16956048aca422c22eeccc38fce"
+    },
+    "two-base": {
+      "run_id": "i01-var03-three-two-base-v100-ssh-20261002-01",
+      "point": "AIR_TWO_BASE",
+      "base_spares": 2,
+      "route": "BASE",
+      "closure_sha256": "6f769c0d6ccc6b512c9a28ad785808baedbb4ddf2a36e902579b63d648a2292d",
+      "model_log_sha256": "76325024578612b26e75156f3ac4b44096012581b43f698fa5794ea497ab4c47",
+      "report_raw_sha256": "0da2e6b2358a658372e6df77ba345e1e13176427b8e2d5ce82863cb9af8f4be9"
+    },
+    "two-depot": {
+      "run_id": "i01-var03-three-two-depot-v100-ssh-20261002-01",
+      "point": "AIR_TWO_DEPOT",
+      "base_spares": 2,
+      "route": "DEPOT",
+      "closure_sha256": "40f73b960f0f5ad6fdc228312cb57e286143ee55a4f4eff963fbe5763db2c995",
+      "model_log_sha256": "fe952270f4c4b742f464f4036a501afe629a61dcab1ac6a3770cca4bc8d77486",
+      "report_raw_sha256": "2cda15f11a8bdecb1a25483c640bd1a6072dbcc75b6550f80c6f92b7b9f16ff1"
+    }
+  },
+  "observations": {
+    "resource": "P-CREW capacity 2 at one-spare POINTs and 3 at two-spare POINTs; all three preparations lease two crew for 10 minutes, then release them, and finish at 7.5/19.5/31.5. ResourceResults.NR is 2/3 in all 72 bins; NRUM is 2/3 only in bins 14/38/62; NRW is zero.",
+    "inventory": "Native BASE stock item identities show 1->0->1 and 2->1->2 after first issue/repair; DEPOT arms issue a second spare at 34 and end at BASE stock 0/1. Aggregate StockTotalResults does not expose on-hand counts.",
+    "maintenance": "First failed item repairs at BASE 10.1667-11.1667 or DEPOT 12.1667-13.1667 after 2-hour outward transport, then returns BASE at 15.1667. In DEPOT arms, a distinct second item fails at 33.9619 and begins outward transit 34.1667; no second repair completion or stock return is logged by 36.",
+    "missions": "All first missions abort and all second missions succeed; third mission succeeds only in BASE arms and aborts at 33.9619 in DEPOT arms. Aircraft is ready at horizon in all arms.",
+    "backorder": "Native DEPOT log adds an internal backorder after each failed-item dispatch; the second remains unresolved at hour 36 although every aggregate StockTotalResults.NBO bin is zero."
+  },
+  "scope": "One LRU, four APID POINTs jointly selecting P-CREW capacity 2/3, BASE spare size 1/2, and BASE/DEPOT repair; one seed.",
+  "limits": [
+    "P-CREW 2/3 is correlated with stock 1/2; separate resource-versus-stock causation is not identified.",
+    "DEPOT arms have a second failure at 33.9619 and its failed item remains in transit at horizon; no terminal depot replenishment or matched mission outcomes across routes is claimed.",
+    "Aggregate StockTotalResults.NBO is zero despite physical depot backorder events; it cannot prove absence of internal backorders or on-hand stock quantity.",
+    "No shortage, procurement/reorder, other seeds, category/level changes, GUI visual behavior, or cross-engine parity is tested."
+  ]
+}

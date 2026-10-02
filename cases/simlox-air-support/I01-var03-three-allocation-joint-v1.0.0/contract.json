@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-i01-var03-three-allocation-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var03.three-allocation-interaction",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I01-var03-stock-maintenance-joint-v1.0.0",
+    "source": "../I01-var03-stock-maintenance-joint-v1.0.0/one-base-input.json",
+    "sha256": "96dd5cb98a9e5847fc7ae0d4236d6214dbe1825fe5c89c9e87ad3c951621b049",
+    "merge_sha": "4df9fa5a5fbfaf4415ccf96c24837854261fad70"
+  },
+  "preparation_resource_donor": {
+    "package": "I01-var01-resource-points-v1.0.0",
+    "source": "../I01-var01-resource-points-v1.0.0/selected-input.json",
+    "sha256": "ac35a07731c629e16ba6bd83183eaca9c244161c2cc05a07cf7b2127cd52bbc5",
+    "signoff_sha256": "e0ab772da4b2fbaf707f9df3c0d7e40afad0f19bf55ede690e4efaf77762946c"
+  },
+  "sources_sha256": {
+    "one-base": "fd2fc5714d805cd6808e4da726e2a56b214022ec589593ec521240d974f1ae29",
+    "one-depot": "bc79c4efcbc8777c22e23c4ce941d961927360b5a14885c85a5424b3e531c6e8",
+    "two-base": "a6d10230e5440c643764c954715e28822a8ebed7c6dccdbb40ea131a6f84a5dd",
+    "two-depot": "78afc1450623bbd93cad4db36667587650ee52f5d76078442d3901411d2c1c58",
+    "exact_diff": "6122f02087643277e3a2d2a389b3985495b748005525c2d71c6982810cb8fdb3"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp439-445 describes Control.APID selection across StockAllocation, ResourceAllocation and MaintenanceAllocation. Manual pp338-339 describes task-referenced ItemRepair category/level/station matching. Accepted C01-derived resource donor establishes P-CREW preparation demand, and accepted I01.var03 parent establishes stock and maintenance effects separately.",
+  "controlled_design": "The four inputs differ from each other only in Control.APID and ProblemDescription. All have the accepted parent stock sizes BASE1/DEPOT0 under AIR_BASIC/AIR_DEPOT, BASE2/DEPOT0 under AIR_TWO_BASE/AIR_TWO_DEPOT, with matching maintenance assignment BASE/DEPOT crossed. Each POINT additionally allocates P-CREW2 when the BASE stock level is1 or P-CREW3 when stock level is2, plus P-OTHER0. A donor-copied BASIC-MISSION preparation uses PREP-FIXED, two 10/20-minute subtasks and P-CREW2 in the first subtask, so either selected resource capacity can execute the same active preparation. Failed-LRU ItemRepair task, station/transport, missions, seed and horizon otherwise remain fixed. No ItemReorder business rows.",
+  "pre_run_hypotheses": {
+    "resource": "Selected P-CREW total capacity should appear as 2 or3 in ResourceResults and active two-crew preparation should complete before the first mission in all arms. The extra crew is surplus; no resource shortage is expected. This is not independent resource-vs-stock factorial isolation because the two capacities track the two stock sizes.",
+    "stock_and_maintenance": "The accepted parent physical BASE stock size1/2 and BASE/DEPOT failed-item repair crossover should remain observable when preparation resources are added. Physical item IDs, failure draw, repair timings, mission outcomes, and aggregate reports are conditional until native observations are checked.",
+    "alternatives": "Converter rejection, preparation failing to activate, any selected resource capacity not observable, stock/repair route divergence, missing report or incomplete physical accounting is diagnostic. Preserve contrary outcomes; do not publish a positive three-allocation claim without complete matched native evidence and independent replay."
+  },
+  "acceptance_gates": [
+    "Independent pre-run audit of parent and donor lineage, four frozen sources, exact APID-only delta, roundtrip checker and guarded native runner",
+    "Four serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored-table roundtrip, zero converter errors, valid SXO/report and sealed raw artifacts in each arm",
+    "Physical resource lease/preparation, initial/issued/returned stock, selected failed-item repair station, full Resource/System/Stock report bins and terminal state reconciled",
+    "Author validation, independent read-only replay and final staged audit before any bounded publication"
+  ],
+  "limits": [
+    "A positive result would show simultaneous selection of these three complete allocation tables for one LRU, one preparation task, four POINTs and one seed. Resource capacity 2/3 is correlated with stock size1/2; their separate causal effects are not isolated here.",
+    "No resource shortage, procurement, reorder, other task categories or levels, generic POINT selection, GUI visual behavior or cross-engine parity is claimed."
+  ]
+}
