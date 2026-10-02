@@ -1,0 +1,29 @@
+{
+  "schema": "i01-var03-station-independent-review/v1",
+  "case": "I01-var03-maintenance-station-v1.0.0",
+  "passed": true,
+  "checks_passed": 2016,
+  "checks_total": 2016,
+  "failures": [],
+  "verdict": "GO_BOUNDED_MAINTENANCE_STATION_APID_SELECTION",
+  "accepted_observation": "With complete LRU-CM/BASE MaintenanceAllocation rows at both APIDs and equal stock, AIR_BASIC repairs failed LRU ID1 at BASE-01 h10.1667-11.1667; AIR_DEPOT moves the same item two hours to DEPOT-01, repairs h12.1667-13.1667, returns two hours and restocks BASE-01 h15.1667. Both aircraft remain ready and aggregate reports match.",
+  "excluded_claims": [
+    "positive category or level filtering",
+    "simultaneous three-allocation APID selection",
+    "<NONE> reorder",
+    "generic station routing"
+  ],
+  "limits": "The selected station changes the downstream transport and stock timing as a coupled result; neither mechanism is isolated separately. One LRU, two WS stations, one seed, one installation. GUI visual and cross-engine parity unverified.",
+  "runs": {
+    "base": {
+      "run_id": "i01-var03-station-base-v100-ssh-20261002-01",
+      "closure_sha256": "a7ed07e1ea39c7e178febd23326d5b92b27d8388dd668bced41935fd245fb76c",
+      "report_sha256": "b0abfb5d9cb170d82af1f7020419f4332a8f4ad25333cdc557e9dbe231fa8c5f"
+    },
+    "depot": {
+      "run_id": "i01-var03-station-depot-v100-ssh-20261002-01",
+      "closure_sha256": "a8d08cc07afa08da661cb5f3e7949ddad3a065efc02718acf5c28d843a5ca24b",
+      "report_sha256": "5074ffff152691bc264d013273f99fa630fdec62262db13a8dbe3cebe879441d"
+    }
+  }
+}
