@@ -1,0 +1,9 @@
+# G03.var03: simultaneous base and BSID variant deployment
+
+This bounded case extends the accepted [G03 effective item contrast](../G03-effective-item-contrast-v1.0.0/cli-scope-signoff-2026-10-01.md). The [frozen contract](contract.json) and [exact diff](exact-diff.json) add a base system in a second unit on the same schedule. The variant, its BSID parent, item rates, repair route, local spare, seed 1, three scheduled two-hour missions and 36-hour horizon remain unchanged.
+
+One guarded session-0 SSH native run completed import, export, calculation, report export and exact 18-populated-table roundtrip. The event log identifies `TEACH-VAR-ADD,0` in `TEACH-UNIT` and `TEACH-AIR-01,1` in `TEACH-BASE-UNIT`. Each receives missions at h8, h20 and h32. The zero-rate base succeeds three times. The variant's added `TEACH-LRU-ADD` fails at h9.8829, aborting its first mission. A local spare is drawn at h10, the variant becomes ready at h10.5, the removed LRU is repaired and restocked at h11.25, and its later two missions succeed. The aggregate report has 72 aligned System and Stock half-hour bins, NFAIL=NREPT=1, success fraction 5/6, no backorders and two systems ready at h36.
+
+The [author replay](author-validation.json) passes 91/91 checks and the [independent read-only replay](review/independent-validation-2026-10-03.json) passes 3,609/3,609. The [evidence index](evidence-index.json) and [CLI sign-off](cli-scope-signoff-2026-10-03.md) record the exact scope. Raw native files remain under ignored `runs/g03-var03-simultaneous-v100-ssh-20261003-01/` and are not uploaded.
+
+This demonstrates static BSID base/variant types deployed at the same time in separate units for one fixed seed. The report is aggregate; per-unit identities come from the event log. CBSID runtime reconfiguration, simultaneous add/exclude, other seeds or rates, GUI rendering and cross-engine behavior remain unverified.
