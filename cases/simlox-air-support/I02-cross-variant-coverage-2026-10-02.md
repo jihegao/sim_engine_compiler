@@ -16,6 +16,7 @@ does not extend the simulator claims or replace the sealed case packages.
 | I02.var11, delayed IN | The accepted [TFDT2 IN child](I02-var11-delayed-in-v1.0.0/cli-scope-signoff-2026-10-02.md) starts h4 and arrives depot h6, leaving four intermediate half-hour bins different from TFDT0. | One available one-unit IN and seed; other delays and shortage unverified. |
 | I02.var12, OUT delay | The accepted [OUT TFDT2 diagnostic](I02-var12-out-delay-ignored-v1.0.0/cli-scope-signoff-2026-10-02.md) departs depot h6 as TFDT0 does, but its task arrives `<OUTSIDE>` h8 rather than h6. | Bounded counterexample to literal ignored-completion wording; no reported downstream effect or outside-stock measurement. |
 | I02.var13, terminal transfer state | The accepted [h7/h3 endpoint pair](I02-var13-terminal-transfer-v1.0.0/cli-scope-signoff-2026-10-02.md) shows one tracked item in transit at h7 and a log-visible transfer backorder at h3. The latter has base nominal `STSZ=1`, on-hand 0 and ordinary `NBO=0`. | Separate parents, zero mission initiation, one seed and two endpoints; no general horizon or active-demand claim. |
+| I02.var14, both endpoints `<OUTSIDE>` | The accepted [double-`<OUTSIDE>` diagnostic](I02-var14-both-outside-v1.0.1/cli-scope-signoff-2026-10-02.md) changes only the h4 IN target from `DEPOT-01` to `<OUTSIDE>` plus description. The row survives exact roundtrip and converts without error, but creates no h4 transfer event; depot nominal and on-hand are one below the accepted IN parent in every h4–36 half-hour bin. | Restricted GO for this installed-CLI observation; NO-GO for expected native rejection despite the manual prohibition. No recommendation to use this syntax or general silent-handling guarantee. |
 
 The two accepted shortage packages each have exact source deltas, guarded
 session-0 native runs, selected station-specific `ItemResults`, local raw
@@ -24,6 +25,6 @@ case has 16 raw seals and independent 1222/1222; the zero-source pair has
 32 raw seals and independent 1717/1717. The physical and station ledgers
 support only the fixed configurations above. I02.var08 has a restricted
 acceptance with a broader NO-GO, while I02.var09 has a reproducible native
-counterexample to its literal planned timing. I02.var10–13 have bounded
-publications in the linked packages; I02.var14 remains unverified.
-Issue #18 stays open.
+counterexample to its literal planned timing. I02.var10–14 have bounded
+publications in the linked packages, including the I02.var14 manual-versus-CLI
+counterexample. The broader I02 case and Issue #18 remain open.
