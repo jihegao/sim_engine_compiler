@@ -1,0 +1,7 @@
+# H01.var04 two-aircraft DAMP occurrence
+
+This bounded pair starts from the accepted [A03 two-aircraft formation](../A03-two-aircraft-formation-v1.0.1/cli-scope-signoff-2026-09-29.md). The control is byte-identical. The child adds one `BATTLE-HIT` damage type, one fixed-mission `MissionDamage` row with `DAMP=1`, and a zero-probability `<ATTRITION>` consequence. Only the description changes among existing tables.
+
+Two serial guarded session-0 SSH runs convert with zero errors and exactly roundtrip their 13 or 16 authored row-containing tables. Both aircraft launch in one formation at h8 and complete successfully at h10. The child logs one damage occurrence per aircraft at h8.17491 and h8.78145; the control logs none. Each arm has 72 aligned half-hour System and Stock bins and four aircraft-hours. The child's two `NDAM` bins match the event times, while all other System cells and all Stock and ResultSummary cells match the control. Both aircraft return ready.
+
+The [frozen pre-run contract](contract.json), [exact source diff](exact-diff.json), [CLI sign-off](cli-scope-signoff-2026-10-02.md), and [evidence index](evidence-index.json) bind the observation. One fixed seed shows two aircraft-identified occurrences at different sampled times; it does not establish statistical independence or a population timing law. The zero-probability consequence does not test attrition or downstream item/system damage and repair consequences. Other formation sizes, probabilities, GUI visual behavior and cross-engine parity remain unverified.

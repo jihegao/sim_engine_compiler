@@ -1,0 +1,181 @@
+{
+  "schema": "simlox-h01-var04-two-aircraft-damp-exact-diff/v1",
+  "parent_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+  "control_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+  "damp_sha256": "ca7ce1a2493631202c7c1ee4e5f7e3a5fe2c765b0d016bf47fbdd2751921f28c",
+  "added_tables": {
+    "DamageItem": {
+      "name": "DamageItem",
+      "columns": [
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "SID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "IID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "PROB",
+          "datatype": "double"
+        },
+        {
+          "name": "REPF",
+          "datatype": "double"
+        },
+        {
+          "name": "OPID",
+          "datatype": "string"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BATTLE-HIT",
+              "TEACH-AIR-01",
+              "<ATTRITION>",
+              0.0,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "DamageType": {
+      "name": "DamageType",
+      "columns": [
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "DESCR",
+          "datatype": "string"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BATTLE-HIT",
+              "Two-aircraft occurrence probe",
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "MissionDamage": {
+      "name": "MissionDamage",
+      "columns": [
+        {
+          "name": "MTID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "SID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "DAMP",
+          "datatype": "double"
+        },
+        {
+          "name": "DAMRT",
+          "datatype": "double"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BASIC-MISSION",
+              "TEACH-AIR-01",
+              "BATTLE-HIT",
+              1.0,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "removed_tables": [],
+  "changed_tables": {
+    "ProblemDescription": {
+      "before": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "A03 two-aircraft, one-wave teaching case; no J35/F35 equivalence"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      },
+      "after": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "H01.var04 two-aircraft DAMP=1 no-consequence probe"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      }
+    }
+  },
+  "unchanged_table_count": 30
+}
