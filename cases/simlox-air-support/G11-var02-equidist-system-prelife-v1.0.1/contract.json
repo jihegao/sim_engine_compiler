@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var02",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "G11",
+    "variant_id": "G11.var01",
+    "package": "../G11-var01-fixed-system-prelife-v1.0.0",
+    "input_sha256": "a8836588aa09973b78195cf515cdc1ed4916c4f1653690e3bbd38fd0a5fb4bd2",
+    "native_closure_sha256": "29238ff0dfe1f92eca8876033987e2c6cdbd119335e51a625d82685076c45796"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 208, 209, 468, 469, 470, 471, 472],
+    "rule": "For three EQUIDIST individuals with AGEMIN 0 and AGE 120, the expected ages are 40, 80 and 120 rather than 0, 60 and 120. Fixed explicit one-per-individual rows serve as the matched outcome comparator."
+  },
+  "inputs": {
+    "fixed-explicit": {"sha256": "c790bd4fbaccd3ea5876c3defdd0bf4ec52401fee0be26c02dc4c361105c8100", "ages_calhours": [40, 80, 120]},
+    "equidist": {"sha256": "fe5ef789385330d275709b2e0a124bfde2268ca51e1236692ff36cd92e3d3ece", "AGEMIN": 0, "AGE": 120, "QTY": 3, "TYPE": "EQUIDIST"}
+  },
+  "exact_diff_sha256": "197e725e4cbf83f44921046bafb95ac7b385ee51776c0c05e7de56d110064768",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "deployed_count": 3,
+    "prelife_plid": "PL-SYS",
+    "pm": {"PMID": "CAL100", "OPID": "CALHOURS", "PMINT": 100, "duration_hours": 1},
+    "mission_launch_hours": [8, 12, 32],
+    "seed": "1",
+    "horizon_hours": 104
+  },
+  "hypothesis_before_native": {
+    "fixed-explicit": "The Prelife Log lists AGE40/AGE80/AGE120 at CALHOURS 40/80/120; with missions away from the due boundary, first CAL100 PM starts are h60/h20/h80 in physical source order.",
+    "equidist": "The single EQUIDIST row with QTY3 and [AGEMIN 0, AGE 120] deterministically allocates CALHOURS 40/80/120. With the same collision-free mission schedule, its first CAL100 PM starts match fixed-explicit h60/h20/h80 by physical source order."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms import/export exact authored populated tables, convert with zero errors, calculate without unreviewed runtime errors, preserve the existing GUI/queue/session guards and seal source/raw hashes.",
+    "Only PrelifeData and descriptive text differ between arms; three-aircraft deployment, system PM, shifted second mission at h12, seed and horizon match.",
+    "Both native Prelife Logs list three calendar ages 40/80/120 in source order; the EQUIDIST log uses its one PLIND for all three. Both model event logs show distinct first CAL100 PM starts at h20/h60/h80 on the corresponding physical aircraft and reports reconcile.",
+    "The Prelife Log registry option returns to NO after each calculation. A separate read-only reviewer replays raw evidence without importing author validation code."
+  ],
+  "limits": [
+    "Three same-type top-level systems, one seed, one CALHOURS PM, three EQUIDIST individuals and their first PM only.",
+    "No RANDOM pattern, item/stock age, second OPID, later cycle, numeric ID directly in Prelife Log, GUI visual or cross-engine claim."
+  ],
+  "excluded_diagnostic": {
+    "local_package": "../G11-var02-equidist-system-prelife-v1.0.0",
+    "fixed_explicit_closure_sha256": "5a5b4631238de9534db2cd99ff42d4f3a9dd2a50550724a32d057a8ff8de1b07",
+    "equidist_closure_sha256": "94522014051eb2dbe0eb7df9fbfe7ae4f03647008b803205040e9509079bf74f",
+    "reason": "Original h20 mission occupies the age-80 aircraft at its nominal PM due time; both arms start that PM at h22 rather than the predeclared h20 acceptance. Those runs remain local diagnostic evidence and are not published. The second mission is moved identically to h12 in both new arms."
+  }
+}
