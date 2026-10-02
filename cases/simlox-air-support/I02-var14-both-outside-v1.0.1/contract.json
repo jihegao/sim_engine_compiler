@@ -1,0 +1,21 @@
+{
+  "schema": "simlox-i02-var14-both-outside-counterexample-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var14",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {"package": "I02-var01-in-transfer-v1.0.2", "source_sha256": "85ee84d85e610f753215882fca59cc3331a9ce0f3313ae635f2a7422e8abcf4d"},
+  "input_sha256": "de0e6c5acb053c48528598d91b541603f78cfdac68f866899c2240740e58ced5",
+  "exact_diff_sha256": "fefdb10df77e84c4aa89cccba2b2a732aa0980e189a002b7e8a9a8df2b7041f3",
+  "installed_source_sha256": {"simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0", "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"},
+  "manual_basis": "Installed manual printed p476 (PDF index475) says both ItemTransfer endpoints cannot be <OUTSIDE>. Accepted I02.var01 establishes IN from <OUTSIDE> to DEPOT-01; this child changes only STTID to <OUTSIDE> and the description, leaving 30 other model tables identical.",
+  "excluded_initial_probe": {"package_local_only": "I02-var14-both-outside-v1.0.0", "run_id": "i02-var14-both-outside-v100-ssh-20261002-01", "input_sha256": "de0e6c5acb053c48528598d91b541603f78cfdac68f866899c2240740e58ced5", "status": "unpublished_rejection_hypothesis_failed", "observed": "JSON import/export and native calculation exited zero; converter Errors: 0, Warnings: 1 and nonempty SXO. The runner stopped at its expected-rejection gate and did not export report or run its roundtrip checker. Its sealed raw output shows no h4 transfer event. This observation motivates the revised acceptance gate; it is not itself accepted behavior."},
+  "pre_run_hypotheses": [
+    "The identical frozen 22-populated-table child imports and exports exactly, converts with zero errors, produces a nonempty valid SXO and JSON report while preserving the GUI under session-0 SSH and host-wide mutex.",
+    "The installed engine omits the double-<OUTSIDE> scheduled transfer from its h4 event log. A depot ItemResults export should show no h4 physical or nominal increase versus the accepted I02.var01 IN parent, despite the source row surviving the import/export roundtrip.",
+    "Later ordinary demand, physical identities, backorders, mission/system metrics and terminal state are conditional and must be compared directly against the accepted parent without assuming equality.",
+    "If the revised run rejects, emits a transfer, mutates the source row, or produces inconsistent stock/report data, do not publish the silent-handling conclusion. Preserve the contrary outcome."
+  ],
+  "acceptance_gate": "Guarded session-0 SSH native run, exact row/column roundtrip, zero converter errors, nonempty SXO/report, pinned depot item-position report, event-to-stock ledger, parent comparison, source-bound raw closure, author replay, independent read-only replay and final staged audit.",
+  "limits": ["one h4 one-unit double-<OUTSIDE> row derived from accepted IN, one IID/depot/seed", "bounded manual-versus-installed-CLI counterexample, not a general guarantee of silent handling or a valid modeling practice", "GUI rendering and cross-engine parity unverified"]
+}
