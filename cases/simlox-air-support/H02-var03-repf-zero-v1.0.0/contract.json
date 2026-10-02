@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-h02-var03-repf-zero-contract/v1",
+  "case_id": "H02",
+  "variant_id": "H02.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent_acceptance_gate": "Run this pair only after H02-var01-primary-lru-damage-v1.0.0 is accepted and merged to simlox/main; until then the source is a reviewed PR candidate, not an accepted parent.",
+  "direct_parent": {
+    "package": "H02-var01-primary-lru-damage-v1.0.0",
+    "source": "../H02-var01-primary-lru-damage-v1.0.0/lru-input.json",
+    "sha256": "82564db9cd0d3f916a87264d16d390a42bf886f5748c843070bea20e6b1c4a92",
+    "scope": "one primary TEACH-LRU-01 with local spare and ItemRepair, certain in-flight BATTLE-HIT with PROB1, REPF1 and explicit local DamageReplacement, three fixed missions, seed1, horizon36"
+  },
+  "sources_sha256": {
+    "repairable": "82564db9cd0d3f916a87264d16d390a42bf886f5748c843070bea20e6b1c4a92",
+    "discard": "bc6f60ec72eebee4621ec742f8684d3371f654ce00d0d75909c3470cf9cfb322",
+    "exact_diff": "5c393747fce27a4994e61d9efc7a3166788f8f68b74518f060ec0870c89cac38"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp193,426-427: DamageItem.REPF overrides the default discard behavior for damaged items; without repairability, a damaged LRU is discarded after removal at base and nominal stock is permanently reduced. An item TYPE or configured ordinary ItemRepair alone does not imply damaged-item repairability.",
+  "source_delta": "The repairable arm is byte-identical to the accepted H02.var01 primary-LRU source. The child changes only DamageItem.REPF from 1 to 0 and ProblemDescription. Both preserve DAMP1, PROB1, directly mounted LRU, one BASE-01 spare, explicit DamageReplacement, ordinary ItemRepair, three fixed scheduled missions, seed1 and horizon36.",
+  "pre_run_hypotheses": {
+    "repairable": "The byte-identical parent should again show primary-LRU damage, local spare issue, system replacement, one-hour repair of each removed LRU and return to stock, permitting later launches.",
+    "discard": "At least the first BATTLE-HIT should damage the mounted LRU, issue the one local spare to restore the aircraft, then discard the removed damaged LRU rather than running the configured one-hour ItemRepair. The physical and nominal local stock should not be restored by this discarded item; later shortage and sortie effects must be read from native events and bins, not assumed from the process exit.",
+    "alternatives": "Converter rejection, no item-identified damage, repair despite REPF0, an unlogged replacement, or nominal stock unchanged without a compensating stock transaction are diagnostic only. Event times and later mission count are not preaccepted."
+  },
+  "acceptance_gates": [
+    "Accepted and merged direct parent plus independent pre-run static review of frozen sources, exact diff, manual/dictionary basis and guarded runner",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact 24/24 authored row-containing table roundtrips and zero converter errors with valid native logs/reports",
+    "Positive REPF1 repair/stock return versus REPF0 discard/nominal-stock-loss contrast with individual item IDs, physical stock ledger, later mission status and 72-bin System/Stock/ResultSummary reconciliation",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "This pair tests REPF endpoints 1 and 0 for one fixed seed and one primary LRU; an intermediate REPF value, statistical repair fraction, damaged subitems and multiple consequences remain unverified.",
+    "The explicit DamageReplacement and ordinary ItemRepair rows are retained across arms; this pair does not test general repair-data fallback priority, other stations, GUI visual behavior or cross-engine parity."
+  ]
+}
