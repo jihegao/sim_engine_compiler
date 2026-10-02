@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-g03-var03-simultaneous-base-variant-contract/v1",
+  "case_id": "G03",
+  "variant_id": "G03.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G03-effective-item-contrast-v1.0.0",
+    "arm": "add-extra",
+    "input_sha256": "c12e1ae3ddb58e0daa4432e243e547b1fd4a174244dff93861ba86b84679f497",
+    "run_id": "g03-effective-add-extra-v100-20261001-01",
+    "native_closure_sha256": "5c5dfef048fce12d331b28bf727c87f24ffac9f0dd14ca4e45b7a8c25d8fcea5"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [253, 255, 256, 257],
+    "rule": "A BSID variant statically inherits the base system's item structure and may add an item. Separately deployed base and variant are distinct physical systems; their mission and failure identifiers must be traced separately. This is not a CBSID runtime reconfiguration."
+  },
+  "input": {"sha256": "42f3d9db9b201b80314731091e3f3e1ea6b5dfefdc40addca5f75f33daf13c7f"},
+  "exact_diff_sha256": "679530a5a07421f306a583a17117be499c16d6e8fd93e487828bf0d2d9d348ee",
+  "configuration": {
+    "base_system": "TEACH-AIR-01",
+    "variant_system": "TEACH-VAR-ADD",
+    "variant_bsid": "TEACH-AIR-01",
+    "base_unit": "TEACH-BASE-UNIT",
+    "variant_unit": "TEACH-UNIT",
+    "station": "BASE-01",
+    "base_lru_frt_per_million_op_hours": 0,
+    "variant_added_lru_frt_per_million_op_hours": 300000,
+    "added_lru_local_spares": 1,
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "missions_per_unit": "schedule at h8, h20 and h32; duration two hours"
+  },
+  "exact_delta": "Starting from the accepted add-extra parent, append one base Unit, one base SystemDeployment row, and one Operations row binding that unit to the existing schedule; change ProblemDescription. All System, Item, ItemStructure, repair, stock, mission, seed, and report-control rows remain byte-identical in the parsed model.",
+  "pre_run_hypothesis": [
+    "Both physical systems should receive their own three scheduled missions. The zero-rate base should have no item failure, while the variant may fail through TEACH-LRU-ADD under the inherited/additive composition. The parent variant-only seed-1 run failed at h9.8829, but a second unit may alter random draw order; no exact child time is prespecified.",
+    "The event log should identify both system and unit instances for mission assignment and should identify any failure path and stock demand/repair target. The aggregate report must reconcile with those events and show two terminal ready systems."
+  ],
+  "native_acceptance": [
+    "Guarded session-0 SSH import/export, calculation, report export, exact authored-table roundtrip, and GUI PID13340/host mutex/registry/source continuity.",
+    "Zero converter errors/notes, individually classified warnings, valid SXO/event log/report and 72 aligned half-hour System and Stock bins.",
+    "Separate base and variant mission identities, base zero-failure exposure, at least one added-LRU variant failure and associated local demand/repair, all six mission outcomes, and terminal two-system readiness reconciled to report.",
+    "Separate read-only reviewer replays source delta, raw seals, event chronology, ledgers and terminal state without importing author validation."
+  ],
+  "diagnostic_gate": "If the native run rejects the input or lacks separate base/variant mission identity or added-LRU failure and repair, retain it as diagnostic; revise candidate/version and run ID before another native attempt, without widening positive claims.",
+  "limits": [
+    "One BSID add variant, one separately deployed base, one station, one seed and one replication; no rate or population inference.",
+    "The report is aggregate; per-system assignment and failure attribution require the event log. No CBSID conversion, simultaneous add/exclude, GUI visual or cross-engine claim."
+  ]
+}
