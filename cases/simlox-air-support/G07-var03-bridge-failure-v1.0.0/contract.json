@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-g07-var03-bridge-failure-contract/v1",
+  "case_id": "G07",
+  "variant_id": "G07.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G07-four-path-panel-v1.0.0",
+    "arm": "allbroken",
+    "input_sha256": "347790dfeb69c932398e366dd71fca4aff142cd5a506171a057222518046ed52",
+    "run_id": "g07-panel-allbroken-v100-ssh-20261003-01",
+    "native_closure_sha256": "2548864afce40a7ad7139830e08764a7ffa794d168fb4dbc84dc3818cc9eea47"
+  },
+  "accepted_comparator": {
+    "package": "G07-four-path-panel-v1.0.0",
+    "arm": "ulur",
+    "input_sha256": "de2048592999168639e3b9c5672c41b9c8acf924e940ee1b90a927099cd1354c",
+    "run_id": "g07-panel-ulur-v100-ssh-20261003-01",
+    "native_closure_sha256": "19a87eb26870aa0fa065a3153481e57acb6248c9fb3594f1798ccba066c203b8"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [197, 198, 200, 451, 452],
+    "rule": "A five-block bridge functions if any of UL+UR, LL+LR, UL+BR+LR, or LL+BR+UR functions."
+  },
+  "input_sha256": "b6c40f551355e63e7dc031311794b5dfe1fbda13164d4cffcfce12c1844e8dfd",
+  "exact_diff_sha256": "7514b620d21e82c917397c19278c7edbf4f20ca518240cfcb84e15ba6f64f287",
+  "configuration": {
+    "common": "Accepted five physical positions and LRUs, A/B OPHOURS failure modes, half-hour direct system CM, G04-OPS mission h8–34, seed1, one replication, horizon36.",
+    "parent_allbroken": "UL=B, LL=A, BR=E, UR=C, LR=D; B failure leaves routes but A failure breaks all four routes.",
+    "brfirst": "UL=E, LL=A, BR=B, UR=C, LR=D; B bridge-block failure leaves both direct routes, A failure leaves UL+UR.",
+    "comparator_ulur": "UL=C, LL=B, BR=A, UR=D, LR=E; A bridge-block failure second leaves UL+UR."
+  },
+  "pre_run_hypotheses": [
+    "The guarded native import/export exactly preserves all 22 populated tables and calculates with zero errors or unreviewed diagnostics.",
+    "B fails the bridge block at h8.62763 while both direct paths remain; A later fails LL at h16.7498 while UL+UR remains. Both failures are noncritical and the mission succeeds at h34.",
+    "Matched accepted allbroken makes A critical and aborts at h16.7498; accepted ulur makes the second A bridge-block failure noncritical and succeeds. Native logs report system criticality, not an active bridge path label."
+  ],
+  "native_acceptance": [
+    "Unique guarded session-0 SSH run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table import/export roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Matched B/A timeline and expected criticality/mission outcome, 72-bin report, CM/stock/terminal reconciliation, and independent read-only replay."
+  ],
+  "diagnostic_gate": "Preserve any rejected or unmatched run as diagnostic and revise under a new version/run ID.",
+  "limits": [
+    "One fixed-seed first bridge-block failure and accepted second bridge-block failure comparator; not a full bridge reliability truth table or population estimate.",
+    "The native event log does not label the active bridge path; path identity is inferred from sealed source and manual rule. No nested bridge, online maintenance, GUI RBD drawing or cross-engine claim."
+  ]
+}
