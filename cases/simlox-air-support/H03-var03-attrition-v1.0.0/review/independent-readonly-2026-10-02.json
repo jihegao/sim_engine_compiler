@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-h03-var03-independent-readonly/v1",
+  "passed": true,
+  "verdict": "GO: bounded first-hit attrition under coupled FM-PROB0/ATTRITION-PROB1 configuration",
+  "checks_passed": 6561,
+  "checks_total": 6561,
+  "failures": [],
+  "runs": {
+    "control": {
+      "run_id": "h03-var03-control-v100-ssh-20261002-01",
+      "closure_sha256": "b77151406a8ea6603a1bca71e7b4abbd7426608dc4d37240ac8dc1b74d1e3527",
+      "report_sha256": "3888c1030dd7348dde8b8ea79f9a07f6008710b133af89a5d782f276b7ab4636",
+      "model_log_sha256": "1f245df1fb7cb32b9e65addf71c52a118804d7b9cddbf8f38fb1298ec26dd11a",
+      "flight_aircraft_hours": 3.0336023941636086,
+      "lost_aircraft_hours": 0.0,
+      "repair_aircraft_hours": 1.5000000074505806,
+      "terminal_ready": 1,
+      "terminal_lost": 0
+    },
+    "attrition": {
+      "run_id": "h03-var03-attrition-v100-ssh-20261002-01",
+      "closure_sha256": "ffc7e1b50c125981efffe6c72488a00ca8683f966bdddb21bc7714c106715669",
+      "report_sha256": "94da428fcc78aa53cec78ccad5df58aaba3f8dc6db7c7dfabf999acfab57c2e1",
+      "model_log_sha256": "b329e2f35fa5c3e8c657b20bb99e175d2940ff5ad1c07a0e1d1397782734e772",
+      "flight_aircraft_hours": 0.13664500415325165,
+      "lost_aircraft_hours": 27.86335501074791,
+      "repair_aircraft_hours": 0.0,
+      "terminal_ready": 0,
+      "terminal_lost": 1
+    }
+  },
+  "scope": "One fixed-seed, one-aircraft in-flight BATTLE-HIT produced whole-aircraft attrition at h8.13665, suppressed the retained FM/CM path, and left later missions without an aircraft.",
+  "limits": [
+    "This is a coupled source change: DamageFailureMode.PROB 1 to 0 and a new DamageItem.<ATTRITION> PROB1. The pair does not isolate one cell's causal effect.",
+    "The native SystemResults.NDAM column remains zero in the attrition arm despite the logged BATTLE-HIT; this is an observed report behavior in this model, not a general rule about all attrition reports.",
+    "FTMO marks the first half-hour bin and becomes null after the aircraft is lost, while NSYMO/STACC integrate the shorter actual flight; the marker is not interpreted as flight duration.",
+    "No claim about multiple aircraft, other seeds, concurrent positive FM and attrition consequences, GUI visual behavior, or cross-engine parity."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-h03-var03-attrition-contract/v1",
+  "case_id": "H03",
+  "variant_id": "H03.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "H03-var01-position-fm-damage-v1.0.0",
+    "source": "../H03-var01-position-fm-damage-v1.0.0/mode-input.json",
+    "sha256": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c"
+  },
+  "attrition_schema_reference": {
+    "package": "H01-var01-certain-attrition-v1.0.0",
+    "source": "../H01-var01-certain-attrition-v1.0.0/certain-input.json",
+    "sha256": "f519cd4549db879505c16bd5d4affb7e34f1db6227e71bebc27738442489d4f0"
+  },
+  "sources_sha256": {
+    "control": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c",
+    "attrition": "4b7a33a7458759fd3e8db0ad8f146929cdaf98ae409a9de4d8e8fe61186646b2",
+    "exact_diff": "3a19e2f2fc6eb06fc10e19cdcf50c2aaa525230084c26e2872e05290cd98c911"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp192-193 and 424-426 describes mission damage, DamageFailureMode probability and DamageItem IID=<ATTRITION>. Installed dictionary pins DamageItem's seven columns and its special IID choice. Accepted H03.var01 proves a BATTLE-HIT FM-to-CM parent; H01.var01 independently proves the ATTRITION table schema and fixed-mission loss path.",
+  "source_delta": "The control is byte-identical to accepted H03.var01 PROB1 mode. The child changes its BATTLE-HIT FM-POS-A DamageFailureMode.PROB from 1 to 0, adds one BATTLE-HIT DamageItem row IID=<ATTRITION> PROB1, and updates the DamageType and problem descriptions to match whole-aircraft loss. DamageType identity, MissionDamage DAMP1, physical position/FM/CM definition, three scheduled fixed missions, seed1 and 36-hour horizon remain. The FM row is retained with zero consequence to rule out its concurrent activation in this pair.",
+  "pre_run_hypotheses": {
+    "control": "The byte-identical parent should reproduce three in-flight damage-induced FM-POS-A consequences, three half-hour CM repairs, mission aborts and terminal readiness.",
+    "attrition": "The first in-flight BATTLE-HIT may permanently lose the sole aircraft through IID=<ATTRITION>; later scheduled missions should have no aircraft and terminal lost state. Exact event time and cancellation wording are native questions.",
+    "alternatives": "Conversion rejection, concurrent FM consequence despite PROB0, repair after ATTRITION, later aircraft availability or ledger mismatch remain diagnostic until explained. One deterministic seed does not prove a general stochastic law."
+  },
+  "acceptance_gates": [
+    "Accepted H03.var01 direct parent, H01.var01 attrition-schema reference and independent pre-run static review of exact diff, manual/dictionary basis and guarded runner",
+    "Fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored-table roundtrips, zero converter errors and valid SXO/event/report",
+    "Damage, FM/attrition identities, first and later mission outcomes, 72 System/Stock bins and terminal state reconcile",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "The child switches FM consequence PROB1 to PROB0 while adding certain ATTRITION; attribution is to this paired configuration, not a single-cell isolated effect. The retained FM/CM definition is inactive under the configured damage event.",
+    "One system, seed, fixed mission pattern and station cannot prove other seeds, multiple aircraft, mixed positive FM/item consequences, GUI visual behavior or cross-engine parity."
+  ]
+}

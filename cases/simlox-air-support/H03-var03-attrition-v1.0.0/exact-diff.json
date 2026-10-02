@@ -1,0 +1,253 @@
+{
+  "schema": "simlox-h03-var03-attrition-exact-diff/v1",
+  "parent_sha256": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c",
+  "control_sha256": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c",
+  "attrition_sha256": "4b7a33a7458759fd3e8db0ad8f146929cdaf98ae409a9de4d8e8fe61186646b2",
+  "reference_sha256": "f519cd4549db879505c16bd5d4affb7e34f1db6227e71bebc27738442489d4f0",
+  "added_tables": {
+    "DamageItem": {
+      "name": "DamageItem",
+      "columns": [
+        {
+          "name": "DAMID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "SID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "IID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "PROB",
+          "datatype": "double"
+        },
+        {
+          "name": "REPF",
+          "datatype": "double"
+        },
+        {
+          "name": "OPID",
+          "datatype": "string"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BATTLE-HIT",
+              "TEACH-AIR-01",
+              "<ATTRITION>",
+              1.0,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "removed_tables": {},
+  "changed_tables": {
+    "ProblemDescription": {
+      "before": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "H03.var01 accepted D06 CM model with BATTLE-HIT, FM consequence PROB1"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      },
+      "after": {
+        "columns": [
+          {
+            "datatype": "string",
+            "name": "PDESC"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "H03.var03 FM-POS-A consequence PROB0 and BATTLE-HIT ATTRITION PROB1"
+              ]
+            ]
+          }
+        ],
+        "name": "ProblemDescription"
+      }
+    },
+    "DamageType": {
+      "before": {
+        "name": "DamageType",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "DESCR",
+            "datatype": "string"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-HIT",
+                "Certain in-flight position failure-mode damage",
+                null
+              ]
+            ]
+          }
+        ]
+      },
+      "after": {
+        "name": "DamageType",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "DESCR",
+            "datatype": "string"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-HIT",
+                "Certain in-flight whole-aircraft attrition damage",
+                null
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "DamageFailureMode": {
+      "before": {
+        "name": "DamageFailureMode",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "SID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "FMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "PROB",
+            "datatype": "double"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-HIT",
+                "TEACH-AIR-01",
+                "FM-POS-A",
+                1.0,
+                null
+              ]
+            ]
+          }
+        ]
+      },
+      "after": {
+        "name": "DamageFailureMode",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "SID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "FMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "PROB",
+            "datatype": "double"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-HIT",
+                "TEACH-AIR-01",
+                "FM-POS-A",
+                0.0,
+                null
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "unchanged_table_count": 35
+}
