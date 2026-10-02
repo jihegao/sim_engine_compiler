@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-h02-var04-system-damage-repair-fallback-contract/v1",
+  "case_id": "H02",
+  "variant_id": "H02.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "H02-var01-system-damage-direct-repair-v1.0.0",
+    "source": "../H02-var01-system-damage-direct-repair-v1.0.0/system-input.json",
+    "sha256": "67eb54c6148cd17c43e050eaf3d310bf7f66b96452526614ca1af416c16d9bcb",
+    "accepted_merge": "0e7699c12185c3f057fbc935c35d52c6a0fb3e3a"
+  },
+  "sources_sha256": {
+    "explicit": "061cf67e39a67e2e736fde700a22e8c144f686bf67d328ca01d6dd0d3d981513",
+    "fallback": "2079ab266c2b7e48b6cc14d369b48c355b5fc36bb32145a66a6eb166b1f0415b",
+    "exact_diff": "51a03a7dd777c59c896a802de5c2c43007e50eaec97b5c800bf975e1104406ef"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical p428 states damaged-system maintenance looks first in DamageReplacement when subitem replacement applies, then DamageRepair, then ordinary SystemRepair/ItemReplacement if damage-specific data are absent. Dictionary DamageRepair rows173-184 and SystemRepair schemas supply the exact keys and direct repair time. This pair isolates omission of DamageRepair while ordinary SystemRepair stays identical.",
+  "source_delta": "Accepted H02.var01 <SYSTEM> damage source gains an ordinary BASE-01 SystemRepair DIRPT2 hour row in both arms. The explicit arm retains the accepted DamageRepair DIRPT1 hour row. The fallback arm differs only by clearing that DamageRepair row and changing ProblemDescription. Both preserve one aircraft, BATTLE-LOSS DAMP1/PROB1, three fixed missions, seed1 and horizon36.",
+  "pre_run_hypotheses": {
+    "explicit": "Each damage-induced system direct repair should use the one-hour DamageRepair row despite the two-hour ordinary SystemRepair alternative.",
+    "fallback": "With the DamageRepair row absent, the same damage should use the two-hour ordinary SystemRepair row; repair completion, readiness and report repair exposure should shift accordingly without attrition.",
+    "alternatives": "Converter rejection, missing repair, equal durations, different event path, or no distinct one-hour/two-hour result are diagnostic only. Process exit alone cannot establish fallback or priority."
+  },
+  "acceptance_gates": [
+    "Accepted direct parent and independent pre-run static review of frozen sources, exact diff, manual/dictionary basis and guarded runner",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact 18/17 authored row-containing table roundtrips and zero converter errors with valid SXO/event log/report",
+    "Item/system damage identity, direct repair source and duration, mission outcome, 72 System/Stock bins and terminal readiness reconcile in both arms",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "One fixed seed tests the DamageRepair-to-SystemRepair direct repair fallback for <SYSTEM> damage in this configuration. It does not establish DamageReplacement-to-ItemReplacement priority, damaged-LRU item-repair fallback, other stations/tasks, GUI visual behavior or cross-engine parity."
+  ]
+}
