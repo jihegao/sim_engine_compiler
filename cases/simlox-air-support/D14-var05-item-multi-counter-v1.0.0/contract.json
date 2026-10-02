@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D14",
+  "variant_id": "D14.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "D14",
+    "variant_id": "D14.var03",
+    "package": "../D14-var03-post-reinstallation-pm-v1.0.0",
+    "input_sha256": "48a3eea3f6f9c32fd79bcc9f544845e2e60f5767987b37605563b5bf2738c9dd",
+    "native_closure_sha256": "ef5694117dc43171508ac7d49065605b67f4c9be546900f09de5d9b76a245276"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [202, 203, 370, 371, 372, 373, 375, 376, 387, 390, 392, 393],
+    "rule": "A single PMID can have intervals in multiple OPIDs; whichever counter reaches its limit first initiates the task and resets all counters of that PMID. MONIT=Y stores relevant PM counters per physical item."
+  },
+  "inputs": {
+    "ophours-only": {"sha256": "4e2ef5e138628b6afe9585afe140bab5a190bc77e3d7e6de18b1e1700c1c22d9", "intervals": {"OPHOURS": 5}},
+    "missions-plus-ophours": {"sha256": "12c30f7306cc62c3667f3efb86c569ebe982fbb5dbc6f34d366dd5a8d8d98d6a", "intervals": {"OPHOURS": 5, "MISSIONS": 2}}
+  },
+  "exact_diff_sha256": "d7b39c9b1c1b985efc48dd559c9d3e7347740a9e71f59369070ba2e6f861baeb",
+  "configuration": {
+    "system": "TEACH-AIR-01", "item": "TEACH-LRU-01", "position": "POS-A", "station": "BASE-01",
+    "installed_initial": 1, "stock_initial": 1, "prelife_rows": 0,
+    "system_pm": {"PMID": "SYS-SWAP", "OPID": "OPHOURS", "PMINT": 2, "MNOCC": 1},
+    "item_pm": {"PMID": "LRU-MIX", "MID": "TEACH-LRU-01", "MONIT": "Y", "base_OPID": "OPHOURS", "base_PMINT": 5},
+    "mission_launch_hours": [8, 20, 32, 44], "mission_duration_hours": 2,
+    "seed": "1", "horizon_hours": 48
+  },
+  "hypothesis_before_native": {
+    "common": "The one-time SYS-SWAP at h10 installs a zero-prelife stocked spare ID1 and returns original ID0 after unrelated PMID overhaul. Four two-hour missions succeed if supply and maintenance remain available.",
+    "ophours-only": "Without a MISSIONS interval, stocked item ID1 accrues four OPHOURS by h34, below interval 5, so its first LRU-MIX task waits until h46 after six OPHOURS. Original ID0 remains stocked until then.",
+    "missions-plus-ophours": "With MISSIONS=2 added to the same monitored item PMID, stocked item ID1 reaches two missions by h34 while below OPHOURS5, causing LRU-MIX h34 and original ID0 reinstallation. ID0's second lifetime mission ends h46, so its monitored MISSIONS counter should cause LRU-MIX h46 despite only four cumulative OPHOURS."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms must import/export exact authored rows, calculate with zero conversion errors and no incomplete PM runtime warning, preserve GUI/queue/session guards, and seal nonempty event/report evidence.",
+    "The arms must differ only by the MISSIONS2 MaterielPMInterval row and descriptive text; all other PM, stock, mission, seed and horizon data must match.",
+    "Mission outcomes, PMID-specific task timing, physical item IDs, stock route and 96 aligned half-hour System/Stock report bins must reconcile. If the predicted h34 contrast is absent, reject or narrow the multi-counter claim.",
+    "A separate read-only reviewer must replay frozen source and raw evidence without importing author implementation."
+  ],
+  "limits": [
+    "One seed, one aircraft, one installed and one stocked LRU, a one-time system swap and one extra MISSIONS counter only.",
+    "The native report does not expose the winning counter or numeric per-item counter values; attribution to MISSIONS requires the isolated arm contrast and threshold arithmetic.",
+    "No initial prelife, counter ties, anticipation/deferment, other intervals, GUI visual or cross-engine claim."
+  ]
+}
