@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-h02-var01-primary-lru-damage-contract/v1",
+  "case_id": "H02",
+  "variant_id": "H02.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "E01-local-spare-explicit-replacement-v1.0.0",
+    "source": "../E01-local-spare-explicit-replacement-v1.0.0/native-input.json",
+    "sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+    "scope": "one aircraft with a mounted primary TEACH-LRU-01, one BASE-01 spare, explicit E01-SURP remove/replace task and local ItemRepair, three fixed scheduled missions, seed1, horizon36"
+  },
+  "schema_reference": {
+    "package": "H02-var01-system-damage-direct-repair-v1.0.0",
+    "source": "../H02-var01-system-damage-direct-repair-v1.0.0/system-input.json",
+    "sha256": "67eb54c6148cd17c43e050eaf3d310bf7f66b96452526614ca1af416c16d9bcb",
+    "use": "Copy only the DamageType, MissionDamage and DamageItem table column schemas before replacing their rows; this is a pinned schema reference, not the behavioral parent."
+  },
+  "sources_sha256": {
+    "control": "10e0b88f6c332292d9b22f0c6fd5e993eb225169a0909cf016e439bbaa581bb5",
+    "lru": "82564db9cd0d3f916a87264d16d390a42bf886f5748c843070bea20e6b1c4a92",
+    "exact_diff": "0995626c32d7586540c4d02d3bf0e50a1667756c2bee7e2628e698842eb8fc71"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp193,425-428,432-433: a primary item can be damaged once per mission; DamageItem.REPF overrides discard default for damaged items; DamageReplacement specifies damage-specific item replacement before fallbacks. The dictionary pins the nine DamageReplacement columns and keys. BASE-01 is an accepted WS station in the E01 parent.",
+  "source_delta": "The E01 parent becomes a quiet control by setting System.FRT and Item.FRT to zero and changing ProblemDescription. The child adds BATTLE-HIT DamageType/MissionDamage with DAMP1, DamageItem for primary TEACH-LRU-01 with PROB1/REPF1, and explicit BASE-01 DamageReplacement SURPT0.5/SURPF1/TID E01-SURP, plus its description. Both arms preserve the E01 mounted item, one spare, ItemRepair, mission pattern, seed and horizon.",
+  "pre_run_hypotheses": {
+    "control": "The quiet E01 control should convert with zero errors and complete all three scheduled missions without ordinary failure, damage, replacement, item repair or stock draw.",
+    "lru": "The child should convert with zero errors, log at least one in-flight BATTLE-HIT on the primary LRU and a critical mission interruption, replace it from the BASE-01 spare through the explicit damage replacement path, send the removed repairable LRU through the local one-hour ItemRepair route, restore stock or readiness before a later scheduled mission, and avoid permanent aircraft attrition. Individual event times are not preaccepted.",
+    "alternatives": "Converter rejection, damage without an identified LRU consequence, no replacement or damaged-item repair, permanent loss, or no later aircraft availability are diagnostic only. A successful process exit alone is not acceptance."
+  },
+  "acceptance_gates": [
+    "Independent pre-run static review of frozen E01 lineage, exact delta, dictionary/manual basis and guarded runner",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact 20/24 authored row-containing table roundtrips and zero converter errors with valid native event logs and reports",
+    "Positive item-identified BATTLE-HIT consequence with local spare issue, explicit replacement, repairable removed LRU, later availability, and 72-bin System/Stock/ResultSummary reconciliation",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "The E01-to-control FRT changes suppress random failures and are not themselves a damage-only contrast; the control-to-child delta isolates the configured damage tables plus description.",
+    "One seed, one primary LRU and REPF1 with explicit DamageReplacement do not test REPF0/intermediate, multiple independent consequences, damage of an already failed item, general fallback priority, shortages, GUI visual behavior or cross-engine parity."
+  ]
+}
