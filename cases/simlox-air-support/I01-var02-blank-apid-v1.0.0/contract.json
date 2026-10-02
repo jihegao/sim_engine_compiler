@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-i01-var02-blank-apid-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I01-var01-two-stock-points-v1.0.0",
+    "source": "../I01-var01-two-stock-points-v1.0.0/stocked-input.json",
+    "sha256": "9e88c4bb95e1ca1ad4ec255c0fb9996fcbab8cd80b61972771574eb416233bfb",
+    "signoff_sha256": "3240cc231fb37bf40f0afecc2339116210dd5952ed4d3bb98c3a5e8386ff5049"
+  },
+  "sources_sha256": {
+    "selected": "9e88c4bb95e1ca1ad4ec255c0fb9996fcbab8cd80b61972771574eb416233bfb",
+    "blank": "fc351e8b0a54c66eefa65055b7aea21a6ceef8539ce3c2960da30fd845376a01",
+    "exact_diff": "123c556b7017f75778d04a8d4308e81cec63c4d4f8f759695cb877f685fb1b02"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp439-445 says a blank APID leaves MaintenanceAllocation policy unfiltered and APID selects the POINT solution in StockAllocation, ResourceAllocation and MaintenanceAllocation. It does not clearly establish the stock effect when APID is blank and two stock POINTs conflict. The native pair will measure that boundary.",
+  "source_delta": "Selected arm is byte-identical to accepted I01.var01 stocked source with AIR_BASIC STSIZ1 and AIR_EMPTY STSIZ0 for the same IID/STID. Child changes only Control.APID from AIR_BASIC to null (blank) and ProblemDescription. Both have identical aircraft, LRU failure, explicit replacement, item repair, fixed three missions, seed1 and horizon36. ResourceAllocation is empty and MaintenanceAllocation absent.",
+  "pre_run_hypotheses": {
+    "selected": "Reproduce accepted I01.var01 stocked event/stock/system behavior, including one local spare taken at h10 and readiness h10.5.",
+    "blank": "Native import may reject blank APID with two stock POINTs, select no stock, combine or select a POINT, or use a default. None is preaccepted. If simulation succeeds, inspect initial stock, physical issue/backorder, event timeline, 72-bin System/Stock ledgers and terminal state before characterizing behavior.",
+    "alternatives": "Converter errors, duplicate stock effects, shifted failure draw, unsealed output or report inconsistency remain diagnostic until explained. The manual's maintenance no-filter statement must not be generalized to stock without native evidence."
+  },
+  "acceptance_gates": [
+    "Accepted I01.var01 direct parent and read-only pre-run static review of source delta, manual basis and guarded runner",
+    "Fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored-table roundtrip, zero converter errors and valid native output/report in both accepted arms",
+    "Individual events, item issue/backorder, 72-bin System/Stock ledger and terminal state reconcile",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "Only a stock-only APID blank contrast at one station, seed and LRU can be accepted. ResourceAllocation and MaintenanceAllocation blank-selection behavior, task category/level filtering, STID=<NONE>, StationVariant, procurement, GUI visuals and cross-engine parity remain unverified.",
+    "If native import or calc rejects the blank arm, record a reproducible capability limitation rather than claiming stock behavior."
+  ]
+}
