@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-i01-var03-joint-stock-maintenance-independent-readonly/v1",
+  "case": "I01-var03-stock-maintenance-joint-v1.0.0",
+  "passed": true,
+  "verdict": "GO — bounded joint stock/maintenance APID selection",
+  "checks_passed": 1747,
+  "checks_total": 1747,
+  "failures": [],
+  "source_sha256": {
+    "one-base": "96dd5cb98a9e5847fc7ae0d4236d6214dbe1825fe5c89c9e87ad3c951621b049",
+    "one-depot": "9e4f082d8e8bb9dc00a0d45e3b1dba6045bd1cc64ffe822d855c539285b12589",
+    "two-base": "c33af33250be2eae5054a80d25ef73461c2deba927924cffd135fd5f396b9b19",
+    "two-depot": "24500b239791936a7adc7ff0e83c674da8e813f19ec76ba9dc1cfde90391f763"
+  },
+  "runs": {
+    "one-base": {
+      "run_id": "i01-var03-joint-one-base-v100-ssh-20261002-01",
+      "point": "AIR_BASIC",
+      "base_spares": 1,
+      "route": "BASE",
+      "closure_sha256": "73c0534836b3186fa61e05cd5057a167047df1aca690965b5b99c15de64bd311",
+      "model_log_sha256": "69dbbd5f18f2be101d8e55410cf6593b60010de0d4b63ebc4748cb9d033818c8",
+      "report_raw_sha256": "c2ba3cf305aa309f4b0b7db58ec3c60ab596cf83a9b3ec7aa452d653c9995e01"
+    },
+    "one-depot": {
+      "run_id": "i01-var03-joint-one-depot-v100-ssh-20261002-01",
+      "point": "AIR_DEPOT",
+      "base_spares": 1,
+      "route": "DEPOT",
+      "closure_sha256": "35d959998c1f9be848de411f6c229fd8e0b7f891a67df03df9438b0345ff00d5",
+      "model_log_sha256": "46b1822bb1a976694943562d5eccd4670a8f4ef7266228c178ea44e41fb0c4a7",
+      "report_raw_sha256": "2d2bf3b51540807676a04667a9acf5fbabd8f908e9a6f432040c95b800726a4b"
+    },
+    "two-base": {
+      "run_id": "i01-var03-joint-two-base-v100-ssh-20261002-01",
+      "point": "AIR_TWO_BASE",
+      "base_spares": 2,
+      "route": "BASE",
+      "closure_sha256": "1ee4c8e5227432e277b14e3905e16ca2a833a8f4df11939b6778db5521d3af2d",
+      "model_log_sha256": "2ca8d15da86b931b389ef135b5990b06fd6ab4d19d5cd8b921baa595b77e8c31",
+      "report_raw_sha256": "d70bec3130f7ac2616deebbf79e4614a9fa9cd6e911459571afd61f79ac5b5ff"
+    },
+    "two-depot": {
+      "run_id": "i01-var03-joint-two-depot-v100-ssh-20261002-01",
+      "point": "AIR_TWO_DEPOT",
+      "base_spares": 2,
+      "route": "DEPOT",
+      "closure_sha256": "705f7978c562b1c959a43e255405fe86a733f676f41899204717fb505f47ec07",
+      "model_log_sha256": "4f410939a3f19bfe7e6bd5304c35a86c30efaeae605143d263532e729dcef6ca",
+      "report_raw_sha256": "2c960c111ba76e63d94722ed94589e8201029d1bb99c7b95c9a70d0d9f13f2e9"
+    }
+  },
+  "scope": "One LRU, four POINTs crossing BASE spare quantity one/two with local/depot task-referenced repair, two stations and one seed.",
+  "limits": [
+    "No ResourceAllocation business row, shortage, procurement/reorder, or competing repair demand is tested.",
+    "Other seeds, category/level changes, <NONE> routing, GUI visual behavior, and cross-engine parity are unverified.",
+    "Aggregate StockTotalResults does not expose on-hand quantity; physical stock identity and levels are from native model.log."
+  ]
+}
