@@ -1,0 +1,13 @@
+# I02.var08 bounded CLI signoff — OUT demand in a genuine lateral group
+
+**Accepted scope:** One h2, one-unit OUT request from empty BASE-01 to `<OUTSIDE>` on the accepted E08.var01 `ENLAT=Y` source. BASE-02 has one spare and is connected by the real `LAT-01` immediate lateral link; DEPOT-01 is an ordinary upstream source. The child only adds one `ItemTransfer` row and changes the description. Its source SHA-256 is `b145cb2e71d72e90c1170ddd31b56faab639bccde93236bec7df2ba4c52d336c`, and the exact-diff SHA-256 is `772efb1adeea049c6607124bfe58765305952e4deedc246bbe2f8256d703c546`.
+
+The guarded session-0 SSH run preserved GUI PID 13340, converted with zero errors, and exactly round-tripped 25 populated authored tables. Three sealed-SXO station exports contain 72 half-hour `ItemResults` bins apiece for BASE-01, BASE-02, and DEPOT-01. Four closures seal 18 local raw files. Raw SXO, reports, logs, and proprietary selector settings remain local; the evidence index records their paths and hashes.
+
+At h2, the native log creates an OUT transfer demand and one-unit transfer backorder. A transfer task starts and arrives with zero items. There is no observed lateral check, peer draw, or peer transport in response to this request; BASE-02 keeps its physical spare through h10. **The supported claim is that this h2 transfer demand does not itself initiate lateral borrowing in this bounded run.**
+
+At h10, ordinary aircraft replacement demand triggers lateral support. Physical ID 1 travels BASE-02→BASE-01 and arrives h10.5, where it clears the older transfer backorder and immediately goes OUT. The aircraft backorder remains through h36, its first mission aborts, and its two later scheduled missions cancel. Depot ID 0 replenishes BASE-02 at h11; repaired ID 2 returns to DEPOT-01 at h14.1667. The peer and depot ItemResults ledgers equal the accepted E08 control, while BASE-01 ends with zero on-hand and one ordinary backorder. This is a **NO-GO for the global statement that a transfer can never receive laterally sourced stock**: an ordinary-demand lateral shipment ultimately fulfills this transfer backorder.
+
+Author replay passed 32/32 checks. Independent read-only replay passed 1,170/1,170 and returned GO for the restricted h2 claim and NO-GO for global wording. The original ordinary-link-only I02.var08 draft was rejected before execution and is excluded from this publication.
+
+**Boundary:** One OUT request with zero local spare, one stocked peer, `IMMEDIATE`/`DLAYL=N`, one IID, one depot, one seed, and the installed CLI. The native log does not reveal the internal candidate set at h2. Other transfer directions, timings, lateral policies, queue priority, GUI rendering, and cross-engine parity remain unverified. Issue #18 stays open.

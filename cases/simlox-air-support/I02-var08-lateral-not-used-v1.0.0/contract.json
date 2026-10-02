@@ -1,0 +1,22 @@
+{
+  "schema": "simlox-i02-var08-genuine-lateral-out-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var08",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {"package": "E08-var01-immediate-lateral-v1.0.2", "source": "../E08-var01-immediate-lateral-v1.0.2/on-input.json", "sha256": "630d7600e7ff77ddb057f05af0852b4f41ed6335718570f9fcf5eddd9f51c474", "native_control_run_id": "e08-immediate-on-v102-ssh-20261002-01"},
+  "transfer_schema_source": {"package": "I02-var02-out-transfer-v1.0.0", "source": "../I02-var02-out-transfer-v1.0.0/native-input.json", "sha256": "7b15a1e0a6efcee9c772ac39dd52bb742a6eb23b6b711cf8e3cbc681aabe07e0"},
+  "source_sha256": "b145cb2e71d72e90c1170ddd31b56faab639bccde93236bec7df2ba4c52d336c",
+  "exact_diff_sha256": "772efb1adeea049c6607124bfe58765305952e4deedc246bbe2f8256d703c546",
+  "installed_source_sha256": {"simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0", "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"},
+  "manual_basis": "Installed SIMLOX manual p225 states that item transfer BETWEEN/OUT creates a source-position demand but lateral support is never considered for transfer demands. Lateral support topology and IMMEDIATE policy are defined pp319-326; ItemTransfer source fields pp476-478.",
+  "controlled_design": "Accept E08.var01 ENLAT=Y native source and append only one h2 BASE-01 to <OUTSIDE> OUT request for one LRU, plus description. BASE-01 initial on-hand0, genuine stocked lateral peer BASE-02 on-hand1, ordinary depot on-hand1. Preserve ordinary demand, lateral policy, TRACK=Y, half-hour ITEM bins, seed and horizon. At h2 no ordinary aircraft item demand has arisen; the accepted E08 parent proves this lateral geometry serves later ordinary demand.",
+  "pre_run_hypotheses": [
+    "The child imports, exactly roundtrips 25 populated authored tables, calculates with zero converter errors and produces nonempty output.",
+    "At h2 the OUT request at empty BASE-01 creates a transfer backorder or remains unfulfilled, without drawing BASE-02 physical stock through lateral support, despite ENLAT=Y and the peer spare being on hand.",
+    "The peer's physical ID remains at BASE-02 through h2; ordinary aircraft demand later may use lateral support, but transfer backorder interaction and item destination must be observed rather than inferred.",
+    "Native physical identities, station STSZ/STOHA/NBO bins, transfer backorder text, system and mission bins, and terminal stock reconcile against the accepted E08 control."
+  ],
+  "acceptance_gate": "Publish only if native log visibly processes the h2 OUT request as a transfer demand, transfer backorder, or unfulfilled transfer task, while the genuine lateral peer remains physically stocked through h2 and no h2 peer-to-base lateral shipment occurs. An absent h2 transfer action alone is not proof. The child must also be a valid source-bound native run. If the transfer consumes a peer spare, reject the no-lateral hypothesis; if converter errors or report gaps occur, retain diagnostic only.",
+  "limits": ["one OUT request at h2 with zero local on-hand and one peer spare", "one IID, LAT-01 IMMEDIATE DLAYL=N, one depot and one seed", "no general priority, all transfer types, competing peer choice, GUI visual or cross-engine claim"]
+}
