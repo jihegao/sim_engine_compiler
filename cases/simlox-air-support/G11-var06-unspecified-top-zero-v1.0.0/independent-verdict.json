@@ -1,0 +1,35 @@
+{
+  "checks_passed": 21427,
+  "checks_total": 21427,
+  "evidence": {
+    "explicit-zero": {
+      "closure_sha256": "8f54230298dea435c0aa51e5b950d38df0d3626bf2bb24c241628a5a7a430e86",
+      "input_sha256": "a676557bf14e4fd6811d4e0a2bb8fb2087aad79d85fe34433078fe332b257496",
+      "model_log_sha256": "283066074311a67986e00829c497c0ebcf58a46eef360f3ea6b4d1465406baa3",
+      "prelife_log_sha256": "ba57c8a24b4bacf259f4370e7f4714995bff53331896804277170053d2358b1f",
+      "report_sha256": "dcb46f3884c905239102d15c659f5fcbdf3b79f78a752f81900acd8b15228de0",
+      "stock_bins": 208,
+      "system_bins": 208
+    },
+    "implicit-zero": {
+      "closure_sha256": "b3141eb585b5fd7c82f8a041ac6302a5613ba4b299a6e213a6a7e11416ada3c6",
+      "input_sha256": "93d192946dd63778b42883d29b4f498e17beaf660303a1453c004a8694614cd7",
+      "model_log_sha256": "283066074311a67986e00829c497c0ebcf58a46eef360f3ea6b4d1465406baa3",
+      "prelife_log_sha256": "216aecedf7f82cfcb544b24d649bb0b6f59e2877352edc99daf2759621d2317e",
+      "report_sha256": "a546698b7e248c888dd582c0a11108e157ff707aac17fe7e30938122396fd15f",
+      "stock_bins": 208,
+      "system_bins": 208
+    }
+  },
+  "failures": [],
+  "finding": "Removing the explicit AGE0/QTY3 PrelifeData row leaves only AGE60/QTY1 and QTYPS4. The implicit Prelife Log prints AGE60 only, while the explicit log prints AGE60/AGE0/AGE0/AGE0. Native model logs are byte-identical: first CAL100 PM ID0@40 and IDs1,2,3@100, each one hour. No missions or resource/stock demand occur; 208 System/Stock bins per arm reconcile and terminal ready4.",
+  "limits": [
+    "One seed, four same-type top-level systems, explicit QTY sum one versus four and first CAL100 PM only. No blank-QTY coexistence, row reorder, overallocated QTY, or nonzero unspecified parameter claim.",
+    "The implicit Prelife Log omits the three default-zero aircraft; their zero-age behavior is inferred from isolated source contrast plus PM events and report. Neither Prelife Log prints numeric aircraft IDs.",
+    "No missions, item/stock prelife, other parameter or topology, later PM cycle, GUI visual, or cross-engine claim.",
+    "Registry restoration is supported by guarded invocation/closure records, not an independent live registry observation."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-g11-var06/v1",
+  "verdict": "GO: bounded unspecified top-level zero-age observation"
+}

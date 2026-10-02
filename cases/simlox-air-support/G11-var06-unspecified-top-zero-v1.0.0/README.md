@@ -1,0 +1,9 @@
+# G11.var06: unspecified top-level systems receive zero prelife
+
+This bounded pair compares a four-aircraft fixed CALHOURS prelife table with explicit `AGE60/QTY1` and `AGE0/QTY3` against a table containing only `AGE60/QTY1`. There is no blank-QTY row. Both arms retain the same `QTYPS=4`, `CAL100` PM, 104-hour horizon, seed 1 and three referenced OperationProfile rows with `IQTY=0`.
+
+Both guarded native CLI runs completed import, export, calculation, report export and exact roundtrip of 20 populated authored tables. Converter errors and notes were zero; warnings were the inherited #108 and #126. The explicit Prelife Log prints ages 60/0/0/0, while the implicit Prelife Log prints only the explicit age-60 system. Their native event logs are byte-identical: aircraft ID0 first `CAL100` PM starts at h40, distinct IDs1–3 start at h100, and each finishes one hour later. ResultSummary, SystemResults and StockTotalResults are identical between arms. Each report has 208 contiguous half-hour System and Stock bins, four PMs, no missions, resource or stock demand, and terminal ready=4.
+
+The [contract](contract.json), [exact source diff](exact-diff.json), [evidence index](evidence-index.json), [author replay](author-validation.json), [independent verdict](independent-verdict.json), and [CLI sign-off](cli-scope-signoff-2026-10-03.md) define and verify the scope. Local raw native files stay ignored in `runs/`; their IDs, sizes and SHA-256 hashes are in the evidence index. Author replay passed 191/191 checks and an independently written read-only replay passed 21,427/21,427.
+
+The three implicit zero ages are inferred from the isolated source change, the documented default, and matching PM/report behavior; the native Prelife Log omits them. This case covers one four-aircraft top-level system, one seed and first PM only. Child inheritance, blank-QTY combinations, other parameter types, GUI visual behavior and cross-engine parity remain separate.

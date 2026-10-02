@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var06",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "G11",
+    "variant_id": "G11.var05",
+    "package": "../G11-var05-remaining-qty-system-prelife-v1.0.0",
+    "input_sha256": "afd693a6609c2454b3ec71a1f663791b61a932831720070d164d371c6aff9be2",
+    "native_closure_sha256": "c7bbb656aec910fba20388022f11531db50c2bdefc1cf3d41c820db4106dac3a"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 208, 209, 468, 469, 470, 471],
+    "rule": "If explicit PrelifeData.QTY rows for a top-level PLID total less than deployed QTYPS and no blank-QTY row is present, the remaining top-level systems receive zero prelife values."
+  },
+  "inputs": {
+    "explicit-zero": {"sha256": "a676557bf14e4fd6811d4e0a2bb8fb2087aad79d85fe34433078fe332b257496", "qty_rows": [1, 3]},
+    "implicit-zero": {"sha256": "93d192946dd63778b42883d29b4f498e17beaf660303a1453c004a8694614cd7", "qty_rows": [1]}
+  },
+  "exact_diff_sha256": "2ab7e665b6a9b8afa625ed351ac53ebcb31d977d157c3347c4718e45430c80f5",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "deployed_count": 4,
+    "prelife_plid": "PL-SYS",
+    "prelife_rows": ["AGE60", "AGE0"],
+    "fixed_ages_calhours": [60, 0],
+    "pm": {"PMID": "CAL100", "OPID": "CALHOURS", "PMINT": 100, "duration_hours": 1},
+    "scheduled_profile_starts_hours": [8, 20, 32],
+    "scheduled_profile_IQTY": 0,
+    "missions_expected": 0,
+    "seed": "1",
+    "horizon_hours": 104,
+    "report_interval_hours": 0.5
+  },
+  "hypothesis_before_native": {
+    "explicit-zero": "QTY1 at AGE60 and QTY3 at AGE0 assigns ages 60/0/0/0; first CAL100 PM h40 for one system and h100 for three.",
+    "implicit-zero": "The sole AGE60/QTY1 row leaves three deployed systems unspecified; native default zero should yield the same 60/0/0/0 ages and first PM timing. Prelife Log may omit defaulted systems."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms import/export exact populated authored tables, convert with zero errors and only inherited event-log #108/no-item #126 warnings, calculate without runtime errors, seal sources and raw outputs, and preserve GUI PID13340 and Prelife Log option NO.",
+    "The two arms differ only in removal of the explicit AGE0/QTY3 PrelifeData row and description; both have QTYPS4, no blank-QTY row, and retain referenced OperationProfile rows with IQTY0.",
+    "Native event/report evidence identifies one first CAL100 PM at h40 and three distinct first CAL100 PMs at h100, with each PM lasting one hour and no instantiated missions. Prelife Log format and system IDs are observations; any logged explicit AGE60 age must be 60, and any logged defaulted ages must be zero.",
+    "Both arms have 208 contiguous half-hour System/Stock report bins, four PMs and terminal four ready systems. Event, resource and stock ledgers and PM totals reconcile.",
+    "A separately written read-only reviewer replays the frozen source and raw evidence without importing author validation code."
+  ],
+  "limits": [
+    "Four same-type top-level systems, explicit QTY sum one versus four, fixed CALHOURS ages, one seed, first PM only. Row reorder, blank QTY coexistence, overallocated variants and nonzero unspecified parameters remain separate.",
+    "Child materiel inheritance is separate G11.var06 scope; no missions, installed/stocked item prelife, other OPID or topology, GUI visual behavior, later PM cycles, or cross-engine parity."
+  ]
+}
