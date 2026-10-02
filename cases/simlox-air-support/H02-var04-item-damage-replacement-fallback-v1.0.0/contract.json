@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-h02-var04-item-damage-replacement-fallback-contract/v1",
+  "case_id": "H02",
+  "variant_id": "H02.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "H02-var01-primary-lru-damage-v1.0.0",
+    "source": "../H02-var01-primary-lru-damage-v1.0.0/lru-input.json",
+    "sha256": "82564db9cd0d3f916a87264d16d390a42bf886f5748c843070bea20e6b1c4a92"
+  },
+  "sources_sha256": {
+    "explicit": "511e5f0ae17a1ea9cd7794b926fd6f2fd63814116f4ca9571a0d18e4181c5d92",
+    "fallback": "2e29c2ea72304544c68281e8629bd242cca3d6252cbbe7cea2c48e0a00716a97",
+    "exact_diff": "ec95b415eadba5032413d523fc38afdce12db4864e7deec5cf7446eab8708c82"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical p428 documents DamageReplacement first for a damaged item, then DamageRepair, then ordinary SystemRepair/ItemReplacement when damage-specific rows are absent. Installed dictionary fixes the ItemReplacement and DamageReplacement keys. The accepted primary-LRU parent has a half-hour damage-specific E01-SURP task and one local spare.",
+  "source_delta": "The accepted primary-LRU source gains a BASE-01 ordinary ItemReplacement row with SURPT1 hour in both arms. The explicit arm retains the accepted DamageReplacement SURPT0.5/TID E01-SURP row; the fallback arm differs only by clearing that row and changing ProblemDescription. Both retain one mounted LRU, one spare, BATTLE-HIT DAMP1/PROB1/REPF1, three fixed missions, seed1 and horizon36.",
+  "pre_run_hypotheses": {
+    "explicit": "The damaged LRU should use the half-hour DamageReplacement E01-SURP route despite the ordinary one-hour ItemReplacement alternative.",
+    "fallback": "With DamageReplacement absent, the same item-identified BATTLE-HIT damage should use ordinary ItemReplacement, with a distinct one-hour system replacement duration, later readiness and matching report exposure; removed items should still be repaired by inherited ItemRepair.",
+    "alternatives": "Converter rejection, no replacement, an equal or ambiguous duration, different damage/stock path, or other behavior is diagnostic only. Process exit alone cannot establish fallback or priority."
+  },
+  "acceptance_gates": [
+    "Accepted direct parent and independent pre-run static review of frozen sources, exact diff, manual/dictionary basis and guarded runner",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored row-containing table roundtrips and zero converter errors with valid SXO/event log/report",
+    "Physical damaged LRU, stock issue, system replacement task source and duration, item repair, mission outcome, 72 System/Stock bins and terminal readiness reconcile in both arms",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "One fixed seed tests DamageReplacement-to-ItemReplacement fallback for a directly mounted primary LRU at one station. It does not establish DamageRepair-to-SystemRepair here, multi-item damage, forwarding, shortages, other tasks, GUI visual behavior or cross-engine parity."
+  ]
+}
