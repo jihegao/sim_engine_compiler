@@ -1,0 +1,35 @@
+{
+  "checks_passed": 21427,
+  "checks_total": 21427,
+  "evidence": {
+    "explicit-two": {
+      "closure_sha256": "c7bbb656aec910fba20388022f11531db50c2bdefc1cf3d41c820db4106dac3a",
+      "input_sha256": "afd693a6609c2454b3ec71a1f663791b61a932831720070d164d371c6aff9be2",
+      "model_log_sha256": "a757a3d58e9b55c17f45590aed3fd662402529f6ef1762f1267907debafd5a4f",
+      "prelife_log_sha256": "5a61a9211d38c3efe49201500b630b28800f44360af430b5ae4b70326faae1aa",
+      "report_sha256": "14b63c63b6d4df86403d30fd8bfb67c094122aeaab382bf2d3218e6918f5cb42",
+      "stock_bins": 208,
+      "system_bins": 208
+    },
+    "remaining-blank": {
+      "closure_sha256": "8318e7e28e8e8b6238b2662e16d35fac2a2710b11dd8fecfa34c375d4d3582f9",
+      "input_sha256": "056728b5db95e06d5152337c4ec4b706cc8c69981bb094fd4f8f85102875be71",
+      "model_log_sha256": "a757a3d58e9b55c17f45590aed3fd662402529f6ef1762f1267907debafd5a4f",
+      "prelife_log_sha256": "5a61a9211d38c3efe49201500b630b28800f44360af430b5ae4b70326faae1aa",
+      "report_sha256": "d453f1dd840f94274cc250d751536f16b8ce1e77f35987ef3629df18bcb37dc2",
+      "stock_bins": 208,
+      "system_bins": 208
+    }
+  },
+  "failures": [],
+  "finding": "The last PrelifeData QTY=2 and QTY=null arms produce byte-identical native event logs. Both Prelife Logs list AGE0/AGE60/AGE120/AGE120, then CAL100 first PM starts ID1@40, distinct IDs2&3@80, ID0@100, each one hour. No missions or resource/stock demand occur; 208 half-hour System/Stock bins per arm reconcile and terminal ready4.",
+  "limits": [
+    "One seed, four same-type top-level systems, a single blank-QTY row last, and first CAL100 PM only. This does not test row reordering, multiple blank rows, or overallocated quantities.",
+    "The Prelife Log lists PLINDs and ages in sequence but not numeric aircraft IDs; mapping uses source order and PM events.",
+    "No missions, item/stock prelife, other parameter or topology, later PM cycle, GUI visual, or cross-engine claim.",
+    "Registry restoration is supported by guarded invocation/closure records, not an independent live registry observation."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-g11-var05/v1",
+  "verdict": "GO: bounded blank remaining-QTY prelife observation"
+}
