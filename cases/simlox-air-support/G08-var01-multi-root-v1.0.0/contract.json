@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-g08-multi-root-contract/v1",
+  "case_id": "G08",
+  "variant_id": "G08.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G08-var03-nbreq-boundary-v1.0.0",
+    "arm": "low",
+    "input_sha256": "ae94fbf97c6ce6a9382fb97cab0bf63d822c769a395babf6f3f6d55cb4b9a343",
+    "run_id": "g08-var03-low-v100-ssh-20261003-01",
+    "native_closure_sha256": "d797e289f7dc585de638fe05827858398a2851e5db4baab8c6920ccf9612cd04"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [198, 200, 460, 461, 462],
+    "rule": "A tree may have one or more roots. Each complete root-to-leaf path is evaluated as a series structure, and the tree functions when at least NBREQ paths function."
+  },
+  "input_sha256": "dee1254ce69ed0c46a69b963eb2b29c90316f856a0186873e1f6d3d00ee8f3e2",
+  "exact_diff_sha256": "d4446c6b8493024e0d776854486121d40fc6a30212c42558b1e0ae2724bee514",
+  "configuration": "Accepted one-root A-to-B/C/D NBREQ1 parent. Add two healthy physical LRU positions E/F in G04-OPS and one independent second root-to-leaf edge E-to-F, with no new failure modes. B/A OPHOURS failures, direct half-hour CM, h8-34 mission, seed1, one replication and horizon36 stay fixed.",
+  "pre_run_hypotheses": [
+    "Child imports, exports and calculates with zero converter errors or unreviewed diagnostics and exact populated-table roundtrip.",
+    "B fails first at h8.62763 noncritically in both arms. A fails next at h16.7498, is critical and aborts in the accepted one-root parent, but is noncritical in the child because independent healthy E-to-F remains as the one required path; child mission succeeds at h34. If matched event identity or time diverges, quarantine the child as diagnostic and revise under a new version.",
+    "The native log may report system-level criticality and mission outcome without labeling the E-to-F active path."
+  ],
+  "native_acceptance": [
+    "One unique guarded session-0 SSH run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Matched B/A event criticality versus accepted single-root parent, 72-bin System/Stock reconciliation and independent read-only replay."
+  ],
+  "diagnostic_gate": "Retain rejected run and raw evidence as diagnostic; revise with new version/run ID instead of changing frozen hypotheses.",
+  "limits": [
+    "One extra healthy E-to-F root path at NBREQ1 under one seed; E/F failure, arbitrary multi-root thresholds or root interactions untested.",
+    "Surviving path inferred from source/manual because native log does not name active paths. No online maintenance, GUI drawing, population reliability or cross-engine claim."
+  ]
+}
