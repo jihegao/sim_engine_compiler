@@ -1,0 +1,19 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G12",
+  "variant_id": "G12.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {"case_id": "G12", "variant_id": "G12.var01", "package": "../G12-var01-two-subsystems-v1.0.0", "input_sha256": "25490c7da29019183ddc25aaed7953741bfc67261d535419941d56fc59767c7b", "native_closure_sha256": "75b5a4e7d800f6a78eb5ae9dd16cee961ebbc054c489600369519c9b6f58068a"},
+  "source": {"manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0", "physical_pdf_pages": [259, 793], "rule": "A system type that is a subsystem within a composite may also be deployed as an independent operational individual. The internal child instance and separately deployed instance must not be conflated."},
+  "input": {"sha256": "c38d97ce67015e1862ae9bc2355779228fa766bfc7eb3893879b78e8d3493517"},
+  "exact_diff_sha256": "6d31e2d17a8799e05b7f90602dcda526b06db4c528725240e32ccdffbf5bd743",
+  "configuration": {"top_sid": "TEACH-AIR-01", "child_sid": "TEACH-SUB-B", "top_unit": "TEACH-UNIT", "independent_child_unit": "SUB-B-UNIT", "top_quantity": 1, "independent_child_quantity": 1, "station": "BASE-01", "shared_profile": "BASIC-SCHEDULE", "seed": "1", "horizon_hours": 60},
+  "predeclared_native_acceptance": [
+    "Guarded session-0 SSH import/export exactly preserves all populated authored tables, especially two Unit/Operations/SystemDeployment rows and the unchanged two-child SystemStructure. Preserve GUI PID13340, registry and source/raw hashes.",
+    "Observe installed converter diagnostics and classify any error or new warning explicitly; valid accepted simulation requires zero conversion errors/notes, nonempty SXO/event log/report and independently reviewed warnings.",
+    "If native accepts, trace one TEACH-AIR-01 top operational instance and one separately deployed TEACH-SUB-B operational instance to distinct units and mission assignments. Compare each unit's three scheduled mission starts and terminal readiness. Composite child-B embedded instance must not be counted as a third operational system.",
+    "Reconcile PM, mission, SystemResults and StockTotalResults bins and terminal state, and state any result aggregation limit when the report does not expose per-unit rows. Separate read-only reviewer must replay without author code."
+  ],
+  "limits": ["One parent top and one extra independent copy of child B at one base, both zero failure rate and one shared mission profile. Other subsystem types, failures, PM on the independent child, station separation, GUI visuals and cross-engine parity remain unverified."]
+}
