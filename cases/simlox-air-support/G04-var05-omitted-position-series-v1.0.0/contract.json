@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-g04-var05-omitted-position-series-contract/v1",
+  "case_id": "G04",
+  "variant_id": "G04.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G04-three-branch-threshold-v1.0.0",
+    "arm": "one",
+    "input_sha256": "cfdf287c4de93638e8117c71ad3de1846da3c62c24254bf7d2a3f0f7c7c0c4d7",
+    "run_id": "g04-kn-one-v100-ssh-20261002-01",
+    "native_closure_sha256": "3cb85dd085e2de9fb5c4d36344ff37b87d4669eef4b3f60824da31faf1cd8d3b"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [196, 197],
+    "rule": "Items or subsystems present in a system but omitted from the current mission RBD are considered in series with that RBD. A failing member of an active parallel RBD remains noncritical while its NBREQ condition is met."
+  },
+  "input_sha256": {
+    "omitted": "c60981e0dbfe9c2a71bba49f2c446d9a1be9de59c01edfa7c58dd99d74689d72",
+    "included": "2c3dde8284e57bfa16b858f0a7bf6f97d8f00fa49e5a57130a3b2b700e4eccbe"
+  },
+  "exact_diff_sha256": "0658dcf0bcc44c49fb7ed5d0aabdee89eb21d280eb3e19cc698359de667d12da",
+  "configuration": {
+    "base_parallel": "active 1-of-3 POS-A/POS-B/POS-C, NBOP3, NBREQ1, ONLM=N",
+    "added_position": "POS-D in the same system, physical QTYPM1, FM-POS-D FRT1000000 per million OPHOURS, BASE-01 half-hour direct CM",
+    "omitted_arm": "POS-D present in physical MaterielStructure and MaterielOperationalModes but not in RBDParallelStructure",
+    "included_arm": "otherwise identical, POS-D added as fourth active RBD link and NBOP4",
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "mission": "one scheduled h8–34 fixed 26-hour mission",
+    "other_failure_modes": "accepted parent POS-A 300000 and POS-B 600000 per million OPHOURS; POS-C no configured failure mode"
+  },
+  "exact_delta": "Both arms add POS-D, its LRU structure, direct failure mode, CM route and operational mode, plus description. Only the included arm adds POS-D to RBDParallelStructure and sets NBOP3→4 with matching description. Between arms only ProblemDescription, RBDParallel and RBDParallelStructure differ. Parent mission, existing positions, failure modes, repairs, seed and report controls remain fixed.",
+  "pre_run_hypotheses": [
+    "Native import/export preserves every populated authored row and the converter accepts both arms without errors or unreviewed warnings.",
+    "If POS-D fails during the mission in both matched arms, omitted POS-D should be critical and abort its mission despite the healthy parallel remainder; included POS-D should be noncritical while at least one of the four active links is functional. Record actual failure identities/times and do not assume matched random samples.",
+    "Event-level failure, mission, repair and physical readiness transitions should reconcile with 72-bin aggregate reports. A single seed does not establish a general reliability difference."
+  ],
+  "native_acceptance": [
+    "Two unique guarded session-0 SSH runs, host-wide mutex, GUI PID13340 identity checks, Prelife Log registry restoration and frozen source/raw SHA-256 seals.",
+    "Both arms: exact populated-table roundtrip, zero converter errors/notes, reviewed warnings, nonempty SXO/event log/report.",
+    "Matched POS-D failure identity and time, opposite criticality and mission outcome attributable to source-bound RBD inclusion; A/B event differences, if any, explicitly accounted for.",
+    "Read-only independent replay of source, raw seals, events and report apart from author validation."
+  ],
+  "diagnostic_gate": "If either converter rejects the model, POS-D does not fail in both arms, POS-D draws diverge, or omission fails to produce the expected critical-versus-noncritical distinction, preserve the runs as diagnostic and revise with a new candidate version/run IDs. Do not infer series semantics from source alone.",
+  "limits": [
+    "One omitted fourth position under one mission mode, one failure rate, one seed and one replication; no general default-series truth table.",
+    "No arbitrary omitted item level, multiple mission modes, GUI RBD visual or cross-engine claim."
+  ]
+}
