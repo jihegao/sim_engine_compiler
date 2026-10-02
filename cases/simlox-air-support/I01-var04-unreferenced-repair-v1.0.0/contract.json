@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-i01-var04-unreferenced-item-repair-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_source_parent": {
+    "package": "I01-var05-none-maintenance-v1.0.0",
+    "source": "../I01-var05-none-maintenance-v1.0.0/none-input.json",
+    "sha256": "7dffc0b82a406761f55e1171491dfe9759c22c0123e2397aae4d19d6af7ba286",
+    "scope": "warning-bearing restricted I01.var05 diagnostic"
+  },
+  "accepted_foundation": {
+    "package": "I01-var01-two-stock-points-v1.0.0",
+    "source_sha256": "9e88c4bb95e1ca1ad4ec255c0fb9996fcbab8cd80b61972771574eb416233bfb"
+  },
+  "sources_sha256": {
+    "referenced": "7dffc0b82a406761f55e1171491dfe9759c22c0123e2397aae4d19d6af7ba286",
+    "unreferenced": "7873f467594ef1cc2bf65da25b75dbbb3d53769be73cb0196d1eec34a1ce5768"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp338-339 and 439-441 describes task-referenced ItemRepair selection through MaintenanceAllocation and says an ItemRepair row with no task reference is always active. The cited source must be verified against native event, item and stock evidence.",
+  "controlled_delta": "The referenced control is byte-identical to I01.var05 AIR_NONE. The unreferenced candidate clears ItemRepair.DIRPTID from I01-LRU-DIRP to null and changes only ProblemDescription. Control.APID AIR_NONE, MaintenanceAllocation AIR_NONE/LRU-CM/BASE/<NONE>, one local spare, all task metadata, aircraft, failure mode, replacement, schedule, seed and horizon stay fixed. No ItemReorder row exists.",
+  "pre_run_hypotheses": {
+    "referenced": "The sealed prior I01.var05 native run observed no failed-LRU direct repair or return to stock and warning #241. Re-run it as a same-stage control; do not treat prior report aggregates as evidence of failed-item conservation.",
+    "unreferenced": "If no-task-reference ItemRepair is always active here, the failed LRU should receive a DIRP event after arrival, complete after its fixed one-hour duration, and return to local stock despite AIR_NONE selecting <NONE> for the referenced category. The two arms should retain identical aircraft failure, spare replacement and readiness events up to that difference.",
+    "alternatives": "The converter may reject the combination, the native engine may suppress the unreferenced record, warning #241 may persist, or item/stock flow may differ. Preserve those outcomes as diagnostics rather than accepting the manual rule by assumption."
+  },
+  "acceptance_gates": [
+    "Independent pre-run source and hypothesis review; immutable hashes before native execution",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "23 authored tables round-trip exactly, converter errors zero, valid nonempty output and report",
+    "Individual failed-LRU arrival, direct repair, stock return or absence reconciled with item/stock ledger and 72-bin report",
+    "Raw artifact SHA-256 seals, author assertions, separate read-only replay and final static review"
+  ],
+  "limits": [
+    "This isolates a no-task-reference ItemRepair record under the AIR_NONE maintenance POINT in one E01-derived LRU/WS model; it does not prove all no-task-reference allocation rows or stations.",
+    "The model has no ItemReorder path, so complete <NONE> procurement and physical failed-item conservation remain unaccepted.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
