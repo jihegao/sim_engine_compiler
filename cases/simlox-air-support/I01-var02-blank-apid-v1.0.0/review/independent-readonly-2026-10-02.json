@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-i01-var02-independent-readonly/v1",
+  "passed": true,
+  "verdict": "GO: bounded blank-APID stock-only outcome",
+  "checks_passed": 7582,
+  "checks_total": 7582,
+  "failures": [],
+  "runs": {
+    "selected": {
+      "run_id": "i01-var02-selected-v100-ssh-20261002-01",
+      "closure_sha256": "eab8c6c09cf05cfc293d3a152ce26195e47f9fcec5985e7fdfba64040f404ddb",
+      "report_sha256": "22a7ed80be74713b168b75070658489c1f98a1daeb6e1e16845cabbe6144678c",
+      "model_log_sha256": "52b69d2318c6dd0645aefdde9e0bc4f5355595f4e4375d07a210afbf66773fc3",
+      "flight_aircraft_hours": 6.0,
+      "system_repair_occupancy_hours": 0.5,
+      "system_wait_for_item_hours": 0.0,
+      "stock_backorder_hours": 0.0,
+      "terminal_ready_aircraft": 1
+    },
+    "blank": {
+      "run_id": "i01-var02-blank-v100-ssh-20261002-01",
+      "closure_sha256": "c9d3905f0e22b56c28212bbe1487cade57639847d17e60dca2d7b650fe5adba9",
+      "report_sha256": "52793353035e2153ad0991bc5ab9923346e6332b4385e15157af66f720cd7cd5",
+      "model_log_sha256": "bdea346172a799f2c4c1630fe5f9f132dda6d5f4f6c439fc024ed329bc09dd0c",
+      "flight_aircraft_hours": 6.0,
+      "system_repair_occupancy_hours": 0.5000000149011612,
+      "system_wait_for_item_hours": 1.0000000149011612,
+      "stock_backorder_hours": 1.1666666716337204,
+      "terminal_ready_aircraft": 1
+    }
+  },
+  "scope": "In this fixed-seed two-POINT StockAllocation model, blank Control.APID converts with notice #102, initializes no physical spare, and reproduces the accepted AIR_EMPTY event and report outcome; AIR_BASIC reproduces the stocked outcome.",
+  "limits": [
+    "The native blank-APID outcome is observed for one station, one LRU, and two conflicting stock POINT rows; the internal POINT-selection algorithm is not directly exposed.",
+    "ResourceAllocation and MaintenanceAllocation blank-APID behavior, task filtering, STID=<NONE>, StationVariant, procurement, GUI visual behavior, and cross-engine parity are not established.",
+    "StockTotalResults.PNB is used only as a report field complementary to NBO here; physical initial stock and item issue/reuse are established by the event log.",
+    "One seed and fixed mission schedule do not establish general stock or backorder behavior."
+  ]
+}
