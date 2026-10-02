@@ -1,0 +1,74 @@
+{
+  "checks_passed": 1841,
+  "checks_total": 1841,
+  "evidence": {
+    "crew-short": {
+      "closure_sha256": "2e5d547b85635d9cc2b0117a54e8a09f604ddd919086c826c2becd3bce8fe15e",
+      "input_sha256": "7c0a3dd3fb0ac5147a9a2c312511e48fdbb28e9c7d2f16c595cd75fe2abe37bd",
+      "model_log_sha256": "8027bb5c12842b7040615e438d2eee980eaaa25039990dc781079e5c2411ef6c",
+      "report_sha256": "c25272d5489504f7099dfa9df58f0536014084cc0939b17a9be662692fef79d3",
+      "summary": {
+        "MSTF": 0.3333333432674408,
+        "MSUF": 0.3333333432674408,
+        "MTMF": 0.3333333432674408,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 0.3333333432674408
+      }
+    },
+    "part-short": {
+      "closure_sha256": "f78fbca87f943c5068cdb2f6fe1e98e799ca2cf6484996497cc0c45d9c345f32",
+      "input_sha256": "c063189f66ef7c5d7e8e6c4b624de317eb7eb01ce27e8551d43d21a8d470c2c5",
+      "model_log_sha256": "e18ae19e398e73cc6e4cca593e7e40df579057938832242c3a061adb1ba45bb2",
+      "report_sha256": "494a1a1eb124890aa7f07537f9ad74e3edc9c290f9ca0397623504ef942fd79b",
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      }
+    },
+    "supplied": {
+      "closure_sha256": "d1e00d178915fa9c10489c6f1934badee8a53c5dfe3b8b9a713bb7e2ed8596a9",
+      "input_sha256": "79fdfb9fb1c4901368b24a33da49ab15b77a2cafa421446350e51e6f0457ff8e",
+      "model_log_sha256": "ec1a10b6017916186f89f6d95493d253b96b1784a32114c8959fcf4a34f11fe1",
+      "report_sha256": "258dcd23af3b81a4dd91fc5c74b4c66af5ba641ab1b0cefea2eb286adb6037f9",
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      }
+    }
+  },
+  "failures": [],
+  "finding": "All three arms share one first-flight noncritical LRU fault at h9.8829 and successful first return at h10. Part shortage and crew shortage each escalate at h10.0829; supplied begins physical replacement at h10 and does not escalate. Part shortage books crew h10.0829-10.3329, repairs the failed LRU, clears its backorder h11.3329 and completes later missions. Crew shortage takes the replacement item from stock at h10 but repeated P-CREW QTY1 tests fail, no physical removal or repair begins, resource wait persists, and later missions cancel at h20.3333/h32.3333.",
+  "limits": [
+    "One aircraft, LRU, seed, 0.2-hour calendar tolerance, stock 0/1 and crew 0/1.",
+    "Stock reservation at h10 in crew-short is an observed stock event, not physical removal or installed replacement; no backorder appears.",
+    "Only comparisons with supplied isolate one capacity factor; part-short versus crew-short changes both.",
+    "No general shortage priority law, GUI-only or cross-engine claim."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d09-var04/v1",
+  "verdict": "GO: bounded part-versus-crew shortage at NCFTL escalation"
+}

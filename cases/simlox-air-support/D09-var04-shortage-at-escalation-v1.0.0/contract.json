@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D09",
+  "variant_id": "D09.var04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "D09-var01-calendar-vs-operational-v1.0.0",
+    "arm": "calendar",
+    "input_sha256": "c9645fcb8a567c89077e830916839a33dd63574b9249893f469a2ae47e5e6cce",
+    "native_closure_sha256": "fb536519c47bb0d6bc1a3408066500fd310261d9c939c3796b3f62b02a7c9430"
+  },
+  "accepted_resource_and_task_donor": {
+    "package": "I01-var03-three-allocation-joint-v1.0.0",
+    "arm": "one-base",
+    "input_sha256": "fd2fc5714d805cd6808e4da726e2a56b214022ec589593ec521240d974f1ae29",
+    "native_closure_sha256": "06a037cce6bd8118bd3c963f026321ad604167504ecadbdc5eb409e510893de3"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [190, 191, 367, 368],
+    "interpretation": "A noncritical repair should wait until both replacement items and resources are available; if its 0.2-hour calendar NCFTL expires before active repair starts, it becomes critical and waiting for spares/resources is reinitiated at higher priority. Task-referenced traditional system replacement and a typed P-CREW demand use the installed task/resource schema and accepted resource donor. Native behavior under this combined model is a hypothesis until replayed."
+  },
+  "arms": {
+    "part-short": {"input_sha256": "c063189f66ef7c5d7e8e6c4b624de317eb7eb01ce27e8551d43d21a8d470c2c5", "stock_nominal": 0, "crew_quantity": 1},
+    "crew-short": {"input_sha256": "7c0a3dd3fb0ac5147a9a2c312511e48fdbb28e9c7d2f16c595cd75fe2abe37bd", "stock_nominal": 1, "crew_quantity": 0},
+    "supplied": {"input_sha256": "79fdfb9fb1c4901368b24a33da49ab15b77a2cafa421446350e51e6f0457ff8e", "stock_nominal": 1, "crew_quantity": 1}
+  },
+  "exact_diff_sha256": "8604bef75392c6ec5ffe62cb9cff46561ef8b58ad3bc73ffb18f5110a74163d9",
+  "configuration": {"seed": "1", "repetitions": 1, "horizon_hours": 36, "mission_start_hours": [8, 20, 32], "one_aircraft": true, "one_traditional_noncritical_lru": true, "item_ncftl_hours": 0.2, "item_ncftt": "CALENDAR", "system_replacement_task": "D09-SURP", "task_subtasks": [{"seq": 1, "type": "<REMOVE>", "hours": 0.25, "crew_quantity_required": 1}, {"seq": 2, "type": "<REPLACE>", "hours": 0.25, "crew_quantity_required": 0}]},
+  "predeclared_hypotheses_not_outcomes": [
+    "The same seed and reliability structure retain the parent's first noncritical LRU fault near h9.8829 in all three arms, and the h8-h10 mission succeeds before the 0.2-hour calendar limit.",
+    "After return at h10, part-short has crew available but no local replacement; crew-short has one replacement but no crew. Each noncritical task should wait without active physical repair, allowing the calendar NCFTL to expire near h10.0829. Critical task priority and reinitiated waiting should be visible, but exact queue messages and physical removal order are native outcomes.",
+    "The fully supplied arm has one replacement and one crew, so its task may begin active repair at h10 and avoid later NCFTL escalation; this control tests whether shortage is necessary under this task model. It is not assumed to have identical random draws after the first fault.",
+    "Part-short versus supplied isolates zero versus one stock with crew held at one. Crew-short versus supplied isolates zero versus one crew with stock held at one. Part-short versus crew-short changes both variables and is not used as a single-factor causal contrast.",
+    "If converter warnings differ, fault timing changes, the task does not use the specified crew, or active repair begins before the timeout in a shortage arm, the planned claim fails or narrows; do not rewrite the frozen hypothesis after native execution."
+  ],
+  "native_acceptance_gates": [
+    "Frozen accepted parent and resource donor fingerprints, complete parent-to-child deltas and the two single-factor control contrasts verified before native execution.",
+    "Serial session-0 SSH under host mutex preserves GUI PID13340, installed executable/manual/dictionary and source hashes; zero conversion errors and all warnings explicitly classified.",
+    "Exact import/export identity for every authored row-containing table, valid nonempty SXO/event/report outputs, sealed raw artifacts and native GUI/process closure.",
+    "Author and independent read-only replay reconcile first-fault identity, time-limit escalation, C/NC task priority, actual part/resource waiting, repair and stock ledgers, mission outcomes, aligned result bins and terminal state."
+  ],
+  "limits": ["one aircraft", "one LRU", "one seed", "0.2-hour calendar tolerance", "one crew-demanded system replacement task", "stock 0/1", "crew 0/1", "no general shortage priority law", "no GUI-only or cross-engine claim"]
+}
