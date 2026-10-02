@@ -1,0 +1,246 @@
+"""Independent read-only raw replay for G11.var04 v1.0.1."""
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from pathlib import Path
+
+CASE = Path(__file__).resolve().parent
+PARENT = CASE.parent / "D14-var01-monitored-item-pm-v1.0.1"
+PARENT_INPUT = PARENT / "native-input-monitored.json"
+PARENT_CLOSURE = PARENT / "runs/d14-var01-monitored-v101-ssh-20261002-01/closure.json"
+DONOR = CASE.parent / "G11-var03-random-system-prelife-v1.0.0/native-input-equidist-control.json"
+MANUAL = Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf")
+DICTIONARY = Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt")
+EXE = Path(r"C:\Program Files\Systecon\SIMLOX\Simlox.exe")
+PYTHON = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+ARMS = {"explicit-control": "g11-var04-explicit-control-v101-ssh-20261002-01",
+        "inherited": "g11-var04-inherited-v101-ssh-20261002-01"}
+COUNT = 0
+FAILURES: list[str] = []
+
+
+def check(condition: bool, label: str) -> None:
+    global COUNT
+    COUNT += 1
+    if not condition:
+        FAILURES.append(label)
+
+
+def sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read(path: Path):
+    return json.loads(re.sub(r",\s*([}\]])", r"\1", path.read_text(encoding="utf-8-sig")))
+
+
+def tables(path: Path, root: str) -> dict:
+    return {t["name"]: t for t in read(path)[root]["tables"]}
+
+
+def rows(table: dict) -> list[dict]:
+    names = [c["name"] for c in table["columns"]]
+    return [dict(zip(names, row)) for instance in table["instances"] for row in instance["rows"]]
+
+
+def near(a, b, tol=.0001) -> bool:
+    return isinstance(a, (int, float)) and abs(a - b) <= tol
+
+
+def report_checks(arm: str, run: Path, hour: int) -> dict:
+    report = tables(run / "report-raw.json", "report")
+    check(set(report) == {"ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"},
+          f"{arm}: default report tables")
+    sy = rows(report["SystemResults"])
+    st = rows(report["StockTotalResults"])
+    summary = rows(report["ResultSummary"])
+    check(len(sy) == len(st) == 192, f"{arm}: 192 half-hour bins")
+    check(summary == [{"NREP": 1, "RTILW": 0, "RTIUP": 96, "MTMF": 0, "RSMTMF": 0,
+                       "MSTF": 0, "RSMSTF": 0, "MSUF": 0, "RSMSUF": 0, "STMF": 0, "RSSTMF": 0}],
+          f"{arm}: no-mission summary")
+    zero_system = ("NSYMA", "NSYMO", "NSYMC", "NSYMP", "NSYMT", "NSYMS", "NSYMR", "NSYAL", "FTMO",
+                   "NSYRP", "NSYTP", "NSYWR", "NSYWI", "NSYLA", "NSYUH", "NREPT", "NFAIL", "NDAM",
+                   "NROBT", "NRCFG", "STREQ", "STACC", "STF", "STLOW", "SYDTU", "NSYSW", "NPSTA", "NPSUC")
+    zero_stock = ("NBO", "NDF", "NDD", "NDR", "NLD")
+    null_stock = ("NBOU", "WTS")
+    for i, (s, k) in enumerate(zip(sy, st)):
+        t = i / 2
+        check(s["STINT"] == k["STINT"] == t and s["ETINT"] == k["ETINT"] == t + .5,
+              f"{arm}: bin alignment {i}")
+        active = int(t == hour)
+        for key, value in {"NSYRY": 1 - active, "NSYA": 1 - active,
+                           "NSYUA": active, "NSYPM": active}.items():
+            check(near(s[key], value), f"{arm}: {key} bin {i}")
+        for key, value in {"NPMS": int(t == hour), "NPMT": int(t == hour + .5),
+                           "NSYDT": int(t == hour)}.items():
+            check(s[key] == value, f"{arm}: {key} marker bin {i}")
+        check(s["SYDT"] == (.5 if t == hour else None), f"{arm}: SYDT bin {i}")
+        for key in zero_system:
+            check(s[key] == 0, f"{arm}: zero {key} bin {i}")
+        check(k["PNB"] == 1 and k["NDP"] == active and k["NWT"] == active,
+              f"{arm}: stock demand/wait bin {i}")
+        for key in zero_stock:
+            check(k[key] == 0, f"{arm}: zero stock {key} bin {i}")
+        for key in null_stock:
+            check(k[key] is None, f"{arm}: null stock {key} bin {i}")
+        for key in ("ROS", "ROST", "WT", "WTT"):
+            check(k[key] in (None, 0), f"{arm}: no positive stock-rate/wait metric {key} bin {i}")
+    check(near(sum(s["NSYPM"] * .5 for s in sy), .5) and
+          near(sum(s["NSYMO"] * .5 for s in sy), 0), f"{arm}: half-hour system PM and zero flight")
+    check(near(sy[-1]["NSYRY"], 1) and st[-1]["NBO"] == 0,
+          f"{arm}: terminal ready one, no backorder")
+    return {"report_sha256": sha(run / "report-raw.json"), "system_bins": len(sy), "stock_bins": len(st)}
+
+
+def main() -> int:
+    contract, diff = read(CASE / "contract.json"), read(CASE / "exact-diff.json")
+    check(sha(PARENT_INPUT) == contract["accepted_parent"]["input_sha256"] == diff["parent_sha256"],
+          "accepted D14.var01 source")
+    check(sha(PARENT_CLOSURE) == contract["accepted_parent"]["native_closure_sha256"],
+          "accepted D14.var01 closure")
+    check(sha(DONOR) == contract["accepted_prelife_schema_donor"]["input_sha256"],
+          "accepted G11.var03 prelife donor")
+    check(sha(CASE / "exact-diff.json") == contract["exact_diff_sha256"], "exact diff seal")
+    check(sha(MANUAL) == contract["source"]["manual_sha256"], "manual seal")
+    check(sha(DICTIONARY) == contract["source"]["dictionary_sha256"], "dictionary seal")
+    check(sha(EXE) == "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0", "CLI seal")
+    parent = tables(PARENT_INPUT, "model")
+    models = {}
+    evidence = {}
+    for arm, run_id in ARMS.items():
+        source = CASE / f"native-input-{arm}.json"
+        run = CASE / "runs" / run_id
+        model = tables(source, "model")
+        models[arm] = model
+        check(sha(source) == contract["inputs"][arm]["sha256"] == diff["arms"][arm]["input_sha256"],
+              f"{arm}: source pin")
+        actual = {n: {"before": parent[n], "after": model[n]} for n in parent if parent[n] != model[n]}
+        actual.update({n: {"before": None, "after": model[n]} for n in set(model) - set(parent)})
+        check(actual == diff["arms"][arm]["changed"], f"{arm}: exact parent delta")
+        check(set(model).issuperset(parent), f"{arm}: parent topology")
+        check([r["IQTY"] for r in rows(model["OperationProfile"])] == [0, 0, 0], f"{arm}: no missions configured")
+        check(rows(model["PMReplacement"])[0]["OPID"] is None, f"{arm}: irrelevant PMReplacement OPID cleared")
+        pm = rows(model["MaterielPM"])
+        check(any(r["PMID"] == "LRU-CAL100" and r["MID"] == "TEACH-LRU-01" and
+                  r["OPID"] == "CALHOURS" and r["PMINT"] == 100 and r["MONIT"] == "Y" for r in pm),
+              f"{arm}: item CAL100 monitored PM")
+        closure, invocation, steps = (read(run / n) for n in ("closure.json", "invocation.json", "steps.json"))
+        check(closure["run_id"] == invocation["run_id"] == run_id and closure["arm"] == arm,
+              f"{arm}: run identity")
+        check(sha(run / "invocation.json") == closure["invocation_sha256"], f"{arm}: invocation seal")
+        check(invocation["source_hashes_before"] == closure["source_hashes_before"] == closure["source_hashes_after"],
+              f"{arm}: frozen before/after source")
+        pins = {"input": source, "parent": PARENT_INPUT, "parent_closure": PARENT_CLOSURE,
+                "prelife_donor": DONOR, "contract": CASE / "contract.json", "exact_diff": CASE / "exact-diff.json",
+                "builder": CASE / "build.py", "diff_builder": CASE / "describe_diff.py",
+                "checker": CASE / "check_roundtrip.py", "runner": CASE / "run_native_ssh.ps1",
+                "python": PYTHON, "exe": EXE, "manual": MANUAL, "dictionary": DICTIONARY}
+        for key, path in pins.items():
+            check(sha(path) == closure["source_hashes_before"][key], f"{arm}: source SHA {key}")
+        check(len(closure["raw"]) == 13 and closure["error"] is None, f"{arm}: 13 raw seals")
+        for name, seal in closure["raw"].items():
+            path = run / name
+            check(path.exists() and path.stat().st_size == seal["bytes"], f"{arm}: raw size {name}")
+            check(sha(path) == seal["sha256"], f"{arm}: raw SHA {name}")
+        check(sha(run / "input.json") == sha(source), f"{arm}: raw input source")
+        check(invocation["execution_mode"] == "session0_ssh_cli" and invocation["session_id"] == 0 and
+              "sshd.exe" in [x.lower() for x in invocation["ssh_ancestor_names"]], f"{arm}: SSH0")
+        check(invocation["queue_mutex"] == "Global\\SimloxIssue18NativeQueue" and
+              invocation["gui"]["pid"] == 13340 and invocation["gui"]["session_id"] == 1,
+              f"{arm}: GUI and mutex")
+        check(invocation["prelife_log_option_before"] == closure["prelife_log_option_after"] == "NO",
+              f"{arm}: Prelife Log registry restoration recorded")
+        check([s["name"] for s in steps] == ["import", "export", "calc", "jsonreport", "check_import_export"],
+              f"{arm}: five steps")
+        for step in steps:
+            check(step["exit_code"] == 0 and step["status"] == "completed" and step["gui_preserved"] is True,
+                  f"{arm}: successful step {step['name']}")
+        exported = tables(run / "roundtrip-raw.json", "model")
+        populated = [n for n, table in model.items() if any(i["rows"] for i in table["instances"])]
+        check(len(populated) == 23, f"{arm}: 23 populated authored tables")
+        for name in populated:
+            check(name in exported and exported[name]["columns"] == model[name]["columns"] and
+                  exported[name]["instances"] == model[name]["instances"], f"{arm}: exact roundtrip {name}")
+        run_log = (run / "run.log").read_text(encoding="utf-8-sig", errors="replace")
+        check("Input conversion completed. Errors: 0" in run_log and "(error #" not in run_log and
+              "warning #108" in run_log and "notice #2052" not in run_log,
+              f"{arm}: clean conversion and inherited event-log warning")
+        if arm == "inherited":
+            check("Form: PrelifeData" in run_log and
+                  "rec 3: (warning #419) Age parameters given for prelife data with TYPE = INHERIT. These parameters will be ignored." in run_log and
+                  "Warnings: 2, Notes: 0" in run_log, f"{arm}: exact reviewed #419 warning")
+        else:
+            check("warning #419" not in run_log and "Warnings: 1, Notes: 0" in run_log,
+                  f"{arm}: #108 only")
+        check((run / "model.sxo").stat().st_size > 4, f"{arm}: valid SXO")
+        prelife = (run / "model_Prelife.log").read_text(encoding="utf-8-sig", errors="replace")
+        ages = re.findall(r"\*\*(TEACH-AIR-01|POS-A|TEACH-LRU-01)\*\*(SYS-60|POS-INH|LRU-20)\*\* Age\[CALHOURS\]:([0-9.]+)", prelife)
+        item_age = 60 if arm == "inherited" else 20
+        check(ages == [("TEACH-AIR-01", "SYS-60", "60.00"),
+                       ("POS-A", "POS-INH", "60.00"),
+                       ("TEACH-LRU-01", "LRU-20", f"{item_age}.00")],
+              f"{arm}: system/position/item Prelife Log ages")
+        log = (run / "model.log").read_text(encoding="utf-8-sig", errors="replace")
+        hour = 40 if arm == "inherited" else 80
+        check(re.findall(r"Time: ([0-9.]+)  system PM task \d+ on <TEACH-AIR-01,0> PMID: LRU-CAL100", log) == [str(hour)],
+              f"{arm}: first original-item LRU-CAL100 at h{hour}")
+        for time, fragment in ((hour, "Item demand arrives from pos <TEACH-AIR-01,BASE-01,0> item requiring maintenance is <TEACH-LRU-01,0,0>"),
+                               (hour, "Take replacement item <TEACH-LRU-01,0,1> from stock"),
+                               (hour + .25, "Item requiring maintenance arrives <TEACH-LRU-01,0,0>"),
+                               (hour + .25, "item PM task 1 on <TEACH-LRU-01,0,0> started"),
+                               (hour + .5, "system PM task 0 on <TEACH-AIR-01,0> completed"),
+                               (hour + 1.25, "item PM task 1 on <TEACH-LRU-01,0,0> completed"),
+                               (hour + 1.25, "Put back replacement item <TEACH-LRU-01,0,0> to stock")):
+            check(any(fragment in line for line in log.splitlines()
+                      if line.startswith(f"Time: {time:g} ")),
+                  f"{arm}: physical PM event {fragment[:35]} at {time:g}")
+        check("mission starting" not in log and "mission ordered" not in log and "failure occurs" not in log,
+              f"{arm}: no mission or random failure")
+        check("requests resources: no resources needed" in log and "books resources" not in log,
+              f"{arm}: no booked resource route")
+        report_evidence = report_checks(arm, run, hour)
+        evidence[arm] = {"input_sha256": sha(source), "closure_sha256": sha(run / "closure.json"),
+                         "model_log_sha256": sha(run / "model.log"),
+                         "prelife_log_sha256": sha(run / "model_Prelife.log"), **report_evidence}
+    explicit, inherited = models["explicit-control"], models["inherited"]
+    contrast = {n: {"before": explicit.get(n), "after": inherited.get(n)}
+                for n in set(explicit) | set(inherited) if explicit.get(n) != inherited.get(n)}
+    check(contrast == diff["arm_contrast"] and set(contrast) == {"PrelifeData", "ProblemDescription"},
+          "isolated pair source contrast")
+    explicit_rows, inherited_rows = rows(explicit["PrelifeData"]), rows(inherited["PrelifeData"])
+    check(len(explicit_rows) == len(inherited_rows) == 3 and
+          all(a == b for a, b in zip(explicit_rows[:2], inherited_rows[:2])) and
+          {key: (explicit_rows[2][key], inherited_rows[2][key]) for key in explicit_rows[2]
+           if explicit_rows[2][key] != inherited_rows[2][key]} == {"TYPE": ("FIXED", "INHERIT")},
+          "only item PrelifeData TYPE changes")
+    check(rows(explicit["PrelifeStructure"]) == rows(inherited["PrelifeStructure"]) and
+          [(r["PLID"], r["MPLID"], r["MPLIND"]) for r in rows(explicit["PrelifeStructure"])] ==
+          [("PL-POS", "PL-SYS", "SYS-60"), ("PL-LRU", "PL-POS", "POS-INH")],
+          "system-to-position-to-item prelife hierarchy")
+    old_diagnostic = (CASE.parent / "G11-var04-inherit-item-prelife-v1.0.0" / "runs" /
+                      "g11-var04-explicit-control-v100-ssh-20261002-01")
+    old_log = (old_diagnostic / "run.log").read_text(encoding="utf-8-sig", errors="replace")
+    check("(notice #2052) Operation parameter (OPID) ignored when SCHED=Y" in old_log and
+          "Errors: 0, Warnings: 1, Notes: 1" in old_log,
+          "excluded v1.0.0 notice #2052 diagnostic")
+    result = {"schema": "simlox-independent-readonly-g11-var04/v1", "passed": not FAILURES,
+              "verdict": "GO: bounded item prelife inheritance observation" if not FAILURES else "NO-GO: independent replay failed",
+              "checks_passed": COUNT - len(FAILURES), "checks_total": COUNT, "failures": FAILURES,
+              "evidence": evidence,
+              "finding": "The matched source changes only installed item PrelifeData.TYPE FIXED to INHERIT (plus description). Both Prelife Logs show system and position CALHOURS age60; the item logs age20 versus age60. Initial physical LRU ID0 triggers LRU-CAL100 h80 versus h40, exchanges for spare ID1, and returns to stock after its item PM. No missions run; 192 System/Stock bins per arm reconcile.",
+              "limits": ["One system/position/monitored installed item and one spare, one seed and first CALHOURS item PM. No general inheritance law or later item-age claim.",
+                         "The default report has aggregate SystemResults/StockTotalResults, not selected per-item or ResourceResults; item identity and no-resource booking are established by the native event log.",
+                         "Manual printed p209 says inherited records omit PLIND in the Prelife Log, but this installed CLI prints POS-INH and LRU-20 despite TYPE INHERIT. The observed ages and PM timing are unaffected; the log-label rule is not accepted.",
+                         "Warning #419 is the converter's explicit ignored-AGE notice for INHERIT; v1.0.0 #2052 diagnostic is excluded. Registry restoration is recorded by guarded invocation/closure, not a separate live registry read.",
+                         "No missions, stocked-item prelife, higher-level topology, GUI visual behavior or cross-engine parity."]}
+    out = CASE / "independent-verdict.json"
+    out.write_bytes((json.dumps(result, sort_keys=True, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    print(json.dumps({"passed": result["passed"], "checks_total": COUNT, "failures": FAILURES,
+                      "verdict": result["verdict"], "output": str(out)}, ensure_ascii=False))
+    return 0 if not FAILURES else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
