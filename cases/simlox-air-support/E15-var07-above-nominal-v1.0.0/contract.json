@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var07",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "E15",
+    "package": "E15-var07-explicit-istoh-v1.0.1",
+    "arm": "default",
+    "input_sha256": "602dedfdb3491ab430abe4c68426c28203738fe1b2b1173d5d66955d00b6102e",
+    "signoff": "../E15-var07-explicit-istoh-v1.0.1/cli-scope-signoff-2026-10-02.md",
+    "native_closure_sha256": "f00b8fc07a4deb1db33b6142f0704e373a5db09197e8f6190fd0b22947e6feff",
+    "selected_item_report_closure_sha256": "640e77479b0930137ca7f97e1f346babc9de7132ec33cd6f9ca400fb8295b249"
+  },
+  "instructional_prerequisite": {
+    "case_id": "E02",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "signoff": "../E02-zero-stock-local-backorder-v1.0.0/cli-scope-signoff-2026-09-29.md"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [216, 218, 343, 345, 445, 446, 447],
+    "boundary": "Catalog E15.var07 requires omitted/default versus explicit initial stock above nominal. Installed manual permits reorder-position ISTOH above STSIZ in the initial phase; omitted ISTOH defaults to STSIZ+AINST. Item.TRACK=Y is inherited so selected ItemResults can expose physical on-hand stock."
+  },
+  "native_input_sha256": "d65eec8aef4a75253370530bf308af3ca18c0fa97a0090da3f0fc34d98e54c5b",
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "depot": "DEPOT-01",
+    "nominal_stsiz": 4,
+    "reorder_rosiz": 2,
+    "reorder_point": 2,
+    "parent_istoh": null,
+    "child_istoh": 6,
+    "reorder_lead_hours": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "Accepted parent and child inputs differ only in ProblemDescription and depot StockAllocation.ISTOH null-to-6. All 21 populated authored tables round-trip exactly and source fingerprints remain unchanged.",
+    "Guarded session-0 SSH native import, export, calc, default JSON report and checker exit zero; converter reports Errors: 0 and only expected logging warning #108; SXO and reports are valid/nonempty; GUI PID 13340 persists.",
+    "The child starts with six physical DUs at DEPOT-01 while nominal STSZ remains four, demonstrating explicit ISTOH above nominal. The parent's omitted ISTOH starts with four. The inherited ordinary demand at h10 issues one depot DU; child physical stock falls 6-to-5 and parent 4-to-3. Neither starts a reorder by h36 because both remain above reorder point two. The existing parent raw log and report are sealed comparison evidence.",
+    "Child selected depot ItemResults must contain 72 half-hour rows with STSZ=4 throughout, STOHA=6 in h0-10 and 5 in h10-36, zero ordinary NBO and ItemResultsTotal.NRO=0; parent selected report has STOHA 4 then 3, exactly two below the child in all bins. The item total is an average rather than terminal stock.",
+    "The aircraft's h9.8829 DU failure, h10 spare issue and depot shipment, h10.5 readiness, h12 base replenishment, three mission outcomes and terminal readiness match the accepted parent in event semantics and selected system/stock/mission summaries. Physical IDs may be renumbered by the two extra opening DUs and must be reconciled independently.",
+    "Preserve raw source and output hashes in isolated local runs. Have a separate read-only reviewer replay the ledgers without importing author validation."
+  ],
+  "limits": [
+    "One explicit ISTOH=6 above nominal4 versus the accepted omitted/default ISTOH4 parent, one DU/depot, one ordinary demand, one fixed seed, 36 hours, stock-based ROSIZ2 and fixed lead1 only.",
+    "This does not establish arbitrary high initial stock, AINST, multiple orders, periodic ROINT, random lead, backorder, item transfer procurement, GUI-only behavior or cross-engine parity.",
+    "The broader E15 case, I02, I07 and Issue #18 remain open."
+  ]
+}
