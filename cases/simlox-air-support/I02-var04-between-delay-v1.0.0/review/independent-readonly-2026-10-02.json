@@ -1,0 +1,38 @@
+{
+  "schema": "independent-i02-var04-between-delay-review/v1",
+  "case": "I02-var04-between-delay-v1.0.0",
+  "passed": true,
+  "verdict": "GO: bounded observed two-hour BETWEEN delay against zero-delay control",
+  "checks_passed": 1492,
+  "checks_total": 1492,
+  "failures": [],
+  "native_run": "i02-var04-delay2-v100-ssh-20261002-01",
+  "report_only_runs": {
+    "depot": "i02-var04-depot-results-v100-ssh-20261002-01",
+    "base": "i02-var04-base-results-v100-ssh-20261002-01"
+  },
+  "source_sha256": "607b5d5bc9d3c850b533b4bc50e202e6719c23182b47038fdf056222bfce2f39",
+  "native_closure_sha256": "056834f15307738ee38535735d52f2d2951385c0e3e296b7dff2d3caf493445f",
+  "native_report_sha256": "498b3d4d03b26049f96c3d6dfbe3fc10d7737ef576a9639f3461bca19fe98a58",
+  "selected_report_sha256": {
+    "depot": "96fcb09ff2ae7ca12f0854412d052b84966aed4a22d73c6c58a863439840eba6",
+    "base": "0c7c3b02c9323d0302f55d3a4a5c34fe126b4e1e01f720b9fca0e58fc3b73fb0"
+  },
+  "report_only_closure_sha256": {
+    "depot": "bf06247500186de545b95d4f2c562e9edf4327ecca31493cbb8458f96e266f89",
+    "base": "2100a17b39902c27eb79b1a7c23d342fa73ca3b09292cdfdb9b3699fe5fb6d55"
+  },
+  "observations": {
+    "report_table_name": "ItemResults",
+    "report_positions": "TEACH-LRU-01 at DEPOT-01 and BASE-01 stock positions, distinct from aircraft mounted item",
+    "nominal_STSZ": "depot 1→2 h4→1 h6; base 0→1 h8; station sum falls by one during h6–8 transit",
+    "on_hand_STOHA": "depot 1→2 h4→1 h6→0 h10→1 after repair h13.1667; base 0→1 h8→0 h10→1 h12",
+    "physical_transfer": "IN item ID1 stocked at depot h4; BETWEEN item ID0 leaves depot h6 and reaches base h8",
+    "later_demand": "base uses local item ID0 h10 and is ready h10.5; depot item ID1 goes to base replenishment h10–12; failed item ID2 repaired and stocked at depot h13.1667"
+  },
+  "limits": [
+    "The native table is ItemResults with IID/STID stock-position fields; a literal ItemPositionResults table is absent.",
+    "STSZ is nominal station stock size and STOHA is on-hand. Neither is the mounted aircraft item count. ItemResultsTotal values are horizon averages, not terminal stock.",
+    "TFDT2 versus TFDT0 for one available-stock BETWEEN after IN, one LRU, two stations, one seed and this CLI only. No standalone BETWEEN, other delay values, IN/OUT delay, shortage split, priority, reorder, GUI-visual or cross-engine conclusion."
+  ]
+}

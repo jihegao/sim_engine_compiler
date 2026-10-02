@@ -1,0 +1,37 @@
+{
+  "schema": "simlox-i02-var04-between-delay-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var04.TFDT-positive",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I02-var03-between-transfer-v1.0.0",
+    "source": "../I02-var03-between-transfer-v1.0.0/native-input.json",
+    "sha256": "4842382bd3728f7f9520d3b20e1ad7148f7436f5132e9cc933773550d64b4560"
+  },
+  "source_sha256": "607b5d5bc9d3c850b533b4bc50e202e6719c23182b47038fdf056222bfce2f39",
+  "exact_diff_sha256": "04b0e304c0a2ecddb05b2d3f623faf499e972fc5fbc1ce05937c8fd5bbc62700",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp225,476-478 defines BETWEEN ItemTransfer, source/target stations, scheduled TFTIME, and TFDT as transport time from departure to arrival. It says nominal stock updates when the transfer is actually performed and may be delayed; direct source/target timing is to be observed. pp681-683 and 717 define tracked item-position STSZ/STOHA. Installed dictionary gives seven-column transfer schema.",
+  "controlled_design": "Accepted I02.var03 BETWEEN parent has one h4 IN and one h6 DEPOT-01\u2192BASE-01 transfer with TFDT0. Child changes only that BETWEEN TFDT cell from0 to2.0 and the description; 30 other tables unchanged. Item.TRACK=Y, half-hour ITEM collection, seed1, E04 FAST support structure, and 36h horizon are held fixed. This isolates a positive two-hour delay against accepted zero-delay parent, within an IN-then-BETWEEN sequence.",
+  "pre_run_hypotheses": {
+    "delay": "One BETWEEN task should leave DEPOT-01 at h6 and arrive BASE-01 at h8 with the same physical item ID. Depot stock should decrease at departure and base on-hand should increase at arrival. Exact nominal STSZ timing at source and target is to be read directly from two station ItemResults series, not inferred from the log.",
+    "later_demand": "The first ordinary failure occurs after the scheduled transfer arrival under the frozen seed; later item identities, demand, repair, mission outcomes and report totals must be compared with the accepted TFDT0 parent without assuming equality in advance.",
+    "alternatives": "Converter rejection, no h6/h8 separation, unexpected physical ID, absent item table, report/log mismatch, source/destination stock conservation failure or source/closure mismatch is diagnostic; no positive TFDT claim published."
+  },
+  "acceptance_gates": [
+    "Independent pre-run audit of accepted zero-delay BETWEEN parent, manual/dictionary pins, frozen child source and exact TFDT-only table delta",
+    "Session-0 SSH native run under host-wide mutex preserving GUI PID13340",
+    "Exact authored-table roundtrip, zero conversion errors, valid SXO/report and sealed raw files",
+    "Physical departure/transit/arrival ledger and direct depot/base ItemResults STSZ/STOHA timing, in-transit reconciliation and later demand/terminal state",
+    "Author replay, independent read-only replay and final staged audit before publication"
+  ],
+  "limits": [
+    "Positive result would cover TFDT2 vs accepted TFDT0 for one available-stock BETWEEN after IN, one LRU/two stations/seed. It would not establish nonzero delay for IN/OUT or other TFDT values, shortage splitting, priority, reorder or procurement.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
