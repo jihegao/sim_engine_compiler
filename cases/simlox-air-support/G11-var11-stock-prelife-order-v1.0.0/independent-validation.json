@@ -1,0 +1,36 @@
+{
+  "checks_passed": 27644,
+  "checks_total": 27644,
+  "evidence": {
+    "age10-first": {
+      "closure_sha256": "4c92552e2b544dc8ce0f9d81464da883b7e8550c8ef5d96ea99826b35943aa90",
+      "input_sha256": "c7a32b5247076b31c9b5887113220902384076e597fefda306d1798b524f048a",
+      "model_log_sha256": "05b6626b4d934907f107389a90703aab4389b6dc0574f45eff468ce9c287f12a",
+      "prelife_log_sha256": "c74356e72f28250e9a8a9cbb931fcdb72e6c834584672739be32de267e385add",
+      "report_sha256": "7c8a9bd0cce21631db45eff299f0b67637fbc0b5107277a02ca9886dfbfcf5c7",
+      "stock_bins": 280,
+      "system_bins": 280
+    },
+    "age70-first": {
+      "closure_sha256": "23fafae7fc5c888c60da5a4050e9a6d988313e8c37cb5e4acba0689863b1bcea",
+      "input_sha256": "e98d18cffaa7cf177595de7e0899766d586cd43720b684fea884ca93d2e1372c",
+      "model_log_sha256": "ff25837989d00f26460d07fe1e00f9eb6fb9556e73ddf88f1fb90ca74df884b2",
+      "prelife_log_sha256": "a5c2066f6536f232ce8c9cda4f3718cf9e7c9a52d61f99e40eb0d4e1228efd11",
+      "report_sha256": "5e93948a69dbaed8addef010134300f8e5668c062641a6992df86530295b7f6d",
+      "stock_bins": 280,
+      "system_bins": 280
+    }
+  },
+  "failures": [],
+  "finding": "Both arms Prelife Logs preserve stock ages in source row order. Physical stock ID1 is issued at original item ID0's h80 PM in both. With age10 assigned first, no further PM appears by h140. With age70 first, installed ID1 begins a second system PM h110.5, its item PM h110.75, and spare ID2 is issued. Original/replacement items return to stock; reports reconcile and the system is ready at horizon.",
+  "limits": [
+    "One system, one monitored LRU, two initial same-type spares, fixed CALHOURS ages10/70, one seed and h140 horizon. The observed first-ID issue does not prove a general stock selection priority.",
+    "Numeric physical ID-to-age mapping is inferred by ordered Prelife Log and event identity, not printed as a single joined record.",
+    "The default StockTotalResults is aggregate and does not expose on-hand physical IDs; those are established by native event text.",
+    "No other prelife patterns, population or stochastic claim, GUI visual behavior, or cross-engine parity.",
+    "Registry restoration is recorded by guarded invocation/closure, not an independent live registry read."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-g11-var11/v1",
+  "verdict": "GO: bounded stocked-item prelife row-order observation"
+}
