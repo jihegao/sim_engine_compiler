@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-i01-var05-none-maintenance-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I01-var01-two-stock-points-v1.0.0",
+    "source": "../I01-var01-two-stock-points-v1.0.0/stocked-input.json",
+    "sha256": "9e88c4bb95e1ca1ad4ec255c0fb9996fcbab8cd80b61972771574eb416233bfb",
+    "signoff_sha256": "3240cc231fb37bf40f0afecc2339116210dd5952ed4d3bb98c3a5e8386ff5049"
+  },
+  "sources_sha256": {
+    "matching": "7c4bcb526c5e4c124a8242db97bbd140b1f7bdfc61ec72e21ff28ebf3d6e27c6",
+    "none": "7dffc0b82a406761f55e1171491dfe9759c22c0123e2397aae4d19d6af7ba286",
+    "exact_diff": "8661a9f153f90720a677fd9ee1aef644cb4dd7e44969274bf7880f8578834359"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp338-339 and 439-441 says a MaintenanceAllocation POINT/TCID/TLID/STID record selects task-referenced ItemRepair records matching the Tasks category/level and station. STID=<NONE> makes that repair record inactive and ItemReorder applies instead. Dictionary confirms added table schemas. This experiment isolates the explicit <NONE> alternative while TCID=LRU-CM and TLID=BASE remain fixed; ItemReorder is intentionally absent, so rejection or lack of a reorder path remains possible.",
+  "source_delta": "Accepted I01.var01 stocked parent gains TaskCategory LRU-CM, TaskLevel BASE=1, Task I01-LRU-DIRP, ItemRepair.DIRPTID=I01-LRU-DIRP, MaintenanceAllocation AIR_BASIC→LRU-CM/BASE/BASE-01 and AIR_NONE→LRU-CM/BASE/<NONE>, and equal StockAllocation.STSIZ1 at both POINTs. Matching control uses Control.APID AIR_BASIC; none child changes only Control.APID to AIR_NONE and ProblemDescription. Other aircraft, failure, replacement, schedule, seed and horizon remain fixed. There are no ItemReorder rows.",
+  "pre_run_hypotheses": {
+    "matching": "The LRU direct-repair task may activate after mounted-LRU failure and local spare replacement, returning the failed item to stock around h11.1667. Compare the event log, item/stock ledger and system state with accepted I01.var01 while allowing new task metadata to alter behavior.",
+    "none": "The selected AIR_NONE maintenance POINT has the same referenced LRU-CM/BASE task at STID=<NONE>. Native conversion or event logs must determine whether repair is inactive, reorder activates, repair falls back, or the model is rejected because ItemReorder is absent. None is preaccepted.",
+    "alternatives": "Task metadata, <NONE> or lack of ItemReorder may be rejected; converter warning/error, unexpected repair, no valid reorder route, shifted failure draw or inconsistent results remain diagnostics. Equal stock at both POINTs controls starting spare quantity but does not by itself prove internal allocation mechanics."
+  },
+  "acceptance_gates": [
+    "Accepted I01.var01 parent and independent pre-run design plus final static runner review",
+    "Fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored-table roundtrip, zero converter errors and valid native output/report for any accepted arm",
+    "Individual failure, replacement, ItemRepair and any reorder events; 72-bin System/Stock ledger; initial and terminal item conservation reconcile",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "This stage isolates explicit STID=<NONE> for the referenced task category and level at one station. It does not establish general category/level/station filtering, no-task-reference activation, StationVariant, resource selection, complete procurement, GUI visual behavior or cross-engine parity.",
+    "If native conversion or simulation rejects either arm, preserve the failure as a reproducible diagnostic rather than accepting an intended <NONE> behavior."
+  ]
+}
