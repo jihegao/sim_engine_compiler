@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-h03-var02-two-position-fm-damage-contract/v1",
+  "case_id": "H03",
+  "variant_id": "H03.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "H03-var01-position-fm-damage-v1.0.0",
+    "source": "../H03-var01-position-fm-damage-v1.0.0/mode-input.json",
+    "sha256": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c"
+  },
+  "sources_sha256": {
+    "control": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c",
+    "two_mode": "05a211fb310e7fce75de3212cb5c4e7c2d73e3f9cefab0b60a02ad5225f72d2e",
+    "exact_diff": "672e6f55626f8bb6c26c28f4e16e27eba041e63277b4010f102abb3f06454c8b"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical p193 states that materiel with multiple failure modes may suffer multiple damage failure modes at the same damage occurrence or separate occurrences. Physical pp424-425 define DamageFailureMode.PROB and separate consequence investigation. The accepted H03.var01 parent proves one position FM's BATTLE-HIT-to-CM route; installed dictionary pins FailureMode, CMLocation and DamageFailureMode keys.",
+  "source_delta": "The control is byte-identical to accepted H03.var01 PROB1 mode input. The child retains BATTLE-HIT DAMP1, seed1, three missions, horizon36, POS-A FM-POS-A PROB1 and half-hour BASE-01 CM. It adds FM-POS-B on the same POS-A with positive ordinary FRQ1e-9/OPHOURS and CRITF1, a BASE-01 CMLocation direct CM of one hour, and DamageFailureMode.PROB1 for the same BATTLE-HIT; only description otherwise changes.",
+  "pre_run_hypotheses": {
+    "control": "The byte-identical parent should reproduce three damage-induced FM-POS-A consequences, three half-hour CM repairs and terminal readiness.",
+    "two_mode": "At each BATTLE-HIT occurrence both configured failure modes may appear on POS-A. Native FM identities, CM task order/duration, mission state, repair occupancy and terminal state decide the accepted claim. Parallel versus serial processing is not preaccepted.",
+    "alternatives": "Conversion rejection, an ordinary random failure, suppressed second mode, incomplete repair, shortage, cancellation or ledger mismatch is diagnostic until explained. One deterministic seed does not prove probabilistic independence."
+  },
+  "acceptance_gates": [
+    "Accepted H03.var01 direct parent and independent pre-run static review of exact diff, manual/dictionary basis and guarded runner",
+    "Fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored-table roundtrips, zero converter errors and valid SXO/event/report",
+    "Per-mode damage and CM identities, mission outcomes, 72 System/Stock bins and terminal state reconcile",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "One position and fixed seed cannot prove statistical independence, multiple material positions, simultaneous item damage, shortage, other stations, GUI visual behavior or cross-engine parity."
+  ]
+}

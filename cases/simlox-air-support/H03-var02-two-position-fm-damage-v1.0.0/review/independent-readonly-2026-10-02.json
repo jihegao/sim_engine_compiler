@@ -1,0 +1,37 @@
+{
+  "schema": "simlox-h03-var02-independent-readonly/v1",
+  "passed": true,
+  "verdict": "GO: bounded two-FM damage on one position",
+  "checks_passed": 6631,
+  "checks_total": 6631,
+  "failures": [],
+  "runs": {
+    "control": {
+      "run_id": "h03-var02-control-v100-ssh-20261002-01",
+      "closure_sha256": "44b27d72b9574b190d7b762a9132243dc1182f4a631fe7865aad90c852352049",
+      "report_sha256": "3888c1030dd7348dde8b8ea79f9a07f6008710b133af89a5d782f276b7ab4636",
+      "model_log_sha256": "1f245df1fb7cb32b9e65addf71c52a118804d7b9cddbf8f38fb1298ec26dd11a",
+      "flight_aircraft_hours": 3.0336023941636086,
+      "system_repair_occupancy_hours": 1.5000000074505806,
+      "cm_task_hours": 1.5,
+      "terminal_ready_aircraft": 1
+    },
+    "two-mode": {
+      "run_id": "h03-var02-two-mode-v100-ssh-20261002-01",
+      "closure_sha256": "7a388911da461cc0bef5f4dab0abad55cf7b6703b0f9f9c093383820cdaee4de",
+      "report_sha256": "e6e7ce3ced125fd9c95ab893c22a917ca504469d8130647c0dcb5e821f6bca19",
+      "model_log_sha256": "24a8ba3559be11a1a32eb3c80e245b5622db6ff502a824c96baa7174d973a770",
+      "flight_aircraft_hours": 0.8394127637147903,
+      "system_repair_occupancy_hours": 3.0000000298023224,
+      "cm_task_hours": 4.5,
+      "terminal_ready_aircraft": 1
+    }
+  },
+  "scope": "At each of three fixed-seed BATTLE-HIT events, FM-POS-A and FM-POS-B on the same POS-A are logged and their 0.5-hour and 1-hour CM tasks overlap; the system becomes ready after both finish.",
+  "limits": [
+    "This one-seed, one-position result does not establish probability independence or behavior on other material positions.",
+    "SystemResults.NSYRP counts three hours of union system-repair occupancy, while individual CM task work totals 4.5 task-hours; these are different metrics.",
+    "No DamageItem consequence, resource constraint, alternate station, GUI visual behavior, or cross-engine parity was tested.",
+    "Positive ordinary failure FRQ=1e-9 is not a zero-rate guarantee; no ordinary random failure occurred in these logs."
+  ]
+}
