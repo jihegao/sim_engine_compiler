@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-g08-tree-modes-contract/v1",
+  "case_id": "G08",
+  "variant_id": "G08.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G08-tree-root-panel-v1.0.0",
+    "arm": "roota",
+    "input_sha256": "4920a7bc2ae01126ae27fdc97fde1d7f2c7d051545315b154f5491890969dd26",
+    "run_id": "g08-roota-v100-ssh-20261003-01",
+    "native_closure_sha256": "cf17eaa09a34ec9130d511874945297357e099e201f639dd88d7304f11788505"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [200, 448, 449, 450, 460, 461],
+    "rule": "RBDTreeStructure.MBOPM/SBOPM select operational modes for mother/subblock. MaterielOperationalModes.USERT controls relative usage and is multiplicative across RBD levels."
+  },
+  "input_sha256": {
+    "mother75": "1d42f16055adcbd0bcd1ddf9b36525ee13d5c84d1c0432eaf979f31572dc4411",
+    "sub75": "7e4babce6d8ccb70c2ff1ee12844df837e91aaa65c164d2e07ddf11e1e897c8a"
+  },
+  "exact_diff_sha256": "f102df083b2e99cc39aa31027d0aa94a1b0a9c24af32c4e50e219bdcc4be1cd6",
+  "configuration": {
+    "parent": "Accepted G08 A-root NBREQ2 B/C/D leaf tree with physical B/A OPHOURS failures, h8-34 mission, direct half-hour CM, seed1, one replication/horizon36; all edges G04-OPS and positions USERT1.",
+    "mother75": "Define G08-A-75; add POS-A mode row USERT0.75 and select it in MBOPM of every A-to-leaf edge. SBOPM stays G04-OPS.",
+    "sub75": "Define G08-B-75; add POS-B mode row USERT0.75 and select it only in SBOPM of the A-to-B edge. MBOPM stays G04-OPS."
+  },
+  "pre_run_hypotheses": [
+    "Both arms import/export/calculate with zero converter errors or unreviewed diagnostics, preserving all populated authored tables exactly.",
+    "Each selected 0.75 mode changes at least one native B/A failure time or order relative to the full-rate parent. Event identity/order/timing are empirical; no matched stochastic draw or monotonic law is assumed. If an arm has no native timing difference or converter rejection, retain it as diagnostic and revise under a new version.",
+    "Native logs report system criticality and mission outcome but may not print selected MBOPM/SBOPM or individual usage rates. Any observed failure and mission sequence must reconcile with the source-defined tree and 72-bin reports."
+  ],
+  "native_acceptance": [
+    "Two unique serial guarded session-0 SSH runs with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Compare event identity/order/timing and report to accepted full-rate control without claiming common random draws; independent read-only replay."
+  ],
+  "diagnostic_gate": "Retain any rejected arm and raw evidence as diagnostic; revise with new version/run IDs rather than changing a frozen hypothesis.",
+  "limits": [
+    "One 0.75-rate mode on root A via MBOPM or leaf B via SBOPM in a single A-root tree, one seed/replication; other positions, rates, nested modes and population behavior untested.",
+    "Selected mode and path state are source-bound because native log may not print them. No GUI drawing, online maintenance or cross-engine claim."
+  ]
+}
