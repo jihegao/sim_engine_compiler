@@ -1,0 +1,22 @@
+{
+  "schema": "simlox-i02-var11-delayed-in-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var11",
+  "version": "1.0.0-candidate",
+  "scope": "One scheduled one-unit IN to a tracked depot with ItemTransfer.TFDT 0 versus 2 hours",
+  "direct_parent": {"package": "I02-var01-in-transfer-v1.0.2", "source_sha256": "85ee84d85e610f753215882fca59cc3331a9ce0f3313ae635f2a7422e8abcf4d", "native_control_run_id": "i02-var01-in-v102-ssh-20261002-01"},
+  "source_sha256": "7d520331ee6233a83600ff711247ec66f15d362a4f377e96a59e0d5a4b6f751c",
+  "exact_diff_sha256": "f6f99a352705c0bc443ad7e51ea3e67a2a096d02f508813e17efebe6c3fc5f82",
+  "installed_source_sha256": {"simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0", "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"},
+  "manual_printed_pages": [225, 445, 446, 476, 477, 478],
+  "manual_basis": "Installed manual p476 describes ItemTransfer.TFDT as relevant to BETWEEN, while its field definition on p478 expressly says TFDT can also be used for IN and is ignored for OUT. Native acceptance resolves the actual IN timing for this installed version.",
+  "controlled_design": "Use the accepted I02.var01 tracked one-unit <OUTSIDE>→DEPOT-01 IN at TFTIME4. Change only ItemTransfer.TFDT0→2 plus description; leave Item.TRACK=Y, half-hour ITEM collection, depot opening stock1, base opening stock0, ordinary h10 failure/demand, seed1 and horizon36 fixed.",
+  "parameters": {"seed": "1", "horizon_hours": 36, "result_interval_hours": 0.5, "from": "<OUTSIDE>", "to": "DEPOT-01", "iid": "TEACH-LRU-01", "transfer_time_hours": 4, "transfer_quantity": 1, "transfer_delay_hours": 2, "depot_initial_stock": 1},
+  "pre_run_hypotheses": [
+    "The child imports, exactly roundtrips 22 populated authored tables, converts with zero errors, and yields nonempty native output.",
+    "Positive TFDT may hold physical creation/arrival until h6 rather than h4. The native transfer log and depot ItemResults.STSZ/STOHA half-hour bins decide the timing; h4 nominal-only change or ignored delay must be classified if observed.",
+    "Ordinary h10 item demand, repaired item return, system readiness, mission outcomes and terminal stock must reconcile against accepted zero-delay parent without using summary means as terminal values."
+  ],
+  "acceptance_gate": "Publish a positive delayed-IN result only if the h4 scheduled transfer starts, one physical item arrives at the observed delayed time, native depot ItemResults separate nominal and on-hand timing correctly, and source-bound guarded run plus independent replay pass. If TFDT is ignored, classify the reproducible no-effect limitation instead. Preserve failed or incomplete output as diagnostic.",
+  "limits": ["one IN, one IID, one depot, TFDT2 versus accepted TFDT0, one seed", "no other delays, OUT, BETWEEN, shortages, reorder/procurement, GUI rendering or cross-engine parity"]
+}
