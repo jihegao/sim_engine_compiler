@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-g04-var03-qtypb-multiplicity-contract/v1",
+  "case_id": "G04",
+  "variant_id": "G04.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G04-three-branch-threshold-v1.0.0",
+    "arm": "two",
+    "input_sha256": "38f85af4c121668eee3d31b07bb435b74571c5be6d63ddccff034549609ec319",
+    "run_id": "g04-kn-two-v100-ssh-20261002-01",
+    "native_closure_sha256": "a4c570f483bfb0943c0776d50e1e47d9e57bced1098f911ef76a9729d6fc9175"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [455, 456, 457, 458, 459],
+    "rule": "RBDParallelStructure.QTYPB is the number of subblocks of that type; RBDParallel.NBREQ counts required working output links and NBOP counts active links. MaterielStructure.QTYPM gives installed copies."
+  },
+  "input_sha256": "ce72d50a8e89464ce976befb14ed0e4966e9596fe6070c6a6fe09cef188c2193",
+  "exact_diff_sha256": "11d46f06f25d1b5085d9cb187ff7aa5842719b8dcc377a68c8967efba72a5e1e",
+  "configuration": {
+    "base": "G04 active 2-of-3 parent: POS-A, POS-B and nonfailing POS-C; each physical and RBD quantity one, NBOP3, NBREQ2",
+    "child": "Two installed POS-C copies and RBD QTYPB2; NBOP4 and NBREQ2, all active",
+    "failure_modes": "POS-A 300000 and POS-B 600000 per million operating hours, POS-C without configured failure mode",
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "mission": "one 26-hour mission scheduled h8 to h34",
+    "maintenance": "unchanged half-hour direct CM after mission return; no stock demand expected"
+  },
+  "exact_delta": "Change only ProblemDescription, MaterielStructure POS-C QTYPM 1→2, RBDParallel NBOP 3→4 plus description, and RBDParallelStructure POS-C QTYPB 1→2. NBREQ, A/B failure rates, mission, repairs, seed, report controls and all other tables stay fixed.",
+  "pre_run_hypotheses": [
+    "Native import/export preserves the four-table delta and converter accepts the physical/RBD multiplicity alignment with zero errors and only reviewed diagnostics.",
+    "If both configured A/B failures recur before repair, two zero-failure POS-C links should leave the active 2-of-4 RBD functional and the long mission should complete at h34, versus the accepted 2-of-3 parent abort after the second failure. Record actual identity and times; identical draws are a hypothesis, not assumed evidence.",
+    "The report should reconcile the native event path and the physical readiness/repair interval. One fixed seed cannot establish a population reliability effect."
+  ],
+  "native_acceptance": [
+    "Unique guarded session-0 SSH run, host-wide mutex, GUI PID13340 checks, registry restoration and frozen source/raw SHA-256 seals.",
+    "Exact populated-table native roundtrip, zero converter errors/notes, reviewed warnings, nonempty SXO/event log/report.",
+    "Event-level A/B failures, any POS-C identities, criticality and mission outcome reconcile with parent events and 72-bin System/Stock report; no inference from aggregate metrics alone.",
+    "Separate read-only reviewer replays source, raw seals, events and report independently of author validation."
+  ],
+  "diagnostic_gate": "If converter rejects the model, native multiplicity differs from authored values, A/B event samples diverge, or the expected 2-of-4 path is not observed, preserve the run as diagnostic and revise under a new candidate version/run ID rather than claiming paired proof.",
+  "limits": [
+    "One POS-C duplication, one seed and one replication; no arbitrary multiplicity, all-failed states or population effect.",
+    "No passive branch, nonzero switch time, online maintenance, GUI RBD visual or cross-engine claim."
+  ]
+}
