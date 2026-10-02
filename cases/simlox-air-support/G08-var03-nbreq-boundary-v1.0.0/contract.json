@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-g08-nbreq-boundary-contract/v1",
+  "case_id": "G08",
+  "variant_id": "G08.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G08-tree-root-panel-v1.0.0",
+    "arm": "roota",
+    "input_sha256": "4920a7bc2ae01126ae27fdc97fde1d7f2c7d051545315b154f5491890969dd26",
+    "run_id": "g08-roota-v100-ssh-20261003-01",
+    "native_closure_sha256": "cf17eaa09a34ec9130d511874945297357e099e201f639dd88d7304f11788505"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [198, 200, 460, 461, 462],
+    "rule": "NBREQ complete root-to-leaf paths must function. A leaf B failure in the three-leaf A-root tree leaves two paths: above NBREQ1, at NBREQ2, below NBREQ3."
+  },
+  "input_sha256": {
+    "low": "ae94fbf97c6ce6a9382fb97cab0bf63d822c769a395babf6f3f6d55cb4b9a343",
+    "middle": "4920a7bc2ae01126ae27fdc97fde1d7f2c7d051545315b154f5491890969dd26",
+    "high": "644ddfbc8743abd9f76866bb3b558776dbda295e6fd27fde43b178daa1a62051"
+  },
+  "exact_diff_sha256": "192d94c11243c95bc68f304d3f81ba4bf12a187441ba12ed4b8114a567326e50",
+  "configuration": "Accepted G08 root-A three-leaf tree A->B/C/D; only RBDTree.NBREQ and description change to 1 or 3. Middle NBREQ2 uses already accepted root-A native run. Physical B/A OPHOURS failure modes/rates, G04-OPS h8-34 mission, half-hour direct CM, seed1, one replication, horizon36 and all other tables remain fixed.",
+  "pre_run_hypotheses": [
+    "Both new arms import/export/calculate with zero converter errors or unreviewed diagnostics and exact populated-table roundtrips.",
+    "The first B failure stays at h8.62763 in both new arms. With two of three complete paths remaining, it is noncritical at NBREQ1 and critical at NBREQ3, against the accepted noncritical NBREQ2 middle arm. A changed first-event identity/time requires diagnostic quarantine and a new version.",
+    "Later event timelines may diverge after a critical abort; only the matched B-first event is the threshold contrast."
+  ],
+  "native_acceptance": [
+    "Two unique guarded session-0 SSH runs with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Matched first-event severity versus accepted NBREQ2 control, 72-bin System/Stock reconciliation and independent read-only replay."
+  ],
+  "diagnostic_gate": "Retain rejected arm and raw evidence as diagnostic; revise with new version/run IDs instead of changing a frozen hypothesis.",
+  "limits": [
+    "One A-root three-leaf topology, NBREQ1/2/3 and first B failure under one seed; no arbitrary threshold law or multi-root behavior.",
+    "C/D have no failure modes; leaf-path count is source-bound because native log lacks active-path labels. No GUI drawing, online maintenance, population reliability or cross-engine claim."
+  ]
+}

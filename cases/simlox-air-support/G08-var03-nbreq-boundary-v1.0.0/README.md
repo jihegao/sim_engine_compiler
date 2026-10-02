@@ -1,0 +1,9 @@
+# G08.var03 NBREQ boundary panel
+
+This case varies only `RBDTree.NBREQ` and the description of the accepted [G08 A-root three-leaf tree](../G08-tree-root-panel-v1.0.0/cli-scope-signoff-2026-10-03.md). The accepted NBREQ2 run is the middle control. New `low` and `high` inputs set NBREQ to 1 and 3. Root A still connects to distinct leaves B/C/D; B/A failure modes/rates, mission, seed, repairs and all other business tables are unchanged. The [contract](contract.json) and [exact diff](exact-diff.json) pin this narrow comparison.
+
+The matched first POS-B failure occurs at h8.62763 in all three arms. The frozen source has two functional complete root-to-leaf paths left after B fails. Native severity is noncritical at NBREQ1 and NBREQ2, and critical with immediate mission abort at NBREQ3. In the low arm, A later fails critically at h16.7498 and aborts. The high arm's early abort changes later operating exposure, so only the first B event is a matched threshold comparison. The low log is byte-identical to the accepted middle log; the high log is byte-identical to the previously accepted B-common-root abort log.
+
+Two new guarded session-0 SSH native runs had zero converter errors/notes and reviewed warning #108, exact 23-populated-table roundtrips, and 72-bin System/Stock reconciliation. The [evidence index](evidence-index.json) seals 26 raw local files. [Author replay](author-validation.json) passes 164/164; [independent replay](review/independent-validation-2026-10-03.json) checks the same bounded result separately.
+
+This establishes one NBREQ1/2/3 threshold at the matched B-first event in a one-root, three-leaf topology and one seed/replication. Path count is inferred from source and the installed manual; the native log does not label paths. Multi-root, repeated blocks, other failure orders, QTYPM>1, modes, online maintenance, GUI drawing, population reliability and cross-engine parity remain open.
