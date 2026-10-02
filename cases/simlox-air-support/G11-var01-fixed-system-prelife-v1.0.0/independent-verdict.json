@@ -1,0 +1,34 @@
+{
+  "checks_passed": 21418,
+  "checks_total": 21418,
+  "evidence": {
+    "fixed-ages": {
+      "closure_sha256": "29238ff0dfe1f92eca8876033987e2c6cdbd119335e51a625d82685076c45796",
+      "input_sha256": "a8836588aa09973b78195cf515cdc1ed4916c4f1653690e3bbd38fd0a5fb4bd2",
+      "model_log_sha256": "67aeab4d1810845bc76c93c9a63e48871567c4ced66b800f61a0aa7d9d3c2004",
+      "prelife_log_sha256": "fb09a04798db20058ce524e773a1f056d07f329dfb981fc1894966d7d9fd0d54",
+      "report_sha256": "dd97af130605a94626a564cba48f4d6160f59098179395c97d5c4398ae942853",
+      "stock_bins": 208,
+      "system_bins": 208
+    },
+    "zero-age": {
+      "closure_sha256": "87a3f56b59f99b92627f210c35b6e7449ab3baa905b6c48eab74dfd5061a22bc",
+      "input_sha256": "4b59b37fabea04bdc50ddec93af8f70e6c012bf8f1d5f01d322de2e3c6c1e6dd",
+      "model_log_sha256": "4f444ad89a672eb85e4d5c06bddb26679387f8f8bdc0181c169da0a6ec9f5413",
+      "prelife_log_sha256": "7876c15608cf8ae15b8273cd28476b83666552e8ceb32be2234d2e0c0c945554",
+      "report_sha256": "08159177c9d5929c096e349e2558c00808b640003f110a3ec616b4dadea31dd8",
+      "stock_bins": 208,
+      "system_bins": 208
+    }
+  },
+  "failures": [],
+  "finding": "With three fixed CALHOURS ages 0,60,120, the Prelife Log lists AGE0/AGE60/AGE120 and CAL100 PM first starts on aircraft 1 at h40, 2 at h80, and 0 at h100. In the zero-age control, all three first PMs start h100. Three missions succeed, and 208 half-hour System/Stock bins per arm reconcile with PM work and terminal readiness.",
+  "limits": [
+    "The Prelife Log lists PLINDs and ages in sequence but not native aircraft indices; mapping to indices uses the authored one-per-PLIND deployment order and item-specific PM event times.",
+    "Three same-type top-level aircraft, fixed CALHOURS prelife, one seed and first CAL100 PM only; no item, stock, other parameter, subsequent cycle, GUI visual, or cross-engine claim.",
+    "Registry restoration is supported by guarded invocation/closure records, not an independent live registry observation."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-g11-var01/v1",
+  "verdict": "GO: bounded fixed system calendar prelife observation"
+}
