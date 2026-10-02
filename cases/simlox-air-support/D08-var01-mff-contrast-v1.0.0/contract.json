@@ -1,0 +1,57 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D08",
+  "variant_id": "D08.var01",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_behavioral_donor": {
+    "case_id": "D05",
+    "package": "D05-maintenance-competition-v1.0.0",
+    "input_sha256": "4443d057ade36010a84186aa0f9ac8279886563db190ed80699b7fe48ad2baad",
+    "native_closure_sha256": "4ade4062f3ef3a25d8adc96b9f57f5ca34eea850de2fd2a304a4e0163fb55736"
+  },
+  "catalog_parent_prerequisite": {
+    "case_id": "D02",
+    "package": "D02-var01-traditional-op-hours-v1.0.0",
+    "input_sha256": "9e6d264330c6f7b41752ed8b0c09a32ac45089cec9ec823ad5e3367ce7f348e2",
+    "native_closure_sha256": "fdb0c93c2a59313392587378665115baa26cb23de01e48d543b56eaa33abfbb8"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [190, 191, 297, 298, 299, 300],
+    "interpretation": "MissionType.MFF defaults to one when omitted, multiplies the traditional operation-hour failure rate during that mission type, and must be positive when specified. BASIC-MISSION retains MFF0 in both arms as an inherited accepted control; the only tested behavioral difference is RISK-MISSION MFF omitted/default1 versus explicit 0.000001. Calendar-rate failures are outside this boundary."
+  },
+  "arms": {
+    "default": {"input_sha256": "5be5592989ac38349141d22c9b9bd5f9db11029182f66bbb456207bb908ae030", "risk_mff": null},
+    "low": {"input_sha256": "f4e82b497668a016f79fd2e8f54f7c6df59e1b8a5a9a1f0c084eb8cfcb6b2d66", "risk_mff": 0.000001}
+  },
+  "configuration": {
+    "aircraft": 2,
+    "basic_mission_mff": 0,
+    "risk_mission_start_hour": 20,
+    "risk_mission_duration_hours": 3,
+    "system_frq_per_million_op_hours": 1000000,
+    "fixed_direct_repair_hours": 5,
+    "calendar_pm_interval_hours": 24,
+    "pm_work_hours_per_aircraft": 1,
+    "worker_capacity": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "The two child inputs differ only in RISK-MISSION MissionType.MFF null versus 0.000001 and description; compared with accepted D05 input those same two fields differ and all other 29 native tables are unchanged.",
+    "Each fresh guarded session-0 SSH run must import/export all 22 authored row-containing tables exactly, have zero converter errors and only the inherited expected #108 logging and #126 item-free warnings, produce a nonempty SXO, event log and JSON report, preserve GUI PID 13340 and seal raw hashes.",
+    "The default arm's omitted RISK-MISSION MFF is expected to reproduce accepted D05 mission/failure semantics: first BASIC-MISSION succeeds at h8–10, one RISK-MISSION critical failure around h22.6835 aborts that mission, one five-hour direct repair occupies P-MAINT h23–28, the h32–34 BASIC-MISSION succeeds, two calendar PM jobs complete serially and two aircraft are ready at h36.",
+    "For this fixed seed, explicit RISK-MISSION MFF=0.000001 is expected to have no system failure, no direct CM, and success of all three mission waves. Both calendar PM jobs must still occur with one worker never occupied above one, and both aircraft must be ready at h36. The exact PM tie order is observed rather than assumed.",
+    "Replay individual native failure, mission, CM, PM and worker booking/release events; cross-check result tables and terminal state. Preserve the accepted D05 donor as a source-bound comparison; do not treat absence of a failure in this one low-MFF run as a general reliability estimate.",
+    "A separate read-only reviewer must replay raw source and output seals and behavior without importing author validation."
+  ],
+  "limits": [
+    "One fixed seed, two aircraft, one RISK-MISSION and BASIC-MISSION schedule, traditional System.FRT OPHOURS, direct repair and calendar PM with one worker only.",
+    "No assertion for other positive MFF values, per-system or per-item MissionReliability overrides, failure-mode MissionReliabilityFailureMode overrides, PFF, criticality, SYACF, random reliability estimates, GUI-only behavior or cross-engine parity.",
+    "Full D08, D09 and Issue #18 remain open."
+  ]
+}

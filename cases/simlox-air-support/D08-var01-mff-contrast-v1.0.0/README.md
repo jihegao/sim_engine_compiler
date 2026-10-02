@@ -1,0 +1,7 @@
+# D08.var01: mission-specific failure multiplier
+
+This pair derives from the accepted [D05 direct donor](../D05-maintenance-competition-v1.0.0/cli-scope-signoff-2026-09-30.md), with accepted [D02](../D02-var01-traditional-op-hours-v1.0.0/cli-scope-signoff-2026-09-30.md) as the catalog prerequisite. The two frozen sources set the RISK-MISSION `MissionType.MFF` to omitted/default 1 or explicit 0.000001. `BASIC-MISSION.MFF=0` and every other business input are inherited. [Exact diff](exact-diff.json) and [pre-run contract](contract.json) delimit the test.
+
+The installed SIMLOX manual (physical pp. 190, 297–300) says `MissionType.MFF` scales operation-hour failure rates during that mission type, defaults to 1 when omitted, and can be overridden more narrowly through `MissionReliability`. This test does not exercise those overrides or calendar-rate failures.
+
+Both guarded native runs passed exact import/export and zero-error conversion. The omitted/default arm reproduces the accepted D05 critical failure at h22.6835, five-hour direct repair and delayed serial PM. The explicit 0.000001 arm has no observed failure or repair under this seed; its three missions succeed and the two PM jobs use the sole worker serially h24–26. Both arms end with two aircraft ready. The [CLI signoff](cli-scope-signoff-2026-10-02.md) gives the precise scope and limits; [author](author-validation.json) and [independent](independent-verdict.json) replays passed. Raw outputs stay under ignored `runs/`, with hashes in the [evidence index](evidence-index.json). Full D08 remains open.
