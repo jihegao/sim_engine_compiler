@@ -1,0 +1,9 @@
+# E08.var02: EXTENDED and ADJACENT lateral rules with a stocked depot
+
+This bounded case derives directly from the accepted E08.var01 `ENLAT=Y`, `LSRUL=IMMEDIATE` input. Its genuine LAT-01 group has empty demand base BASE-01, stocked peer BASE-02, and stocked ordinary support station DEPOT-01. Each child changes only `LateralSupport.LSRUL` to `EXTENDED` or `ADJACENT` plus a description. The one-hour ordinary item route, half-hour lateral route, seed, tracking, and report collection stay fixed.
+
+At h10 both children log a lateral support check cancelled because free items are in the ordinary chain. Depot physical ID 0 departs for BASE-01 at h10 and arrives h11. BASE-01's backorder lasts one hour and aircraft readiness returns at h11.3333. BASE-02's physical spare ID 1 stays untouched. The station-specific Item, System, Stock and Mission reports each have 72 bins, and their one-row summaries also match the accepted E08 `ENLAT=N` ordinary-depot control cell for cell. They differ from the accepted `IMMEDIATE` lateral arm, which draws peer ID 1 and restores readiness at h10.8333.
+
+Two guarded serial session-0 SSH runs preserve GUI PID 13340, convert with zero errors, and exactly round-trip 24 populated authored tables apiece. Six report-only exports from sealed SXOs each yield 72 ITEM bins. Eight closures seal 36 local raw artifacts; the evidence index records run IDs, paths and SHA-256 hashes. Raw native output and proprietary report selectors remain local, outside Git.
+
+The finding is limited to one stocked next ordinary station and one stocked lateral peer, one IID, one seed, and `DLAYL=N`. In this topology EXTENDED and ADJACENT behave alike; it does not establish that they are equivalent with an empty next station, deeper support chain, competing peers, delayed lateral, GUI view or another engine.

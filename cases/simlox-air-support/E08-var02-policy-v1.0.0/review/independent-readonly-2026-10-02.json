@@ -1,0 +1,28 @@
+{
+  "schema": "independent-e08-var02-policy-review/v1",
+  "passed": true,
+  "verdict": "GO: bounded EXTENDED/ADJACENT ordinary depot route versus IMMEDIATE lateral route",
+  "checks_passed": 1160,
+  "checks_total": 1160,
+  "failures": [],
+  "raw_seals_checked": 36,
+  "native_closure_sha256": {
+    "extended": "ea05fb4ef81378e1b3cddfff6a8270c830d63fb3767c8c2e1151f22d6a7daabe",
+    "adjacent": "fb958a97361acf53198c13f16cd258c5e97f6c5c0bbc35fd467c4fa2cf65e5c1"
+  },
+  "source_sha256": {
+    "extended": "d8fcb966ea9afb1404549a47e1bf328eb89b620bae4b1fe7e2dd9184b0954737",
+    "adjacent": "66356dd329ccb8a733734ba2e471558ea328cc77dd5cd4275d9303fc53aaafa5"
+  },
+  "observations": {
+    "policy_event": "At h10 both logs say lateral check cancelled due to free items in ordinary chain.",
+    "physical_route": "Depot ID0 departs h10, arrives BASE-01 h11; BASE-02 ID1 remains in stock.",
+    "control_contrast": "Both policy reports equal accepted ENLAT=N OFF tables except description and differ from IMMEDIATE ENLAT=Y ON; ON draws peer ID1 over 0.5 hours.",
+    "mission_and_terminal": "First mission aborts at h9.8829, completes h10; later missions succeed h22/h34; one aircraft ready, BASE-02 and DEPOT each retain one spare at h36."
+  },
+  "limits": [
+    "One stocked next ordinary depot, one stocked lateral peer, one LRU, fixed seed and schedule.",
+    "The observed cancellation does not prove behavior with no free ordinary stock, a deeper chain, multiple peers, delayed lateral support, or other failure timing.",
+    "No GUI visual rendering or cross-engine parity claim."
+  ]
+}
