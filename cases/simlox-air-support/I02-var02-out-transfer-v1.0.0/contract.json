@@ -1,0 +1,37 @@
+{
+  "schema": "simlox-i02-var02-out-transfer-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var02.OUT",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "I02-var01-in-transfer-v1.0.2",
+    "source": "../I02-var01-in-transfer-v1.0.2/native-input.json",
+    "sha256": "85ee84d85e610f753215882fca59cc3331a9ce0f3313ae635f2a7422e8abcf4d"
+  },
+  "source_sha256": "7b15a1e0a6efcee9c772ac39dd52bb742a6eb23b6b711cf8e3cbc681aabe07e0",
+  "exact_diff_sha256": "affbb2846318c225c1d8d7a092c12c295ddcf9d65eeb1a4915cef382ab7f4135",
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp225,476-478 defines ItemTransfer OUT by STTID=<OUTSIDE>, scheduled TFTIME, available-item or split transfer, nominal and on-hand changes when actually performed, and TFDT ignored for OUT. pp681-683 and 717 define tracked item-position STSZ/STOHA. Installed dictionary gives ItemTransfer seven-column schema.",
+  "controlled_design": "Accepted I02.var01 IN parent retains its h4 one-unit IN to DEPOT-01, Item.TRACK=Y, ITEM half-hour collection, seed1, E04 FAST support structure and 36h horizon. Child appends one ItemTransfer row DEPOT-01 to <OUTSIDE> at h6, TFQTY1, TFDT0, and changes description. All 30 other tables are unchanged. h4 IN creates stock2 so h6 OUT has stock available. This is a positive OUT in an IN-then-OUT sequence, not a standalone OUT-only experiment.",
+  "pre_run_hypotheses": {
+    "out": "Native should create one OUT task at h6, remove one physical LRU from DEPOT-01, and tracked depot ItemResults STSZ/STOHA should change 2 to1 at h6 after the accepted h4 IN 1 to2. Exact removed item ID is conditional.",
+    "later_demand": "The later ordinary failure may consume the remaining depot spare and may alter service/repair timing; item identities, backorders, mission outcomes, report averages and terminal stock are conditional and must be reconciled from raw native evidence.",
+    "alternatives": "Converter rejection, delayed/split OUT despite available stock, absent item table, nominal/on-hand mismatch, duplicate transfer or source/closure mismatch is diagnostic; no positive OUT claim published."
+  },
+  "acceptance_gates": [
+    "Independent pre-run static audit of accepted IN parent, manual/dictionary pins, frozen child source and exact two-table delta",
+    "Session-0 SSH native run under host-wide mutex preserving GUI PID13340",
+    "Exact authored-table roundtrip, zero conversion errors, valid SXO/report and sealed raw files",
+    "Physical IN and OUT event/identity ledger, direct depot STSZ/STOHA interval changes at h4/h6, later demand and terminal stock reconciled",
+    "Author replay, independent read-only replay and final staged audit before publication"
+  ],
+  "limits": [
+    "Positive result would cover one zero-delay OUT of one LRU from one depot after a preceding accepted IN, with one seed. It would not establish independent OUT-only behavior, unavailable-stock split/backorder, BETWEEN, nonzero delay, priority, reorder or procurement.",
+    "GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}

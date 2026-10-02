@@ -1,0 +1,29 @@
+{
+  "schema": "independent-i02-var02-out-review/v1",
+  "case": "I02-var02-out-transfer-v1.0.0",
+  "passed": true,
+  "verdict": "GO: bounded observed OUT transfer after IN and depot item-position stock response",
+  "checks_passed": 1022,
+  "checks_total": 1022,
+  "failures": [],
+  "native_run": "i02-var02-out-v100-ssh-20261002-01",
+  "report_only_run": "i02-var02-item-results-v100-ssh-20261002-01",
+  "source_sha256": "7b15a1e0a6efcee9c772ac39dd52bb742a6eb23b6b711cf8e3cbc681aabe07e0",
+  "native_closure_sha256": "8974944ebea16cb74be0b9dd5d3e4c753b862778d89b1e8c04e54f5ea0beb745",
+  "native_report_sha256": "6b4fbf524e1de1d4a0dc82d365b3dfd5e3fff2c1cef757e70ecec86a05b9c0e7",
+  "selected_report_sha256": "0a70d4ce9c3f59efd356c78e670d40a03569b37406d6e1fdd65835095a92d999",
+  "report_only_closure_sha256": "5c51ea7607039ea2d74b331b16eef018c713d9fcaa67cbd1d3cc3c93264c22bf",
+  "observations": {
+    "report_table_name": "ItemResults",
+    "report_position": "TEACH-LRU-01 at DEPOT-01 (depot stock position, not the aircraft's mounted position)",
+    "nominal_STSZ": "1 before h4; 2 h4-h6; 1 thereafter",
+    "on_hand_STOHA": "1 before h4; 2 h4-h6; 1 h6-h10; 0 h10-h13; fractional 0.6666667 in h13-h13.5 bin; 1 thereafter",
+    "physical_transfer": "IN item ID 1 stocked h4; OUT removes pre-existing item ID 0 h6",
+    "later_demand": "depot issues remaining item ID 1 at h10; base backorder h10-h12; failed item ID 2 repaired and returned to depot at h13.1667"
+  },
+  "limits": [
+    "The pre-run contract used the conditional label ItemPositionResults. The native table is ItemResults with IID/STID position fields; a literal ItemPositionResults table is absent.",
+    "The reported STSZ is nominal depot stock size, STOHA is on-hand depot stock. Neither is the mounted aircraft item count. ItemResultsTotal values are horizon averages, not terminal stock.",
+    "One scheduled zero-delay OUT after an IN transfer, one LRU/depot, one fixed seed and this installed CLI only. No standalone OUT, unavailable-stock split/backorder, BETWEEN, nonzero delay, priority, reorder, GUI-visual or cross-engine conclusion."
+  ]
+}
