@@ -1,0 +1,35 @@
+{
+  "checks_passed": 21423,
+  "checks_total": 21423,
+  "evidence": {
+    "equidist-control": {
+      "closure_sha256": "6019a7f9f01b0eb26e0929246a1d5419548bfe1c5a60971c65987f20c970f4f5",
+      "input_sha256": "9ee61443dc0cd0d774d5c1bc6f77343e87fe25ff9bda3772f2b8f37f520c2748",
+      "model_log_sha256": "1829e03bf8500ab93b5d3ce871278975d3eb0a480cdb7633fb53d0bfd1d1d383",
+      "prelife_log_sha256": "bcaf78e0ca798ee2a9dd781a6244fceef600776d9735de8f9b7b12521a21086b",
+      "report_sha256": "57b88e930af51ae921f1508efd12721e4d6627cba9942ef8b6c6c1222b3d272b",
+      "stock_bins": 208,
+      "system_bins": 208
+    },
+    "random-seed1": {
+      "closure_sha256": "56cd0216ea0bec079059c4d0bc09da9914570a7b3c4f10f7ea708a6ed33c76fc",
+      "input_sha256": "6984ce91a40a1a0c491ff7eeda4b808c314d50577ec008d1d9f65780acfac512",
+      "model_log_sha256": "b2256551731812a8bb95f868b72a0460774cf9de051dd5ac4bca8d0a379c68e1",
+      "prelife_log_sha256": "412b3c9cf3ca05b9ac8b7f89d7f02cfaab5dabd860dd8443522008b8a0e35eec",
+      "report_sha256": "6b9ab5741b3fd08b9739de404f7e0528b6403f6280fe51ac565c2996527cb55a",
+      "stock_bins": 208,
+      "system_bins": 208
+    }
+  },
+  "failures": [],
+  "finding": "With all profile quantities zero, the EQUIDIST control Prelife Log records ages 40/80/120 and first CAL100 PM starts ID1@20, ID0@60, ID2@80. The RANDOM seed-1 arm records ages 68.21/46.89/8.20 and first PM starts ID0@31.7879, ID1@53.1133, ID2@91.8013, each within 0.02h of next-100-hour arithmetic. No missions run; 208 half-hour System/Stock bins per arm and terminal ready3 reconcile.",
+  "limits": [
+    "One fixed seed and three top-level systems; observed values do not validate the RANDOM distribution, uniformity, independence, or tails.",
+    "The Prelife Log lists PLINDs and ages in sequence but not numeric aircraft indices; index mapping uses source order and first PM event timing.",
+    "No missions, item/stock age, other range or parameter, later PM cycle, GUI visual, or cross-engine claim.",
+    "Registry restoration is supported by guarded invocation/closure records, not an independent live registry observation."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-g11-var03/v1",
+  "verdict": "GO: bounded one-seed RANDOM system prelife observation"
+}

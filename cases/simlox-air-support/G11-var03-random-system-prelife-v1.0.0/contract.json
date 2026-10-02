@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "G11",
+    "variant_id": "G11.var02",
+    "package": "../G11-var02-equidist-system-prelife-v1.0.1",
+    "input_sha256": "fe5ef789385330d275709b2e0a124bfde2268ca51e1236692ff36cd92e3d3ece",
+    "native_closure_sha256": "b46b90b40e4a6409cf8abaaf53d73574e144d60c5be06eb71e9dfec001aac9a3"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 208, 209, 468, 469, 470, 471, 472],
+    "rule": "RANDOM assigns each of three top-level systems an age within [AGEMIN 0, AGE 120]. First CAL100 PM should occur after the time remaining to the next strict 100-hour multiple, absent missions or other maintenance. One seed is a realization, not distribution validation."
+  },
+  "inputs": {
+    "equidist-control": {"sha256": "9ee61443dc0cd0d774d5c1bc6f77343e87fe25ff9bda3772f2b8f37f520c2748", "TYPE": "EQUIDIST"},
+    "random-seed1": {"sha256": "6984ce91a40a1a0c491ff7eeda4b808c314d50577ec008d1d9f65780acfac512", "TYPE": "RANDOM"}
+  },
+  "exact_diff_sha256": "f75ffae8c82e9e4cae1c3420b7f805860d4a9b94cdd7d63515b0bcf654eeb3c9",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "deployed_count": 3,
+    "prelife_plid": "PL-SYS",
+    "prelife_qty": 3,
+    "prelife_agemin": 0,
+    "prelife_age_max": 120,
+    "prelife_opid": "CALHOURS",
+    "pm": {"PMID": "CAL100", "OPID": "CALHOURS", "PMINT": 100, "duration_hours": 1},
+    "scheduled_profile_starts_hours": [8, 12, 32],
+    "scheduled_profile_IQTY": 0,
+    "missions_expected": 0,
+    "seed": "1",
+    "horizon_hours": 104
+  },
+  "hypothesis_before_native": {
+    "equidist-control": "The Prelife Log retains the three deterministic ages 40/80/120; with the three scheduled profile rows set to IQTY0 in both arms, first CAL100 PM starts at h60/h20/h80 in source order.",
+    "random-seed1": "The Prelife Log lists exactly three CALHOURS ages in [0,120] from the RANDOM row. At least one differs from the control's 40/80/120. For each system's source-order age a, its first CAL100 PM starts at the next strict 100-hour multiple minus a, allowing 0.02h tolerance for two-decimal Prelife Log rounding."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms import/export exact populated authored tables, convert with zero errors, calculate with no unreviewed runtime errors, preserve GUI/queue/session guards, and seal source/raw hashes.",
+    "Only PrelifeData.TYPE/PLIND and description differ between arms; both retain the three scheduled profile rows with IQTY0. No mission should run, leaving PM timing unconfounded by operations.",
+    "The control retains ages 40/80/120 and first PM h20/h60/h80. The random arm logs three in-range initial ages with at least one differing from control, and its first CAL100 PM per physical aircraft agrees with next-multiple arithmetic within 0.02h.",
+    "The Prelife Log option returns to NO after each calculation. A separate reviewer independently replays frozen source and raw evidence without importing author validation code."
+  ],
+  "limits": [
+    "One fixed seed, three same-type top-level systems, one CALHOURS RANDOM interval and first PM only. This is a seeded realization, not a statistical test of uniformity or independence.",
+    "No instantiated missions, installed/stocked item prelife, other age range or OPID, later PM cycle, numeric aircraft ID directly in Prelife Log, GUI visual or cross-engine claim."
+  ]
+}
