@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D09",
+  "variant_id": "D09.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_finite_parent": {
+    "case_id": "D09",
+    "variant_id": "D09.var01",
+    "package": "D09-var01-calendar-vs-operational-v1.0.0",
+    "input_sha256": "c9645fcb8a567c89077e830916839a33dd63574b9249893f469a2ae47e5e6cce",
+    "native_closure_sha256": "fb536519c47bb0d6bc1a3408066500fd310261d9c939c3796b3f62b02a7c9430"
+  },
+  "earlier_noncritical_prerequisite": {
+    "case_id": "D08",
+    "variant_id": "D08.var03",
+    "input_sha256": "cd549962924b57f4db8ccc9de906f6abd86af5c5057e4c413c2f9824bf46a01e",
+    "native_closure_sha256": "512f30614f3ce25ea4253afa6d708008f5c182a76366464709700f209879ffe0"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [190, 212, 213, 367, 368],
+    "interpretation": "Optional Item.NCFTL defaults to infinite/unset tolerance. With finite 0.2 calendar hours, the accepted parent demonstrated escalation while the noncritical zero-stock repair was waiting. Keeping NCFTT=CALENDAR fixed isolates whether omitting the tolerance leaves that wait noncritical."
+  },
+  "arms": {
+    "finite_calendar_accepted_control": {"input_sha256": "c9645fcb8a567c89077e830916839a33dd63574b9249893f469a2ae47e5e6cce", "item_ncftl_hours": 0.2, "item_ncftt": "CALENDAR", "stock_nominal": 0},
+    "unset_candidate": {"input_sha256": "6303f1fd3013c43f7a6c5584a324d1fe0f32befc34548c906a11233bcb269f84", "item_ncftl_hours": null, "item_ncftt": "CALENDAR", "stock_nominal": 0}
+  },
+  "exact_diff_sha256": "2362c230adfe9f0082e3413259aeaeb7816b41d347b5dae2140967453cf7d5b3",
+  "configuration": {"seed": "1", "repetitions": 1, "horizon_hours": 36, "mission_start_hours": [8, 20, 32], "one_aircraft": true, "one_traditional_lru": true, "local_spares": 0, "item_crit": 0},
+  "predeclared_hypotheses_not_outcomes": [
+    "The unset child retains the accepted finite control's first noncritical LRU failure near h9.8829, succeeds in the h10 mission and creates a local spare backorder on return.",
+    "With no local spare and no NCFTL value, physical replacement repair remains pending and no time-based criticality escalation occurs through h36.",
+    "The aircraft remains eligible for the h20 and h32 missions despite its pending noncritical repair; all three scheduled missions may succeed if no later random fault intervenes.",
+    "The existing backorder remains unresolved at h36 because no physical removal can begin while the task remains noncritical and waiting for a replacement item.",
+    "Native event order, report values and terminal state are outcomes; failed hypotheses constrain acceptance and cannot be silently rewritten."
+  ],
+  "native_acceptance_gates": [
+    "Exact parent/child source fingerprints and single Item.NCFTL plus description delta verified before native execution.",
+    "Session-0 SSH, host-wide mutex, active GUI PID13340 identity, unchanged installed executable/manual/dictionary, zero converter errors, valid nonempty SXO and reports.",
+    "All authored row-containing tables import/export identically; event log distinguishes a started waiting task from physical repair work.",
+    "Separate read-only reviewer replays individual missions, noncritical task pause/resume, stock/backorder and 72-bin system/stock/terminal results against the accepted finite control."
+  ],
+  "limits": ["one aircraft", "one LRU", "one seed", "unset versus 0.2-hour calendar tolerance", "zero local spare", "no general infinite-tolerance law", "no GUI-only or cross-engine claim"]
+}

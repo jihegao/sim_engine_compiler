@@ -1,0 +1,22 @@
+{
+  "checks_passed": 745,
+  "checks_total": 745,
+  "evidence": {
+    "accepted_finite_closure_sha256": "fb536519c47bb0d6bc1a3408066500fd310261d9c939c3796b3f62b02a7c9430",
+    "input_sha256": "6303f1fd3013c43f7a6c5584a324d1fe0f32befc34548c906a11233bcb269f84",
+    "model_log_sha256": "cd112eb83874d1c7caab96e8bd782f51c47a2468b1c62ee637b4c426a15b1ee6",
+    "native_closure_sha256": "58b040c8cef5a97ab0c65848b69bb0e022716d45934d84fcb7e9cf78014e73a3",
+    "report_sha256": "d7fb844043a46f10ea63d24ffc87cc27a5a00d1abb13ba75e5897662a798670f"
+  },
+  "failures": [],
+  "finding": "With Item.NCFTL unset and NCFTT CALENDAR unchanged, the h9.8829 noncritical LRU fault leaves SURP waiting for a zero-stock spare from h10 through h36. The task pauses at h19/h31 and resumes at h22/h34 while all three missions succeed; no critical escalation or physical repair occurs. The aircraft is ready at the horizon with one unresolved local backorder. The accepted 0.2-hour finite control escalates at h10.0829, repairs the same LRU and clears its backorder at h11.3329.",
+  "limits": [
+    "One aircraft/LRU/seed, 36-hour horizon, zero local stock and unset versus 0.2 calendar hours; no general infinite-tolerance law.",
+    "A started waiting SURP task is not positive repair work; no item removal or stock restoration is observed in the unset arm.",
+    "SystemResults.NSYRY/NSYA and StockTotalResults.NBO are distinct ledgers: terminal aircraft ready coexists with a pending backorder.",
+    "GUI-only behavior and cross-engine parity untested."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d09-var02/v1",
+  "verdict": "GO: bounded unset-versus-finite NCFTL contrast"
+}
