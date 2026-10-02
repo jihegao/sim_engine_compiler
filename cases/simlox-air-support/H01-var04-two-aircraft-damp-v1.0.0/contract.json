@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-h01-var04-two-aircraft-damp-contract/v1",
+  "case_id": "H01",
+  "variant_id": "H01.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "A03-two-aircraft-formation-v1.0.1",
+    "source": "../A03-two-aircraft-formation-v1.0.1/native-input.json",
+    "sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "scope": "one fixed two-hour mission at h8-10 requiring both of two ready aircraft, no ordinary failures, seed1, horizon36"
+  },
+  "sources_sha256": {
+    "control": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "damp": "ca7ce1a2493631202c7c1ee4e5f7e3a5fe2c765b0d016bf47fbdd2751921f28c",
+    "exact_diff": "fedbb7381a16d7938316a765bbad7dd723628866c57c39c2c8c54b886b4c79af"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp192-193 and 437-439: DAMP is per-mission probability, at most one occurrence per damage type during a mission, with occurrence time drawn within the mission; systems in a mission are treated as independent damage individuals. DamageItem.PROB=0 specifies no consequence (pp425-426).",
+  "source_delta": "The control is byte-identical to accepted A03. The child adds DamageType BATTLE-HIT, MissionDamage DAMP=1/DAMRT=null for BASIC-MISSION and TEACH-AIR-01, and DamageItem <ATTRITION>/PROB=0. Only ProblemDescription changes among existing tables. Formation quantity2, one fixed mission, seed1, no ordinary failures, and horizon36 are unchanged.",
+  "pre_run_hypotheses": {
+    "control": "The native control should convert with zero errors and launch both aircraft at h8, succeed at h10, and produce 72 half-hour System/Stock bins with four aircraft-hours.",
+    "damp": "If each aircraft receives its own per-mission DAMP=1 occurrence draw, the log should show one BATTLE-HIT occurrence on each of aircraft IDs 0 and 1, at distinct times strictly within h8-10. The zero-probability consequence should leave the formation successful and both aircraft ready. Exact stochastic times are not preaccepted.",
+    "alternatives": "Converter rejection, only one aircraft event, duplicate events on one aircraft, no event, identical/ambiguous timestamps, prelaunch damage, attrition or abort is diagnostic only for the predeclared two-aircraft claim. A successful process exit alone is not acceptance."
+  },
+  "acceptance_gates": [
+    "Independent static review of frozen source, exact diff, manual/dictionary basis and guarded runner before native execution",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact 13/16 authored row-containing table roundtrips (including three all-null placeholders in each arm), zero converter errors and valid SXO/event/report in both arms",
+    "One BATTLE-HIT event per aircraft at distinct in-flight times, no attrition/abort, and 72-bin System/Stock reconciliation",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "One seed and one guaranteed-probability two-aircraft mission can show per-aircraft events and different sampled times, not statistical independence or population timing law.",
+    "No positive consequence, item/system damage or repair, intermediate DAMP, other formation sizes, GUI visual behavior or cross-engine parity is tested."
+  ]
+}
