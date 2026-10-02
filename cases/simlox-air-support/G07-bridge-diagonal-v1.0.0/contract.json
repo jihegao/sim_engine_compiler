@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-g07-bridge-diagonal-contract/v1",
+  "case_id": "G07",
+  "variant_id": "G07.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G04-three-branch-threshold-v1.0.0",
+    "arm": "one",
+    "input_sha256": "cfdf287c4de93638e8117c71ad3de1846da3c62c24254bf7d2a3f0f7c7c0c4d7",
+    "run_id": "g04-kn-one-v100-ssh-20261002-01",
+    "native_closure_sha256": "3cb85dd085e2de9fb5c4d36344ff37b87d4669eef4b3f60824da31faf1cd8d3b"
+  },
+  "schema_donor": {
+    "package": "G04-nested-series-parallel-v1.0.0",
+    "arm": "and",
+    "input_sha256": "658cdfcc374a13754c0980888137dd05bb0b94c4dfad5386bab5292fc414dd15",
+    "usage": "RBDSeries and RBDSeriesStructure table schemas only; RBDBridge schema is transcribed from the installed dictionary, not this donor"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [197, 198, 200, 451, 452],
+    "rule": "A bridge has UL, LL, BR, UR and LR blocks and operates when any of UL+UR, UL+BR+LR, LL+LR or LL+BR+UR is functional. The bridge does not support online replacement or direct repair."
+  },
+  "input_sha256": {
+    "bridge": "ee8ae1ac8deb1edefd9bffca7d1f0f137948ea3d4643b5523635990127d276be",
+    "routes": "bb75cdb8e55764ccc117f723b39eae7c8fa3498fe8dba8724a68d4dbc1765518"
+  },
+  "exact_diff_sha256": "4b9f282cb1d3c60a50ee462f8c69351edd6977e1b9a74f04827277b3f85bcbc1",
+  "configuration": {
+    "physical": "Same system with five installed positions POS-A/B/C/D/E, each with one TEACH-LRU-01. Only accepted parent POS-A and POS-B retain configured failure modes and half-hour direct system CM routes; C/D/E have no configured failure mode.",
+    "bridge_arm": "System G04-OPS points to G07-BRIDGE with UL=B, LL=C, BR=E, UR=D, LR=A, all in G04-OPS. After B and A failures, LL+BR+UR is the only functioning bridge path.",
+    "routes_arm": "Same five physical positions. System series root requires healthy E and a 1-of-2 active parallel of upper series B+D and lower series C+A. The control has no diagonal BR route.",
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "mission": "One fixed 26-hour mission scheduled h8–34; all other parent mission and report controls unchanged."
+  },
+  "exact_delta": "Both arms add identical healthy physical positions D/E and their operational-mode rows. The pair varies only RBD topology and description; failure modes, CM, mission, seed and controls remain identical. E is included in the routes control as a healthy series member to keep all five positions in the RBD.",
+  "pre_run_hypotheses": [
+    "Both arms import, roundtrip and calculate with zero converter errors and only reviewed diagnostics.",
+    "B first fails noncritically in both. A next fails while LL=C, BR=E and UR=D remain healthy; the bridge arm stays operational through the diagonal path, whereas the two ordinary routes are both broken and the routes arm aborts.",
+    "First B and A failure times/identities match across arms before outcome divergence, and individual events reconcile with 72-bin reports. If random draws differ, only observed matched prefix may support comparison."
+  ],
+  "native_acceptance": [
+    "Two unique guarded session-0 SSH runs with host-wide mutex, GUI PID13340 identity, registry restoration and frozen source/raw SHA-256 seals.",
+    "Both arms: exact populated-table roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Matched B/A failures with healthy C/D/E and opposite second-failure criticality/mission result attributable to the four-path bridge rule, or diagnostic classification if the hypothesis fails.",
+    "Independent read-only replay of source, raw seals, events and reports apart from author implementation."
+  ],
+  "diagnostic_gate": "If either converter rejects the model, event draws diverge before the proposed diagonal contrast, or the bridge fails to salvage the B/A combination, preserve the runs as diagnostic and revise under a new candidate version/run IDs. Do not infer bridge semantics from source alone.",
+  "limits": [
+    "One bridge path combination, one mode, seed and replication; this is not a full four-path truth table or population reliability estimate.",
+    "No online maintenance, nested bridge, GUI RBD visual or cross-engine claim."
+  ]
+}
