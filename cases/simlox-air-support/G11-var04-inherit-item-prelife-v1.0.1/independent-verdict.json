@@ -1,0 +1,36 @@
+{
+  "checks_passed": 19033,
+  "checks_total": 19033,
+  "evidence": {
+    "explicit-control": {
+      "closure_sha256": "60ae9d2e2feadb6843cec3d1bb53c7afa7b59fc9374d5a35018df1aa1a2cb4f7",
+      "input_sha256": "76cd71fe989b84a8f8c5c23007926a417c8f01c820cfc534846216e4a9fe7311",
+      "model_log_sha256": "97c46b27b02dcb513a12a3579258566078e408ffaed536c2aaee6e1b90e010d4",
+      "prelife_log_sha256": "cc8008418674dc535b46b02d1b7e31502d18d3cac34bedbd7cabae805d93f7ce",
+      "report_sha256": "738e7e7eb30a2924c9b5c4b8036b37ae17be5b7d92da70da42c10055037f9262",
+      "stock_bins": 192,
+      "system_bins": 192
+    },
+    "inherited": {
+      "closure_sha256": "945ee70ce912810bb1bec897030815184648cdbb84326f0ccab038475660c8b9",
+      "input_sha256": "473efed447d08808d565d08956b659574596be8e2a8457f451b4816bf50251ae",
+      "model_log_sha256": "f1948e37a07605e5735b072bff314a876edccc8f14be990d1cb77f17255e34ed",
+      "prelife_log_sha256": "6230d4b08a7ef405e860a27e0246fb9faa3bf17e18b50c95b4f6ee490c179e58",
+      "report_sha256": "ecdb32f6e3b8bad3177352be39dc259b0970f2a176ab9ec09d641eb143f84d58",
+      "stock_bins": 192,
+      "system_bins": 192
+    }
+  },
+  "failures": [],
+  "finding": "The matched source changes only installed item PrelifeData.TYPE FIXED to INHERIT (plus description). Both Prelife Logs show system and position CALHOURS age60; the item logs age20 versus age60. Initial physical LRU ID0 triggers LRU-CAL100 h80 versus h40, exchanges for spare ID1, and returns to stock after its item PM. No missions run; 192 System/Stock bins per arm reconcile.",
+  "limits": [
+    "One system/position/monitored installed item and one spare, one seed and first CALHOURS item PM. No general inheritance law or later item-age claim.",
+    "The default report has aggregate SystemResults/StockTotalResults, not selected per-item or ResourceResults; item identity and no-resource booking are established by the native event log.",
+    "Manual printed p209 says inherited records omit PLIND in the Prelife Log, but this installed CLI prints POS-INH and LRU-20 despite TYPE INHERIT. The observed ages and PM timing are unaffected; the log-label rule is not accepted.",
+    "Warning #419 is the converter's explicit ignored-AGE notice for INHERIT; v1.0.0 #2052 diagnostic is excluded. Registry restoration is recorded by guarded invocation/closure, not a separate live registry read.",
+    "No missions, stocked-item prelife, higher-level topology, GUI visual behavior or cross-engine parity."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-g11-var04/v1",
+  "verdict": "GO: bounded item prelife inheritance observation"
+}

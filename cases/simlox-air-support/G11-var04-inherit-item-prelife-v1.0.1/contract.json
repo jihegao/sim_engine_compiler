@@ -1,0 +1,68 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var04",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "excluded_previous_candidate": {
+    "package": "../G11-var04-inherit-item-prelife-v1.0.0",
+    "run_id": "g11-var04-explicit-control-v100-ssh-20261002-01",
+    "reason": "The first frozen explicit-control run calculated but the runner rejected conversion Notes: 1, notice #2052: PMReplacement.OPID ignored when SCHED=Y. v1.0.1 clears this irrelevant field in both arms and requires a fresh paired run; the v1.0.0 result is not used as acceptance evidence."
+  },
+  "accepted_parent": {
+    "case_id": "D14",
+    "variant_id": "D14.var01",
+    "package": "../D14-var01-monitored-item-pm-v1.0.1",
+    "input_sha256": "29dd9638ecaf5980b7ecf90ef41644afbbcca3a9b15f88dceb8f2fe3e5c32903",
+    "native_closure_sha256": "7a0977eefefb06be79860ad0982efa2f8c0d4259c8b0905e2a17a5fca9122ead"
+  },
+  "accepted_prelife_schema_donor": {
+    "case_id": "G11",
+    "variant_id": "G11.var03",
+    "input_sha256": "9ee61443dc0cd0d774d5c1bc6f77343e87fe25ff9bda3772f2b8f37f520c2748"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 208, 209, 468, 469, 470, 471, 472, 474, 475],
+    "rule": "PrelifeStructure must match the system-to-position-to-item material chain. TYPE INHERIT copies the mother's age; item age affects a monitored item PM. CAL100's first PM is at the next strict 100-hour boundary after initial age."
+  },
+  "inputs": {
+    "explicit-control": {"sha256": "76cd71fe989b84a8f8c5c23007926a417c8f01c820cfc534846216e4a9fe7311", "item_type": "FIXED", "item_source_age_hours": 20, "effective_item_age_hours": 20},
+    "inherited": {"sha256": "473efed447d08808d565d08956b659574596be8e2a8457f451b4816bf50251ae", "item_type": "INHERIT", "item_source_age_hours_ignored": 20, "effective_item_age_hours": 60}
+  },
+  "exact_diff_sha256": "9f4ee2e54f78ce4189ac6bf2f5a6dc53bb477303b019846b5586576a33f6f7cb",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "position": "POS-A",
+    "installed_item": "TEACH-LRU-01",
+    "installed_quantity": 1,
+    "stocked_spare_quantity": 1,
+    "prelife_structure": ["PL-SYS/SYS-60", "PL-POS/POS-INH", "PL-LRU/LRU-20"],
+    "system_initial_calendar_age_hours": 60,
+    "system_pm": {"PMID": "SYS-CAL1000", "OPID": "CALHOURS", "PMINT": 1000},
+    "item_pm": {"PMID": "LRU-CAL100", "OPID": "CALHOURS", "PMINT": 100, "MONIT": "Y"},
+    "scheduled_replacement_opid": null,
+    "scheduled_profile_starts_hours": [8, 20, 32],
+    "scheduled_profile_IQTY": 0,
+    "missions_expected": 0,
+    "seed": "1",
+    "horizon_hours": 96,
+    "report_interval_hours": 0.5
+  },
+  "hypothesis_before_native": {
+    "explicit-control": "Prelife Log shows system60, position60, initially mounted item20 CALHOURS; first LRU-CAL100 monitored PM starts at h80.",
+    "inherited": "Prelife Log shows system60, position60, initially mounted item60 CALHOURS through both INHERIT links despite its ignored source AGE20; first LRU-CAL100 monitored PM starts at h40."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms exactly roundtrip populated authored tables, convert with zero errors, calculate, preserve GUI and registry option, and seal source and raw hashes. Warning #108 is the inherited event-log notice; any extra warning is accepted only when emitted in PrelifeData with text about INHERIT or ignored age parameters, as the manual predicts for the deliberately supplied ignored AGE values. Any other warning is unreviewed and fails the gate.",
+    "Prelife Log exposes the same top and position ages in both arms, and item age20 versus60. The only behavioral arm difference is item PrelifeData.TYPE FIXED versus INHERIT; source AGE20, OPID CALHOURS and PLIND remain identical. Description differs only as a label.",
+    "No missions instantiate. Native event records for the original mounted item identify its first LRU-CAL100 PM at h80 in the explicit arm and h40 in the inherited arm; the stock spare's later age and PM are not used to establish inheritance.",
+    "Per-arm event, system, item, stock, resource, and terminal ledgers reconcile; 192 half-hour report bins per configured stream are present where applicable.",
+    "A separate reviewer replays frozen source and raw evidence without importing the author validation implementation."
+  ],
+  "limits": [
+    "One system, one intermediate position, one monitored installed item, one spare, CALHOURS only, first PM and one seed. No general inheritance law or multi-counter claim.",
+    "No missions, stocked-item prelife, higher-level ASSY/MPID variation, GUI visual behavior, or cross-engine parity."
+  ]
+}
