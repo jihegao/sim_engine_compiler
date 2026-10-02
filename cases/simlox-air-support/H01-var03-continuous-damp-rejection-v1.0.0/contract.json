@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-h01-var03-continuous-damp-rejection-contract/v1",
+  "case_id": "H01",
+  "variant_id": "H01.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "A05-continuous-baseline-v1.0.1",
+    "source": "../A05-continuous-baseline-v1.0.1/native-continuous.json",
+    "sha256": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+    "scope": "two ready generic aircraft, one four-hour CONTINUOUS mission at h8-12, no ordinary failures, seed1, horizon16"
+  },
+  "sources_sha256": {
+    "control": "997dea5a9cc44bb6fb9c83b23ca5ccf1924851e89146a923bb5748116b7a63ea",
+    "damp": "c61974ba269c15afe3e39e76f396d503b08e522b3b97bbad8125e44c3a02071a",
+    "exact_diff": "50c9b248de8874f911967288aedfd0e46e4d17dd5e6cf59e41f6b906ac5654f2"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp192-193, 436-439 states DAMP is per-mission damage probability and is disallowed for continuous missions; DAMRT is a separate rate. The accepted A05 parent is a converted and executed continuous mission with TFOUT and TFRET absent.",
+  "source_delta": "The control is byte-identical to accepted A05 native-continuous.json. The DAMP child adds one DamageType BATTLE-LOSS, one MissionDamage DAMP=1/DAMRT=null for BASIC-MISSION and TEACH-AIR-01, and one DamageItem certain <ATTRITION> consequence; only ProblemDescription changes among existing tables. MPAT=CONTINUOUS and all schedule, system, control, seed and horizon fields are identical.",
+  "pre_run_hypotheses": {
+    "control": "The native control should convert with zero errors, launch the two-aircraft mission h8, complete h12 and produce 32 half-hour System and Stock bins as the accepted A05 source does.",
+    "damp": "The converter should reject DAMP on a CONTINUOUS mission with a relevant error, without a valid SXO or JSON report. Import/export should still exactly roundtrip all 16 authored row tables. A zero calc exit code alone is not evidence of acceptance.",
+    "alternatives": "If the control fails, or the child fails for an unrelated damage-table/schema error, the role restriction is unproven. If the child converts and runs, classify this as diagnostic for the predeclared rejection claim and investigate its events before any publication."
+  },
+  "acceptance_gates": [
+    "Independent static review of frozen source, exact diff, runner and manual basis before native execution",
+    "Two fresh serial guarded session-0 SSH runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact source business-table import/export in both arms and zero converter errors plus valid event/report in control",
+    "Relevant child converter rejection, four-byte SXO stub or absence of valid SXO, and no valid child report",
+    "SHA-256 sealed raw evidence and independent read-only post-run replay"
+  ],
+  "limits": [
+    "This is a bounded converter compatibility observation, not a damage occurrence or rate experiment.",
+    "It does not test DAMRT, intermediate DAMP, repair/attrition behavior on continuous missions, alternate mission patterns, GUI visual behavior or cross-engine parity."
+  ]
+}
