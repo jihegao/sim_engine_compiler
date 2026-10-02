@@ -1,0 +1,73 @@
+{
+  "checks_passed": 7701,
+  "checks_total": 7701,
+  "failures": [],
+  "limits": [
+    "E01-to-control sets both System.FRT and Item.FRT to zero; the damage contrast is control-to-child, which adds four damage tables plus description.",
+    "One seed, one primary LRU, REPF=1 and explicit DamageReplacement do not establish general fallback priority, other repair fractions or shortage behavior.",
+    "GUI visual behavior and cross-engine parity are not tested."
+  ],
+  "observed": {
+    "control": {
+      "damage_identity_times": [],
+      "flight_hours": 6.0,
+      "run_id": "h02-var01-lru-control-v100-ssh-20261002-01",
+      "stock_bins": 72,
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      },
+      "system_bins": 72,
+      "terminal_lost": 0,
+      "terminal_ready": 1
+    },
+    "lru": {
+      "damage_identity_times": [
+        [
+          8.78145,
+          1
+        ],
+        [
+          20.7434,
+          2
+        ],
+        [
+          32.3406,
+          3
+        ]
+      ],
+      "flight_hours": 3.2061075419187546,
+      "run_id": "h02-var01-lru-v100-ssh-20261002-01",
+      "stock_bins": 72,
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 0,
+        "MTMF": 0.5343512296676636,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 0.5343512296676636
+      },
+      "system_bins": 72,
+      "terminal_lost": 0,
+      "terminal_ready": 1
+    }
+  },
+  "passed": true,
+  "schema": "independent-h02-var01-primary-lru-readonly-review/v1",
+  "scope": "One fixed-seed configured primary-LRU damage contrast. The quiet E01 control completes three missions; the damage child logs physical LRU IDs 1/2/3 damaged on successive missions, issues spare IDs 0/1/2, performs three half-hour system SURP exchanges and three one-hour item DIRP repairs, then returns the repaired IDs to BASE-01 stock. The aircraft regains readiness before later launches.",
+  "verdict": "GO"
+}
