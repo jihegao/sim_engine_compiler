@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-i01-var01-independent-readonly/v1",
+  "passed": true,
+  "verdict": "GO: bounded stock-only APID POINT selection",
+  "checks_passed": 7604,
+  "checks_total": 7604,
+  "failures": [],
+  "runs": {
+    "stocked": {
+      "run_id": "i01-var01-stocked-v100-ssh-20261002-01",
+      "closure_sha256": "0852a96989c39e8e57468975c06110fff432cf2a77e69679913883bec5d0fb81",
+      "report_sha256": "22a7ed80be74713b168b75070658489c1f98a1daeb6e1e16845cabbe6144678c",
+      "model_log_sha256": "52b69d2318c6dd0645aefdde9e0bc4f5355595f4e4375d07a210afbf66773fc3",
+      "flight_aircraft_hours": 6.0,
+      "system_repair_occupancy_hours": 0.5,
+      "system_wait_for_item_hours": 0.0,
+      "stock_backorder_hours": 0.0,
+      "terminal_ready_aircraft": 1
+    },
+    "empty": {
+      "run_id": "i01-var01-empty-v100-ssh-20261002-01",
+      "closure_sha256": "70d083345687ca308dd45cd66ec3d25308bfa921a2d7a50bb22610edd5eedbb7",
+      "report_sha256": "36f9cf3bbf8295ed506edb9b97408204e93aeda5be8252be8fe2dbb0bee30430",
+      "model_log_sha256": "bdea346172a799f2c4c1630fe5f9f132dda6d5f4f6c439fc024ed329bc09dd0c",
+      "flight_aircraft_hours": 6.0,
+      "system_repair_occupancy_hours": 0.5000000149011612,
+      "system_wait_for_item_hours": 1.0000000149011612,
+      "stock_backorder_hours": 1.1666666716337204,
+      "terminal_ready_aircraft": 1
+    }
+  },
+  "scope": "Same E01 LRU failure in two fixed-seed sources differing only in Control.APID after adding a zero-stock AIR_EMPTY POINT; AIR_BASIC issues the spare and AIR_EMPTY backorders until the failed LRU is repaired and reused.",
+  "limits": [
+    "Only StockAllocation POINT selection is tested; ResourceAllocation and MaintenanceAllocation selection is not established.",
+    "StockTotalResults.PNB is reconciled as a report field complementary to NBO here, not used as a physical stock-level count; physical initial levels and item issue/reuse are taken from native model.log.",
+    "The observed backorder clears using the repaired original item, without a stock-return log; this does not establish procurement, reorder behavior, or other station configurations.",
+    "One aircraft, station, LRU, and seed do not prove general shortage timing, task filtering, GUI visual behavior, or cross-engine parity."
+  ]
+}
