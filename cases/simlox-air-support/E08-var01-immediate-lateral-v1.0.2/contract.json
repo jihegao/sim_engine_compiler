@@ -1,0 +1,24 @@
+{
+  "case_id": "E08.var01",
+  "version": "1.0.2-candidate",
+  "scope": "One immediate lateral group of two peer bases, controlled by ENLAT Y versus N, with one ordinary upstream depot",
+  "parent_case": "E07-item-specific-transport-v1.0.1",
+  "parent_sha256": "d42832b9e17b9a0c968a8bba7bcb1419eba06313097604fc0041baab5d132bc0",
+  "on_input_sha256": "630d7600e7ff77ddb057f05af0852b4f41ed6335718570f9fcf5eddd9f51c474",
+  "off_input_sha256": "94ededc97805d2cd1ed9401fe721133a5c65cadd6eb5fc2ecc88a99ee91a31e8",
+  "previous_diagnostic": "Version 1.0.0 sealed positive event-log route evidence but lacked ITEM collection. Version 1.0.1 added ITEM ResultCollection but selected report exports still lacked ItemResults because Item.TRACK defaulted to N. Both prior pairs remain immutable diagnostics. Version 1.0.2 explicitly sets TRACK=Y in both arms and uses fresh run IDs.",
+  "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "manual_printed_pages": [315, 319, 320, 321, 325, 326, 327],
+  "source_rule": "Station.LGID joins peer bases to a defined LateralSupport group. StationLateralSupport explicitly overrides shipment time for BASE-02 to BASE-01. IMMEDIATE permits lateral consideration at shortage unless free ordinary upstream supply is already in transit and earlier. ENLAT toggles this support mode.",
+  "controlled_delta": "Both arms add BASE-02 with one spare, its ordinary support and item-specific support links to DEPOT-01, one LAT-01 group and explicit BASE-01 receiving lateral link. BASE-01 and BASE-02 share LAT-01. Both arms request half-hour ITEM bins and set Item.TRACK=Y. The only on/off source difference is Control.ENLAT Y versus N and descriptive text.",
+  "parameters": {"seed": "1", "horizon_hours": 36, "result_interval_hours": 0.5, "base_01_initial_spares": 0, "base_02_initial_spares": 1, "depot_initial_spares": 1, "lateral_hours": 0.5, "ordinary_item_down_hours": 1.0, "ordinary_general_down_hours": 2.0, "lateral_rule": "IMMEDIATE", "delayed_lateral": "N"},
+  "pre_run_hypotheses": [
+    "Both arms import, export all populated source tables exactly, calculate with zero conversion errors, and produce nonempty native reports.",
+    "At the first BASE-01 LRU shortage, the ENLAT=Y arm considers stocked peer BASE-02 and, if selected, physical identity and inventory ledgers show BASE-02 to BASE-01 transfer with half-hour transit.",
+    "The ENLAT=N arm uses ordinary DEPOT-01 support for the same shortage, with the accepted one-hour item-specific downward route.",
+    "Each arm conserves physical item identities and reconciles backorders, stock, mission outcomes and terminal inventory."
+  ],
+  "acceptance_gate": "Only publish as positive E08.var01 if the source roundtrips and native per-item movement plus station ledgers distinguish a true lateral source from ordinary upstream support. If native behavior differs from the hypotheses, retain raw artifacts as a diagnostic and classify precisely.",
+  "limits": ["one IID and two peer bases", "one lateral group with IMMEDIATE and DLAYL=N", "no EXTENDED or ADJACENT", "no delayed lateral, competing peers, GUI rendering, or cross-engine parity"]
+}

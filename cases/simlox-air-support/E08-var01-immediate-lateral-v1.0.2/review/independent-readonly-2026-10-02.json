@@ -1,0 +1,43 @@
+{
+  "schema": "independent-e08-var01-lateral-review/v1",
+  "case": "E08-var01-immediate-lateral-v1.0.2",
+  "passed": true,
+  "verdict": "GO: bounded immediate lateral source distinction",
+  "checks_passed": 2062,
+  "checks_total": 2062,
+  "failures": [],
+  "source_sha256": {
+    "on": "630d7600e7ff77ddb057f05af0852b4f41ed6335718570f9fcf5eddd9f51c474",
+    "off": "94ededc97805d2cd1ed9401fe721133a5c65cadd6eb5fc2ecc88a99ee91a31e8"
+  },
+  "native_closure_sha256": {
+    "on": "d56759102a70650ac8a1af5de2611982f2c5902b241d7f20d1bed99c3583ea2c",
+    "off": "93e27360961e48b630e8a09d1d7c6372e31d4d086b81550593f946ad818b2afd"
+  },
+  "selected_closure_sha256": {
+    "on_base01": "751fca4a76e1d075d7a028fe51f2b4e6c98f12b6cab42513164b58195164e389",
+    "on_base02": "073d56e50ada98f56f5d4d968024a18f45104800c2de8d24eafd3db0df0c18ac",
+    "on_depot": "24db6fc566289730ef35a654b7f2e34aa24719bd2111e7d03a21b2925b321844",
+    "off_base01": "ed174cc557d7b865714500c83a362a6c673c3349fd3da385c177936214be4639",
+    "off_base02": "18745cf6f9462bcec219469f63587525eacd6b77c7a7839b049f4043cc9ff9d0",
+    "off_depot": "9979ff2fe56ccd6ee24782f9f7f7b631ce72d28541b2ecea7fbbd438dd86b619"
+  },
+  "selected_report_sha256": {
+    "on_base01": "d23b33e99ae99cbbc819e209110438109f49b4374af8637242d8b8ea63f56bf2",
+    "on_base02": "aec13e9df83b2ce130def9c13917b9728223355301757bbc130e1dc2b7a66b7d",
+    "on_depot": "b4651fb352d41e19e2e5d9a7636573991bf898291ec9fa63459599c179f62aba",
+    "off_base01": "36b3d28b42844dd69dcd73720b8c2082e7e8b2d8da3ede7b3221ed7b835004ca",
+    "off_base02": "ea15f7598002f9b46798fbcff215fd29b43c9af1753a1126b63b946c8688d443",
+    "off_depot": "3333118d923eb810e3d2cf0bd590e9eda41851bd83ebc6eac3c72caa7dc8579d"
+  },
+  "observations": {
+    "on": "ENLAT Y takes physical peer item ID1 BASE-02→BASE-01 h10–10.5, then depot item ID0 replenishes BASE-02 h11; damaged ID2 is repaired/restocked at DEPOT-01 h14.1667.",
+    "off": "ENLAT N takes depot item ID0 DEPOT-01→BASE-01 h10–11; BASE-02 stock1 remains unused; damaged ID1 returns repaired to depot h14.1667.",
+    "backorder_and_readiness": "BASE-01 backorder lasts 0.5h ON versus1h OFF; aircraft ready h10.8333 versus h11.3333. Both arms later succeed missions at h22/h34 and end ready."
+  },
+  "limits": [
+    "This is one IID, two peers in one LAT-01 group, IMMEDIATE/DLAYL=N, one seed, and this installed CLI. No EXTENDED, ADJACENT, delayed lateral, competing peers, GUI-visual, or cross-engine result.",
+    "ItemResults is selected per IID/STID stock position. BASE-01 nominal and on-hand stock remain zero because arrivals immediately satisfy backorders; source route is established by physical item identity and task log, with corroborating peer/depot item bins.",
+    "A one-seed route choice does not prove a general priority rule under all in-transit ordinary supplies."
+  ]
+}
