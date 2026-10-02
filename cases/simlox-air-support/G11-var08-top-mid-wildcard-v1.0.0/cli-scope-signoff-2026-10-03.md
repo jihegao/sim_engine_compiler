@@ -1,0 +1,9 @@
+# G11.var08 top-level MID wildcard CLI sign-off — 2026-10-03
+
+**GO for this bounded installed-CLI observation.** The accepted G11.var07 equal-boundary source and closure are pinned. The paired source contrast changes only `Prelife.PL-SYS.MID` from concrete `TEACH-AIR-01` to literal `*` plus description; SystemDeployment.PLID, PrelifeData ages60/100/120, CAL100, seed1, h104 and IQTY0 remain fixed. No sub-prelife structure is populated.
+
+- Guarded session-0 SSH runs `g11-var08-explicit-mid-v100-ssh-20261003-01` and `g11-var08-wildcard-mid-v100-ssh-20261003-01` each completed five steps under the host mutex, preserved GUI PID13340 and restored the Prelife Log option to `NO`. Both converted with zero errors/notes and only warnings #108/#126, exactly roundtripped 20 populated authored tables and sealed 13 local raw files. The [evidence index](evidence-index.json) SHA-256 is `6b12f764f1cab6c0d3a652bdbfce97763e70904168337d115f4789e12c908595`.
+- Native Prelife Logs are byte-identical and name actual `TEACH-AIR-01` systems at ages60/100/120. Event logs are byte-identical (SHA-256 `9c87fe4238956186fe6ca6383190175592ee36466c29d46e7a59b3a1c27684d7`): first CAL100 PM ID0 h40, ID2 h80, ID1 h100, no h0 PM, each one-hour completion. ResultSummary, SystemResults and StockTotalResults are equal. Each arm has 208 contiguous half-hour System/Stock bins, terminal ready3 and no missions, resource or stock demand.
+- [Author replay](author-validation.json) passed 193/193 checks; separate read-only [independent replay](independent-verdict.json) passed 21,433/21,433. Static preflight was GO before native execution.
+
+The installed manual's physical PDF page 205 permits `*` for a top-level Prelife.MID linked by SystemDeployment. This case establishes one-system-type acceptance and observed equivalence only. Matching across multiple MIDs, StockAllocation wildcard use, sub-prelife invalidity, other counters, GUI visual behavior and cross-engine parity are outside scope.
