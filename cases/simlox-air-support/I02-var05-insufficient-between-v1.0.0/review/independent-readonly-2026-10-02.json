@@ -1,0 +1,40 @@
+{
+  "schema": "independent-i02-var05-insufficient-between-review/v1",
+  "case": "I02-var05-insufficient-between-v1.0.0",
+  "passed": true,
+  "verdict": "GO: bounded shortage split and transfer backorder completion, with unresolved ordinary backorder",
+  "checks_passed": 1222,
+  "checks_total": 1222,
+  "failures": [],
+  "native_run": "i02-var05-qty3-v100-ssh-20261002-01",
+  "report_only_runs": {
+    "depot": "i02-var05-depot-results-v100-ssh-20261002-01",
+    "base": "i02-var05-base-results-v100-ssh-20261002-01"
+  },
+  "source_sha256": "1f31540862de0f586eeacea5907be7f9fa238ae54ba4657f7211c1b64f58f1a3",
+  "native_closure_sha256": "2371129c722e0ce1b7a9029c3a0da65f99612ebfd0a8354b002e5cfa9f7f8d60",
+  "native_report_sha256": "f0ffc7878b740fcd8bed793f8b9c4e8426b6bfe922277af2b9941cacde1553cb",
+  "selected_report_sha256": {
+    "depot": "3bb23026e4b594c1ca10bdccc4d4f5874726761ef294e00b8d99926ec8dcb504",
+    "base": "03248e5dbdde031b10c4a813bec6f8fab717bf4f2b505c57d51dba7bb017412e"
+  },
+  "report_only_closure_sha256": {
+    "depot": "06a9630cc3f8e7553eb35fc5eba0301261b7058e194d583a85a90483dfd886e7",
+    "base": "b3bd3a0d0802a95116512a0ce1551dab78e720c0ffc346c894bdf12df73edde6"
+  },
+  "observations": {
+    "report_table_name": "ItemResults",
+    "report_positions": "TEACH-LRU-01 at DEPOT-01 and BASE-01 stock positions, distinct from aircraft mounted item",
+    "nominal_STSZ": "depot 1→2 h4→0 h6; base 0→3 h6 even though only two physical spares arrive; sum nominal3 thereafter",
+    "on_hand_STOHA": "depot 1→2 h4→0 h6 and remains0; base 0→2 h6→1 h10→2 after item ID2 repair and transfer h13.1667",
+    "physical_transfer": "h6 request3 immediately moves IDs0 and1, adds transfer backorder1; repaired ID2 fulfills remaining transfer h13.1667",
+    "later_demand": "base uses local item ID0 h10 and system ready h10.5; depot ordinary backorder1 starts h10 and remains at horizon; aggregate StockTotalResults NBO stays0"
+  },
+  "limits": [
+    "The native table is ItemResults with IID/STID stock-position fields; a literal ItemPositionResults table is absent.",
+    "Base STSZ jumps to3 at h6 for requested quantity3, while physical base stock is2 and transfer backorder1 remains. Do not describe that STSZ rise as three performed subtransfers; this differs from a literal reading of manual nominal-on-performance wording.",
+    "The transfer backorder clears at h13.1667, but a separate depot ordinary backorder remains1 through h36. Aggregate StockTotalResults NBO is zero and does not expose this internal position backorder. Do not claim complete demand resolution or priority fairness.",
+    "STSZ is nominal station stock size and STOHA is on-hand. Neither is mounted aircraft item count. ItemResultsTotal values are horizon averages, not terminal stock.",
+    "One available-two/request-three zero-delay BETWEEN after IN, one LRU, two stations, one seed and this CLI only. No generic split/priority, alternate shortage sizes, delay, reorder, GUI-visual or cross-engine conclusion."
+  ]
+}
