@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-i01-var01-resource-allocation-point-contract/v1",
+  "case_id": "I01",
+  "variant_id": "I01.var01.resource-only",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "C01-personnel-capacity-v1.0.2",
+    "source": "../C01-personnel-capacity-v1.0.2/inputs/capacity-2.json",
+    "sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c",
+    "accepted_evidence": "../C01-personnel-capacity-v1.0.2/evidence-2026-09-29.md"
+  },
+  "sources_sha256": {
+    "selected": "ac35a07731c629e16ba6bd83183eaca9c244161c2cc05a07cf7b2127cd52bbc5",
+    "zero": "f9b3032405accccfcd3bf6906fa82b9b1755036dc2d9865eface0f8d543c9371",
+    "exact_diff": "9fe6b5ef06f2d878b73d21a08f4039aa0cb24f6fef5fa962603be75d00829fee"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp397-399 binds SubTaskResource(TID,SEQ,RID,QTY); pp407-414 describes SPECIAL resource and POINT-based ResourceAllocation. C01 v1.0.2 accepted the two-P-CREW INSPECT demand and 2/0 capacity outcomes under distinct single-point inputs. This probe selects two shared ResourceAllocation POINTs by APID while holding both rows in the same model.",
+  "controlled_delta": "Accepted C01 capacity-2 parent gains two AIR_ZERO ResourceAllocation rows for P-CREW and P-OTHER, both BASE-01/RQTY0, and description. Its existing AIR_BASIC rows remain P-CREW2/P-OTHER0. The two frozen arms differ only Control.APID AIR_BASIC vs AIR_ZERO and ProblemDescription. Resource and SubTaskResource rows, station, aircraft, mission preparation, schedule, seed, horizon and report interval remain fixed. StockAllocation and MaintenanceAllocation have no authored rows.",
+  "pre_run_hypotheses": {
+    "selected": "If APID selects AIR_BASIC resource rows, the accepted C01 two-P-CREW result should repeat: crew acquired at h7, released h7.16667, preparation ends h7.5, mission launches h8 and succeeds h10; the first relevant ResourceResults bin should integrate 20 person-minutes.",
+    "zero": "If APID selects AIR_ZERO, the two-P-CREW INSPECT demand should wait with no crew lease or positive work, and the mission should cancel at an observed time. C01 capacity-0 at a single POINT cancelled near h7.58333; this is a prediction, not an acceptance assumption.",
+    "alternatives": "The converter may reject duplicate RID/STID across POINTs, ignore APID, sum capacities, shift cancellation, or yield unexpected resource, preparation or mission events. Any such result remains a diagnostic until reconciled with native resource/system report bins."
+  },
+  "acceptance_gates": [
+    "Accepted C01 parent, frozen exact source diff and independent pre-run review",
+    "Two fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Exact authored-table roundtrip, zero converter errors and nonempty valid SXO/report",
+    "Individual crew request/lease/release, preparation and mission event order plus 72 Resource/System bins and terminal aircraft state",
+    "SHA-256 sealed raw evidence, authored checks, independent read-only post-run replay and final staged audit"
+  ],
+  "limits": [
+    "This is ResourceAllocation POINT/APID selection alone on a C01 preparation resource demand. It does not establish combined StockAllocation/MaintenanceAllocation selection, E01 LRU replacement, station routing or StationVariant.",
+    "One station, seed, two resource capacities and two POINTs only; general capacity behavior, GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
