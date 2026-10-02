@@ -1,0 +1,7 @@
+# D09.var02: unset versus finite calendar tolerance
+
+This accepted bounded native CLI case compares an unset `Item.NCFTL` with the accepted [D09.var01 finite calendar control](../D09-var01-calendar-vs-operational-v1.0.0/cli-scope-signoff-2026-10-02.md), which has `NCFTL=0.2`. Both use `Item.NCFTT=CALENDAR`, one traditional noncritical LRU fault route and zero local spares. The [new input](native-input-unset.json) changes only NCFTL and description from the accepted control; the [exact diff](exact-diff.json) and [pre-run contract](contract.json) freeze the comparison.
+
+Both runs have the h9.8829 noncritical LRU fault, h10 first-mission success and a pending LRU backorder. The accepted finite control escalates h10.0829, repairs the same LRU and clears its backorder h11.3329. The unset child records no escalation or physical repair through h36, succeeds in the h20 and h32 missions, and ends NCF-ready with the original backorder still open. The [signoff](cli-scope-signoff-2026-10-02.md) details event and report reconciliation. One new guarded native CLI run completed; [author replay](author-validation.json) passed 37/37 and [independent read-only replay](independent-verdict.json) passed 745/745. Raw artifacts remain under ignored local `runs/`, sealed by the [evidence index](evidence-index.json).
+
+The installed manual defines blank NCFTL as no time limit. This result covers one aircraft, LRU, seed and zero-spare waiting path; other limits, supply paths, GUI-only behavior and cross-engine parity remain open.
