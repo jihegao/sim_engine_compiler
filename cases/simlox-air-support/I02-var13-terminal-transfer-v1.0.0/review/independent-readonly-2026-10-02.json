@@ -1,0 +1,27 @@
+{
+  "schema": "independent-i02-var13-terminal-transfer-review/v1",
+  "passed": true,
+  "verdict": "GO: bounded in-transit and transfer-backorder terminal classifications",
+  "checks_passed": 420,
+  "checks_total": 420,
+  "failures": [],
+  "raw_seals_checked": 32,
+  "source_sha256": {
+    "transit": "1ab184c30a5ff06b28bfa8b84dda423b639b51140b22a549cee09f05fb3a32d9",
+    "backorder": "020faa03b794fc5a57a8c3ccd931731370316a925c52d1ef85ca5ee2042c2c64"
+  },
+  "native_closure_sha256": {
+    "transit": "3a63c4d563b46c4f204ffdc32d27713c632a3d6f6128bd303877e0933334b4bc",
+    "backorder": "33b01d4587d4a3a98d05ad3d9a910d2c15f80ec76e296c21670b97c28ae9da76"
+  },
+  "observations": {
+    "transit": "At h7 endpoint depot has one item; ID0 left h6 in a 2h BETWEEN and has not arrived at base. The h4 IN supplied a second item.",
+    "backorder": "At h3 endpoint h2 BETWEEN moved zero items; physical transfer backorder1 remains, base nominal STSZ1/on-hand0, depot0.",
+    "report_caveat": "ItemResults.NBO and StockTotalResults.NBO remain zero in the backorder arm despite the explicit transfer backorder in model.log; ordinary NBO does not expose that queue.",
+    "missions": "Zero initiation profile, zero mission summary metrics, aircraft ready1 in both arms."
+  },
+  "limits": [
+    "Separately parented probes, one IID/two stations/seed, endpoints h7 and h3.",
+    "No active aircraft demand, general priority, other horizon, GUI visual or cross-engine claim."
+  ]
+}
