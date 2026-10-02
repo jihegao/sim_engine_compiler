@@ -1,0 +1,65 @@
+{
+  "checks_passed": 1099,
+  "checks_total": 1099,
+  "evidence": {
+    "limit-2": {
+      "closure_sha256": "08ccb3f5971b38f745ced478c830bb03a52fd7f54e8df3d439437702db0af6e8",
+      "first_fault_hours": [
+        8.06276,
+        8.16075,
+        8.22615
+      ],
+      "input_sha256": "3e9b77ce833a112e3477a958d39f3864120492f94dc89a8db6579c884a2c2dd6",
+      "model_log_sha256": "44c818352cc2172f52a439cdcf6bbdd125c1e21fb2f41416176814e3c59960c5",
+      "report_sha256": "92a364496f08b97dd338b2e750460c93ab735773ca7745e6aee60621cc5b8fee",
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 0,
+        "MTMF": 0.33359524607658386,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 0.33359524607658386
+      }
+    },
+    "limit-3": {
+      "closure_sha256": "2d6d00b727f81d1e1558b82144e3b556c2b8cc6274db67a70c5f6c96b00d9514",
+      "first_fault_hours": [
+        8.06276,
+        8.16075,
+        8.22615
+      ],
+      "input_sha256": "9dce0c0a6b27e198a9427049230dc5a62c5987dda75852f25d3c1d2c842b1ce0",
+      "model_log_sha256": "474ebafb74baaf36944b07b009bf4c8da3fdfdf4ba74f06436ff8a90e3f8ee55",
+      "report_sha256": "7918ec52859d6544792543fdbac0575fac7793cde2faa22e7ef8fc79aed86554",
+      "summary": {
+        "MSTF": 1,
+        "MSUF": 1,
+        "MTMF": 1,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "STMF": 1
+      }
+    }
+  },
+  "failures": [],
+  "finding": "Both fixed-seed arms log three distinct noncritical LRU failures at h8.06276, 8.16075, and 8.22615. At MAXNC=2 the third exceeds the configured count, the mission aborts at h8.22615, and three first-wave SURP tasks carry C priority with physical removal, direct repair and same-item reuse. At MAXNC=3 the third reaches the configured count, the mission succeeds at h10, and three NC SURP tasks wait on zero stock; they remain pending through h36 while the aircraft is ready and three backorders remain.",
+  "interpretation_limit": "The native log says 'noncritical random failure added' for all three arrivals and does not explicitly say 'changed to critical' for MAXNC=2. Threshold escalation is inferred from the C task priorities, immediate abort, physical repair path and the isolated MAXNC source difference.",
+  "limits": [
+    "One aircraft with three identical LRUs, fixed seed 1, artificial FRT and 36-hour horizon.",
+    "Only MAXNC 2 and 3 are tested; no general count law or intermediate configuration is inferred.",
+    "No GUI-only execution or cross-engine parity claim."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d09-var03/v1",
+  "verdict": "GO: bounded MAXNC=2 versus 3 threshold observation"
+}
