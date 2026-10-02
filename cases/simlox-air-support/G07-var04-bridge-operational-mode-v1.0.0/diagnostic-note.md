@@ -1,0 +1,5 @@
+# G07.var04 v1.0.0 diagnostic — rejected timing hypothesis
+
+This frozen candidate assigned bridge slot BR to a defined `G07-BR-HALF` operational mode with POS-B `USERT=0.5`, leaving other slots and physical failure modes unchanged from accepted G07.var03. The exact four-table diff has SHA-256 `5e3636e6b0030e4ae3cdd8f6c9e4eac3221fe7a8757cdee3f1e826a2861641d1` and input SHA-256 `07d8983a90312f81c7f314562d67472cc0e68f99aa8e010159cdceaf33d66b18`.
+
+The guarded run `g07-var04-brhalf-v100-ssh-20261003-01` imported, exported, calculated and reported with zero converter errors/notes, reviewed warning #108 and exact populated-table roundtrip. It did **not** match the frozen B-first/A-matched hypothesis: A failed first noncritically at h8.94145, and B failed second noncritically at h17.0636. The mission succeeded h34. Native closure SHA-256 is `908533419ff709d8539cc0bccb7a85748080bcd761b954ad63964a1db3d78934`; raw files remain ignored locally. This candidate is diagnostic and has no publication-index entry or acceptance claim. G07.var04 v1.0.1 is a new frozen candidate with a different 0.75 usage rate and explicit allowance for changed stochastic event order.
