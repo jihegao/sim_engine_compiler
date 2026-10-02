@@ -1,0 +1,41 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var12",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "G11", "variant_id": "G11.var03", "package": "../G11-var03-random-system-prelife-v1.0.0",
+    "input_sha256": "6984ce91a40a1a0c491ff7eeda4b808c314d50577ec008d1d9f65780acfac512",
+    "native_closure_sha256": "56cd0216ea0bec079059c4d0bc09da9914570a7b3c4f10f7ea708a6ed33c76fc"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 468, 469, 470, 471, 472, 473, 474],
+    "rule": "PrelifeDataAge adds operation-parameter ages and overrides PrelifeData at equal PLID/PLIND/OPID. RANDOM uses one draw applied to each age dimension for each material individual."
+  },
+  "inputs": {
+    "added-ophours": {"sha256": "59addb4b450d995cf99987e999ef7f1969f966fb20aec997a48847baf9179adc", "extra_rows": [["OPHOURS", 0, 60]]},
+    "calendar-override": {"sha256": "2f1f6f4ee157f5b7448820e90a0c280e7b5891d4f4f8301b504f74929c62da44", "extra_rows": [["OPHOURS", 0, 60], ["CALHOURS", 0, 90]]}
+  },
+  "exact_diff_sha256": "9068f02c24300775960b4a7ed5a624a30736b7f2ad6e0f109ff8127b5408ea73",
+  "configuration": {
+    "system": "TEACH-AIR-01", "deployed_count": 3, "base_prelife": {"PLID": "PL-SYS", "PLIND": "RND-0-120", "QTY": 3, "TYPE": "RANDOM", "OPID": "CALHOURS", "AGEMIN": 0, "AGE": 120},
+    "added_ophours_range": [0, 60], "calendar_override_range": [0, 90],
+    "system_pm": {"PMID": "CAL100", "OPID": "CALHOURS", "PMINT": 100},
+    "seed": "1", "scheduled_profile_IQTY": 0, "horizon_hours": 104, "report_interval_hours": 0.5
+  },
+  "hypothesis_before_native": "Added-OPHOURS arm preserves accepted parent CALHOURS ages and first CAL100 PM times while adding OPHOURS ages approximately half the CALHOURS ages for each individual. Calendar-override arm keeps OPHOURS ages but replaces CALHOURS range 0..120 with 0..90, producing CALHOURS ages approximately 1.5 times OPHOURS ages and shifting first PMs. All numeric realizations require native Prelife Logs; rounded age ratios permit 0.03h tolerance.",
+  "predeclared_native_acceptance": [
+    "Both guarded SSH0 native runs complete five steps, zero errors/notes and only reviewed warnings, exact populated-table roundtrip, source/raw seals, preserved GUI PID13340 and restored Prelife Log option NO. New warnings are diagnostic.",
+    "Only PrelifeDataAge and description differ from parent; between arms, the sole business addition is CALHOURS override row for PL-SYS/RND-0-120. Seed, PM and mission suppression remain fixed.",
+    "Native Prelife Log prints each individual's CALHOURS and OPHOURS ages, allowing per-individual correlation and override to be checked; first CAL100 PM timing reconciles with native calendar ages and event identities. Do not infer statistical distribution or independence from one seed.",
+    "Each arm has 208 contiguous half-hour System/Stock bins, no missions/resource/stock demand, terminal ready3, and PM counts that reconcile with event logs.",
+    "Separate reviewer independently replays frozen source/raw evidence without importing author validator."
+  ],
+  "limits": [
+    "Three top-level same-type systems, one RANDOM PLIND, two standard OPIDs and seed1 only; not a statistical validation of RANDOM distribution or independence.",
+    "Other PrelifeDataAge combinations, lower-level items, GUI visual behavior and cross-engine parity are unverified."
+  ]
+}
