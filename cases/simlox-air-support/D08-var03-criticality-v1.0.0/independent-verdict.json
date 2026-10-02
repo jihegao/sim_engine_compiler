@@ -1,0 +1,31 @@
+{
+  "checks_passed": 1064,
+  "checks_total": 1064,
+  "evidence": {
+    "failure-mode": {
+      "closure_sha256": "47a0f9aa98a0682afa4a997de86e880ea0f9e654cee16587b9f6e309d8196fbe",
+      "input_sha256": "36d20f6be3bcb877ff925542aa2a3f95324a7e1562ed57f18c1561fba27fe59e",
+      "model_log_sha256": "447e9b477139b2f99fdcf77f577be65b3ebdc1b039b0322dc90ca2bf713e0f5c",
+      "populated_authored_tables": 18,
+      "report_sha256": "f4fd994c0c423222f38a4e7a731eaac5417431000196a24da4f128316bfbb851"
+    },
+    "traditional": {
+      "closure_sha256": "512f30614f3ce25ea4253afa6d708008f5c182a76366464709700f209879ffe0",
+      "input_sha256": "cd549962924b57f4db8ccc9de906f6abd86af5c5057e4c413c2f9824bf46a01e",
+      "model_log_sha256": "1e431cb750ddee2c8f048ae7598dd133968f89cbe9925351150c9227b63f39e3",
+      "populated_authored_tables": 18,
+      "report_sha256": "2608349051bde548ac84dd56dba9b0a69f8abd6608dd7d0729c89aec1244397e"
+    }
+  },
+  "failures": [],
+  "finding": "At CRIT/CRITF zero, the first h9.8829 fault is explicitly noncritical and the mission succeeds at h10, contrasting each accepted CRIT1 control abort. Traditional LRU replacement/SURP ends h10.5 and ID1 returns to stock h11.25. Explicit FM-POS-A faults occur h9.8829 and h21.8602 with half-hour CM after both successful returns. All three missions succeed and the aircraft is ready at h36.",
+  "limits": [
+    "One fixed seed, one aircraft, three two-hour missions and endpoint criticality zero versus accepted one controls; no fractional-probability conclusion.",
+    "The explicit-FM second fault shifts to h21.8602; later random clocks are not asserted equal to the critical control.",
+    "Traditional physical LRU replacement and explicit position-linked CM are distinct routes; no shared inventory inference.",
+    "Mission-specific overrides, PFF, SYACF, NCFTL, simultaneous faults, GUI-only behavior and cross-engine parity untested."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-d08-var03-criticality/v1",
+  "verdict": "GO: bounded zero-criticality mission continuation"
+}
