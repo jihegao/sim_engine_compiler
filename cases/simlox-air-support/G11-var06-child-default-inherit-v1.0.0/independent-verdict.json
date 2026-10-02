@@ -1,0 +1,36 @@
+{
+  "checks_passed": 19032,
+  "checks_total": 19032,
+  "evidence": {
+    "explicit-inherit": {
+      "closure_sha256": "63134681953087ead7f9917dbe7cc1f329bff9b4bea5ef4a83e1d4ff97212854",
+      "input_sha256": "149a560ac896fbc7c6e1da3f0475ce8b189bdbe37baea1ef72f6087dfd2cc06d",
+      "model_log_sha256": "f1948e37a07605e5735b072bff314a876edccc8f14be990d1cb77f17255e34ed",
+      "prelife_log_sha256": "6230d4b08a7ef405e860a27e0246fb9faa3bf17e18b50c95b4f6ee490c179e58",
+      "report_sha256": "161c2b7d29dc0f87ce19098672622ce205eec74349b38704fa2d27c96570a035",
+      "stock_bins": 192,
+      "system_bins": 192
+    },
+    "omitted-leaf": {
+      "closure_sha256": "c8c88953571ec580f6cf7f9dd419bc78644716a9128e843b1a8ea70ffe53cae6",
+      "input_sha256": "ff0a86a657e54e5ca8fd41b24fc54d35bfeea2b1075e50b84042861d3ed813d7",
+      "model_log_sha256": "f1948e37a07605e5735b072bff314a876edccc8f14be990d1cb77f17255e34ed",
+      "prelife_log_sha256": "26180f38cd64c0960c334edade415690fee392c77e9dbfcdcf584de0b215aae3",
+      "report_sha256": "32051e5b20992fd2b512495ee604d0745c2047a2c3839ed71565681789007ebb",
+      "stock_bins": 192,
+      "system_bins": 192
+    }
+  },
+  "failures": [],
+  "finding": "The omitted-leaf arm removes only PL-LRU rows from Prelife, PrelifeData and PrelifeStructure (plus description). Both Prelife Logs show system, position and item age60; the omitted item line has no PLIND. Both native event logs are byte-identical: original physical LRU ID0 triggers LRU-CAL100 h40, spare ID1 replaces it and ID0 returns to stock after one-hour item PM. No missions run; 192 System/Stock bins per arm reconcile.",
+  "limits": [
+    "One leaf monitored LRU below one explicitly inherited position and system, one spare, one seed and first CALHOURS item PM only. No higher-level omissions, multiple children or general inheritance law.",
+    "The default report has aggregate SystemResults/StockTotalResults, not selected per-item or ResourceResults; item identity and no-resource booking are established by the native event log.",
+    "The installed CLI prints POS-INH for the explicit inherited position although manual printed p209 says an inherited record omits PLIND. Omitted leaf item line has no PLIND. This label discrepancy does not affect the observed ages/timing.",
+    "Warning #419 is confined to explicit INHERIT with ignored AGE20. Registry restoration is recorded by guarded invocation/closure, not a separate live registry read.",
+    "No missions, stocked-item prelife, later age, GUI visual behavior or cross-engine parity."
+  ],
+  "passed": true,
+  "schema": "simlox-independent-readonly-g11-var06-child/v1",
+  "verdict": "GO: bounded omitted-leaf inheritance observation"
+}

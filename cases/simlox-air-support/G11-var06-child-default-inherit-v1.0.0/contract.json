@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G11",
+  "variant_id": "G11.var06",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "G11",
+    "variant_id": "G11.var04",
+    "package": "../G11-var04-inherit-item-prelife-v1.0.1",
+    "input_sha256": "473efed447d08808d565d08956b659574596be8e2a8457f451b4816bf50251ae",
+    "native_closure_sha256": "945ee70ce912810bb1bec897030815184648cdbb84326f0ccab038475660c8b9"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [204, 205, 206, 208, 209, 468, 469, 470, 471, 472, 474, 475],
+    "rule": "A leaf materiel without explicit prelife data and without lower materiel needing prelife may be omitted from Prelife/PrelifeData/PrelifeStructure and automatically inherit operating age from its closest mother."
+  },
+  "inputs": {
+    "explicit-inherit": {"sha256": "149a560ac896fbc7c6e1da3f0475ce8b189bdbe37baea1ef72f6087dfd2cc06d", "item_prelife": "PL-LRU/LRU-20 TYPE INHERIT"},
+    "omitted-leaf": {"sha256": "ff0a86a657e54e5ca8fd41b24fc54d35bfeea2b1075e50b84042861d3ed813d7", "item_prelife": "none"}
+  },
+  "exact_diff_sha256": "964df59703e4ad45c9a9fdea47c60020476ef29620d8d642c69d241f833236e0",
+  "configuration": {
+    "system": "TEACH-AIR-01",
+    "position": "POS-A",
+    "installed_item": "TEACH-LRU-01",
+    "installed_quantity": 1,
+    "stocked_spare_quantity": 1,
+    "system_age_calhours": 60,
+    "position_type": "INHERIT",
+    "item_pm": {"PMID": "LRU-CAL100", "OPID": "CALHOURS", "PMINT": 100, "MONIT": "Y"},
+    "scheduled_profile_starts_hours": [8, 20, 32],
+    "scheduled_profile_IQTY": 0,
+    "seed": "1",
+    "horizon_hours": 96,
+    "report_interval_hours": 0.5
+  },
+  "hypothesis_before_native": {
+    "explicit-inherit": "System/position/item age60; first PM for original physical LRU ID0 begins at h40, then stock spare ID1 replaces it.",
+    "omitted-leaf": "Leaf LRU inherits closest mother position's age60 without PL-LRU entries; first original physical ID0 PM should also begin at h40. The Prelife Log's item-line presence is an observation."
+  },
+  "predeclared_native_acceptance": [
+    "Both arms exactly roundtrip populated source tables, convert with zero errors and no notes, calculate, preserve GUI PID13340 and registry option NO, and seal source/raw hashes. Warnings limited to inherited event-log #108 and explicit INHERIT ignored-age warning #419; any other warning stops acceptance.",
+    "The only source business difference removes the PL-LRU leaf row in each of Prelife, PrelifeData and PrelifeStructure, while the system, position, monitored item PM, replacement stock and mission-free profile remain identical.",
+    "The original installed physical item ID0 has first LRU-CAL100 monitored PM at h40 in both arms, with one-hour item PM and physical spare exchange; no missions instantiate. The native Prelife Log item-line presence is recorded, not predeclared.",
+    "Each arm reconciles event, system and stock ledgers, with 192 half-hour report bins and terminal one ready system and one stock item.",
+    "A separate reviewer independently replays frozen source and raw evidence without importing the author's validation implementation."
+  ],
+  "limits": [
+    "One leaf LRU under one explicitly inherited position and one system, one spare, CALHOURS, one seed and first monitored PM only. No general inheritance rule for higher-level omissions or multiple children.",
+    "Stocked-item prelife, later item age, missions, GUI visual behavior and cross-engine parity are unverified."
+  ]
+}
