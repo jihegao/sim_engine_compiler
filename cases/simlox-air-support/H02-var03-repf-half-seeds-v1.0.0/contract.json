@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-h02-var03-repf-half-seeds-contract/v1",
+  "case_id": "H02",
+  "variant_id": "H02.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "H02-var03-repf-zero-v1.0.0",
+    "source": "../H02-var03-repf-zero-v1.0.0/repairable-input.json",
+    "sha256": "82564db9cd0d3f916a87264d16d390a42bf886f5748c843070bea20e6b1c4a92",
+    "accepted_merge": "430df03616992deac05fe0be41179e57b11814f2"
+  },
+  "preselected_seeds": [1, 2, 3, 4, 5, 6, 7, 8],
+  "sources_sha256": {
+    "1": "62f2db865f2ba8f0f7ca4273054b2682267a3d876b6be9925771da98805465a6",
+    "2": "d82589448875656753cd7fb794d70dea591c0ce1887c61f1881464b81633d521",
+    "3": "f68a077d5ab483b1f1fc1ee94fc42e2a9411558ad29e8002b5fa3fa3c27cbda3",
+    "4": "ec7a6000d787210617c7d5920d92a420b68047652ef49e20f8d7103a1b096cb0",
+    "5": "34d108a8cd8ebd09664d4c7a53a069c16c929a0f9f46979312363bdbddd97500",
+    "6": "6741e706ed363e3a2f9a63e48f68da9dc1a78c550ba05b02b8184da8de613f46",
+    "7": "23d6d184075b888ef5fc14fa5aedd673bd1cafa9d82bd8db783399ec6820c45c",
+    "8": "3e3ee4d4b50f3fec9fa3d7c7d4f6362e1def1c5b96377998f955d2dc29e95039",
+    "exact_diff": "648340d02ee42bee080bcceb58715d18a73bf2e22a91a7d47d66399883ed1552"
+  },
+  "installed_source_sha256": {
+    "simlox_exe": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "table_dictionary": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed manual physical pp193,426-427 and dictionary line170 describe DamageItem.REPF as repairable fraction 0..1, default0. Accepted endpoint runs show REPF1 repair/restock and REPF0 discard/stock loss in one seed.",
+  "source_delta": "All eight inputs derive from byte-verified accepted REPF1 source; each changes only DamageItem.REPF 1 to 0.5, Control.RSEED from 1 to the named seed when needed, and ProblemDescription. DAMP1, PROB1, directly mounted LRU, one BASE-01 spare, explicit DamageReplacement, ordinary ItemRepair, three fixed missions and horizon36 remain fixed.",
+  "prior_diagnostic": "A separate unaccepted seed1 REPF0.5 pair in H02-var03-repf-half-v1.0.0 produced a discard-only path matching REPF0. This eight-seed 1..8 set was frozen after that observation, before any of these eight runs; every preselected seed must be reported, including seed1. The prior result is disclosed and not used as independent evidence of frequency.",
+  "pre_run_hypotheses": {
+    "realized_paths": "Individual damaged LRUs may be repaired and returned or discarded after removal under REPF0.5. Outcomes are read from logs, not inferred from the input value or exit code.",
+    "positive_acceptance": "At least one logged damaged-LRU direct repair/stock return and at least one logged damaged-LRU discard across the eight preselected runs, with each path reconciled to stock demand/backorder, mission and report bins. If one path is absent, keep this package diagnostic and classify the limitation.",
+    "alternatives": "Converter rejection, no item damage, only one route across all seeds, unlogged stock recovery, or report inconsistency are diagnostic, not preaccepted. No exact split or frequency is expected."
+  },
+  "acceptance_gates": [
+    "Accepted direct parent and independent pre-run static review of all eight frozen sources, exact diff, contract, manual basis and guarded runner",
+    "Eight fresh serial session-0 SSH native runs under Global\\SimloxIssue18NativeQueue preserving GUI PID13340",
+    "Each arm has exact 24/24 authored row-containing table roundtrip, zero converter errors, valid SXO/event log/report and 72 System/Stock bins",
+    "Both repair and discard paths observed with item identities; mission, physical stock and report ledgers reconciled for every preselected seed",
+    "SHA-256 sealed raw evidence and independent read-only replay of all eight arms"
+  ],
+  "limits": [
+    "Eight preselected seeds are a small deterministic set chosen after a disclosed seed1 diagnostic. They do not estimate a 50% population frequency, prove independence, or establish a statistical confidence interval.",
+    "Explicit DamageReplacement and ordinary ItemRepair are retained. This group does not test fallback priority, other item structures/stations, GUI visual behavior or cross-engine parity."
+  ]
+}
