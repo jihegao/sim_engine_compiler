@@ -1,0 +1,7 @@
+# D14.var04: position-linked MONIT converter boundary
+
+This negative case changes the accepted [D14.var01 monitored input](../D14-var01-monitored-item-pm-v1.0.1/cli-scope-signoff-2026-10-02.md) only by changing `MaterielPM.MID` from item `TEACH-LRU-01` to existing materiel position `POS-A`, plus descriptive text. `MONIT=Y` stays set. The installed SIMLOX manual says `MONIT` is not allowed for position-linked PM. The [contract](contract.json) froze the expected rejection before the native diagnostic, and [exact-diff.json](exact-diff.json) records the complete source delta.
+
+The guarded `run_native_ssh.ps1` uses session-0 loopback SSH, `sshd.exe` ancestry, the host-wide `Global\SimloxIssue18NativeQueue` mutex, active GUI PID 13340, pinned parent/product/manual/dictionary bytes, and hidden CLI processes. Native import and export roundtrip all 20 authored populated tables. Calculation emits exactly converter error #361: `MONIT is not allowed for materiel positions:  POS-A`. It reports one conversion error and warning #108 only, and produces no usable simulation output. This is an input rejection, so no PM runtime behavior is accepted.
+
+Raw native artifacts stay in ignored `runs/`. `validate_rejection.py` replays their seals and diagnostics without SIMLOX; `independent_replay.py` is the separate reviewer's implementation. The [evidence index](evidence-index.json) publishes hashes without uploading proprietary files; the [sign-off](cli-scope-signoff-2026-10-02.md) records the narrow accepted scope.
