@@ -1,0 +1,429 @@
+{
+  "schema": "simlox-h03-var01-position-fm-damage-exact-diff/v1",
+  "parent_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+  "damage_reference_sha256": "82564db9cd0d3f916a87264d16d390a42bf886f5748c843070bea20e6b1c4a92",
+  "control_sha256": "d69c39f552b73292115e65cab4e55dfaaf4976488d6e83e55ba6338077506a19",
+  "mode_sha256": "5297d5224b3a2086c26c663aa92cd51be7c349a24f7957428f47c21fcdc4ee7c",
+  "parent_to_control": {
+    "added_tables": {
+      "DamageFailureMode": {
+        "name": "DamageFailureMode",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "SID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "FMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "PROB",
+            "datatype": "double"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-HIT",
+                "TEACH-AIR-01",
+                "FM-POS-A",
+                0.0,
+                null
+              ]
+            ]
+          }
+        ]
+      },
+      "DamageType": {
+        "name": "DamageType",
+        "columns": [
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "DESCR",
+            "datatype": "string"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BATTLE-HIT",
+                "Certain in-flight position failure-mode damage",
+                null
+              ]
+            ]
+          }
+        ]
+      },
+      "MissionDamage": {
+        "name": "MissionDamage",
+        "columns": [
+          {
+            "name": "MTID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "SID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "DAMID",
+            "datatype": "string",
+            "key": true
+          },
+          {
+            "name": "DAMP",
+            "datatype": "double"
+          },
+          {
+            "name": "DAMRT",
+            "datatype": "double"
+          },
+          {
+            "name": "NOTE",
+            "datatype": "string"
+          }
+        ],
+        "instances": [
+          {
+            "instance_name": "",
+            "rows": [
+              [
+                "BASIC-MISSION",
+                "TEACH-AIR-01",
+                "BATTLE-HIT",
+                1.0,
+                null,
+                null
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "removed_tables": [],
+    "changed_tables": {
+      "FailureMode": {
+        "before": {
+          "columns": [
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "FMID"
+            },
+            {
+              "datatype": "string",
+              "name": "DESCR"
+            },
+            {
+              "datatype": "string",
+              "name": "MID"
+            },
+            {
+              "datatype": "double",
+              "name": "FRQ"
+            },
+            {
+              "datatype": "string",
+              "name": "OPID"
+            },
+            {
+              "datatype": "double",
+              "name": "CRITF"
+            },
+            {
+              "datatype": "double",
+              "name": "NCFTL"
+            },
+            {
+              "datatype": "string",
+              "name": "NCFTT"
+            },
+            {
+              "datatype": "string",
+              "name": "NOTE"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "FM-POS-A",
+                  "Position A direct repair",
+                  "POS-A",
+                  300000.0,
+                  "OPHOURS",
+                  1.0,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "name": "FailureMode"
+        },
+        "after": {
+          "columns": [
+            {
+              "datatype": "string",
+              "key": true,
+              "name": "FMID"
+            },
+            {
+              "datatype": "string",
+              "name": "DESCR"
+            },
+            {
+              "datatype": "string",
+              "name": "MID"
+            },
+            {
+              "datatype": "double",
+              "name": "FRQ"
+            },
+            {
+              "datatype": "string",
+              "name": "OPID"
+            },
+            {
+              "datatype": "double",
+              "name": "CRITF"
+            },
+            {
+              "datatype": "double",
+              "name": "NCFTL"
+            },
+            {
+              "datatype": "string",
+              "name": "NCFTT"
+            },
+            {
+              "datatype": "string",
+              "name": "NOTE"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "FM-POS-A",
+                  "Position A direct repair",
+                  "POS-A",
+                  1e-09,
+                  "OPHOURS",
+                  1.0,
+                  null,
+                  null,
+                  null
+                ]
+              ]
+            }
+          ],
+          "name": "FailureMode"
+        }
+      },
+      "ProblemDescription": {
+        "before": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "D06 two installed positions of one LRU, position A explicit failure mode, local direct CM"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        },
+        "after": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "H03.var01 accepted D06 CM model with BATTLE-HIT, FM consequence PROB0"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        }
+      }
+    },
+    "unchanged_table_count": 33
+  },
+  "control_to_mode": {
+    "added_tables": {},
+    "removed_tables": [],
+    "changed_tables": {
+      "DamageFailureMode": {
+        "before": {
+          "name": "DamageFailureMode",
+          "columns": [
+            {
+              "name": "DAMID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "SID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "FMID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "PROB",
+              "datatype": "double"
+            },
+            {
+              "name": "NOTE",
+              "datatype": "string"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "BATTLE-HIT",
+                  "TEACH-AIR-01",
+                  "FM-POS-A",
+                  0.0,
+                  null
+                ]
+              ]
+            }
+          ]
+        },
+        "after": {
+          "name": "DamageFailureMode",
+          "columns": [
+            {
+              "name": "DAMID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "SID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "FMID",
+              "datatype": "string",
+              "key": true
+            },
+            {
+              "name": "PROB",
+              "datatype": "double"
+            },
+            {
+              "name": "NOTE",
+              "datatype": "string"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "BATTLE-HIT",
+                  "TEACH-AIR-01",
+                  "FM-POS-A",
+                  1.0,
+                  null
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "ProblemDescription": {
+        "before": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "H03.var01 accepted D06 CM model with BATTLE-HIT, FM consequence PROB0"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        },
+        "after": {
+          "columns": [
+            {
+              "datatype": "string",
+              "name": "PDESC"
+            }
+          ],
+          "instances": [
+            {
+              "instance_name": "",
+              "rows": [
+                [
+                  "H03.var01 accepted D06 CM model with BATTLE-HIT, FM consequence PROB1"
+                ]
+              ]
+            }
+          ],
+          "name": "ProblemDescription"
+        }
+      }
+    },
+    "unchanged_table_count": 36
+  }
+}
