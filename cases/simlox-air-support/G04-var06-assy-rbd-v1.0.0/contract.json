@@ -1,0 +1,60 @@
+{
+  "schema": "simlox-g04-var06-assy-rbd-contract/v1",
+  "case_id": "G04",
+  "variant_id": "G04.var06",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G04-three-branch-threshold-v1.0.0",
+    "arm": "one",
+    "input_sha256": "cfdf287c4de93638e8117c71ad3de1846da3c62c24254bf7d2a3f0f7c7c0c4d7",
+    "run_id": "g04-kn-one-v100-ssh-20261002-01",
+    "native_closure_sha256": "3cb85dd085e2de9fb5c4d36344ff37b87d4669eef4b3f60824da31faf1cd8d3b"
+  },
+  "schema_donor": {
+    "package": "G04-series-active-parallel-v1.0.1",
+    "arm": "series",
+    "input_sha256": "3adc1cf0d75dd9418e816d0e06bdc502af5d37d975beafbba8f781c94d2763e8",
+    "usage": "RBDSeries and RBDSeriesStructure table schema only; no donor business rows or results"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [196, 197],
+    "rule": "An assembly containing reliability blocks needs its own RBD; the assembly then participates as a block in the system RBD. Series and parallel RBD forms have distinct failure semantics."
+  },
+  "input_sha256": {
+    "parallel": "76f28603d3aa4152b2430ef7db1f9164ad573ef97e2f2a703ab5d9401b4df6ca",
+    "series": "628609f68fa225063a74ebf43eb52108fe59a9901bfb4c1b90d0b1125190c16d"
+  },
+  "exact_diff_sha256": "477b5ceafde4935ad130a9c254c4dc00765a4e6f2bd98de2574c351478ebf756",
+  "configuration": {
+    "physical": "System TEACH-AIR-01 contains ASSY TEACH-ASSY-01, which contains POS-A/B/C; each position retains one TEACH-LRU-01. No ASSY failure or repair is configured.",
+    "system_rbd": "G04-SYS-ROOT series RBD has one TEACH-ASSY-01 block in G04-OPS.",
+    "parallel_arm": "ASSY mode points to active G04-ASSY-PARALLEL RBD, POS-A/B/C, NBREQ1, NBOP3, ONLM=N.",
+    "series_arm": "ASSY mode points to G04-ASSY-SERIES RBD requiring all POS-A/B/C; unused parent parallel rows are empty.",
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "mission": "One fixed 26-hour mission scheduled h8–34.",
+    "failure_modes": "Accepted parent: POS-A 300000 and POS-B 600000 per million OPHOURS; POS-C has no configured failure. BASE-01 half-hour direct CM remains unchanged."
+  },
+  "exact_delta": "Both arms insert the same physical ASSY, reparent the three positions, add an ASSY operational-mode row and a one-block system series RBD. Between arms only the ASSY RBID, owned RBD topology, and description differ. The mission, failures, repair, seed and report controls remain parent-identical.",
+  "pre_run_hypotheses": [
+    "Both nested-RBD arms import, roundtrip, and calculate with zero conversion errors and only reviewed diagnostics.",
+    "The parallel arm retains noncritical first and second position failures and completes the h8–34 mission; the series arm makes the first position failure critical and aborts the mission.",
+    "The first failing position and time match across arms before their paths diverge. Native events and the 72-bin report reconcile."
+  ],
+  "native_acceptance": [
+    "Two unique guarded session-0 SSH runs with queue, GUI identity, registry restoration, and frozen source/raw SHA-256 seals.",
+    "Both arms have exact populated-table roundtrip, zero conversion errors, reviewed warnings, and nonempty SXO/event log/report.",
+    "Matched first failure and distinct criticality/mission terminal state attributable to ASSY-owned RBD topology.",
+    "Independent read-only replay of sources, raw seals, events and reports separate from author implementation."
+  ],
+  "diagnostic_gate": "Preserve any rejected or semantically divergent arm as a diagnostic; revise only under a new candidate version and run IDs. Do not infer nested-RBD semantics from source alone.",
+  "limits": [
+    "One assembly, one operating mode, three positions, one seed and one replication; no general nesting or multi-assembly claim.",
+    "GUI RBD drawing and cross-engine equivalence remain unverified."
+  ]
+}
