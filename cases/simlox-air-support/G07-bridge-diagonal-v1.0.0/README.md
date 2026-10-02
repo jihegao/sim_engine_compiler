@@ -1,0 +1,9 @@
+# G07.var01: five-block bridge diagonal
+
+This paired case extends the accepted [G04 active 1-of-3 parent](../G04-three-branch-threshold-v1.0.0/cli-scope-signoff-2026-10-02.md). Both arms install five positions with identical mission, failure, repair, seed and report controls. The [contract](contract.json) and [exact table diff](exact-diff.json) pin every source change. The bridge arm assigns UL=B, LL=C, BR=E, UR=D and LR=A. The control includes all five positions but offers only ordinary upper B+D and lower C+A routes, with healthy E in series.
+
+Two guarded session-0 SSH runs completed zero-error/zero-note conversion with reviewed warning #108 and exact populated-table import/export roundtrips (22 bridge, 25 control). Both draw FM-POS-B at h8.62763 and FM-POS-A at h16.7498. B is noncritical in both. A is noncritical in the bridge arm, and the mission succeeds h34; it is critical in the control, which aborts h16.7498 and returns h23.2498. In the bridge source model, healthy C+E+D forms the sole remaining LL+BR+UR path after B/A fail. The event log proves the different system criticality and mission outcomes; it does not directly name which bridge path is active.
+
+Each 72-bin System/Stock report reconciles two failures, two half-hour direct system CM tasks, no stock movement and one terminal ready aircraft. [Author replay](author-validation.json) passes 183/183 checks and [independent read-only replay](review/independent-validation-2026-10-03.json) passes 5,831/5,831. The [evidence index](evidence-index.json) seals 26 local raw files; native files remain under ignored `runs/`.
+
+This tests one bridge-path combination under one mode, seed and replication. Other path combinations, online maintenance, nested bridges, GUI RBD view, population reliability and cross-engine parity remain unverified.
