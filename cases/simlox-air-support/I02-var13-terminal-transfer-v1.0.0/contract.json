@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-i02-var13-terminal-transfer-contract/v1",
+  "case_id": "I02",
+  "variant_id": "I02.var13",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "question": "What does the native endpoint show when a scheduled BETWEEN transfer is physically in transit or remains a transfer backorder?",
+  "arms": {
+    "transit": {
+      "accepted_parent": "I02-var04-between-delay-v1.0.0/native-input.json",
+      "parent_sha256": "607b5d5bc9d3c850b533b4bc50e202e6719c23182b47038fdf056222bfce2f39",
+      "input_sha256": "1ab184c30a5ff06b28bfa8b84dda423b639b51140b22a549cee09f05fb3a32d9",
+      "schedule_hour": 6,
+      "transfer_duration_hours": 2,
+      "endpoint_hour": 7,
+      "initial_source_stock": 1
+    },
+    "backorder": {
+      "accepted_parent": "I02-var05-zero-source-v1.0.0/native-input.json",
+      "parent_sha256": "00cebb18be952522b1bbfd1885edc40f2c9b4da148d000cf5326309360cc6453",
+      "input_sha256": "020faa03b794fc5a57a8c3ccd931731370316a925c52d1ef85ca5ee2042c2c64",
+      "schedule_hour": 2,
+      "transfer_duration_hours": 0,
+      "endpoint_hour": 3,
+      "initial_source_stock": 0
+    }
+  },
+  "controlled_delta": "Each accepted 36-hour parent changes Control.SIMPE, Control.RCEND, every ResultCollection.RCEND, ProblemDescription, and OperationProfile only. The three scheduled h8/h20/h32 mission rows are replaced by one referenced h0 zero-initiation row to avoid out-of-horizon mission converter errors; this uses the accepted D02.var05 v1.0.2 zero-IQTY syntax. ItemTransfer, stock, seed, collection interval, and all other model cells stay fixed. The arms are separately parented endpoint probes, not a matched one-factor pair against each other.",
+  "pre_run_hypotheses": [
+    "Both child inputs import, roundtrip exactly for 22 populated authored tables, convert with zero errors, and emit nonempty native output without changing the GUI. No mission initiation should occur.",
+    "Transit: the tracked unit leaves DEPOT-01 at h6; its scheduled h8 BASE-01 arrival lies outside the h7 simulation endpoint. The terminal inventory ledger must account for one in-transit physical unit without inventing a target stock arrival.",
+    "Backorder: the h2 request finds zero source stock; the h4 IN lies outside the h3 endpoint. The terminal ledger must retain an unsatisfied transfer request and must not invent a moved item.",
+    "If native endpoint truncation drops or transforms these states, publish the observed bounded behavior and classify any unsupported planned assertion explicitly."
+  ],
+  "acceptance_gate": "Guarded session-0 SSH runs, exact roundtrips, zero converter errors, source-bound raw closures, direct item/task event and station inventory checks, terminal ledger reconciliation, author replay, separate read-only review, and staged source-hash audit.",
+  "limits": ["one IID, two stations, one seed and two endpoint times", "profile deliberately suppresses missions, so this case makes no claim about transfer state under active aircraft demand", "separate accepted parents; no generalized transfer priority or horizon law", "GUI rendering and cross-engine parity unverified"]
+}
+
