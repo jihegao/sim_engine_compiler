@@ -1,0 +1,5 @@
+# G07.var05 v1.0.0 diagnostic — nested RBD mode rejected
+
+This frozen candidate replaced bridge BR=POS-B with series RBD `G07-BR-SERIES` containing POS-B and a new healthy POS-F, while leaving `RBDBridge.BROPM=G04-OPS`. Input SHA-256 is `80a9e30f8fb45df3a5f51ac040479a14ad6a91d1fe26e34d5aa153dbae2d8b2b` and exact seven-table diff SHA-256 is `8db48e1f360ffd98ae5a1dc6807bdfb10ca7579fe948e1b1ecd5892b2bff462e`.
+
+Guarded run `g07-var05-nested-v100-ssh-20261003-01` completed import/export, but native calculation returned converter error #462: an operational mode was provided for a reliability-block identifier. The runner classified it `converter_error_requires_review` and did not export a report or accept a simulation. Closure SHA-256 is `1fc793c3523028c110f8224498c57ea34e6025eb7a54b0934854d46c2155d144`; raw artifacts remain locally sealed under ignored `runs/`. This candidate has no publication-index entry. v1.0.1 freezes a distinct input with `BROPM` omitted for the nested RBD, plus a new contract and run ID.

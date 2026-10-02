@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-g07-var05-nested-bridge-contract/v1",
+  "case_id": "G07",
+  "variant_id": "G07.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G07-var03-bridge-failure-v1.0.0",
+    "arm": "brfirst",
+    "input_sha256": "b6c40f551355e63e7dc031311794b5dfe1fbda13164d4cffcfce12c1844e8dfd",
+    "run_id": "g07-var03-brfirst-v100-ssh-20261003-01",
+    "native_closure_sha256": "7b7149ad6f2561bf6098489547c1131375b1a3c71b8805e0695240223a4fe6b6"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [197, 198, 200, 451, 452],
+    "rule": "A bridge slot can be a system, item, materiel position, or another reliability block. A series block requires all of its constituent blocks."
+  },
+  "input_sha256": "80a9e30f8fb45df3a5f51ac040479a14ad6a91d1fe26e34d5aa153dbae2d8b2b",
+  "exact_diff_sha256": "8db48e1f360ffd98ae5a1dc6807bdfb10ca7579fe948e1b1ecd5892b2bff462e",
+  "configuration": {
+    "parent": "Accepted G07.var03 bridge UL=E, LL=A, BR=B, UR=C, LR=D; B/A OPHOURS failures; five installed LRUs, direct half-hour CM, h8–34 G04-OPS mission, seed1, one replication, horizon36.",
+    "nested": "Replace bridge BRBID POS-B with RBDSeries G07-BR-SERIES of POS-B and new healthy POS-F, each in G04-OPS. Install a sixth identical LRU at POS-F under the same system; do not add an F failure mode. The other four bridge slots, B/A failure rates, repairs, mission and seed stay fixed."
+  },
+  "pre_run_hypotheses": [
+    "Native import/export preserves all populated tables including both nested RBDSeriesStructure rows and calculates with zero errors or unreviewed diagnostics.",
+    "B failure renders the nested BR series nonfunctional while both direct bridge paths remain; A later failure leaves UL+UR. Any B/A failures during the mission are noncritical and the mission succeeds h34. Exact seeded timing/order is empirical rather than assumed matched.",
+    "Reports reconcile failure/repair and terminal ready state. Native logs may report system criticality but not name the nested RBD path or individual series state."
+  ],
+  "native_acceptance": [
+    "Unique guarded session-0 SSH run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table import/export roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Observed B/A event identities/criticality and mission/report reconciliation, with independent read-only replay."
+  ],
+  "diagnostic_gate": "Preserve rejected or unmatched runs as diagnostic and revise under new version/run IDs; do not claim nested state is directly logged if the event log lacks a path label.",
+  "limits": [
+    "One two-position series nested in BR, one healthy added position without a failure mode, one mission/seed/replication; other nested types and failure combinations remain unverified.",
+    "Nested block state and active path are source-bound inferences unless native output exposes them. No GUI drawing, online maintenance, population reliability or cross-engine claim."
+  ]
+}
