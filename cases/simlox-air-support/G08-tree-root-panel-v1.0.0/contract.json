@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-g08-tree-root-panel-contract/v1",
+  "case_id": "G08",
+  "variant_ids": ["G08.var01", "G08.var02"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G04-three-branch-threshold-v1.0.0",
+    "arm": "two",
+    "input_sha256": "38f85af4c121668eee3d31b07bb435b74571c5be6d63ddccff034549609ec319",
+    "run_id": "g04-kn-two-v100-ssh-20261002-01",
+    "native_closure_sha256": "a4c570f483bfb0943c0776d50e1e47d9e57bced1098f911ef76a9729d6fc9175"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [198, 200, 460, 461, 462],
+    "rule": "A tree evaluates complete root-to-leaf paths; NBREQ is the number of functional leaf paths required. Failure of a common mother disables every descendant path through it."
+  },
+  "input_sha256": {
+    "roota": "4920a7bc2ae01126ae27fdc97fde1d7f2c7d051545315b154f5491890969dd26",
+    "rootb": "145ae3ecc110a38a079904921cd41119fff3953745edc073ca703022aec4bbfa"
+  },
+  "exact_diff_sha256": "20554c4bc301f686082a47008a1f6e7d917ef16fbdef4bc78e4afe124a5b24fd",
+  "configuration": {
+    "common": "Accepted G04 three-position 2-of-3 active parallel parent with physical A/B failures, direct half-hour CM, h8–34 mission, seed1, one replication/horizon36. Add healthy POS-D with the same installed LRU and no D failure mode. Replace the parallel block with RBDTree G08-TREE NBREQ2 and three distinct leaves, each QTYPM1/G04-OPS. A/B failure modes/rates, repairs, mission, seed and all other business tables stay fixed.",
+    "roota": "POS-A is common mother of B, C and D. B failure removes one of three leaf paths, leaving two; A failure removes every path.",
+    "rootb": "POS-B is common mother of A, C and D. B failure removes every root-to-leaf path at once."
+  },
+  "pre_run_hypotheses": [
+    "Both tree arms import, export and calculate with zero converter errors or unreviewed diagnostics, preserving all populated source tables including RBDTree and RBDTreeStructure.",
+    "Under the fixed seed, the first B failure is noncritical in roota while two paths remain and critical in rootb because the common mother fails. If first-event identity or timing diverges, preserve the affected run as diagnostic and revise under a new version.",
+    "In roota, if A later fails while B remains failed, all paths become nonfunctional and the mission aborts. Native logs may show system criticality but not label individual tree paths."
+  ],
+  "native_acceptance": [
+    "Two unique guarded session-0 SSH runs with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed warnings, nonempty SXO/event log/report.",
+    "Direct event criticality and mission outcome contrasted between matched B/A physical failures, 72-bin System/Stock reconciliation and independent read-only replay."
+  ],
+  "diagnostic_gate": "Retain any rejected arm and its raw evidence as diagnostic; revise with fresh version/run IDs instead of retroactively changing the frozen hypothesis.",
+  "limits": [
+    "Single-root three-leaf tree with NBREQ2 and one common-mother permutation; multi-root, QTYPM>1, other NBREQ boundaries and nested switching remain separate G08 scope.",
+    "C/D healthy without failure modes; leaf-path identity is source-bound because native event logs may not name paths. No GUI drawing, online maintenance, population reliability or cross-engine claim."
+  ]
+}
