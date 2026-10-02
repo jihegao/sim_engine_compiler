@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-g03-var04-multilevel-bsid-contract/v1",
+  "case_id": "G03",
+  "variant_id": "G03.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G03-var03-simultaneous-base-variant-v1.0.0",
+    "input_sha256": "42f3d9db9b201b80314731091e3f3e1ea6b5dfefdc40addca5f75f33daf13c7f",
+    "run_id": "g03-var03-simultaneous-v100-ssh-20261003-01",
+    "native_closure_sha256": "bfbd9a4bddc99d59509baea73b8a4ce8c7015d73b7ba7b45b24bb7d503a0be04"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [253, 255, 256, 257],
+    "rule": "System.BSID names another defined system; the variant inherits that system's items, including through a second-level BSID chain if the installed converter accepts it. An undefined BSID is invalid. BSID is a static system type relationship, distinct from CBSID mission reconfiguration."
+  },
+  "input_sha256": {
+    "grandchild": "c1418d0c84eb1fb57fea955625932fd984cf5e5bdae69fc192893570199c4892",
+    "invalid-reference": "d9071f0923c4548ad847bf00a30f546bcf04f0dcf40d0dfecc32bd5f5beef6ec"
+  },
+  "exact_diff_sha256": "6ebe7852bc16171e83224005b62e1201e913fc821687597df0bc87dc0e469446",
+  "configuration": {
+    "base": "TEACH-AIR-01",
+    "first_variant": "TEACH-VAR-ADD with BSID TEACH-AIR-01 and TEACH-LRU-ADD",
+    "second_variant": "TEACH-VAR-GRAND with BSID TEACH-VAR-ADD",
+    "invalid_bsid": "TEACH-NO-SUCH",
+    "deployed": "TEACH-VAR-GRAND in TEACH-UNIT and TEACH-AIR-01 in TEACH-BASE-UNIT",
+    "item_rates_per_million_op_hours": {"TEACH-LRU-BASE": 0, "TEACH-LRU-ADD": 300000},
+    "seed": "1",
+    "replications": 1,
+    "horizon_hours": 36,
+    "station": "BASE-01",
+    "missions_per_unit": "scheduled starts h8, h20, h32"
+  },
+  "exact_delta": "Both arms add one System row and matching SystemRepair row for TEACH-VAR-GRAND, switch the existing variant deployment to GRAND, and change ProblemDescription. The invalid arm differs from the valid arm only in grandchild System.BSID TEACH-VAR-ADD -> TEACH-NO-SUCH and description. Item, ItemStructure, Unit, Operations, stock, mission, seed and report-control rows remain identical to accepted G03.var03.",
+  "pre_run_hypotheses": [
+    "For valid grandchild, the native event path should expose an inherited TEACH-LRU-ADD failure under deployed TEACH-VAR-GRAND, followed by local replacement and item repair, while the separately deployed zero-rate base succeeds on its own missions. The extra BSID level may alter seed-1 timing; no exact failure timestamp is prespecified.",
+    "For invalid-reference, import or conversion should reject the undefined BSID with an explicit diagnostic naming the reference or System row. Record the actual error code/phase; a four-byte or absent SXO and no report are negative evidence, not a successful simulation."
+  ],
+  "native_acceptance": [
+    "Each arm uses a unique guarded session-0 SSH run ID, host-wide mutex, GUI PID13340 checks, registry restoration and frozen source/raw seals.",
+    "Valid arm: exact populated-table roundtrip, zero converter errors/notes and reviewed warnings, nonempty SXO/log/report, separate base/grandchild mission identities, inherited added-LRU failure/replacement/repair if exposed, report and terminal reconciliation.",
+    "Invalid arm: source-level one-reference delta, exact native roundtrip if import succeeds, explicit native rejection at import or conversion, no valid behavioral report, and preserved diagnostic output and exit state.",
+    "Separate read-only reviewer replays both arms and raw seals independently of author validation."
+  ],
+  "diagnostic_gate": "If valid chain is rejected or lacks an observable inherited added-LRU path, retain the run as diagnostic and revise under a new candidate version/run ID. If invalid arm is accepted, retain it as a counterexample and do not publish the expected rejection claim without a new contract and run ID.",
+  "limits": [
+    "One two-level BSID chain, one undefined-reference comparator, one seed and one replication; no arbitrary-depth or cycle behavior claim.",
+    "No CBSID runtime conversion, GUI visual, alternate failure rates, population inference or cross-engine claim. Aggregate reports do not identify per-unit events."
+  ]
+}
