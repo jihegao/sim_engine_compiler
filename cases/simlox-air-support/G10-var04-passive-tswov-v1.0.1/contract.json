@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G10",
+  "case_version": "1.0.1-candidate",
+  "variant_id": "G10.var04",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G10",
+    "variant_id": "G10.var02",
+    "version": "1.0.0",
+    "input_sha256": "adb405c385f27778a35ad444aaa4e04e35eea9c20e2f206a06a36fb8c8c28ea5",
+    "native_run_id": "g10-var02-passive-zero-v100-ssh-20261003-01",
+    "native_closure_sha256": "1bc3ff2a2722b9ce1edf02cf0afe8926682cfd182de33c58f58eaffc6e0943f1",
+    "signoff_sha256": "e4958da6e125f8fa87e4ac31eadf4d416ad8eb2548af49bc8b09a19f7c45b5c4"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [201, 202, 462, 463, 464],
+    "source_boundary": "For PASSIVE links only NRLRQ links operate. Manual p464 defines positive TSWOV as the time to switch from a failed operating link to a functional passive link and restore the system; ACTIVE ignores TSWOV."
+  },
+  "native_input_sha256": "f9d2dfa12c052764566e7abcbf16f9a74a18db212338e8e3718f32ce1e788ff4",
+  "delta": {
+    "tables": ["ProblemDescription", "Redundancy"],
+    "mechanism": "Change only description and PASSIVE Redundancy.TSWOV from 0 to 0.05 hour in accepted one-of-two LRU links. NRL2, NRLRQ1, installed quantity, nested SRU, stock, repairs, missions, seed, repetition and horizon stay fixed."
+  },
+  "predeclared_native_acceptance": [
+    "Both changed fields roundtrip exactly across 22 populated tables, conversion errors are zero, and valid native event/report output is nonempty.",
+    "At least one operating-link failure induces a native switch start and completed stop separated by 0.05 modeled hour, with no switch abort before that stop. Specifically inspect the first mission before h10, rather than assuming its outcome.",
+    "Reconcile all mission outcomes, system replacement, nested LRU/SRU stock and repair chain, 72 System/Stock report bins, and terminal readiness. Compare to zero-delay parent only for outcomes supported by matched event populations.",
+    "Bind accepted parent, source, contract, invocation/closure and raw artifacts by SHA-256; independently replay without importing author validation."
+  ],
+  "excluded_diagnostic": {
+    "package": "G10-var04-passive-tswov-v1.0.0",
+    "run_id": "g10-var04-passive-tswov-v100-ssh-20261003-01",
+    "closure_sha256": "cca061bdfecef859184f0e76d9b05689a5aaf502028411ef70b5fad39044617f",
+    "reason": "TSWOV1 switch began h9.8829, but system returned from the first successful mission at h10 and native log aborted the switch before its due h10.8829. This run did not meet its predeclared completed one-hour switch gate and is not acceptance evidence for a completed positive delay."
+  },
+  "limits": [
+    "One PASSIVE 1-of-2 single-item group, TSWOV0.05 hour, one seed and 36-hour horizon; longer completed switch intervals, other NRLRQ thresholds, series links and online repair remain unverified.",
+    "Both links failing concurrently is not guaranteed. GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
