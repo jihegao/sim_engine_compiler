@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var01",
+    "package": "E10-var01-fixed-ondem-v1.0.1",
+    "arm": "fixed",
+    "input_sha256": "b879f410769882155f2bdb3d3dbac4cf2e43802992bf3730a50e8736c291701c",
+    "run_id": "e10-var01-fixed-v101-ssh-20261003-01",
+    "native_closure_sha256": "97465eeda1b3a9254db3ac023988218021880253ecacc7d3be9b4854d6b0544a",
+    "evidence_index_sha256": "a954cd7de83e68769eaae2d8d369bb0bacf01b434721d8e3a746ceddeb8a5383"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [317, 319, 327, 334, 335, 336],
+    "interpretation": "StationStructure.PFRMS binds a downward TransportPolicyProfile. The manual says FIXED transports run at specified times, queue between times, and cancel a departure if its queue is empty. This probe adds a FIXED h8 row before the parent's only known h10 demand; it retains the parent's h11 row."
+  },
+  "native_input_sha256": "938cf200d04072f67fb87cdce76ad29cdf9a9166d8b09c3f090579f60d878ac0",
+  "exact_diff_sha256": "8400fc5cb3c6273b6d32efbbd0837977458232ca75cbc39f43b7bc0b2e9f7b9a",
+  "configuration": {
+    "early_fixed_departure_hour": 8,
+    "demand_bearing_fixed_departure_hour": 11,
+    "downward_transport_hours": 2,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive only from the accepted E10.var01 FIXED input. Apart from ProblemDescription, add exactly one FIXED STIM=8 row to TransportPolicyProfile; preserve the original STIM=11 row and all other tables, columns, rows and configuration.",
+    "Under the fixed seed, independently establish the first failure and depot spare demand after h8 (expected near h9.8829 and h10). No downward physical transport may start or arrive at h8, and no spare stock may move before the demand. Distinguish absence of a physical transport from whether the native log prints a cancellation marker.",
+    "The demand after h8 must queue for the retained h11 FIXED departure, dispatch the same physical depot spare then, arrive at h13, remove the local backorder after three hours and restore aircraft readiness near h13.3333. The already accepted E10.var01 FIXED run is the comparator, not a replacement for this new native run.",
+    "Reconcile the unchanged upward faulty-item transport, depot repair/restock, mission results, all 72 half-hour SystemResults and StockTotalResults bins, and terminal physical inventory, backorder, in-transit and readiness against the accepted parent. If raw logs differ in harmless task numbering or diagnostic wording, identify the exact differences and recheck all physical and report invariants before acceptance.",
+    "Run the candidate through guarded session-0 SSH under Global\\SimloxIssue18NativeQueue; preserve GUI PID 13340 identity; roundtrip every authored row-containing table; require zero conversion errors, nonempty SXO/event log/JSON report, source and raw SHA seals, and a separate read-only reviewer replay without importing the author's checker."
+  ],
+  "limits": [
+    "One empty FIXED point, one subsequent demand-bearing FIXED point, one seed and one downward support link. This does not test repeated empty departures, multiple demands, same-time demand/departure priority, batching, nested profiles, GUI-only behavior or another engine.",
+    "The manual describes cancellation of an empty scheduled transport; the native log might not expose an explicit cancellation event. The claim must be restricted to the observed absence of a physical dispatch plus inventory and report reconciliation.",
+    "Full E10, E11 and Issue #18 remain open."
+  ]
+}
