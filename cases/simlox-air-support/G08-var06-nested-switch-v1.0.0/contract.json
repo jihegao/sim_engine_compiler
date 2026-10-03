@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-g08-nested-switch-contract/v1",
+  "case_id": "G08",
+  "variant_id": "G08.var06",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G08-var03-nbreq-boundary-v1.0.0",
+    "arm": "high",
+    "input_sha256": "644ddfbc8743abd9f76866bb3b558776dbda295e6fd27fde43b178daa1a62051",
+    "run_id": "g08-var03-high-v100-ssh-20261003-01",
+    "native_closure_sha256": "56dbca15cdb332ee1b397d614c54cdd906588722bfe64bd20c239e3488ef4056"
+  },
+  "schema_donor": {
+    "package": "G04-series-active-parallel-v1.0.0",
+    "input_sha256": "c9ec1d90f9e1ae6e6c972218fb406abd1b9ce4a76c7e34310372ebedac665e3e",
+    "role": "RBDParallel and RBDParallelStructure native JSON column schemas only"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [198, 455, 456, 457, 461],
+    "rule": "A tree leaf may be another RBD. A passive parallel nested leaf operates one prioritized B link and activates healthy E after B fails; TSWOV controls delay. RBDTree NBREQ counts functional leaves and a switch may affect tree and mission states."
+  },
+  "input_sha256": {
+    "instant": "0686189494672117a22399770dd9f3819d06981f7db5d190bbce0583ac66661a",
+    "delay05": "abe68e4824283278e6229ba916cc9c95b6e1999c24c75fce8fab5163d1c475ce"
+  },
+  "exact_diff_sha256": "ead29126f1094fb271d58f1062c892ab2cf477898ca7e17c911b9bc79e9d4aec",
+  "configuration": {
+    "parent": "Accepted A-root NBREQ3 three-leaf tree, where B first failure h8.62763 is critical and immediately aborts; B/A physical OPHOURS rates, h8-34 mission, direct half-hour CM, seed1, one replication/horizon36.",
+    "shared_nested": "Replace the A-to-B tree leaf with G08-BE-PASSIVE RBDParallel containing active POS-B priority1 and healthy passive POS-E priority2, NBREQ1/NBOP1/ONLM N. Add one physical POS-E LRU with G04-OPS, no E failure mode. Leave nested tree-edge SBOPM empty, while physical B/A rates, other tree paths, NBREQ3, mission, CM and seed remain fixed.",
+    "instant": "TSWOV 0 hours.",
+    "delay05": "TSWOV 0.5 hours; versus instant, only RBDParallel.TSWOV and description differ."
+  },
+  "pre_run_hypotheses": [
+    "Both arms convert with zero errors or unreviewed diagnostics, preserve populated authored tables on native import/export, and calculate nonempty SXO, event log and report.",
+    "Native event/mission/report evidence differs from the accepted parent or between the two nested arms in a way consistent with the source-defined B/E fallback. Exact B/A event timing/order and any switch or mission transition are empirical; do not assume common stochastic draws or that TSWOV affects mission outcome monotonically.",
+    "If native logs identify a switchover, reconcile its time with TSWOV and the 72-bin System report. If not, report only source-bound nested state and observed system criticality/mission outcome."
+  ],
+  "native_acceptance": [
+    "Two unique serial guarded session-0 SSH runs with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source and raw SHA-256 seals.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed warnings, nonempty SXO/event log/report, event and inventory reconciliation.",
+    "Independent read-only replay; classify any rejected or non-discriminating arm as diagnostic rather than silently adjusting the frozen contract."
+  ],
+  "diagnostic_gate": "Retain rejected or non-discriminating runs and raw evidence as diagnostic; revise with new version/run IDs rather than changing this frozen contract.",
+  "limits": [
+    "One passive two-link nested leaf under a single A-root NBREQ3 tree, zero and 0.5-hour switch times, one seed/replication; other nested types, link orders, failures of E and online maintenance untested.",
+    "Nested path state is source-bound unless native output names it. No GUI drawing, population reliability or cross-engine claim."
+  ]
+}
