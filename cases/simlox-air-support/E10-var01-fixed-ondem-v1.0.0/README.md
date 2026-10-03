@@ -1,0 +1,5 @@
+# E10.var01 v1.0.0 diagnostic: frozen contract NO-GO
+
+This first FIXED/ONDEM transport-policy candidate is retained as a diagnostic. Its two guarded native runs showed the expected physical contrast, but the frozen [contract](contract.json) required 72 `ResourceResults` bins. The source has no `Resource`, `ResourceAllocation` or `TaskResource` rows, and the native report contains no resource table. The separate [independent replay](review/independent-verdict.json) therefore concluded **NO-GO for full v1.0.0 acceptance**, with 791 of 792 checks passing. It did not waive or edit the unmet gate.
+
+Run IDs are `e10-var01-ondem-v100-ssh-20261003-01` and `e10-var01-fixed-v100-ssh-20261003-01`; raw files remain in ignored, immutable `runs/`. The [diagnostic evidence index](diagnostic-evidence-index.json) seals those files and this source. [v1.0.1](../E10-var01-fixed-ondem-v1.0.1/README.md) uses byte-identical business inputs with a corrected contract and fresh guarded runs. This diagnostic is not a separate publication entry.
