@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-g09-ncset-usert-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var06",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var03-default-noncritical-v1.0.1",
+    "arm": "omitted-nc-b1",
+    "input_sha256": "40210448fc3ccabc93c681272bf179026342202ba2ae36cfd8302769523a3e11",
+    "native_closure_sha256": "40cc0d7cdfcc3e2096371fceb7143e29a1d1ba69d494649ba7d1e164ab5cf119"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [
+      196,
+      200,
+      448,
+      449,
+      453,
+      454
+    ],
+    "rule": "Accepted parent selects G09-NC-B for BASIC with physical POS-B omitted from one-leaf selected series RBD and in NC set QTYNC1 USERT1. Manual p200 describes relative use at block levels, and pp453-454 describe NC-set item USERT; test zero versus one only. Native event log does not print selected NCID or rate."
+  },
+  "input_sha256": {
+    "ncuse0": "88b5908bd40085c4a481676422e7935ecfae34ce783c5930fc3c64e8d4f3c89d",
+    "ncuse1": "43480159b6a4368ef253acc2f958d8df0f02d4ca2137199a3494a9ab9ecfcc77"
+  },
+  "exact_diff_sha256": "6187346a978458d45dd6e1a4e7d3a72274bf2943dfe6220339feb6d8cb7e0b6f",
+  "configuration": {
+    "shared": "From accepted G09.var03 omitted-POS-B NC arm, keep NCID G09-NC-B, QTYNC1, physical installation, BASIC one-leaf A series, PAR active parallel, B OPHOURS FRQ600000, direct CM, h8 BASIC/h20 PAR/h32 BASIC missions, seed1/replication1/horizon36. Reduce A ordinary OPHOURS FRQ300000 to common positive1e-9 in both arms to avoid competing A faults.",
+    "pair": "Only ProblemDescription and RBDNonCriticalSetItems.POS-B.USERT differ within pair: zero versus one. PAR selected RBD and B item G04-OPS/USERT1 remain fixed."
+  },
+  "pre_run_hypotheses": [
+    "Both arms convert with zero errors/reviewed diagnostics and exact populated-table roundtrip; native SXO/event log/report are nonempty.",
+    "NC-set USERT0 suppresses POS-B ordinary failure exposure during BASIC; USERT1 produces at least one BASIC POS-B failure, classified noncritical under selected NCID/QTYNC1, without immediate BASIC abort. Exact seeded times and later events are empirical.",
+    "PAR POS-B remains on accepted G04-OPS/USERT1 and active parallel RBD; inspect its native event and outcome independently.",
+    "Reports reconcile missions, failure/repair, 72 aligned System/Stock bins, no stock movement and terminal readiness."
+  ],
+  "native_acceptance": [
+    "Two immutable guarded serial session-0 SSH runs with host mutex, GUI PID13340 identity, registry restoration, frozen parent/source fingerprints and 13 raw SHA-256 seals each.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed diagnostics, nonempty native output, exact event/mission/repair/report/ledger reconciliation.",
+    "Independent read-only replay of source-bound NC-set usage contrast; selected NCID and rate are not claimed as native-printed."
+  ],
+  "diagnostic_gate": "If zero arm has a BASIC B fault, full arm has none, or full BASIC B fault is critical and aborts, retain runs as diagnostic and revise under a new version/run ID without changing this contract.",
+  "limits": [
+    "Only zero versus one NC-set USERT at QTYNC1 on one omitted physical POS-B selected in BASIC, one seed/replication, common near-zero A rate. No fractional/more-than-one NC usage, other quantities, set overlaps, hierarchy, rate law, operation-dependent PM, GUI visuals or cross-engine parity.",
+    "Parent-to-panel changes common A FRQ; only within-panel B NC-set USERT and description differ. Interpret selected rate through frozen source, manual and roundtrip, not a native log rate field."
+  ]
+}
