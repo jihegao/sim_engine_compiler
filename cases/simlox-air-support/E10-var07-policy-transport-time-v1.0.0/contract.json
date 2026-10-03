@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var07",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var01",
+    "package": "E10-var01-fixed-ondem-v1.0.1",
+    "arm": "ondem",
+    "input_sha256": "1ad095c4d1d371c1a2b8e7bc61d629e59459eff90ff310e5c6d1945c4cf70882",
+    "run_id": "e10-var01-ondem-v101-ssh-20261003-01",
+    "native_closure_sha256": "867fe911aa502e4fb55ae15a5488e2f6e132932f77b26ce725e552fe859e5d07",
+    "evidence_index_sha256": "a954cd7de83e68769eaae2d8d369bb0bacf01b434721d8e3a746ceddeb8a5383"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [331, 334, 335, 336],
+    "interpretation": "Manual physical p336 says basic ONDEM TransportPolicyProfile.TPTIM overrides StationStructure.TFRMS, while TPTIMD may reference predefined <EXP>; when both are set, TPTIM is the distribution mean. The installed dictionary identifies TPTIM as hours and TPTIMD as the predefined <EXP> or a TimeDistributions.DISTID. This candidate keeps the link TFRMS=2 hours but sets policy TPTIM=3 in both arms, then adds <EXP> to the second arm only. One fixed-seed exponential draw can verify binding and event/report consistency but cannot establish a population mean or distribution shape."
+  },
+  "native_inputs_sha256": {
+    "det3": "d04a872d969ecad01cfaafe23b1c8817b16990c3b4a958a764bce3b74d881497",
+    "exp3": "5f372d2b64d089ca896a76c88bd475b50b55c4ff596e185733bc1f9596074874"
+  },
+  "exact_diff_sha256": "85518533ea4310189f333256e617e3129b134a1a7c9ffc9e4f532715ab1e6608",
+  "configuration": {
+    "policy": "ONDEM",
+    "policy_transport_mean_hours": 3,
+    "link_transport_hours": 2,
+    "distribution_arms": {"det3": null, "exp3": "<EXP>"},
+    "upward_transport_hours": 2,
+    "depot_opening_stock": 1,
+    "base_opening_stock": 0,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive both arms only from the accepted E10.var01 ONDEM input. Change its ProblemDescription and TransportPolicyProfile.TPTIM 2 to 3; leave StationStructure.TFRMS=2, binding, stock, failure/repair, mission, seed, horizon, other policy fields and upstream transport unchanged. The arms differ only in ProblemDescription and TPTIMD null versus <EXP>.",
+    "The deterministic arm must show the same first failure near h9.8829, immediate h10 ONDEM spare dispatch, exactly three-hour physical downward transport, base arrival h13, local backorder wait three hours and subsequent aircraft readiness consistent with its unchanged 0.333333-hour fit. This distinguishes policy TPTIM=3 from link TFRMS=2 and the accepted parent's h12 arrival.",
+    "The exponential arm must import and calculate with zero converter errors, show one physical downward spare shipment with a positive, finite native logged transport-time realization distinct from 3 hours, and have arrival minus departure, local backorder wait and the corresponding report time series agree with that logged realization. The stored TPTIM=3 is a specified mean, not an expected exact single-draw time; no statistical mean or distribution-shape conclusion is permitted.",
+    "For both arms trace physical spare and failed-item identities, one local/depot demand, downward and unchanged upward transport, repair/restock, backorder, mission outcomes, 72 half-hour System/Stock report bins, terminal readiness/stock/backorder/in-transit and absence of authored resources. Explain any random-clock change in the exponential arm or classify the contrast NO-GO if the single-demand boundary is confounded.",
+    "Use fresh unique guarded session-0 SSH runs under Global\\SimloxIssue18NativeQueue; preserve GUI PID13340; roundtrip every authored populated table; require converter Errors0, nonempty SXO/log/report, source and raw SHA-256 closure, and separate read-only independent replay without importing the author's checker."
+  ],
+  "limits": [
+    "One fixed seed, one demand and one shared general downward link. A single <EXP> draw cannot validate its theoretical mean, variance or shape, and does not generalize to multiple queued requests, nested profiles, item-specific transport or other distributions.",
+    "GUI visual and cross-engine behavior remain unverified. Full E10, E11 and Issue #18 remain open."
+  ]
+}
