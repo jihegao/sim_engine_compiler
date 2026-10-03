@@ -1,0 +1,61 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E11",
+  "variant_id": "E11.var02",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E11",
+    "package": "E11-autonomous-support-gap-v1.0.0",
+    "input_sha256": "d1fc66999c081acb6f29e58e5083cee58c317f0c3e0597587037efcb58a2cfd3",
+    "run_id": "e11-base-autom-v100-ssh-20261003-01",
+    "native_closure_sha256": "2885c774b1551225c5fbcafc4c0b6669884600a0f03696ac29a3eba2ac34dd2c",
+    "evidence_index_sha256": "41c59ba6affcd0edf2ad95ae4d5fe96e887b406b9aa69e040d28678c1848f135"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [193, 194, 323, 334, 335, 336],
+    "interpretation": "The installed manual uses a matched bidirectional ONDEM transport profile to connect an AUTOM station to support. It does not establish event priority for a demand at the exact end of an ONDEM period. The native log and report decide this one h10 boundary under the frozen seed."
+  },
+  "arms": {
+    "after": {
+      "source": "accepted_parent",
+      "gap_hours": [9, 11],
+      "h10_demand_relation": "after_disconnect"
+    },
+    "at": {
+      "native_input_sha256": "406729b27a08870cc076dcdb26fd0772bb04f3fe23610cc7514201212c8794de",
+      "gap_hours": [10, 12],
+      "h10_demand_relation": "at_disconnect"
+    },
+    "before": {
+      "native_input_sha256": "e917463caefdadc3159752656ff07aded94cc0504d0092a81d74977a41f0fe92",
+      "gap_hours": [11, 13],
+      "h10_demand_relation": "before_disconnect"
+    }
+  },
+  "exact_diff_sha256": "eb4055ed902758dfe9c74f88855bafe542d6cc7838708742ad0f79390bb0787b",
+  "configuration": {
+    "local_stock": 0,
+    "depot_stock": 1,
+    "nominal_first_demand_hour": 10,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive both child arms exactly from accepted E11 base. Change only ProblemDescription and the two ONDEM row boundaries: before has h0-11 plus h13-36; at has h0-10 plus h12-36; accepted after control has h0-9 plus h11-36. Preserve matched PFRMS/PTOMS, AUTOM type, zero local spare, one depot spare, seed, first-fault source, operations, repair, ordinary transport inputs and collection. Require exact authored-table roundtrip for both arms.",
+    "Both native runs must convert with zero errors, have nonempty valid SXO, event log and JSON report, and explain all warnings. Verify the same first fault near h9.8829 and demand at h10; divergence before the first demand invalidates a simple boundary contrast until explained.",
+    "For before-disconnect, native events should show the h10 demand while connected and physical zero-hour depot spare arrival before h11 isolation, with no accumulated first-demand backorder. If not, classify this arm as a diagnostic rather than asserting immediate support.",
+    "For at-disconnect, do not assume same-time priority. Enumerate h10 policy, demand, task creation/start/arrival and inventory event order. Accept only a source-bound observation with unambiguous evidence of whether the h10 request moved at h10 or waited to h12. A missing marker or conflicting report makes exact-boundary behavior unverified.",
+    "Use accepted after-disconnect E11 parent for h9-11 gap and h11 movement. Across all three arms, reconcile physical item identity and both directions of transport, backorders, repair/restock, every mission, all 72 SystemResults and StockTotalResults half-hour bins, summary metrics, terminal readiness/stock/backorder/in-transit, and absent resources. Do not extrapolate to other same-time event types or seeds.",
+    "Run each child under guarded session-0 SSH and Global\\SimloxIssue18NativeQueue, preserving active GUI PID 13340 in every hidden native step. Seal raw artifacts; require separate independent read-only replay of source, each native run, all report bins and cross-arm claims without importing author implementation."
+  ],
+  "limits": [
+    "One fixed h10 demand, one ONDEM policy pair, one two-hour gap per arm, one seed and one link. No claim about demand exactly at reconnection, repeated requests, local stock, other profiles, GUI visual behavior or cross-engine parity.",
+    "Other E11 variants and Issue #18 remain open."
+  ]
+}
