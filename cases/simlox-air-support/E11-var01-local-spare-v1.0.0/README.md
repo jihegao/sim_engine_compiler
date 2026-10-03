@@ -1,0 +1,7 @@
+# E11.var01: one local spare during autonomous isolation, v1.0.0
+
+This fixed-seed case adds one `TEACH-LRU-01` opening spare at autonomous `BASE-01` to the [accepted E11 empty-local-stock base](../E11-autonomous-support-gap-v1.0.0/cli-scope-signoff-2026-10-03.md). Only `StockAllocation.STSIZ` 0→1 and the description change. The h9–11 isolation, h11 reconnection, policy, depot stock, system and item repair, missions and seed remain identical. See the [frozen input](native-input.json), [exact diff](exact-diff.json), and [pre-run contract](contract.json).
+
+The guarded native event log shows local spare ID1 taken at h10 for the failed aircraft, with no local backorder; the aircraft becomes ready at h10.5, before reconnection. A distinct depot spare ID0 is reserved to replenish base stock and remains queued until h11, when it moves with zero transport time. Failed item ID2 also moves upward at h11, repairs at the depot and restocks at h12. The depot order is inventory replenishment despite immediate system repair. The [signoff](cli-scope-signoff-2026-10-03.md) and [evidence index](evidence-index.json) record the complete result and local raw seals.
+
+Replay the [author checker](validate_native.py) and [independent read-only checker](review/independent_replay.py) against ignored `runs/e11-var01-local-v100-ssh-20261003-01/`. This one-fault contrast establishes local sufficiency under one seed. It does not establish repeated-fault exhaustion, exact h9/h11 boundary priority, larger stock policies, GUI visual behavior or cross-engine parity.
