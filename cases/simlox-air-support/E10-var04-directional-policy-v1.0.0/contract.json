@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var01",
+    "package": "E10-var01-fixed-ondem-v1.0.1",
+    "arm": "ondem",
+    "input_sha256": "1ad095c4d1d371c1a2b8e7bc61d629e59459eff90ff310e5c6d1945c4cf70882",
+    "run_id": "e10-var01-ondem-v101-ssh-20261003-01",
+    "native_closure_sha256": "867fe911aa502e4fb55ae15a5488e2f6e132932f77b26ce725e552fe859e5d07",
+    "evidence_index_sha256": "a954cd7de83e68769eaae2d8d369bb0bacf01b434721d8e3a746ceddeb8a5383"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [317, 319, 327, 334, 335, 336],
+    "interpretation": "StationStructure.PFRMS and PTOMS independently bind downward and upward TransportPolicyProfile IDs. The accepted parent's DOWN-POLICY remains ONDEM h0-36. This child binds UP-POLICY FIXED h11 only, keeping transport time two hours in both directions; parent TTOMS and new upward TPTIM are equal, so this probe does not test time-override precedence."
+  },
+  "native_input_sha256": "39950458b008c6ecc8b845a4392e8d1390acc6b51928d33139d9e9fdf8b3731f",
+  "exact_diff_sha256": "8d70ac57552672ff4783220aabf743a3b6ca9c4bc1778a534c60e80314cc4b00",
+  "configuration": {
+    "downward_policy": "ONDEM",
+    "downward_window_hours": [0, 36],
+    "upward_policy": "FIXED",
+    "upward_departure_hour": 11,
+    "transport_hours_each_direction": 2,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive only from accepted E10.var01 ONDEM. Preserve its downward PFRMS=DOWN-POLICY and ONDEM h0-36 row; set only StationStructure.PTOMS=UP-POLICY, add UP-POLICY/FIXED/STIM=11/TPTIM=2 profile row, and change ProblemDescription. All stock, fault/repair, seed, missions and times remain identical.",
+    "Under the parent's fixed seed, the first critical LRU failure should remain near h9.8829. Downward physical spare ID0 demand and ONDEM shipment should occur near h10, arrive at base h12, close the local backorder after two hours and restore the aircraft near h12.3333. The new upward policy must not delay or change that downward path.",
+    "The failed LRU ID1 should be removed at base near h10.1667. Unlike the parent's immediate upward shipment at h10.1667, its new upward FIXED request should queue until h11, depart then, arrive at depot near h13, undergo the unchanged one-hour direct repair and restock near h14. If the wrong direction is delayed or the item is dropped, classify this frozen candidate NO-GO.",
+    "Reconcile every native item/transport/repair event, 72 half-hour SystemResults and StockTotalResults bins, first and later mission outcomes, resource-demand absence and terminal physical inventory, backorder, in-transit and aircraft readiness. Compare the accepted ONDEM parent; explain report changes or exact equality rather than infer event behavior from aggregate results.",
+    "Run guarded session-0 SSH under Global\\SimloxIssue18NativeQueue, preserve GUI PID 13340 identity, roundtrip every authored populated table, require zero conversion errors and nonempty SXO/event log/report, seal source and raw SHA-256, and obtain a separate read-only reviewer replay without importing the author's checker."
+  ],
+  "limits": [
+    "One general station link, one upward failed-item request, one downward spare demand, one FIXED point, one seed. No multiple demands, repeated departures, item-specific policy, time-override precedence, MINBS, nested profile, GUI-specific behavior or cross-engine claim.",
+    "Full E10, E11 and Issue #18 remain open."
+  ]
+}
