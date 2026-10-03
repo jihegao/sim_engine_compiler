@@ -1,0 +1,26 @@
+{
+  "schema": "simlox-f02-paired-excluded-diagnostic/v1",
+  "publication_state": "excluded_diagnostic",
+  "decision": "Native execution and exact roundtrip succeeded, but the risk arm did not exercise the frozen depot-to-base LRU supply gate; this version cannot be accepted as F02.var01/F02.var02 evidence.",
+  "runs": {
+    "deterministic": {
+      "run_id": "f02-pair-v100-det-ssh-20261004-01",
+      "closure_sha256": "93f3a5734684681315ec475bc93b313cf857f7de872e437618e63f3bbf5e57d5",
+      "model_log_sha256": "27ba08bab0199187fed36244af1ef28aedc1465effdc73e7142c5652fb43bb58",
+      "report_sha256": "bc8432888ba2c3fe3e5cf637b147af81271536faef9a1eff13df326bca862072"
+    },
+    "risk": {
+      "run_id": "f02-pair-v100-risk-ssh-20261004-01",
+      "closure_sha256": "1e80331f54e4d3b3eef22f0b54b8633c1332174f5087b1e2fc32e6ed1ecd6378",
+      "model_log_sha256": "ea8feff16a27f397077e062b7622103b0c1c5c63f0eb529bc7557d955d17c01b",
+      "report_sha256": "8cb51ffc1d38b077b89d538a257445482e575034ff19d912447848cfaabb7564"
+    }
+  },
+  "observed": [
+    "Both arms: 0 converter errors, one known warning #108, exact populated authored-table roundtrip, 108 half-hour SystemResults bins.",
+    "Risk arm: critical aircraft failure at 46.4896, base LRU backorder at 47.9896, local LRU/SRU repair begins at 48.1563, repaired LRU clears backorder at 48.9063, repaired SRU returns to base stock at 49.5313.",
+    "No depot-to-base physical LRU transfer occurred before local repair fulfilled the base backorder.",
+    "Both arms stop at hour 54 with a calendar PM started at 53.5; terminal in-progress state therefore requires explicit classification."
+  ],
+  "next_version_hypothesis": "Lengthen the local LRU-to-SRU replacement duration in a fresh version so a two-hour depot LRU transfer can outrun local repair; extend the horizon to allow the second-day PM ledger to close. This is unverified until a new frozen contract and native run."
+}
