@@ -1,0 +1,62 @@
+{
+  "schema": "simlox-f01-var04-two-repair-levels-pre-run-contract/v1",
+  "case_id": "F01",
+  "variant_id": "F01.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "one local aircraft/LRU replacement level and one depot SRU direct-repair level in the accepted nested chain",
+  "accepted_behavior_parent": {
+    "package": "F01-var01-two-three-level-v1.0.1",
+    "input": "three-level-input.json",
+    "input_sha256": "ae0181581822422aaf3c8bc5b7c0352c8bf31187178408e4f211102e438c77b5",
+    "run_id": "f01-var01-three-v101-ssh-20261004-01",
+    "closure_sha256": "0b7236d6bff3fd7dc19bf89b4a1496cf036ce48ddfa3dc329ed287fe79d510c3",
+    "evidence_index_sha256": "80f9d8a91c8a45221f06574815f28cf7000b4f1fec30a6457859c241e7cad178"
+  },
+  "accepted_level_allocation_reference": {
+    "package": "I01-var03-level-filter-v1.0.0",
+    "input": "basic-base-input.json",
+    "input_sha256": "483a99ec2c4512f2b02c7f67f08e76b7ac218470ba64b0ecadc91c1db4a9daae",
+    "run_id": "i01-var03-level-basic-base-v100-ssh-20261002-01",
+    "closure_sha256": "4e22782b377428ea05006446817f25a39d967bfeb68317805b48f0a9d505edc7",
+    "evidence_index_sha256": "532fae7b72d05e921d9f481280056ab48abe4300b013ce4312479b9eda9de64e"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_manual_pages": [237, 240, 241, 247, 338, 339, 439, 440, 441, 442, 443, 444, 445],
+    "boundary": "System and LRU replacements stay at BASE-01. The failed SRU uses a task with category SRU-CM, level DEPOT (LEVL=2), and one AIR_BASIC MaintenanceAllocation to DEPOT-01. The BASE-01 to DEPOT-01 StationStructure specifies two hours each way. A separate zero-sized DEPOT-01 SRU StockAllocation represents the repair station; local BASE-01 SRU spare remains one."
+  },
+  "native_input_sha256": "d799d36fede4a49a8b9bd015e6b9bc5ea3c3aef84e5806f42db97077bc7026f1",
+  "exact_diff_sha256": "793ea06f37f8858fc584f63ad0c1ed9204913e1bf7ab0e628d9636afc782fbb1",
+  "delta": "From F01.var01 accepted three-level input, add DEPOT-01 and the accepted two-hour station link; reference SRU direct repair task F01-SRU-DIRP from BASE and DEPOT ItemRepair rows; set task category SRU-CM and level DEPOT=2; allocate that category/level at DEPOT-01 and add zero depot SRU stock. Physical ItemStructure, traditional System/Item FRT, mission, seed, horizon, LRU/SRU stock at BASE, SystemRepair and ItemReplacement remain byte-identical. The original parent is the one-level all-local comparator; changed routing may change downstream stochastic state, so matching failure times are not an acceptance assumption.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32],
+    "aircraft_count": 1,
+    "system_lru_sru_frt_per_million_ophours": 1200000,
+    "lru_opening_base_stock": 1,
+    "sru_opening_base_stock": 1,
+    "sru_opening_depot_stock": 0,
+    "base_depot_transport_hours_each_way": 2.0,
+    "lru_sru_specific_surp_hours_at_base": 0.75,
+    "sru_direct_repair_hours_at_depot": 1.0,
+    "task_level_base": 1,
+    "task_level_depot": 2
+  },
+  "pre_run_hypotheses": [
+    "All 25 populated authored tables import and export exactly, convert with zero errors, and yield valid nonempty SXI, SXO, event log and 72 half-hour System/Stock report rows.",
+    "At least two installed LRU failures produce aircraft-level LRU demands. Removed LRUs expose failed SRUs and receive local SRU replacements in their item-specific 0.75-hour SURP, then return to LRU stock; at least one repaired physical LRU serves a later system demand.",
+    "Each removed failed SRU travels from BASE-01 to DEPOT-01, receives the referenced level-2 F01-SRU-DIRP one-hour repair, and returns to BASE-01 stock after the two-hour return route; at least one repaired physical SRU serves a later LRU repair.",
+    "No LRU or aircraft repair is silently moved to DEPOT-01, and no SRU direct repair starts at BASE-01. Track individual material IDs, site positions, stock transactions, transport, backorders, task resources and terminal in-transit items.",
+    "Reconcile every mission result, failure, repair, 72 report intervals and terminal readiness/stock with raw events. Compare the local parent descriptively, without assuming unchanged random times or aggregate equality."
+  ],
+  "decision_rule": "Accept this bounded two-location/two-level combination only if all source, native, roundtrip, event, physical stock, report and terminal assertions pass and a separate read-only reviewer independently replays the raw evidence. If the native model does not express the frozen routing or misses the repeated reissue gate, retain it as a sealed diagnostic and design a fresh version; do not change this contract after observing the run.",
+  "limits": [
+    "One aircraft, one LRU/SRU chain, one base and one depot, one seed and a 36-hour horizon; no ASSY, PM, explicit failure-mode CM, resource scarcity, other levels or station networks.",
+    "The model tests one task category/level allocation to depot, not general two-level maintenance selection or issue #403's nested replacement boundary.",
+    "GUI-only behavior and cross-engine equivalence remain unverified."
+  ]
+}
