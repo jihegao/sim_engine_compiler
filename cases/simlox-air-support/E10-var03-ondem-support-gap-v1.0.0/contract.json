@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var03",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var01",
+    "package": "E10-var01-fixed-ondem-v1.0.1",
+    "arm": "ondem",
+    "input_sha256": "1ad095c4d1d371c1a2b8e7bc61d629e59459eff90ff310e5c6d1945c4cf70882",
+    "run_id": "e10-var01-ondem-v101-ssh-20261003-01",
+    "native_closure_sha256": "867fe911aa502e4fb55ae15a5488e2f6e132932f77b26ce725e552fe859e5d07",
+    "evidence_index_sha256": "a954cd7de83e68769eaae2d8d369bb0bacf01b434721d8e3a746ceddeb8a5383"
+  },
+  "accepted_comparator": {
+    "case_id": "E10.var01",
+    "package": "E10-var01-fixed-ondem-v1.0.1",
+    "arm": "fixed",
+    "input_sha256": "b879f410769882155f2bdb3d3dbac4cf2e43802992bf3730a50e8736c291701c",
+    "run_id": "e10-var01-fixed-v101-ssh-20261003-01",
+    "native_closure_sha256": "97465eeda1b3a9254db3ac023988218021880253ecacc7d3be9b4854d6b0544a"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [317, 319, 327, 334, 335, 336],
+    "interpretation": "StationStructure.PFRMS binds a downward TransportPolicyProfile. The manual says ONDEM transports run on demand within their DURN interval, and policy profiles can model periods with no support. Nonoverlapping ONDEM rows h0-9 and h11-36 leave no downward policy during h9-11; whether an h10 queued demand resumes at h11 must be proved by native events rather than assumed from this description."
+  },
+  "native_input_sha256": "c79475655e9b0e0e2e5bd4aa412148b2044cb662521d95824b2276586ad712e8",
+  "exact_diff_sha256": "805401842153d61d839f4ad31771d1d5a2ce6b7d3ae675672c3c5ad72680266c",
+  "configuration": {
+    "first_ondem_window_hours": [0, 9],
+    "support_gap_hours": [9, 11],
+    "second_ondem_window_hours": [11, 36],
+    "downward_transport_hours": 2,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive only from accepted E10.var01 ONDEM. Apart from ProblemDescription, shorten its one ONDEM row from DURN=36 to DURN=9 and add a second ONDEM row STIM=11,DURN=25. Preserve every other table, row, key, stock, failure/repair, seed, mission and upward transport. The windows must not overlap.",
+    "The fixed seed should retain the first LRU failure near h9.8829 and sole local/depot spare demand at h10. There must be no physical downward spare dispatch or arrival during the h9-11 unsupported interval. Identify whether the native log explicitly queues, defers, cancels, or drops that demand; absence of a dispatch alone is insufficient.",
+    "For acceptance, the same physical depot spare ID0 must remain committed or queued and dispatch no earlier than reopened ONDEM support at h11, arrive at base near h13, close the local backorder after about three hours and restore the aircraft near h13.3333. A dropped demand or no resumption is a frozen-contract NO-GO diagnostic requiring a new pre-run version, not an accepted result.",
+    "Reconcile upward failed-item transfer, depot repair/restock, all later missions, every 72 half-hour SystemResults and StockTotalResults bins, and terminal physical inventory, backorder, in-transit and readiness. Compare the accepted ONDEM parent and h11 FIXED comparator: if the new delivery path is h11-h13, the outcome/report bins should match FIXED, while the ONDEM parent has h10-h12 delivery. Explain all event-log and warning differences.",
+    "Run the candidate through guarded session-0 SSH under Global\\SimloxIssue18NativeQueue; preserve GUI PID 13340 identity; roundtrip every authored row-containing table; require zero conversion errors, nonempty SXO/event log/JSON report, source and raw SHA seals, and a separate read-only reviewer replay without importing the author's checker."
+  ],
+  "limits": [
+    "One h9-11 gap, one demand during it, one reopening, one seed and one downward general link. This does not test multiple queued demands, a demand exactly on a window boundary, no reopening before the horizon, autonomous-station semantics, batching, nested policies, GUI-specific behavior or another engine.",
+    "Full E10, E11 and Issue #18 remain open."
+  ]
+}
