@@ -1,0 +1,9 @@
+# G09.var02 omitted mission mode
+
+This bounded case starts from accepted [G09.var01](../G09-var01-mission-rbd-v1.0.0/cli-scope-signoff-2026-10-03.md). The only business changes are the description and deletion of the `PAR-MISSION` / `TEACH-AIR-01` row from `MissionOperationalModes`. BASIC remains explicitly mapped to the two-position series block. The h8/h20/h32 mission schedule, both source RBDs, physical POS-A/POS-B modes and rates, direct CM, seed, replication, and h36 horizon are fixed. The [contract](contract.json) and [exact diff](exact-diff.json) seal that comparison.
+
+The installed SIMLOX manual, physical p196, says that when a mission-system mode assignment is absent, `<DEFAULT>` is assumed and all items/subsystems operate in series. In the native child run, POS-B at h20.8222 is critical and aborts PAR-MISSION. The accepted explicit-parallel parent has the same POS-B event time and identity, classifies it noncritical, and succeeds at h22. BASIC at h8/h32 keeps the parent critical-abort outcomes. The child event log does not print the selected mode; default selection is supported by the manual, frozen source and observed outcome.
+
+The guarded session-0 SSH calculation had zero converter errors/notes and reviewed warning #108. Exact native import/export preserved 25 populated tables; 13 raw files are sealed locally. The 72-bin System/Stock report reconciles three failures, three direct CM repairs, zero successful missions, no stock movement and terminal ready1. [Author replay](author-validation.json) passes 100/100; [independent read-only review](review/independent-validation-2026-10-03.json) passes 2,956/2,956.
+
+This is one omitted row, one aircraft and one seed/replication. Matched times are observations in these runs, not a general random-stream law. Other default-mode combinations, NC sets, usage boundaries, GUI visual behavior, population reliability and cross-engine parity remain open.
