@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G10",
+  "case_version": "1.0.0-candidate",
+  "variant_id": "G10.var02",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G10",
+    "variant_id": "G10.var01",
+    "version": "1.0.0",
+    "input_sha256": "7e990242656119f9424fcf390ae8c46eb23e4751dbe6fb44bd80b3bb4cf307d1",
+    "native_run_id": "g10-var01-active-v100-ssh-20261003-01",
+    "native_closure_sha256": "f9856b90d82f0012102c2e1a1b6c0841b09c462b7bd8a486b7606a5e4de6247e",
+    "signoff_sha256": "63a1c4b0e2532afd4d6d503d2bcd003e837ccf92bf1c554ba88549207369a6b2"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [201, 202, 462, 463, 464],
+    "source_boundary": "In PASSIVE redundancy only the minimum NRLRQ links operate and generate failures; another functional link is activated after an operating link fails. TSWOV=0 gives no modeled switchover delay. A failed link is noncritical while at least NRLRQ links remain functional."
+  },
+  "native_input_sha256": "adb405c385f27778a35ad444aaa4e04e35eea9c20e2f206a06a36fb8c8c28ea5",
+  "delta": {
+    "tables": ["ProblemDescription", "Redundancy"],
+    "mechanism": "Change only the descriptive text and ACPA from ACTIVE to PASSIVE in the accepted 1-of-2 LRU link group. Keep TSWOV0, installed quantity, nested SRU, stock, repair, mission, seed, repetition and horizon fixed."
+  },
+  "predeclared_native_acceptance": [
+    "The two changed fields roundtrip exactly across all 22 populated tables, conversion errors are zero, and valid nonempty native events and report are produced.",
+    "At least one operating link fails in the fixed-seed run; while the other remains functional, the failure is noncritical and does not itself abort the mission. Zero TSWOV yields no positive switch interval; inspect mission effect and terminal state from native events and report.",
+    "Reconcile link failure identities, system maintenance, LRU/SRU stock and repair chain, mission outcomes, 72 System/Stock report bins and terminal state. Compare to ACTIVE parent only where inputs and event populations warrant; do not infer a general failure-rate law from one seed.",
+    "Bind accepted parent, source, contract, invocation/closure and raw artifacts by SHA-256; independently replay without importing author validation."
+  ],
+  "limits": [
+    "One PASSIVE 1-of-2 single-item group, zero TSWOV, one seed and 36-hour horizon only; positive switch delay, other NRLRQ values, two-item series links and online repair remain unverified.",
+    "Both links failing concurrently is not guaranteed by this fixed-seed run. GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
