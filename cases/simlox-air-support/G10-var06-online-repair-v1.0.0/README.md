@@ -1,0 +1,5 @@
+# G10.var06 — on-mission redundancy repair
+
+This bounded installed-SIMLOX CLI case derives from accepted [G10.var03](../G10-var03-nrlrq-crossing-v1.0.0/cli-scope-signoff-2026-10-03.md). It retains the ACTIVE 1-of-2 traditional LRU redundancy, local replacement, stocks, seed and 36-hour horizon, and changes the mission to one 26-hour continuous operation using a mission recipe checked against accepted [G05.var04](../G05-unavailable-standby-v1.0.3/cli-scope-signoff-2026-10-02.md). The [contract](contract.json) and [exact diff](exact-diff.json) freeze this scope.
+
+The [guarded runner](run_native_ssh.ps1) uses session-0 SSH, a host-wide mutex and preserved GUI PID13340. Native source, SXI/SXO, logs, report, invocation and closure remain in ignored `runs/` and are sealed in the [evidence index](evidence-index.json). The [author validation](review/author-validation-2026-10-03.json) and [independent replay](review/independent-readonly-2026-10-03.json) check source identity, physical events, repairs, stock and backorder ledgers, and every half-hour report bin. The [CLI scope signoff](cli-scope-signoff-2026-10-03.md) gives the observed behavior and limits.
