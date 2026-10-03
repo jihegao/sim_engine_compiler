@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E11",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var03",
+    "package": "E10-var03-ondem-support-gap-v1.0.0",
+    "input_sha256": "c79475655e9b0e0e2e5bd4aa412148b2044cb662521d95824b2276586ad712e8",
+    "run_id": "e10-var03-gap-v100-ssh-20261003-01",
+    "native_closure_sha256": "a179aa56096ce3d813505a8ee98c261cd6f57d5a2a4e2331bea2fdbefb9595ac",
+    "evidence_index_sha256": "6d30373d1b20628800b464e57c9710501c43667362e23208b0e219b6d3d61efc"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [193, 194, 323, 334, 335, 336, 822, 840, 858],
+    "interpretation": "The installed manual describes AUTOM as a station isolated from ordinary support during policy gaps, requires one policy on both PFRMS and PTOMS, and says ordinary bidirectional transport time and policy TPTIM are ignored for AUTOM because it coincides with its supporter while connected. Converter errors 446/451 cover missing or different policies. The native event and report, rather than this text, decide whether this specific child meets the business contract."
+  },
+  "native_input_sha256": "d1fc66999c081acb6f29e58e5083cee58c317f0c3e0597587037efcb58a2cfd3",
+  "exact_diff_sha256": "3858d8ecc942d2a39b0d0ed020d5fdea2dcf8493ecaf3b2d015528c85cc7ddc8",
+  "configuration": {
+    "autonomous_station": "BASE-01",
+    "supporting_station": "DEPOT-01",
+    "local_opening_stock": 0,
+    "depot_opening_stock": 1,
+    "connected_windows_hours": [[0, 9], [11, 36]],
+    "autonomous_gap_hours": [9, 11],
+    "ordinary_transport_hours_each_direction": 2,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive exactly from accepted E10.var03. Change only ProblemDescription, BASE-01 Station.TYPE WS to AUTOM, and StationStructure.PTOMS null to the same DOWN-POLICY used in PFRMS. Preserve both ONDEM policy windows and all stock, item, system, failure, repair, mission, seed, ordinary travel times and output collection settings. Verify exact authored table roundtrip.",
+    "Converter must report zero errors, produce nonempty valid SXO, native event log and JSON report. Any warning, especially 443 or 445, requires semantic review. A process exit code alone is insufficient.",
+    "Identify the first failure, replacement demand, autonomous isolation h9-11, any local stock or repair, and physical spare and failed-item movements through reconnection. There must be no support-station shipment into or out of BASE-01 during h9-11. Record any queue, cancellation, backorder and its native event markers; do not infer motion from absence of one line.",
+    "For a source-bound positive acceptance, observe the h10 unmet local demand retained through the h11 reconnection and fulfilled by the same depot spare, with native transport timing consistent with AUTOM's ignored ordinary time. If the model instead rejects conversion, drops demand, or never reconnects, classify as a diagnostic or native limitation and do not publish the planned positive claim.",
+    "Reconcile individual physical item identity and repair/stock ledgers, all mission outcomes, 72 half-hour SystemResults and StockTotalResults bins, any resource use, summary metrics, and terminal aircraft readiness, stock, backorder and in-transit state against the full log. Explain differences from accepted non-AUTOM E10.var03 rather than assuming its timeline remains unchanged.",
+    "Use guarded session-0 SSH and the host-wide Global\\SimloxIssue18NativeQueue. Preserve active GUI PID 13340 identity across every hidden native step. Seal all raw artifacts and have an independent read-only reviewer replay source, event and report assertions without importing the author checker."
+  ],
+  "limits": [
+    "One empty local stock, one depot spare, one h9-11 isolation, one planned h10 demand and h11 reconnection, one support link and one seed. This does not establish locally stocked behavior, exact-boundary demand, other policy windows, dedicated transport overrides, lateral or subordinate structure, GUI visual behavior, or cross-engine parity.",
+    "E11 variants and Issue #18 remain open until separately evidenced."
+  ]
+}
