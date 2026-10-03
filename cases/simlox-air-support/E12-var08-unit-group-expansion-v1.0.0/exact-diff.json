@@ -1,0 +1,144 @@
+{
+  "schema": "simlox-e12-var08-unit-group-expansion-exact-diff/v1",
+  "parent_sha256": "940592a6e27a84549e57656921ca111c1fc3c16e0bf233b90259866afb81071b",
+  "source_sha256": "c58498f06d770ac8f9d5aae2684cdcbfc5ee153c45854ac058c0b5d74abb27f7",
+  "changed_existing_tables": [
+    "OperationProfile",
+    "Operations",
+    "ProblemDescription"
+  ],
+  "unchanged_parent_tables": 29,
+  "added_tables": {
+    "UnitGroup": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "UGID"
+        },
+        {
+          "datatype": "string",
+          "name": "DESCR"
+        },
+        {
+          "datatype": "string",
+          "name": "UNPR1"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "TEACH-GROUP",
+              "Two-unit teaching group",
+              "N",
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "UnitGroup"
+    },
+    "UnitGroupMember": {
+      "columns": [
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "UGID"
+        },
+        {
+          "datatype": "string",
+          "key": true,
+          "name": "USTID"
+        },
+        {
+          "datatype": "integer",
+          "name": "PRI"
+        },
+        {
+          "datatype": "double",
+          "name": "XTIME"
+        },
+        {
+          "datatype": "string",
+          "name": "NOTE"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "TEACH-GROUP",
+              "TEACH-UNIT",
+              1,
+              0.0,
+              null
+            ],
+            [
+              "TEACH-GROUP",
+              "TEACH-UNIT-2",
+              1,
+              0.0,
+              null
+            ]
+          ]
+        }
+      ],
+      "name": "UnitGroupMember"
+    }
+  },
+  "modified_cells": [
+    {
+      "table": "ProblemDescription",
+      "row": 0,
+      "column": "PDESC",
+      "before": "E12.var05 BASE-02 zero opening LRU stock versus BASE-01 stocked, group ItemRepair retained",
+      "after": "E12.var08 group-owned paired missions across two physical units"
+    },
+    {
+      "table": "Operations",
+      "row": 0,
+      "column": "USTID",
+      "before": "TEACH-UNIT",
+      "after": "TEACH-GROUP"
+    },
+    {
+      "table": "OperationProfile",
+      "row": 0,
+      "column": "IQTY",
+      "before": 1,
+      "after": 2
+    },
+    {
+      "table": "OperationProfile",
+      "row": 1,
+      "column": "IQTY",
+      "before": 1,
+      "after": 2
+    },
+    {
+      "table": "OperationProfile",
+      "row": 2,
+      "column": "IQTY",
+      "before": 1,
+      "after": 2
+    }
+  ],
+  "removed_rows": [
+    {
+      "table": "Operations",
+      "row": 1,
+      "values": [
+        "TEACH-UNIT-2",
+        "BASIC-SCHEDULE",
+        null
+      ]
+    }
+  ]
+}
