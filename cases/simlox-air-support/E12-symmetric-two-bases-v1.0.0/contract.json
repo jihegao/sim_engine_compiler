@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-e12-symmetric-two-bases-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "version": "1.0.0-candidate",
+  "scope": "one QTY=2 symmetric operational base source, each expanded individual expected to have a distinct unit, aircraft and opening spare",
+  "accepted_parent": {
+    "package": "E07-item-specific-transport-v1.0.1",
+    "input_sha256": "d42832b9e17b9a0c968a8bba7bcb1419eba06313097604fc0041baab5d132bc0",
+    "run_id": "e07-item-route-v101-20261001-01",
+    "native_closure_sha256": "c73b4316c0fc44ad31484a7a4eab73d60294d3f054f20d1691cca008d85b64cd",
+    "evidence_index_sha256": "c58010428cd3837f11dbe199b6d590c850db18776df3f458faf3eaae957e6caa"
+  },
+  "native_input_sha256": "a258878494ed6833e9a211200cfcad7f97b272af278b51285e01be035d61f122",
+  "exact_diff_sha256": "a0cdf16f762250d207d8fa1a4faff48b18ea99b2c7a5fc54400546bbf8572e21",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual_printed_pages": [309, 310, 311, 312, 317, 318, 322, 323, 328, 329]
+  },
+  "source_rule": "Station.QTY=2 expands one symmetric station definition into separate identical individual stations; associated stock and unit data are expected to expand per individual",
+  "delta": "From E07, change only ProblemDescription, BASE-01 Station.QTY 1 to 2, and BASE-01 StockAllocation.STSIZ 0 to 1. Keep item-specific FAST route, depot stock, one-aircraft unit, operations, repair, seed and horizon fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5,
+    "symmetric_base_quantity": 2,
+    "opening_spares_per_base": 1,
+    "aircraft_per_unit": 1,
+    "depot_opening_spares": 1,
+    "item_route_down_hours": 1,
+    "item_route_up_hours": 3
+  },
+  "pre_run_hypotheses": [
+    "The frozen 32-table input imports, exports its populated business rows exactly, converts with zero errors, calculates and writes a valid report.",
+    "Native expansion produces two distinguishable base identities, each with a distinct unit and aircraft identity and one opening LRU spare.",
+    "The two units receive their own h8, h20 and h32 scheduled mission opportunities, and events can be assigned to individual bases.",
+    "Each base's inventory and backorders reconcile independently; consumption at one does not silently debit the other.",
+    "System and stock report bins and terminal values reconcile with events and opening assets for the 36-hour horizon."
+  ],
+  "decision_rule": "If the installed native engine rejects the source or does not expand distinct units/ledgers, retain this as a sealed diagnostic and repair in a new version; do not accept or publish E12 from a source edit after this run.",
+  "limits": [
+    "No explicit two-base comparator yet; that is E12.var01.",
+    "No GSTID group default or individual override; those are E12.var02 through E12.var04.",
+    "No multiple support scheme or report-layout conclusion; those are E12.var05 and E12.var06.",
+    "No GUI rendering or cross-engine parity conclusion."
+  ]
+}
