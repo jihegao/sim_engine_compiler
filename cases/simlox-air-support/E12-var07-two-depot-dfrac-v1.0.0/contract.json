@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-e12-var07-two-depot-dfrac-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var07",
+  "version": "1.0.0-candidate",
+  "scope": "two physical support depots for each base, with equal general and item-specific DFRAC; trace the selected depot for each propagated LRU demand and failed item",
+  "accepted_parent": {
+    "package": "E12-var05-base02-zero-opening-stock-v1.0.0",
+    "input_sha256": "940592a6e27a84549e57656921ca111c1fc3c16e0bf233b90259866afb81071b",
+    "run_id": "e12-var05-base02-zero-stock-v100-ssh-20261003-01",
+    "native_closure_sha256": "6f1e48e7193abef10052cd9ed8e483267080a9ce863612e2320d3c2f7a384a80",
+    "evidence_index_sha256": "6d824d1c1e76ea546c90edebb6c2b69c48a190d91d5b7d67ef1686e44370e11c"
+  },
+  "native_input_sha256": "c1ee9664ecb84b8a11d501b4a0c83f3710a399ba94a484cefe1be6e92f275a5c",
+  "exact_diff_sha256": "b8320d0381edf505872c4c2504ed62b2fa62c981e0ca1fffda4711d1c01abc0e",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp328–329: DFRAC for a station with more than one support station is a demand-flow fraction, must sum to 1 per supported station, and randomly selects the support station each time demand propagates; corresponding demand and faulty item go to the same selected station. This contract does not assume frequency convergence from a single seed.",
+  "delta": "Add actual DEPOT-02 as a second DEPOT-GRP member, its one opening LRU spare, and a symmetric support link from each base in both StationStructure and ItemStationStructure. Change each existing DEPOT-01 link DFRAC 1 to 0.5; each new DEPOT-02 link has DFRAC 0.5. All child links retain their parent transport times and FAST policy. The existing group ItemRepair covers both depots. Six added rows and five modified cells across five tables; 27 source tables fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "mission_duration_hours": 3.5,
+    "depot_opening_spares_each": 1,
+    "base01_opening_spare": 1,
+    "base02_opening_spare": 0,
+    "depot_item_repair_hours": 1.0,
+    "base02_system_repair_hours": 1.0,
+    "support_fractions_each_base": {"DEPOT-01": 0.5, "DEPOT-02": 0.5}
+  },
+  "pre_run_hypotheses": [
+    "All 22 populated authored tables import/export exactly, conversion has zero errors, and native output/report are valid.",
+    "Native logs identify actual depot selection for propagated LRU demands and corresponding failed-item upward transports; each pair should use the same depot, as the installed manual describes.",
+    "If this seed selects both depots for separately traceable demands, each depot's stock, repair and transport ledger can be reconciled independently through the horizon. The two depot stocks must not be conflated.",
+    "Six mission outcomes, aircraft readiness, station backorders, ResultSummary and all 72 half-hour System/Stock bins are native observations to reconcile; parent timeline parity is not presumed."
+  ],
+  "decision_rule": "Accept a bounded two-depot DFRAC route case only if the frozen input converts, both actual depots are selected for traceable demand/failed-item pairs in the seed, per-depot stock/repair/transport identities and numeric reports reconcile, and separate independent read-only replay passes. Otherwise preserve a sealed diagnostic and plan a fresh frozen seed or control; do not claim statistical 50/50 split.",
+  "limits": [
+    "One seed, two bases, two physical depots and one LRU item group; no frequency or policy law from a small set of draws.",
+    "Added stock and station identities may change later random draws, so parent-child event parity is not expected.",
+    "No unit-group member expansion, GUI visual or cross-engine claim."
+  ]
+}

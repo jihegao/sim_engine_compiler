@@ -1,0 +1,80 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E12.var07",
+  "run_id": "e12-var07-two-depot-dfrac-v100-ssh-20261004-01",
+  "passed": true,
+  "verdict": "GO: bounded two-depot source-selected demand and failed-item routing",
+  "checks_passed": 4402,
+  "checks_total": 4402,
+  "failures": [],
+  "evidence": {
+    "closure_sha256": "0ffc3cde690640dc37bb83a4379b8ab33e6fc1ecf7b11a5637fb6d44bddb48b8",
+    "parent_closure_sha256": "6f1e48e7193abef10052cd9ed8e483267080a9ce863612e2320d3c2f7a384a80",
+    "raw_seals": 12,
+    "authored_tables_exact_roundtrip": 22,
+    "report_bins_each": 72,
+    "observed_demand_pairs": [
+      {
+        "base": "BASE-01",
+        "depot": "DEPOT-01",
+        "spare_item_id": 0,
+        "failed_item_id": 3,
+        "downward_hour": "10.7579",
+        "upward_hour": "10.9246"
+      },
+      {
+        "base": "BASE-02",
+        "depot": "DEPOT-02",
+        "spare_item_id": 1,
+        "failed_item_id": 4,
+        "downward_hour": "11.5",
+        "upward_hour": "11.8333"
+      },
+      {
+        "base": "BASE-01",
+        "depot": "DEPOT-02",
+        "spare_item_id": 4,
+        "failed_item_id": 5,
+        "downward_hour": "23.4473",
+        "upward_hour": "23.614"
+      },
+      {
+        "base": "BASE-01",
+        "depot": "DEPOT-02",
+        "spare_item_id": 5,
+        "failed_item_id": 6,
+        "downward_hour": "35.5",
+        "upward_hour": "35.6667"
+      }
+    ],
+    "depot_repaired_ids": {
+      "DEPOT-01": [
+        3
+      ],
+      "DEPOT-02": [
+        4,
+        5
+      ]
+    },
+    "base02_backorder_hours": [
+      11.5,
+      12.5
+    ],
+    "mission_outcomes": [
+      "abort",
+      "abort",
+      "abort",
+      "success",
+      "abort",
+      "success"
+    ],
+    "terminal_event_ready_aircraft": 2,
+    "last_report_interval_ready_aircraft": 1
+  },
+  "limits": [
+    "One fixed seed, two bases, two physical depots, one item group, and 36-hour horizon; four selected routes do not establish a 50/50 frequency law.",
+    "DEPOT-01 selection occurs once and DEPOT-02 three times. All four demand and failed-item pairs use matching depots, as directly named in native transport events.",
+    "Failed ID6 and downward spare ID5 remain in transit at h36; final report bin [35.5,36) has one ready aircraft, while event log records the second ready at the exact h36 boundary.",
+    "No per-station ItemResults export, GUI visual, resource allocation, or cross-engine claim."
+  ]
+}
