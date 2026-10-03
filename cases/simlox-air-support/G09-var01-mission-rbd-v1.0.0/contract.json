@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-g09-mission-rbd-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G04-series-active-parallel-v1.0.1",
+    "arm": "parallel",
+    "input_sha256": "ea56a9daf8705189c9162529355b28636ef7db168987b17ee90cdedbe9bb4b6f",
+    "run_id": "g04-parallel-v101-ssh-20261002-01",
+    "native_closure_sha256": "8a824b3dcb77aa88d59fe57de694a5abe2b279f16ca8f4000df13df4376cd23f"
+  },
+  "schema_and_control_donor": {
+    "package": "G04-series-active-parallel-v1.0.1",
+    "arm": "series",
+    "input_sha256": "3adc1cf0d75dd9418e816d0e06bdc502af5d37d975beafbba8f781c94d2763e8",
+    "native_closure_sha256": "3e628ffd21bd9d15b73bbd18f6c9c7da68c39d8d2cfdf0a7ef1efcdc9dd081b9",
+    "role": "RBDSeries/RBDSeriesStructure native JSON column schema and accepted all-series contrast"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [448, 449, 450, 458, 459],
+    "rule": "MissionOperationalModes maps each mission type/system pair to an operational mode. MaterielOperationalModes maps that mode to an RBD; the same aircraft may therefore use a series block for one mission type and a parallel block for another."
+  },
+  "input_sha256": "62e48b3eae86e0713e0a5c641ec28dddc3cc3cd81dc99be2659ceeee2f63475b",
+  "exact_diff_sha256": "8d3b7edb1923f6aaa77f782a8ab4c4e9c525e480924a3ce623acd0d86f825c4b",
+  "configuration": {
+    "accepted_controls": "G04 v1.0.1 series and parallel controls use one aircraft on three h8/h20/h32 two-hour missions and matched POS-B/POS-B/POS-A seeded failures at h8.62763/h20.8222/h33.0996. All-series is critical/abort three times; all-parallel is noncritical/success three times.",
+    "mixed": "Keep the accepted parallel physical B/A failure inputs, direct half-hour CM, one aircraft, seed1/replication1/horizon36. BASIC-MISSION at h8 and h32 selects new G09-SER-OPS -> G09-SER-RBD requiring POS-A and POS-B; new PAR-MISSION at h20 selects inherited G04-OPS -> G04-PARALLEL requiring one of A/B. Both mission types have the same two-hour schedule parameters and usage rate1."
+  },
+  "pre_run_hypotheses": [
+    "Native import/export preserves all populated authored tables including two mission type-to-system-mode rows and both RBDs; calculation has zero errors or unreviewed diagnostics and produces nonempty SXO/event log/report.",
+    "The mixed schedule produces a POS-B failure in a series-mode mission and a POS-B failure in a parallel-mode mission; native criticality/mission outcome differs between those mission types and aligns with accepted controls. Exact event times are empirical and are not assumed to share a stochastic draw merely because the seed is fixed.",
+    "The third BASIC-MISSION helps verify the series mapping is reused after the parallel mission. Reports reconcile per-mission outcomes, failure/repair counts, no stock movement and terminal readiness."
+  ],
+  "native_acceptance": [
+    "One unique guarded session-0 SSH native run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source/control fingerprints and raw SHA-256 seals.",
+    "Exact populated-table roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report and 72-bin System/Stock reconciliation.",
+    "Independent read-only replay comparing mixed outcome to accepted G04 series/parallel controls without overclaiming common random draws."
+  ],
+  "diagnostic_gate": "If the mixed schedule does not expose both mission-type responses to the same physical B fault, retain this run as diagnostic and revise with a new version/run ID; do not weaken the frozen hypothesis.",
+  "limits": [
+    "One aircraft, two mission types, three scheduled missions, one seed/replication and two-position series/active parallel RBDs; other mission patterns, mode defaults and noncritical-set/USERT effects are untested.",
+    "Mission-specific RBD selection is inferred from frozen mapping plus native criticality; event logs may not print the selected RBID. No GUI drawing, population reliability or cross-engine claim."
+  ]
+}
