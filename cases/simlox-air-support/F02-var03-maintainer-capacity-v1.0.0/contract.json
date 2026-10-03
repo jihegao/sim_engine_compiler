@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-f02-var03-maintainer-contention-pre-run-contract/v1",
+  "case_id": "F02",
+  "variant_id": "F02.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Within the accepted F02 risk fleet, compare one versus two P-MAINT workers for PM and system LRU replacement; P-CREW remains one and may still queue.",
+  "accepted_parent": {
+    "package": "F02-var01-var02-integrated-fleet-v1.0.2",
+    "arm": "risk",
+    "input_sha256": "ae46b08a6ef6fd063906b888fb3c73fba06edcb57acc1a4ade49fc62c53fd7d3",
+    "run_id": "f02-pair-v102-risk-ssh-20261004-01",
+    "closure_sha256": "b82da3cbed601408e4a72cda5c2fd498286a8f1b3ebfa07c003d4d4f8e6c91c4",
+    "evidence_index_sha256": "a6c704eefc00c544be0ef54ca4487ebe27b99258130d6650d3923c17421fc906"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "boundary": "One worker in the accepted parent causes an explicit P-MAINT wait between simultaneous first-day PM subtask requests and also serves later aircraft LRU replacement. Second-day PM tasks occur sequentially without a simultaneous worker request. Raising allocation to two tests the first-day worker conflict only; it does not remove preparation-crew contention or establish all conflict-free support."
+  },
+  "no_conflict_input_sha256": "120981bcf34f2500f10d896f44db48e49d60b28c7a1c2712044fc6fa0d34b109",
+  "exact_diff_sha256": "dd6c578d4f2fdb8e972824b5e1ce3ae0be141c887c47458467816acbdc50f329",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 60,
+    "aircraft_count": 2,
+    "maintenance_workers_parent": 1,
+    "maintenance_workers_new": 2,
+    "preparation_crew_both": 1,
+    "pm_tasks_due_per_day": 2,
+    "base_depot_transport_hours_each_way": 2
+  },
+  "pre_run_hypotheses": [
+    "The sole authored change is ResourceAllocation(P-MAINT,BASE-01).RQTY 1→2. The new input roundtrips exactly. Native import, export, calculation and report complete under session-0 SSH, host mutex and preserved GUI; converter diagnostic set is zero errors and only reviewed warning #108.",
+    "The accepted parent has simultaneous first-day CAL24 PM subtask requests at hour 28.5 and one P-MAINT worker; the second waits to hour 29.5. With two workers, those two first-day PM subtasks should overlap rather than queue on P-MAINT. Confirm request/grant/release timestamps and distinguish P-CREW preparation waits. Treat second-day PM timing as observed behavior, not a preset capacity effect.",
+    "Reconcile all four mission opportunities, aircraft identities, risk failure/abort/cancellation, physical depot LRU/SRU and two-way transport ledgers against the parent; changed random draws or outcomes must be attributed from native events rather than assumed equal.",
+    "Reconcile each of 120 half-hour System, Stock and Resource result rows with the event timelines, terminal aircraft readiness, outstanding worker requests, stock backorders, in-repair and in-transit identities. ResourceResults.NR rises from two to three and worker utilization/queue rows reflect actual booking.",
+    "Acceptance requires an observed one-worker P-MAINT wait in the parent and its absence for the same competing PM window in the new arm, plus complete paired raw seals, exact source/diff, author and independent read-only replay. If the allocation does not remove the targeted contention or any other gate fails, preserve this version as an excluded diagnostic and revise under a fresh version."
+  ],
+  "limits": [
+    "One seed, one risk profile, two aircraft, one base/depot route and 60 hours. Only P-MAINT capacity changes; P-CREW remains shared and may queue.",
+    "The case does not establish generic conflict resolution, all-resource no-conflict behavior, priority policies, stochastic distributions, larger fleets, GUI visual behavior or cross-engine equivalence."
+  ]
+}
