@@ -1,0 +1,9 @@
+# G09.var04 v1.0.0 preliminary four-rate panel
+
+This panel derives from accepted [G09.var01 mixed mission/RBD evidence](../G09-var01-mission-rbd-v1.0.0/README.md). A new POS-B mode is selected only for BASIC's series block, at `USERT=0`, `0.5`, `1`, or `2`; PAR keeps POS-B at `USERT=1`. Between arms only the usage value and description differ. All physical B/A failure rates, mission schedule, direct CM, seed and one-aircraft horizon remain fixed. The [contract](contract.json) and [exact diff](exact-diff.json) freeze this source.
+
+All four guarded session-0 SSH runs converted with zero errors/notes and reviewed warning #108. Each exactly roundtripped 25 populated tables; [preliminary evidence](preliminary-evidence.json) seals 52 local raw artifacts. [Author replay](author-validation.json) passed 354/354, and [independent read-only replay](review/independent-validation-2026-10-03.json) passed 11,754/11,754 with a restricted GO. The USERT1 event log is byte-identical to the accepted parent and its non-description report tables match.
+
+No POS-B fault occurred during BASIC at USERT0, but a POS-A fault aborted the first BASIC mission. At USERT0.5, POS-A faults aborted both BASIC missions before a POS-B fault was observed. USERT1 and 2 had first-BASIC critical POS-B faults. Thus the half-rate value is source and roundtrip verified, but this panel does not directly observe positive fractional BASIC B exposure. It remains **preliminary and unpublished**. The revised [v1.0.1 controlled panel](../G09-var04-usert-boundary-v1.0.1/README.md) lowers POS-A's ordinary failure rate equally in all four arms to expose B's usage boundary.
+
+The native log does not print selected USERT. One seed cannot establish a population or general timing law. No PM, GUI drawing or cross-engine behavior was tested.
