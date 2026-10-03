@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G10",
+  "case_version": "1.0.1-candidate",
+  "variant_id": "G10.var05",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G10",
+    "variant_id": "G10.var01",
+    "version": "1.0.0",
+    "input_sha256": "7e990242656119f9424fcf390ae8c46eb23e4751dbe6fb44bd80b3bb4cf307d1",
+    "native_run_id": "g10-var01-active-v100-ssh-20261003-01",
+    "native_closure_sha256": "f9856b90d82f0012102c2e1a1b6c0841b09c462b7bd8a486b7606a5e4de6247e",
+    "signoff_sha256": "63a1c4b0e2532afd4d6d503d2bcd003e837ccf92bf1c554ba88549207369a6b2",
+    "model_log_sha256": "de2bf74552dcf084321ddd1b1247adc04fb9e4c83bfa213683b2d68575ff1216",
+    "report_sha256": "6a59fda0fe0bfa69e2cebdc52edc6811938416b73759efb9ef66251153f5b5bb"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [201, 464],
+    "source_boundary": "TSWOV specifies passive link switchover delay; SIMLOX ignores any TSWOV specified for an ACTIVE redundancy."
+  },
+  "native_input_sha256": "0d45dfb8a553685e0cf8f7ba1d1ce685075f46567b09ab899ae080e8578c7230",
+  "prior_diagnostic": {
+    "package": "G10-var05-active-tswov-ignored-v1.0.0",
+    "run_id": "g10-var05-active-tswov-v100-ssh-20261003-01",
+    "closure_sha256": "1b1fb639001e5a522f940562ba1b285fdd723f378b788b67e36db91a52902afa",
+    "outcome": "SIMLOX conversion had zero errors and warning #282 explicitly said TSWOV ignored, but the v1.0.0 runner treated any warning beyond #108 as unreviewed and stopped before JSON report and roundtrip checker. The diagnostic remains unpublished."
+  },
+  "delta": {
+    "tables": ["ProblemDescription", "Redundancy"],
+    "mechanism": "Change only the descriptive text and the accepted ACTIVE 1-of-2 Redundancy.TSWOV value from zero to one hour. Preserve all parent topology, failure/repair/stock data, missions, seed, repetitions, and horizon."
+  },
+  "predeclared_native_acceptance": [
+    "The two changed fields roundtrip exactly, all 22 author-populated tables remain intact, converter errors are zero, and the only converter warnings are reviewed Control #108 and Redundancy #282 stating TSWOV ignored; native event/report artifacts are nonempty and valid.",
+    "With ACTIVE and all other inputs fixed, positive TSWOV does not create a switchover event or state. The new native event log is byte-identical to the accepted zero-TSWOV parent; all non-description report tables are equal.",
+    "Both runs retain two isolated noncritical LRU failures, three successful missions, the same LRU/SRU stock and repair ledger, 72 aligned report bins and ready terminal aircraft.",
+    "Bind accepted parent, source, contract, native invocation/closure and raw artifacts by SHA-256; independently replay without importing author validation."
+  ],
+  "limits": [
+    "This probes one positive ACTIVE TSWOV value in one 1-of-2 single-item topology, fixed seed and 36-hour horizon. Passive switching and other values/topologies are unverified.",
+    "The parent never has two links failed concurrently, so NRLRQ crossing remains unverified. GUI-only behavior and cross-engine parity are unverified."
+  ]
+}
