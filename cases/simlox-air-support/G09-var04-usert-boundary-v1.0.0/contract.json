@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-g09-usert-boundary-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var01-mission-rbd-v1.0.0",
+    "arm": "mixed",
+    "input_sha256": "62e48b3eae86e0713e0a5c641ec28dddc3cc3cd81dc99be2659ceeee2f63475b",
+    "native_closure_sha256": "5879a38ebe751c5113b9fc0511c6fd91c752783517536058e1144769793ae6b6"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [196, 200, 448, 449],
+    "rule": "MaterielOperationalModes sets a relative USERT for a reliability block; values below, equal to, or above 1 operate it less, equally, or more than the overlying block. Manual p200 and the dictionary permit nonnegative floats, so zero is within schema. The rate is multiplicative in RBD hierarchy and affects corrective and operation-dependent preventive maintenance."
+  },
+  "input_sha256": {
+    "use0": "26cd87419a6d31e5d44053ef8b9c710ec78f8b9104d30977276dcbbd2ebb5a7f",
+    "use05": "beed9028e57c7393173e79963cadc31d18b7af8634f14a591d79359cbb900b69",
+    "use1": "2f69d0ae1411f4fca4b79ec75289695370fe8468b014966879fdefd98e17ea5a",
+    "use2": "ee28a65ecaf47fe8b6ec78a8fb8ea3a66c58341e6f0eee7bea54e58d803ca2ca"
+  },
+  "exact_diff_sha256": "739931fc52eb723c7e6fbf521890ee08d6116e71c9d689498bfcfc8845a47a35",
+  "configuration": {
+    "shared": "Accepted G09.var01 one-aircraft mixed BASIC h8/PAR h20/BASIC h32 schedule with two-position series versus active parallel, physical B/A OPHOURS failure modes and rates, direct half-hour CM, seed1/replication1/horizon36. Add POS-B mode G09-B-USE selected only by the BASIC series POS-B block; PAR POS-B retains G04-OPS at USERT1.",
+    "panel": "Four arms change only ProblemDescription and POS-B/G09-B-USE MaterielOperationalModes.USERT 0, 0.5, 1, or 2. Parent-to-panel also adds the mode definition and BASIC POS-B selector."
+  },
+  "pre_run_hypotheses": [
+    "All four arms convert with zero errors and reviewed diagnostics, preserve the complete populated-table import/export roundtrip, and produce nonempty SXO/event log/report.",
+    "The use1 arm reproduces the accepted full-rate parent's B/A fault and mission trajectory aside from description and source mode labels. If not, retain the panel as diagnostic and revise; no assumption of common random draws is imposed for 0, 0.5 or 2.",
+    "The use0 BASIC POS-B block has no ordinary B failure during BASIC operation; at least one nonzero arm produces a B failure during BASIC, giving an observed zero-boundary contrast. Fractional and above-one arms are independently described from native event/report evidence without imposing monotonic event-time ordering.",
+    "Each report reconciles per-mission outcome, failure/repair counts, 72 System/Stock bins, no stock movement and terminal readiness."
+  ],
+  "native_acceptance": [
+    "Four immutable guarded serial session-0 SSH runs with host mutex, GUI PID13340 identity, registry restoration, frozen parent/source fingerprints and 13 raw SHA-256 seals each.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed diagnostics, nonempty native outputs and event/report/ledger reconciliation.",
+    "Independent read-only replay of the frozen four-arm boundary, parent comparison and precise limits; selected item USERT may be source/roundtrip-bound because native logs do not print it."
+  ],
+  "diagnostic_gate": "If any arm has converter errors, unreviewed warnings or failed roundtrip, or if use1 diverges from the accepted parent or the zero-versus-nonzero BASIC B boundary is not observed, preserve all runs as diagnostic and revise under a new version/run ID without changing this contract.",
+  "limits": [
+    "Only one BASIC POS-B series block at USERT0/0.5/1/2; PAR B fixed USERT1; one aircraft, mission schedule, seed and replication. Other values, modes, hierarchical products and preventive maintenance remain open.",
+    "Selected mode and rate are source/roundtrip-bound; event differences across changed rates do not establish matched stochastic draws, monotonic failure timing, population reliability, GUI visual behavior or cross-engine parity."
+  ]
+}
