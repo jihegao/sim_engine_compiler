@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E11",
+  "variant_id": "E11.var01",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E11",
+    "package": "E11-autonomous-support-gap-v1.0.0",
+    "input_sha256": "d1fc66999c081acb6f29e58e5083cee58c317f0c3e0597587037efcb58a2cfd3",
+    "run_id": "e11-base-autom-v100-ssh-20261003-01",
+    "native_closure_sha256": "2885c774b1551225c5fbcafc4c0b6669884600a0f03696ac29a3eba2ac34dd2c",
+    "evidence_index_sha256": "41c59ba6affcd0edf2ad95ae4d5fe96e887b406b9aa69e040d28678c1848f135"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [193, 194, 323, 334, 335, 336],
+    "interpretation": "The manual describes an AUTOM station's own stock as available during isolated periods and uses a shared bidirectional transport profile to represent reconnection. The installed native log must establish the actual local spare and later replenishment path for this one seed."
+  },
+  "native_input_sha256": "b5efd8e6a1d85d4bd89a6a99be70fd44538955480baf4f25514653d46147ffc2",
+  "exact_diff_sha256": "78146c69c7c7b26bbf1acafd769799a200a1e69f1a3a8f290dae30b9e387a454",
+  "configuration": {
+    "local_stock_empty_parent": 0,
+    "local_stock_child": 1,
+    "depot_stock_both": 1,
+    "autonomous_gap_hours": [9, 11],
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive exactly from accepted E11 base: change only ProblemDescription and BASE-01 StockAllocation.STSIZ 0 to 1 for TEACH-LRU-01. The depot stock, fault/repair, same PFRMS/PTOMS policy, two h0-9/h11-36 windows, ordinary time inputs, mission calendar, seed and collection must remain identical. Authored populated tables must roundtrip exactly.",
+    "Converter must have zero errors and nonempty valid SXO, event log and JSON report. Explain any warning beyond the E11 base #108/#2076/#2077. Process exit status alone is insufficient.",
+    "Identify the first fault and its physical failed ID. For a positive local-stock claim, an opening base spare must be present before the h9-11 gap and be taken from local stock for the h10 repair demand. The system should complete its replacement using that physical spare before h11 reconnection without waiting for depot delivery; no local backorder should accrue for that first demand.",
+    "Trace any resupply order created when local stock falls below nominal; it may legitimately queue across the isolated interval and move at reconnection. Do not assume that local satisfaction eliminates depot traffic or that an inventory reorder is the same as a system backorder. Reconcile physical IDs, upward failed-item transfer, repair, stock at both stations, and all transport starts/arrivals through horizon.",
+    "Compare the accepted zero-local-stock parent with the child across all 72 half-hour SystemResults and StockTotalResults bins, all missions, metrics, resource use, and terminal readiness, backorder, inventory and in-transit state. An altered later random stream or an unexpected report interpretation requires explicit explanation before acceptance.",
+    "Run guarded session-0 SSH under Global\\SimloxIssue18NativeQueue, preserve active GUI PID 13340 through every hidden native step, seal raw artifacts, and require a separate read-only reviewer replay without importing the author's checker."
+  ],
+  "limits": [
+    "One local spare versus none, one first fault, one isolation interval, one seed and one support link. This does not establish multiple-fault stock exhaustion, exact h9/h11 boundary priority, larger stocks, special routes, GUI visual behavior or cross-engine parity.",
+    "Remaining E11 variants and Issue #18 stay open."
+  ]
+}
