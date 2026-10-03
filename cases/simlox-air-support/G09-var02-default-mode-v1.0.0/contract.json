@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-g09-default-mission-mode-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var01-mission-rbd-v1.0.0",
+    "arm": "mixed",
+    "input_sha256": "62e48b3eae86e0713e0a5c641ec28dddc3cc3cd81dc99be2659ceeee2f63475b",
+    "run_id": "g09-var01-mixed-v100-ssh-20261003-01",
+    "native_closure_sha256": "5879a38ebe751c5113b9fc0511c6fd91c752783517536058e1144769793ae6b6"
+  },
+  "series_control": {
+    "package": "G04-series-active-parallel-v1.0.1",
+    "arm": "series",
+    "input_sha256": "3adc1cf0d75dd9418e816d0e06bdc502af5d37d975beafbba8f781c94d2763e8",
+    "native_closure_sha256": "3e628ffd21bd9d15b73bbd18f6c9c7da68c39d8d2cfdf0a7ef1efcdc9dd081b9"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [196, 449, 450],
+    "rule": "Installed manual physical p196 states that when no MissionOperationalModes entry is given, <DEFAULT> mode is assumed and all items/subsystems operate in series."
+  },
+  "input_sha256": "d59243b28d02fd8578c5e7c8d951d126bc78c5912f2174dc4c9b50e105387647",
+  "exact_diff_sha256": "c9193811073fc93e293b4196609553761e8f04e7fd14eea7bf19dff8e6a07ee2",
+  "configuration": {
+    "parent": "Accepted G09.var01 one-aircraft three-mission mixed input: BASIC h8/h32 maps to explicit G09 series and PAR h20 maps to G04 parallel; B h8.62763 critical/abort, B h20.8222 noncritical/success, A h33.0996 critical/abort.",
+    "default": "Delete only the PAR-MISSION/TEACH-AIR-01/G04-OPS row from MissionOperationalModes and change ProblemDescription. Retain both explicit RBDs and material modes in source; PAR mission schedule, physical failure modes/rates, CM, seed1, replication1, horizon36 and BASIC mapping remain fixed."
+  },
+  "pre_run_hypotheses": [
+    "Native conversion has zero errors or unreviewed diagnostics and exact populated-table import/export roundtrip. Omitting the PAR row is accepted, not treated as an orphaned mission-mode error.",
+    "PAR-MISSION at h20 still has a physical POS-B failure. Under documented <DEFAULT> series behavior this B fault is critical and aborts, contrasting with the accepted explicit-parallel PAR success. Exact event time is empirical, although the fixed physical input and seed support a matched-event check.",
+    "BASIC h8/h32 remains on explicit series; report reconciles mission outcomes, failure/repair counts, no stock movement and terminal readiness."
+  ],
+  "native_acceptance": [
+    "Unique guarded session-0 SSH native run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source/control fingerprints and raw SHA-256 seals.",
+    "Exact populated-table roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report and 72-bin System/Stock reconciliation.",
+    "Independent read-only replay comparing explicit PAR mapping to omitted-mode PAR outcome, without claiming selected mode is printed by native log."
+  ],
+  "diagnostic_gate": "If PAR h20 lacks the B event or does not classify it critically, retain the run as diagnostic and revise with new version/run ID; do not change this frozen hypothesis.",
+  "limits": [
+    "One omitted mission-system mode row, one aircraft, three missions and one seed/replication; does not generalize defaults for every material hierarchy, other missions or REL options.",
+    "Default series selection is manual/source/outcome based because the native event log may not print <DEFAULT>. No GUI drawing, population reliability or cross-engine claim."
+  ]
+}
