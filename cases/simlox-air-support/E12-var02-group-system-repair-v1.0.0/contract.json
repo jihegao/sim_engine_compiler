@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-e12-var02-group-system-repair-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var02",
+  "version": "1.0.0-candidate",
+  "scope": "one shared station-group SystemRepair default for two explicitly named bases",
+  "accepted_parent": {
+    "package": "E12-var01-explicit-two-bases-v1.0.0",
+    "input_sha256": "34e6c71772003c223911d68507458d5e94bacbe1ed8e5b02cf2d02fa8772d0d0",
+    "run_id": "e12-var01-explicit-bases-v100-ssh-20261003-01",
+    "native_closure_sha256": "e211583fc9ed9a647f691ba9dd22bf4eb0144836cbe0e6229932a8da9c0e9a6a",
+    "evidence_index_sha256": "94730e304fd63164294ef95d2bde890464bd72944cf25a825ad7fc473fd3f1cd"
+  },
+  "native_input_sha256": "a93765916f45295da8a105434f032617bbead1668219e7718e3b74b8820b3f92",
+  "exact_diff_sha256": "e741dc201c1f4ddbbd443ab1ce1d408dbd9de4dc829ece1ccf8f4074d499a24d",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual_printed_pages": [322, 323, 324]
+  },
+  "source_rule": "The installed dictionary permits Station.GSTID in SystemRepair.STID. A shared GSTID on two Station rows can give a single SystemRepair default to both; StockAllocation.STID, StationStructure.STID and ItemStationStructure.STID are individual station references in the installed dictionary and stay explicit.",
+  "delta": "Set Station.GSTID=BASE-GRP on BASE-01 and BASE-02. Replace their two identical SystemRepair rows with one BASE-GRP row. Change description only otherwise; keep their distinct stock, support, unit, deployment and operations rows, mission schedule, seed and horizon fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5,
+    "group_id": "BASE-GRP",
+    "member_stations": ["BASE-01", "BASE-02"],
+    "group_system_surp_hours": 0.5,
+    "opening_spares_per_base": 1
+  },
+  "pre_run_hypotheses": [
+    "The frozen group-default input imports, exports 22 authored populated tables exactly, converts with zero errors, calculates and produces a valid report.",
+    "The single BASE-GRP SystemRepair row is applied to both individual bases without merging their units, aircraft or physical stock ledgers.",
+    "The fixed-seed first failure at BASE-01 uses the same half-hour system replacement task, local spare and depot replenishment as the accepted explicit parent.",
+    "The group-default run has the same six mission outcomes and aggregate ResultSummary plus all 72 System and 72 Stock half-hour rows as its accepted parent, with only description changed.",
+    "Per-station identity and terminal physical stock remain distinguishable in the native event log despite the group input reference."
+  ],
+  "decision_rule": "If group expansion, import/export, conversion, physical ledgers or report parity fail, retain a sealed diagnostic and repair in a new version; do not infer generic group precedence from this one run.",
+  "limits": [
+    "One SystemRepair group default, one seed and 36-hour horizon; no individual station override yet.",
+    "StockAllocation and support links remain individual-station rows; group acceptance in those tables is not claimed.",
+    "No GUI plot/visual or cross-engine parity conclusion."
+  ]
+}
