@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var05",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var02",
+    "package": "E10-var02-empty-fixed-v1.0.0",
+    "input_sha256": "938cf200d04072f67fb87cdce76ad29cdf9a9166d8b09c3f090579f60d878ac0",
+    "run_id": "e10-var02-empty-v100-ssh-20261003-01",
+    "native_closure_sha256": "24ebef40dbb685ca704023566ee9d23f8fea7121cb849e48a04a4a4f143281d3",
+    "evidence_index_sha256": "5c96bf99ac407d1669bda74373874db4dab1f894e322f3c780838becb727febc"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [317, 319, 327, 334, 335, 336],
+    "interpretation": "TransportPolicyProfile STPRID may reference a subprofile; IQTY repeats the building block and IINT separates its start times. Replace accepted flat FIXED h8/h11 rows with DOWN-POLICY referencing REPEAT-FIXED at h8, IQTY=2, IINT=3, whose child FIXED starts at relative h0. Its two expanded departures should be h8 and h11. No overlapping ONDEM periods or distribution is modeled."
+  },
+  "native_input_sha256": "02bc6ae8f42c2e98e7f217ba3a603d94a1758db9c2bbee52f5a7b6de27d18f1c",
+  "exact_diff_sha256": "ec2abad2d46017245f4229e3f56a0d2fae83573cfcf5d7dc11dda029ca5404e4",
+  "configuration": {
+    "root_profile": "DOWN-POLICY",
+    "child_profile": "REPEAT-FIXED",
+    "root_start_hour": 8,
+    "root_IQTY": 2,
+    "root_IINT_hours": 3,
+    "child_fixed_relative_start_hour": 0,
+    "expanded_fixed_departure_hours": [8, 11],
+    "downward_transport_hours": 2,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive only from accepted E10.var02 flat FIXED input. Apart from ProblemDescription, replace its two TransportPolicyProfile rows with exactly one DOWN-POLICY -> REPEAT-FIXED wrapper at relative h8 with IQTY=2/IINT=3 and one REPEAT-FIXED -> FIXED child at relative h0/TPTIM=2. Preserve all other tables, rows, model parameters, seed and 36-hour horizon.",
+    "Native import/export must retain both authored profile rows. The native event log must show the nested repeated policy expanding to exactly two scheduled downward departure points h8 and h11. The h8 point is before the known h10 depot spare demand and must have zero physical shipment; distinguish a logged cancellation from merely absent movement.",
+    "The h10 depot spare demand must queue for the h11 point, dispatch the same physical ID0, arrive base h13, clear local backorder after three hours and restore aircraft near h13.3333. The upward failed-item transport h10.1667-12.1667 and one-hour depot repair/restock h13.1667 remain parent-like.",
+    "Compare the complete native event ledger, 72 half-hour SystemResults and StockTotalResults bins, ResultSummary, missions, resources, terminal item stocks, backorder, in-transit transports and aircraft readiness to accepted E10.var02. Any changed physical or aggregate result requires an explicit explanation; inability to establish expansion is NO-GO for this frozen candidate.",
+    "Run through guarded session-0 SSH under Global\\SimloxIssue18NativeQueue; preserve GUI PID13340 identity; require zero conversion errors, nonempty SXO/log/JSON report, 22-table authored roundtrip, source and raw SHA-256 seals, and independent read-only reviewer replay without importing the author's checker."
+  ],
+  "limits": [
+    "One nested level, one repeated FIXED child, two points, one demand, one seed and one downward station link. No multi-level nesting, ONDEM child repetition, mixed child policies, boundary priority, batching, transport-time override, GUI visuals or cross-engine claim.",
+    "Full E10, E11 and Issue #18 remain open."
+  ]
+}
