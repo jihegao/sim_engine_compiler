@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E11.var03",
+  "run_id": "e11-var03-no-reconnect-v100-ssh-20261003-01",
+  "passed": true,
+  "verdict": "GO: bounded no-reconnection observation through h36",
+  "checks_passed": 678,
+  "checks_total": 678,
+  "failures": [],
+  "evidence": {
+    "closure_sha256": "f299e7d9e6804041f16e98b3db13d9dac6aa1fddafaade2d0e509802f40dfaf4",
+    "parent_closure_sha256": "2885c774b1551225c5fbcafc4c0b6669884600a0f03696ac29a3eba2ac34dd2c",
+    "authored_tables_exact_roundtrip": 22,
+    "system_stock_report_bins_each": 72,
+    "last_connected_hour": 9,
+    "physical_transport_starts": 0,
+    "depot_on_hand_after_reservation": 0,
+    "base_on_hand_through_horizon": 0,
+    "unresolved_backorder_at_horizon": 1,
+    "terminal_ready_aircraft": 0,
+    "mission_outcomes": [
+      "abort",
+      "cancel",
+      "cancel"
+    ]
+  },
+  "limits": [
+    "One h9-h36 disconnection, one initial h10 demand, one seed and one support link.",
+    "Depot ID0 was removed from stock and attached to a scheduled request, but no physical transport started or arrived through h36; do not call it in transit.",
+    "Failed ID1 likewise remained attached to an upward request; no depot repair/restock is observed.",
+    "No finite later reconnection, local opening stock, repeated demand, GUI visual or cross-engine claim."
+  ]
+}
