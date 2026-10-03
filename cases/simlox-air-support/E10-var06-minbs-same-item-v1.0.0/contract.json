@@ -1,0 +1,62 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var06",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var01",
+    "package": "E10-var01-fixed-ondem-v1.0.1",
+    "arm": "ondem",
+    "input_sha256": "1ad095c4d1d371c1a2b8e7bc61d629e59459eff90ff310e5c6d1945c4cf70882",
+    "run_id": "e10-var01-ondem-v101-ssh-20261003-01",
+    "native_closure_sha256": "867fe911aa502e4fb55ae15a5488e2f6e132932f77b26ce725e552fe859e5d07",
+    "evidence_index_sha256": "a954cd7de83e68769eaae2d8d369bb0bacf01b434721d8e3a746ceddeb8a5383"
+  },
+  "accepted_support": {
+    "case_id": "E03",
+    "package": "E03-two-aircraft-shared-spare-v1.0.0",
+    "input_sha256": "657c0d52116c09ef2dbd009209f461f6fb4ed3570327c4305e0e4608f208cbf0",
+    "run_id": "e03-v100-ssh-20260929-01",
+    "native_closure_sha256": "b200b18fbbed80dcc7ff9e9f4e2e1d7952734449b49a400a509d054090a9b7d6",
+    "signoff_sha256": "dedf59901c805c7bbfd6c7421f02d0b051d0fbbc38c97819970988203e47c4e1"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [317, 319, 327, 334, 335, 336],
+    "interpretation": "MINBS on a basic ONDEM TransportPolicyProfile row is the number of demands required to start a transport. The default/one threshold permits immediate dispatch; two should hold the first same-link demand until the second, then start one two-item batch. The manual says all items and systems using the same transport data on this link count together; mixed-item scope requires separate evidence."
+  },
+  "native_inputs_sha256": {
+    "minbs1": "86a52bff52982382d7695ae0a24285b124754d1373fbcd7f3f9340557b31c1ea",
+    "minbs2": "afff86d9f131ffdb4478fa8a519be3da987579689313a317e7373738dba43a24"
+  },
+  "exact_diff_sha256": "18ee2eb74ae2977e9cacbef5423fb793e3c52541a54ec9253e8545ce046f3529",
+  "configuration": {
+    "system_count": 2,
+    "scheduled_mission_start_hour": 8,
+    "scheduled_mission_quantity": 2,
+    "system_and_item_fr_per_million_operating_hours": 3000000,
+    "base_spare_opening_stock": 0,
+    "depot_spare_opening_stock": 2,
+    "downward_policy": "ONDEM",
+    "downward_minbs_arms": [1, 2],
+    "downward_transport_hours": 2,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive both arms from accepted E10.var01 ONDEM. Port accepted E03's two-aircraft, simultaneous h8 two-mission demand pattern by changing only System/Item FRT 300000->3000000, SystemDeployment QTYPS 1->2 and OperationProfile to one scheduled h8 row IQTY2; set depot opening LRU stock 1->2 and change description. Keep all E10 transport, station, repair, resource, seed and horizon configuration otherwise fixed.",
+    "The two frozen arms differ only in description and one basic ONDEM TransportPolicyProfile MINBS value 1 versus 2. Both must produce exactly two distinct physical same-IID spare demands on the same depot-to-base transport link under seed1; if the demand-generating model does not do so, classify this frozen candidate NO-GO rather than infer batching from a single request.",
+    "In MINBS=1, each demand should be eligible for immediate downward dispatch. In MINBS=2, the first demand must remain queued without a physical downward departure until the second demand is counted; then one transport carrying two distinct physical spare IDs should start and arrive after the fixed two-hour transport time. An early single-item departure or two separate MINBS=2 departures is NO-GO.",
+    "Reconcile each failed item, physical depot stock withdrawal, request, transport attachment/start/arrival, local backorder/clearance, repair/restock, mission result, all 72 half-hour SystemResults and StockTotalResults bins, any resource rows or absence thereof, and terminal depot/base stock, in-transit state, backorders and aircraft readiness for both arms. Do not treat aggregate report similarity alone as batching evidence.",
+    "Run each frozen arm through guarded session-0 SSH under Global\\SimloxIssue18NativeQueue with fresh IDs; preserve GUI PID13340 identity; require zero conversion errors, nonempty SXO/log/JSON report, exact authored-table roundtrip, source/raw SHA-256 seals and separate independent read-only replay without importing the author's checker."
+  ],
+  "limits": [
+    "This package tests only two demands for the same item type on one general downward link and a single fixed seed. It does not test mixed items or systems sharing transport data, cross-link pooling, three-or-more thresholds, end-of-horizon partial batches, GUI visuals or cross-engine parity.",
+    "Full E10, E11 and Issue #18 remain open; mixed-item E10.var06 coverage requires a later bounded supplement."
+  ]
+}
