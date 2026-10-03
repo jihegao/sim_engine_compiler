@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E11.var02",
+  "passed": true,
+  "verdict": "GO: bounded three-arm h10 boundary observation",
+  "checks_passed": 1341,
+  "checks_total": 1341,
+  "failures": [],
+  "evidence": {
+    "accepted_after_closure_sha256": "2885c774b1551225c5fbcafc4c0b6669884600a0f03696ac29a3eba2ac34dd2c",
+    "runs": {
+      "before": {
+        "closure_sha256": "42c7fdc49d52283ef037484bc1efc2f829669ec08d66e91ac689eaf1ea077888",
+        "upward_failed_id1_started_hour": 10.1667,
+        "failed_id1_repaired_hour": 11.1667
+      },
+      "at": {
+        "closure_sha256": "d974cd9dc97a695cf5b09af07b6b5982d41e71e0b202411fafc375dc3c6dc8e2",
+        "upward_failed_id1_started_hour": 12,
+        "failed_id1_repaired_hour": 13
+      }
+    },
+    "downward_spare_id0_arrival_hour_both": 10,
+    "before_and_at_ready_hour": 10.5,
+    "after_ready_hour": 11.3333,
+    "source_row_tables_exact_roundtrip_each": 22,
+    "system_stock_report_bins_each": 72
+  },
+  "limits": [
+    "One h10 demand, one two-hour ONDEM gap per arm, one support link and one seed.",
+    "Before and at both have an instantaneous h10 backorder add/remove event but zero accumulated NBO bins; do not describe the physical log as no backorder event.",
+    "At-boundary downward ID0 moved at h10 while failed ID1 queued until h12; this direction-specific observed order does not establish a general same-time priority rule.",
+    "No h12 or h13 exact-reconnection demand, repeated requests, local stock, GUI visual or cross-engine claim."
+  ]
+}
