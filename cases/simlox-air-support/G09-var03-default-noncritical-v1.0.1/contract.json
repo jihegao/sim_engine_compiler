@@ -1,0 +1,57 @@
+{
+  "schema": "simlox-g09-default-noncritical-pair-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var03",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var01-mission-rbd-v1.0.0",
+    "arm": "mixed",
+    "input_sha256": "62e48b3eae86e0713e0a5c641ec28dddc3cc3cd81dc99be2659ceeee2f63475b",
+    "native_closure_sha256": "5879a38ebe751c5113b9fc0511c6fd91c752783517536058e1144769793ae6b6"
+  },
+  "series_control": {
+    "package": "G04-series-active-parallel-v1.0.1",
+    "arm": "series",
+    "input_sha256": "3adc1cf0d75dd9418e816d0e06bdc502af5d37d975beafbba8f781c94d2763e8",
+    "native_closure_sha256": "3e628ffd21bd9d15b73bbd18f6c9c7da68c39d8d2cfdf0a7ef1efcdc9dd081b9"
+  },
+  "excluded_diagnostic": {
+    "package": "G09-var03-noncritical-set-v1.0.0",
+    "arm": "nc-b1",
+    "input_sha256": "affb9a058d5407f04f3841245f8fe94c2e186f880b50affd4198fe498252e62e",
+    "native_closure_sha256": "b0a21867c406a7d9b104d5cb0a14bd0248b28e4631cc8ae30574c82f0a747687",
+    "result": "Simultaneous RBID G09-SER-RBD and NCID G09-NC-B kept h8 POS-B critical and BASIC aborted; violates frozen v1.0.0 hypothesis and is not accepted as positive NC behavior."
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [196, 198, 448, 449, 453, 454],
+    "rule": "Manual p196 says physical items omitted from the selected RBD are in series with it. NCID is linked through MaterielOperationalModes and QTYNC counts MID members (pp448,453-454). The prior v1.0.0 diagnostic kept B explicitly inside the RBD series and found B critical despite NCID; this revised pair omits B from the RBD in both arms to test its set classification."
+  },
+  "input_sha256": {
+    "omitted-control": "f3f6c2c45e89627fa5d96f24a0b0ecc9d72f31044234f3f3246d098b6d079fbf",
+    "omitted-nc-b1": "40210448fc3ccabc93c681272bf179026342202ba2ae36cfd8302769523a3e11"
+  },
+  "exact_diff_sha256": "ee157db35738f87657f87ee8a2822ac103694ab40b2dbf81f09d2531c5385eb7",
+  "configuration": {
+    "control": "Keep both mission mappings and system RBIDs. Remove POS-B from BASIC RBDSeriesStructure and change description; physical POS-B remains installed and by manual p196 is in series with the selected one-leaf POS-A RBD.",
+    "noncritical": "From control, assign BASIC system-mode NCID G09-NC-B and add RBDNonCriticalSet and RBDNonCriticalSetItems POS-B QTYNC1 USERT1; change description. Both arms keep the same one-leaf BASIC RBD. PAR mapping to G04 active parallel, all physical B/A inputs, CM, schedule, seed1, replication1 and horizon36 stay fixed."
+  },
+  "pre_run_hypotheses": [
+    "Both arms convert with zero errors and reviewed diagnostics and pass exact populated-table roundtrip.",
+    "POS-B fails in both BASIC h8 missions at a comparable seeded event. It is critical/abort in no-NCID omitted-position control, and noncritical/no immediate abort in NCID QTYNC1 arm; later events and outcomes are inspected empirically.",
+    "Reports reconcile all observed failures/repairs and 72 System/Stock bins, no stock movement and terminal readiness."
+  ],
+  "native_acceptance": [
+    "Two immutable guarded serial session-0 SSH runs with host mutex, GUI PID13340 identity, registry restoration, frozen source/control/diagnostic fingerprints and 13 raw SHA-256 seals each.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed warnings, nonempty SXO/event logs/reports and 72-bin System/Stock reconciliation.",
+    "Independent read-only replay of the paired BASIC fault contrast; no claim that native log prints selected NCID."
+  ],
+  "diagnostic_gate": "If either arm lacks the h8 POS-B fault, or the NCID arm still classifies it critical/aborts from it, retain the pair as diagnostic and revise under a new version/run ID without changing this contract.",
+  "limits": [
+    "One POS-B position QTYNC1 USERT1 in one selected system mode, one aircraft/seed/replication. QTYNC greater than one, overlapping sets and further G09.var03 boundaries remain open.",
+    "This pair omits the POS-B series edge from accepted G09.var01 in both arms while keeping RBID fixed; the within-pair NCID contrast isolates the set assignment. Native event log may not print selected NCID. No GUI drawing, population reliability or cross-engine claim."
+  ]
+}
