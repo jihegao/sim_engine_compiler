@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-f02-var04-report-cutoff-mission-allocation-pre-run-contract/v1",
+  "case_id": "F02",
+  "variant_id": "F02.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Repeat an excluded preassignment probe as a separately frozen, narrower test of a mission-allocated aircraft preparing throughout the final [59.5,60) report bin while another aircraft performs LRU removal. Preparation completes at hour 60; the mission allocation remains open at that report cutoff. Neither native preassignment nor stocked-item reservation is claimed.",
+  "accepted_parent": {
+    "package": "F02-var04-terminal-repair-v1.0.0",
+    "input_sha256": "7605c2a22396cc9d7962c96ede757b93b11c94e01480ed625fdfd63f359297ce",
+    "run_id": "f02-var04-active-repair-v100-ssh-20261004-01",
+    "closure_sha256": "f3e86635bf2d5ddafbc3fa6651f1d991b48a5148a38080ed07a074a11a6083b9",
+    "evidence_index_sha256": "8c34bc5e69e6dd43f9dbdcd1e313ca83a302e61d0e02e0cea5fe5aba5dd7de92"
+  },
+  "excluded_diagnostic": {
+    "package": "F02-var04-terminal-preassignment-v1.0.0",
+    "input_sha256": "8973565aa3158d7e784c9e2fa212709ef3da2185319f4faa2d3d56e66b2098c1",
+    "contract_sha256": "46497210363072d72fe6da086e3144e592d821052e4c945324033b7716372fb4",
+    "run_id": "f02-var04-preassign-v100-ssh-20261004-01",
+    "closure_sha256": "64aacad857e5798f2c6503095495ef424e447ee28756d34abc5eaa38e3ae59ed",
+    "reason": "The diagnostic passed native gates but had a direct mission allocation, not the predeclared mission-preassignment event. Its positive preassignment claim is excluded."
+  },
+  "allocation_input_sha256": "8973565aa3158d7e784c9e2fa212709ef3da2185319f4faa2d3d56e66b2098c1",
+  "exact_diff_sha256": "d516785018d610c590a89835a26aeec1ffe01c2e2cf3e74762e83817efe93d66",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "parameters": {
+    "seed": 1,
+    "simulation_horizon_hours": 65,
+    "report_cutoff_hours": 60,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 120,
+    "aircraft_count": 2,
+    "new_mission_id": "TERMINAL-HOLD",
+    "new_mission_scheduled_hour": 60.5,
+    "new_mission_duration_hours": 0.25,
+    "new_mission_notice_hours": 1,
+    "new_mission_required_aircraft": 2
+  },
+  "pre_run_hypotheses": [
+    "Builder reproduces the byte-identical diagnostic input. Against the accepted active-removal parent, the exact delta is Control.SIMPE 60→65 and one appended row each in MissionType, OperationProfile, MissionPreparation and MissionTurnround. Control and both ResultCollection RCEND values stay 60; all other parent data are unchanged.",
+    "A fresh guarded native run must independently pass SSH session-0, mutex, GUI PID 13340 guard, exact 30-populated-table roundtrip, zero converter errors, reviewed Warning #108 only, valid nonempty SXO, model log and 120-bin report through hour 60. The excluded diagnostic alone is insufficient for acceptance.",
+    "Require a named TERMINAL-HOLD `mission allocates system` event for healthy aircraft 1 before hour 60, a preparation start with P-CREW allocation, no mission release/cancellation by hour 60, and still-open aircraft 0 SURP removal with P-MAINT at hour 60. A direct `mission preassigns` event is not expected or claimed.",
+    "Check mission preparation/PM interaction: the healthy aircraft's waiting CAL24 PM pauses when the mission allocates it; its worker request stops, P-CREW works the final half-hour and releases at hour 60. Do not infer a general mission-over-PM priority rule from one schedule.",
+    "Reconcile every System, Stock and Resource half-hour result row through the hour-60 report cutoff with logged aircraft, stock and resource intervals. Distinguish last-bin averages from instantaneous hour-60 state. ResultSummary reflects the 65-hour simulation and cannot be treated as a 60-hour outcome.",
+    "Separate author validation and independent read-only replay must verify source/raw SHA-256 seals and restrict publication to this allocation/preparation cutoff. Mission preassignment, stocked-item reservation, 65-hour terminal reservation, GUI visual behavior, scale and cross-engine equivalence remain unverified."
+  ]
+}

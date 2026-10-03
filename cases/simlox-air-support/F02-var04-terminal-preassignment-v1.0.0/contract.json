@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-f02-var04-terminal-mission-preassignment-pre-run-contract/v1",
+  "case_id": "F02",
+  "variant_id": "F02.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "At a 60-hour reporting cutoff within a 65-hour simulation, test whether a ready aircraft is visibly preassigned to a pending two-aircraft mission while the second aircraft remains in an already accepted active SURP removal. Mission preassignment is distinct from stocked-item reservation and is not a 65-hour simulation-terminal state.",
+  "accepted_parent": {
+    "package": "F02-var04-terminal-repair-v1.0.0",
+    "input_sha256": "7605c2a22396cc9d7962c96ede757b93b11c94e01480ed625fdfd63f359297ce",
+    "run_id": "f02-var04-active-repair-v100-ssh-20261004-01",
+    "closure_sha256": "f3e86635bf2d5ddafbc3fa6651f1d991b48a5148a38080ed07a074a11a6083b9",
+    "evidence_index_sha256": "8c34bc5e69e6dd43f9dbdcd1e313ca83a302e61d0e02e0cea5fe5aba5dd7de92"
+  },
+  "preassignment_input_sha256": "8973565aa3158d7e784c9e2fa212709ef3da2185319f4faa2d3d56e66b2098c1",
+  "exact_diff_sha256": "eb54d614c66780884a4abae196145d626fb48e0609b910fba99706bdc0cfef2b",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "parameters": {
+    "seed": 1,
+    "simulation_horizon_hours": 65,
+    "report_cutoff_hours": 60,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 120,
+    "aircraft_count": 2,
+    "terminal_mission_id": "TERMINAL-HOLD",
+    "terminal_mission_scheduled_hour": 60.5,
+    "terminal_mission_duration_hours": 0.25,
+    "terminal_mission_notice_hours": 1,
+    "terminal_mission_required_aircraft": 2,
+    "terminal_mission_delay_allowance_hours": 2
+  },
+  "pre_run_hypotheses": [
+    "The authored delta from accepted active-removal input is Control.SIMPE 60→65 plus one appended row each in MissionType, OperationProfile, MissionPreparation and MissionTurnround. Control.RCEND and both ResultCollection.RCEND rows stay 60. All other existing rows, repair duration, stock, resources and seed are identical.",
+    "BASIC-SCHEDULE is the root profile. Its new one-off TERMINAL-HOLD child at relative hour 60.5 should be ordered around hour 59.5, with a short nominal mission and allowed delay contained inside the 65-hour simulation. Native Operations #204 acceptance remains conditional; any converter semantic diagnostic excludes this candidate and its raw bytes remain sealed.",
+    "A ready aircraft should be preassigned to TERMINAL-HOLD at the 60-hour report cutoff while the second is still in active SURP. Require direct mission preassign event and no release/cancellation by hour 60, plus the final 59.5–60 System interval; do not identify SystemResults.NSYMR as an inventory reservation or infer stock reservation from a received LRU. ResultSummary covers the longer simulation and is not a 60-hour terminal summary.",
+    "Guarded session-0 SSH import, export, calculation, JSON report and exact populated-table roundtrip must complete under Global\\SimloxIssue18NativeQueue with GUI PID 13340 preserved. Require zero converter errors, only reviewed Warning #108, valid SXO, log and report. New diagnostic or malformed output excludes acceptance.",
+    "Reconcile all 120 System, Stock and Resource half-hour report bins through hour 60 with physical aircraft, active labor, resource request and stock ledgers. Preserve the original fault and arrival path if it occurs; a changed random prefix requires re-analysis and revised claims. Read the full event log beyond 60 only to verify that the simulation executed cleanly.",
+    "Accept only a directly observed hour-60 reporting-cutoff mission preassignment and other directly observed states after author and separate independent read-only replay. Do not call this an end-of-simulation state. No generic reservation policy, GUI visual behavior, or cross-engine equivalence is claimed."
+  ]
+}
