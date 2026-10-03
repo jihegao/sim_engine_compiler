@@ -1,0 +1,19 @@
+# D07.var03 same-key traditional rate override: CLI scope sign-off (2026-10-03)
+
+**Decision:** `native_behavior_accepted_cli_scope`, `reusable_published` for a fixed-seed system/item same-key `OPHOURS` override on the installed 2017 executable. Both optional rate tables produced row-specific native precedence warnings, converted and simulated, and retained dual-OPID exposure. This is a bounded precedence result, not an empirical hazard-rate estimate.
+
+## Frozen input and parent delta
+
+The accepted [D07.var02 parent](../D07-var02-dual-opid-v1.0.0/cli-scope-signoff-2026-10-03.md) input SHA-256 is `f89c02d4f3868dd97862998685933208145782f283e21da696307a7be017250d`. The [D07.var03 input](native-input.json) SHA-256 is `ba67c75bccf501bbf76315f34cb03de1f12a2a152e8e0ac0ab297b3e136c6dfe`. The [exact parent diff](parent-diff.json) SHA-256 is `f34c0646427ae49e892cf4ae1ef592677a5c6256ebb32c4851a5897bd715223c`: only the description and `ItemFailureRate`/`SystemFailureRate` rows change. Each optional table gains `OPHOURS` FRT 100000 per million for the existing LRU or system, while its base table retains OPHOURS FRT 300000 per million. Both optional KM rows remain 5000 per million with custom KM utilization at 60 per mission hour. System and item match in each OPID.
+
+The installed manual SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3` (PDF pp. 183–184, 246–247, 257–258) states that optional same-object/OPID rates override base-table rates with a warning. The dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`. These proprietary sources are not uploaded. The [pre-run contract](contract.json) fixed both row-specific warning gates before native execution.
+
+## Guarded native evidence
+
+Run `d07-var03-same-key-v100-ssh-20261003-01` used session-0 SSH, host-wide `Global\SimloxIssue18NativeQueue`, and the active GUI PID 13340 guard. Import, export, calculation, specialized report export and roundtrip check completed. All **21 populated source tables** roundtripped exactly. Conversion reported **Errors 0, Warnings 3, Notes 0**: reviewed #108 for logging and separate #2058 `Data overrides previous data` notices naming `TEACH-LRU-01/OPHOURS` and `TEACH-AIR-01/OPHOURS`. The report setting loaded without fallback.
+
+Native `MissionOperationTotalAccumulated` records **5.895183563232422 OPHOURS** and **353.7110290527344 KM**. Active half-hour intervals retain 60 KM per OPHOUR within report precision. The third mission aborts on a critical installed-LRU fault at hour 53.3952 and returns at 53.8952; the first two missions complete. One system failure and one repair appear in 120 half-hour `SystemResults` bins. The aborted mission explains why exposure falls short of the D07.var02 parent's 6 OPHOURS and 360 KM. `MissionOperationTotal` reports normalized rates and must not be confused with accumulated exposure.
+
+The [author replay](review/author-validation-2026-10-03.json) passes **42/42** checks. A separate [independent read-only replay](review/independent-readonly-2026-10-03.json), implemented in its own [script](review/independent_readonly.py), passes **740/740** checks and returns bounded GO. Twelve raw files, invocation and closure remain in ignored local `runs/`; the [evidence index](evidence-index.json) seals their hashes. Closure SHA-256 is `c7b584c73d7780e17e9758ac08c1e299ff27f2b183ec2a0d593c9cd57e15e90d`; selected report SHA-256 is `3e0ead45c05b59f2ba37cad67964f9cbe77d2ab1c1329c2494b3c197fd1d130f`.
+
+This scope is one installed LRU and mother system, two OPIDs, one fixed seed and one installed executable. Native row-specific warnings support same-key precedence for these rows; the realized failure time does not measure a general hazard or isolate an OPID-specific fault. D07.var04 inconsistent mother-child FRT remains unverified. No GUI visual or cross-engine claim is made. Issue #18 remains open.
