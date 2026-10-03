@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-e12-var05-base02-zero-opening-stock-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var05",
+  "version": "1.0.0-candidate",
+  "scope": "asymmetric BASE-01 stocked versus BASE-02 zero opening LRU stock under two first-wave faults",
+  "accepted_parent": {
+    "package": "E12-var04-item-station-group-repair-v1.0.0",
+    "input_sha256": "8ade0fe65e3a46095d8eb3a928a8c577d20b530bf92635e3cee713e05286db73",
+    "run_id": "e12-var04-item-station-group-v100-ssh-20261003-01",
+    "native_closure_sha256": "4931ce8f4cc77851dd3c28c7c0d19e58f9943a8e5987d0dc3de5f37c66f80ad9",
+    "evidence_index_sha256": "80e5b6ae4683e1f5517d44aef8ab5e2e53f53731e0226fbd43fb5b1a09c71180"
+  },
+  "native_input_sha256": "940592a6e27a84549e57656921ca111c1fc3c16e0bf233b90259866afb81071b",
+  "exact_diff_sha256": "8206b64dd26fc485ce8fb33b4013c443a91371c025e465c76076c78d9e998da9",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "delta": "Only BASE-02 TEACH-LRU-01 StockAllocation.STSIZ changes 1→0, plus description. BASE-01 and DEPOT-01 retain one opening spare each; all group ItemRepair and individual BASE-02 SystemRepair, item/system failure modes, missions, routes, seed and horizon are fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "mission_duration_hours": 3.5,
+    "base01_opening_spare": 1,
+    "base02_opening_spare": 0,
+    "depot_opening_spare": 1,
+    "base02_system_repair_hours": 1.0,
+    "depot_item_repair_hours": 1.0
+  },
+  "pre_run_hypotheses": [
+    "The two-table two-cell delta imports, exports 22 authored populated tables exactly, converts with zero errors and produces valid output.",
+    "BASE-01's first fault can use its opening local spare; BASE-02's first fault has no local opening spare and must wait for a physically traced replenishment or other allowed supply response.",
+    "The depot one-spare competition, backorders, physical item transfers and local readiness of each aircraft can be reconciled through h36, including any altered later stochastic events.",
+    "ResultSummary plus all 72 half-hour System/Stock bins reconcile to observed event windows; exact mission, stock and terminal outcomes are native observations, not assumed."
+  ],
+  "decision_rule": "Accept only a bounded asymmetric-stock case if the frozen input converts, physical BASE-02 zero opening stock is observed, demand/supply/backorder/repair/transport identities reconcile, and report outcomes match the event ledger. Otherwise retain a sealed diagnostic.",
+  "limits": [
+    "One seed, item, group, two bases and 36-hour horizon; no general resource scheme or allocation policy claim.",
+    "Changing opening stock changes physical item numbering and may alter random failure draws; parent-child event parity is not assumed.",
+    "No GUI visual or cross-engine behavior claim."
+  ]
+}

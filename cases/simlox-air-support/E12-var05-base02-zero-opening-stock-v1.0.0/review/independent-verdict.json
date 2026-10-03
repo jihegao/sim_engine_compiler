@@ -1,0 +1,76 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E12.var05",
+  "run_id": "e12-var05-base02-zero-stock-v100-ssh-20261003-01",
+  "passed": true,
+  "verdict": "GO: bounded asymmetric BASE-02 zero-stock behavior",
+  "checks_passed": 4395,
+  "checks_total": 4395,
+  "failures": [],
+  "evidence": {
+    "closure_sha256": "6f1e48e7193abef10052cd9ed8e483267080a9ce863612e2320d3c2f7a384a80",
+    "parent_closure_sha256": "4931ce8f4cc77851dd3c28c7c0d19e58f9943a8e5987d0dc3de5f37c66f80ad9",
+    "raw_seals": 12,
+    "authored_tables_exact_roundtrip": 22,
+    "report_bins_each": 72,
+    "opening_physical_stock": {
+      "DEPOT-01": [
+        0
+      ],
+      "BASE-01": [
+        1
+      ],
+      "BASE-02": []
+    },
+    "first_wave_failed_ids": [
+      2,
+      3
+    ],
+    "local_base02_backorder": [
+      11.5,
+      15.9246
+    ],
+    "depot_backorder": [
+      11.5,
+      14.9246
+    ],
+    "mission_outcomes": [
+      "abort",
+      "abort",
+      "abort",
+      "success",
+      "abort",
+      "success"
+    ],
+    "changed_parent_system_bins": [
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33
+    ],
+    "changed_parent_stock_bins": [
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ]
+  },
+  "limits": [
+    "One seed, one item type, two bases and 36-hour horizon; altered opening stock changes physical IDs and may alter later random draws.",
+    "BASE-02's local stock backorder is observed and reflected in aggregate NBO; depot backorder is separately visible in model.log and not independently exposed as a station-specific report row.",
+    "At h36 the event log records both aircraft ready, while final [35.5,36) report interval is ready1/unavailable1; final failed item ID5 is still in transit.",
+    "No resource allocation, GUI visual or cross-engine claim."
+  ]
+}
