@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-g09-hierarchical-usert-product-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var04-usert-boundary-v1.0.1",
+    "arm": "use1",
+    "input_sha256": "957e7b16a75c2cc06a6bf2ef6a2a7b9ae0a44e683349c248383281b3ffec5c85",
+    "run_id": "g09-var04-use1-v101-ssh-20261003-01",
+    "native_closure_sha256": "dd673e538c37c52e02ab7ed79e15eee425ec0a8fc305bde719950093cc2d810f"
+  },
+  "accepted_direct_half_control": {
+    "package": "G09-var04-usert-boundary-v1.0.1",
+    "arm": "use05",
+    "input_sha256": "4e121c8b8c86bb650e7060ad77e66049d8eaedc89728a4cc18a7c486b1d27c81",
+    "run_id": "g09-var04-use05-v101-ssh-20261003-01",
+    "native_closure_sha256": "04eef6385365db7eb3e3f82f8f23f0be46ca208c8755b48fb1de26fc73963bbd"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [196, 200, 448, 449],
+    "rule": "USERT in MaterielOperationalModes is relative to the overlying RBD level and multiplicative down an RBD path (manual physical p200). BASIC selects system mode G09-SER-OPS and its POS-B leaf G09-B-USE; PAR selects G04-OPS/USERT1 at both levels."
+  },
+  "input_sha256": {
+    "factorhalf": "27681e35c204c9935e407ed57cd33fb7e6baa20fe4667c1b134ca37dcd5152f2",
+    "factorfull": "3addaf6b898fc982c73b96c724f26309a1f683a05218d9fcde7221e770ed23e0"
+  },
+  "exact_diff_sha256": "efd3f446f8828d4fdc7ba2ee31dd59060aaea09ae738e80f07896c9689722896",
+  "configuration": {
+    "shared": "Accepted G09.var04 controlled positive POS-A FRQ1e-9, POS-B FRQ600000 OPHOURS, BASIC series h8/h32, PAR active parallel h20, direct half-hour CM, one aircraft, seed1/replication1/horizon36. No changes to physical structure, mission schedule, base rates, stock, repairs, or RBD structure.",
+    "direct_half_control": "Accepted use05 sets BASIC system USERT1 and BASIC POS-B USERT0.5; source-defined product0.5.",
+    "factorhalf": "Set BASIC system USERT0.5, leave BASIC POS-B USERT1; source-defined product0.5.",
+    "direct_full_control": "Accepted use1 sets BASIC system and BASIC POS-B USERT1; product1.",
+    "factorfull": "Set BASIC system USERT0.5 and BASIC POS-B USERT2; source-defined product1. PAR remains USERT1 at both system and B leaf in every input."
+  },
+  "pre_run_hypotheses": [
+    "Both factorized arms convert with zero errors/reviewed diagnostics and preserve exact populated-table native import/export roundtrips.",
+    "Factorhalf reproduces the accepted direct-half control's native event log byte-for-byte and all non-description report tables, and factorfull does the same for the accepted direct-full control. This is a strong bounded multiplication hypothesis; exact equality is tested, not assumed from a shared seed alone.",
+    "All runs retain B criticality during BASIC and noncriticality during PAR as their paired controls, with direct CM and 72-bin System/Stock reconciliation."
+  ],
+  "native_acceptance": [
+    "Two immutable guarded serial session-0 SSH runs with host-wide mutex, GUI PID13340 identity, registry restoration, frozen accepted source/control fingerprints and 13 raw SHA-256 seals each.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed diagnostics, nonempty native outputs, matched event/mission/repair/report comparison and independent read-only replay."
+  ],
+  "diagnostic_gate": "If either equal-product pair diverges in native event log or any non-description report table, or any conversion/roundtrip/source-seal gate fails, retain both arms as diagnostic and revise under a new version/run ID; do not weaken the frozen multiplication hypothesis.",
+  "limits": [
+    "One two-level selected BASIC system-to-POS-B series path, two products 0.5 and 1, one aircraft/seed/replication. No deeper hierarchy, other RBD types, rates, zero usage at the upper level, PM, or population law.",
+    "Selected rates and the multiplication interpretation are source/manual/roundtrip bound; the native event log may not print USERT or accumulated operation hours. Exact equality for this seed does not establish a general stochastic coupling, GUI visual behavior or cross-engine parity."
+  ]
+}
