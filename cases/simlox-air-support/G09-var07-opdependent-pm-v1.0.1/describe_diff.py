@@ -1,0 +1,53 @@
+"""Recompute exact G09.var07 PM source deltas."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+
+from build import ARMS, HERE, PARENT, PARENT_SHA, make
+
+
+def mapped(doc: dict) -> dict:
+    tables = {t["name"]: t for t in doc["model"]["tables"]}
+    if len(tables) != len(doc["model"]["tables"]):
+        raise ValueError("duplicate table")
+    return tables
+
+
+def delta(a: dict, b: dict) -> dict:
+    return {n: {"before": a.get(n), "after": b.get(n)} for n in b if a.get(n) != b.get(n)}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--write", action="store_true")
+    args = parser.parse_args()
+    parent = mapped(json.loads(PARENT.read_bytes()))
+    arms = {arm: mapped(make(arm)) for arm in ARMS}
+    from_parent = {arm: delta(parent, arms[arm]) for arm in ARMS}
+    between = delta(arms["sysfull"], arms["syshalf"])
+    common = {"ProblemDescription", "Control", "FailureMode", "Tasks", "SubTaskType",
+              "TaskBreakDown", "MaterielPM", "PMLocation"}
+    if set(from_parent["sysfull"]) != common or \
+       set(from_parent["syshalf"]) != common | {"MaterielOperationalModes"}:
+        raise ValueError("unexpected parent-to-panel delta")
+    if set(between) != {"ProblemDescription", "MaterielOperationalModes"}:
+        raise ValueError("unexpected within-panel delta")
+    result = {"schema": "simlox-air-support-exact-system-usert-pm-diff/v1", "case_id": "G09",
+              "variant_id": "G09.var07", "parent_sha256": PARENT_SHA,
+              "input_sha256": {a: hashlib.sha256((HERE / f"{a}-input.json").read_bytes()).hexdigest() for a in ARMS},
+              "from_parent": from_parent, "from_sysfull": between}
+    raw = (json.dumps(result, ensure_ascii=False, indent=2) + "\n").encode()
+    path = HERE / "exact-diff.json"
+    if args.write:
+        if path.exists():
+            raise FileExistsError(path)
+        path.write_bytes(raw)
+    elif path.read_bytes() != raw:
+        raise ValueError("frozen exact diff changed")
+    print(json.dumps({"diff_sha256": hashlib.sha256(raw).hexdigest()}))
+
+
+if __name__ == "__main__":
+    main()

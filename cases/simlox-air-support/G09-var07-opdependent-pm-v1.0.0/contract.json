@@ -1,0 +1,60 @@
+{
+  "schema": "simlox-g09-opdependent-pm-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var07",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var04-usert-boundary-v1.0.1",
+    "arm": "use1",
+    "input_sha256": "957e7b16a75c2cc06a6bf2ef6a2a7b9ae0a44e683349c248383281b3ffec5c85",
+    "native_closure_sha256": "dd673e538c37c52e02ab7ed79e15eee425ec0a8fc305bde719950093cc2d810f"
+  },
+  "accepted_pm_pattern": {
+    "package": "D10-var02-multi-counter-v1.0.0",
+    "input_sha256": "0083ffd0038017be0078d9afd5a9e892b3df8c7ae5eafd89b8280950816aa829",
+    "native_closure_sha256": "c7318b490bd665506e1289f9b07b927e9359fac8cd39d88ccfa7df738ac52565",
+    "reuse": "system MaterielPM OPHOURS row, PMLocation and one-hour task shape; G09 threshold/topology are new"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [
+      200,
+      202,
+      370,
+      372,
+      375,
+      376,
+      448,
+      449
+    ],
+    "rule": "System OPHOURS PM counter should reflect selected system relative usage during mission; BASIC system USERT differs, PAR system USERT stays one. Counter may reach threshold during flight but task begins after return; winning counter and accumulated hours are not directly printed."
+  },
+  "input_sha256": {
+    "syshalf": "c05431ae0075c7189b28ba20d08ecf9dff21321ec30dcfc2ced011b2fd79533a",
+    "sysfull": "7fb639b3c37066aaf20efa57bc27ce076b51bbdaf72b5d964952fb47432b7caf"
+  },
+  "exact_diff_sha256": "c8aaa72813d5b645f80d73ec50a550ee5a8933c6a17369db1705e8e97b2d593d",
+  "configuration": {
+    "shared": "Accepted G09.var04 use1 mixed BASIC series h8/h32 and PAR active parallel h20, one aircraft, direct CM, seed1/replication1/horizon36. Both arms suppress POS-B ordinary OPHOURS FRQ600000 to positive1e-9 (A already1e-9) to isolate PM. Add system MaterielPM SYS-OP15 OPHOURS1.5, PMLocation at BASE-01 and one-hour inspection task.",
+    "pair": "Only description and BASIC TEACH-AIR-01/G09-SER-OPS MaterielOperationalModes.USERT differ: 0.5 versus1. PAR system USERT1 and all PM/physical/mission rows fixed."
+  },
+  "pre_run_hypotheses": [
+    "Both arms convert with zero errors and reviewed diagnostics, exact populated-table roundtrip, and nonempty native SXO/log/report.",
+    "System OPHOURS1.5 PM should be due after first BASIC mission in full-use arm (two effective hours) but not in half-use arm (one effective hour); the half arm should first become due during PAR and start service after h22 return. Exact native task times and any later PMs are empirical.",
+    "Both arms have no ordinary failure under common positive near-zero rates and all three missions succeed, subject to observed native scheduling.",
+    "System/Stock reports reconcile mission outcomes, PM task/occupancy, 72 aligned bins, no stock movement and terminal readiness."
+  ],
+  "native_acceptance": [
+    "Two immutable guarded serial session-0 SSH runs with host mutex, GUI PID13340 identity, registry restoration, frozen source fingerprints and raw SHA seals.",
+    "Exact populated-table roundtrip, zero converter errors, reviewed diagnostics, nonempty output and event/PM/report/ledger reconciliation.",
+    "Independent read-only replay of first-PM timing contrast; selected usage and PM cumulative counter are source/manual/outcome inferred, not claimed as native-printed."
+  ],
+  "diagnostic_gate": "If full first system PM does not precede half first system PM or if PM conversion produces errors/unreviewed warnings, retain immutable runs as diagnostic and revise under a new version/run ID without changing this contract.",
+  "limits": [
+    "One system OPHOURS1.5 PM, BASIC system USERT0.5 versus1, PAR system1, common near-zero A/B ordinary failure inputs, one seed/replication/h36. No item-level or NC-set PM, multiple counters, other thresholds, population or general timing law.",
+    "Native log may not expose counter value/winner; inference combines frozen source, exact roundtrip, installed manual and event/report. No GUI visual or cross-engine claim."
+  ]
+}
