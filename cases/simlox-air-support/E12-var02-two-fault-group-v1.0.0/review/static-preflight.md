@@ -1,0 +1,11 @@
+# E12.var02 two-fault group independent preflight — 2026-10-03
+
+**GO for one guarded diagnostic native run.** The initially missing individual-control provenance guard was corrected before any native execution and rechecked below.
+
+The accepted group parent input SHA-256 `a93765916f45295da8a105434f032617bbead1668219e7718e3b74b8820b3f92`, closure `9b3cd8dbf0a4b83aa26b4cec9e4c231960496932e93965703bd4258dedfdbd84`, and evidence index `1f2ea06cb7ffd17ab68a5387e56a557fa45529f15afd5929d854e00468743d77` match. The child input is `a93cfb093dc7a5b3588ac025be42d78edebf5b0c6fe2eed64b3997ea68efd5a7`; exact diff `9528ecca1e8ebae8ac26dcac81b9d6885e6c8d535c790f75264a16c5629bbe03`; contract `897cf6a3da80f7f173ea6301b674389f47e191e6ae367232eb8ea04ee43e4c08`. Read-only builder/diff replay matches. Only `MissionType.DURN` 2→3.5 hours and `ProblemDescription` change; 30 tables stay fixed. The child retains the 22 populated-table geometry and the one `BASE-GRP` SystemRepair row. The installed dictionary permits `SystemRepair.STID` to reference `Station.GSTID`.
+
+The runner and checker parse cleanly. The checker pins the child and requires 22 exact authored populated tables. The runner pins its group parent, individual control, executable, manual, dictionary, contract, and diff; requires session-0 SSH with `sshd.exe` ancestry; uses `Global\SimloxIssue18NativeQueue`; verifies active GUI PID 13340; runs native steps hidden; gates on zero conversion errors, report and roundtrip; and seals source and raw files. Corrected runner SHA-256 `145235140f99caa85c4e578f6d34af7f77d228d06ca0ef82311b43e5a85e7d91`; checker SHA-256 `d223e84bc2afd76014526d8ff0f07d239aaefb508e08491b37b54a12cc84a3eb`.
+
+The original runner omitted the contract-pinned individual-control input `65f6790c712552ff8fd6db322a2a9f5e345d3e9679cb28bea4a15f781a55dd3b` and closure `03cd6c4974035c6547bb6b391127d90ab2a2d150e27b7084b66411f205986760`. The corrected runner resolves both, checks their literal hashes and contract fields before the queue, and includes both in before/after source seals. PowerShell AST remains clean; child input, diff, and contract bytes are unchanged.
+
+After launch, both station-local repair paths and physical stock identities must be observed. One seeded run cannot establish group precedence or behavior under station overrides.
