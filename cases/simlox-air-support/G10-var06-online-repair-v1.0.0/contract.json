@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G10",
+  "variant_id": "G10.var06",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G10",
+    "variant_id": "G10.var03",
+    "version": "1.0.0",
+    "input_sha256": "df9966f1bee58561b1bd54d05ced353abefc37efcd7559c47af5c63683aaa718",
+    "native_run_id": "g10-var03-nrlrq-crossing-v100-ssh-20261003-01",
+    "native_closure_sha256": "84e33e3b751a30274cb0659ea4ccd42d203d10bafd7461f8f19ca94f0478192c",
+    "signoff_sha256": "918c9441541fda56b3ffd3750a7d77e2bb59a1afe934efce92643eac409209f8"
+  },
+  "mission_recipe_donor": {
+    "case_id": "G05",
+    "variant_id": "G05.var04",
+    "version": "1.0.3",
+    "input_sha256": "b0d79caeb71dbf991291b9122dff3139bc52c27e2c014b5bf624632539101f0d",
+    "signoff_sha256": "dff875a04c0f33f49cb5a4174339c09a19a11f0508e7f9d8209881495704435d"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [201, 202, 462, 463, 464],
+    "source_boundary": "Manual pp201-202 allows on-mission Redundancy repair for CONTINUOUS or EXTENDABLE missions if the LRU replacement is at the system home base and spares/resources are available. If NRLRQ links cease to be functional, redundancy faults become critical and mission aborts. This candidate uses inherited BASE-01 SystemRepair and stocked LRUs, and changes the fixed three-sortie schedule to one long continuous mission."
+  },
+  "native_input_sha256": "501924dfde54c81528ccb06cee5320111b2338db59f852f0e26be59d2f77ff35",
+  "exact_diff_sha256": "24b708d69ea10f3c3bfe61ce1248aa35071045e92997229d044d0895ddc99ca8",
+  "delta": {
+    "added_tables": [],
+    "changed_tables": ["MissionType", "OperationProfile", "ProblemDescription"],
+    "mechanism": "From accepted G10.var03, change the existing mission to one 26-hour CONTINUOUS mission, clear TFOUT/TFRET as required for this native mission pattern, retain only the h8 profile row, and update the description. Preserve Redundancy ACTIVE NRL2/NRLRQ1, LRU/SRU ordinary failure inputs and local repair, stock, seed1, one repetition and horizon36. The continuous mission fields and h8 profile shape are verified against accepted G05.var04 as a recipe donor."
+  },
+  "predeclared_native_acceptance": [
+    "All 22 populated source tables roundtrip exactly; conversion errors zero and valid native event log and report nonempty.",
+    "At least one physical LRU fails noncritically while the continuous mission is active, then a local system LRU replacement task starts and completes before mission end or return while the mission remains active. A successful on-mission repair must be shown by native event ordering, not inferred from source alone.",
+    "Reconcile every observed physical fault, mission outcome, system and nested item repairs, all LRU/SRU stock issues and backorders, 72 System/Stock bins, summary fields and terminal readiness. If the on-mission repair trace is absent, classify this frozen run diagnostic only.",
+    "Bind parent/donor, manual, dictionary, contract, source, invocation/closure and raw artifacts by SHA-256; separate read-only reviewer replay without author imports."
+  ],
+  "limits": [
+    "One ACTIVE 1-of-2 single-item LRU redundancy and one 26-hour continuous mission with seed1/rep1. The accepted parent has three fixed two-hour missions, so the mission schedule and pattern are changed together; this is an enabled-route observation, not an isolated MPAT contrast.",
+    "Stock-unavailable, resource-unavailable, EXTENDABLE, return-before-first-subtask, multi-item series links, PASSIVE and other rates/topologies remain unverified.",
+    "Continuous mission success must be read from the event log; fixed-mission summary fields may use different semantics. No GUI-only or cross-engine claim."
+  ]
+}
