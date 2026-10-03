@@ -1,0 +1,80 @@
+{
+  "schema": "simlox-f02-integrated-fleet-paired-pre-run-contract/v1",
+  "case_id": "F02",
+  "variant_ids": [
+    "F02.var01",
+    "F02.var02"
+  ],
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "Two-aircraft, two-day integrated support with paired deterministic and risk arms differing only in RISK-MISSION.MFF",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "boundary": "The accepted A04, B04, C03, D05, E04 and F01 models establish component behavior only. Composition, physical item routing, cross-mechanism resource contention and terminal ledgers require new native evidence. No GUI or product-main conclusion is implied."
+  },
+  "accepted_inputs": {
+    "D05": "4443d057ade36010a84186aa0f9ac8279886563db190ed80699b7fe48ad2baad",
+    "F01": "ae0181581822422aaf3c8bc5b7c0352c8bf31187178408e4f211102e438c77b5",
+    "A04": "9e2eac17e0408903e099e6ce054ebf4b91db1ca79036afe29638ee8a41d40711",
+    "B04": "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5",
+    "C03": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789",
+    "E04": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1"
+  },
+  "inputs_sha256": {
+    "F02.var01_deterministic": "2adc1eb4f40be73c0302082cef34d824e62b35e9e044af33b7af39c5f52dbb0c",
+    "F02.var02_risk": "11315f8029bba6b3cebd89a7fe033fd9f220a73a2e123e943808920e1ef42534"
+  },
+  "exact_diff_sha256": "294d8f9eec3ef2c2333ad8e476e92e97a0b3c8e28cb11b3158cba52b9d1f196c",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 56,
+    "report_interval_hours": 0.5,
+    "aircraft_count": 2,
+    "scheduled_launch_hours": [
+      21.5,
+      24.75,
+      45.5,
+      48.75
+    ],
+    "mission_duration_hours": 2,
+    "required_aircraft_per_mission": 2,
+    "turnround_hours": 1,
+    "preparation_hours_per_aircraft": 0.5,
+    "calendar_pm_due_hours": [
+      24,
+      48
+    ],
+    "maintenance_workers": 1,
+    "preparation_crew": 1,
+    "base_lru_opening_stock": 0,
+    "depot_lru_opening_stock": 2,
+    "base_sru_opening_stock": 2,
+    "base_depot_transport_each_way_hours": 2,
+    "risk_mission_mff_by_arm": {
+      "F02.var01": 0,
+      "F02.var02": 1
+    },
+    "lru_sru_local_replacement_hours": 4,
+    "depot_transfer_hours": 2
+  },
+  "pre_run_hypotheses": [
+    "Both arms import, export, calculate and report under guarded session-0 CLI, preserving the GUI. Authored populated rows roundtrip exactly. Converter errors are zero and every warning and note is identified; an unanticipated semantic diagnostic excludes acceptance.",
+    "The paired inputs differ only in RISK-MISSION.MFF. Verify zero stochastic faults in the deterministic arm and at least one in the risk arm. Follow the resulting event paths rather than attributing all aggregate differences to the switch. Retain A04 two-day two-aircraft waves, B04 cross-midnight turnround, C03 shared preparation crew, D05 calendar PM and maintenance worker, E04 depot transport, and F01 physical LRU/SRU chain.",
+    "For each mission, reconcile planned versus actual start, aircraft identities, shared preparation allocations, turnround, completion or cancellation, and midnight/day boundary. Do not infer a mission event from report aggregates alone.",
+    "For each PM and CM, reconcile aircraft and physical item identities, remove/fit/repair and stock demand/issue/return or backorder, with BASE and DEPOT separated. P-CREW serves preparation only; P-MAINT serves PM and E01-SURP subtasks. Turnround and local LRU/SRU repair carry no authored worker requirement. Reconcile the corresponding resource request/grant/release ledger. At least one risk-arm fault must traverse a physical LRU/SRU and depot supply route; otherwise preserve a diagnostic and revise a fresh version.",
+    "Reconcile all 112 half-hour SystemResults, StockTotalResults and ResourceResults intervals, resource and inventory conservation, and terminal ready/repair/transit/reservation state, with second-day PM completion checked explicitly. Differences between arms must be traced to native events and may include altered mission timing and PM contention.",
+    "The four-hour local LRU-to-SRU replacement should let the two-hour depot supply fulfill the base LRU backorder first. Confirm physical depot LRU ID, transport departure/arrival, base issue and eventual local repair return; if local repair or another route still wins, exclude this version."
+  ],
+  "decision_rule": "Accept a bounded F02 pair only if every named mechanism has native event evidence, all raw outputs are sealed and locally replayed, exact input roundtrip and converter diagnostics pass, the pair and cross-ledgers reconcile, and independent read-only review accepts the package. If any gate fails, keep this version as an immutable excluded diagnostic and revise under a fresh contract/version.",
+  "limits": [
+    "One seed, two aircraft, one base and one depot, one LRU/SRU chain, two-day profile, one maintainer and one preparation crew; this is the first small teaching fleet rather than expanded scale.",
+    "The paired switch alone cannot separate all interactions or establish generic randomness, GUI parity, other locations, or an eight-aircraft 43-day case."
+  ],
+  "revised_from": {
+    "package": "F02-var01-var02-integrated-fleet-v1.0.0",
+    "diagnostic_sha256": "bfd5db6043b4fb0f0eb1a8a9ef906073413488ad4483f0ccb49efe5b1ef73044",
+    "reason": "Local LRU-to-SRU repair cleared the base backorder before the depot transfer could arrive."
+  }
+}

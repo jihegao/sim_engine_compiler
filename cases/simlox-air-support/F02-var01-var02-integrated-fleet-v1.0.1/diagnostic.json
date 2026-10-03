@@ -1,0 +1,24 @@
+{
+  "schema": "simlox-f02-paired-excluded-diagnostic/v1",
+  "publication_state": "excluded_diagnostic",
+  "decision": "Native run and exact roundtrip completed, but no depot LRU demand or transport was generated. A four-hour local LRU/SRU replacement only prolonged local backorder; it did not activate the accepted E04 route.",
+  "runs": {
+    "deterministic": {
+      "run_id": "f02-pair-v101-det-ssh-20261004-01",
+      "closure_sha256": "60d69bf0f88a30b9c844bc3dabb2a3499b7974e01d569c0898b8748b5979d932",
+      "model_log_sha256": "ae6ff7b3c712c2a9c2b1adc4c1cd88f024ebccfd40bac799e6a60f67c50bdfa5",
+      "report_sha256": "07a63e117d929d55be9e72390492723f31698f75b598569761df908e5cc3dd88"
+    },
+    "risk": {
+      "run_id": "f02-pair-v101-risk-ssh-20261004-01",
+      "closure_sha256": "2d9a92cb49669a910d74a820a7d8e501fe471cd63e71854c6ca7d86a3e1b410a",
+      "model_log_sha256": "4337ff349f24d884d9c19e2ed68037c711f81c19571e9b82390f5ad2a0c896bb",
+      "report_sha256": "2116ff8c5012bb8d60761550a84adc52d012feea90395e3e4c1c4b37d1ec9ee2"
+    }
+  },
+  "observed": [
+    "Risk base LRU backorder h47.9896, failed LRU local arrival h48.1563, local repair completed h52.1563, backorder cleared locally.",
+    "Depot LRU stock remained unused; depot transport gate failed."
+  ],
+  "next_version_hypothesis": "Move LRU/SRU repair and replacement to DEPOT-01, with SRU stock there, while retaining base system replacement and E04 depot LRU stock; this should route a depot spare to the base."
+}
