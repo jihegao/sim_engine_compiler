@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "F01.var01",
+  "passed": true,
+  "verdict": "GO: bounded repeated two-/three-level local replacement and reissue",
+  "checks_passed": 12822,
+  "checks_total": 12822,
+  "failures": [],
+  "evidence": {
+    "two_closure_sha256": "0d08cafda31a10207d6a57f9255ee35c427388e1aa2f22418b03cba7a675845f",
+    "three_closure_sha256": "0b7236d6bff3fd7dc19bf89b4a1496cf036ce48ddfa3dc329ed287fe79d510c3",
+    "raw_seals_each": 12,
+    "row_containing_tables": {
+      "two": 20,
+      "three": 21
+    },
+    "two_lru_reissued_physical_id": 1,
+    "three_lru_reissued_physical_id": 2,
+    "three_sru_repaired_and_reissued_physical_id": 3,
+    "failure_hours_each": [
+      8.47072,
+      20.8247
+    ],
+    "mission_outcomes_each": [
+      "abort",
+      "abort",
+      "success"
+    ],
+    "report_bins_each": 72,
+    "all_non_description_report_cells_equal": true,
+    "terminal_ready_aircraft_each": 1
+  },
+  "limits": [
+    "One aircraft, one base, one LRU with optional SRU, seed 1 and 36-hour horizon; no more than three physical levels, ASSY, remote repair, resource scarcity, PM or explicit failure-mode CM.",
+    "Both arms show repaired physical LRU reissue after a later failure. The three-level arm also shows SRU replacement and one-hour SRU repair, with item-specific 0.75-hour LRU SURP overriding general 1.5 hours.",
+    "Matched event and aggregate report timelines in this seed do not establish structural causal equivalence or cross-seed stochastic parity. Default StockTotalResults counts system LRU demand bins; it does not separately expose physical nested SRU issues.",
+    "The unpublished v1.0.0 run failed its predeclared repeated-demand gate and is excluded. Issue #403's general nested replacement boundary remains open.",
+    "No GUI visual or cross-engine claim."
+  ]
+}

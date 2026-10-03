@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-f01-var01-pre-run-contract/v1",
+  "case_id": "F01",
+  "variant_id": "F01.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "two-level traditional aircraft/LRU/SRU physical replacement and local reissue across repeated demands",
+  "accepted_direct_parent": {
+    "package": "G01-var01-lru-sru-v1.0.1",
+    "input_sha256": "9c25a414615ac4ea523ee989385a913c692923e04bc41c6984b6866e86204bb9",
+    "run_id": "g01-var01-v101-ssh-20261001-01",
+    "native_closure_sha256": "a179ef166b37d877dd46ca6ad0b9051b2d36e0bd444ef138b060faca4cb61436",
+    "evidence_index_sha256": "c8151ecf547f0e5420b85a56fdf6d58e4f1f17d4327e321bc2ede22ad80566d4"
+  },
+  "accepted_two_level_comparator": {
+    "package": "E05-local-repair-reissue-v1.0.0",
+    "input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca",
+    "run_id": "e05-v100-ssh-20260929-01",
+    "native_closure_sha256": "e75836bcd99ba838d4ef247973794a2bf38fbddd4904d69337d631ba983d01ef"
+  },
+  "other_accepted_prerequisites": ["G02.var01", "G12.var01", "I01.var01"],
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_manual_pages": [238, 240, 241, 247, 249, 338, 340, 341, 346],
+    "boundary": "The installed SRU is nested under the LRU. A child failure is reported as installed LRU failure on the aircraft; the SRU is identified when the removed LRU reaches local repair. System-level LRU replacement, LRU-level SRU replacement, and SRU direct repair have distinct task and stock ledgers. The matching ItemReplacement SURP time overrides general ItemRepair SURP. The LRU and SRU traditional FRT values match the System FRT, leaving zero residual direct LRU failure."
+  },
+  "native_input_sha256": "bd170f8bf4f194f7cb3e9f11f8fc811a739fd20b0a3b11ae0270eaee64911ed0",
+  "exact_diff_sha256": "c47c98b9043dc7d685af92a93ae2fe2018311a585a87ea2e4769dc7d823443a3",
+  "delta": "From accepted G01.var01, change only System.FRT, LRU.FRT and SRU.FRT from 300000 to the accepted E05 exposure 450000 per million OPHOURS, plus description. Keep the nested structure, one local spare of each type, aircraft replacement, LRU SRU replacement, SRU direct repair, seed, three mission times and horizon fixed. Four cells across three tables change; 28 tables are fixed. Accepted E05 is the two-level physical comparator (system to LRU); this child adds the SRU as a third physical level while retaining System, Control, mission schedule, seed, FRT, system repair and horizon. Six E05 tables differ because the new level requires its own stock/repair route. Native random draws may diverge, so the pair supports topology and separate ledgers, not matched event times or a one-field causal effect.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32],
+    "aircraft_count": 1,
+    "system_lru_sru_frt_per_million_ophours": 450000,
+    "lru_opening_local_stock": 1,
+    "sru_opening_local_stock": 1,
+    "system_lru_remove_hours": 0.1666666667,
+    "system_lru_fit_hours": 0.3333333333,
+    "lru_sru_specific_surp_hours": 0.75,
+    "lru_general_surp_hours": 1.5,
+    "sru_direct_repair_hours": 1.0
+  },
+  "pre_run_hypotheses": [
+    "All 21 author-populated tables import/export exactly; zero conversion errors and valid nonempty native output/report are required.",
+    "The frozen seed/rate should produce at least two installed LRU failures, allowing physical LRU repair, stock return and reissue; exact stochastic failure times and count are measured from native events, not prescribed by this contract.",
+    "Compare the accepted E05 two-level system-to-LRU native trace with this three-level system-to-LRU-to-SRU trace: E05 has direct LRU repair without SRU demand; this child should show nested SRU replacement and its separate stock/repair ledger. Do not require matching failure times or mission outcomes across the structural change.",
+    "For each observed failure, trace aircraft mission abort or later outcome, system-level LRU demand/issue, 10-minute removal and 20-minute fit, removed LRU identity and nested SRU fault, LRU-level SRU demand/issue, 0.75-hour specific SURP rather than 1.5-hour general SURP, SRU one-hour direct repair, LRU and SRU stock returns, and eventual repeated issue identity.",
+    "Reconcile all demands, backorders, physical item identities, task resource requests, 72 half-hour System and Stock bins and terminal aircraft/stock state. Keep both levels distinct rather than treating SRU replacement as aircraft-level issue."
+  ],
+  "decision_rule": "Publish F01.var01's two-level/three-level contrast only if the accepted E05 comparator and this three-level run are independently source-bound, the repeated nested physical replacement/reissue sequence occurs, all observed cycles and reports reconcile separately, source and 12 raw artifacts seal, and a separate reviewer replays the result read-only. If the seed fails to produce the required repeat geometry or a ledger does not close, retain this candidate as a sealed diagnostic and design a fresh version; do not relax the predeclared acceptance after seeing output.",
+  "limits": [
+    "One aircraft and one nested LRU/SRU chain, one fixed seed, sufficient local stock, two-level repair at BASE-01 only; no ASSY, resource scarcity, remote repair, PM, quantity variants or explicit failure mode.",
+    "Known issue #403's general nested physical replacement semantics are not closed by one bounded successful trace.",
+    "GUI-only presentation and cross-engine equivalence are unverified."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "simlox-f01-var01-two-three-level-pre-run-contract/v1",
+  "case_id": "F01",
+  "variant_id": "F01.var01",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "matched two-level system/LRU and three-level system/LRU/SRU local physical replacement and repeated reissue",
+  "accepted_two_level_parent": {
+    "package": "E05-local-repair-reissue-v1.0.0",
+    "input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca",
+    "run_id": "e05-v100-ssh-20260929-01",
+    "native_closure_sha256": "e75836bcd99ba838d4ef247973794a2bf38fbddd4904d69337d631ba983d01ef"
+  },
+  "accepted_three_level_parent": {
+    "package": "G01-var01-lru-sru-v1.0.1",
+    "input_sha256": "9c25a414615ac4ea523ee989385a913c692923e04bc41c6984b6866e86204bb9",
+    "run_id": "g01-var01-v101-ssh-20261001-01",
+    "native_closure_sha256": "a179ef166b37d877dd46ca6ad0b9051b2d36e0bd444ef138b060faca4cb61436",
+    "evidence_index_sha256": "c8151ecf547f0e5420b85a56fdf6d58e4f1f17d4327e321bc2ede22ad80566d4"
+  },
+  "other_accepted_prerequisites": ["G02.var01", "G12.var01", "I01.var01"],
+  "preceding_unpublished_diagnostic": {
+    "package": "F01-var01-nested-reissue-v1.0.0",
+    "input_sha256": "bd170f8bf4f194f7cb3e9f11f8fc811a739fd20b0a3b11ae0270eaee64911ed0",
+    "run_id": "f01-var01-nested-v100-ssh-20261004-01",
+    "closure_sha256": "6f81dbdc250335f1cdd371486c363d3e5437bc6ff8aa513ff471f0ebff3055be",
+    "result": "one nested repair, no repeated demand; failed frozen repetition gate"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_manual_pages": [238, 239, 240, 241, 247, 249, 338, 340, 341, 346],
+    "boundary": "System-to-LRU is the accepted two-level physical chain. Adding one SRU under the LRU creates the three-level material hierarchy. Aircraft-level LRU removal/fit, LRU-level SRU replacement, and SRU direct repair are distinct. A matching ItemReplacement row overrides general ItemRepair SURP time. Matching System, LRU and SRU FRT values leave no residual direct parent failure."
+  },
+  "two_level_input_sha256": "ed28a951b3547a467715bc4c6a230ee32ef7a4ba063ed9a87279ceb63ac62a5e",
+  "three_level_input_sha256": "ae0181581822422aaf3c8bc5b7c0352c8bf31187178408e4f211102e438c77b5",
+  "exact_diff_sha256": "553903122b94e49f1c4df83d24be8cd4b7c77dbbec39bca9891dd8b76a6b2685",
+  "delta": "Raise System and LRU traditional FRT in accepted E05 from 450000 to 1200000 per million OPHOURS in the two-level arm. Raise System, LRU and SRU FRT in accepted G01 from 300000 to 1200000 in the three-level arm. Only rates and descriptions change within each parent. Across arms, Control, System, mission schedule, seed, horizon and aircraft-level repair are identical; six tables differ because adding the SRU level requires Item, ItemStructure, ItemRepair, ItemReplacement and StockAllocation rows plus description. Do not infer matched event times or a one-field causal effect across changed material topology and RNG sequence.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32],
+    "aircraft_count": 1,
+    "system_lru_sru_frt_per_million_ophours": 1200000,
+    "lru_opening_local_stock": 1,
+    "sru_opening_local_stock_three_level_only": 1,
+    "system_lru_remove_hours": 0.1666666667,
+    "system_lru_fit_hours": 0.3333333333,
+    "two_level_lru_direct_repair_hours": 1.0,
+    "three_level_lru_sru_specific_surp_hours": 0.75,
+    "three_level_lru_general_surp_hours": 1.5,
+    "three_level_sru_direct_repair_hours": 1.0
+  },
+  "pre_run_hypotheses": [
+    "Two-level and three-level arms each import/export exactly their 20 and 21 populated authored tables, convert with zero errors and produce nonempty valid SXI/SXO, events and 72-bin reports.",
+    "The increased fixed exposure should produce at least two installed LRU failures and two aircraft-level LRU demands in each arm. A single failure or no repaired LRU reissue in either arm is a diagnostic NO-GO; exact failure times and count are observed, not prescribed.",
+    "In the two-level arm, each removed LRU enters direct item repair without SRU demand. At least one repaired physical LRU returns to local stock and is issued for a later aircraft-level demand.",
+    "In the three-level arm, each removed LRU reveals a nested failed SRU, consumes a local SRU replacement, completes its item-specific 0.75-hour SURP rather than 1.5-hour general SURP, and returns to LRU stock. Each removed SRU undergoes one-hour direct repair and returns to SRU stock. At least one repaired physical LRU is reissued for a later aircraft-level demand.",
+    "For every observed cycle, reconcile physical LRU/SRU identities, inventory and backorder levels, task resource requests, mission outcome, ready state, System/Stock report metrics and terminal state. Compare topology and distinct repair/stock ledgers across arms without attributing different stochastic times to structure alone."
+  ],
+  "decision_rule": "Accept the bounded F01.var01 two/three-level comparison only if both arms satisfy the repeated reissue and all individual ledgers, native steps, source/raw hashes, exact diffs and every report interval are independently replayed read-only. If either arm misses the required geometry or another gate, retain the pair as sealed diagnostic evidence and design a fresh version; do not relax acceptance after seeing output.",
+  "limits": [
+    "One system, one LRU and optionally one SRU, one base, local stock and repair, seed 1, 36-hour horizon; no ASSY, more than three physical levels, extra repair locations, resource scarcity, PM, transport or explicit failure-mode CM.",
+    "This bounded run does not close known issue #403's general nested replacement boundary.",
+    "GUI-only presentation and cross-engine equivalence are unverified."
+  ]
+}
