@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E13.var01",
+  "passed": true,
+  "verdict": "GO: bounded matched ENROB Y/N robbing contrast",
+  "checks_passed": 8786,
+  "checks_total": 8786,
+  "failures": [],
+  "evidence": {
+    "enabled_closure_sha256": "624dcbc5fee43fe0b6416d887d1e08cee81ea8412130c738b12b579d3366771b",
+    "disabled_closure_sha256": "8799e16954fe2f83582f672cb38dcc5c6fd4c863ec647e592f8757b581ccbf45",
+    "raw_seals_each": 12,
+    "roundtrip_tables_each": 20,
+    "donor_aircraft": 0,
+    "recipient_aircraft": 1,
+    "robbed_physical_item": "TEACH-LRU-02,0,2",
+    "recipient_ready_hours": {
+      "Y": 8.97992,
+      "N": 12.8133
+    },
+    "donor_ready_hours": {
+      "Y": 20.6883,
+      "N": 20.6883
+    },
+    "NROBT_total": {
+      "Y": 1,
+      "N": 0
+    },
+    "result_summary_equal": true,
+    "stock_report_all_72_rows_equal": true,
+    "system_report_changed_bins": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25
+    ]
+  },
+  "limits": [
+    "One fixed seed, two traditional item types, two aircraft in one unit/base, zero opening stock, no resources and 36-hour horizon; no general robbing-rate law.",
+    "The native log identifies donor rob task on aircraft0 and receipt of physical B item2 by aircraft1; removal of B2 from donor is inferred from the task's remove subtask and immediate identity-matched receipt, not an explicit donor-item-removal sentence.",
+    "NROBT exists in SystemResults; there is no NRB column in the selected default report, so no numerical NRB claim is made.",
+    "StockTotalResults aggregate rows are identical even though physical B2 moves between aircraft; event identities and SystemResults expose the contrast.",
+    "No explicit failure-mode/CM-task, resource scarcity, GUI visual or cross-engine claim. Earlier v0.1.0/v0.1.1 diagnostics are excluded."
+  ]
+}

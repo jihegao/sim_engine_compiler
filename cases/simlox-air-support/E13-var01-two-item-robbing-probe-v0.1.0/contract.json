@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-e13-var01-two-item-robbing-probe-v010-pre-run-contract/v1",
+  "case_id": "E13",
+  "variant_id": "E13.var01.probe",
+  "version": "0.1.0-diagnostic",
+  "publication_state": "not_published",
+  "scope": "diagnose whether this fixed seed creates traditional two-item donor/recipient failure geometry and an explicit robbing action",
+  "accepted_parent": {
+    "package": "E03-two-aircraft-shared-spare-v1.0.0",
+    "input_sha256": "657c0d52116c09ef2dbd009209f461f6fb4ed3570327c4305e0e4608f208cbf0",
+    "run_id": "e03-v100-ssh-20260929-01",
+    "native_closure_sha256": "b200b18fbbed80dcc7ff9e9f4e2e1d7952734449b49a400a509d054090a9b7d6",
+    "signoff_sha256": "dedf59901c805c7bbfd6c7421f02d0b051d0fbbc38c97819970988203e47c4e1"
+  },
+  "native_input_sha256": "1855ba77b653748887a8777fa079c1adeef2383c6561d50629eae6d418ff14d7",
+  "exact_diff_sha256": "e24476ddf1d6f4d87fd4d0784bac0efe83f8b96e72fdaa1bba3d1fcbea84a2bf",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp223 and 232: robbing is considered after a traditional critical subitem replacement finds no replacement; a same-unit same-system-type donor must be down waiting for another item, and robbing must benefit the recipient without delaying the donor. Explicit failure-mode/CM-task items are excluded. ENROB can be enabled globally, with item or station overrides; these are left null. Physical p255 requires the system traditional FRT to cover the sum of subitem rates.",
+  "delta": "From accepted E03, add a second installed traditional LRU-B with zero opening stock and 12-hour direct item repair; retain LRU-A's 4-hour repair but set its stock from one to zero; set System.FRT from 3,000,000 to 6,000,000 per million OPHOURS to cover both item rates; set Control.ENROB=Y and change description. Two aircraft, one unit, one base, 8-hour paired missions, seed and horizon remain fixed. Four rows added and four cells modified across seven tables; 24 parent tables fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "aircraft_count": 2,
+    "unit_count": 1,
+    "item_a_frt_per_million_ophours": 3000000,
+    "item_b_frt_per_million_ophours": 3000000,
+    "item_a_local_repair_hours": 4,
+    "item_b_local_repair_hours": 12,
+    "opening_spares_each": 0,
+    "enable_robbing": "Y"
+  },
+  "pre_run_hypotheses": [
+    "All 20 row-containing authored tables import/export exactly, conversion has zero errors, and the native output/report is valid.",
+    "For a positive robbing geometry, one aircraft must first be down awaiting a B replacement while its A remains healthy, then the other must be down awaiting an A replacement at the same unit.",
+    "If the geometry occurs, an explicit robbing removal/transfer and physical A identity should appear; recipient readiness, donor waiting and item/stock/resource/metric ledgers must be reconcilable. No timing or event parity with E03 is presumed."
+  ],
+  "decision_rule": "This run is diagnostic only. If native conversion, geometry or explicit robbing evidence is absent, seal NO-GO with the exact failure and choose a fresh frozen seed/model for a later matched ENROB=Y/N pair. Even if robbing occurs, require a separately frozen ENROB=N control and independent read-only replay before E13 acceptance or publication.",
+  "limits": [
+    "One fixed seed and one enabled diagnostic; no positive robbing claim without a matched control.",
+    "No explicit failure-mode or CM-task path, resource scarcity variant, GUI visual or cross-engine claim."
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-e13-var01-two-item-robbing-probe-v012-pre-run-contract/v1",
+  "case_id": "E13",
+  "variant_id": "E13.var01.probe",
+  "version": "0.1.2-diagnostic",
+  "publication_state": "not_published",
+  "scope": "diagnose whether this fixed seed creates traditional two-item donor/recipient failure geometry and an explicit robbing action",
+  "accepted_parent": {
+    "package": "E03-two-aircraft-shared-spare-v1.0.0",
+    "input_sha256": "657c0d52116c09ef2dbd009209f461f6fb4ed3570327c4305e0e4608f208cbf0",
+    "run_id": "e03-v100-ssh-20260929-01",
+    "native_closure_sha256": "b200b18fbbed80dcc7ff9e9f4e2e1d7952734449b49a400a509d054090a9b7d6",
+    "signoff_sha256": "dedf59901c805c7bbfd6c7421f02d0b051d0fbbc38c97819970988203e47c4e1"
+  },
+  "native_input_sha256": "7ccf187194dbc7accdade743c900c8ae79579d3624b03c70b47d0dfd3a205c34",
+  "exact_diff_sha256": "7acc5239c9180c0939d10d4167bd1fb4c4237ef55c87fa2b06d5339ff4bff7ca",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp223 and 232: robbing is considered after a traditional critical subitem replacement finds no replacement; a same-unit same-system-type donor must be down waiting for another item, and robbing must benefit the recipient without delaying the donor. Explicit failure-mode/CM-task items are excluded. ENROB can be enabled globally, with item or station overrides; these are left null. Physical p255 requires the system traditional FRT to cover the sum of subitem rates.",
+  "delta": "From accepted E03, add a second installed traditional LRU-B with zero opening stock and 4-hour direct item repair; change LRU-A FRT from 3,000,000 to 1,800,000 per million OPHOURS, its opening stock from one to zero, and its direct item repair from 4 to 12 hours. LRU-B FRT is 4,200,000 and System.FRT is 6,000,000, the exact sum. Set Control.ENROB=Y and change description. Two aircraft, one unit/base, 8-hour paired missions, seed and horizon remain fixed. Four rows added and six cells modified across seven tables; 24 parent tables fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "aircraft_count": 2,
+    "unit_count": 1,
+    "item_a_frt_per_million_ophours": 1800000,
+    "item_b_frt_per_million_ophours": 4200000,
+    "item_a_local_repair_hours": 12,
+    "item_b_local_repair_hours": 4,
+    "opening_spares_each": 0,
+    "enable_robbing": "Y"
+  },
+  "pre_run_hypotheses": [
+    "All 20 row-containing authored tables import/export exactly, conversion has zero errors, and native output/report are valid.",
+    "The prior v0.1.1 source at the same seed and rate split produced aircraft0 A failure before aircraft1 B failure. If repair-time change preserves that pre-repair geometry, aircraft0 should be down awaiting a long A repair while retaining healthy B when aircraft1 requests B.",
+    "Under ENROB=Y, an explicit robbing action should remove physical B from aircraft0, serve aircraft1 earlier than a matched N control, and transfer the B waiting notice to aircraft0 without delaying its A repair. Logs, inventory/resource/metric bins and terminal state must reconcile."
+  ],
+  "decision_rule": "Diagnostic only. Accept this as a promising enabled-arm candidate only if conversion, the predeclared A-long donor/B-short recipient geometry, an explicit native robbing action with physical B identity, and ledgers are observed. Otherwise seal NO-GO. A separate fresh ENROB=N control, independent read-only replay and bounded signoff are required before any E13 publication.",
+  "limits": [
+    "One fixed seed and one enabled diagnostic; no positive robbing claim without a matched control.",
+    "No explicit failure-mode or CM-task path, resource scarcity variant, GUI visual or cross-engine claim."
+  ],
+  "preceding_diagnostics": [
+    {
+      "version": "0.1.0",
+      "closure_sha256": "236652385eeb0651a16f569fbda5acf905a3776b45716da8604d33dc202d7c9f",
+      "result": "A/A failures; no robbing"
+    },
+    {
+      "version": "0.1.1",
+      "closure_sha256": "b200e9470ad1ecc2fe5e444db8caf38729141c2a4510b311d91e2698f23d831d",
+      "result": "A/B failures, but first A repair short and second B long; no robbing"
+    }
+  ]
+}
