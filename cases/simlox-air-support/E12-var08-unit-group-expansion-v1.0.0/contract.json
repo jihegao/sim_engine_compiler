@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-e12-var08-unit-group-expansion-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var08",
+  "version": "1.0.0-candidate",
+  "scope": "group-owned paired mission orders resolved through two explicit member units at separate bases, each retaining one physically deployed aircraft and independent LRU stock and repair",
+  "accepted_parent": {
+    "package": "E12-var05-base02-zero-opening-stock-v1.0.0",
+    "input_sha256": "940592a6e27a84549e57656921ca111c1fc3c16e0bf233b90259866afb81071b",
+    "run_id": "e12-var05-base02-zero-stock-v100-ssh-20261003-01",
+    "native_closure_sha256": "6f1e48e7193abef10052cd9ed8e483267080a9ce863612e2320d3c2f7a384a80",
+    "evidence_index_sha256": "6d824d1c1e76ea546c90edebb6c2b69c48a190d91d5b7d67ef1686e44370e11c"
+  },
+  "native_input_sha256": "c58498f06d770ac8f9d5aae2684cdcbfc5ee153c45854ac058c0b5d74abb27f7",
+  "exact_diff_sha256": "02f37e6e4654431c54a861e5000edab2d42961f19df433ef2997de25342d6969",
+  "a17_schema_reference_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "manual_basis": "Installed SIMLOX manual physical pp310-313 describes unit-group Operations ownership, member-unit deployment, individual member expansion, cyclic search among equal-priority members and member XTIME. A17 accepted case supplies the native UnitGroup and UnitGroupMember schema. A13.var05 accepted control established two same-time orders for IQTY=2/IPER=0. This case observes actual selection rather than assuming parity with independently unit-owned schedules.",
+  "delta": "Add UnitGroup TEACH-GROUP and two explicit UnitGroupMember rows with equal PRI=1 and XTIME=0; replace the two unit-owned Operations rows with one group-owned row; raise IQTY 1 to 2 in each of three existing OperationProfile rows; change description. Three existing tables change, two tables are added, and 29 parent tables remain fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "mission_order_hours": [8, 20, 32],
+    "orders_per_wave": 2,
+    "unit_members": {"TEACH-UNIT": "BASE-01", "TEACH-UNIT-2": "BASE-02"},
+    "member_priority": 1,
+    "member_extra_time_hours": 0,
+    "mission_aircraft_requirement": 1,
+    "base01_opening_spare": 1,
+    "base02_opening_spare": 0,
+    "depot_opening_spare": 1
+  },
+  "pre_run_hypotheses": [
+    "All 24 populated authored tables import/export exactly, native conversion has zero errors, and output/report are valid.",
+    "The group profile orders six one-aircraft missions in three pairs. For each pair, native selection should identify both explicit physical member units, one aircraft per base, rather than conflating group and member identities.",
+    "Events should permit separate BASE-01 and BASE-02 aircraft, item, stock, transport, repair and backorder ledgers through the horizon; every native System and Stock report interval should reconcile to those events.",
+    "Changed ownership or group search can change timing and random draws; exact event parity with the parent is an observation, not a presumption."
+  ],
+  "decision_rule": "Accept a bounded unit-group expansion case only if the frozen source converts, both physical member units provide distinct aircraft to each scheduled pair or equivalent fully traceable group orders, independent per-base ledgers and numeric report bins reconcile, and a separate independent read-only replay passes. Otherwise seal a diagnostic without claiming group expansion acceptance.",
+  "limits": [
+    "One seed, two equal-priority explicit members, one aircraft per member, and three scheduled paired waves; no priority, XTIME or stochastic fairness law.",
+    "No implicit group member discovery, GUI visual or cross-engine claim."
+  ]
+}
