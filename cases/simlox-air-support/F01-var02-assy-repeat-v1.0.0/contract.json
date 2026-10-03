@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-f01-var02-assy-repeat-pre-run-contract/v1",
+  "case_id": "F01",
+  "variant_id": "F01.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "one structural ASSY middle layer around a repeatedly repaired and reissued LRU/SRU chain",
+  "accepted_behavior_parent": {
+    "package": "F01-var01-two-three-level-v1.0.1",
+    "input": "three-level-input.json",
+    "input_sha256": "ae0181581822422aaf3c8bc5b7c0352c8bf31187178408e4f211102e438c77b5",
+    "run_id": "f01-var01-three-v101-ssh-20261004-01",
+    "closure_sha256": "0b7236d6bff3fd7dc19bf89b4a1496cf036ce48ddfa3dc329ed287fe79d510c3",
+    "evidence_index_sha256": "80f9d8a91c8a45221f06574815f28cf7000b4f1fec30a6457859c241e7cad178"
+  },
+  "accepted_structural_reference": {
+    "package": "G01-var04-assy-structure-v1.0.0",
+    "input_sha256": "3bff001536557156d3b417c273065b8dfcc439d7e57dc626b20d635e12c83b14",
+    "run_id": "g01-var04-assy-v100-ssh-20261001-01",
+    "closure_sha256": "8c3feda244e3ec159bae5b5168cfa76f7e6aaf6107e0c706dd362a5aba00e5b1",
+    "evidence_index_sha256": "0ebd967949b66714cf96fa45fb036e023b04cc7b01d9445e952718c91dda5428"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_manual_pages": [240, 241, 247, 346],
+    "boundary": "ASSY provides a physical grouping without a logistics role. When ASSY separates the system and LRU in ItemStructure, a direct system-to-LRU ItemReplacement link supplies the replacement logistics. ASSY carries no FRT, stock, repair or demand."
+  },
+  "native_input_sha256": "29919986ee290f452c741dea8dc48a57254348f7a1dd28f3571a72842d59ba88",
+  "exact_diff_sha256": "8b8c29972943e388d93ef4507e697eda0f631d88a50d512fb7d1e1e618596404",
+  "delta": "Against F01.var01 three-level behavior parent, insert one TYPE=ASSY item between system and LRU in physical ItemStructure; add direct system-to-LRU ItemReplacement with existing E01 removal and fit task, and change description. ItemRepair, LRU-to-SRU replacement, stock, System, Control, mission schedule, seed, horizon and FRT remain identical. This is the same four-table structural delta accepted at lower FRT in G01.var04. Against that reference, only System/Item FRT and description differ.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32],
+    "aircraft_count": 1,
+    "system_lru_sru_frt_per_million_ophours": 1200000,
+    "lru_opening_local_stock": 1,
+    "sru_opening_local_stock": 1,
+    "assy_stock": 0,
+    "aircraft_lru_remove_hours": 0.1666666667,
+    "aircraft_lru_fit_hours": 0.3333333333,
+    "lru_sru_specific_surp_hours": 0.75,
+    "sru_direct_repair_hours": 1.0
+  },
+  "pre_run_hypotheses": [
+    "The one ASSY wrapper and direct system-to-LRU replacement row import/export exactly with all 21 authored populated tables; conversion has zero errors and produces valid nonempty SXI, SXO, event log and 72-bin report.",
+    "At least two installed LRU failures and aircraft-level LRU demands occur. The removed LRUs expose failed SRUs, consume local SRU replacements, undergo item-specific 0.75-hour SURP and return to LRU stock. Each failed SRU undergoes one-hour direct repair and returns to SRU stock.",
+    "At least one repaired physical LRU is issued for a later aircraft-level demand and at least one repaired SRU is issued for a later nested LRU repair. Physical identities must be tracked rather than inferred from aggregate counts.",
+    "ASSY occurs in the physical system-to-LRU connection path but is never demanded, stocked, issued, repaired or a maintenance task target. No ASSY failure rate or repair time is configured.",
+    "Every installed fault, task resource request, item stock transaction, backorder, mission outcome, 72 System/Stock report bins and terminal state reconciles. The parent comparison is descriptive; identical random times or unchanged aggregate reports are not required for acceptance."
+  ],
+  "decision_rule": "Accept only if the repeated physical LRU and SRU reissue and inert ASSY boundary are observed in one guarded native run, every source/raw/native/report/terminal gate passes, and a separate read-only reviewer replays the evidence independently. Otherwise retain this as a sealed diagnostic and freeze a new version; do not relax these gates after seeing output.",
+  "limits": [
+    "One ASSY position, one aircraft, one base, one LRU/SRU chain, seed 1, 36-hour horizon and local stock/repair only; no ASSY branch, quantity variation, extra repair level, resource scarcity, remote support, PM or explicit CM.",
+    "This does not close issue #403's general nested physical replacement boundary, GUI rendering or cross-engine equivalence."
+  ]
+}
