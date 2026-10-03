@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var01",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E04",
+    "package": "E04-upstream-transport-fast-v1.0.0",
+    "input_sha256": "2791e5ab4d0ddeccc869bcb173320039ea4f524463881d03fbb466c0b68fbba1",
+    "native_closure_sha256": "6ca7691e5554a196d2de7524fe123fc6f2417a04570b13a986e9ea76d8e6b630"
+  },
+  "supporting_prerequisite": {
+    "case_id": "E02",
+    "package": "E02-zero-stock-local-backorder-v1.0.0",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "native_closure_sha256": "a8ec55f67c710be700cb4dc3663c7f79041d69c2021edb9924c1d0daddda04ef"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [317, 319, 327, 334, 335, 336],
+    "interpretation": "StationStructure.PFRMS binds a downward TransportPolicyProfile. FIXED dispatches queued transport requests only at specified times; ONDEM dispatches on demand during its DURN window. TransportPolicyProfile.TPTIM overrides StationStructure.TFRMS. The unchanged FAST OPOL sends demand upstream immediately; upward faulty-item transport remains the parent's fixed TTOMS path."
+  },
+  "arms": {
+    "fixed": {"input_sha256": "b879f410769882155f2bdb3d3dbac4cf2e43802992bf3730a50e8736c291701c", "policy": "FIXED", "start_hour": 11, "duration_hours": null},
+    "ondem": {"input_sha256": "1ad095c4d1d371c1a2b8e7bc61d629e59459eff90ff310e5c6d1945c4cf70882", "policy": "ONDEM", "start_hour": 0, "duration_hours": 36}
+  },
+  "exact_diff_sha256": "4d9510a48b36e7c8bc23850d6bb0133bfd341246c64be9cd21d0c8b9dd9d8411",
+  "configuration": {
+    "base_stock": 0,
+    "depot_stock": 1,
+    "ordering_policy": "FAST",
+    "downward_transport_hours": 2,
+    "upward_transport_hours": 2,
+    "fixed_dispatch_hour": 11,
+    "ondem_window_hours": [0, 36],
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36
+  },
+  "predeclared_native_acceptance": [
+    "Both arms derive only from accepted E04 FAST input. They change its description, bind the BASE-01 to DEPOT-01 downward link to DOWN-POLICY, and add a one-row TransportPolicyProfile. The arms differ only in profile STPRID, STIM, DURN and description. Stock, rates, failure/repair, operations and upward transport remain matched.",
+    "Under the parent's fixed seed, both arms should observe the same first LRU failure near h9.8829 and a local replacement demand at h10. A changed failure clock is a diagnostic requiring explicit explanation before acceptance.",
+    "The ONDEM arm's downward spare transport should dispatch at demand near h10 and arrive roughly two hours later. The FIXED arm must queue that request until the sole scheduled h11 departure and arrive roughly h13, one hour later. Trace physical item identity, backorder, replacement fit and aircraft readiness; a nonempty output or aggregate availability alone is insufficient.",
+    "Preserve the parent's unchanged upward faulty-item path and depot repair/stock ledger. Reconcile all later native cycles, 72 half-hour system/stock/resource report bins, mission outcomes, terminal stock/backorder/in-transit/readiness, and any warning or note before acceptance.",
+    "Each arm must complete guarded session-0 SSH under Global\\SimloxIssue18NativeQueue, retain GUI PID 13340 identity, roundtrip all authored row-containing tables, have zero converter errors, nonempty SXO/event log/JSON report, source and raw seals, and separate read-only independent replay."
+  ],
+  "limits": [
+    "One seed and one expected first demand, one general downward support link, one spare, one FIXED departure and one ONDEM window; no batch-size, nested-profile, distribution, item-specific override or multiple-demand generalization.",
+    "The exact timing and policy semantics are determined by native event evidence, not by the planned timeline alone. GUI-specific behavior and cross-engine parity remain unverified.",
+    "Full E10, E11 and Issue #18 remain open."
+  ]
+}
