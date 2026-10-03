@@ -1,0 +1,13 @@
+# E12.var03 BASE-02 repair override independent preflight — 2026-10-03
+
+**GO for one guarded diagnostic native run.** The initially stale checker schema was corrected before native execution and rechecked below.
+
+The accepted E12.var02 two-fault group parent input `a93cfb093dc7a5b3588ac025be42d78edebf5b0c6fe2eed64b3997ea68efd5a7`, native closure `b0836011cd4008f1d19a45798ee02f7e5a2c6e95463d43828dced02ece7fe75b`, and evidence index `85a66a94d4a6dba06fd2cf4bd09e6b3b7cee6d863e5e2d5a9454ff2387fc9c23` match the frozen pins. Child input `568123c14daa026aa4665906abf4173ee6ed008373e2d2da9b710e9b153d61b6`, exact diff `46e177568e457d3a50728b37818318fb9c32487957abb92ceb0fef89fc5fa8cc`, and contract `02682bc15d60c4a4a337c6f494b605fb77ec17325209da3cc8b4cd8d1d81233d` match disk and read-only builder/diff replay. Only `ProblemDescription`, `SystemRepair`, `Tasks`, and `TaskBreakDown` change; 28 model tables are fixed and all 22 authored populated tables remain. The retained BASE-GRP repair is half an hour. The new BASE-02 individual row has `SURPT=1`, its own task, and one-third-hour remove plus two-thirds-hour fit subtasks. All station, stock, support, mission, seed, and horizon rows stay fixed.
+
+The installed dictionary permits `SystemRepair.STID` to reference either `Station.STID` or `Station.GSTID`; `TaskBreakDown` keys and `<REMOVE>`/`<REPLACE>` values are valid. This provides a valid diagnostic of individual-versus-group selection. The contract correctly limits any accepted conclusion to the observed two-base seed and notes that task plan and duration change together.
+
+The runner pins parent input/closure/index, child, diff, contract, executable, manual and dictionary; reruns builder/diff checks; requires session-0 SSH with an `sshd.exe` ancestor; serializes through `Global\SimloxIssue18NativeQueue`; preserves active GUI PID 13340; launches hidden native steps; gates conversion, report and roundtrip; and seals source/raw hashes. Python and PowerShell AST checks pass. Runner SHA-256 `6d8983e04b3706c695df1181a8bb39909c82b3f1ab65262ab15e9675c010bb3a`; corrected checker SHA-256 `22c30746213a7b8aa15358d81fa37bbb4b310a6ee47613c132a7083bd6ee7408`.
+
+The initial checker emitted an E12.var02 schema in three return paths. All three now emit `simlox-e12-var03-base02-override-v100-import-export/v1`; its Python AST is clean. The runner records the checker's current hash dynamically. The frozen model, diff and contract bytes remain intact.
+
+After execution, require BASE-01 to run the group task and BASE-02 to run the individual task without duplication. The group/individual task durations alone do not prove a general timing-field precedence rule.
