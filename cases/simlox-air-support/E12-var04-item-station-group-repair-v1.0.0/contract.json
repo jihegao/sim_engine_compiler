@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-e12-var04-item-station-group-repair-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var04",
+  "version": "1.0.0-candidate",
+  "scope": "one physical LRU and depot ItemRepair row resolved through an item-group by station-group intersection",
+  "accepted_parent": {
+    "package": "E12-var03-base02-system-repair-override-v1.0.0",
+    "input_sha256": "568123c14daa026aa4665906abf4173ee6ed008373e2d2da9b710e9b153d61b6",
+    "run_id": "e12-var03-base02-override-v100-ssh-20261003-01",
+    "native_closure_sha256": "37a2654f571af9444ba5fe85dc643353e0ecbd96ae97c58773b5371425113ced",
+    "evidence_index_sha256": "b04429758f42e5615c6c3626f0137d46049f33e60323164daadaea25bcf634ef"
+  },
+  "native_input_sha256": "8ade0fe65e3a46095d8eb3a928a8c577d20b530bf92635e3cee713e05286db73",
+  "exact_diff_sha256": "ea737114eefe21c7aa08c373f62495fd591669de7a19ef3170e899eae9b8eb5d",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "delta": "Set sole physical TEACH-LRU-01 Item.GIID=LRU-GRP and DEPOT-01 Station.GSTID=DEPOT-GRP, then change only the existing depot ItemRepair row IID to LRU-GRP and STID to DEPOT-GRP, plus description. The row remains DIRPT1h. All SystemRepair group/individual rows, missions, support, inventory, seed and horizon are fixed.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "mission_duration_hours": 3.5,
+    "item_id": "TEACH-LRU-01",
+    "item_group_id": "LRU-GRP",
+    "depot_station_id": "DEPOT-01",
+    "depot_station_group_id": "DEPOT-GRP",
+    "item_direct_repair_hours": 1.0
+  },
+  "pre_run_hypotheses": [
+    "The four-table five-cell delta imports, exports 22 authored populated tables exactly, converts with zero errors and produces a valid report.",
+    "Failed physical LRU IDs3,4,5 still route to DEPOT-01 and execute one-hour direct repairs through the group-by-group ItemRepair row, retaining the parent physical timing and identity ledger.",
+    "The event log and all non-description ResultSummary/System/Stock rows equal the accepted parent if the grouped row resolves equivalently for this member intersection.",
+    "The BASE-02 SystemRepair individual override and both-base spares remain observable and unchanged."
+  ],
+  "decision_rule": "Accept only a bounded one-item/one-depot group intersection if native conversion succeeds, physical item direct repairs remain observed and parent event/report parity holds. If not, seal the result as a diagnostic and do not claim group intersection behavior.",
+  "limits": [
+    "Each group has one observed member: this cannot test fanout, overlap, item-level or station-level precedence among multiple rows.",
+    "One seed and 36-hour horizon; no GUI visual or cross-engine claim."
+  ]
+}

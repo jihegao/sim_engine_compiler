@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E12.var04",
+  "run_id": "e12-var04-item-station-group-v100-ssh-20261003-01",
+  "passed": true,
+  "verdict": "GO: bounded one-item/one-depot group intersection",
+  "checks_passed": 4348,
+  "checks_total": 4348,
+  "failures": [],
+  "evidence": {
+    "closure_sha256": "4931ce8f4cc77851dd3c28c7c0d19e58f9943a8e5987d0dc3de5f37c66f80ad9",
+    "parent_closure_sha256": "37a2654f571af9444ba5fe85dc643353e0ecbd96ae97c58773b5371425113ced",
+    "raw_seals": 12,
+    "authored_tables_exact_roundtrip": 22,
+    "event_log_sha256": "95fc17a632cb929e2a2802a342e77a3c43855bfbfbe3dad23843bf70716255cc",
+    "report_bins_each": 72,
+    "repaired_physical_ids": [
+      3,
+      4,
+      5
+    ],
+    "depot_group": "DEPOT-GRP",
+    "item_group": "LRU-GRP"
+  },
+  "limits": [
+    "One observed physical item and one depot station in their respective groups; no fanout or overlapping-group selection proof.",
+    "The grouped ItemRepair row matches parent direct-repair timing and stock flow in this seed; no precedence test against an individual ItemRepair row.",
+    "BASE-02 SystemRepair individual override is retained and exercised, but unrelated to the new ItemRepair group intersection.",
+    "At h36 the event log reaches two ready aircraft while the final [35.5,36) report bin has one ready and one unavailable. Failed ID6 remains in transit.",
+    "No GUI visual, other-seed or cross-engine claim."
+  ]
+}
