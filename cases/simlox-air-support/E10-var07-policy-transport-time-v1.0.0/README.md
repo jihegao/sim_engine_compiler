@@ -1,0 +1,17 @@
+# E10.var07 policy transport time, v1.0.0
+
+This bounded paired case extends the [accepted E10.var01 ONDEM case](../E10-var01-fixed-ondem-v1.0.1/README.md). It tests whether an ONDEM policy's `TPTIM` overrides a two-hour station-link `TFRMS`, then whether `TPTIMD=<EXP>` makes that three-hour `TPTIM` the specified distribution mean while the native run uses a sampled transport duration. The single sampled duration demonstrates binding and timeline consistency, not a distributional property.
+
+## Frozen model and acceptance boundary
+
+Both inputs derive directly from the accepted E10.var01 ONDEM input. They change only `ProblemDescription` and `TransportPolicyProfile.TPTIM` from 2 to 3; `StationStructure.TFRMS` remains 2. The `exp3` arm additionally changes `TPTIMD` from null to `<EXP>`. Mission, item, stock, repair, transport direction, seed 1, 36-hour horizon, and half-hour reports remain fixed. See [contract](contract.json), [exact diff](exact-diff.json), [det3 input](native-input-det3.json), and [exp3 input](native-input-exp3.json). The installed SIMLOX manual, physical p. 336, and database dictionary identify the policy override and mean interpretation; their fingerprints are in the contract.
+
+The predeclared gate requires deterministic h10 departure/h13 arrival and three-hour local backorder; an exponential arm with one positive non-three-hour logged downward duration and matching event/report timeline; unchanged upward failed-item repair, mission and inventory reconciliation; 72 System/Stock half-hour bins; source/runner/raw hash closure; exact 22 authored populated-table import/export; zero converter errors; and independent read-only replay.
+
+## Observed native behavior
+
+Fresh guarded session-0 SSH runs under `Global\SimloxIssue18NativeQueue` completed import, export, calculation, JSON report, and roundtrip checking while preserving active GUI PID 13340. Both runs reported converter Errors 0, Warnings 1 (log warning #108), Notes 0 and produced nonempty SXO, event log, and report. The deterministic run dispatched spare `TEACH-LRU-01` serial 0 at h10 with logged duration 3, base arrival h13, backorder wait 3, and aircraft ready h13.3333. The exponential run logged duration 3.37148, arrived h13.3715, cleared the backorder after 3.37148, and restored aircraft readiness h13.7048. Log display rounding explains the small difference between printed timestamps and report fractions.
+
+Both arms have the same first failure at h9.8829 and one base/depot demand at h10. Failed serial 1 travels upward for two hours, reaches the depot h12.1667, is repaired and restocked h13.1667. One mission aborts and two later missions succeed. The 72 half-hour reports integrate three versus 3.37148 backorder hours and shift the readiness/repair bin accordingly. Terminal aircraft ready count is one, backorders and unfinished system repair are zero, and the failed item is in depot stock. No maintenance resource rows are authored or used. The exponential draw also changes later unused random failure clocks; they did not produce an additional failure before the horizon.
+
+The case covers one fixed seed, one demand, one general downward link, and one `<EXP>` draw. It does not estimate the distribution mean or shape, test queued demands or other distributions, or verify GUI visuals or cross-engine behavior. Full E10, E11, and Issue #18 remain open. Bulky native files remain in ignored local `runs/`; the evidence index records their IDs, byte lengths, and SHA-256 hashes.

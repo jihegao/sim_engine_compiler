@@ -1,0 +1,61 @@
+"""Seal E10.var07 source, accepted parent, and two guarded native runs."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+OUTPUT = HERE / "evidence-index.json"
+RUNS = {
+    "det3": ("e10-var07-det3-v100-ssh-20261003-01", "eb881599bb4c4697d6d08e122dfc44100faf709adcd30a626096e04f73966cd9"),
+    "exp3": ("e10-var07-exp3-v100-ssh-20261003-01", "9c86d9dcff9ca38d6abce74a7b808567945fd5c1e2926a0c3aae18b47a7fc133"),
+}
+
+
+def sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main() -> None:
+    contract = json.loads((HERE / "contract.json").read_text(encoding="utf-8-sig"))
+    parent_info = contract["accepted_parent"]
+    parent = HERE.parent / parent_info["package"]
+    assert sha(parent / "native-input-ondem.json") == parent_info["input_sha256"]
+    assert sha(parent / "runs" / parent_info["run_id"] / "closure.json") == parent_info["native_closure_sha256"]
+    assert sha(parent / "evidence-index.json") == parent_info["evidence_index_sha256"]
+    assert json.loads((HERE / "author-validation.json").read_text(encoding="utf-8-sig"))["passed"] is True
+    verdict = json.loads((HERE / "review/independent-verdict.json").read_text(encoding="utf-8-sig"))
+    assert verdict["passed"] is True and verdict["checks_passed"] == verdict["checks_total"]
+    accepted_runs = []
+    for arm, (run_id, expected) in RUNS.items():
+        run = HERE / "runs" / run_id
+        closure = json.loads((run / "closure.json").read_text(encoding="utf-8-sig"))
+        assert sha(run / "closure.json") == expected and closure["error"] is None
+        assert closure["arm"] == arm and closure["run_id"] == run_id and closure["invocation_sha256"] == sha(run / "invocation.json")
+        for name, seal in closure["raw"].items():
+            path = run / name
+            assert path.is_file() and path.stat().st_size == seal["bytes"] and sha(path) == seal["sha256"]
+        accepted_runs.append({"arm": arm, "run_id": run_id, "local_path": str(run.resolve()), "closure_sha256": expected, "invocation_sha256": sha(run / "invocation.json"), "raw": closure["raw"]})
+    source = []
+    for path in sorted(HERE.rglob("*")):
+        if not path.is_file() or path == OUTPUT or path.name.startswith("cli-scope-signoff-") or "runs" in path.parts or "__pycache__" in path.parts or path.suffix == ".pyc":
+            continue
+        source.append({"path": path.relative_to(HERE).as_posix(), "sha256": sha(path), "bytes": path.stat().st_size})
+    result = {
+        "schema": "simlox-e10-var07-policy-transport-time-v100-evidence-index/v1",
+        "case_id": "E10", "variant_id": "E10.var07", "version": "1.0.0",
+        "publication_state": "not_published", "source": source, "accepted_runs": accepted_runs,
+        "accepted_raw_count": sum(len(r["raw"]) for r in accepted_runs),
+        "parent_input_sha256": parent_info["input_sha256"],
+        "parent_closure_sha256": parent_info["native_closure_sha256"],
+        "parent_evidence_index_sha256": parent_info["evidence_index_sha256"],
+        "raw_location_policy": "local_only_ignored_runs_not_committed",
+    }
+    raw = (json.dumps(result, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    OUTPUT.write_bytes(raw)
+    print(json.dumps({"source_files": len(source), "accepted_raw": result["accepted_raw_count"], "evidence_index_sha256": hashlib.sha256(raw).hexdigest()}))
+
+
+if __name__ == "__main__":
+    main()
