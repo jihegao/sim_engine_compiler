@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-e12-var06-station-layout-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var06",
+  "version": "1.0.0-candidate",
+  "scope": "Station.LEVL/LINDX support-organization plot metadata with business model and simulation behavior fixed",
+  "accepted_parent": {
+    "package": "E12-var05-base02-zero-opening-stock-v1.0.0",
+    "input_sha256": "940592a6e27a84549e57656921ca111c1fc3c16e0bf233b90259866afb81071b",
+    "run_id": "e12-var05-base02-zero-stock-v100-ssh-20261003-01",
+    "native_closure_sha256": "6f1e48e7193abef10052cd9ed8e483267080a9ce863612e2320d3c2f7a384a80",
+    "evidence_index_sha256": "6d824d1c1e76ea546c90edebb6c2b69c48a190d91d5b7d67ef1686e44370e11c"
+  },
+  "native_input_sha256": "932c1a49c0dbfb96df57913405a0b8f66bfe34bd3287105a100e458b8efdad2d",
+  "exact_diff_sha256": "9663c0f2085645286b2db97554115d928389f48f7011fe5416bdbfe04b411ffc",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "delta": "Only Station.LEVL/LINDX metadata changes: BASE-01=(BASE,2), BASE-02=(BASE,1), DEPOT-01=(DEPOT,1), plus description. All station support edges, stock, repairs, item/system failure modes, mission, seed and horizon are fixed. Installed manual pages 323–324 describe these fields as support-organization plot controls and LINDX as calculation-neutral.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "mission_duration_hours": 3.5,
+    "base01_opening_spare": 1,
+    "base02_opening_spare": 0,
+    "depot_opening_spare": 1,
+    "base02_system_repair_hours": 1.0,
+    "depot_item_repair_hours": 1.0,
+    "station_layout": {"BASE-01": ["BASE", 2], "BASE-02": ["BASE", 1], "DEPOT-01": ["DEPOT", 1]}
+  },
+  "pre_run_hypotheses": [
+    "The two-table seven-cell metadata/description delta imports, exports 22 authored populated tables exactly, converts with zero errors and produces valid output.",
+    "Native business events, physical item identities/transfers/repairs, and six mission outcomes equal the accepted parent because the changed Station fields specify report layout only.",
+    "All non-description ResultSummary cells and all 72 half-hour SystemResults and StockTotalResults rows equal the accepted parent.",
+    "The numeric JSON report may not expose the support-organization plot; source/manual-directed visual placement is not claimed without separate plot evidence."
+  ],
+  "decision_rule": "Accept only a bounded Station.LEVL/LINDX calculation-neutral metadata case if frozen input converts, exact business-event and numeric-report parity with the accepted parent holds, and the level/index values are structurally consistent with support edges. If parity or report generation fails, retain a sealed diagnostic. Do not claim visually observed plot placement from JSON report alone.",
+  "limits": [
+    "One seed, item, group, two bases and 36-hour horizon; no general report-layout guarantee across other graphs.",
+    "The CLI JSON report contains numeric tables, not a rendered organization plot; visual position remains unverified.",
+    "No GUI visual or cross-engine behavior claim."
+  ]
+}
