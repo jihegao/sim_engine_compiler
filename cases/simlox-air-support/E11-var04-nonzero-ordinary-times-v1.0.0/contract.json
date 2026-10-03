@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E11",
+  "variant_id": "E11.var04",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E11",
+    "package": "E11-autonomous-support-gap-v1.0.0",
+    "input_sha256": "d1fc66999c081acb6f29e58e5083cee58c317f0c3e0597587037efcb58a2cfd3",
+    "run_id": "e11-base-autom-v100-ssh-20261003-01",
+    "native_closure_sha256": "2885c774b1551225c5fbcafc4c0b6669884600a0f03696ac29a3eba2ac34dd2c",
+    "evidence_index_sha256": "41c59ba6affcd0edf2ad95ae4d5fe96e887b406b9aa69e040d28678c1848f135"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [193, 194, 323, 334, 335, 336],
+    "interpretation": "For an AUTOM mission station with matched bidirectional support policy, ordinary StationStructure.TFRMS and TTOMS are documented and converter-warned as ignored. This source-matched contrast increases both ordinary times but leaves the policy and transport duration source unchanged."
+  },
+  "native_input_sha256": "1972242a3f5d8fa90d2843eec20d0b728a402f6df104da1789cb8f3fe8f5e98e",
+  "exact_diff_sha256": "17f4838b934afc83bc9fd4e9d5cebffc773ccbc80c2dfc711c313b75ddd7e2ae",
+  "configuration": {
+    "ordinary_from_station_hours_parent_child": [2, 7],
+    "ordinary_to_station_hours_parent_child": [2, 11],
+    "policy_window_hours": [[0, 9], [11, 36]],
+    "local_stock": 0,
+    "depot_stock": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive exactly from accepted E11 base by changing description and only StationStructure.TFRMS 2→7 and TTOMS 2→11. Retain AUTOM, matched PFRMS/PTOMS, both ONDEM rows including h11 reconnection, stock, failure/repair, missions, seed and collection. Require exact 22-populated-table authored roundtrip.",
+    "Converter must report zero errors and valid nonempty SXO, event log and JSON report. Record expected #108 log warning and #2076/#2077 warnings identifying both ordinary times as ignored. Do not infer success from process exit status alone.",
+    "Verify h9.8829 first fault, h10 demand and stock removal, h11 bidirectional physical transport start/arrival with zero logged travel time, h11 backorder clearance, h11.3333 aircraft readiness and h12 depot repair/restock. Compare against accepted 2h/2h parent event sequence and all non-description report tables across 72 half-hour bins, including missions and terminal stock/readiness. Any changed event/report behavior must be explained rather than ignored.",
+    "Use guarded session-0 SSH under Global\\SimloxIssue18NativeQueue, preserve active GUI PID 13340 in every hidden native step, seal raw artifacts, and require a separate independent read-only reviewer replay without importing the author checker."
+  ],
+  "limits": [
+    "One ordinary-time contrast, one reconnection, one initial demand, one seed and one support link. No general claim about other AUTOM structures, alternate policy parameters or dedicated item transport tables.",
+    "GUI visual behavior and cross-engine parity remain unverified. Other E11 variants and Issue #18 remain open."
+  ]
+}
