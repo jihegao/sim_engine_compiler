@@ -1,0 +1,64 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E12.var02-two-fault-control",
+  "run_id": "e12-var02-two-fault-control-v100-ssh-20261003-01",
+  "passed": true,
+  "verdict": "GO: bounded two-base individual repair control",
+  "checks_passed": 4389,
+  "checks_total": 4389,
+  "failures": [],
+  "evidence": {
+    "closure_sha256": "03cd6c4974035c6547bb6b391127d90ab2a2d150e27b7084b66411f205986760",
+    "parent_closure_sha256": "e211583fc9ed9a647f691ba9dd22bf4eb0144836cbe0e6229932a8da9c0e9a6a",
+    "raw_seals": 12,
+    "authored_tables_exact_roundtrip": 22,
+    "report_bins_each": 72,
+    "mission_outcomes": [
+      "abort",
+      "abort",
+      "abort",
+      "success",
+      "abort",
+      "success"
+    ],
+    "system_repairs": [
+      [
+        "BASE-01",
+        10.7579,
+        11.2579
+      ],
+      [
+        "BASE-02",
+        11.5,
+        12
+      ],
+      [
+        "BASE-01",
+        23.4473,
+        23.9473
+      ],
+      [
+        "BASE-01",
+        35.5,
+        36
+      ]
+    ],
+    "depot_backorder_interval": [
+      11.5,
+      14.9246
+    ],
+    "horizon_physical_stock": {
+      "BASE-01": 0,
+      "BASE-02": 1,
+      "DEPOT-01": 0
+    },
+    "last_failed_item_in_transit": 6
+  },
+  "limits": [
+    "Individual SystemRepair control only; group repair equivalence requires a separately frozen group arm.",
+    "One seed and 36-hour horizon. Report final half-hour bin is ready1/unavailable1, while event log reaches ready2 at exact h36 boundary.",
+    "Failed physical ID6 has begun the BASE-01-to-depot return at horizon and has not undergone item repair.",
+    "StockTotalResults aggregate NBO remains zero despite a physical depot backorder in model.log; do not equate the aggregate column with the depot's local ledger.",
+    "No GUI visual, other seed or cross-engine generalization."
+  ]
+}

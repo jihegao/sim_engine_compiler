@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-e12-var02-two-fault-control-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var02",
+  "version": "1.0.0-candidate",
+  "scope": "individual SystemRepair two-base control with longer mission exposure to exercise both stations before a group-default comparison",
+  "accepted_parent": {
+    "package": "E12-var01-explicit-two-bases-v1.0.0",
+    "input_sha256": "34e6c71772003c223911d68507458d5e94bacbe1ed8e5b02cf2d02fa8772d0d0",
+    "run_id": "e12-var01-explicit-bases-v100-ssh-20261003-01",
+    "native_closure_sha256": "e211583fc9ed9a647f691ba9dd22bf4eb0144836cbe0e6229932a8da9c0e9a6a",
+    "evidence_index_sha256": "94730e304fd63164294ef95d2bde890464bd72944cf25a825ad7fc473fd3f1cd"
+  },
+  "native_input_sha256": "65f6790c712552ff8fd6db322a2a9f5e345d3e9679cb28bea4a15f781a55dd3b",
+  "exact_diff_sha256": "b520692ca48c64272685320c5a7370f1515f7218a87754701785c733bf4195b3",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "delta": "From accepted E12.var01 with individual SystemRepair rows, change only MissionType.BASIC-MISSION.DURN 2.0→3.5 hours and ProblemDescription. Keep all two-base stock, transport, repair, missions at h8/h20/h32, seed1 and h36 horizon fixed.",
+  "parameters": {
+    "seed": 1,
+    "mission_start_hours": [8, 20, 32],
+    "mission_duration_hours": 3.5,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5,
+    "bases": ["BASE-01", "BASE-02"],
+    "system_surp_hours_per_base": 0.5,
+    "opening_spares_per_base": 1
+  },
+  "selection_reason": "The accepted 2-hour parent log sampled the BASE-02 aircraft's next mission failure at h11.1325, after its h8–10 mission. A 3.5-hour mission should keep that aircraft operating through h11.1325 while ending before the next h20 mission. This is a prospective native hypothesis, not an assumed result.",
+  "pre_run_hypotheses": [
+    "The frozen source imports, exports 22 authored populated tables exactly, converts with zero errors, calculates and writes a valid report.",
+    "Both bases' first scheduled missions start at h8; BASE-01 failure remains near h9.8829 and BASE-02's sampled failure becomes observable near h11.1325 while its longer mission is active.",
+    "Each failure drives its own half-hour individual SystemRepair task and consumes only the failed base's local opening spare.",
+    "Depot transport, item repair, stock and any backorders reconcile by physical item identity through h36.",
+    "Six mission opportunities, 72 half-hour System and Stock bins, resource events and terminal state reconcile; exact outcome is determined from native evidence."
+  ],
+  "decision_rule": "If BASE-02 does not reach a physical repair in this seed, retain a sealed diagnostic and select a fresh versioned contrast; do not claim the planned two-demand control is achieved. Freeze a group arm separately before its native run.",
+  "limits": [
+    "This is the individual-row control; it does not itself test a group repair row.",
+    "One seed and 36-hour horizon; no statistical equivalence, GUI visual or cross-engine parity conclusion."
+  ]
+}
