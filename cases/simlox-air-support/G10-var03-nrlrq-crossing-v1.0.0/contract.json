@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G10",
+  "case_version": "1.0.0-candidate",
+  "variant_id": "G10.var03",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G10",
+    "variant_id": "G10.var01",
+    "version": "1.0.0",
+    "input_sha256": "7e990242656119f9424fcf390ae8c46eb23e4751dbe6fb44bd80b3bb4cf307d1",
+    "native_run_id": "g10-var01-active-v100-ssh-20261003-01",
+    "native_closure_sha256": "f9856b90d82f0012102c2e1a1b6c0841b09c462b7bd8a486b7606a5e4de6247e",
+    "signoff_sha256": "63a1c4b0e2532afd4d6d503d2bcd003e837ccf92bf1c554ba88549207369a6b2"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [201, 202, 255, 462, 463, 464, 465, 466],
+    "source_boundary": "The traditional FRT and Redundancy model treats a 1-of-2 ACTIVE single-item link group as functional while at least NRLRQ=1 of its two links functions. One failed link is tolerated; the next distinct link failure before repair crosses the requested-link boundary. Item.FRT is an ordinary OPHOURS failure-rate input. Manual p255 requires summed subitem FRT not to exceed mother FRT, so System.FRT is raised to exactly two installed LRUs times their new FRT, leaving no residual system rate."
+  },
+  "native_input_sha256": "df9966f1bee58561b1bd54d05ced353abefc37efcd7559c47af5c63683aaa718",
+  "delta": {
+    "tables": ["Item", "ProblemDescription", "System"],
+    "mechanism": "From accepted G10.var01, triple ordinary Item.FRT for both LRU and nested SRU from 300000 to 900000 per million OPHOURS and System.FRT from 600000 to 1800000 to maintain the exact two-LRU mother sum, plus description. Preserve ACTIVE NRL2/NRLRQ1/TSWOV0, installed quantity, stock, repair, missions, seed1, one repetition and horizon36."
+  },
+  "predeclared_native_acceptance": [
+    "All 22 populated source tables roundtrip exactly, conversion errors are zero, and native event/report outputs are nonempty and valid.",
+    "The fixed-seed run produces failures of two distinct installed physical LRU links before either link is repaired in one mission; the first link failure is noncritical and the second crosses NRLRQ=1, makes the system nonfunctioning and has a native mission outcome consistent with that state. If this event geometry is absent, the run is diagnostic only.",
+    "Reconcile item/link identities, mission and system states, repair, LRU/SRU stock issue/return/backorders, all 72 System/Stock report bins and terminal readiness directly from native artifacts.",
+    "Bind accepted parent, source, contract, invocation/closure and raw artifacts by SHA-256; a separate read-only reviewer replays without author imports."
+  ],
+  "limits": [
+    "One ACTIVE 1-of-2 single-item group with both ordinary FRT inputs tripled, one seed and 36-hour horizon. Do not infer a general failure-rate law, stochastic distribution, PASSIVE boundary, series-link behavior, or online repair.",
+    "GUI-only behavior and cross-engine parity remain unverified."
+  ]
+}
