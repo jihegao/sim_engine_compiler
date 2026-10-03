@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-air-support-paired-case-contract/v1",
+  "case_id": "G10",
+  "variant_id": "G10.var07",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "parent": {
+    "variant_id": "G10.var06",
+    "version": "1.0.0",
+    "input_sha256": "501924dfde54c81528ccb06cee5320111b2338db59f852f0e26be59d2f77ff35",
+    "signoff_sha256": "bdbff7c2966899a71f19ece63d0ff474fac85b43796a4346aaa6479cf6a1d865",
+    "native_closure_sha256": "45076f78f276555ff9e1a50139d4560fadaa2883e627c73f22b4be6da36c75e7",
+    "native_run_id": "g10-var06-online-repair-v100-ssh-20261003-01"
+  },
+  "resource_donor": {
+    "case_id": "D09",
+    "variant_id": "D09.var04",
+    "version": "1.0.0",
+    "input_sha256": "79fdfb9fb1c4901368b24a33da49ab15b77a2cafa421446350e51e6f0457ff8e",
+    "signoff_sha256": "e9cc6c7ff762805e058fb12968ca560896ff8cda53ec00f54a7865696d86e12c"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [201, 202],
+    "manual_boundary": "When a continuous or extendable mission returns with a failed redundancy link, a created on-mission repair whose first subtask started turns that failure critical until repair completes; if repair has not started it remains an ordinary noncritical failure and the system can be assigned again if at least NRLRQ links function. Available local spares/resources condition on-mission repair."
+  },
+  "arms": {
+    "crew-present": {"input_sha256": "f7a1da8fd6bc2381b8c430b8e6db9d4e636685d860865bde99185f44f3656c89", "resource_qty": 1},
+    "crew-absent": {"input_sha256": "04bee7fe39c7da95cee0beb825d9bb99db6f668c470aae517b5cf5194daa4f37", "resource_qty": 0}
+  },
+  "exact_diff_sha256": "547df999d8b724fbbbcd9b3e139e819e65d12f1247ba9bf358ca841a236e50e5",
+  "matched_design": "From accepted G10.var06, both arms set continuous mission duration to one hour, schedule starts h8 and h10.5, lengthen local E01-SURP replacement to three hours while retaining first <REMOVE> subtask duration 1/6 hour, and add one P-CREW demand to removal using accepted D09 resource schema. Arms differ only ResourceAllocation.RQTY1 versus0 and ProblemDescription, so crew availability controls whether that first subtask can start before the nominal h9 return. Redundancy ACTIVE NRL2/NRLRQ1, ordinary failure rates, item stocks/repairs, seed1, rep1, horizon36 and other source stay fixed.",
+  "predeclared_native_acceptance": [
+    "Each arm roundtrips all 25 populated authored tables exactly, converts with zero errors, and produces nonempty native event log and report.",
+    "At least the first matched physical LRU fault is noncritical during the first h8–9 continuous mission in both arms. In crew-present, the system replacement's first <REMOVE> subtask starts before return and its repair task is unfinished at return; in crew-absent, the corresponding first subtask has not started at return because P-CREW is unavailable. If this paired boundary is absent, retain the runs as diagnostic.",
+    "Native return events must distinguish critical versus noncritical failure handling and subsequent mission eligibility. Attribute the result only to event and source evidence actually logged; do not infer readiness from stock taking or a scheduled profile row alone.",
+    "Reconcile all observed physical failures, mission outcomes, resource waits, repair task/subtask states, inventory issues/backorders/returns, every half-hour System/Stock/Resource report bin and terminal state. Bind parent, donor, source, contract, invocation, closure and raw artifacts by SHA-256; use a separate read-only reviewer without author imports."
+  ],
+  "limits": [
+    "The common one-hour continuous schedule, three-hour replacement and crew task are a joint design change from G10.var06; only the RQTY1/0 contrast is isolated within the pair.",
+    "One seed, one aircraft, one LRU redundancy and one personnel type; other task timing, spare/resource combinations, EXTENDABLE missions, PASSIVE behavior, GUI-only behavior and cross-engine parity remain unverified."
+  ]
+}

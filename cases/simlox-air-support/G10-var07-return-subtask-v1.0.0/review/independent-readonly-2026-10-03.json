@@ -1,0 +1,30 @@
+{
+  "checks_passed": 9351,
+  "checks_total": 9351,
+  "failures": [],
+  "limits": [
+    "Only RQTY1 versus0 is isolated within the pair. Both arms jointly change duration, schedule, replacement task and crew demand from the G10.var06 parent.",
+    "One seed, one aircraft, one crew type and local stock; no general rule for different return timing, other resource/stock configurations, EXTENDABLE or PASSIVE missions, GUI-only behavior or cross-engine parity.",
+    "A system repair task being created is distinct from its first subtask performing; next-mission eligibility is grounded in allocation and event logs, not source or scheduled time alone."
+  ],
+  "observed": "Matched LRU3 noncritical fault at 8.31382 in both arms. Crew present books P-CREW and starts positive removal before return h9; unfinished system repair makes the second mission suspend at 10.5 until system ready 11.3138, then succeed 11.5. Crew absent never begins work; NCF-ready aircraft is allocated again at 9.5 and flies 10.5\u201311.5 while the repair waits through horizon.",
+  "passed": true,
+  "runs": {
+    "crew-absent": {
+      "closure_sha256": "ee6d2034ac73fdcf0e1c81823dc104da370fe32d2ae143c5dcf4594201aff2e3",
+      "input_sha256": "04bee7fe39c7da95cee0beb825d9bb99db6f668c470aae517b5cf5194daa4f37",
+      "model_log_sha256": "fde97cf559fd0e1653c0f9d3901c9963bec63aa961e8dd2a751312ffac227cb6",
+      "raw_seals": 13,
+      "report_sha256": "288ffb92371b7b81e84a2a230b720805ce6539cbbd106acbb87db0f614cebaa6"
+    },
+    "crew-present": {
+      "closure_sha256": "0ef2b57bab5723fe5d3a79ab2f80b4c9cb65f93a4c8021d14cb96b4f77f7560b",
+      "input_sha256": "f7a1da8fd6bc2381b8c430b8e6db9d4e636685d860865bde99185f44f3656c89",
+      "model_log_sha256": "9b839147ee71396edab7ed01c8381cec1bd99c532904db567d60a18917459665",
+      "raw_seals": 13,
+      "report_sha256": "7bb627f20e5955cad75e27de59c05be2407e35126ad21d55bbff288e484c69cd"
+    }
+  },
+  "schema": "simlox-g10-var07-independent-readonly/v1",
+  "verdict": "GO"
+}
