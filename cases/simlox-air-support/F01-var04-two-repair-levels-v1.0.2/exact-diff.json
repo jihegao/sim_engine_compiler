@@ -1,0 +1,441 @@
+{
+  "schema": "simlox-f01-var04-two-repair-levels-exact-diff/v1.0.2",
+  "parent_sha256": "ae0181581822422aaf3c8bc5b7c0352c8bf31187178408e4f211102e438c77b5",
+  "input_sha256": "9977716fb64a0ee70bae4b396a8d21e85adb39e8d3a960e81611b8c010cb152f",
+  "changed_tables": [
+    {
+      "table": "ProblemDescription",
+      "before_rows": [
+        [
+          "F01.var01 three-level system/LRU/SRU repeated local reissue"
+        ]
+      ],
+      "after_rows": [
+        [
+          "F01.var04 nested LRU/SRU: local replacement, level-2 depot repair, 42h closure"
+        ]
+      ]
+    },
+    {
+      "table": "Control",
+      "before_rows": [
+        [
+          1,
+          36.0,
+          "1",
+          "AIR_BASIC",
+          0.5,
+          0,
+          36.0,
+          "N",
+          null,
+          null,
+          null,
+          null,
+          "Y",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after_rows": [
+        [
+          1,
+          42.0,
+          "1",
+          "AIR_BASIC",
+          0.5,
+          0,
+          42.0,
+          "N",
+          null,
+          null,
+          null,
+          null,
+          "Y",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "table": "Station",
+      "before_rows": [
+        [
+          "BASE-01",
+          "Teaching base",
+          1,
+          "WS",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after_rows": [
+        [
+          "BASE-01",
+          "Teaching base",
+          1,
+          "WS",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "DEPOT-01",
+          "Teaching support depot",
+          1,
+          "WS",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "table": "StationStructure",
+      "before_rows": [],
+      "after_rows": [
+        [
+          "BASE-01",
+          "DEPOT-01",
+          2.0,
+          2.0,
+          null,
+          null,
+          1.0,
+          "FAST",
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "table": "ItemRepair",
+      "before_rows": [
+        [
+          "TEACH-LRU-01",
+          "BASE-01",
+          1.0,
+          1.5,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "TEACH-SRU-01",
+          "BASE-01",
+          1.0,
+          0.0,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after_rows": [
+        [
+          "TEACH-LRU-01",
+          "BASE-01",
+          1.0,
+          1.5,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "TEACH-SRU-01",
+          "BASE-01",
+          1.0,
+          0.0,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "F01-SRU-DIRP",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "TEACH-SRU-01",
+          "DEPOT-01",
+          1.0,
+          0.0,
+          1.0,
+          1.0,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "F01-SRU-DIRP",
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "table": "Tasks",
+      "before_rows": [
+        [
+          "E01-SURP",
+          "Explicit local LRU system replacement",
+          null,
+          null,
+          null
+        ]
+      ],
+      "after_rows": [
+        [
+          "E01-SURP",
+          "Explicit local LRU system replacement",
+          null,
+          null,
+          null
+        ],
+        [
+          "F01-SRU-DIRP",
+          "Level-2 failed SRU direct repair",
+          "SRU-CM",
+          "DEPOT",
+          null
+        ]
+      ]
+    },
+    {
+      "table": "StockAllocation",
+      "before_rows": [
+        [
+          "AIR_BASIC",
+          "TEACH-LRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "AIR_BASIC",
+          "TEACH-SRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "after_rows": [
+        [
+          "AIR_BASIC",
+          "TEACH-LRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "AIR_BASIC",
+          "TEACH-SRU-01",
+          "BASE-01",
+          1,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "AIR_BASIC",
+          "TEACH-SRU-01",
+          "DEPOT-01",
+          0,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "table": "ResultCollection",
+      "before_rows": [
+        [
+          "MISSION",
+          0.5,
+          0,
+          36.0,
+          null,
+          null
+        ],
+        [
+          "SYSTEM",
+          0.5,
+          0,
+          36.0,
+          null,
+          null
+        ]
+      ],
+      "after_rows": [
+        [
+          "MISSION",
+          0.5,
+          0,
+          42.0,
+          null,
+          null
+        ],
+        [
+          "SYSTEM",
+          0.5,
+          0,
+          42.0,
+          null,
+          null
+        ]
+      ]
+    },
+    {
+      "table": "TaskCategory",
+      "before_rows": [],
+      "after_rows": [
+        [
+          "SRU-CM",
+          "SRU corrective maintenance",
+          null
+        ]
+      ]
+    },
+    {
+      "table": "TaskLevel",
+      "before_rows": [],
+      "after_rows": [
+        [
+          "BASE",
+          1,
+          null
+        ],
+        [
+          "DEPOT",
+          2,
+          null
+        ]
+      ]
+    },
+    {
+      "table": "MaintenanceAllocation",
+      "before_rows": [],
+      "after_rows": [
+        [
+          "AIR_BASIC",
+          "SRU-CM",
+          "DEPOT",
+          "DEPOT-01",
+          null
+        ]
+      ]
+    }
+  ],
+  "unchanged_existing_tables": 23
+}
