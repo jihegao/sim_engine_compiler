@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "G10",
+  "case_version": "1.0.1-candidate",
+  "variant_id": "G10.var01",
+  "publication_state": "not_published",
+  "parent": {
+    "case_id": "G10",
+    "variant_id": "G10.var03",
+    "version": "1.0.0",
+    "input_sha256": "df9966f1bee58561b1bd54d05ced353abefc37efcd7559c47af5c63683aaa718",
+    "native_run_id": "g10-var03-nrlrq-crossing-v100-ssh-20261003-01",
+    "native_closure_sha256": "84e33e3b751a30274cb0659ea4ccd42d203d10bafd7461f8f19ca94f0478192c",
+    "signoff_sha256": "918c9441541fda56b3ffd3750a7d77e2bb59a1afe934efce92643eac409209f8"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [201, 202, 255, 462, 463, 464, 465, 466],
+    "source_boundary": "Manual pp465-466 define RedundancyLink rows as a set of item types in series, with QTYPL times NRL for each type no more than that type's installed QTYPM. Manual p255 requires the summed subitem FRT not to exceed mother FRT. The child has two installed copies of each series item, one of each per link, and System.FRT equals all four installed direct items' ordinary FRT."
+  },
+  "native_input_sha256": "00d4545ee3e58a9fb28e1862552ee3788ad82ed8487159f826af1d47b393a8ba",
+  "delta": {
+    "added_tables": ["RedundancyLink"],
+    "changed_tables": ["Item", "ItemRepair", "ItemStructure", "ProblemDescription", "Redundancy", "StockAllocation", "System"],
+    "mechanism": "From accepted G10.var03, add TEACH-AUX-01 direct-repair LRU type FRT900000 OPHOURS, two installed and two stocked copies at BASE-01. Change System.FRT1800000→3600000. Replace implicit single-item RLID with G10-SER-LINK and two RedundancyLink rows QTYPL1 for TEACH-LRU-01 and TEACH-AUX-01. Preserve ACTIVE NRL2/NRLRQ1/TSWOV0, original LRU/SRU chain, missions, seed1, rep1 and horizon36."
+  },
+  "predeclared_native_acceptance": [
+    "All 23 populated source tables, including RedundancyLink and the new direct-repair item/stock rows, roundtrip exactly; conversion errors are zero and valid native events and report are nonempty.",
+    "Observe failure of both original LRU and new AUX physical item types in the fixed-seed run, with at least one on-mission series-link failure followed by a distinct-link NRLRQ crossing. Attribute link states and mission effects only to identities actually exposed in the native log; if this geometry is absent, the run remains diagnostic.",
+    "Reconcile each observed physical failure, mission outcome, system and item repairs, all LRU/AUX/SRU stock issues and backorders, 72 System/Stock bins, summary and terminal readiness. Do not assume each item fault maps to a distinct redundancy link.",
+    "Bind accepted parent, manual, dictionary, contract, source, invocation/closure and raw artifacts by SHA-256; use a separate read-only reviewer without author imports."
+  ],
+  "limits": [
+    "One ACTIVE 1-of-2 group with two series item types per link, fixed rates/seed/horizon. Other link counts, QTYPL>1, PASSIVE switchover, online repair, stochastic law, GUI-only behavior and cross-engine parity are unverified.",
+    "The native log may not expose initial physical item-to-link pairing; do not infer it solely from source row order."
+  ]
+}
