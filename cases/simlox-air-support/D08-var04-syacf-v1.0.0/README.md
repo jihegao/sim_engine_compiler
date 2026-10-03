@@ -1,0 +1,9 @@
+# D08.var04: RISK mission SYACF Y/N
+
+This bounded SIMLOX 2017 CLI case compares explicit `MissionType.SYACF=Y` and `N` for the same late in-mission critical failure. The accepted D08.var01 default arm is the direct behavioral parent; D02.var01 is the catalog traditional `OPHOURS` FRT prerequisite. The installed manual (physical p. 267) and dictionary specify `Y`/`N`, default `Y`; `SYACP` is a separate PM option.
+
+The [frozen contract](contract.json) and [exact diff](exact-diff.json) pin the source and acceptance gate. [Builder](build.py) creates [Y](native-input-yes.json) and [N](native-input-no.json); the pair changes only RISK `SYACF` and `ProblemDescription.PDESC`. Each input has 22 authored row-containing tables. The [runner](run_native_ssh.ps1) uses guarded session-0 SSH, the host-wide native mutex and hidden native processes; [roundtrip checker](check_roundtrip.py) checks import/export identity. The [author replay](validate_native.py) and separate `review/` replay inspect sealed local raw runs. Native outputs remain under ignored `runs/`.
+
+For this one seed, both arms launch RISK at h20 and record the same critical failure on aircraft 1 at h22.6835. Explicit `Y` aborts at that time; explicit `N` continues and records mission success/completion at h23. Both return the failed aircraft, repair it h23–28 using the one worker, then complete two serial CAL24 PM jobs h28–30. The mission success fractions are 2/3 and 1. Converter diagnostics are Errors 0, Warnings #108 and #126, Notes 0 in each arm. The warnings concern event-log size and the deliberately item-free system, respectively.
+
+This is evidence for the observed fixed-seed, item-free, traditional system only. It does not establish other failure times, noncritical escalation, continuous missions, critical PM, GUI visual behavior, or cross-engine parity. Full D08 and Issue #18 remain open.
