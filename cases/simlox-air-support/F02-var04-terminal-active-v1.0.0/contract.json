@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-f02-var04-terminal-active-pre-run-contract/v1",
+  "case_id": "F02",
+  "variant_id": "F02.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Cut the accepted two-aircraft F02 risk run at hour 49.5 to test unfinished aircraft repair, two physical LRU movements, and a waiting mission with one allocated aircraft. Treat these as distinct terminal states; do not infer an item reservation from mission preassignment.",
+  "accepted_parent": {
+    "package": "F02-var01-var02-integrated-fleet-v1.0.2",
+    "arm": "risk",
+    "input_sha256": "ae46b08a6ef6fd063906b888fb3c73fba06edcb57acc1a4ade49fc62c53fd7d3",
+    "run_id": "f02-pair-v102-risk-ssh-20261004-01",
+    "closure_sha256": "b82da3cbed601408e4a72cda5c2fd498286a8f1b3ebfa07c003d4d4f8e6c91c4",
+    "evidence_index_sha256": "a6c704eefc00c544be0ef54ca4487ebe27b99258130d6650d3923c17421fc906"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "boundary": "The 60-hour accepted parent shows the target paths at 49.5 but does not prove how a shortened run reports them. The cutoff changes the simulation horizon and both collection ends. Model time, resource queues and stochastic draws require a fresh native observation."
+  },
+  "terminal_input_sha256": "0ef63499bc56daad0a2ae754bc4081e04005b6a5b2dd53d1b243775696a7d60c",
+  "exact_diff_sha256": "ed6080f85d3fec848bf7b5a2211cee2156153c4657ab1098595c109ed64132bd",
+  "parameters": {
+    "seed": 1,
+    "parent_horizon_hours": 60,
+    "new_horizon_hours": 49.5,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 99,
+    "aircraft_count": 2,
+    "depot_base_transport_hours_each_way": 2
+  },
+  "pre_run_hypotheses": [
+    "Only Control.SIMPE, Control.RCEND, and every ResultCollection.RCEND cell change from 60 to 49.5. All other authored inputs, including random seed, remain exact. Verify every populated table after native import/export.",
+    "Guarded session-0 SSH import, export, calculation and JSON report should complete with GUI PID 13340 preserved and the host queue held. Require zero converter errors and classify each warning and note. Empty or structurally invalid outputs exclude this candidate.",
+    "In the parent event trace, the risk fault occurs at 46.4896, the aircraft LRU demand/backorder and stocked depot LRU 2 transport begin at 47.9896, and failed LRU 4 transport begins at 48.1563. At 49.5, neither transport's parent arrival time has passed. Confirm corresponding identities and states afresh in the child event trace; if the child diverges, report that divergence rather than assume a prefix.",
+    "The parent mission created at 47.75 waits for two aircraft, preassigns and then allocates aircraft 1, while aircraft 0 awaits the LRU. At the child cutoff, require explicit evidence for mission waiting, one aircraft committed and aircraft 0 under an unfinished SURP task. Use the event terms literally; do not call this a stocked-item reservation unless native evidence supports it.",
+    "Reconcile 99 half-hour SystemResults, StockTotalResults and ResourceResults bins with event-derived boundaries and terminal balances. Require separate physical outbound and inbound transit identities, base backorder and depot stock debit, and no repair/transport/mission completion beyond the cutoff. Do not infer post-horizon outcomes.",
+    "Accept only the terminal states directly evidenced by the child native run, with sealed raw files, source hashes, exact diff, author replay and separate independent read-only replay. If native calculation rejects an unfinished cutoff or target states are absent, preserve this as an excluded diagnostic and revise under a fresh version."
+  ],
+  "limits": [
+    "One seed, two aircraft, one base/depot route, and a single 49.5-hour cutoff; no stock reservation claim without native evidence.",
+    "This does not establish behavior at other cutoffs, post-cutoff completion, generic terminal reporting, larger fleets, GUI visual behavior or cross-engine equivalence."
+  ]
+}
