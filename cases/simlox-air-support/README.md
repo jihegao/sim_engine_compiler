@@ -2,6 +2,8 @@
 
 This library follows issue #18. The [SIMLOX 2017 progressive catalog v2](progressive-catalog-v2.md) has 108 planned case definitions: the original 26 business cases and 82 method, experiment and authoring extensions. Its 579 named variants and all 133 input tables are mapped to manual sources and acceptance plans. The catalog is a frozen planning snapshot; the separate [publication index](publication-index-v1.json) is the current list of accepted bounded CLI scopes. Each linked case report defines its precise scope and limits. Under the [revised acceptance standard](execution-plan-v2.md#3-证据状态和阶段门), source-bound CLI behavior evidence can support delivery and publication without a universal GUI gate. The aircraft is a generic teaching asset; real F35/J35 applications need separate contracts and evidence.
 
+The [E11.var04/E11.var05 transport-direction erratum](errata/E11-transport-direction-2026-10-03.md) corrects reversed direction words in frozen descriptions; native inputs and evidence seals are unchanged.
+
 ## Current implementation batch
 
 The [staged execution plan](execution-plan-v2.md) assigns local parallel development and serialized native verification on 4700-3. The [preparation/resource batch](preparation-resource-v1/README.md) contains historical B01/B02/B03/C01/C02/C03 candidates; their later accepted packages and versions are listed below and in the publication index. B03 uses explicit cold-first/hot-sortie mission types; C03 uses two aircraft in one formation sharing personnel. The [delivery report](issue18-delivery-v2.md) separates implementation, local checks, native evidence and remaining gates. The [import source manifest](catalog-import-source-v2.json) records the original remote working-tree files before local revisions.
