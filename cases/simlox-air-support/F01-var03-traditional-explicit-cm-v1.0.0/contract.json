@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-f01-var03-traditional-explicit-pre-run-contract/v1",
+  "case_id": "F01",
+  "variant_id": "F01.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "matched three-level traditional repair and explicit failure-mode CM with two nested physical removals and local reissue",
+  "accepted_traditional_behavior_parent": {
+    "package": "F01-var01-two-three-level-v1.0.1",
+    "input": "three-level-input.json",
+    "input_sha256": "ae0181581822422aaf3c8bc5b7c0352c8bf31187178408e4f211102e438c77b5",
+    "run_id": "f01-var01-three-v101-ssh-20261004-01",
+    "closure_sha256": "0b7236d6bff3fd7dc19bf89b4a1496cf036ce48ddfa3dc329ed287fe79d510c3",
+    "evidence_index_sha256": "80f9d8a91c8a45221f06574815f28cf7000b4f1fec30a6457859c241e7cad178"
+  },
+  "accepted_explicit_cm_reference": {
+    "package": "D06-explicit-position-direct-repair-v1.0.0",
+    "input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+    "run_id": "d06-position-cm-v100-ssh-20260930-02",
+    "closure_sha256": "afd8689161874d247dee92a6f6265211733375b8933f3fcd30bfb297cfe975c7"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_manual_pages": [355, 359, 360, 361, 364, 365, 366, 370],
+    "boundary": "Explicit-mode items use MaterielStructure and no traditional FRT. The single SRU FM drives system-to-LRU and LRU-to-SRU CMReplacement rows; CMLocation rows specify CM actions on system, LRU and SRU. Every physical removal, item identity, repair and return must be seen in native events; schema validity alone is insufficient."
+  },
+  "explicit_input_sha256": "513fb61391f3463cfd7c611a02edab8192f8c18b3aab1c2e87eb69659c65b78c",
+  "exact_diff_sha256": "d1c3af743f9d373ac8a9db7bb26c29a90d355a7ad0be58eb8f7a16488669d152",
+  "delta": "Preserve F01.var01 three-level aircraft count, seed, 36-hour horizon, three missions, item types, local LRU/SRU opening stock and task definitions. Clear traditional System/Item FRT and SystemRepair, ItemRepair, ItemReplacement, ItemStructure rows. Define the identical physical chain in MaterielStructure. Add one 1200000-per-million-OPHOURS SRU FailureMode, three local CMLocation rows with 0.5/0.75/1.0 hour actions, and two deterministic CMReplacement rows for LRU and SRU. Exact changed tables are frozen in exact-diff.json. D06 supplies the accepted explicit table shapes, not evidence of nested replacement behavior.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "scheduled_launch_hours": [8, 20, 32],
+    "aircraft_count": 1,
+    "failure_mode_frq_per_million_ophours": 1200000,
+    "lru_opening_base_stock": 1,
+    "sru_opening_base_stock": 1,
+    "system_cm_hours": 0.5,
+    "lru_cm_hours": 0.75,
+    "sru_cm_hours": 1.0,
+    "cm_replacement_fraction": 1.0,
+    "cm_replacement_quantity": 1.0
+  },
+  "pre_run_hypotheses": [
+    "All populated authored tables import and export exactly; native conversion has Errors 0, Warnings 1, Notes 0 and exactly one known ENLOG warning #108, with no other warning or notice. SXI, SXO, event log and 72 half-hour report bins are nonempty and valid.",
+    "At least two installed SRU failure events cause system-to-LRU physical replacements and LRU-to-SRU physical replacements, followed by direct SRU repair. At least one repaired physical LRU and one repaired physical SRU return to local stock and later serve a second nested cycle.",
+    "For every failure, reconcile FMID, physical installed LRU/SRU IDs, mission outcome, system and item CM actions, stock demand and issue, repair completion, return to stock, backorder and terminal state. Do not substitute aggregate report equality for individual event evidence.",
+    "Reconcile all SystemResults and StockTotalResults intervals and all resource requests with the event and inventory ledgers; require one ready aircraft, no outstanding repair or backorder, and local LRU/SRU stock restored at the 36-hour terminal interval.",
+    "Compare explicit and accepted traditional arms on topology and ledger meanings; different random draws or event times are permitted and are not attributed solely to the modeling choice."
+  ],
+  "decision_rule": "Accept only if native steps, exact roundtrip, frozen warning set, at least two nested cycles, repaired physical reissue, full ledger/report/terminal reconciliation and independent read-only replay all pass. If the explicit model yields a different route or misses a gate, seal and classify this version as diagnostic; any revised model requires a fresh version and pre-run contract.",
+  "limits": [
+    "One aircraft, one SRU failure mode, one LRU/SRU chain, one base, one seed and 36 hours. No ASSY, remote repair, PM, resource shortage or alternate failure modes.",
+    "This bounded run cannot settle generic nested replacement issue #403, GUI visual behavior or cross-engine equivalence."
+  ]
+}
