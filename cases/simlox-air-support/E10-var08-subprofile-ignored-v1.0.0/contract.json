@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var08",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var05",
+    "package": "E10-var05-nested-repeat-v1.0.0",
+    "input_sha256": "02bc6ae8f42c2e98e7f217ba3a603d94a1758db9c2bbee52f5a7b6de27d18f1c",
+    "run_id": "e10-var05-nested-v100-ssh-20261003-01",
+    "native_closure_sha256": "d6daf2d9163fa478112722075b6968435d2007e0f5d3ca59f5ab6da58e895f5e",
+    "evidence_index_sha256": "610e981bfc9c17346c2d6afc190e76adee9b6b4b249a2944f69321c31d466e15"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [334, 335, 336],
+    "interpretation": "Installed manual physical p336 states MINBS, TPTIM and TPTIMD on a TransportPolicyProfile row whose STPRID names a subprofile are ignored. The accepted E10.var05 root DOWN-POLICY -> REPEAT-FIXED is such a row. This candidate adds nontrivial MINBS=7, TPTIM=9h and TPTIMD=<EXP> to that root only, while leaving the child basic FIXED row at TPTIM=2h. Native import/export may retain ignored fields; simulation should use the child policy schedule/time with no random draw from the ignored parent distribution."
+  },
+  "native_input_sha256": "3cb48a416f06b7b9b485da7217cc6a5c513b1305d9542f82959f6820dc6a60d4",
+  "exact_diff_sha256": "eb282e0c55e585409868fcabd105c62943c1454207e9da4a7bd3c3eac90078f0",
+  "configuration": {
+    "root_profile": "DOWN-POLICY",
+    "root_subelement": "REPEAT-FIXED",
+    "root_ignored_MINBS": 7,
+    "root_ignored_TPTIM_hours": 9,
+    "root_ignored_TPTIMD": "<EXP>",
+    "child_basic_policy": "FIXED",
+    "child_effective_TPTIM_hours": 2,
+    "expanded_FIXED_points_hours": [8, 11],
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive only from accepted E10.var05 nested-repeat input. Change ProblemDescription and exactly MINBS null->7, TPTIM null->9 and TPTIMD null-><EXP> on DOWN-POLICY -> REPEAT-FIXED wrapper row. Preserve child FIXED row, links, stock, mission, seed, repair, horizon and all other authored values.",
+    "Native import/export must retain all 22 authored populated tables including nontrivial wrapper values; calculation must convert with zero errors and preserve two FIXED scheduled downward points h8/h11. The h8 task still cancels empty; one h10 demand queues and departs h11, with physical spare travel exactly 2h, base arrival h13, backorder 3h and aircraft readiness near h13.3333. Any physical 9h or stochastic root duration is NO-GO.",
+    "The entire event log must be byte identical to the accepted E10.var05 parent, and all report tables except ProblemDescription must be structurally identical to the parent's; compare all 72 half-hour System/Stock bins and ResultSummary. Reconcile same upward failed-item repair/restock, stock, resources, missions and terminal readiness/backorder/in-transit state. Any unexplained semantic or random-clock change is NO-GO for this strict ignored-field contract.",
+    "Use a fresh unique guarded session-0 SSH run under Global\\SimloxIssue18NativeQueue, preserve GUI PID13340, require nonempty SXO/log/report, raw/source SHA-256 closure, and separate read-only independent replay without importing the author's checker."
+  ],
+  "limits": [
+    "One subprofile wrapper, one repeated FIXED child, one seed, one demand and one general downward link. Other nested depths, ONDEM child policies, overlapping windows, multiple demands, mixed item/system batching, GUI visual and cross-engine behavior remain unverified.",
+    "Full E10, E11 and Issue #18 remain open."
+  ]
+}
