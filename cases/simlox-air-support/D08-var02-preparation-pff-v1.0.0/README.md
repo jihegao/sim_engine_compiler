@@ -1,0 +1,9 @@
+# D08.var02 — preparation failure factor (bounded CLI contrast)
+
+This package compares `MissionReliability.PFF=0` with `PFF=10` for one item-free traditional `TEACH-AIR-01` system during a one-hour `RISK-MISSION` preparation. Both arms derive from the accepted D08.var01 default input, retain its two-aircraft fixed-seed schedule, and differ only in PFF and description. The accepted D02.var01 traditional FRT run is the catalog prerequisite.
+
+The frozen model, source interpretation and native acceptance gates are in [contract.json](contract.json). Rebuild and verify the input pair with `python build.py` and the exact difference with `python describe_diff.py`. Both commands verify existing frozen files without writing them. The local raw run directories are ignored; [evidence-index.json](evidence-index.json) records their IDs, paths, sizes and SHA-256 seals. The [signoff](cli-scope-signoff-2026-10-03.md) and [independent verdict](review/independent-verdict.json) define the accepted behavior and limits.
+
+To reproduce on the pinned Windows/SIMLOX 2017 host, preserve the active GUI PID 13340 and registry `UsePrelifeLog=NO`. Run each arm through the session-0 SSH wrapper `run_native_ssh.ps1 -RunId <fresh-id> -Arm zero|positive`; the runner enforces `Global\SimloxIssue18NativeQueue`, source fingerprints, GUI identity, hidden native processes, import/export roundtrip and sealed closures. Use fresh run IDs because run folders are immutable. Run `python validate_native.py` after both arms for the author replay; the separate checker in `review/` reads raw evidence independently.
+
+Native material is not committed. The supported claim is one fixed-seed preparation contrast. It does not establish a failure-rate estimate, another PFF value or target, GUI visual behavior, or cross-engine parity.
