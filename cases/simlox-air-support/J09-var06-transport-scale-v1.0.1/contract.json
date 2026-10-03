@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-j09-var06-global-transport-scale-pre-run-contract/v2",
+  "case_id": "J09",
+  "variant_id": "J09.var06",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "Test ScaleFactors.SCTRT=2 against accepted E04 SLOW transport with the other five scale factors at 1.0. Quantify native transport, demand, backorder, fit and readiness timing for this single seed and route.",
+  "accepted_parent": {
+    "package": "E04-upstream-transport-slow-v1.0.0",
+    "input_sha256": "b717f88bd0581a486677e7ba60b1235228ba88e05afd9b22cee02925c8ccc317",
+    "run_id": "e04-slow-v100-ssh-20260929-01",
+    "closure_sha256": "52c4c35387b5337e41c1d008803a1ac3e6423ace897a7b3a0fd8b355be8b5180",
+    "signoff_sha256": "79b8cc06780436704dee14fd45ad82bcea2500fa48133dcb26aafc141fb8bcf6"
+  },
+  "scaled_input_sha256": "9d22f2596897fceb6e00a425c9e8bcd226a1f9549a3b00d08b53b0204e1083fe",
+  "exact_diff_sha256": "7a141df91b9b8e7f7016594fe39ed04792f1bb2fafbc5b9d10ff29a6cf600ab0",
+  "excluded_diagnostic": {
+    "package": "J09-var06-transport-scale-v1.0.0",
+    "run_id": "j09-var06-sctrt2-v100-ssh-20261004-01",
+    "closure_sha256": "d4a5cfb4d13e4b761dc9fcbdb603fcdab7d0133b3d154c66e3d3061dbe42b2d1",
+    "reason": "The strict checker rejected native ScaleFactors optional columns populated only with null, despite exact authored field values and completed CLI steps. Its run remains excluded; this version predeclares a lossless field-projection check."
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "parameters": {
+    "seed": 1,
+    "simulation_horizon_hours": 36,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 72,
+    "ordering_policy": "SLOW",
+    "base_to_depot_nominal_hours": 2,
+    "depot_to_base_nominal_hours": 2,
+    "scale_factors": {"SCFRT": 1.0, "SCRPT": 1.0, "SCLDT": 1.0, "SCPMI": 1.0, "SCPMT": 1.0, "SCTRT": 2.0}
+  },
+  "pre_run_hypotheses": [
+    "The source appends only one ScaleFactors table with six dictionary-listed floating fields and one row; all 21 existing populated E04 SLOW tables, seed, route, stock, repair and mission inputs remain unchanged.",
+    "A fresh guarded session-0 SSH native import, export, calculation and report must pass with GUI PID 13340 preserved, zero converter errors, only reviewed Warning #108, and sealed raw hashes. All unchanged source tables must roundtrip exactly; ScaleFactors may gain only native optional columns whose values are null, while all six authored field values must be unchanged.",
+    "If SCTRT applies as a multiplier to both explicit two-hour route times, the failed LRU transport should last four hours and the replacement transport four hours. The demand and backorder should shift accordingly. Confirm from item events rather than assume this hypothesis.",
+    "Compare the first failure, removal, depot issue, physical shipment, fit and aircraft readiness to accepted E04 SLOW raw evidence; inspect any later failures or missions over the full 36-hour run.",
+    "Reconcile system and stock half-hour report rows to raw event intervals and distinguish aggregate occupancy from physical item identities. Obtain separate author and independent read-only native replays before any publication.",
+    "Limit any accepted finding to this one scale field, route, seed and horizon. Do not infer effects of other scale factors or GUI behavior."
+  ]
+}
