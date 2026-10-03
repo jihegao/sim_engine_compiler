@@ -1,0 +1,28 @@
+{
+  "schema": "simlox-d07-var03-same-key-override-contract/v1",
+  "case_id": "D07",
+  "variant_id": "D07.var03",
+  "version": "1.0.0-candidate",
+  "parent_case": "D07.var02",
+  "parent_input_sha256": "f89c02d4f3868dd97862998685933208145782f283e21da696307a7be017250d",
+  "input_sha256": "ba67c75bccf501bbf76315f34cb03de1f12a2a152e8e0ac0ab297b3e136c6dfe",
+  "exact_diff_sha256": "f34c0646427ae49e892cf4ae1ef592677a5c6256ebb32c4851a5897bd715223c",
+  "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "manual_pdf_pages": [183, 184, 246, 247, 257, 258],
+  "predeclared_hypothesis": [
+    "The accepted D07.var02 two-OPID system/item input remains fixed except description and two optional OPHOURS rate rows.",
+    "Each optional OPHOURS row sets FRT to 100000 per million, overriding its same-key base 300000 per million row with native warning #2058. Custom KM remains 5000 per million for both system and item at 60 KM per mission hour.",
+    "The system and item still match per OPID, avoiding a child-exceeds-mother error.",
+    "The installed native executable will import, export, convert and simulate the override case with zero converter errors and only warning #108 plus same-key override warning #2058."
+  ],
+  "native_acceptance_gates": [
+    "All 21 populated authored source tables roundtrip with equal columns and rows.",
+    "The converter reports zero errors and no notes, warning codes limited to #108 and #2058, a calculated model, and completed report export.",
+    "The specialized report setting loads without fallback, with positive KM and OPHOURS SOACC on operated mission intervals.",
+    "The source and raw evidence hashes are sealed, and an independent reviewer replays the bounded claim set."
+  ],
+  "limits": [
+    "Same-key warning and input precedence are assessed on this installed executable; one seed does not statistically estimate effective hazard.",
+    "This does not test inconsistent mother-child rates, unsupported OPIDs, or GUI visual and cross-engine parity."
+  ]
+}
