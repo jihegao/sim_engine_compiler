@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-e12-var02-two-fault-group-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var02",
+  "version": "1.0.0-candidate",
+  "scope": "BASE-GRP shared SystemRepair at two bases with observed physical repair demand at both stations",
+  "accepted_parent": {
+    "package": "E12-var02-group-system-repair-v1.0.0",
+    "input_sha256": "a93765916f45295da8a105434f032617bbead1668219e7718e3b74b8820b3f92",
+    "run_id": "e12-var02-group-repair-v100-ssh-20261003-01",
+    "native_closure_sha256": "9b3cd8dbf0a4b83aa26b4cec9e4c231960496932e93965703bd4258dedfdbd84",
+    "evidence_index_sha256": "1f2ea06cb7ffd17ab68a5387e56a557fa45529f15afd5929d854e00468743d77"
+  },
+  "individual_control": {
+    "package": "E12-var02-two-fault-control-v1.0.0",
+    "input_sha256": "65f6790c712552ff8fd6db322a2a9f5e345d3e9679cb28bea4a15f781a55dd3b",
+    "run_id": "e12-var02-two-fault-control-v100-ssh-20261003-01",
+    "native_closure_sha256": "03cd6c4974035c6547bb6b391127d90ab2a2d150e27b7084b66411f205986760"
+  },
+  "native_input_sha256": "a93cfb093dc7a5b3588ac025be42d78edebf5b0c6fe2eed64b3997ea68efd5a7",
+  "exact_diff_sha256": "9528ecca1e8ebae8ac26dcac81b9d6885e6c8d535c790f75264a16c5629bbe03",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "delta": "From accepted E12.var02 BASE-GRP source, change only MissionType.BASIC-MISSION.DURN 2.0→3.5 hours and ProblemDescription. Keep group repair row, two-base stock, transport, missions at h8/h20/h32, seed1 and h36 horizon fixed.",
+  "parameters": {
+    "seed": 1,
+    "mission_start_hours": [8, 20, 32],
+    "mission_duration_hours": 3.5,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5,
+    "bases": ["BASE-01", "BASE-02"],
+    "group_id": "BASE-GRP",
+    "group_system_surp_hours": 0.5,
+    "opening_spares_per_base": 1
+  },
+  "selection_reason": "This input was frozen before the individual control's native run. The control subsequently showed first-mission failures at BASE-01 h9.8829 and BASE-02 h11.1325, both followed by station-local repair. Run the same exposure with the already accepted group repair row and compare physical behavior.",
+  "pre_run_hypotheses": [
+    "The frozen source imports, exports 22 authored populated tables exactly, converts with zero errors, calculates and writes a valid report.",
+    "Both first missions fail and station-local group-based SystemRepair occurs for each aircraft, with each base consuming its own opening spare.",
+    "Compared with the individual control, event log and all results other than ProblemDescription are exactly equal, if the group default has equivalent behavior for both bases.",
+    "Depot transport, failed-item repair, backorder and terminal resource/inventory states reconcile by physical identity."
+  ],
+  "decision_rule": "Accept full E12.var02 group repair at both stations only if both local physical repairs are observed and exact control parity is established. Otherwise retain a sealed bounded contrast without claiming equivalence.",
+  "limits": [
+    "One seed and 36-hour horizon; no statistical equivalence or behavior under other station overrides.",
+    "No GUI visual or cross-engine parity conclusion."
+  ]
+}
