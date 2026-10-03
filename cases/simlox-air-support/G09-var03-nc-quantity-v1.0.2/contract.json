@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-g09-noncritical-quantity-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var03",
+  "version": "1.0.2-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var03-default-noncritical-v1.0.1",
+    "arm": "omitted-nc-b1",
+    "input_sha256": "40210448fc3ccabc93c681272bf179026342202ba2ae36cfd8302769523a3e11",
+    "run_id": "g09-var03-omitted-nc-b1-v101-ssh-20261003-01",
+    "native_closure_sha256": "40cc0d7cdfcc3e2096371fceb7143e29a1d1ba69d494649ba7d1e164ab5cf119"
+  },
+  "accepted_control": {
+    "package": "G09-var03-default-noncritical-v1.0.1",
+    "arm": "omitted-control",
+    "input_sha256": "f3f6c2c45e89627fa5d96f24a0b0ecc9d72f31044234f3f3246d098b6d079fbf",
+    "native_closure_sha256": "bb7bbf803c44b8f48d118fdbeb4754f204e88a5f420b837e28f2d75d59c9393f"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [196, 198, 448, 449, 453, 454],
+    "rule": "Manual p454 defines QTYNC as the number of items or subsystems of MID belonging to a noncritical set. The dictionary requires positive integer QTYNC, default 1. This pair physically installs two POS-B copies and compares one versus two designated noncritical members."
+  },
+  "input_sha256": {
+    "qty1": "150160273f2ab14ce9793cae8280d91ae4916449f36fc3195dffd70d32470be9",
+    "qty2": "8fe5537045397b71742df6793c1d9d7b0c5ab73fed03106ce7e78d5c55b636eb"
+  },
+  "exact_diff_sha256": "1aaf19448c173347828cc5f353c5cf20c6a57dfbdc544e3656154d228f65db54",
+  "configuration": {
+    "shared": "From accepted G09.var03 v1.0.1 omitted-nc-b1, increase physical MaterielStructure POS-B QTYPM1 to2 in both arms. Retain POS-B omission from selected BASIC RBDSeries, NCID G09-NC-B, both B copies' inherited LRU, physical failure modes/rates, direct CM, PAR active parallel, h8/h20/h32 missions, seed1/rep1/horizon36.",
+    "pair": "Only ProblemDescription and RBDNonCriticalSetItems.POS-B.QTYNC differ: qty1 retains 1 and qty2 sets 2. Both arms use USERT1."
+  },
+  "pre_run_hypotheses": [
+    "Both arms convert with zero errors and reviewed diagnostics; native populated-table import/export roundtrips exactly with two installed POS-B copies.",
+    "At least one POS-B physical failure occurs under BASIC and the matched seeded event sequence allows an observed severity or mission-outcome distinction between QTYNC1 and QTYNC2. Exact event times, copy order and later events are empirical, not assumed from the one-copy parent.",
+    "Reports reconcile mission outcomes, failure/repair counts, 72 System/Stock bins, no stock movement and terminal readiness."
+  ],
+  "native_acceptance": [
+    "Two immutable guarded serial session-0 SSH runs with host mutex, GUI PID13340 identity, registry restoration, frozen source/control fingerprints and 13 raw SHA-256 seals each.",
+    "Exact populated-table roundtrips, zero converter errors, reviewed warnings, nonempty SXO/event logs/reports and 72-bin System/Stock reconciliation.",
+    "Independent read-only replay establishes only the observed two-copy QTYNC contrast; native log may report copy IDs and severity but does not print NCID/QTYNC selection."
+  ],
+  "diagnostic_gate": "If the two arms have no matched B failure or no attributable severity/mission distinction, keep both runs as diagnostic and revise under a new version/run ID; do not change this frozen hypothesis.",
+  "limits": [
+    "Two physically installed POS-B copies, one selected BASIC system mode, NCID G09-NC-B, QTYNC1 versus2 and USERT1, one aircraft/seed/replication. Other quantities, placements, modes, rates and seeds remain open.",
+    "QTYPM changes from the accepted one-copy parent in both arms. The within-pair delta isolates QTYNC; copy assignment rules, stochastic laws, GUI visual behavior and cross-engine parity remain unverified."
+  ]
+}
