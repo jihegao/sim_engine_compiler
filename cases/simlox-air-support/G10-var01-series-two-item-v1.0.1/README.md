@@ -1,0 +1,5 @@
+# G10.var01 — two-item series links
+
+This bounded installed-SIMLOX CLI extension derives from accepted [G10.var03](../G10-var03-nrlrq-crossing-v1.0.0/cli-scope-signoff-2026-10-03.md). The [contract](contract.json) predeclares two ACTIVE redundancy links with one original LRU and one new direct-repair AUX item in series per link. The [frozen input](native-input.json) and [exact diff](exact-diff.json) bind the one-seed experiment.
+
+The [guarded runner](run_native_ssh.ps1) uses session-0 SSH, a host-wide mutex and preserved GUI PID13340. Native source, SXI/SXO, logs, report, invocation and closure remain in ignored `runs/` and are sealed in the [evidence index](evidence-index.json). The [author validation](review/author-validation-2026-10-03.json) and [independent replay](review/independent-readonly-2026-10-03.json) check source identity, events, physical repair and stock ledgers, and all 72 report bins. The [CLI scope signoff](cli-scope-signoff-2026-10-03.md) states the observed behavior and limits.
