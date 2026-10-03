@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-air-support-negative-case-contract/v1",
+  "case_id": "E10",
+  "variant_id": "E10.var09",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E10.var03",
+    "package": "E10-var03-ondem-support-gap-v1.0.0",
+    "input_sha256": "c79475655e9b0e0e2e5bd4aa412148b2044cb662521d95824b2276586ad712e8",
+    "run_id": "e10-var03-gap-v100-ssh-20261003-01",
+    "native_closure_sha256": "a179aa56096ce3d813505a8ee98c261cd6f57d5a2a4e2331bea2fdbefb9595ac",
+    "evidence_index_sha256": "6d30373d1b20628800b464e57c9710501c43667362e23208b0e219b6d3d61efc"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [334, 335, 336],
+    "interpretation": "Installed SIMLOX manual physical p335 says a transport policy profile must have start times greater than or equal to preceding end times, and p336 says ONDEM DURN must not overlap the next policy. This candidate changes accepted E10.var03 first ONDEM duration from 9 to 12h while the second ONDEM starts at h11; the one-hour overlap h11-12 is the sole behavioral delta."
+  },
+  "native_input_sha256": "1e813cb3f92872763706027f60c405ebd3e10727e357e68ec14cd63e6a8080d3",
+  "exact_diff_sha256": "47a5890679b6f908d27aa0ad5c70eb3d2f543e02f2dec737fd008726a3e9c483",
+  "configuration": {
+    "first_ONDEM_window_hours": [0, 12],
+    "second_ONDEM_window_hours": [11, 36],
+    "overlap_hours": [11, 12],
+    "seed": "1",
+    "horizon_hours": 36,
+    "accepted_control_converter_errors": 0
+  },
+  "predeclared_native_acceptance": [
+    "The accepted E10.var03 control has nonoverlapping ONDEM h0-9 and h11-36 windows and zero native conversion errors. Derive the negative input only by changing description and first TransportPolicyProfile.DURN 9->12; preserve all other authored model data and source fingerprints.",
+    "A fresh guarded session-0 SSH diagnostic under Global\\SimloxIssue18NativeQueue must preserve GUI PID13340 and complete import/export identity of all 22 authored populated tables. The native calc must diagnose overlapping policy windows with one or more conversion errors explicitly identifying TransportPolicyProfile or policy intervals. Record exact native exit code, error code and wording, SXO/report presence/size, and do not call the negative model a successful simulation.",
+    "If calculation instead accepts the overlap with zero errors, or fails for an unrelated reason, classify this candidate NO-GO under the frozen contract. A negative converter result may be published only as a version-specific rejection boundary with accepted zero-error parent control and separate read-only independent replay.",
+    "Pin before/after source hashes and raw diagnostic SHA-256 bytes; preserve all raw evidence locally under a unique ignored run path. Do not alter the frozen input or contract after seeing native output."
+  ],
+  "limits": [
+    "One pair of ONDEM windows with one-hour overlap on one downward link; no claim about overlap priority, valid simultaneous boundaries, nested/other policies, GUI visual or cross-engine behavior.",
+    "The negative branch is expected to have conversion errors and cannot provide physical event, inventory, mission or terminal simulation evidence. Full E10, E11 and Issue #18 remain open."
+  ]
+}
