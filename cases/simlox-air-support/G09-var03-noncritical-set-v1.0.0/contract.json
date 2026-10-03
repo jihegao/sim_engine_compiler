@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-g09-noncritical-set-contract/v1",
+  "case_id": "G09",
+  "variant_id": "G09.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "package": "G09-var01-mission-rbd-v1.0.0",
+    "arm": "mixed",
+    "input_sha256": "62e48b3eae86e0713e0a5c641ec28dddc3cc3cd81dc99be2659ceeee2f63475b",
+    "run_id": "g09-var01-mixed-v100-ssh-20261003-01",
+    "native_closure_sha256": "5879a38ebe751c5113b9fc0511c6fd91c752783517536058e1144769793ae6b6"
+  },
+  "series_control": {
+    "package": "G04-series-active-parallel-v1.0.1",
+    "arm": "series",
+    "input_sha256": "3adc1cf0d75dd9418e816d0e06bdc502af5d37d975beafbba8f781c94d2763e8",
+    "native_closure_sha256": "3e628ffd21bd9d15b73bbd18f6c9c7da68c39d8d2cfdf0a7ef1efcdc9dd081b9"
+  },
+  "source": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [198, 448, 449, 453, 454],
+    "rule": "An RBDNonCriticalSet, linked by MaterielOperationalModes.NCID, contains listed materiel. Manual p453 says its failed items do not cause system down time; p454 defines QTYNC as the quantity of an MID in that set."
+  },
+  "input_sha256": "affb9a058d5407f04f3841245f8fe94c2e186f880b50affd4198fe498252e62e",
+  "exact_diff_sha256": "1acfa87f97345376dac6450be08555ed918aa24152633a2dc3235d372fa47706",
+  "configuration": {
+    "parent": "Accepted G09.var01: BASIC h8/h32 explicit two-position series, PAR h20 explicit active parallel. Same POS-B fault h8.62763 is critical and aborts BASIC in the parent.",
+    "child": "Add RBDNonCriticalSet G09-NC-B and RBDNonCriticalSetItems POS-B QTYNC1 USERT1; assign NCID only to TEACH-AIR-01/G09-SER-OPS; change description. Both RBDs, mission mappings/schedule, physical B/A failure modes, CM, seed1, replication1 and horizon36 fixed."
+  },
+  "pre_run_hypotheses": [
+    "Native conversion accepts the series mode with both RBID and NCID, with zero errors and reviewed diagnostics and exact populated-table import/export roundtrip.",
+    "The BASIC h8 POS-B fault remains a physical failure but is noncritical, and the h8 BASIC mission does not abort; later event times and outcomes are inspected rather than assumed to match the accepted parent.",
+    "Report reconciles all observed failures/repairs and 72 System/Stock bins, no stock movement, and terminal readiness."
+  ],
+  "native_acceptance": [
+    "Unique guarded session-0 SSH run with host-wide mutex, GUI PID13340 identity, registry restoration, frozen source/control fingerprints and raw SHA-256 seals.",
+    "Exact populated-table roundtrip, zero converter errors, reviewed warnings, nonempty SXO/event log/report and 72-bin System/Stock reconciliation.",
+    "Independent read-only replay compares the h8 fault and mission outcome with accepted explicit-series parent; no claim that native event log prints NCID."
+  ],
+  "diagnostic_gate": "If the h8 B fault is absent, critical, or the mission aborts from it, retain as diagnostic and revise with a new version/run ID; do not change this frozen hypothesis.",
+  "limits": [
+    "One POS-B materiel position, QTYNC1 and USERT1 in one selected system mode, one aircraft and one seed/replication. QTYNC greater than one, overlapping sets and other G09.var03 boundaries remain open.",
+    "NCID selection is frozen-source/roundtrip based because the native event log may not print the set name. No GUI drawing, population reliability or cross-engine claim."
+  ]
+}

@@ -1,0 +1,5 @@
+# G09.var03 v1.0.0 excluded overlap diagnostic
+
+This frozen diagnostic adds a POS-B noncritical set (`NCID=G09-NC-B`, `QTYNC=1`, `USERT=1`) to the accepted G09.var01 BASIC system mode **while POS-B remains inside its selected RBDSeries**. Only `ProblemDescription`, `MaterielOperationalModes`, `RBDNonCriticalSet` and `RBDNonCriticalSetItems` change. The [contract](contract.json) hypothesized that the first POS-B fault would become noncritical.
+
+The guarded session-0 SSH run converted with zero errors/notes and reviewed warning #108; all 27 populated tables roundtripped exactly and 13 raw files are locally sealed in [diagnostic evidence](diagnostic-evidence.json). Yet POS-B at h8.62763 stayed critical and BASIC aborted. This violates the frozen positive hypothesis, so this input is **excluded from the publication index**. It does not establish general NCID/RBID precedence. The revised paired case tests an omitted physical B position in [G09.var03 v1.0.1](../G09-var03-default-noncritical-v1.0.1/README.md).
