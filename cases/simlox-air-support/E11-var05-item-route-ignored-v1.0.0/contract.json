@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E11",
+  "variant_id": "E11.var05",
+  "case_version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "accepted_parent": {
+    "case_id": "E11",
+    "package": "E11-autonomous-support-gap-v1.0.0",
+    "input_sha256": "d1fc66999c081acb6f29e58e5083cee58c317f0c3e0597587037efcb58a2cfd3",
+    "run_id": "e11-base-autom-v100-ssh-20261003-01",
+    "native_closure_sha256": "2885c774b1551225c5fbcafc4c0b6669884600a0f03696ac29a3eba2ac34dd2c",
+    "evidence_index_sha256": "41c59ba6affcd0edf2ad95ae4d5fe96e887b406b9aa69e040d28678c1848f135"
+  },
+  "template": {
+    "package": "E07-item-specific-transport-v1.0.1",
+    "input_sha256": "d42832b9e17b9a0c968a8bba7bcb1419eba06313097604fc0041baab5d132bc0",
+    "use": "column-accurate ItemStationStructure table and one existing TEACH-LRU-01 route row only"
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [193, 194, 316, 317, 318, 319, 323, 336],
+    "interpretation": "Manual p194 says item-specific transport rules are ignored for an autonomous station. This candidate adds an E07-proven one-item ItemStationStructure route with SLOW, 5h from base and 7h to base, while retaining the matched general autonomous policy link. Native evidence determines whether the row is accepted and ignored, rejected, or changes behavior."
+  },
+  "native_input_sha256": "16dfe044469de27e38862e332b8d03300f004a8a9fd54ad62bd7c9f7f05a0326",
+  "exact_diff_sha256": "9192b01cd8a61458b1739430245e802a18d9f1504362209a3384a885609efd96",
+  "configuration": {
+    "item_specific_policy": "SLOW",
+    "item_specific_from_base_hours": 5,
+    "item_specific_to_base_hours": 7,
+    "general_policy": "DOWN-POLICY",
+    "general_policy_windows_hours": [[0, 9], [11, 36]],
+    "local_stock": 0,
+    "depot_stock": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5
+  },
+  "predeclared_native_acceptance": [
+    "Derive exactly from accepted E11 base by changing description and adding one ItemStationStructure table with a single TEACH-LRU-01 BASE-01→DEPOT-01 row taken from accepted E07 template but set to SLOW, TFRMS=5, TTOMS=7, no item-specific profile references. Do not change StationStructure or its matched PFRMS/PTOMS, ONDEM windows, stock, failure/repair, missions, seed or collection. Require exact 23-populated-table authored roundtrip if imported.",
+    "Converter must report zero errors and produce nonempty valid SXO, event log and JSON report for a positive ignored-row claim. Explain every warning. A converter rejection, invalid result or changed behavior is a bounded diagnostic, not positive evidence of ignored-item-route behavior.",
+    "For a positive ignored-row claim, verify byte-identical native event log and all non-description report tables against accepted E11 base, including h11 bidirectional zero-hour physical transport, one-hour backorder, aircraft ready h11.3333, depot repair/restock h12, three mission outcomes, 72 half-hour System/Stock bins, resource ledger and terminal state. If any differ, reconcile individual events and report rows before classification.",
+    "Use guarded session-0 SSH under Global\\SimloxIssue18NativeQueue, preserve active GUI PID 13340 in every hidden native step, seal raw artifacts, and require a separate independent read-only reviewer replay without importing the author checker."
+  ],
+  "limits": [
+    "One item-specific row for one repairable LRU, one policy link, one first demand, one seed and one reconnection. No general precedence claim for other items, table types, policies or network structures.",
+    "GUI visual behavior and cross-engine parity remain unverified. Other E11 cases and Issue #18 remain open."
+  ]
+}
