@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "case_id": "E12.var03",
+  "run_id": "e12-var03-base02-override-v100-ssh-20261003-01",
+  "passed": true,
+  "verdict": "GO: bounded BASE-02 individual-over-group SystemRepair precedence",
+  "checks_passed": 509,
+  "checks_total": 509,
+  "failures": [],
+  "evidence": {
+    "closure_sha256": "37a2654f571af9444ba5fe85dc643353e0ecbd96ae97c58773b5371425113ced",
+    "parent_closure_sha256": "b0836011cd4008f1d19a45798ee02f7e5a2c6e95463d43828dced02ece7fe75b",
+    "raw_seals": 12,
+    "authored_tables_exact_roundtrip": 22,
+    "report_bins_each": 72,
+    "changed_system_bin_indices": [
+      23,
+      24,
+      25
+    ],
+    "base01_group_repair_hours": 0.5,
+    "base02_individual_repair_hours": 1.0,
+    "mission_outcomes": [
+      "abort",
+      "abort",
+      "abort",
+      "success",
+      "abort",
+      "success"
+    ]
+  },
+  "limits": [
+    "Only one BASE-02 repair demand under one seed; supports row selection precedence in this source topology, not a general GSTID rule.",
+    "The override changes task plan and SURPT together, so timing-field-only precedence is not isolated.",
+    "No duplicate/mixed task observed; source identity of selected row is inferred from matching duration and stage plan because native task log does not print SystemRepair.STID.",
+    "The final h35.5-36 report bin has one ready system; h36 event records the second ready at the boundary. Failed item ID6 is still in transit.",
+    "Resource bookings are absent; stock/support rows stay individual. No GUI visual or cross-engine claim."
+  ]
+}
