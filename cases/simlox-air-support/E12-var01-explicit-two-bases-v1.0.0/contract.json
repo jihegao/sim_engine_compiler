@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-e12-var01-explicit-two-bases-v100-pre-run-contract/v1",
+  "case_id": "E12",
+  "variant_id": "E12.var01",
+  "version": "1.0.0-candidate",
+  "scope": "explicit two-base counterpart to accepted E12 QTY=2, with one named unit, aircraft and opening LRU spare per base",
+  "accepted_parent": {
+    "package": "E12-symmetric-two-bases-v1.0.0",
+    "input_sha256": "a258878494ed6833e9a211200cfcad7f97b272af278b51285e01be035d61f122",
+    "run_id": "e12-symmetric-two-bases-v100-ssh-20261003-01",
+    "native_closure_sha256": "99d3ff03e3df751dacd3df8faf7752e09e1267841abc7aa16ac498acd9e26a07",
+    "evidence_index_sha256": "2a45d73fcc55a483a05808cbb9381e8719634ac3823500f7d9c218b3b44449df"
+  },
+  "native_input_sha256": "34e6c71772003c223911d68507458d5e94bacbe1ed8e5b02cf2d02fa8772d0d0",
+  "exact_diff_sha256": "f3cede79f87510db0c76556c543ec38982de61a71b08760a48ab64f972c88ce7",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual_printed_pages": [309, 310, 311, 317, 318, 322, 323, 328, 329]
+  },
+  "delta": "Replace BASE-01 QTY2 with QTY1 and an individual BASE-02 QTY1. Add individual BASE-02 general and item-specific depot links, SystemRepair, StockAllocation STSIZ1, Unit TEACH-UNIT-2, one aircraft deployment, and the same Operations profile. Keep original BASE-01, depot, missions, seed, item, repair durations and horizon. Change description.",
+  "parameters": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "result_interval_hours": 0.5,
+    "base_ids": ["BASE-01", "BASE-02"],
+    "opening_spares_per_base": 1,
+    "aircraft_per_unit": 1,
+    "depot_opening_spares": 1,
+    "item_route_down_hours": 1,
+    "item_route_up_hours": 3
+  },
+  "pre_run_hypotheses": [
+    "The frozen explicit input imports, exports 22 authored populated tables exactly, converts with zero errors, calculates and writes a valid report.",
+    "The model produces two named base, unit and aircraft business identities with one opening spare at each and three mission opportunities per unit.",
+    "Individual physical stock and backorder ledgers do not mix between BASE-01 and BASE-02; depot service and failed-item repair reconcile.",
+    "One fixed-seed replication produces six missions and 72 half-hour System and Stock report bins. The business-level outcomes are expected to match the symmetric parent, but any deterministic identity/order difference must be explained from native events rather than assumed.",
+    "The explicit arm has two individual station definitions while the parent has one QTY2 definition; compare authored topology, expanded native identities, mission results, inventory and aggregate metrics."
+  ],
+  "decision_rule": "If import/export, conversion, event ledgers or report fail, retain a sealed diagnostic and repair in a new version. Accept parity only if a separate replay confirms the two arms' compared values; otherwise publish only a precisely bounded discrepancy or exclude.",
+  "limits": [
+    "One fixed-seed, two-base explicit comparator; no statistical equivalence or same-ID claim.",
+    "No GSTID default or one-base override; E12.var02 through E12.var04 remain open.",
+    "No differing support scheme, LEVL/LINDX layout, GUI visual behavior or cross-engine parity."
+  ]
+}
