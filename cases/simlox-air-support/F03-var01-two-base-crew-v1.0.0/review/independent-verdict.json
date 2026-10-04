@@ -1,0 +1,30 @@
+{
+  "case": "F03-var01-two-base-crew-v1.0.0",
+  "checks_passed": 2101,
+  "checks_total": 2101,
+  "evidence": {
+    "resource_booked_hours": {
+      "staffed": 10.5,
+      "unstaffed": 10
+    },
+    "resource_waiting_hours": {
+      "staffed": 3,
+      "unstaffed": 4.5
+    },
+    "staffed_base02_mission": "success h8\u201310",
+    "staffed_closure_sha256": "1e75e83aaa60f575bcddbb5dfdf0acb13ee0b5cbbd0fbcea65e325d108c5b9c3",
+    "staffed_report_sha256": "0c22ff041bef740c03770f0a43738e673bcdee08e3900212e8b54d928ae71056",
+    "unstaffed_base02_mission": "cancel h8.5 after h7 crew request failure",
+    "unstaffed_closure_sha256": "8ce36aaa0d0de964466ed5646bd66d7443e1cacb7fc914351d55480efa81c981",
+    "unstaffed_report_sha256": "e955ea584375c0586933efaf637276f64a9308c979ced3fcc5d249de473c3e3d"
+  },
+  "failures": [],
+  "limits": [
+    "One fixed seed, two bases, three aircraft and one BASE-02 crew capacity field; no larger-network or location/stock configuration inference.",
+    "ResourceResults is aggregate across both bases; per-base leases and waits are reconstructed from typed event lines, not reported as separate base rows.",
+    "ResourceResults.NRA is not treated as the free-worker complement of booked NRUM.",
+    "Report bins are half-hour averages; exact same-time ordering inside a bin is not inferred from the aggregate table."
+  ],
+  "passed": true,
+  "verdict": "GO \u2014 bounded two-base crew-capacity contrast"
+}
