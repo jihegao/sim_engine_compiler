@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K04",
+  "variant_id": "K04.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Nested MDB IncludeFiles chain: main K02-derived SXI includes an Access MDB with a sole IncludeFiles row pointing to a second Access MDB with the required BASE-01 Station row.",
+  "dependency": {
+    "package": "K05-var05-runtime-mdb-include-v1.0.2",
+    "input_sha256": "ed57d43da4315fcd2f4fbd5cd80840c2add42adf9227bcfc947ad99477575044",
+    "closure_sha256": "893322aa6d0c2d91f4d03a7d4171f9c0ca506a10d443098848c8abaf4f2d87c5",
+    "signoff_sha256": "ce8e4b5df03140bc94104a740c8ba33c7045ca3e06f2728c6e8d23f1f3e7a1ae"
+  },
+  "inputs_sha256": {
+    "main": "aa0064561c2a1aa9738422c8090ca125478c0517e16010022634bd985da6fa52",
+    "level1_source": "4b2d888f039ce6303cd9fc86bc35c00c84939d433e4cbc87444907f3d5992f23",
+    "level2_source": "2c2fc671f6084ce90a4635526e50dc6df4b7ebd087c8fd8eca4080839c5a3ddb"
+  },
+  "run_id": "k04-var01-nested-mdb-v100-ssh-20261004-01",
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [537, 538],
+    "rule": "IncludeFiles supports included data or database files, repeated input tables merge, Control may appear once, and included files may themselves include files. Full paths avoid application-directory dependence."
+  },
+  "frozen_commands": ["create and ODBC-readback level2 Station MDB", "create and ODBC-readback level1 IncludeFiles MDB", "import main JSON to SXI", "export main SXI JSON", "temporarily map MDB to installed 64-bit Access driver during calculation and restore prior association", "calculate main SXI", "export JSON report"],
+  "acceptance_hypotheses": [
+    "Level1 has exactly one user IncludeFiles table with one row pointing to the frozen level2 path; level2 has exactly one user Station table with the K02 BASE-01 row.",
+    "Main model imports and exports with the sole level1 IncludeFiles row and all other authored K02-derived rows intact, allowing reviewed native empty-default canonicalization.",
+    "SIMLOX log explicitly traverses level1 then level2, inserts exactly one Station record, has zero converter errors and only reviewed warnings, and writes a usable SXO and report.",
+    "The native event log and raw report are byte-identical to accepted K05/K02 for this fixed teaching model."
+  ],
+  "gate": "Missing or skipped nested include, wrong path or row, duplicate Control, converter error, unusable output, changed event/report, GUI change, registry restore failure or source fingerprint change is NO-GO.",
+  "limitations": ["This tests nested MDB files only. It does not establish nested SXI/OPI modules, relative paths, missing-file behavior, duplicate Control or key-conflict handling, GUI behavior or complete K04 coverage."]
+}
