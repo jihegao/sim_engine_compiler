@@ -1,0 +1,3 @@
+# Frozen K09.var03 preflight — 2026-10-05
+
+The parent is published K09.var01 v1.0.1 after PR #435 restored exact evidence bytes. Its accepted run has three report-only SSH0 steps on the same J05 SXO and eight local raw seals; its v1.0.0 diagnostic is excluded. This package replays only source and output inspection. Gate: exact Git source pins, raw SHA/size seals, original invocation and closure, strict JSON syntax in all three original files, the four-versus-eight table shape, 72 mission bins, common-table column/row parity, and separate independent review. An unexpected additional table, malformed raw JSON, changed source byte, or missing raw file is NO-GO. No native command is authorized by this dossier.
