@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-j09-var04-pm-interval-scale-pre-run-contract/v1",
+  "case_id": "J09",
+  "variant_id": "J09.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Test ScaleFactors.SCPMI=2 against accepted D03's one-aircraft CALHOURS 24-hour PM interval, keeping the authored interval and one-hour task unchanged. Observe native PM starts/completions and all report bins through hour 60.",
+  "accepted_parent": {
+    "package": "D03-calendar-pm-v1.0.0",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "run_id": "d03-calendar-v100-ssh-20261001-02",
+    "closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1"
+  },
+  "scale_schema_precedent": {
+    "package": "J09-var06-transport-scale-v1.0.1",
+    "input_sha256": "9d22f2596897fceb6e00a425c9e8bcd226a1f9549a3b00d08b53b0204e1083fe",
+    "closure_sha256": "0e0e916a6e22577fd36fdf15320ed2162b119a7abc3f031496b8f332dc6e035a",
+    "evidence_index_sha256": "31dc1f343e8625003e16b1f732591f8255f67d6e5c8a03d34bd66543d47213b5"
+  },
+  "scaled_input_sha256": "e58a615dca7dca19608cee4546940d3823188559d49c37604ffbe6d064777486",
+  "exact_diff_sha256": "aae9df58394048da56e479c2f2b6c88bc355d032f4fdb68afb2b764a5175ea3e",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "parameters": {
+    "seed": 1,
+    "simulation_horizon_hours": 60,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 120,
+    "authored_calendar_pm_interval_hours": 24,
+    "authored_pm_subtask_hours": 1,
+    "scale_factors": {"SCFRT": 1.0, "SCRPT": 1.0, "SCLDT": 1.0, "SCPMI": 2.0, "SCPMT": 1.0, "SCTRT": 1.0}
+  },
+  "pre_run_hypotheses": [
+    "The source appends only one ScaleFactors row; all 31 D03 parent tables and 18 populated source tables remain unchanged. PMINT stays 24 CALHOURS, Control.ENPM Y, seed1 and horizon60.",
+    "A fresh guarded session-0 SSH native import, export, calculation and report must pass with GUI PID13340 preserved, zero converter errors, only reviewed warnings #108 and #126, and sealed raw hashes. All parent source tables must roundtrip exactly; ScaleFactors may gain only optional double columns with null values while all six authored fields remain unchanged.",
+    "If SCPMI multiplies the 24-hour CALHOURS interval, the first PM should start at hour 48 rather than 24. A later cycle may lie beyond the 60-hour horizon. Check the native event log; do not assume the scheduler's internal renewal law.",
+    "Trace each CAL24 task/subtask, actual duration, aircraft readiness, resource requests, mission starts/completions and terminal state. Investigate any PM/mission overlap or additional cycle instead of selecting only expected events.",
+    "Reconcile all 120 half-hour System report rows and summary with the accepted D03 parent and event intervals, including NPMS/NPMT and integrated NSYPM. Obtain separate author and independent read-only replays before publication.",
+    "Limit any accepted result to this calendar PM, aircraft, seed, scale value and 60-hour horizon. Do not infer flight-hour PM, PM/mission conflict, nonzero ATIM/DTIM, resource shortage, GUI or cross-engine behavior."
+  ]
+}
