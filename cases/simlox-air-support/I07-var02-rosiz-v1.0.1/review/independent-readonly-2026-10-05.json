@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "run_id": "i07-var02-rosiz-v101-ssh-20261005-01",
+  "decision": "GO_BOUNDED",
+  "passed": true,
+  "checks_passed": 3476,
+  "checks_total": 3476,
+  "failures": [],
+  "closure_sha256": "70f370b089a2bc477ebd38027be4e5bcebe94e23dc963fd8103272b9d8b660ce",
+  "contract_sha256": "7fdb7ac423e8921f22acb30ba0b675cfa271cb36740b43f6f28b6034da09ec30",
+  "raw_files_sealed": 22,
+  "source_sha256": {
+    "control": "c6aa9ee1f86204dba3922765a29fa5225547710827db144b6abcacf106eaf84e",
+    "change": "b179428b3f72158bf9d32ce2675cc107fbadc60c6c3597bbab92abf24f70b2c2",
+    "parent_input": "602dedfdb3491ab430abe4c68426c28203738fe1b2b1173d5d66955d00b6102e",
+    "runner": "d52de5fc5ec06cafd33935fa001da085b8f99144d835518dd690e8fd5f60b0b8"
+  },
+  "report_sha256": {
+    "control": "d853a066fba02317bffd61643c6106fd9e9b73dd4c8b69a615ea69056deb8208",
+    "change": "b69184dcaed613497896c3ec672c5bd3609c813937036cfc0ff2292e554db78b"
+  },
+  "observed": {
+    "initial_depot_stock": 4,
+    "hour_5_order": "none in both event logs",
+    "hour_10": "same ordinary depot issue of physical DU ID0; depot on-hand 4 to 3",
+    "control_reorder": "none through hour 36; depot terminal on-hand 3",
+    "change_reorder": "one order starts hour 10; one new physical DU ID6 delivered at hour 11; depot terminal on-hand 4",
+    "item_results_bins": 72,
+    "item_report_deltas": "STOHA differs in 50 bins from hour 11 onward; NRO differs only in [10,10.5); all other item-bin cells match",
+    "other_reports": "ResultSummary, MissionResults and totals, FixedMissionResults and totals, SystemResults, StockTotalResults match exactly across arms"
+  },
+  "limits": [
+    "One fixed seed, tracked DU at one depot, one ordinary demand, stock-based ROSIZ 2 versus scheduled 1, one-hour lead and 36-hour horizon.",
+    "The native event log does not print the internal reorder-point computation; attribution to the scheduled ROSIZ row is source-bound inference from the matched pair.",
+    "No time-based strategy, repeated demand/order, transfer-at-change, GUI display, population law, other engine, or full Issue #18 acceptance is established.",
+    "Unrun v1.0.0 explicit-ISTOH3 draft is an excluded design diagnostic, not a native failure run."
+  ]
+}
