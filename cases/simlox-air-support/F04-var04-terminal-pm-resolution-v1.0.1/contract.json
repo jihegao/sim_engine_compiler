@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F04",
+  "variant_id": "F04.var04",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "A deterministic 43-day parent has an open CAL24 PM lifecycle at the h1032 cutoff; an otherwise identical half-hour continuation tests its resolution at that boundary, including native report-boundary averaging.",
+  "accepted_parent": {
+    "package": "F04-var01-deterministic-43day-v1.0.1",
+    "input_sha256": "7b9dfa927ba85c1260d9cbf6d58bae44914ad039a7b3b87b082e1ed04827cc4d",
+    "closure_sha256": "b054ac23c12ae181f299882256cc95308ee7b15de38d31a36aa7895c995b1447",
+    "signoff_sha256": "f7da8657477092954884dfd17fcf681442fffb37df9b2c9d0eb13d91963a4631",
+    "default_report_sha256": "3762a184cd12824f5335b0ac63e39b7f0f264ec6bea9012bcf86b194873b949a",
+    "event_log_sha256": "25870dcbc2475c34c68e66cdc1243ebda56e2e6298c9c2825715f85879f47361"
+  },
+  "excluded_diagnostic": {
+    "package": "F04-var04-terminal-pm-resolution-v1.0.0",
+    "input_sha256": "a5767aacb09d437644551e8762a6fca35e27dab80ced98d05b8aeacc8155a7a9",
+    "closure_sha256": "0d1f4d6d3adae487117f4abde2745b85b9566d2d341e27e6c7a28cbd0a86c14c",
+    "reason": "The native event resolution passed, but the frozen exact-prefix and exact-zero added-bin hypotheses failed: one preterminal downtime row was retrospectively updated and the new half-hour averages retain a small boundary smear."
+  },
+  "input_sha256": "999a7632885dcfdebb380a3a9f50845093ea6b9043869d430e25d983e5ab224e",
+  "exact_diff_sha256": "3e875fa1fd3ab1d0d775bd24f57920799a2d1cc143ef2845f86a057a0ffa1375",
+  "parameters": {
+    "nreps": 1,
+    "seed": 1,
+    "parent_simulation_end_hours": 1032,
+    "continuation_end_hours": 1032.5,
+    "result_interval_hours": 0.5,
+    "aircraft": {"BASE-01": 5, "BASE-02": 3},
+    "system_and_item_frts_per_million_hours": 0,
+    "mission_type_mff": 0,
+    "mission_schedule": "Unchanged 21 two-base waves at 48-hour spacing"
+  },
+  "expected_converter": {
+    "errors": 0,
+    "warnings": 3,
+    "notes": 0,
+    "warning_codes_in_order": [108, 2053, 2053]
+  },
+  "frozen_parent_observation": [
+    "Both accepted F04.var01 runs show system CAL24 PM task 533 on aircraft 6 starting at h1031, booking BASE-02 P-MAINT, planned one-hour work.",
+    "Neither parent event log records task 533 completion before the h1032 cutoff; the terminal [1031.5,1032) System bin reports seven ready aircraft and one in PM.",
+    "The parent establishes an open lifecycle at the cutoff. Its planned completion equals h1032, so positive residual work after the cutoff is not established."
+  ],
+  "acceptance_hypotheses": [
+    "A guarded session-0 SSH native run converts without errors or unreviewed warnings, completes import/export/calc/report, roundtrips all authored populated tables exactly, preserves GUI PID13340 and seals raw artifacts.",
+    "All event-log bytes after the two-line header and before the first h1032 event equal the accepted parent. The continued run logs task 533 completion, BASE-02 P-MAINT release and aircraft 6 ready at h1032; the accepted parent does not log completion by its cutoff.",
+    "The 2064 parent-prefix Stock and Resource time-series rows equal exactly. System rows equal except the [1031,1031.5) row's SYDT/NSYDT finalized downtime counters; all other fields and rows equal. The continued report appends one [1032,1032.5) bin.",
+    "The added bin has near-eight ready aircraft and near-zero PM/resource occupancy: NSYRY between 7.99 and 8, NSYPM and NRUM between 0 and 0.01. Native event log, rather than exact bin zero, establishes task completion at the boundary.",
+    "Mission counts, no-failure/no-backorder stock behavior and the original two-base schedule remain unchanged; ResultSummary differs only in its upper time bound, with resource totals interpreted using the longer denominator."
+  ],
+  "limitations": [
+    "This is one deterministic CAL24 PM at a horizon boundary, not a general unfinished-task law.",
+    "The parent does not prove positive remaining PM duration at h1032; continuation establishes resolution ordering at the boundary. Report bins can show small time-sampling smear and a retrospectively finalized downtime counter.",
+    "Unfinished repair, transit, reserved stock, alternate seeds, GUI visuals and cross-engine equivalence remain unverified."
+  ]
+}
