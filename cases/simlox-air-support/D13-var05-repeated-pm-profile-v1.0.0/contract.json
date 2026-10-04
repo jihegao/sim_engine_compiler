@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D13",
+  "variant_ids": ["D13.var05"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "d13-repeated-pm-profile-v100-ssh-20261004-01",
+  "scope": "Compare a flat ten-period local PMActivationProfile against one nested PM-ROOT/PM-HALF profile repeating five nonoverlapping 12-hour disable/enable cycles; accept only observed SIMLOX 2017 CLI behavior, exact roundtrip and sealed native parity.",
+  "dependency": {
+    "parent_package": "D13-var01-pm-activation-v1.0.0",
+    "parent_input_sha256": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+    "parent_closure_sha256": "0bebe4cfd9a039bfc6bb1e2f9391f2a985ca2d199da97e76f17a105396cd0e91",
+    "parent_signoff_sha256": "275701b082c22af15a6fd5ec6c612903f499e8d93d894e1bb9f1967c61ec1ed1"
+  },
+  "inputs_sha256": {
+    "flat": "9a4f57ae46e999b722602f1c809ece4daeb95ede466c11ac13fd231c608f9116",
+    "nested": "d32ceba4c9f92312483cbd8f6886560bd7a7e9e6708c90815e36e15bfd673d7c"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [380, 381, 382, 383, 384, 385],
+    "rule": "PMActivationProfile supports a profile referring to a subprofile; IQTY and IINT repeat that block without overlapping explicit LIMIT periods. ENPM=N prevents PM start while counters continue, and ENPM=Y re-enables local PM."
+  },
+  "frozen_source_delta": [
+    "Derive both arms from the accepted D13.var01 local CAL24 PMActivation input: seed1, one aircraft, three h8/h20/h32 missions and 60-hour horizon unchanged. Control.ENPM remains Y.",
+    "The flat arm uses PM-FLAT with ten explicit adjacent six-hour LIMIT rows alternating ENPM=N/Y from h0 to h60.",
+    "The nested arm uses PM-ROOT referencing PM-HALF at STIM0 with IQTY5/IINT12; PM-HALF defines two adjacent LIMIT rows, N h0-6 and Y h6-12. Both expand to the same time schedule. Only description, PMActivation.PRID and PMActivationProfile rows differ between arms."
+  ],
+  "acceptance_hypotheses": [
+    "Both arms import and roundtrip exact authored populated cells with zero converter errors and usable SXOs; nested SPRID reference and repetition parameters remain intact.",
+    "Both arms generate the same physical PM and mission event sequence: the h24 due PM is disabled until h30 and works h30-31; a later PM works h55-56. Event and report equality must be checked from native output, not presumed from the schedule design.",
+    "The 120 half-hour System/Stock bins, PM starts/completions, six mission hours and terminal aircraft state reconcile."
+  ],
+  "gate": "Publish only if nested and expanded flat sources yield identical native event logs and all non-description report cells, with clean conversion, exact authored roundtrip, sealed raw evidence, and independent read-only replay. Otherwise retain the immutable run as an excluded diagnostic and revise a new version. Do not infer an internal PM counter trace or general hierarchy law.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 identity, immutable run path, 60-second targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One seed, one aircraft, one PM, five repetitions of one two-period child profile; no other cycle, nested depth, overlap error, global ENPM comparison, GUI or cross-engine claim."]
+}
