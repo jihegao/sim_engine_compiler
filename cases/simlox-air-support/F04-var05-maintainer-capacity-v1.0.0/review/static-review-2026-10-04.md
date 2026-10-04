@@ -1,0 +1,11 @@
+# Independent F04.var05 v1.0.0 review
+
+**Verdict: bounded GO, 20,916/20,916 read-only checks.** The independent `independent_replay.py` regenerates `independent-verdict.json` from frozen source and native files without importing the author builder, checker, or validator.
+
+The accepted F04.var01 input, closure, sign-off, report and event-log hashes verify. The child changes exactly two source cells: description and BASE-01 P-MAINT `ResourceAllocation.RQTY` from 1 to 2. The fresh run has a clean closure, 12 matching raw size and SHA seals, identical before/after source hashes, session-0 SSH and global mutex provenance, preserved GUI PID 13340, five exit-zero steps, exact reviewed converter warnings #108/#2053/#2053, and an independent exact comparison of 30 authored populated import/export tables.
+
+The parent books its only BASE-01 maintainer for aircraft 4 at h24 and aircraft 0 cannot book at h24.5. The child books aircraft 0 concurrently at h24.5. Its PM completes at h25.5 versus h26 in the parent; aircraft 1 completes at h26 versus h27. Across the 1032-hour report, queued resource time falls from 27.249758 to 21.000000 hours. Resource TOTAL waiting fractions reconcile with the half-hour bins; use/work hours remain approximately 376.499 in both arms. Both logs show 324 PM starts, 323 completions before cutoff, 63 successful missions (21 of each type), 105 successful aircraft sorties, no aborts, and no backorder.
+
+Each System, Stock and Resource series has 2064 half-hour bins. Stock rows and ResultSummary match the parent exactly; both System failure and Stock backorder counts stay zero. Resource capacity is four in the parent and five in the child, with the extra maintainer reflected throughout the Resource series. Aggregate System PM event counts and terminal ready/PM state match; System and Resource bin timing can differ after the first queue event. One PM remains open at the h1032 cutoff in both arms.
+
+The isolated first-wave result supports a local capacity and queue contrast for this deterministic seed. Later PM timing is a whole-model consequence. This does not establish a general staffing response, stochastic availability effect, behavior for other resource classes or stock settings, or cross-engine equivalence.

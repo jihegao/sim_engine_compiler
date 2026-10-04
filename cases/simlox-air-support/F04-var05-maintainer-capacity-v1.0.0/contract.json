@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F04",
+  "variant_id": "F04.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "A fixed deterministic 43-day, eight-aircraft two-base support configuration comparison: BASE-01 P-MAINT capacity one versus two, with every other input held fixed.",
+  "accepted_parent": {
+    "package": "F04-var01-deterministic-43day-v1.0.1",
+    "input_sha256": "7b9dfa927ba85c1260d9cbf6d58bae44914ad039a7b3b87b082e1ed04827cc4d",
+    "closure_sha256": "b054ac23c12ae181f299882256cc95308ee7b15de38d31a36aa7895c995b1447",
+    "signoff_sha256": "f7da8657477092954884dfd17fcf681442fffb37df9b2c9d0eb13d91963a4631",
+    "default_report_sha256": "3762a184cd12824f5335b0ac63e39b7f0f264ec6bea9012bcf86b194873b949a",
+    "event_log_sha256": "25870dcbc2475c34c68e66cdc1243ebda56e2e6298c9c2825715f85879f47361"
+  },
+  "input_sha256": "8c427a172dd23e6f7ec8919d355c2cf19c90797bc6fffacf4f17961890412dbf",
+  "exact_diff_sha256": "ef96755a1e3e3acc431f05ce18bb67076ae9e0d2af5ebd505daef56991645273",
+  "parameters": {
+    "nreps": 1,
+    "seed": 1,
+    "horizon_hours": 1032,
+    "result_interval_hours": 0.5,
+    "aircraft": {"BASE-01": 5, "BASE-02": 3},
+    "base01_p_maint_parent": 1,
+    "base01_p_maint_child": 2,
+    "base02_p_maint": 1,
+    "system_and_item_frts_per_million_hours": 0,
+    "mission_type_mff": 0,
+    "mission_schedule": "Unchanged 21 two-base waves at 48-hour spacing"
+  },
+  "expected_converter": {
+    "errors": 0,
+    "warnings": 3,
+    "notes": 0,
+    "warning_codes_in_order": [108, 2053, 2053]
+  },
+  "frozen_parent_observation": [
+    "Parent BASE-01 PM aircraft 4 books the only maintainer at h24 through h25.",
+    "Two other BASE-01 aircraft request PM at h24.5 and initially fail the resource test; one books at h25 while another waits.",
+    "Parent's 2064 aggregate half-hour Resource bins have approximately 27.249758 queued resource-hours; its native log has 324 PM starts and 323 completions by h1032."
+  ],
+  "acceptance_hypotheses": [
+    "Guarded session-0 SSH native import/export/calc/report completes with zero converter errors and no new warnings, exact authored-table roundtrip, nonempty output, preserved GUI PID13340 and raw SHA closure.",
+    "At the first BASE-01 PM wave, the added maintainer allows a second concurrent PM resource booking near h24.5, advancing at least one PM completion relative to the one-worker parent and reducing that local wait. Identify aircraft/resource events rather than assuming task IDs stay stable.",
+    "Across all 2064 half-hour bins, resource capacity, bookings, waiting, System state and Stock state reconcile with native events; mission request/outcome counts and terminal state are observed, not assumed.",
+    "The child remains failure-free with no item demand/backorder; the two-base 21-wave schedule remains fixed. Later PM event times may diverge because earlier maintenance completion changes the state."
+  ],
+  "limitations": [
+    "This is one deterministic fixed-seed 43-day maintainer-capacity contrast, not a general staffing response or stochastic availability estimate.",
+    "Any later PM or mission timing changes are whole-model consequences and should not be attributed to a single local queue event.",
+    "Other resource classes, stock configurations, random failures, GUI visuals and cross-engine equivalence remain unverified."
+  ]
+}
