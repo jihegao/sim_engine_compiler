@@ -1,0 +1,24 @@
+{
+  "case": "F03-var04-lateral-peer-v1.0.0",
+  "checks_passed": 1806,
+  "checks_total": 1806,
+  "evidence": {
+    "matched_first_demand_hour": 23.74,
+    "off_closure_sha256": "d0d59aaf06745d84f49b53553174124e23e4584d0419499971e898add1966e88",
+    "off_first_depot_item": "LRU physical ID2 DEPOT-01\u2192BASE-01 h23.74\u201325.74",
+    "off_report_sha256": "2077013fc9a34bf4d4f132fe9994c063f6a0e84109b620a3947f1cd958df3c89",
+    "on_closure_sha256": "dba6d8f4a0a1c209edd32273a0ea517604727c4d68fb8726191c6ca9ff0f7ad9",
+    "on_first_peer_item": "LRU physical ID4 BASE-02\u2192BASE-01 h23.74\u201324.24",
+    "on_replenishment": "depot ID2 reaches BASE-02 h25.74",
+    "on_report_sha256": "c5000800ea88097251acb628f318adc7d51de2416358ca68fd983ceb50b1d5a9"
+  },
+  "failures": [],
+  "limits": [
+    "First fault/demand is matched at h22.24/h23.74; later random failures differ (ON h46.8394, OFF h46.7231), so later outcomes and aggregate differences are observations, not a matched-fault causal estimate.",
+    "One seed, IMMEDIATE lateral policy, TLAT 0.5h, symmetric two-base network; no broader policy, autonomy, overlapping-demand or route-contention claim.",
+    "Aggregate System/Stock/Resource reports are not per-base inventories; physical peer issue and depot replenishment are bound to station/item event lines.",
+    "Bin occupancy tolerates 0.0002 from native printed event-time rounding; ResourceResults.NRA is not interpreted as free capacity."
+  ],
+  "passed": true,
+  "verdict": "GO \u2014 bounded first-demand lateral peer substitution"
+}
