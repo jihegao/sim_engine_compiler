@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D15",
+  "variant_id": "D15.var01",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "d15-var01-pmrf-seed-panel-v101-ssh-20261004-01",
+  "selected_report_run_id": "d15-var01-pmrf-seed-panel-v101-item-report-ssh-20261004-01",
+  "scope": "Prespecified seeds 2 through 6, each with a paired scheduled system CAL24 PMReplacement PMRF=1.0 versus 0.5. One aircraft, one installed LRU, one local spare, four calendar PM opportunities and a 120-hour horizon per arm.",
+  "dependency": {
+    "source_package": "D15-var01-pmrf-scheduled-v1.0.0",
+    "source_inputs_sha256": {
+      "certain": "4c047fad6e2a36463729959d4334c5107e1f62bbad0a055af51738dc28af5119",
+      "fractional": "ed0b027ed5b738e119ba4cb48c82a55926f0beca5e0e787952b7d7c3d0fd8632"
+    },
+    "excluded_diagnostic_closure_sha256": "7f2582fd238f583b9351c826389ec60071b39a07f0f09a8b536ba54631a3a85c",
+    "accepted_geometry_input_sha256": "29dd9638ecaf5980b7ecf90ef41644afbbcca3a9b15f88dceb8f2fe3e5c32903",
+    "accepted_geometry_signoff_sha256": "848bb2d59d6fc918e73b7a1e551e1e427d40ad6d38a35569321835fbaed807f0",
+    "catalog_parent_d03_signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1"
+  },
+  "seeds": [2, 3, 4, 5, 6],
+  "arms": ["certain", "fractional"],
+  "inputs_sha256": {
+    "seed2-certain": "9ecddd300defbcc5527a860ec63b4fecd33a8205fbbb5b7fb2b73a9f2906e9ff",
+    "seed2-fractional": "7fdb489245820b7df0d63896ef3bd718c2e66aa7265037c5df6fd2449d2c59b6",
+    "seed3-certain": "9f4313a4e92dfaf33327476ee1472aef5ae5855c360246c7deb5e191094ce007",
+    "seed3-fractional": "7a43d1a47cc844c8a170f06e745cc839c6a5fa7cfb3b61aeffda6c587f274ecc",
+    "seed4-certain": "ce07cd05cc99ce1254cfae25d36aff7d682182173da0cd79e18a841aef5f7589",
+    "seed4-fractional": "83c34bb39fcac8a2ee91c274a41c24da080cf6b4f1aba7d3ea714c6fe06e23b8",
+    "seed5-certain": "3c52b6279d4d358950f5f4c3ed11b2796b0b2ad937e8fb75cd3335cf13e917e1",
+    "seed5-fractional": "c7ba031f5cb8041e42a5ab84078319f95d35fe90b296a954462f8c30bdcb4e90",
+    "seed6-certain": "a29e940847b3394e3dd6c3d0827e771b7a0128b4f960470a6e87534a5a5a51e8",
+    "seed6-fractional": "a48da5bae6586611ec25b2cc9fc5df7f9f1fc8b09a6afb5fffe6816de4561a7e"
+  },
+  "report_settings": {
+    "installed_default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "base01_selector_sha256": "10fe133a68250503041a18bfc6512b03326af9f073c294b9d954a4a3340f260b",
+    "method": "Rebuild one accepted J08-format BASE-01 ItemPositionSettings selector from the pinned installed Default.sxs. Export a selected item report from every sealed SXO."
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [203, 217, 218, 385, 386, 387, 388, 389, 390, 391, 392, 393],
+    "rule": "PMRF=1 schedules deterministic replacement; PMRF<1 draws randomly per item even when SCHED=Y. Demand is issued at PM task start and the removed LRU receives PMLocation overhaul."
+  },
+  "frozen_delta": "Within each PMRF arm, only Control.RSEED and ProblemDescription differ from excluded v1.0.0. Across same-seed arms, only ProblemDescription and PMReplacement.PMRF differ. No source rows, mission schedule, stock, PM timing parameters or report collection window change.",
+  "acceptance_hypotheses": [
+    "Ten native inputs exactly roundtrip all populated cells; all converter errors are zero and warnings are classified; each usable SXO/event/default report and selected BASE-01 ItemResults report is SHA-sealed under guarded SSH0 execution.",
+    "Each certain arm performs one physical exchange for each of four observed system PM opportunities; demand starts with PM, removal follows the REMOVE phase, fit uses a distinct physical item and removed item completes one-hour local overhaul before restocking.",
+    "Across the five prespecified fractional arms there is at least one observed exchange and at least one observed no-exchange opportunity, with at least one fractional seed containing both outcomes. Analyze all five seeds; do not select only favorable seeds after execution.",
+    "Per-arm stock/backorder item rows and aggregate PM occupancy reconcile with the event ledgers through h120. Paired mission outcomes and terminal state are documented. No population probability or rate estimate is inferred from this small panel."
+  ],
+  "gate": "Publish only if all ten sources, native closures, exact roundtrips, selected item reports and independent event/report replay pass, and the prespecified panel satisfies the deterministic and mixed fractional physical-outcome conditions. Otherwise retain v1.0.1 as a diagnostic and freeze any further experiment in a new version.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["Five fixed seeds and four opportunities each, one aircraft, one item position and one local spare; no general PMRF distribution estimate, quantity>1, SCHED=N, PMFailureMode, GUI or cross-engine claim."]
+}
