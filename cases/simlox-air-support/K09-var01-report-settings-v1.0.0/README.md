@@ -1,0 +1,7 @@
+# K09.var01 v1.0.0 excluded report-settings diagnostic
+
+This three-export report-only experiment used the accepted J05 baseline SXO. The frozen contract required explicit-default reports to be byte-identical to the earlier J05 default report. The guarded SSH0 execution completed `default-a`, `mission-enabled`, `default-b`; the two new default reports are byte-identical to each other, and the mission-enabled report adds four mission tables. However, the earlier J05 report differs from the new explicit `-rpts Default.sxs` export. The latter adds `report.database_version=0` and leaves `SystemResults` and `StockTotalResults` `instance_name` empty. All four common tables retain identical columns and row data.
+
+The immutable local run is `runs/k09-var01-report-settings-v100-ssh-20261004-01`, closure SHA-256 `c73732c9391c635b9a51a29fafe9576e71ed67e5cafe13e6b4e5ba4e3acc9364`. The independent replay returns `NO_GO_FULL_CONTRACT` (258/259 checks; the parent byte-equality gate failed). This package is excluded from the publication index. Its raw proprietary `.sxs` and SXO-derived reports stay under ignored `runs/` and are sealed in the successor evidence index.
+
+The separately frozen [v1.0.1 contract](../K09-var01-report-settings-v1.0.1/contract.json) requires equality of table columns and data rows while explicitly recording the metadata and instance-label difference. It uses fresh report exports from the same parent SXO.
