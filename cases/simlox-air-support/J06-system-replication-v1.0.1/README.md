@@ -1,0 +1,9 @@
+# J06.var02 — System replication TOTAL, TIME and SNAPS
+
+This bounded package adds two tables to accepted J04.var01's fixed 16-replication Poisson formation-count model: snapshot times at 9 and 11 hours and one `ReplicationResultControlSystem` row for `TEACH-AIR-01`/`TEACH-UNIT` with `TOTAL=TIME=SNAPS=Y`. The parent’s other 32 tables, seed, TCLEV0 and 36-hour horizon remain identical. [Contract](contract.json) and [exact diff](exact-diff.json) pin the input before execution.
+
+Default `-jsonreport` omits per-replication tables. A local copy of the installed report settings changes only `GeneralSettings.OUTRP` from N to Y; `make_report_settings.py` verifies the installed hash and one changed byte. The guarded runner exports both the default report and a second report-only `-report -rpts <copy> -rjexport` from the sealed result file. It does not change the installed settings or recalculate for the second report.
+
+The native enhanced report contains 16 `Replications`, 16 `SystemResultsReplicationTotal`, 1,152 `SystemResultsReplication` (16 × 72 half-hour bins), and 32 `SystemResultsReplicationSnapshot` rows (16 × two times). Per-replication time rows agree with the aggregate System means and the snapshots at hours 9 and 11. The default aggregate report and first-replication event log are byte-identical to the J04 parent; all 72 Stock rows and the mission summary remain unchanged. [Author replay](author-native-validation-2026-10-04.json) passes 2,943 checks. Independent replay and bounded decision are recorded in [the signoff](cli-scope-signoff-2026-10-04.md).
+
+The earlier [v1.0.0 percentile probe](../J06-system-replication-percentile-v1.0.0/excluded-diagnostic.md) emitted runtime warning #502 and remains excluded. This package does not claim a percentile level or interpretation of `STLOW`. Item, Mission, Resource, and StockTotal replication-control switches still need their own bounded cases; J06 and Issue #18 remain open.

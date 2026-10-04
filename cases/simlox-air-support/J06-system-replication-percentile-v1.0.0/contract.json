@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-j06-system-replication-pre-run/v1",
+  "case_id": "J06",
+  "variant_id": "J06.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Test one system entity's TOTAL, TIME and SNAPS replication-result switches and PERCL=0.75 under the accepted J04.var01 fixed-16 Poisson experiment. A separate report-only export uses a locally generated settings copy with OUTRP enabled.",
+  "accepted_parent": {
+    "package": "J04-var01-fixed-replications-v1.0.0",
+    "input_sha256": "4a4e2df598a515762b1c4de8894c139c6ac6bce40c523d7e5f0720514f7f5579",
+    "run_id": "j04-var01-fixed-reps-accepted-20261001-03",
+    "closure_sha256": "e3744088bc407bc5ca58c2ad7c975a10662d32f5b72afdc8a227c4a4c310f6a5",
+    "signoff_sha256": "f2ab35cd6b5daf411bf10106ced33dc66208546d6984aa2f1dcb5a1ebfe9445b"
+  },
+  "report_precedent": {
+    "package": "J05-profile-snapshot-v1.0.1",
+    "signoff_sha256": "61e119b8a8980293e5e2e19751c6ff4744164dfd9e2d5f1b2163704fddeb5888",
+    "installed_default_settings_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "one_byte_outpr_enabled_sha256": "6417a4f4ece02e758b4cae90afb674ec93d3c0b3aa730bdb6334df036d746882"
+  },
+  "child_input_sha256": "756397245fd663a514e21fb73f514184c2e2d201dc8a6b78365684f15217f847",
+  "exact_diff_sha256": "cbc679fd7dfcbb2aadb5dcb2d8bc9377c17555372adb98a22b4eb24c8d2afcc0",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual_physical_pages": [168, 171, 230, 233, 523, 524, 525, 530, 531, 546, 547, 548, 549, 550]
+  },
+  "parameters": {
+    "nreps": 16,
+    "seed": 1,
+    "horizon_hours": 36,
+    "report_interval_hours": 0.5,
+    "percentile_level": 0.75,
+    "snapshot_hours": [9, 11],
+    "system_replication_flags": {"TOTAL": "Y", "TIME": "Y", "SNAPS": "Y"}
+  },
+  "pre_run_hypotheses": [
+    "Only PercentileLevels, SnapshotResultTimes and ReplicationResultControlSystem are appended to accepted J04.var01's 32 tables. The Poisson mechanism, NREPS16, seed1, TCLEV0, 12-aircraft fleet and hour36 horizon remain unchanged.",
+    "A fresh guarded session-0 SSH run must preserve GUI PID13340, use the host-wide queue, import/export/calc/report with zero converter errors, and seal original bytes. Full source business rows must roundtrip exactly or with predeclared null-only optional extension.",
+    "The default -jsonreport may omit replication tables. A separate guarded report-only -report -rpts <one-byte OUTRP-enabled local settings> -rjexport must expose per-replication System TOTAL/TIME/SNAPS tables. Both default and enabled reports are retained and hashed.",
+    "Directly verify 16 replication identities, system total rows, time rows at the 72 half-hour intervals and snapshot rows at 9 and 11 hours before accepting the corresponding switch. The exact exported table names and row structure are observations, not assumed.",
+    "The 0.75 percentile requires sufficient native per-replication samples, report-settings level selection and an explicit percentile result traceable to them; merely authoring PercentileLevels or observing an aggregate mean is insufficient. If the CLI report does not expose it, retain a capability-limited diagnostic and do not claim percentile semantics.",
+    "Independently replay source, import/export, report settings byte difference, all raw seals, per-replication rows, aggregate-versus-replication reconciliation, mission/system/stock summaries and terminal state. Scope remains this single entity, one seed, 16 replications and 36-hour horizon."
+  ]
+}
