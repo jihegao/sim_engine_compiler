@@ -1,0 +1,9 @@
+# D13.var05: direct repetition of MaxPM LIMIT rows
+
+This bounded SIMLOX 2017 paired case derives from the accepted [dynamic MaxPM parent](../D13-var03-dynamic-maxpm-v1.0.0/README.md). The [flat input](flat-input.json) has nine explicit adjacent `<LIMIT>` rows over 36 hours. The [comparison input](nested-input.json) has three direct `<LIMIT>` rows, each with `IQTY=3` and `IINT=12`. The comparison filename says `nested` because the guarded runner retains its two-arm naming; this version tests direct LIMIT repetition and makes no subprofile claim. The [builder](build.py) and [contract](contract.json) pin the source pair.
+
+For this fixed seed and two-aircraft CAL24 case, the native event logs are byte-identical. Both PM tasks are created at h24, physical work starts at h24.25 and h24.75, and the tasks finish at h25.25 and h25.75. All three missions succeed. All report tables except `ProblemDescription` agree, including 72 half-hour System and Stock rows. See the [bounded sign-off](cli-scope-signoff-2026-10-04.md).
+
+The earlier [root-first v1.0.0](../D13-var05-repeated-maxpm-profile-v1.0.0/contract.json) and [child-first v1.0.1](../D13-var05-repeated-maxpm-profile-v1.0.1/contract.json) subprofile experiments are excluded diagnostics: both produced converter warning #331 and no physical PM work in the comparison arm. Their sealed local closures are pinned in this version's contract. Native MaxPM subprofile equivalence remains open.
+
+The [session-0 SSH runner](run_native_ssh.ps1) uses `Global\SimloxIssue18NativeQueue`, preserves GUI PID 13340/session 1, and applies a targeted 60-second child watchdog. Raw evidence stays in ignored `runs/`; the [evidence index](evidence-index.json) publishes SHA-256 and sizes for all 22 raw files. The [author replay](author_validate.py) and [independent replay](review/independent_replay.py) check that sealed evidence without invoking SIMLOX.
