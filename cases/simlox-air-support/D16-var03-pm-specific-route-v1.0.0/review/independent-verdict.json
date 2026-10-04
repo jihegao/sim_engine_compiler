@@ -1,0 +1,86 @@
+{
+  "schema": "simlox-d16-var03-independent-replay/v1",
+  "run_id": "d16-var03-pm-route-v100-ssh-20261005-01",
+  "verdict": "NO_GO_FULL_CONTRACT",
+  "diagnostic_physical_route_replay": "GO",
+  "checks": 618,
+  "passed": 615,
+  "failed": [
+    "exact PMStationStructure columns default",
+    "exact PMStationStructure row count default",
+    "exact PMStationStructure columns pm_specific"
+  ],
+  "unexpected_failures": [],
+  "observed": {
+    "default": {
+      "travel_hours_per_leg": 0.25,
+      "leg_starts": [
+        [
+          24.0,
+          0.25
+        ],
+        [
+          24.0,
+          0.25
+        ],
+        [
+          25.25,
+          0.25
+        ],
+        [
+          25.25,
+          0.25
+        ]
+      ],
+      "leg_arrivals": [
+        24.25,
+        24.25,
+        25.5,
+        25.5
+      ],
+      "cal24_start": 24.25,
+      "cal24_completion": 25.25,
+      "big24p75_start": 25.5,
+      "big24p75_completion": 26.5,
+      "transport_aircraft_hours": 1.0,
+      "pm_work_hours": 4.0,
+      "terminal_ready": 2
+    },
+    "pm_specific": {
+      "travel_hours_per_leg": 1.0,
+      "leg_starts": [
+        [
+          24.0,
+          1.0
+        ],
+        [
+          24.0,
+          1.0
+        ],
+        [
+          26.0,
+          1.0
+        ],
+        [
+          26.0,
+          1.0
+        ]
+      ],
+      "leg_arrivals": [
+        25.0,
+        25.0,
+        27.0,
+        27.0
+      ],
+      "cal24_start": 25,
+      "cal24_completion": 26,
+      "big24p75_start": 27,
+      "big24p75_completion": 28,
+      "transport_aircraft_hours": 4.0,
+      "pm_work_hours": 4.0,
+      "terminal_ready": 2
+    }
+  },
+  "reason": "The native transport/PM/report contrast is intact, but the frozen exact-roundtrip gate fails: export adds optional CFRMS/CTOMS columns to PMStationStructure in both arms and an all-null placeholder row to the default arm. Preserve v1.0.0 as an excluded diagnostic.",
+  "limits": "One fixed seed, two aircraft, a single CAL24 system PM route and deterministic quarter-hour versus one-hour travel. BIG24P75 follows CAL24 on return; this does not isolate preemption. No CM-specific route or general policy claim."
+}
