@@ -1,0 +1,64 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F04",
+  "variant_id": "F04.var03",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "First 48 hours of System time-series collection from accepted F04.var02's fixed-128, 1032-hour simulation; all other result windows and simulation behavior stay fixed.",
+  "accepted_parent": {
+    "package": "F04-var02-stochastic-43day-v1.0.0",
+    "input_sha256": "33ec12ae0e576969673bcb0e9ccb2ade9bb3799b91e13d734e77950941645cb4",
+    "closure_sha256": "e61172db53cbaf56555ee1be7585284e5e709a72490c0a5d3306fb0da13f8be9",
+    "signoff_sha256": "e38bf286a62c72ea759869243791bb357003533e82009b9736cc134df7e974d8",
+    "default_report_sha256": "cce8e62b965bac8c05e17dc3de97361561e9fcf02ba40fef34ee69ad786725be",
+    "replication_report_sha256": "0bf434c097baf63aedcf5dcac29932d3cec6e4f4453f3aaccc4fc4be986aae27"
+  },
+  "excluded_diagnostic": {
+    "package": "F04-var03-first-cycle-window-v1.0.0",
+    "input_sha256": "a5c05a7dca62093cad49d1f79f135c8c305ef1103d50fb7044309b18e15ff252",
+    "closure_sha256": "1a7dc233fbe335e1abba3dfc204c1dbfa040434861c9888ed118c9aa472fd0f5",
+    "reason": "Control, MISSION and SYSTEM RCEND all set to48; System/Stock/Resource bins truncate correctly but ResultSummary and per-replication mission/System totals also become 48-hour values, violating the frozen full-horizon summary hypothesis."
+  },
+  "report_window_precedent": {
+    "case": "J05.var05",
+    "signoff_sha256": "f8a9bb725fcb58cabb0a4e4e58450a7da00656c97becd9e3f7bd88c954de14b3"
+  },
+  "input_sha256": "30875386d868448b9fb8beaa4ad1c6da0f77f3d6b22eb7def2d09f12116f3aa7",
+  "exact_diff_sha256": "dcab03323054a12be458efd93c8aa306c5dfcbf02a58a4aff9dee11dd7f90b95",
+  "report_settings": {
+    "installed_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "one_byte_outpr_enabled_sha256": "6417a4f4ece02e758b4cae90afb674ec93d3c0b3aa730bdb6334df036d746882"
+  },
+  "parameters": {
+    "nreps": 128,
+    "tclev": 0,
+    "seed": 1,
+    "simulation_horizon_hours": 1032,
+    "control_and_mission_collection_end_hours": 1032,
+    "system_collection_window_hours": [0, 48],
+    "collection_interval_hours": 0.5,
+    "aircraft": {"BASE-01": 5, "BASE-02": 3},
+    "profile_requests": "21 two-wave BASE-01 and 21 BASE-02 requests at 48-hour spacing",
+    "system_replication_rows": "two unit-specific TOTAL=Y, TIME=N, SNAPS=N rows unchanged"
+  },
+  "expected_converter": {
+    "errors": 0,
+    "warnings": 1,
+    "notes": 0,
+    "warning_codes_in_order": [108]
+  },
+  "acceptance_hypotheses": [
+    "One fresh guarded SSH0/GUI13340/mutex native run passes exact 31 populated-table roundtrip, zero converter errors, warning #108 only, source pins and local raw SHA closure.",
+    "First-replication event log is byte-identical to the accepted full-window parent; ResultSummary and all 128 Replications rows preserve full 1032-hour mission outcomes.",
+    "Only SystemResults half-hour aggregate time series truncates to exactly 96 rows over [0,48), each identical to the accepted parent's first 96 rows. Stock and Resource time series remain 2064 rows and agree with the accepted parent.",
+    "OUTRP report retains 128 unique replication IDs and two-unit System TOTAL controls. Per-rep System TOTAL values may renormalize to 48 hours and must be reconciled with the short System aggregate before interpretation.",
+    "Short-window System aircraft-hour integral and terminal state agree with the accepted parent's first 96 bins. Stock and resource short-window integrals are computed explicitly from the parent and child prefix bins; full-window aggregates remain unchanged.",
+    "Independent read-only replay verifies source, native closure, parent-prefix equality and bounded interpretation before publication."
+  ],
+  "limitations": [
+    "This changes only a System collection window, not SIMPE, mission collection, stock/resource windows or the number of simulated mission waves.",
+    "A true 48-hour simulation and an all-entity short report window are separate contracts; the excluded diagnostic demonstrates that all-entity RCEND changes also change ResultSummary and per-replication metrics.",
+    "Only the first replication has ENLOG events; same-seed parent comparison is for this configured model and engine.",
+    "GUI visuals, cross-engine equivalence and other F04 variants remain open."
+  ]
+}
