@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I03",
+  "variant_id": "I03.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i03-var01-crew-transfer-v100-ssh-20261005-01",
+  "scope": "One fixed-seed, three-arm planned P-CREW transfer at BASE-01. Both arms include the accepted C03 two-crew formation at h8 and one duplicate scheduled formation at h20. The control has an all-null ResourceTransfer placeholder. The out arm requests one busy crew out to <OUTSIDE> at h7.75. The out_in arm adds one <OUTSIDE> to BASE-01 arrival at h10.5. The second formation exposes whether the roster changes persist.",
+  "dependency": {
+    "package": "C03-shared-crew-formation-v1.0.2",
+    "input": "inputs/staffing-2.json",
+    "input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+    "evidence_sha256": "c775be70b01efec0bfb8c8b8de22332a96a566a4951bafb7975ab0e53b87f6c0"
+  },
+  "prerequisite": {
+    "case_id": "C08",
+    "package": "C08-shift-maxut-v1.0.0",
+    "input_sha256": "00e660275ace4d71d41cdafa725da2b552baeea9604756d94ad6b07de846e9d5",
+    "signoff_sha256": "4672031a052e3db83e73b4f8e72b8beba6104e93a7fa0502fa2fe828ff69a62d"
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pages": [225, 226, 476, 478, 479],
+    "rule": "ResourceTransfer uses STFID, STTID, RID and TFTIME keys. <OUTSIDE> as target requests OUT and as source requests IN. TFQTY is the quantity and TFDT is travel delay for IN; a busy resource cannot transfer away until available."
+  },
+  "builder_sha256": "df4020d9b8e1c298208aa478cd4abdb5045513f3c20f8238bf1174573b4ae470",
+  "inputs_sha256": {
+    "control": "60f7f277965a2a7c001aed29dc99c48a2736b104e1744791f20b92772d1d3caa",
+    "out": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e",
+    "out_in": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+  },
+  "frozen_delta": "All three inputs derive byte-for-byte from accepted C03 staffing-2, add the same second OperationProfile row at STIM20, add a seven-column ResourceTransfer table, and change only the description and transfer rows across arms. Control has one all-null placeholder; out has one OUT row at h7.75; out_in adds one IN row at h10 with TFDT0.5.",
+  "acceptance_hypotheses": [
+    "All three inputs import, roundtrip authored populated tables exactly, calculate and export usable native logs and reports with zero converter errors and only reviewed warning codes under guarded session-0 SSH.",
+    "The first h8 two-aircraft formation completes in all arms, and the h7.75 OUT request transfers only after busy crew becomes available.",
+    "At the second h20 formation, one remaining crew in out delays the formation relative to the two-crew control, while a completed IN in out_in restores control-like preparation and launch timing. Resource report bins and event logs reconcile with the transferred roster."
+  ],
+  "gate": "Publish only if all frozen source pins, guarded native closure, exact authored populated-table roundtrips, independent event/report replay, first and second formation behavior, and OUT/IN times pass. Otherwise retain a diagnostic and freeze a new version.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, protected GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One fixed seed, one base, two aircraft, personnel P-CREW only, one OUT and one IN schedule. No BETWEEN transfer, equipment transfer, alternate resource policies, GUI, cross-engine parity or general I03/Issue #18 claim."]
+}

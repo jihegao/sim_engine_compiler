@@ -1,0 +1,9 @@
+# I03.var01 — planned crew OUT and IN
+
+This bounded case derives three fixed-seed inputs from accepted C03 staffing-2. Each has two aircraft, two initially allocated `P-CREW`, a two-aircraft formation at h8, and a second scheduled formation at h20. The control has no effective transfer, `out` requests one crew to `<OUTSIDE>` at h7.75, and `out_in` also schedules one crew from `<OUTSIDE>` at h10 with a half-hour transfer delay.
+
+The first formation's two preparation tasks occupy both crew from h7.5 to h8. Native events show the h7.75 OUT request backordered with zero resources moving, then fulfilled at h8 with one crew moving. All three first formations launch at h8 and finish at h9. At the second wave, the control and `out_in` have two crew, prepare concurrently from h19.5 to h20, launch at h20, and finish at h21. `out` has one crew: the preparations use h19.5–20 and h20–20.5, launch at h20.5, and finish at h21.5. The IN starts at h10, takes TFDT0.5, arrives at h10.5, and restores the two-crew roster. Native `ResourceResults` half-hour bins corroborate one versus two crew and second-wave usage.
+
+All three sources are frozen by `build.py` and `contract.json`. A guarded session-0 SSH runner produced 12 successful native steps and 32 local raw seals. `validate.py` independently replays the source and closure pins, authored populated-table roundtrips, event timings, and report bins without invoking SIMLOX. The raw SXI/SXO/log/report artifacts remain in the ignored `runs/` directory; `evidence-index.json` records their bytes and SHA-256 pins. The native report JSON contains one trailing comma in an otherwise usable export; the checkers remove precisely that comma in memory for parsing and preserve the raw bytes.
+
+This establishes one personnel OUT/IN schedule at one base and one seed. BETWEEN transfers, equipment, shortage splitting beyond the one backorder, shifts, resource policies, GUI, and cross-engine parity remain untested.
