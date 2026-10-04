@@ -1,0 +1,7 @@
+# D12.var04 v1.0.0: excluded remote PM diagnostic
+
+This frozen local/remote pair derives from the accepted [D12.var01 active-small linked case](../D12-var01-active-small-v1.0.0/README.md). Both have critical `CAL24`, noncritical linked `BIG24P75`, two aircraft, a 0.25-hour route between BASE-01 and BASE-02, and the same seed. The arms differ only in description and the `CAL24` location. The [contract](contract.json) and [builder](build.py) freeze those inputs.
+
+The guarded session-0 SSH run `d12-var04-remote-critical-v100-ssh-20261004-01` completed eight native steps with zero converter errors and warnings #108/#126. The local critical CAL24 work starts at hour 24 and is stopped at 24.75 when BIG24P75 starts. In the remote arm, one CAL24 works at BASE-02 from 24.25–25.25 and returns before BIG24P75 starts at 25.5. The second remote aircraft queues because BASE-02 has only one worker, while the local base has two. The [closure](runs/d12-var04-remote-critical-v100-ssh-20261004-01/closure.json) SHA-256 `9c48d2bda40f675421d3d01b5bcc3c3a59705336e52fd7bbf53b108991a36119` seals 22 local raw files; the [evidence index](evidence-index.json) lists their sizes and hashes.
+
+**Status: excluded diagnostic.** The unequal remote worker capacity confounds the second aircraft's PM timing. [v1.0.1](../D12-var04-remote-critical-v1.0.1/README.md) sets two workers at both bases and uses a revised acceptance gate for the observed deferred creation of the larger PM. This version and its sealed run remain immutable.

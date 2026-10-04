@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D12",
+  "variant_id": "D12.var04",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "d12-var04-remote-critical-v101-ssh-20261004-01",
+  "excluded_diagnostic": {
+    "package": "D12-var04-remote-critical-v1.0.0",
+    "closure_sha256": "9c48d2bda40f675421d3d01b5bcc3c3a59705336e52fd7bbf53b108991a36119",
+    "reason": "The remote arm had one P-MAINT worker and queued its second aircraft while the local arm had two workers. Both native calculations succeeded but this resource imbalance confounded the location contrast."
+  },
+  "scope": "Paired SIMLOX 2017 CLI comparison of linked critical CAL24 PM physically performing at the home or remote base when noncritical BIG24P75 becomes due. Determine whether remote critical work persists and the larger PM is deferred across the location boundary.",
+  "dependency": {
+    "package": "D12-var01-active-small-v1.0.0",
+    "arm": "linked",
+    "input_sha256": "cddf59ab7d557f6c643138ce8241fa43d7d5a569396538a6934bf7de00b3ffd1",
+    "closure_sha256": "2139f7097f58c42a93c7469d4fda4ad65efc1cbcb08150573ae20692def3e87c",
+    "signoff_sha256": "f16fff197f5e93798eb240143e8d74da4f9d39b4b4d825bd54814ab0ddd0db45"
+  },
+  "inputs_sha256": {
+    "local": "efcd6a8fdf52f5f2b694ce6dff5522a6c08ebba7e5f9b48c51572adea980b499",
+    "remote": "455161e25213ad009e21b488a745d6d17af828d8c1a4e44f42b75c980a6a3634"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [217, 218, 373, 374, 387, 388, 389, 393, 394, 395],
+    "rule": "A larger noncritical PM may fail to stop a related critical PM already being performed at another base; PMLocation uses StationStructure for remote system PM transport. Native event evidence determines actual behavior."
+  },
+  "frozen_source_delta": [
+    "Derive both arms from the accepted D12.var01 active-small linked input, preserving seed 1, two aircraft, one unit, the hour-8 non-failure mission, CAL24 PMRID relation, one-hour PM subtasks and explicit repair.",
+    "Shorten simulation and collection to 30 hours; remove the scheduled hour-20 and hour-32 missions to avoid the inherited critical repair during the PM overlap; add BASE-02 and a 0.25-hour bidirectional BASE-01 to BASE-02 support link, with two P-MAINT workers at each base.",
+    "Set CAL24.DTIM=0 to make the small PM critical at its hour-24 due; change larger PM to BIG24P75 due at 24.75 with DTIM=0.5 so it is noncritical at initiation. Update all larger-PM identifiers and task references.",
+    "The paired arms differ only in ProblemDescription and CAL24 PMLocation.STID: BASE-01 local or BASE-02 remote."
+  ],
+  "acceptance_hypotheses": [
+    "Both arms have critical CAL24 due at hour 24. In the local arm it physically works at BASE-01; in the remote arm the system completes transport and CAL24 physically works at BASE-02 before BIG24P75 becomes due at hour 24.75.",
+    "BIG24P75 is noncritical when due at 24.75 in both arms. The local linked stop succeeds; remote critical CAL24 work continues through completion, and BIG24P75 task creation is deferred until after the aircraft returns. Confirm with task, worker and transport events without inferring an unlogged internal stop attempt.",
+    "Both arms retain authored populated cells through import/export, zero converter errors and usable outputs; event timing reconciles with report bins and terminal state."
+  ],
+  "gate": "Publish only if the critical small PM is demonstrably working in both arms when noncritical BIG24P75 becomes due and native logs establish local interruption versus remote continuation and later larger-PM start. Do not infer a remote stop attempt from a delayed task-creation event. If exposure or differential behavior is absent, preserve the sealed run as an excluded diagnostic and revise a new version.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 identity, immutable run path, 60-second targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["Two aircraft, one seed, one linked calendar PM pair, 0.25-hour transport and two workers per station; no general remote PM law, internal stop attempt, counter values, GUI behavior or cross-engine claim."]
+}
