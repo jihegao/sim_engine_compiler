@@ -1,0 +1,11 @@
+# J09.var02 global repair TAT scale factor
+
+This case derives from [accepted E04 SLOW](../E04-upstream-transport-slow-v1.0.0/cli-scope-signoff-2026-09-29.md). Its [exact diff](exact-diff.json) appends one `ScaleFactors` row: `SCRPT=2`; `SCFRT`, `SCLDT`, `SCPMI`, `SCPMT`, and `SCTRT` are 1.0. All 31 parent tables remain unchanged, including the one-hour depot ItemRepair, two-hour BASE↔DEPOT transport route, seed 1 and 36-hour schedule. The [pre-run contract](contract.json) pins the source and acceptance gates. The previously accepted [J09.var06 transport scale case](../J09-var06-transport-scale-v1.0.1/cli-scope-signoff-2026-10-04.md) supplies the native ScaleFactors import/export schema precedent.
+
+Guarded session-0 SSH native run `j09-var02-scrpt2-v100-ssh-20261004-01` passed import, export, calculation, JSON report and lossless 22-populated-table roundtrip. The host-wide mutex was held, GUI PID 13340 preserved, and conversion had Errors 0, one reviewed Warning #108, Notes 0. Native export added ten optional null ScaleFactors columns while preserving all authored fields.
+
+The event log records failed LRU1 reaching the depot at 12.1667. Its direct repair lasts **two hours**, ends at 14.1667 and restocks the depot then; the E04 SLOW parent repairs and restocks it at 13.1667 after one hour. Distinct stocked spare LRU0 still travels DEPOT→BASE from 12.1667 to 14.1667, clears the base backorder at 14.1667 and restores aircraft readiness after fitting at 14.5. Both transport legs remain two hours. The first mission aborts and the later two succeed.
+
+The native JSON report is byte-identical to the parent: all 72 System and Stock half-hour rows and the mission summary match. This aggregate report does not expose the depot item repair's changed completion time; the physical event log supplies that evidence. [Author replay](review/author-native-validation-2026-10-04.json) passed 237 source-bound checks and [independent replay](review/independent-verdict.json) passed 4,589. Raw native files remain local in ignored `runs/` and are sealed by the closure and [evidence index](evidence-index.json).
+
+This supports one repairable item, route, seed and `SCRPT=2` only. System SURP TAT, other item-repair kinds, scale factors, GUI visual behavior and cross-engine behavior remain unverified.

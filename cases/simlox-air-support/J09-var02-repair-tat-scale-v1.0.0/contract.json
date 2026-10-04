@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-j09-var02-repair-tat-scale-pre-run-contract/v1",
+  "case_id": "J09",
+  "variant_id": "J09.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Test ScaleFactors.SCRPT=2 against accepted E04 SLOW's one-hour depot direct item repair while the other five scale factors remain at 1.0. Quantify the native item-repair interval and depot restock without assuming an aircraft-level delay.",
+  "accepted_parent": {
+    "package": "E04-upstream-transport-slow-v1.0.0",
+    "input_sha256": "b717f88bd0581a486677e7ba60b1235228ba88e05afd9b22cee02925c8ccc317",
+    "run_id": "e04-slow-v100-ssh-20260929-01",
+    "closure_sha256": "52c4c35387b5337e41c1d008803a1ac3e6423ace897a7b3a0fd8b355be8b5180",
+    "signoff_sha256": "79b8cc06780436704dee14fd45ad82bcea2500fa48133dcb26aafc141fb8bcf6"
+  },
+  "scale_schema_precedent": {
+    "package": "J09-var06-transport-scale-v1.0.1",
+    "input_sha256": "9d22f2596897fceb6e00a425c9e8bcd226a1f9549a3b00d08b53b0204e1083fe",
+    "closure_sha256": "0e0e916a6e22577fd36fdf15320ed2162b119a7abc3f031496b8f332dc6e035a",
+    "evidence_index_sha256": "31dc1f343e8625003e16b1f732591f8255f67d6e5c8a03d34bd66543d47213b5"
+  },
+  "scaled_input_sha256": "5e80622f02df72c6dcf7533608dc756193e68dbcf61681a49c64d87cb91b55e3",
+  "exact_diff_sha256": "d875a45f7184bf5223f20f8c833a8210314384c28c83cd0c369fd8ad3d5c155d",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "parameters": {
+    "seed": 1,
+    "simulation_horizon_hours": 36,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 72,
+    "ordering_policy": "SLOW",
+    "base_to_depot_nominal_hours": 2,
+    "depot_to_base_nominal_hours": 2,
+    "depot_item_direct_repair_nominal_hours": 1,
+    "scale_factors": {"SCFRT": 1.0, "SCRPT": 2.0, "SCLDT": 1.0, "SCPMI": 1.0, "SCPMT": 1.0, "SCTRT": 1.0}
+  },
+  "pre_run_hypotheses": [
+    "The source appends only one ScaleFactors row; all 31 E04 SLOW parent tables and their 21 row-containing tables remain unchanged. The repair-scale field alone differs from 1.0.",
+    "A guarded fresh session-0 SSH native import, export, calculation and report must pass with GUI PID 13340 preserved, zero converter errors, only reviewed Warning #108, and sealed raw hashes. All parent source tables must roundtrip exactly; ScaleFactors may gain only optional double columns with null values while all six authored values remain unchanged.",
+    "If SCRPT applies to the depot ItemRepair direct-repair TAT, failed LRU1's one-hour work should become two hours after its unchanged arrival at hour 12.1667, and depot restock should move from 13.1667 to 14.1667. Confirm from native item events, not only report aggregates.",
+    "The stocked spare is distinct from the failed item, so its nominal two-hour downstream transport and aircraft restoration may be unaffected. Test this rather than assuming no effect; inspect missions, backorder clearance and full 36-hour terminal state.",
+    "Reconcile all System and Stock half-hour rows and relevant item repair/stock outputs to the accepted parent and physical intervals. Obtain separate author and independent read-only replays before publication.",
+    "Limit any accepted result to this repairable item, route, scale factor, seed and horizon. Do not infer effects on system SURP TAT, other repair types, other scale fields, GUI or cross-engine behavior."
+  ]
+}
