@@ -1,0 +1,58 @@
+{
+  "case": "J09.var05 matched task-free PMT fallback",
+  "checks_passed": 8003,
+  "checks_total": 8003,
+  "evidence": {
+    "contract_sha256": "6c08527dff828acc27a1f35ed2f3739c3cc5aaadf738d14bdac0c33af4260bc0",
+    "control_closure_sha256": "e51e54df8128139ac53bf21287832b4d05f20d847f2ec056820646e73a515f78",
+    "control_input_sha256": "88f0312f23593177cc207cbfa0a62ad3c26ce3ce736c94667da0f65ba0160b85",
+    "control_pm_system_hours": 2,
+    "control_pm_windows_hours": [
+      [
+        24,
+        25
+      ],
+      [
+        49,
+        50
+      ]
+    ],
+    "control_report_sha256": "a9cc414e9b40da06be620e5fb64c52e0db41ec6fe959ac0874497d358232a84e",
+    "mission_start_hours": [
+      8,
+      20,
+      32
+    ],
+    "mission_success_hours": [
+      10,
+      22,
+      34
+    ],
+    "report_bins_per_table": 120,
+    "scaled_closure_sha256": "2e7b665a86c7fb57bbcf224fb52db788c1b9631405b5d56dc90a612f75df0d5e",
+    "scaled_input_sha256": "43db0df2332602ea7667e7a4afd8eeb50d6ebf33c7c15d93c2e946ba645875de",
+    "scaled_pm_system_hours": 8,
+    "scaled_pm_windows_hours": [
+      [
+        24,
+        28
+      ],
+      [
+        52,
+        56
+      ]
+    ],
+    "scaled_report_sha256": "aa182531b540a7302e8e3fd18428ff68ad47d9a98fdeaf0cafb77eb5b605df8c"
+  },
+  "failures": [],
+  "limits": [
+    "One installed CLI engine, one aircraft, seed 1, task-free PMT fallback, SCPMT 1 versus 2, and a 60-hour horizon.",
+    "The SCPMT=2 arm logs four-hour PM work, not a two-hour outcome. The logs do not expose why the factor manifests as four hours; a double-application mechanism is unproven.",
+    "The second observed starts at 49 and 52 follow the first completions by 24 hours in these runs; no general PM renewal rule is inferred.",
+    "The earlier task-referenced SCPMT=2 diagnostic was unchanged from D03 and remains excluded; the positive observation applies only to this task-free fallback pair.",
+    "No claim for other PM tasks, scales, seeds, resource shortage, GUI-only execution, or cross-engine parity."
+  ],
+  "passed": true,
+  "schema": "independent-j09-var05-pmt-fallback-readonly/v1",
+  "verdict": "GO: bounded observed SCPMT=1 versus 2 PMT-fallback contrast"
+}

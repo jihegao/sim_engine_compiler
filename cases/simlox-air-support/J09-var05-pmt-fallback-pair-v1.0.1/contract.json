@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-j09-var05-pmt-fallback-pair-pre-run/v1",
+  "case_id": "J09",
+  "variant_id": "J09.var05",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "Matched task-free PMLocation.PMT calendar preventive-maintenance arms; ScaleFactors.SCPMT 1 versus 2 is the sole inter-arm field delta.",
+  "accepted_parent": {
+    "package": "D03-calendar-pm-v1.0.0",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1"
+  },
+  "excluded_diagnostic": {
+    "package": "J09-var05-pm-tat-scale-v1.0.0",
+    "input_sha256": "320d4ec6459c4e3b926f725360d363d38d7267c4f986afcba22eb4fa31c10c98",
+    "closure_sha256": "f3af6909873ee2a7a6563aad7d7864cb81260893d25e3498743d2d9c9aa461f4",
+    "reason": "PMLocation.PMT is overridden by referenced TaskBreakDown; SCPMT2 produced a byte-identical model.log and report to accepted D03."
+  },
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual_physical_pages": [237, 387, 388, 389]
+  },
+  "control_input_sha256": "88f0312f23593177cc207cbfa0a62ad3c26ce3ce736c94667da0f65ba0160b85",
+  "scaled_input_sha256": "43db0df2332602ea7667e7a4afd8eeb50d6ebf33c7c15d93c2e946ba645875de",
+  "exact_diff_sha256": "cec9319ea027eb33b5b0ba4bc2ab2b1ab0be88b40f0448cf469c7987e728f12c",
+  "parameters": {
+    "seed": 1,
+    "simulation_horizon_hours": 60,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 120,
+    "pm_interval_hours": 24,
+    "pmlocation_pmt_hours": 1,
+    "control_scpmt": 1,
+    "scaled_scpmt": 2
+  },
+  "pre_run_hypotheses": [
+    "From accepted D03, both arms clear only PMLocation.TID and append the six-field ScaleFactors table. All other D03 tables and all task definitions are unchanged. The arms differ only in SCPMT=1 versus 2.",
+    "Manual physical page 237 applies SCPMT to PMLocation.PMT; page 389 says subtasks override PMT. The unreferenced task definitions might elicit a native converter diagnostic; zero errors and only the predeclared warning set are mandatory.",
+    "Both arms need fresh guarded serial session-0 SSH import/export/calc/report, preserved GUI PID13340, lossless roundtrip of all populated tables, and independently sealed raw evidence.",
+    "A positive scale effect requires directly observed PM completion or duration change between the matched native arms. A one-hour versus two-hour first PM is a conditional expectation, not an assumed outcome.",
+    "Trace all PM/mission/resource/ready events and reconcile 120 half-hour System/Stock bins, summary and terminal state for both arms. A no-effect result remains excluded diagnostic.",
+    "Accepted scope, if any, is this task-free PMT fallback input, seed, horizon and scale pair only."
+  ]
+}
