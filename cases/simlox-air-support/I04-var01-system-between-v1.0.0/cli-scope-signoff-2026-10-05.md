@@ -1,0 +1,11 @@
+# I04.var01 CLI scope signoff — 2026-10-05
+
+**Candidate scope:** one fixed-seed `SystemTransfer` BETWEEN from `TEACH-UNIT` at `BASE-01` to `TEACH-UNIT-2` at `BASE-02`, requested at h8.5 with TFDT0.5, while the source aircraft is in the first of two group missions. The accepted A17 input and A02/D03/D09 instructional prerequisites are byte-pinned. This candidate is not a general I04 acceptance.
+
+The guarded session-0 SSH run `i04-var01-system-between-v100-ssh-20261005-01` completed 8/8 import, export, calculate and report steps. Each arm had converter errors zero, classified warnings 108 and 126, and notes zero. All 16 row-containing authored tables per arm, including the control's all-null `SystemTransfer` placeholder and the between arm's null TFPRI, match native export by column names, datatypes, and rows. The raw closure seals 22 local files and records unchanged source hashes and protected GUI identity around every native child.
+
+Both arms use stable `<TEACH-AIR-01,0>` and `<TEACH-AIR-01,1>` identities in the h8–10 and h20–22 group missions. In the between arm, `<TEACH-AIR-01,0>` returns ready and transfers out at h10, then transfers in at h10.5, with two distinct systems ready at the target unit. The second mission allocates both target-unit aircraft. No duplicate or premature transfer appears. The 72 consecutive half-hour `SystemResults` bins record one in-unit system during h10–10.5 transit and two after arrival; 72 stock bins, successful missions, zero failures/damage, and terminal two ready systems reconcile. The author replay passes 109/109 checks. The initial author-checker expectation treated `STACC` as one-time starts; it was corrected to its observed per-bin value (16 aircraft half-hour accepted intervals) without changing native or source bytes. Publication requires the separate independent replay to pass.
+
+The native report's one trailing comma is normalized in memory only for parsing. Raw bytes remain unchanged in local ignored `runs/` and are pinned in `evidence-index.json`.
+
+**Limits:** one seed, two explicit units, one aircraft type and one BETWEEN transfer. No IN/OUT, implicit units, transfer priority, PM-state retention, shortages, GUI, cross-engine or full Issue #18 claim.

@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I04",
+  "variant_id": "I04.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i04-var01-system-between-v100-ssh-20261005-01",
+  "scope": "One fixed-seed, two-arm system BETWEEN transfer. Accepted A17 has one TEACH-AIR-01 in each of two explicit units at two bases, serving a two-aircraft group mission at h8. Both arms add a second group mission at h20. The between arm requests one TEACH-AIR-01 from TEACH-UNIT to TEACH-UNIT-2 at h8.5 with TFDT0.5 while its first mission is active; control has an all-null SystemTransfer placeholder.",
+  "dependency": {
+    "package": "A17-multi-unit-group-v1.0.0",
+    "input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+    "signoff_sha256": "77d204b5ca22222d1331051a68bb9c4fad2f50fc6ee94134d32d047dd5105e40"
+  },
+  "instructional_prerequisites": {
+    "A02_input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "A02_signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e",
+    "D03_input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "D03_signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1",
+    "D09_input_sha256": "c9645fcb8a567c89077e830916839a33dd63574b9249893f469a2ae47e5e6cce",
+    "D09_signoff_sha256": "7271c933501afd8adda3f5649dc3908aef330cc0682958453c0330b29a0b9000"
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pages": [225, 479, 480, 481],
+    "rule": "SystemTransfer moves systems between explicit units by UFID/UTID/SID/TFTIME key. A source system must leave the ready pool; a busy system waits for readiness. BETWEEN uses TFDT as transport delay. TFPRI is documented as unused."
+  },
+  "builder_sha256": "7336c13da586425aa072ccdfba0fe7fe20655a966efe86173774139717df75b0",
+  "inputs_sha256": {
+    "control": "3ebc9fd9ac4cff330a67ff6c0123096ef84c43d65af288b5cd0efdf19a467222",
+    "between": "50cc69df36afa0cecbbf8e6e7d699012f8987bb06bee11a1e347235d397da0ea"
+  },
+  "frozen_delta": "Both arms derive from byte-pinned A17 and add the same second OperationProfile record at STIM20, an eight-column SystemTransfer table, and an arm description. Control has an all-null transfer placeholder. Between has one TEACH-UNIT to TEACH-UNIT-2 transfer row at TFTIME8.5, TFQTY1, TFDT0.5. Other A17 model rows remain fixed.",
+  "acceptance_hypotheses": [
+    "Both inputs import, exactly roundtrip authored populated tables, calculate and export native logs/reports with zero converter errors and only reviewed warnings in a guarded session-0 SSH run.",
+    "The h8 first formation uses two stable system identities, and a requested h8.5 transfer does not remove the busy source system until it becomes ready after that mission. One physical BETWEEN movement takes TFDT0.5, changes source/target unit rosters without duplicating the aircraft, and preserves two total systems.",
+    "The h20 second group formation and report system/mission bins reconcile with the changed unit deployment. If unit-level attribution or a stable system identity cannot be observed, publish only the narrower physical movement actually evidenced."
+  ],
+  "gate": "Publish only if frozen pins, guarded native closure, exact authored-table roundtrips, independent log/report replay, first and second mission behavior, one delayed BETWEEN movement and no duplicated system identity pass. Otherwise retain a diagnostic and freeze a new version.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, protected GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One fixed seed, two explicit units at two bases, one system type, one requested BETWEEN and one group schedule. No IN/OUT, transfer priority setting, PM state retention, shortages, GUI, cross-engine parity, or general I04/Issue #18 claim."]
+}

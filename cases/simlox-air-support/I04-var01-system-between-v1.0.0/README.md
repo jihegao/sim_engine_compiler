@@ -1,0 +1,9 @@
+# I04.var01 — one scheduled system transfer between explicit units
+
+This bounded case derives from accepted A17. One `TEACH-AIR-01` begins in `TEACH-UNIT` at `BASE-01` and another in `TEACH-UNIT-2` at `BASE-02`; a shared `TEACH-GROUP` mission needs both. Both frozen arms add a second scheduled mission at h20. The control has an all-null `SystemTransfer` placeholder. The between arm requests one system from the first unit to the second at h8.5, while the h8–10 group mission is active, with TFDT0.5.
+
+Native events keep the stable identity `<TEACH-AIR-01,0>` in the first mission through h10. At h10 it returns ready and transfers out of `TEACH-UNIT`; it arrives at `TEACH-UNIT-2` at h10.5, where the log shows two distinct ready aircraft. The `SystemResults` total-over-units count is one during the h10–10.5 transit bin and two again after arrival. The second group mission allocates the same two identities from the target unit and runs h20–22 in both arms. Thus the observed movement waits for readiness, takes the half-hour transfer delay, and does not create a duplicate system.
+
+`build.py` deterministically reconstructs both byte-pinned inputs from A17. `run_native_ssh.ps1` guarded eight native import/export/calc/report steps and preserved the protected GUI. The ignored local `runs/` directory holds raw SXI/SXO, logs and reports sealed in `evidence-index.json`. `validate.py` and the separate `review/independent_replay.py` inspect the sealed evidence without invoking SIMLOX. Each native report JSON has one trailing comma; checkers remove only that comma in memory for parsing, retaining the raw bytes and pins.
+
+This establishes one BETWEEN transfer of one system type between two explicit units at one seed. IN/OUT, PM state retention, transfer priority, shortages, implicit units, GUI and cross-engine parity remain untested.
