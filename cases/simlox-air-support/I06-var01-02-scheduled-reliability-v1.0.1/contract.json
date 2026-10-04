@@ -1,0 +1,68 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I06",
+  "variant_ids": [
+    "I06.var01",
+    "I06.var02"
+  ],
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "i06-var01-02-reliability-panel-v101-ssh-20261005-01",
+  "scope": "Two prespecified three-seed paired panels. Traditional installed LRU OPHOURS uses ChangesItemReliability.FRTCF, with its third mission moved from h52 to h23–25 so the h24 reset occurs during operating exposure. Explicit position-A CALHOURS failure mode uses ChangesFailureModeReliability.FRQCF. Each control sets factor 1 at h9 and h24; each intervention sets factor 4 at h9 and 1 at h24.",
+  "dependency": {
+    "item_parent": "D02-var01-traditional-op-hours-v1.0.0",
+    "item_parent_input_sha256": "9e6d264330c6f7b41752ed8b0c09a32ac45089cec9ec823ad5e3367ce7f348e2",
+    "fm_parent": "D02-var02-failure-mode-calendar-v1.0.0",
+    "fm_parent_input_sha256": "23b550dbc4e0aea4d6d328fe4805a4eb50af81f3af54ccd6353e45bce933271b",
+    "excluded_diagnostic_closure_sha256": "a127c7ede30bff5f62411ed419f85b5b235b8e2d9e8d0347109e27dbc1f5d9b2"
+  },
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "kinds": [
+    "item",
+    "fm"
+  ],
+  "arms": [
+    "control",
+    "factor4"
+  ],
+  "inputs_sha256": {
+    "item-seed1-control": "8a8baa58958e2872ff71f33da486d5f68c319ed0a6e19a37bd2d94ebf4b7377c",
+    "item-seed1-factor4": "1c4a26234f20ba5eb664a410dfebef7573523dc2462de6947543d2d375e130f8",
+    "item-seed2-control": "40329d16a5689077d49920e30c9e2d28511b6ae24434321d63114bacc9cebedf",
+    "item-seed2-factor4": "98c6b18fc1e6a4a8e15ea7cdc502b4c41f6a4884fe008b74bbd525cad4ad0f72",
+    "item-seed3-control": "9feeb201ba8150f226c7897067d251c66bff4bd7a8ce69ad0463b27ae1509ce5",
+    "item-seed3-factor4": "05a2aaea7a062bfd9e977b1f23c9c5dc204dcbbe5d1d87764319ed135c996073",
+    "fm-seed1-control": "8e7dc236d707d4d80218953709ec31de57e87c5d30931ddbb068cafb16208f34",
+    "fm-seed1-factor4": "23e42f242f7faa59859adcece2813303a23f192396aa57ff879dda9182d4576d",
+    "fm-seed2-control": "63cfa9064256e5f43707ef97d2da4d15f0d7c92a0d458e808bf057741df281e5",
+    "fm-seed2-factor4": "e750c318408638010da540d41e8bec7d954c5a9d6f8c5848ad650ebcc1432f3c",
+    "fm-seed3-control": "1d82c10291a36f589b65afae35bd9da01458a9ce0eda789efa65bd5daa7a66db",
+    "fm-seed3-factor4": "128df4308669db6f75066c34bfd1d3afc1cd22238b00e6c21d2002d5f68df4f8"
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [
+      494,
+      495,
+      496,
+      497
+    ],
+    "rule": "FRTCF and FRQCF are positive factors applied to initial FRT/FRQ, keyed by IID or FMID and TIMEC. Traditional FRT changes apply only to primary items, while FRQ changes can target a position failure mode. The manual states changes immediately affect mission and preparation exposure."
+  },
+  "frozen_delta": "From accepted D02 inputs, add the matching Changes*Reliability table with h9 and h24 rows, description and seed. For the traditional item kind only, move the third fixed mission from h52 to h23–25 in every arm so h24 has OPHOURS exposure. Within each seed pair only the h9 factor and description differ. FM geometry remains unchanged from v1.0.0. No stock, repair, initial FRT/FRQ, clock, result collection or horizon field differs within a pair.",
+  "acceptance_hypotheses": [
+    "All twelve native inputs import, exactly roundtrip authored populated column names/types and cell values, calculate and export usable event and report evidence with zero converter errors and classified warnings under guarded SSH0 execution.",
+    "For each kind, both arms show native failure-schedule recomputation at h9 and h24. At least one traditional item seed pair has a finite h24 reschedule while the third mission is actively exposing the item; the factor4-versus-control h9 schedule differs. The h24 row is thereby shown to be processed under exposure, though the log does not print the factor value.",
+    "At least one prespecified seed pair for each kind has a different physical failure history in the h9–24 factor window; all three paired outcomes for both kinds are retained and reconciled with report failure and repair bins. This is an observed fixed-seed contrast, not a probability or instantaneous-hazard estimate.",
+    "Native reports and events reconcile mission outcomes, including cancellation, and terminal readiness for all twelve arms."
+  ],
+  "gate": "Publish only if all twelve sources, guarded native closure, exact authored-cell roundtrips, independent event/report replay and both subpanel physical h9–24 contrasts pass, and at least one item seed pair has finite h24 rescheduling during active mission exposure. Otherwise retain v1.0.1 as diagnostic and freeze a new version before further experiments.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, protected GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": [
+    "Three fixed seeds per kind; traditional primary LRU OPHOURS and one explicit CALHOURS position failure mode only. The native log does not print applied factor values; documented factor semantics come from the pinned manual, while native evidence covers timed rescheduling and bounded event outcomes. No cumulative factor-law inference from event counts, unsupported target, other clocks, GUI, probability estimate or cross-engine claim."
+  ]
+}
