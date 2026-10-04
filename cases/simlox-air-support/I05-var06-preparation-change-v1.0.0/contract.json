@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I05",
+  "variant_id": "I05.var06",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i05-var06-prep-change-v100-ssh-20261005-01",
+  "scope": "One fixed-seed, two-arm ChangesMissionPreparation.DURN change at h10 for an existing BASIC-MISSION/TEACH-AIR-01/BASE-01 preparation record. Both arms derive from accepted B01, set a four-hour initial preparation and four-hour notice, and schedule one mission at h13 and another at h24. The first preparation is expected to start at h9 and remain in progress at h10. Control has an all-null change placeholder; change sets DURN to one hour at h10. The second preparation starts at h20 and should use the changed duration.",
+  "dependency": {
+    "package": "B01-fixed-preparation-v1.0.1",
+    "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+    "evidence_sha256": "8ba57b104c8f5822514c6f9996eb92e21ecf66d371203635cdb0a170c2f1466d"
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pages": [226, 509, 510, 511],
+    "rule": "ChangesMissionPreparation can change DURN and DURND for an existing MissionPreparation object keyed by MTID/SID/STID at TIMEC. An already-started activity retains its starting parameters. Preparation DURN must be at most the MissionType.NOPER notice period; both are four hours initially in this case."
+  },
+  "builder_sha256": "6f523163be4a692daf0cf4edbcb01e34ca61dd782036f7a54f59eedf3760d9c0",
+  "inputs_sha256": {
+    "control": "d517a5b638765a7a5c6d923e1b010c80628549eda65cd3ec0ee85f42939e8269",
+    "change": "e6e415d2216a65e13f252406beb727ee234aeddbcac7865d1a59a6ae148a3631"
+  },
+  "frozen_delta": "Both arms derive from byte-pinned B01. Initial MissionPreparation.DURN becomes four hours, MissionType.NOPER becomes four hours, Tasks.DESCR is updated to remove B01's stale fixed-30-minute label, and OperationProfile has missions at STIM13 and24. A seven-column ChangesMissionPreparation table and arm description are added. Control uses one all-null placeholder; change uses one row at TIMEC10 with DURN1 and null DURND. Other parent data remain fixed.",
+  "acceptance_hypotheses": [
+    "Both frozen inputs import, exactly roundtrip authored populated tables, calculate and export logs/reports with zero converter errors and only reviewed warnings in a guarded session-0 SSH run.",
+    "The first preparation starts at h9 in both arms, remains in progress at h10, and completes at h13 using the original four-hour duration despite the change. Both first missions launch at h13 and complete at h15.",
+    "The second preparation starts at h20. Control retains four hours and finishes at h24; change uses the new one-hour duration and finishes at h21. Both h24 missions succeed. Native preparation events and half-hour report bins distinguish the arms without implying a launch-time effect."
+  ],
+  "gate": "Publish only if frozen pins, guarded closure, exact roundtrips, independent event/report replay, in-progress first task retains four hours and later task uses one hour, with both missions successful. Otherwise retain a diagnostic and freeze a new version.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, protected GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One fixed seed, one existing MissionPreparation record, DURN only, two mission notices and one change time. No DURND, same-time start/change tie, queued-but-not-started task, subtasks, other Changes tables, GUI, cross-engine, or general I05/Issue #18 claim."]
+}
