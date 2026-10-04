@@ -1,0 +1,30 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K03",
+  "variant_id": "K03.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Native CLI reimport of the exact accepted K03.var01 exclamation-delimited text export at width 4096, followed by JSON export, calculation and report if conversion succeeds.",
+  "accepted_parent": {
+    "package": "K03-var01-cli-text-export-v1.0.1",
+    "text_sha256": "a12424532b92c1f5f0b69dee595b7488f88ad71cabc270cfb08e90a52eeb38eb",
+    "json_sha256": "7d3a6ebe5b9b1170dca1d8115555ebb26dc4c47c03cc325e4d6576bd921dc9e9",
+    "closure_sha256": "19114d2e6877b4dd67ea9d2a4019527d6d6f973d19ff919f58f997113c690d73",
+    "signoff_sha256": "f2457b3e7a97e345b760275254d54b8e1af6f464ae01b58f6e052ce24feeaadb"
+  },
+  "run_id": "k03-var01-reimport-v100-ssh-20261004-01",
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [151, 152, 167, 169],
+    "rule": "Native -timport accepts a text file using the same delimiter and width as export; text exchange may lose accuracy."
+  },
+  "parameters": {"delimiter": "!", "width": 4096, "seed": 1, "horizon_hours": 36},
+  "acceptance_hypotheses": [
+    "Native -timport/-save produces a nonempty SXI and -jexport returns all authored K02 model rows, keys and instances, apart from the already-observed DTIM precision loss 0.3333333333333333 to 0.3 and documented native empty-default canonicalization.",
+    "Native calculation has zero converter errors and a usable SXO, first-repetition ENLOG and JSON report.",
+    "The mission event log and non-description report data equal the accepted K02 parent despite the text precision loss in unused scheduled DTIM."
+  ],
+  "gate": "Missing/altered authored rows or keys, unclassified extra numeric loss, converter rejection, unusable SXO or changed mission/report is NO-GO for this roundtrip hypothesis. A rejected run is preserved as a diagnostic without asserting general text-import behavior.",
+  "limitations": ["One delimiter, width and model; fixed-width text is K03.var02 and is not tested here. Clipboard, Excel XML, GUI import and general numeric fidelity remain unverified."]
+}
+
