@@ -1,0 +1,36 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K07",
+  "variant_ids": ["K07.var02", "K07.var03", "K07.var05"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "k07-var02-cli-evidence-v100-ssh-20261004-01",
+  "scope": "One source-bound session-0 SIMLOX 2017 CLI lifecycle: normal JSON import/export/calc/report, -convert on a copied input document, and one deliberately invalid inactive BASE-01 source whose zero-exit calculation must not be classified as a usable result.",
+  "dependency": {
+    "package": "K02-var01-json-structure-v1.0.1",
+    "behavior": "Accepted K02.var01 named Station JSON input/roundtrip and h7/h8/h11 mission result; GUI views and inactive-row losslessness are not inherited.",
+    "input_sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00",
+    "native_sxi_sha256": "60c7a5cddd2af357282d948aa92409f526d751a173b19c931f9a5213f83e8815",
+    "closure_sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3",
+    "signoff_sha256": "e4f14cbdb2e74237189a46d2a743101b4033a0f3d59c38619ca7eb208ca67e89"
+  },
+  "inputs_sha256": {
+    "normal": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00",
+    "inactive_base": "b163f2c5beb1429edccd492d99e59beb6b14b56d513b7fe569811500094c69e8"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [167, 168, 169, 170, 171],
+    "basis": "Installed manual documents -silent, -jimport, -jexport, -calc, -jsonreport, -log, -convert, -threads and file-first argument order. It does not by itself prove native output or the error boundary."
+  },
+  "positive_gate": "Fresh copied K02 source imports and exports with all authored rows preserved subject to the accepted native-added empty default Station instance; converter Errors 0, expected warnings #108/#126, non-four-byte SXO, h7 order/h8 launch/h11 completion, one ready terminal aircraft, and native event/report parity with accepted K02.",
+  "copy_convert_gate": "Copy the freshly imported SXI, run -convert only on that isolated copy, confirm original SXI hash unchanged and converted copy remains nonempty/readable. A same-version no-op is allowed; no old-version migration claim follows.",
+  "negative_gate": "Add only Station K02-BASE inactive_rows=[1] to the accepted source. Native import/export must finish; calculation process exit alone is insufficient. If converter errors occur, require a four-byte unusable SXO and no event/report acceptance; if it unexpectedly converts cleanly, preserve the raw outcome as a hypothesis failure rather than inventing rejection.",
+  "execution_guard": "Session-0 SSH, sshd ancestry, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 identity and active session, one immutable run directory, 60-second native-child watchdog, source/tool hashes before and after, raw SHA-256 closure.",
+  "limits": [
+    "GUI Test is not exercised; K07.var01 stays unverified.",
+    "No general -convert migration, thread-count reproducibility, or all-diagnostic classification claim.",
+    "One installed SIMLOX 2017 executable, K02-derived teaching model, one fixed seed, one negative input and CLI-only observations."
+  ]
+}
