@@ -1,0 +1,27 @@
+{
+  "case": "J08-item-stock-resource-ledger-v1.0.0",
+  "checks_passed": 1359,
+  "checks_total": 1359,
+  "evidence": {
+    "base_backorder_hours": 2,
+    "depot_lru_stock_issue_hour": 47.9896,
+    "depot_lru_stock_return_hour": 50.9063,
+    "excluded_selected_closure_sha256": "e01856fdb3245331ab661f158bd8ccb8d16d178c8fab187bf9facbb138895e4e",
+    "full_report_closure_sha256": "8bed52719c123667e62db25a36209b40e03ed1472e832bc66d4bc00e303bd8cf",
+    "full_report_sha256": "658a32c2b1c2a59bb2c8b37b3349a574410892bb3996892b8ceb002714f00236",
+    "native_closure_sha256": "e573fcffad7e8e88b00093b06e2e926535b5cbc8b486e7b931e8af9185c8a649",
+    "native_report_sha256": "9e2b6965b6c2e9e02a9507da33445c194d7c4937806ed4d6b21c8c75b83ebf89",
+    "resource_booked_hours": 8,
+    "resource_waiting_hours": 2.5
+  },
+  "failures": [],
+  "limits": [
+    "One seed, one tracked LRU/depot ItemResults position, one sixty-hour horizon; J08 as a whole remains open.",
+    "Selected-selector export is an excluded diagnostic because it contains no ItemResults; full-selector report is the accepted observation.",
+    "ItemResultsTotal.STOHA is a time mean, not terminal physical stock; depot ItemResults.NBO=0 does not contradict the BASE-01 backorder in StockTotalResults.",
+    "ResourceResults.NRA is not interpreted as the free-worker complement of NRUM; booked and queued work are checked from event intervals.",
+    "Native model.log uses rounded time text; occupancy checks allow 0.00012 resource or stock units for boundary rounding."
+  ],
+  "passed": true,
+  "verdict": "GO \u2014 bounded J08 item/stock/resource ledger observation"
+}

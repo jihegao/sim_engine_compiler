@@ -1,0 +1,34 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "J08",
+  "version": "1.0.0-candidate",
+  "scope": "One tracked F02 risk-fleet item ledger, aggregate stock/backorder/waiting and resource report interpretation; same seed and physical experiment as accepted F02.var02. The only source edits enable TRACK for two item types and append half-hour ITEM ResultCollection.",
+  "accepted_parent": {
+    "package": "F02-var01-var02-integrated-fleet-v1.0.2",
+    "input_sha256": "ae46b08a6ef6fd063906b888fb3c73fba06edcb57acc1a4ade49fc62c53fd7d3",
+    "closure_sha256": "b82da3cbed601408e4a72cda5c2fd498286a8f1b3ebfa07c003d4d4f8e6c91c4",
+    "signoff_sha256": "175b392df48c14944e8490757c9359ee449029ad53148b34159efdcb99ad0a5c"
+  },
+  "report_precedent": {
+    "package": "I02-var01-in-transfer-v1.0.2",
+    "signoff_sha256": "bb59990b569359e8b71f06567cb240f675ee10e4548aae5e65a4b15b5bdae05f",
+    "installed_default_settings_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "selected_item_report_settings_sha256": "cef1a365666d984f1abe25f8cbe93f13a8cc3347f6793c4ba64d491895571f21"
+  },
+  "child_input_sha256": "9cda77bd160bbad82d10392549f2b7e242cecb7af63562388cf2644c228aaa71",
+  "exact_diff_sha256": "7bfbd6ea39459a6dbc5de2383b93c42c1a59630712e82b2eb135fa18f1fe3c87",
+  "parameters": {"nreps": 1, "rseed": 1, "horizon_hours": 60, "collection_interval_hours": 0.5, "aircraft": 2, "stations": ["BASE-01", "DEPOT-01"], "tracked_items": ["TEACH-LRU-01", "TEACH-SRU-01"], "selected_item_position": ["TEACH-LRU-01", "DEPOT-01"]},
+  "expected_timeline": [
+    "Risk mission critical fault around h46.4896; base LRU backorder starts around h47.9896.",
+    "Physical stocked depot LRU travels to BASE for two hours and clears backorder around h49.9896.",
+    "Failed LRU travels BASE to DEPOT and the failed SRU is exchanged and repaired; depot LRU/SRU stock eventually restores to two each.",
+    "Resource queue occurs while one shared P-CREW or P-MAINT is occupied. Aggregate resource counts must reconcile to two allocated resources.",
+    "At h60 both aircraft are ready, aggregate backorder is zero, and no resource request remains."
+  ],
+  "acceptance_hypotheses": [
+    "Guarded SSH0/mutex/GUI13340 import, export, calculation and default report produce zero conversion errors and no new unreviewed warnings; populated authored tables roundtrip exactly.",
+    "A second report-only native export from the sealed result using a locally rebuilt and SHA-pinned item selector exposes a TEACH-LRU-01/DEPOT-01 ItemResults series. It must identify nominal stock separately from physical on-hand; exact time-series values are observed and independently reconciled, not assumed by the contract.",
+    "Event-derived physical stock, backorder duration, report StockTotalResults NBO/WT and ResourceResults occupied/waiting counts agree within stated bin integration tolerance. ItemResultsTotal is a horizon aggregate rather than a terminal count.",
+    "No claim is made for every item position, every resource type, or all waiting-time metrics; J08 remains open after this bounded slice."
+  ]
+}
