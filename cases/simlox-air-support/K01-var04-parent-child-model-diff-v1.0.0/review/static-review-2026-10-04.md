@@ -1,0 +1,11 @@
+# Independent static review: K01.var04
+
+**CLI evidence GO; publication requires the evidence index.** This is a bounded A01-derived source and native-output comparison, not verification of K01's GUI views or SXT template workflow.
+
+The accepted A01 input hash and closure pin match. An independent full-table comparison finds exactly two child source changes: `ProblemDescription.PDESC` and `MissionType[BASIC-MISSION].DURN` from 2 to 3 hours. All 13 authored row-containing tables retain their schema and row structure; three of these are all-null placeholders. The child input and exact-diff hashes match the contract and runner. The guarded native closure has no error, unchanged before/after source hashes, 12 matching raw size and SHA seals, session-0 SSH/sshd and host mutex provenance, preserved GUI PID 13340, five successful steps, zero converter errors with only reviewed warnings #108/#126, and a passing exact authored-table roundtrip. PowerShell parses without errors.
+
+The fresh log shows notice h7, launch h8, phase task h8.75–10.25 and one mission success/completion h11. The accepted A01 mission completed h10. The author replay reports 72 half-hour System bins, flight/operation time 2→3 hours and ready time 33→32 hours, with only the bins starting h10 and h10.5 changed. Its 19/19 result is consistent with the checked source, log and native report. The separate independent replay records bounded GO, 4,480/4,480 checks. Stock and ResultSummary rows match the parent.
+
+The catalog's K01.var04 is a parent/child model-difference boundary within a larger native authoring workflow. This case supports the CLI-visible source delta and its native behavior for one single-aircraft, single-mission model. It does not test Table/Model/Profile view interaction, SXT template derivation, hidden/default/null GUI rendering, broader copy behavior or cross-engine equivalence. It does not clear K01 as a general prerequisite for K02–K08.
+
+The CLI sign-off now states the same bounded scope. At this review snapshot, `README.md` and the sign-off link `evidence-index.json`, but that index has not yet been generated. Generate and verify it against the final reviewer bytes and local native seals before publishing; then confirm the link resolves and the publication entry keeps this CLI-only scope.
