@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K05",
+  "variant_id": "K05.var02",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "Controlled CLI ODBC key-update and null-merge comparison in one default Station instance. The K02.var01 source is flattened from two named Station instances into one unnamed instance without changing business rows, then imported as a positive control. A task-local Access MDB Station row matches BASE-01, changes DESCR, and leaves QTY and TYPE null.",
+  "dependency": {
+    "package": "K02-var01-json-structure-v1.0.1",
+    "named_input_sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00",
+    "native_sxi_sha256": "60c7a5cddd2af357282d948aa92409f526d751a173b19c931f9a5213f83e8815",
+    "native_roundtrip_sha256": "7d3a6ebe5b9b1170dca1d8115555ebb26dc4c47c03cc325e4d6576bd921dc9e9",
+    "closure_sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3",
+    "signoff_sha256": "e4f14cbdb2e74237189a46d2a743101b4033a0f3d59c38619ca7eb208ca67e89"
+  },
+  "inputs_sha256": {
+    "baseline_input": "bd5c4d2106b3e39d80721e608c58980b37a0e696f685205cd14daf46e2099604",
+    "database_source": "64e2512173cbef214af97fc544cc80ef6a4506f8fb0d78596adf2070c41baa09"
+  },
+  "run_id": "k05-var02-odbc-null-v101-ssh-20261004-01",
+  "user_dsn": "SIMLOX_I18_K05V02_101_20261004",
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [157, 167, 168],
+    "rule": "Database import into an existing input document merges on key and an empty imported field does not erase an existing value; CLI -import DSN followed by -save writes the result."
+  },
+  "frozen_commands": [
+    "native import/export/calculate/report of the default-Station baseline",
+    "create and x86 ODBC-readback one task-local Station MDB with null QTY/TYPE",
+    "create and verify an exact temporary 64-bit user DSN, import its row into the baseline SXI, then remove the DSN",
+    "native JSON-export/calculate/report of the merged SXI",
+    "compare merged model rows, event log and quantitative report against the baseline and accepted K02"
+  ],
+  "acceptance_hypotheses": [
+    "The native baseline converter has zero errors, valid SXI/SXO and one default Station instance holding exactly BASE-01 and K02-NAMED business rows.",
+    "The MDB has only its authored Station row and true database nulls for QTY and TYPE.",
+    "ODBC import updates BASE-01 in the same default Station instance, changing only DESCR; QTY=1 and TYPE=WS remain, and no duplicate BASE-01 appears.",
+    "The merged model converts with zero errors and valid SXO, with mission events and quantitative results equal to the baseline in this fixed teaching model.",
+    "The temporary DSN is absent after import and at closure; GUI PID/start/session and MDB association remain intact."
+  ],
+  "gate": "Publish only after exact row and native event/result comparison pass in a separate read-only replay. A changed business field other than DESCR, duplicate key, converter rejection, invalid SXO, or stale DSN excludes this candidate.",
+  "limitations": [
+    "The earlier named-Station v1.0.0 probe inserted the ODBC row into the default instance and yielded converter #2013 against K02-BASE; its sealed local diagnostic closure is 5d696cd7bf7e3a823cd76b7511fe76628bde9b1950862837cf4cd04d8e4b96e4. It is excluded from this acceptance.",
+    "This tests one default-instance Station key, one task-local MDB and the installed Access driver. Named-instance merge, aliases, sorting, invalid values, new-key append, ODBC report output, GUI and general K05 remain unverified."
+  ]
+}

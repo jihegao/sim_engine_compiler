@@ -1,0 +1,54 @@
+{
+  "case": "K05.var02 v1.0.1",
+  "checks_passed": 202,
+  "checks_total": 202,
+  "evidence": {
+    "closure_sha256": "9f61551d26618425fe3bc01cdecd760f23b86d9f5ff2257e9ad3244d10f29a8d",
+    "independent_odbc": {
+      "columns": [
+        "STID",
+        "DESCR",
+        "QTY",
+        "TYPE"
+      ],
+      "rows": [
+        [
+          "BASE-01",
+          "ODBC merged teaching base",
+          null,
+          null
+        ]
+      ],
+      "tables": [
+        "Station"
+      ]
+    },
+    "mdb_sha256": "8804d46118a6545524e16ec6e628d9be6aeb7c0474c68dd4da8969cc16049205",
+    "model_log_sha256": "2d2e6c368305203052e347748dab8f36261947dae6f6a189fad4312e47c0a491",
+    "report_rows": {
+      "StockTotalResults": 72,
+      "SystemResults": 72
+    },
+    "report_sha256": "5a3fd9007de442ce0f7a5210cd61cfe1e3a362774300497020341dc05d478655",
+    "review_time_user_dsn_absent": true,
+    "station_cell_delta": [
+      [
+        0,
+        "DESCR",
+        "Teaching base",
+        "ODBC merged teaching base"
+      ]
+    ]
+  },
+  "failures": [],
+  "limits": [
+    "One matched BASE-01 key in a single default Station instance, one task-local MDB, and one installed Access ODBC driver. Named-instance merging and general null/key rules are not established.",
+    "The earlier v1.0.0 named-instance #2013 diagnostic is excluded and does not support this positive merge claim.",
+    "Temporary DSN creation/removal and GUI preservation are sealed runner observations; the reviewer additionally checked only current DSN absence, not historical host state.",
+    "Event/report equality supports this one teaching model's unchanged outcome; no ODBC report-output or cross-engine claim is made."
+  ],
+  "passed": true,
+  "run_id": "k05-var02-odbc-null-v101-ssh-20261004-01",
+  "schema": "independent-readonly-review/v1",
+  "verdict": "GO — bounded default-Station ODBC key update with null non-erasure"
+}
