@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D16",
+  "variant_id": "D16.var03",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "d16-var03-pm-route-v101-ssh-20261005-01",
+  "scope": "One fixed-seed paired system preventive-maintenance route. Both arms derive from the accepted D12.var04 remote CAL24 PM input with BASE-01 to BASE-02 generic transit of 0.25 hour each way. The default arm has only an all-null PMStationStructure placeholder; the specific arm has the single CAL24/TEACH-AIR-01/BASE-01/BASE-02 override with TTOMS and TFRMS of 1 hour each. No CM-specific route is tested in this version.",
+  "dependency": {
+    "package": "D12-var04-remote-critical-v1.0.1",
+    "input": "remote-input.json",
+    "input_sha256": "455161e25213ad009e21b488a745d6d17af828d8c1a4e44f42b75c980a6a3634",
+    "closure_sha256": "2cdc10a5ac59bf3b5691840f712a91013de2fc6687151622a7f1e758da6a4db1",
+    "signoff_sha256": "d56ba9727fb6114cdf2b6679896ae3dab1f38340e19a9580181c69645270d4f6"
+  },
+  "excluded_diagnostic_closure_sha256": "aea11a83fec28cbac8eb51ea0270fb045c0995675fac0cfd60fa3f04a3f53ca7",
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pages": [217, 218, 387, 388, 389, 393, 394, 395, 396],
+    "rule": "Remote system PM normally follows StationStructure, while a PMID/ID/STID/MSTID record in PMStationStructure overrides that support link by record; TFRMS and TTOMS are transport hours and PMT excludes remote travel. Native export additionally includes optional CFRMS/CTOMS cost columns absent from the installed dictionary."
+  },
+  "builder_sha256": "0b7fc51629ec56f28ff3ae055dd9ede1d4128b7b17241749c5e32bb0c0bd04e2",
+  "inputs_sha256": {
+    "default": "b86e4a5f8fe225cf817b447a7f4c31abfe76f3b85ec45a68b97ebafcde0d69c8",
+    "pm_specific": "0ce49f25991abcd058d9030c7eedc4bd29a229f5f1a19c91285b709b51790b00"
+  },
+  "frozen_delta": "Both sources add the same 13-column PMStationStructure to the accepted remote parent and change description. The default table has one all-null exporter-compatible placeholder row. The pm_specific source replaces it with one CAL24 route row with 1-hour outbound and return times, while generic StationStructure stays 0.25 hour each way; all mission, PM, worker, result and horizon rows stay fixed within the pair. The excluded v1.0.0 diagnostic used 11 dictionary columns and an empty default table; native export added CFRMS/CTOMS and the null placeholder, so it failed exact roundtrip despite physical route contrast.",
+  "acceptance_hypotheses": [
+    "Both inputs import, exactly roundtrip all authored populated column names/types and cell values, calculate and export usable logs and reports with zero converter errors under guarded session-0 SSH execution.",
+    "At the h24 CAL24 opportunity, native events show BASE-01 to BASE-02 and return travel under both arms, with longer outbound and return legs in the pm_specific arm corresponding to its one-hour route values rather than the generic quarter-hour link. CAL24 work occurs at BASE-02 in both arms and completes before each aircraft returns.",
+    "All PM and mission event outcomes reconcile with report PM, system and resource bins and terminal readiness in both arms. Any interaction with the linked BIG24P75 task is retained as observed, without a general preemption claim."
+  ],
+  "gate": "Publish only if both frozen inputs and the guarded native closure are intact, exact authored-cell roundtrips and a separate independent event/report replay pass, both travel legs physically distinguish default from PMID-specific route, and the D12 parent event baseline remains attributable. Otherwise retain a diagnostic and freeze a new version.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, protected GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": [
+    "One fixed seed, two aircraft, one remote system CAL24 PM, one BASE-01 to BASE-02 link and two deterministic travel-time settings only. No CMStationStructure, item route, multi-support, alternate policy, resource contention, GUI, cross-engine or full D16/Issue #18 claim."
+  ]
+}
