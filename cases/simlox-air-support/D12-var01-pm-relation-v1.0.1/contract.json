@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D12",
+  "variant_id": "D12.var01",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "d12-var01-pm-relation-v101-ssh-20261004-01",
+  "scope": "Paired SIMLOX 2017 CLI comparison of a larger CALHOURS PM with and without PMRID=CAL24 on the accepted D05 two-aircraft shared-worker model. Check whether starting the larger PM cancels or resets the smaller PM due immediately afterward, including task and resource ledgers.",
+  "dependency": {
+    "package": "D05-maintenance-competition-v1.0.0",
+    "input_sha256": "4443d057ade36010a84186aa0f9ac8279886563db190ed80699b7fe48ad2baad",
+    "closure_sha256": "4ade4062f3ef3a25d8adc96b9f57f5ca34eea850de2fd2a304a4e0163fb55736",
+    "signoff_sha256": "e645b900f397a955d2b588aa5f0e4d50f2f4b7d082a09f35e7b89a4dfaf23c11",
+    "accepted_behavior": "One critical five-hour repair books the sole P-MAINT worker 23-28; the two existing one-hour CAL24 PMs work 28-29 and 29-30, with event and half-hour resource-ledger acceptance."
+  },
+  "inputs_sha256": {
+    "unlinked": "0ab5e27ea0756fe7de2acdfdaba664d5d66441e170d494c4ac9d0209c3f11567",
+    "linked": "db0544d6fcaba2b5357f6fd0b9d462991f2982432ae20d5b061eff908dad9041"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [372, 373, 374, 375],
+    "rule": "MaterielPM.PMRID identifies a more frequent smaller PM included in the current PM. Initiating the current PM cancels the related task and resets its counters; no formal interval restriction. ENREG=Y retains original calendar schedule despite delays."
+  },
+  "frozen_source_delta": [
+    "D05 Control SIMPE/RCEND and both MISSION/SYSTEM ResultCollection.RCEND values 36->60 hours; ProblemDescription names each arm.",
+    "Existing CAL24 MaterielPM ENREG null->Y so the second calendar due remains hour 48 after first due at 24, even though worker contention delays work to 28-30.",
+    "Add BIG47 system PM with CALHOURS interval 47, ATIM=DTIM=0 and one-hour INSPECT subtask requiring the same sole P-MAINT worker at BASE-01.",
+    "The linked and unlinked arms differ only in BIG47.PMRID CAL24 versus null, aside from descriptive text; both retain D05 repair/failure/mission/worker parameters."
+  ],
+  "parameters": {
+    "seed": 1,
+    "nreps": 1,
+    "horizon_hours": 60,
+    "result_interval_hours": 0.5,
+    "small_pm_interval_hours": 24,
+    "large_pm_interval_hours": 47,
+    "large_pm_work_hours": 1,
+    "worker_capacity": 1
+  },
+  "acceptance_hypotheses": [
+    "Both arms share an identical event trace before the BIG47 due at hour 47, including one five-hour critical repair, two first-cycle CAL24 work episodes and three original missions. The new PM and longer horizon may change the exact earlier failure draw compared with D05; measure actual timing rather than assuming parent random-stream parity.",
+    "The BIG47 due at hour 47 starts before the CAL24 second calendar due at hour 48. In the unlinked control, any second-cycle CAL24 work is independently scheduled. In the linked arm, initiation of BIG47 cancels/resets its related CAL24 work so the first post-47 small PM differs observably. Exact event ordering and the impact of the one-worker queue must be established from native logs.",
+    "Native import/export retains all authored populated cells, both converter summaries show zero errors and usable SXOs, and the two 120-bin System/Resource/Stock ledgers reconcile with event work/worker booking and terminal state."
+  ],
+  "gate": "Accept only the observed pairwise PMRID effect after exact source diff, zero converter errors, valid simulation output, individual task starts/completions/cancellations, resource capacity and report-bin reconciliation, and separate read-only replay. If the hypothesis fails, retain the immutable run as a diagnostic and revise a new version; do not publish a PMRID generalization.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 active and identity-preserved, immutable run path, 60-second targeted child watchdog, source/tool hashes before/after and raw SHA-256 closure.",
+  "limits": [
+    "One two-aircraft system, one seed, one base and one shared worker; no generic scheduling, multi-level PMRID, remote-base PM, ENFNC, stochastic PM or GUI/cross-engine claim.",
+    "D12.var01 started-small-PM interruption may require a separate arm if this pair only establishes the not-yet-started branch; full D12 remains open."
+  ]
+}
