@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "E14",
+  "variant_ids": ["E14.var01", "E14.var02"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e14-var01-02-two-sru-panel-v100-ssh-20261005-01",
+  "selected_report_run_id": "e14-var01-02-two-sru-panel-v100-item-report-ssh-20261005-01",
+  "scope": "One aircraft, one LRU and two distinct traditional SRU positions; paired RRF=1,NFFF=1 control and RRF=4,NFFF=2 extra-removal arms for prespecified seeds 2 through 6. Three missions and h36 horizon per arm.",
+  "dependency": {
+    "accepted_parent": "G01-var01-lru-sru-v1.0.1",
+    "parent_input_sha256": "9c25a414615ac4ea523ee989385a913c692923e04bc41c6984b6866e86204bb9",
+    "parent_signoff_sha256": "6c35ae528908500d175c2db27568dfe470a947904d25f0b24494000f394a96a1"
+  },
+  "seeds": [2, 3, 4, 5, 6],
+  "arms": ["control", "extra"],
+  "inputs_sha256": {
+    "seed2-control": "e8b006f20c3b7567c435afa9a4cba2e1df473bd6e74835850af9a0e5092e09ac",
+    "seed2-extra": "531a1f99e45b71ad0137aaf18650e3df84cec77a677beadaad7d35e4fdb84a75",
+    "seed3-control": "6c9a731d8fc55a1582e6a19da178988cac0c5bc3648f05b251be6b0c284468ee",
+    "seed3-extra": "2e3677b3e3856d84f1192de600e200328c3de74063b98f4febcabf8ef1d05aae",
+    "seed4-control": "62e8f2f97c3114152009cbc64f2a777b98ca02f54c654b87d39526d0095ed78e",
+    "seed4-extra": "5e77f07bd98d3ad168194e49237f338d2790685a7a95be5490f98b52be380a2d",
+    "seed5-control": "f9c52066492ed66abe4fe46178214503f701bb496721f34a9c972446f78af24a",
+    "seed5-extra": "28e73607f3daf6bc7999cc03c1a87420bc9fd94289cbd9608e38b8bb930fe872",
+    "seed6-control": "5cc9ef653b9eab8aad3bf437e0106c907ea6c061b6d085bd9cdefbec676c3d4e",
+    "seed6-extra": "7206c70beeb311bf4cc489c54cabdf652875bc8bb4e1ae98af811c1c322144a0"
+  },
+  "report_settings": {
+    "installed_default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "item_selector_sha256": {
+      "TEACH-LRU-01": "10fe133a68250503041a18bfc6512b03326af9f073c294b9d954a4a3340f260b",
+      "TEACH-SRU-01": "2463703548adbbcf46199c3e8f08ea8e5a96a84875e04648475e87fdefb612ad",
+      "TEACH-SRU-02": "f6f320fe334bd7edb5b0c5b22cb672245f977b600ee3632f6757d9f569d16b8b"
+    },
+    "method": "Export a BASE-01 selected ItemPosition report for each of three item types from every sealed SXO."
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [224, 225, 247, 248, 249, 250],
+    "rule": "Traditional item structure RRF controls extra removals before the primary replacement; NFFF between 1 and RRF controls no-fault-found count; NFFT is the shorter ordinary repair-level time."
+  },
+  "frozen_delta": "From accepted G01, add TEACH-SRU-02 as a peer of TEACH-SRU-01 in Item, ItemStructure, ItemRepair, StockAllocation and ItemReplacement; set both SRU FRT=150000 and local stock=4, all three Item.TRACK=Y, and append ResultCollection.ITEM at half-hour intervals through h36. Within each seed pair only ProblemDescription and the two SRU ItemStructure RRF/NFFF fields differ. Set NFFT=0.25 for both arms. Across seeds only Control.RSEED and ProblemDescription differ.",
+  "acceptance_hypotheses": [
+    "All ten inputs roundtrip every populated cell with zero converter errors and classified warnings; each usable SXO, event log and report is SHA-sealed in a guarded SSH0 run.",
+    "Across the prespecified five extra arms, observe at least one actual extra SRU removal and at least one actual NFF SRU. Record chronological serial removals, each physical issue and return, and the primary failure event, comparing paired controls.",
+    "NFF items receive a 0.25-hour local repair path distinguishable from the one-hour ordinary SRU DIRP; reconcile each observed stock demand, backorder, repair completion and terminal stock across the event log and three selected ItemPosition reports.",
+    "Document all five paired mission outcomes and aggregate system and stock measures. Do not infer the Poisson mean or NFF probability from this small panel."
+  ],
+  "gate": "Publish this bounded candidate only if all ten sources and native closures pass exact roundtrip and converter checks, selected reports and independent replay pass, and the prespecified panel contains the required physical extra-removal and NFF witnesses. Otherwise keep v1.0.0 as excluded diagnostic and freeze a new version before further experiments.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["Five fixed seeds, two SRU positions, one local station and a 36-hour horizon; no population probability estimate, invalid NFFF boundary, maintenance-resource utilization, GUI or cross-engine claim."]
+}
