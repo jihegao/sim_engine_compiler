@@ -1,0 +1,73 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F04",
+  "variant_id": "F04.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "One bounded 1032-hour eight-aircraft risk-failure slice: 21 spaced requests per wave at two bases, fixed 128 seeded replications, System TOTAL-only per-replication results, and measured mission success, flight hours and failure counts.",
+  "accepted_parent": {
+    "package": "F04-var01-deterministic-43day-v1.0.1",
+    "input_sha256": "7b9dfa927ba85c1260d9cbf6d58bae44914ad039a7b3b87b082e1ed04827cc4d",
+    "closure_sha256": "b054ac23c12ae181f299882256cc95308ee7b15de38d31a36aa7895c995b1447",
+    "signoff_sha256": "f7da8657477092954884dfd17fcf681442fffb37df9b2c9d0eb13d91963a4631"
+  },
+  "excluded_pilots": {
+    "one_rep_input_sha256": "1304d486eb6bc1491db1723ecf2959070dcda0751050d1eeb3567913ac9b3f53",
+    "one_rep_closure_sha256": "9629e70787a7c01631bae064e910aef74666f44f5e7e4d8b0496fe8b2499d445",
+    "variance_input_sha256": "ab295a74776ce4ca681e60d6098cd76540353755bd3d8d70d805d41de1512173",
+    "variance_closure_sha256": "67110840ee7a7a7c25c7a866529e8137cbe5f9bd68c84ab862949a4e4f5e12f0",
+    "variance_analysis_sha256": "480fa3881d64afca140b52097afcee5c875b588d9a34405c7355a0176a7a96d9"
+  },
+  "input_sha256": "33ec12ae0e576969673bcb0e9ccb2ade9bb3799b91e13d734e77950941645cb4",
+  "exact_diff_sha256": "eadd2bdb31593272d35c0a68650463f8b4952de37f1ba9598f3ea5d85835926b",
+  "report_settings": {
+    "installed_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "one_byte_outpr_enabled_sha256": "6417a4f4ece02e758b4cae90afb674ec93d3c0b3aa730bdb6334df036d746882",
+    "precedent_signoff_sha256": "7781fccac86c1e0b85ed659145c42bd724ccb0b7c509cd711f4437a146e7219d"
+  },
+  "parameters": {
+    "nreps": 128,
+    "tclev": 0,
+    "seed": 1,
+    "horizon_hours": 1032,
+    "aircraft": {"BASE-01": 5, "BASE-02": 3},
+    "system_and_item_frts_per_million_hours": 1000000,
+    "risk_mission_mff": 1,
+    "other_mission_mff": 0,
+    "profile_requests": "21 two-wave BASE-01 and 21 BASE-02 requests at 48-hour spacing",
+    "replication_system_rows": [
+      {"SID": "TEACH-AIR-01", "USTID": "TEACH-UNIT", "TOTAL": "Y", "TIME": "N", "SNAPS": "N"},
+      {"SID": "TEACH-AIR-01", "USTID": "TEACH-UNIT-2", "TOTAL": "Y", "TIME": "N", "SNAPS": "N"}
+    ]
+  },
+  "expected_converter": {
+    "errors": 0,
+    "warnings": 1,
+    "notes": 0,
+    "warning_codes_in_order": [108]
+  },
+  "metric_contract": {
+    "confidence": "nominal two-sided 95% Student t interval over 128 per-replication results",
+    "interval_method": "compute sample SD and standard error directly from the 128 Replications/System TOTAL rows; do not treat native ResultSummary RSM* fields as the sample standard errors",
+    "mission_success_fraction": {"source": "Replications.FMSUC", "maximum_absolute_halfwidth": 0.05},
+    "aircraft_flight_hours": {"source": "1032 x sum of both SystemResultsReplicationTotal.STACC", "maximum_relative_halfwidth": 0.05},
+    "observed_failures": {"source": "sum of both SystemResultsReplicationTotal.NFAIL", "maximum_relative_halfwidth": 0.1},
+    "stock_backorder_and_resource_wait": "descriptive aggregate only; no per-replication interval",
+    "seed_repeat": "same input and seed checks execution repeatability, not another independent sample"
+  },
+  "acceptance_hypotheses": [
+    "Two fresh, guarded session-0 SSH runs pass exact populated-table import/export, zero converter errors, only warning #108, source fingerprints and raw SHA closures while preserving GUI PID13340.",
+    "A report-only OUTRP export for each result exposes 128 unique Replications rows and two-unit System TOTAL rows with 128 unique IDs per unit. No per-replication TIME/SNAPS rows are requested.",
+    "First-rep events, aggregate report and per-replication fields reconcile for mission success fraction, aircraft flight hours and observed failure counts; source-bound fault and physical repair/supply path remain observable.",
+    "Each nominal 95% interval meets its predeclared metric-specific half-width target; any failure is reported as imprecise rather than accepted stability.",
+    "Native event logs and reports from the same-input repeat runs are byte-identical, with a separately documented difference for run-path-bearing CLI logs and invocation metadata.",
+    "Independent read-only replay verifies the local raw closure, input delta, report arithmetic and bounded interpretation before publication."
+  ],
+  "limitations": [
+    "One installed SIMLOX CLI engine and one model family; no GUI calculation or cross-engine equivalence claim.",
+    "Confidence intervals summarize the configured pseudo-random replication stream; no population or independence proof.",
+    "Only the first replication is visible in ENLOG; later event timelines are not independently enumerated.",
+    "Supply, stock and resource observations are aggregate descriptions, not per-replication precision claims.",
+    "The native default report may contain a trailing comma; preserve the raw bytes and use a narrowly defined parser correction for analysis. The separate replication report must parse as strict JSON."
+  ]
+}

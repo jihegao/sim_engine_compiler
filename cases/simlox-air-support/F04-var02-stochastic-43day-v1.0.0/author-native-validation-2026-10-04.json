@@ -1,0 +1,139 @@
+{
+  "schema": "simlox-f04-stochastic-43day-author-validation/v1",
+  "decision": "GO_BOUNDED",
+  "scope": "F04.var02 eight-aircraft 43-day fixed-128 CLI stochastic slice only",
+  "run_reports": {
+    "a": {
+      "run_id": "f04-var02-stochastic-v100-repeat-a-ssh-20261004-01",
+      "closure_sha256": "e61172db53cbaf56555ee1be7585284e5e709a72490c0a5d3306fb0da13f8be9",
+      "raw_files_verified": 14,
+      "default_report_parser_corrected_trailing_comma": true,
+      "replication_ids": 128,
+      "system_total_rows": 256,
+      "first_replication": {
+        "mission_starts": 63,
+        "mission_successes": 43,
+        "mission_aborts": 20,
+        "critical_random_failures": 27,
+        "aircraft_flight_hours_from_system_stacc": 163.67689803242683
+      },
+      "metrics": {
+        "mission_success_fraction": {
+          "n": 128,
+          "mean": 0.6724950592033565,
+          "sample_sd": 0.010131644827951267,
+          "nominal_t95_halfwidth": 0.001772071174185835,
+          "target_kind": "absolute",
+          "target": 0.05,
+          "allowed_halfwidth": 0.05,
+          "meets_target": true,
+          "minimum": 0.6666666865348816,
+          "maximum": 0.7142857313156128
+        },
+        "aircraft_flight_hours": {
+          "n": 128,
+          "mean": 158.80668210983276,
+          "sample_sd": 5.316430191395746,
+          "nominal_t95_halfwidth": 0.9298680373943522,
+          "target_kind": "relative",
+          "target": 0.05,
+          "allowed_halfwidth": 7.9403341054916385,
+          "meets_target": true,
+          "minimum": 142.60321202874184,
+          "maximum": 177.62375065684319
+        },
+        "observed_failures": {
+          "n": 128,
+          "mean": 25.90625,
+          "sample_sd": 2.3052063634201505,
+          "nominal_t95_halfwidth": 0.40319117147660966,
+          "target_kind": "relative",
+          "target": 0.1,
+          "allowed_halfwidth": 2.590625,
+          "meets_target": true,
+          "minimum": 20,
+          "maximum": 32
+        }
+      },
+      "aggregate_descriptive": {
+        "stock_backorder_item_hours": 51.81249997392297,
+        "resource_booked_hours": 389.295597024975,
+        "resource_queued_hours": 30.33620718200109,
+        "terminal_ready": 7,
+        "terminal_unavailable": 1
+      }
+    },
+    "b": {
+      "run_id": "f04-var02-stochastic-v100-repeat-b-ssh-20261004-01",
+      "closure_sha256": "3af2e89cbe7a40073cf53cec2e2cd5b088e7491198861eb190b1ea417e108a66",
+      "raw_files_verified": 14,
+      "default_report_parser_corrected_trailing_comma": true,
+      "replication_ids": 128,
+      "system_total_rows": 256,
+      "first_replication": {
+        "mission_starts": 63,
+        "mission_successes": 43,
+        "mission_aborts": 20,
+        "critical_random_failures": 27,
+        "aircraft_flight_hours_from_system_stacc": 163.67689803242683
+      },
+      "metrics": {
+        "mission_success_fraction": {
+          "n": 128,
+          "mean": 0.6724950592033565,
+          "sample_sd": 0.010131644827951267,
+          "nominal_t95_halfwidth": 0.001772071174185835,
+          "target_kind": "absolute",
+          "target": 0.05,
+          "allowed_halfwidth": 0.05,
+          "meets_target": true,
+          "minimum": 0.6666666865348816,
+          "maximum": 0.7142857313156128
+        },
+        "aircraft_flight_hours": {
+          "n": 128,
+          "mean": 158.80668210983276,
+          "sample_sd": 5.316430191395746,
+          "nominal_t95_halfwidth": 0.9298680373943522,
+          "target_kind": "relative",
+          "target": 0.05,
+          "allowed_halfwidth": 7.9403341054916385,
+          "meets_target": true,
+          "minimum": 142.60321202874184,
+          "maximum": 177.62375065684319
+        },
+        "observed_failures": {
+          "n": 128,
+          "mean": 25.90625,
+          "sample_sd": 2.3052063634201505,
+          "nominal_t95_halfwidth": 0.40319117147660966,
+          "target_kind": "relative",
+          "target": 0.1,
+          "allowed_halfwidth": 2.590625,
+          "meets_target": true,
+          "minimum": 20,
+          "maximum": 32
+        }
+      },
+      "aggregate_descriptive": {
+        "stock_backorder_item_hours": 51.81249997392297,
+        "resource_booked_hours": 389.295597024975,
+        "resource_queued_hours": 30.33620718200109,
+        "terminal_ready": 7,
+        "terminal_unavailable": 1
+      }
+    }
+  },
+  "same_seed_repeat_byte_identical": {
+    "model.log": true,
+    "report-raw.json": true,
+    "replication-report-raw.json": true
+  },
+  "limitations": [
+    "One installed SIMLOX CLI engine and one model family; no GUI calculation or cross-engine equivalence claim.",
+    "Confidence intervals summarize the configured pseudo-random replication stream; no population or independence proof.",
+    "Only the first replication is visible in ENLOG; later event timelines are not independently enumerated.",
+    "Supply, stock and resource observations are aggregate descriptions, not per-replication precision claims.",
+    "The native default report may contain a trailing comma; preserve the raw bytes and use a narrowly defined parser correction for analysis. The separate replication report must parse as strict JSON."
+  ]
+}
