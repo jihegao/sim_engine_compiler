@@ -1,0 +1,28 @@
+{
+  "case": "K04.var03 v1.0.0",
+  "checks_passed": 77,
+  "checks_total": 77,
+  "evidence": {
+    "child_pid": 5460,
+    "closure_sha256": "315d8707481e5c482f138704e3d07a9bb62dd17820776ce1d0ff6c0b4bd8f42e",
+    "copied_sxi_sha256": "7d0920e7b099d2f0eabb1dc2c69279de303cfec19c548405907aa07beab4e78a",
+    "observation_sha256": "aed5c1e05e01820f3631885f01a045527f4b1d14c9afc1f7f026fd44c4ac770c",
+    "run_log_sha256": "a86f2cee75cbb289b438142278ce0acfe2d8de85723eee983a91c1b2664bd666",
+    "sxo_bytes": 4,
+    "watchdog_snapshots_utc": [
+      "2026-10-04T09:15:37.8535502Z",
+      "2026-10-04T09:16:02.9790247Z"
+    ]
+  },
+  "failures": [],
+  "limits": [
+    "This one session-zero CLI child remained live with unchanged partial outputs at roughly 20 and 45 seconds and was then forcibly stopped by the guarded watchdog; it did not emit a native terminal missing-file outcome.",
+    "No modal dialog is inferred. The snapshots recorded an empty child main-window title and handle 0; other hidden interaction states were not observed.",
+    "The requested process working directory held level1.mdb, while the copied SXI directory did not. This supports an SXI-directory path attempt in this run, not a universal path-resolution or missing-file rule.",
+    "GUI, mutex and MDB association preservation are sealed runner observations; historical host state was not independently sampled by this replay."
+  ],
+  "passed": true,
+  "run_id": "k04-var03-missing-mdb-v100-ssh-20261004-01",
+  "schema": "independent-readonly-review/v1",
+  "verdict": "GO — bounded watchdog nontermination diagnostic; NO-GO for a native terminal missing-file behavior claim"
+}

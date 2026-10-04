@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-air-support-diagnostic-contract/v1",
+  "case_id": "K04",
+  "variant_id": "K04.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "diagnostic_pending_native",
+  "scope": "Copy the accepted K04.var02 native SXI byte for byte into an isolated directory without level1.mdb; calculate from the accepted parent run directory where level1.mdb exists. Observe missing-file behavior under a 20+25 second watchdog without changing the protected SIMLOX GUI.",
+  "dependency": {
+    "package": "K04-var02-relative-cwd-v1.0.4",
+    "sxi_sha256": "7d0920e7b099d2f0eabb1dc2c69279de303cfec19c548405907aa07beab4e78a",
+    "closure_sha256": "054a9944aa8263c1a77e11bd2eb0e2375947d7ec8e1e82d3e074402fca780664",
+    "signoff_sha256": "a4ab04aab550d5911d6914acd736615c6ab4381d12e4c05e1846a786baad80d5",
+    "main_input_sha256": "986316de56ee3ceb4503137a2c788204a44a89fde3cf84d9c85cc562b2e05d7f",
+    "positive_event_sha256": "2d2e6c368305203052e347748dab8f36261947dae6f6a189fad4312e47c0a491",
+    "positive_report_sha256": "5a3fd9007de442ce0f7a5210cd61cfe1e3a362774300497020341dc05d478655"
+  },
+  "run_id": "k04-var03-missing-mdb-v100-ssh-20261004-01",
+  "working_directory": "accepted_parent_run_with_level1_mdb",
+  "model_directory": "new_isolated_run_without_level1_mdb",
+  "watchdog_ms": [20000, 25000],
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [537, 538]
+  },
+  "hypotheses": [
+    "The copied SXI has the same SHA-256 as the accepted parent and retains relative IncludeFiles.INCFN=level1.mdb.",
+    "The requested process working directory contains the MDB, but the SXI directory does not; this isolates the missing path at the SXI directory.",
+    "If the CLI child remains live after both watchdog waits, record its identity and partial outputs, then terminate only the verified session-0 child.",
+    "Record any native error or success exactly; do not infer a general missing-file rule from a bounded observation.",
+    "Preserve GUI PID/start/session, the host-wide native mutex, all source pins, and the original MDB association."
+  ],
+  "gate": "The run is evidence for a bounded diagnostic only. A reusable published missing-file behavior requires a native terminal outcome and independent replay; a watchdog termination is classified as a CLI nontermination capability limitation within the observed timeout."
+}
