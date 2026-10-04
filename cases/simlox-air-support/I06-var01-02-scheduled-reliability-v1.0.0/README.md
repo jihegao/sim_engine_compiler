@@ -1,0 +1,7 @@
+# I06 v1.0.0 excluded diagnostic
+
+This frozen three-seed, two-kind panel tests scheduled `ChangesItemReliability.FRTCF` on a traditional OPHOURS LRU and `ChangesFailureModeReliability.FRQCF` on a position-linked CALHOURS failure mode. Each seed pairs factor 1 at h9 with factor 4 at h9; all arms have a factor-1 row at h24. The [contract](contract.json) set the native evidence gate before execution.
+
+The guarded [native run](run_native_ssh.ps1) completed all 48 steps, with 12 imported and exported inputs and 122 SHA-sealed raw artifacts. The [independent replay](review/independent-verdict.json) passed 2,435 of 2,437 checks but returned **NO-GO for the frozen contract**. Both subpanels had physical h9–24 failure contrasts and all converter, roundtrip and report ledgers passed. The native log rescheduled failures at h24 but did not print the applied factor value. The traditional item's h24 event occurred with no OPHOURS exposure, so the contract's direct reset-application requirement was not established. Its raw evidence is retained and marked diagnostic in the [evidence index](evidence-index.json).
+
+The separately frozen [v1.0.1 candidate](../I06-var01-02-scheduled-reliability-v1.0.1/contract.json) moves the traditional item's third mission to h23–25 in every arm, providing exposure at the h24 reset. The v1.0.0 result is not a reusable publication and has no publication-index entry.

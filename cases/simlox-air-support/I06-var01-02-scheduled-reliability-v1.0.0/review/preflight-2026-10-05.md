@@ -1,0 +1,17 @@
+# I06.var01–02 preflight — 2026-10-05
+
+## Initial verdict: NO-GO pending source-pin correction
+
+At this review, contract SHA-256 was `183718e006e678a9e54e99fa009db488ab204f888e10c4a52e37703e6827719f`, builder SHA-256 `ae4e65e37dda14c8fa8dda4fff4e236cfd692904b6ad6817f50f3361f7746f9a`, and runner SHA-256 `f1748c76261eef3e6c6d9221117fcaf3aa291d52ff0873a362a1e26e206dad9b`. No native process was invoked by this review.
+
+**Blocking pin typo:** `item-seed3-control-input.json` has actual SHA-256 `09556de3d1720090d27f8bb490a5b774d2dc9a2780657bc6c0aef659a1231b1b` (64 hex characters). Contract and runner specify `09556de3d1720090d27f8bb490a5b774d2dc9a2780657bc6c0aef659a1231b1` (63 characters). The builder's read-only verification reproduces the actual 64-character hash. The runner would reject the source before native execution. Correct both pins, update the runner's contract hash, and re-review.
+
+The other eleven input hashes and both accepted D02 parent hashes match. For each kind and seed, the paired source differs only in the h9 `FRTCF` or `FRQCF` cell (1→4) and description; both have a h24 reset row with factor 1. Across seeds, only `Control.RSEED` and description change. The item row targets traditional primary `TEACH-LRU-01` with `OPHOURS`; the FM row targets explicit `FM-POS-A` with `CALHOURS`. The installed manual SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`, physical pp. 494–497, supports the four-column keyed tables, positive factors and times, primary-item restriction for FRT changes, position-linked FM eligibility, and immediate effect during mission/preparation. The h9/h24 unique keys and factors 1/4 are valid on their face.
+
+The PowerShell runner parses cleanly and plans 12 arms × 4 serial steps. It has an immutable run path, source hashes before/after, session-0 SSH and `sshd.exe` ancestor, host mutex, GUI PID 13340/session/start identity, targeted child watchdog, converter error/warning gate and raw SHA closure. The frozen contract's requirement for a direct native change-application indicator may be stricter than the manual's guarantee; source roundtrip plus a different failure history alone does not prove the exact internal instant or reset. This is a contingent post-run gate, as is the requirement for an h9–24 physical contrast in each three-seed subpanel. If either fails, retain a diagnostic rather than weaken the gate after seeing results.
+
+## Corrected-source addendum: GO for guarded native diagnostic
+
+Contract SHA-256 `f4919da5c016e6344c9dde3ea26a15195489f5549a38f7f51c2048591014b89f`; runner SHA-256 `1baf0c5a286434a24913e3d2e25d6c52bc396ad646147562ad8c95acbe2cdd67`. The 64-character `item-seed3-control` pin is corrected in both. I recomputed all twelve input hashes against the contract and runner, verified that the runner embeds the new contract hash, ran the builder in read-only verification mode successfully, and parsed the runner with zero errors. The immutable run directory did not exist at re-review. The manual, schema, parent/delta and process-guard findings above still apply.
+
+**GO for the frozen 48-step guarded native diagnostic.** Publication remains contingent on zero-error roundtrips, direct change-application evidence or an equally direct runtime indicator at h9/h24, a physical h9–24 paired contrast in both subpanels, and independent full event/report replay. Failure of those predeclared gates requires diagnostic classification, not an inferred rate law.
