@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D13",
+  "variant_ids": ["D13.var05"],
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "d13-repeated-maxpm-profile-v101-ssh-20261004-01",
+  "scope": "Isolate child-first MaxPMProfile row ordering from the excluded v1.0.0 root-first diagnostic; compare nine explicit flat LIMIT periods with a CAP-ROOT/CAP-SUB hierarchy repeating one 12-hour 0-to-1-to-2 capacity pattern three times. Accept only native physical PM and event/report parity for this fixed SIMLOX 2017 source pair.",
+  "excluded_diagnostic_v100_closure_sha256": "709f7b25aea6444e0804799848b847dcd71a6219faced3921ee20ac87dfb6c79",
+  "dependency": {
+    "parent_package": "D13-var03-dynamic-maxpm-v1.0.0",
+    "parent_input_sha256": "3e9a0c1f79eb57ed0eeb054649e4d991e41e33d55eca3ee365c4df7260eb65f1",
+    "parent_closure_sha256": "252b24c67ceb3002cf6b210554f3415eb522862bf5c76c0036227c867cc9dc15",
+    "parent_signoff_sha256": "42336a825df7f4649164afe7502652172ec36fffbc0a72c2e6b761c1b0b4d999"
+  },
+  "inputs_sha256": {
+    "flat": "fde24c914f94b2f945c3c55aa485972289ddc5e6ea449388bd22c25477977604",
+    "nested": "e1e12abb2c82ef1ea3ca528702ed4d95aa41bd0de3bb14b75e907888c9013f10"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [376, 377, 378, 379],
+    "rule": "MaxPMProfile supports end and subprofiles; a referenced subprofile may repeat IQTY times at IINT spacing. Explicit LIMIT periods must not overlap; profile MAXPM overrides Unit.MAXPM."
+  },
+  "frozen_source_delta": [
+    "Derive both arms from accepted D13.var03 rise input: seed1, two aircraft, one CAL24 PM, three scheduled h8/h20/h32 missions, scalar Unit.MAXPM0 and 36-hour horizon unchanged.",
+    "Flat CAP-FLAT has three adjacent LIMIT rows per 12-hour cycle: capacity0 for 0.25h, capacity1 for the next 0.5h, and capacity2 for the remaining 11.25h. Nine rows cover h0-36.",
+    "Nested CAP-SUB has the same three LIMIT rows relative to each cycle; CAP-ROOT references CAP-SUB at STIM0 with IQTY3/IINT12 in the last row, following the installed manual's worked child-before-parent example. Only description, Unit.MAXPMP and MaxPMProfile rows differ between arms. All row values are unchanged from the excluded root-first v1.0.0 diagnostic."
+  ],
+  "acceptance_hypotheses": [
+    "Both sources import and roundtrip exact authored populated cells, with zero converter errors and usable SXOs. Nested SPRID reference and repetition parameters survive the roundtrip. Classify all warnings, especially #331, without interpreting exit code zero as success.",
+    "The flat and nested event logs and all non-description report cells match. In the third cycle, both create CAL24 tasks at h24 and physically start aircraft0 at h24.25 and aircraft1 at h24.75, with half-hour overlap.",
+    "All three missions succeed, 72 System/Stock half-hour bins reconcile, both PM tasks complete, and both aircraft are ready at h36."
+  ],
+  "gate": "Publish only if flat/nested logs and non-description report cells match, native events prove the h24 profile effect, conversion and authored roundtrip pass, 22 raw files are sealed, and independent read-only replay agrees. Otherwise retain immutable diagnostic and revise a new version. Do not infer hidden counters or a general hierarchy law.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 identity, immutable run path, 60-second targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One seed, two aircraft, one PM and a three-repeat 12-hour child; no deeper nesting, overlapping-limit errors, other cycle lengths, GUI or cross-engine claim."]
+}

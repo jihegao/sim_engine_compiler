@@ -1,0 +1,5 @@
+# Excluded diagnostic: child-first MaxPM subprofile
+
+This source changes only the subprofile row order from the [root-first v1.0.0 diagnostic](../D13-var05-repeated-maxpm-profile-v1.0.0/README.md), placing three `CAP-SUB` `<LIMIT>` rows before the `CAP-ROOT` reference as in the installed manual's worked example. The guarded run `d13-repeated-maxpm-profile-v101-ssh-20261004-01` sealed 22 local raw files; see [evidence-index.json](evidence-index.json), closure SHA-256 `ee2d46157a3286742ca08b442578ad10c60ddd9cd5df6ab9c128c90df260604f`.
+
+The native converter again reported Errors 0, Warnings 3, Notes 0 with #331 at the reference row. The flat arm physically performed CAL24 PM at h24.25/h24.75; the subprofile arm created tasks at h24 but performed no physical PM through h36. Event logs differ. This diagnostic is **NO-GO for MaxPM subprofile equivalence** and has no publication-index entry. The accepted [direct LIMIT repetition case](../D13-var05-repeated-maxpm-profile-v1.0.2/README.md) does not claim subprofile support.

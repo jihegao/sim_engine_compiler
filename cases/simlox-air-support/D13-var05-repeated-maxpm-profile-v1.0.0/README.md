@@ -1,0 +1,5 @@
+# Excluded diagnostic: root-first MaxPM subprofile
+
+This immutable source pairs nine explicit `<LIMIT>` rows with a root-first `CAP-ROOT` reference to a three-row `CAP-SUB` child repeated by `IQTY=3/IINT=12`. The guarded native run `d13-repeated-maxpm-profile-v100-ssh-20261004-01` sealed 22 local raw files; see [evidence-index.json](evidence-index.json), closure SHA-256 `709f7b25aea6444e0804799848b847dcd71a6219faced3921ee20ac87dfb6c79`.
+
+The native converter reported Errors 0, Warnings 3, Notes 0, including #331, “ETIM is not valid for sub profiles. Data Ignored.” The flat arm physically performed CAL24 PM at h24.25/h24.75, while the subprofile arm created task objects at h24 but performed no physical PM by h36. Event logs differ. This diagnostic is **NO-GO for MaxPM subprofile equivalence** and has no publication-index entry. The [child-first diagnostic](../D13-var05-repeated-maxpm-profile-v1.0.1/README.md) and accepted [direct LIMIT repetition](../D13-var05-repeated-maxpm-profile-v1.0.2/README.md) are separate immutable versions.
