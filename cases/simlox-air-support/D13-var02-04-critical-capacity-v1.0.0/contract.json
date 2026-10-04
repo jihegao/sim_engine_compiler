@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D13",
+  "variant_ids": ["D13.var02", "D13.var04"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "d13-crit-capacity-v100-ssh-20261004-01",
+  "scope": "Paired SIMLOX 2017 local PMActivation.CRIT=Y/N comparison at Unit.MAXPM=0, with CAL24 initially noncritical then beyond DTIM tolerance. Determine if the critical arm bypasses the capacity limit while the CRIT=N arm remains postponed.",
+  "dependency": {
+    "parent_package": "D13-var02-maxpm-two-v1.0.0",
+    "parent_input_sha256": "d65ba7873f89e9b8e391b731a04aaa9622b346b6f8fa7d4547e177b42a285e41",
+    "parent_closure_sha256": "7d577663225a98f5f0406cc3e77d3c3cc74cd8fe6f340457363c85e74a976d9d",
+    "parent_signoff_sha256": "cc41f1ebd10038724c8e291ea8a9c8baee140b2733dcc2ef01361e2913ece50c",
+    "activation_template_package": "D13-var01-pm-activation-v1.0.0",
+    "activation_input_sha256": "f4fce5c8f362be817264544f22f271c1ee47b6e635e871619525fa1c8545ca70",
+    "activation_closure_sha256": "0bebe4cfd9a039bfc6bb1e2f9391f2a985ca2d199da97e76f17a105396cd0e91",
+    "activation_signoff_sha256": "275701b082c22af15a6fd5ec6c612903f499e8d93d894e1bb9f1967c61ec1ed1"
+  },
+  "inputs_sha256": {
+    "y": "53523239dddc33a006876f8773f6bd26cbbf9a54347fdc4bb97929d2608e69a3",
+    "n": "df0358d15a91ab2161dfda6f1394a81ed5c96d0f6506cf0fa9b80be66bffd9df"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [209, 376, 379, 380, 381, 382, 383, 384, 385],
+    "rule": "PMActivation.CRIT=N prevents a PM from becoming critical even beyond MaterielPM.DTIM; MaxPM limits noncritical PM and critical PM bypasses it. Control.ENPM remains Y in both arms."
+  },
+  "frozen_source_delta": [
+    "Derive both arms from accepted D13 MAXPM=2 input with seed1, two aircraft, three scheduled h8/h20/h32 missions, one CAL24 PM and 36-hour horizon.",
+    "Set Unit.MAXPM=0 and CAL24.DTIM=0.1 in both arms. Add one local PMActivation row for TEACH-UNIT/CAL24 with ENPM=Y, no profile, and CRIT=Y or N. PMActivation schema is copied from accepted D13.var01.",
+    "Only ProblemDescription and PMActivation.CRIT differ between arms."
+  ],
+  "acceptance_hypotheses": [
+    "Both arms retain the same mission events and configured CAL24 24-hour due point; no PM physically works at hour 24 because MAXPM is zero while PM is noncritical.",
+    "At the 26.4-hour far end of the 0.1×24 deferment, CRIT=Y becomes critical and starts physical PM despite MAXPM=0; CRIT=N remains noncritical and performs no PM through hour 36. Native events and report bins, rather than the manual alone, must establish this contrast.",
+    "Both inputs roundtrip populated cells, have zero converter errors, usable SXOs and sealed raw evidence; report PM occupancy, mission results and terminal states reconcile."
+  ],
+  "gate": "Publish only if native logs and reports prove a paired physical PM difference after the deferment boundary with otherwise identical sources, clean conversion, sealed evidence and independent read-only replay. If not, retain this immutable run as an excluded diagnostic and revise a new version; do not infer hidden PM counters.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 identity, immutable run path, 60-second targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["Two aircraft, one seed, one unit, fixed MAXPM=0 and one CALHOURS PM; no general capacity law, time-varying MAXPM profile, Control.ENPM=N comparison, GUI or cross-engine claim."]
+}
