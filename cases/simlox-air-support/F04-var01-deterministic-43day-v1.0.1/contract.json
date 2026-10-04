@@ -1,0 +1,50 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F04",
+  "variant_id": "F04.var01",
+  "version": "1.0.1-candidate",
+  "scope": "Eight-aircraft, two-base, 43-day no-failure regression derived from accepted F03.var01 staffed fleet; one frozen input is run twice independently. Earlier v1.0.0 used IPER48 with IQTY21 and is excluded for compressed 2.2857-hour requests.",
+  "accepted_parent": {
+    "package": "F03-var01-two-base-crew-v1.0.0",
+    "input_sha256": "4c01c6fd0c7f290c5af7032b4fa205ebbc6461c4c9917ccdaa7178dd9542bee9",
+    "closure_sha256": "1e75e83aaa60f575bcddbb5dfdf0acb13ee0b5cbbd0fbcea65e325d108c5b9c3",
+    "signoff_sha256": "2ef5da5a32c686248546328d4c09012e541faa3a9bf278b97bccf3d237876699"
+  },
+  "accepted_reporting_prerequisites_sha256": {
+    "J04.var01": "f2ab35cd6b5daf411bf10106ced33dc66208546d6984aa2f1dcb5a1ebfe9445b",
+    "J05.var05": "f8a9bb725fcb58cabb0a4e4e58450a7da00656c97becd9e3f7bd88c954de14b3",
+    "J06.var02": "7781fccac86c1e0b85ed659145c42bd724ccb0b7c509cd711f4437a146e7219d",
+    "J07.var01": "a798630687c5d59026cedef40b2aa1f1399c9b59c6545bf2c870252512759c94",
+    "J08.var01": "c57d20337693846694a5385f196af5b1eb3407e55f9bb1e87b72f3afb5f15421"
+  },
+  "input_sha256": "7b9dfa927ba85c1260d9cbf6d58bae44914ad039a7b3b87b082e1ed04827cc4d",
+  "exact_diff_sha256": "580344d1b1c9eeea14dc73b7a0b5728cb18503b6ed260bd5547e452b16f08ab8",
+  "expected_converter": {
+    "errors": 0,
+    "warnings": 3,
+    "notes": 0,
+    "warning_codes_in_order": [108, 2053, 2053],
+    "zero_rate_item_rows": ["TEACH-LRU-01", "TEACH-SRU-01"],
+    "basis": "Accepted G12.var01 zero-FRT item precedent; any different diagnostic excludes the run."
+  },
+  "parameters": {
+    "nreps": 1,
+    "seed": 1,
+    "horizon_hours": 1032,
+    "result_interval_hours": 0.5,
+    "aircraft": {"BASE-01": 5, "BASE-02": 3},
+    "system_and_item_frts_per_million_hours": 0,
+    "mission_type_mff": 0,
+    "schedule": "21 two-wave BASE-01 cycles and 21 BASE-02 single-aircraft requests; both root profiles use IQTY21/IPER1008, targeting 48-hour spacing"
+  },
+  "expected_timeline": [
+    "Accepted A09/F03 profile behavior divides IPER by IQTY. With 1008/21, BASE-01 risk and BASIC requests are targeted at h21.5 and h24.75 plus multiples of 48; BASE-02 targets h8 plus multiples of 48. Actual starts may wait on PM/resources and must be read from native events.",
+    "Zero explicit system/item failure rates and zero MissionType.MFF should yield no random failures or item backorders; native events and converter must confirm.",
+    "Eight aircraft receive CAL24 calendar PM and operate over 1032 hours. PM starts/completions, mission outcomes, resource queues and terminal state must be observed rather than presumed."
+  ],
+  "acceptance_hypotheses": [
+    "Two fresh serial guarded SSH0/mutex/GUI13340 runs import/export/calculate/report with zero conversion errors and no unreviewed diagnostics, exact populated-table roundtrips, nonempty native output, and raw SHA closures.",
+    "The two independent runs use one byte-identical source and produce matching typed mission/PM/resource event timelines and aggregate reports; no random failure events, backorders or stock transports appear.",
+    "All 2064 half-hour System, Stock and Resource report bins, mission counts and durations, resource leases/queues and terminal state reconcile with the native event log. No conclusion about random statistical stability, accuracy targets, unfinished states or GUI behavior follows from this deterministic slice."
+  ]
+}
