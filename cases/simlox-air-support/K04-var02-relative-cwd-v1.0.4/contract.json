@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K04",
+  "variant_id": "K04.var02",
+  "version": "1.0.4-candidate",
+  "publication_state": "not_published",
+  "scope": "Two calculations of one byte-identical SXI with IncludeFiles.INCFN=level1.mdb and identical MDBs: one process working directory contains level1.mdb; the other does not. Both must resolve the relative include under the SXI directory and produce matching native output.",
+  "dependency": {
+    "package": "K04-var01-nested-mdb-include-v1.0.0",
+    "main_input_sha256": "aa0064561c2a1aa9738422c8090ca125478c0517e16010022634bd985da6fa52",
+    "level1_source_sha256": "4b2d888f039ce6303cd9fc86bc35c00c84939d433e4cbc87444907f3d5992f23",
+    "level2_source_sha256": "2c2fc671f6084ce90a4635526e50dc6df4b7ebd087c8fd8eca4080839c5a3ddb",
+    "closure_sha256": "e8530f8e5cd65f788b70596e5f755f0b84ae350b66b7cff8746de36f23e3c0d0",
+    "signoff_sha256": "b508239bff323d4155bfb5ec10f3e8e3921d30e7ed6720cc5d42ce5b14d9d4ee"
+  },
+  "inputs_sha256": {
+    "main": "986316de56ee3ceb4503137a2c788204a44a89fde3cf84d9c85cc562b2e05d7f",
+    "level1_source": "9e6a9a154b1051697a773c4bc14a3fb9160b0a1e1682911420f9a5020e7d5737",
+    "level2_source": "2c2fc671f6084ce90a4635526e50dc6df4b7ebd087c8fd8eca4080839c5a3ddb"
+  },
+  "run_id": "k04-var02-relative-cwd-v104-ssh-20261004-01",
+  "negative_working_directory": "C:\\Users\\user\\Documents\\Codex\\2026-09-26\\simlox-j35-event-parity\\workspace",
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [
+      537,
+      538
+    ],
+    "rule": "If IncludeFiles.INCFN is not a full path, the application searches its current directory; file-dialog actions can change that directory."
+  },
+  "frozen_commands": [
+    "generate/readback level2 and level1 MDBs",
+    "import and JSON-export one main SXI with relative IncludeFiles path",
+    "calculate SXI with process working directory equal run directory",
+    "export first JSON report and snapshot native outputs",
+    "calculate same SXI with frozen distinct process working directory lacking level1.mdb",
+    "export second JSON report and snapshot native outputs"
+  ],
+  "acceptance_hypotheses": [
+    "The main SXI JSON roundtrip preserves literal level1.mdb; other authored K04.var01 business tables and rows remain unchanged.",
+    "Both calculations of the same byte-identical SXI log the same absolute level1 and level2 MDB paths under the SXI directory, insert one IncludeFiles and one Station row, and have zero converter errors and accepted warnings.",
+    "Both calculations produce usable SXO files; their event streams and JSON reports are byte-identical to each other and accepted K04.var01 output. Binary SXO bytes may differ between runs.",
+    "GUI PID/start/session, host mutex, literal source/contract pins and original MDB association are preserved/restored."
+  ],
+  "gate": "If the two arms differ in resolved include path, event stream, JSON report, or accepted parent event/report parity, this CLI relative-path claim is NO-GO. Both arms raw outcomes remain sealed even if rejected.",
+  "limitations": [
+    "This shows that changing the CLI process working directory alone does not alter a relative top-level MDB include resolved under the SXI directory. A missing MDB can leave a session-0 process waiting for interaction; excluded v1.0.2 diagnostic records that behavior. This case does not establish GUI file-dialog/MRU directory changes, relative nested include resolution, SXI/OPI includes, arbitrary paths, or complete K04 coverage."
+  ]
+}
