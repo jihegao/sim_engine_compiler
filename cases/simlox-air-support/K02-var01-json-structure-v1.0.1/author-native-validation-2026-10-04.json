@@ -1,0 +1,226 @@
+{
+  "schema": "simlox-k02-var01-author-validation/v1",
+  "case_id": "K02",
+  "variant_id": "K02.var01",
+  "version": "1.0.1",
+  "accepted_arm": "named",
+  "excluded_arms": [
+    "inactive_index1_v100",
+    "named_strict_v100",
+    "inactive2_v101"
+  ],
+  "passed": true,
+  "passed_count": 37,
+  "check_count": 37,
+  "checks": {
+    "named_source_input_sha": true,
+    "named_source_stability": true,
+    "named_invocation_sha": true,
+    "named_raw_sha_closure": true,
+    "named_session_gui_mutex": true,
+    "named_native_steps": true,
+    "named_converter": true,
+    "named_parent_log_equal": true,
+    "named_ResultSummary_equal": true,
+    "named_SystemResults_equal": true,
+    "named_StockTotalResults_equal": true,
+    "named_72_bins": true,
+    "named_other_source_tables_same": true,
+    "named_authored_column_types_same": true,
+    "named_exact_two_authored_instances": true,
+    "named_only_empty_default_canonicalization": true,
+    "named_roundtrip_gate": true,
+    "named_complete": true,
+    "inactive2_source_input_sha": true,
+    "inactive2_source_stability": true,
+    "inactive2_invocation_sha": true,
+    "inactive2_raw_sha_closure": true,
+    "inactive2_session_gui_mutex": true,
+    "inactive2_native_steps": true,
+    "inactive2_converter": true,
+    "inactive2_parent_log_equal": true,
+    "inactive2_ResultSummary_equal": true,
+    "inactive2_SystemResults_equal": true,
+    "inactive2_StockTotalResults_equal": true,
+    "inactive2_72_bins": true,
+    "inactive2_other_source_tables_same": true,
+    "inactive2_authored_column_types_same": true,
+    "inactive2_targeted_second_row": true,
+    "inactive2_marker_lost": true,
+    "inactive2_roundtrip_no_go": true,
+    "inactive_index1_closure": true,
+    "named_strict_closure": true
+  },
+  "v101_observations": {
+    "named": {
+      "closure_sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3",
+      "raw_seals": 12,
+      "roundtrip_passed": true,
+      "roundtrip_differences": [],
+      "station_export_instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "instance_name": "K02-BASE",
+          "rows": [
+            [
+              "BASE-01",
+              "Teaching base",
+              1,
+              "WS",
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "instance_name": "K02-AUX",
+          "rows": [
+            [
+              "K02-NAMED",
+              "Unused named-instance station",
+              1,
+              "WS",
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "inactive2": {
+      "closure_sha256": "fccebc4ca8857b889b9dd97dd789a4ceb1cf34a0b22943f55e6d19bf387edfc1",
+      "raw_seals": 12,
+      "roundtrip_passed": false,
+      "roundtrip_differences": [
+        "authored instances/rows/inactive metadata differ: Station"
+      ],
+      "station_export_instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "BASE-01",
+              "Teaching base",
+              1,
+              "WS",
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "v100_diagnostics": {
+    "inactive_index1": {
+      "run_id": "k02-var01-inactive-v100-ssh-20261004-01",
+      "closure_sha256": "f747cf95b1577bdebdbb27a14556ec1cd77a674d65ef986818d0fdeede209eee",
+      "raw_seals": 9
+    },
+    "named_strict": {
+      "run_id": "k02-var01-named-v100-ssh-20261004-01",
+      "closure_sha256": "46462267656e8550e998e99b4f60aba910c3483441b5fbc88284dc2850c80a94",
+      "raw_seals": 12
+    }
+  },
+  "limits": [
+    "Named Station instances on one A01-derived model only; native export adds one blank default instance.",
+    "Inactive rows are lossy through this JSON import/export path; no lossless inactive-row claim.",
+    "GUI views/templates, other table instances and full K02 remain unverified."
+  ]
+}
