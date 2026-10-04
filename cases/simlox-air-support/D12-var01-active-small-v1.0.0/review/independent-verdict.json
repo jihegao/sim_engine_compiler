@@ -1,0 +1,269 @@
+{
+  "case": "D12.var01",
+  "checks_passed": 3281,
+  "checks_total": 3281,
+  "failures": [],
+  "limits": [
+    "One seed, two aircraft, one base, one P-MAINT worker, 60-hour horizon; no general PMRID scheduling law.",
+    "The linked arm interrupts an already-performing CAL24 at h48.5 and later stops the waiting CAL24; this is one fixed-seed native sequence.",
+    "The native log shows stop and resource release, but does not expose counter values or establish a general interruption policy."
+  ],
+  "observed": {
+    "PM_tasks": {
+      "linked": [
+        [
+          1,
+          24.0,
+          0,
+          "CAL24"
+        ],
+        [
+          2,
+          24.0,
+          1,
+          "CAL24"
+        ],
+        [
+          3,
+          48.0,
+          1,
+          "CAL24"
+        ],
+        [
+          4,
+          48.0,
+          0,
+          "CAL24"
+        ],
+        [
+          5,
+          48.5,
+          1,
+          "BIG48P5"
+        ],
+        [
+          6,
+          48.5,
+          0,
+          "BIG48P5"
+        ]
+      ],
+      "unlinked": [
+        [
+          1,
+          24.0,
+          0,
+          "CAL24"
+        ],
+        [
+          2,
+          24.0,
+          1,
+          "CAL24"
+        ],
+        [
+          3,
+          48.0,
+          1,
+          "CAL24"
+        ],
+        [
+          4,
+          48.0,
+          0,
+          "CAL24"
+        ],
+        [
+          5,
+          48.5,
+          1,
+          "BIG48P5"
+        ],
+        [
+          6,
+          48.5,
+          0,
+          "BIG48P5"
+        ]
+      ]
+    },
+    "PM_work_events": {
+      "linked": [
+        [
+          26.4799,
+          1,
+          "start"
+        ],
+        [
+          27.4799,
+          1,
+          "end"
+        ],
+        [
+          27.4799,
+          2,
+          "start"
+        ],
+        [
+          28.4799,
+          2,
+          "end"
+        ],
+        [
+          48.0,
+          3,
+          "start"
+        ],
+        [
+          48.5,
+          5,
+          "start"
+        ],
+        [
+          48.5,
+          3,
+          "end"
+        ],
+        [
+          49.5,
+          5,
+          "end"
+        ],
+        [
+          49.5,
+          6,
+          "start"
+        ],
+        [
+          50.5,
+          6,
+          "end"
+        ],
+        [
+          50.5,
+          4,
+          "end"
+        ]
+      ],
+      "unlinked": [
+        [
+          26.4799,
+          1,
+          "start"
+        ],
+        [
+          27.4799,
+          1,
+          "end"
+        ],
+        [
+          27.4799,
+          2,
+          "start"
+        ],
+        [
+          28.4799,
+          2,
+          "end"
+        ],
+        [
+          48.0,
+          3,
+          "start"
+        ],
+        [
+          49.0,
+          3,
+          "end"
+        ],
+        [
+          49.0,
+          6,
+          "start"
+        ],
+        [
+          50.0,
+          6,
+          "end"
+        ],
+        [
+          50.0,
+          5,
+          "start"
+        ],
+        [
+          51.0,
+          5,
+          "end"
+        ],
+        [
+          51.0,
+          4,
+          "start"
+        ],
+        [
+          52.0,
+          4,
+          "end"
+        ]
+      ]
+    },
+    "PM_work_hours": {
+      "linked": 4.5,
+      "unlinked": 6
+    },
+    "linked_CAL24_at_48": "aircraft 1 performing h48\u201348.5, stopped and worker freed h48.5; aircraft 0 waiting task stopped h50.5 without work",
+    "report_PM_markers": {
+      "linked": {
+        "NPMS": 6,
+        "NPMT": 4
+      },
+      "unlinked": {
+        "NPMS": 6,
+        "NPMT": 6
+      }
+    },
+    "report_bins_per_arm": {
+      "ResourceResults": 120,
+      "StockTotalResults": 120,
+      "SystemResults": 120
+    },
+    "summary": {
+      "linked": {
+        "MSTF": 1,
+        "MSUF": 0.6666666865348816,
+        "MTMF": 0.7828473448753357,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 60,
+        "STMF": 0.7828473448753357
+      },
+      "unlinked": {
+        "MSTF": 1,
+        "MSUF": 0.6666666865348816,
+        "MTMF": 0.7828473448753357,
+        "NREP": 1,
+        "RSMSTF": 0,
+        "RSMSUF": 0,
+        "RSMTMF": 0,
+        "RSSTMF": 0,
+        "RTILW": 0,
+        "RTIUP": 60,
+        "STMF": 0.7828473448753357
+      }
+    },
+    "unlinked_CAL24_at_48": "aircraft 1 works h48\u201349; aircraft 0 works h51\u201352",
+    "worker_capacity": 1,
+    "worker_hours": {
+      "linked": 9.5,
+      "unlinked": 11
+    }
+  },
+  "passed": true,
+  "run_id": "d12-var01-active-small-v100-ssh-20261004-01",
+  "verdict": "GO \u2014 bounded active-small PMRID interruption"
+}

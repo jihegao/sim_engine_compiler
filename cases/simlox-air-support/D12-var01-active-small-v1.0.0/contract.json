@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D12",
+  "variant_id": "D12.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "d12-var01-active-small-v100-ssh-20261004-01",
+  "scope": "Paired SIMLOX 2017 CLI comparison of BIG48P5.PMRID null versus CAL24 while the sole P-MAINT worker is expected to be performing one second-cycle CAL24 subtask at the larger PM due. Establish native event ordering and whether already-performing or waiting small-PM work stops.",
+  "dependency": {
+    "package": "D12-var01-pm-relation-v1.0.1",
+    "unlinked_input_sha256": "0ab5e27ea0756fe7de2acdfdaba664d5d66441e170d494c4ac9d0209c3f11567",
+    "linked_input_sha256": "db0544d6fcaba2b5357f6fd0b9d462991f2982432ae20d5b061eff908dad9041",
+    "closure_sha256": "83bce5dad9af7be0405de9111bd50eb27811b311b2d1872ba12e8968ebb4b007",
+    "signoff_sha256": "94af0d7d7ac91f162d14b26b504ff87c3ba5ddddd1f60ca99dac87a4fd248833",
+    "accepted_behavior": "BIG47 starts on both aircraft at 47; unlinked second-cycle CAL24 works 49-51, linked has one CAL24 absent and one stopped before work; one shared worker. This follow-on changes larger-PM due time to cross a smaller-PM work episode."
+  },
+  "inputs_sha256": {
+    "unlinked": "352614635b2da84de9e4a1df3fa12dfbc0e53c561bf941f794d663e197c3107c",
+    "linked": "cddf59ab7d557f6c643138ce8241fa43d7d5a569396538a6934bf7de00b3ffd1"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [373, 374, 375],
+    "rule": "MaterielPM.PMRID identifies a more frequent smaller PM included in the current PM. Native event logs must decide how an already active small PM is treated; do not assume that a task in performance can stop."
+  },
+  "frozen_source_delta": [
+    "For each arm, derive directly from its accepted D12.var01 v1.0.1 input; keep seed1, one replication, 60-hour horizon, three missions, two aircraft, one shared worker, CAL24 ENREG=Y and all other source rows.",
+    "Change the sole larger PM PMID BIG47 to BIG48P5, DESCR and PMINT 47 to 48.5; update its PMLocation and PM-BIG47 task references to PM-BIG48P5, plus ProblemDescription.",
+    "Between new arms, only descriptive text and BIG48P5.PMRID null versus CAL24 differ."
+  ],
+  "parameters": {
+    "seed": 1,
+    "nreps": 1,
+    "horizon_hours": 60,
+    "result_interval_hours": 0.5,
+    "small_pm_interval_hours": 24,
+    "large_pm_interval_hours": 48.5,
+    "small_pm_work_hours": 1,
+    "large_pm_work_hours": 1,
+    "worker_capacity": 1
+  },
+  "acceptance_hypotheses": [
+    "Before 48.5, the paired arms have identical native event traces. At least one CAL24 second-cycle subtask starts performing at hour 48 and is still performing when BIG48P5 becomes due at hour 48.5; confirm these conditions from native logs before interpreting PMRID behavior.",
+    "A PMRID-linked larger PM may cancel an already-performing or waiting smaller PM; the exact ordering, task status, worker release, and any completed work must be measured, not assumed. If no differential behavior appears, record a diagnostic rather than claiming interruption.",
+    "Both arms retain all authored populated cells through native import/export, zero converter errors and usable outputs. Event PM/worker ledgers reconcile with 120 half-hour System/Resource/Stock bins and terminal state."
+  ],
+  "gate": "Accept only an observed pairwise PMRID effect on a small PM that was physically performing at the larger PM due, after exact source diff, zero converter errors, valid simulation output, event/worker/report reconciliation and separate read-only replay. If the exposure or differential effect is absent, preserve the immutable run as a diagnostic and revise a new version; do not publish an interruption claim.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 active and identity-preserved, immutable run path, 60-second targeted child watchdog, source/tool hashes before/after and raw SHA-256 closure.",
+  "limits": [
+    "One two-aircraft system, one seed, one base, one shared worker and one CALHOURS relation; no general PMRID scheduling, multi-level PM, ENFNC, remote-base PM, GUI or cross-engine claim.",
+    "Native logs may not expose PM counter reset values; any such interpretation must remain a limit unless direct evidence is found."
+  ]
+}
