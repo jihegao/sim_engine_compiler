@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F03",
+  "variant_id": "F03.var02",
+  "version": "1.0.0-candidate",
+  "scope": "Fixed-seed two-base LRU opening-stock comparison. F03.var01's second-base crew, unit, mission, maintainer and depot link are applied to the accepted F02.var02 risk fleet. The two arms differ only in the BASE-01 TEACH-LRU-01 StockAllocation quantity 0 versus 1 and descriptive text.",
+  "accepted_risk_parent": {
+    "package": "F02-var01-var02-integrated-fleet-v1.0.2",
+    "input_sha256": "ae46b08a6ef6fd063906b888fb3c73fba06edcb57acc1a4ade49fc62c53fd7d3",
+    "closure_sha256": "b82da3cbed601408e4a72cda5c2fd498286a8f1b3ebfa07c003d4d4f8e6c91c4",
+    "signoff_sha256": "175b392df48c14944e8490757c9359ee449029ad53148b34159efdcb99ad0a5c"
+  },
+  "accepted_two_base_precedent": {
+    "package": "F03-var01-two-base-crew-v1.0.0",
+    "staffed_input_sha256": "4c01c6fd0c7f290c5af7032b4fa205ebbc6461c4c9917ccdaa7178dd9542bee9",
+    "signoff_sha256": "2ef5da5a32c686248546328d4c09012e541faa3a9bf278b97bccf3d237876699"
+  },
+  "structural_donor": {
+    "package": "A17-multi-unit-group-v1.0.0",
+    "input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+    "signoff_sha256": "77d204b5ca22222d1331051a68bb9c4fad2f50fc6ee94134d32d047dd5105e40"
+  },
+  "instructional_prerequisites": {
+    "E07_item_transport_signoff_sha256": "f0683a30a42aa101c4c88ac242d7d6b1d38857dfc56f650cce0bab44323120fc",
+    "I01_resource_point_signoff_sha256": "e0ab772da4b2fbaf707f9df3c0d7e40afad0f19bf55ede690e4efaf77762946c"
+  },
+  "inputs_sha256": {
+    "depot_only": "ed0c7e77844cc87f9f1cfe1fddc45d387072adec979dd93f99dd897d60347819",
+    "forward_spare": "100691761f71b86c32186a55a30c6e2d03cb855bf32c4a4cc06e3a95770a0a75"
+  },
+  "exact_diff_sha256": "9edab9b20a9196fa90a68807ffcfe5e4d3704decb9eb46100b3483a123139c47",
+  "parameters": {
+    "seed": 1,
+    "nreps": 1,
+    "horizon_hours": 60,
+    "report_interval_hours": 0.5,
+    "system_type": "TEACH-AIR-01",
+    "aircraft": {"BASE-01": 2, "BASE-02": 1},
+    "pair_field": "StockAllocation AIR_BASIC/TEACH-LRU-01/BASE-01 STSIZ 0 versus 1"
+  },
+  "expected_timeline": [
+    "The accepted risk parent has a late BASE-01 LRU demand. The added BASE-02 mission may shift fixed-seed random timing; read fault and demand events from each fresh run and require a matched local demand before assigning causality.",
+    "If a matched BASE-01 LRU demand occurs, the forward-spare arm should use its local opening stock before any depot transport. Compare physical item identity, backorder, aircraft readiness, late missions and stock ledgers, including any shared-state effect.",
+    "The BASE-02 crew and mission are fully staffed in both arms; verify their identity and outcome, and do not assume their local stock or depot route is used."
+  ],
+  "acceptance_hypotheses": [
+    "Two fresh serial guarded SSH0/mutex/GUI13340 native runs import/export/calculate/report, have zero conversion errors and no unreviewed diagnostics, roundtrip every populated authored table, and seal all raw evidence.",
+    "Only the BASE-01 opening LRU quantity is changed as a business field between arms. Any outcome claim requires matched failure/demand evidence; if no comparable demand occurs, classify as a no-effect boundary or run a separately contracted source variant.",
+    "Reconcile per-base aircraft and item identity, depot/local inventory movements, aggregate System/Stock/Resource half-hour bins, mission outcomes and terminal disposition. This does not establish other stock positions, route contention, repair capacity or larger network behavior."
+  ]
+}
