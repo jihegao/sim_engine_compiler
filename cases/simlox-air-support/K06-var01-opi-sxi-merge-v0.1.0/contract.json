@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K06",
+  "variant_id": "K06.var01",
+  "version": "0.1.0-diagnostic",
+  "publication_state": "not_published",
+  "run_id": "k06-var01-opi-sxi-merge-v010-ssh-20261005-01",
+  "scope": "Import a byte-identical .opi copy of the accepted K02.var01 named native model into an accepted K01.var04 .sxi target, save a separate .sxi, and JSON-export it. This diagnoses native input-file merge; it does not use OPUS10-generated content.",
+  "target": {
+    "package": "K01-var04-parent-child-model-diff-v1.0.0",
+    "run_id": "k01-var04-duration-v100-ssh-20261004-01",
+    "native_sxi_sha256": "eedc015f9cd53c94036803656b0c84c83ddadcd92299397e769f4489482116c6",
+    "native_sxi_bytes": 189251,
+    "closure_sha256": "5200cc3f73c3dfce1b89f61314a0d98e460c4a9a08888139da0e3f8e3baa2b10"
+  },
+  "source": {
+    "package": "K02-var01-json-structure-v1.0.1",
+    "run_id": "k02-var01-named-v101-ssh-20261004-01",
+    "native_sxi_sha256": "60c7a5cddd2af357282d948aa92409f526d751a173b19c931f9a5213f83e8815",
+    "native_sxi_bytes": 189410,
+    "closure_sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3",
+    "input_sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00",
+    "signoff_sha256": "e4f14cbdb2e74237189a46d2a743101b4033a0f3d59c38619ca7eb208ca67e89"
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [157, 158, 167],
+    "rule": "The GUI manual describes merging OPUS10 .opi or SIMLOX .sxi data into an open input and says imported same-key values overwrite target values. The CLI -import file entry explicitly mentions .sxi, so .opi acceptance through that CLI command is a hypothesis."
+  },
+  "frozen_delta": "Copy accepted target SXI and accepted source SXI into a new immutable run folder, rename only the source copy to .opi, and request CLI -import into the open target followed by -save of a new SXI.",
+  "acceptance_hypotheses": [
+    "Both copied native inputs retain their accepted SHA-256 and byte counts, and accepted source closures still match.",
+    "The CLI -import command accepts the .opi source into the .sxi target and saves a nonempty separate merged .sxi with zero import errors.",
+    "The merged JSON export is valid and shows the accepted K02 named Station instances plus its ProblemDescription value, with no duplicated Station keys. Other authored business tables remain traceable to the two accepted inputs."
+  ],
+  "gate": "Keep this run diagnostic until native import/export and an independent read-only review resolve the actual merged structure. Never infer OPUS10-origin equivalence, .opo result points, LORA, phase scenario, or general K06 behavior.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, host-wide Issue #18 mutex, protected GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One self-built common-format .opi copy; CLI documentation only names .sxi for -import; source model shares most keys with target; no OPUS10-generated data, .opo, GUI, cross-engine or general merge claim."]
+}
