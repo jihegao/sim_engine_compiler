@@ -1,0 +1,11 @@
+# Independent F04.var04 v1.0.1 review
+
+**Verdict: bounded GO, 93,106/93,106 read-only checks.** `independent_replay.py` regenerates `independent-verdict.json` without importing the author builder, checker, or validator.
+
+The v1.0.1 input differs from the accepted deterministic F04.var01 parent in exactly five declared cells: description and the Control/ResultCollection 1032 to 1032.5 hour end values. It differs from excluded v1.0.0 only in the description. Parent and diagnostic source/closure pins, current source/contract/diff hashes, and the fresh native closure all verify. The fresh closure has no error, 12 matching raw size and SHA seals, identical before/after source seals, five successful steps, exact converter totals with reviewed warnings #108/#2053/#2053, and an independently checked exact 30 populated-table roundtrip. Invocation records session-0 SSH, the global native mutex, and GUI PID 13340 preservation.
+
+The fresh event log matches the accepted parent's events exactly after the two-line header and before h1032. At h1032, it records completion of PM task 533 on aircraft 6, BASE-02 P-MAINT release, and the aircraft becoming ready. The parent ends without a task 533 completion event. Fresh and excluded v1.0.0 event logs match after their horizon headers, and their non-description reports are row-identical.
+
+The 2064 Stock and Resource parent-prefix rows match exactly. System has one preterminal exception: in row `[1031,1031.5)`, `SYDT` changes from null to 1 and `NSYDT` from 0 to 1; every other prefix field matches. One `[1032,1032.5)` bin is appended. Its `NSYRY` is 7.997443675994873, while `NSYPM` and Resource `NRUM` are each 0.0025563256349414587. ResultSummary changes only `RTIUP` from 1032 to 1032.5; mission success stays 1, and System failure and Stock backorder bins remain zero. The near-zero added-bin occupancy is a native averaging artifact; the event log establishes task completion.
+
+This is one deterministic CAL24 PM at a horizon boundary. The parent planned one hour of work starting at h1031 but does not prove positive remaining duration at h1032. The continuation shows completion ordering and retrospective downtime finalization for this model. It does not establish a general unfinished-task rule or behavior for repairs, transit, reserved stock, other seeds, GUI visuals, or other engines.
