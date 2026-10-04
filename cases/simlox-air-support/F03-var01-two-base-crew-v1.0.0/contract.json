@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F03",
+  "variant_id": "F03.var01",
+  "version": "1.0.0-candidate",
+  "scope": "Two-base, three-aircraft, shared-type, single-seed crew-capacity comparison. Existing F02 deterministic BASE-01 two-aircraft missions, depot LRU/SRU support and 60-hour window are preserved. A second unit with one TEACH-AIR-01 aircraft, independent BASE-02 single-aircraft mission, local crew/maintainer and depot link is appended. The pair changes only BASE-02 P-CREW RQTY 1 to 0 and descriptive text.",
+  "accepted_parent": {
+    "package": "F02-var01-var02-integrated-fleet-v1.0.2",
+    "input_sha256": "b64aef4aff9f03f05aca5eaf2744d8a58bf117b79d52aad4f64e0c629f1309df",
+    "closure_sha256": "3784a4d9bb8ac1101d42d3ec6e43454ec14194f1a05b932e8c5a569159f7e5ea",
+    "signoff_sha256": "175b392df48c14944e8490757c9359ee449029ad53148b34159efdcb99ad0a5c"
+  },
+  "structural_donor": {
+    "package": "A17-multi-unit-group-v1.0.0",
+    "input_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+    "signoff_sha256": "77d204b5ca22222d1331051a68bb9c4fad2f50fc6ee94134d32d047dd5105e40"
+  },
+  "instructional_prerequisites": {
+    "E07_item_transport_signoff_sha256": "f0683a30a42aa101c4c88ac242d7d6b1d38857dfc56f650cce0bab44323120fc",
+    "I01_resource_point_signoff_sha256": "e0ab772da4b2fbaf707f9df3c0d7e40afad0f19bf55ede690e4efaf77762946c"
+  },
+  "inputs_sha256": {
+    "staffed": "4c01c6fd0c7f290c5af7032b4fa205ebbc6461c4c9917ccdaa7178dd9542bee9",
+    "unstaffed": "ade085f9bb35aca3b62cafb78723bf25cabd0cace380f847fc25a51c43f6666c"
+  },
+  "exact_diff_sha256": "c96fe5d9701c2be0c7a1902325fdc1b789cbbb89d9c93595ab663da4ddaa20b4",
+  "parameters": {"seed": 1, "nreps": 1, "horizon_hours": 60, "report_interval_hours": 0.5, "system_type": "TEACH-AIR-01", "aircraft": {"BASE-01": 2, "BASE-02": 1}, "pair_field": "ResourceAllocation AIR_BASIC/P-CREW/BASE-02 RQTY 1 versus 0"},
+  "expected_timeline": [
+    "Four parent BASE-01 two-aircraft mission opportunities and depot support remain available in both arms.",
+    "The new BASE-02 unit orders one two-hour single-aircraft mission around hour 8; one local P-CREW is needed for its half-hour preparation. Staffed should prepare, launch and succeed; zero-crew should wait and may cancel according to native tolerance rules.",
+    "BASE-02 P-MAINT and matching PM location are present in both arms; any scheduled PM timing and terminal aircraft states must be read from native events, not inferred solely from source rows."
+  ],
+  "acceptance_hypotheses": [
+    "Two fresh serial guarded SSH0/mutex/GUI13340 native runs import/export/calculate/report, have no conversion errors or unreviewed diagnostics, roundtrip every populated authored table, and seal raw evidence.",
+    "Only the BASE-02 P-CREW capacity change explains the paired local preparation, mission and resource differences; BASE-01 two-aircraft mission outcomes and its repair/stock ledgers should match. If random or shared-state interactions alter these, scope must be narrowed to observed causal evidence.",
+    "Per-base aircraft identity and mission events, local crew booking/queue, aggregate System/Stock/Resource half-hour bins and terminal disposition must reconcile with each arm. The first pair does not establish stock-configuration, transport-location, route contention or larger-network claims."
+  ]
+}
