@@ -1,0 +1,28 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K01",
+  "variant_id": "K01.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "CLI-visible A01-derived parent/child model difference: BASIC-MISSION duration two to three hours in the same single-aircraft 36-hour schedule.",
+  "parent": {
+    "package": "A01-single-aircraft-single-mission",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "accepted_closure_sha256": "7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e",
+    "accepted_run_id": "a01-bound-final-20260927-03"
+  },
+  "child_input_sha256": "d1ff80f7e0de8259b6f38b6373c7ad4797d897e17c4397a7060dfbefbeb851dc",
+  "parameters": {"nreps": 1, "seed": 1, "horizon_hours": 36, "result_interval_hours": 0.5, "aircraft": 1, "missions": 1, "parent_duration_hours": 2, "child_duration_hours": 3},
+  "expected_converter": {"errors": 0, "warnings": 2, "notes": 0, "warning_codes_in_order": [108, 126]},
+  "acceptance_hypotheses": [
+    "A guarded session-0 SSH run completes native import/export/calc/report; the GUI PID 13340 and source fingerprints persist and raw files are sealed.",
+    "All 13 authored row-containing input tables, including three all-null placeholder tables and ten substantive tables, preserve columns and rows through native import/export; the only parent/child source cells changed are PDESC and BASIC-MISSION DURN.",
+    "The one mission retains its hour-7 notice and hour-8 launch, and completes at hour 11 instead of the parent's hour 10; there is one success, no cancellation or unfinished mission.",
+    "The report contains 72 half-hour bins through hour 36; mission-operation integral is three hours and ready time falls by one hour versus the accepted parent."
+  ],
+  "limitations": [
+    "K01 Table/Model/Profile view interactions, SXT template creation, hidden/default/null rendering and GUI visual assertions are unverified.",
+    "This slice does not automatically satisfy the full K01 prerequisite for K02-K08; dependencies require behavior-specific review.",
+    "This single deterministic one-aircraft source comparison does not establish general model-copy rules or other mission scenarios."
+  ]
+}

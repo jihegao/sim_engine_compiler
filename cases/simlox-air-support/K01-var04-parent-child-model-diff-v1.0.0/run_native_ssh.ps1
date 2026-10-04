@@ -1,0 +1,158 @@
+param([Parameter(Mandatory=$true)][ValidatePattern('^[a-z0-9][a-z0-9-]{2,63}$')][string]$RunId)
+$ErrorActionPreference = 'Stop'
+$case = (Resolve-Path $PSScriptRoot).Path
+$run = Join-Path (Join-Path $case 'runs') $RunId
+$python = 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+$exe = 'C:\Program Files\Systecon\SIMLOX\Simlox.exe'
+$workingDirectory = 'C:\Users\user\Documents\Codex\2026-09-26\simlox-j35-event-parity\workspace'
+$nativeInputPath = Join-Path $case 'native-input.json'
+$manual = 'C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf'
+$dictionary = 'C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt'
+$sources = [ordered]@{
+  native_input = @((Join-Path $case 'native-input.json'), 'd1ff80f7e0de8259b6f38b6373c7ad4797d897e17c4397a7060dfbefbeb851dc')
+  contract = @((Join-Path $case 'contract.json'), '938bb504b58829a2a42ad0bf0ebf943d92842d0f6c92fe2a53d8075fbc94c40b')
+  exact_diff = @((Join-Path $case 'exact-diff.json'), '2cd0ef7abe444a2f3eb7f24149604fd5ee03beb58cfacf21187ddde75784c33b')
+  accepted_parent = @((Join-Path (Split-Path $case -Parent) 'A01-single-aircraft-single-mission\native-input.json'), '8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7')
+  accepted_parent_closure = @('C:\Users\user\Documents\Codex\2026-09-27\simlox-case-library-a01-a02-v1\repo\data\local\simlox-case-library\v1\A01\a01-bound-final-20260927-03\closure.json', '7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e')
+  accepted_parent_signoff = @((Join-Path (Split-Path $case -Parent) 'A01-single-aircraft-single-mission\cli-scope-signoff-2026-09-29.md'), '20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa')
+  accepted_parent_report = @('C:\Users\user\Documents\Codex\2026-09-27\simlox-case-library-a01-a02-v1\repo\data\local\simlox-case-library\v1\A01\a01-bound-final-20260927-03\report-raw.json', 'b9b7d970e7f12763f0098eb2d2c546cc2ed2b68792840e74f2175fcd4ca14099')
+  accepted_parent_log = @('C:\Users\user\Documents\Codex\2026-09-27\simlox-case-library-a01-a02-v1\repo\data\local\simlox-case-library\v1\A01\a01-bound-final-20260927-03\model.log', '6337dc631e574eb9fab1eb24c45b4a3e1568d7e645282051c234a032591887ed')
+  exe = @($exe, 'fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0')
+  manual = @($manual, '39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3')
+  dictionary = @($dictionary, '11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0')
+}
+$trace = Join-Path $env:TEMP "k01-var04-$RunId-preflight.log"
+if (Test-Path -LiteralPath $trace) { throw 'preflight trace already exists' }
+function Trace([string]$stage) { Add-Content -LiteralPath $trace -Value ("{0} {1}" -f (Get-Date).ToUniversalTime().ToString('o'),$stage) -Encoding UTF8; Write-Output $stage }
+Trace "K01.var04 preflight: session and run path"
+if (-not $env:SSH_CONNECTION -or (Get-Process -Id $PID).SessionId -ne 0 -or $env:SESSIONNAME) { throw 'session-0 SSH required' }
+if (Test-Path -LiteralPath $run) { throw 'immutable native run already exists' }
+if (-not (Test-Path -LiteralPath $workingDirectory)) { throw 'pinned working directory absent' }
+$ancestors = @()
+Trace "K01.var04 preflight: SSH ancestor"
+$ancestorPid = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
+for ($depth=0; $depth -lt 8 -and $ancestorPid -gt 0; $depth++) {
+  $ancestor = Get-CimInstance Win32_Process -Filter "ProcessId=$ancestorPid"
+  if (-not $ancestor) { break }
+  $ancestors += $ancestor.Name
+  $ancestorPid = $ancestor.ParentProcessId
+}
+if ($ancestors -notcontains 'sshd.exe') { throw 'cannot verify sshd ancestor' }
+Trace "K01.var04 preflight: source hashes"
+foreach ($entry in $sources.GetEnumerator()) {
+  $path, $expected = $entry.Value
+  if (-not (Test-Path -LiteralPath $path) -or (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw "source fingerprint differs: $($entry.Key)" }
+}
+Trace "K01.var04 preflight: frozen builder"
+& $python (Join-Path $case 'build.py') | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'frozen builder check failed' }
+$contract = Get-Content -LiteralPath (Join-Path $case 'contract.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($contract.case_id -ne 'K01' -or $contract.variant_id -ne 'K01.var04' -or $contract.version -ne '1.0.0-candidate' -or $contract.publication_state -ne 'not_published' -or $contract.child_input_sha256 -ne $sources.native_input[1] -or $contract.parent.input_sha256 -ne $sources.accepted_parent[1] -or $contract.parent.accepted_closure_sha256 -ne $sources.accepted_parent_closure[1] -or $contract.parameters.nreps -ne 1 -or $contract.parameters.seed -ne 1 -or $contract.parameters.horizon_hours -ne 36 -or $contract.parameters.parent_duration_hours -ne 2 -or $contract.parameters.child_duration_hours -ne 3) { throw 'contract fields differ' }
+if ($contract.expected_converter.errors -ne 0 -or $contract.expected_converter.warnings -ne 2 -or $contract.expected_converter.notes -ne 0 -or ($contract.expected_converter.warning_codes_in_order -join ',') -ne '108,126') { throw 'converter contract differs' }
+$queue = [System.Threading.Mutex]::new($false, 'Global\SimloxIssue18NativeQueue')
+$acquired = $false
+$runCreated = $false
+$runSealed = $false
+$fatalError = $null
+try {
+  Trace "K01.var04 preflight: queue"
+  try { $acquired = $queue.WaitOne(0) } catch [System.Threading.AbandonedMutexException] { $acquired = $true }
+  if (-not $acquired) { throw 'host-wide native queue busy' }
+  $gui = @(Get-Process Simlox -ErrorAction SilentlyContinue)
+  Trace "K01.var04 preflight: GUI identity"
+  if ($gui.Count -ne 1 -or $gui[0].Id -ne 13340 -or $gui[0].SessionId -le 0) { throw 'expected GUI PID 13340 only' }
+  $guiSession = $gui[0].SessionId
+  $guiStart = $gui[0].StartTime.ToUniversalTime().ToString('o')
+  $sessions = @(qwinsta 2>&1)
+  Trace "K01.var04 preflight: GUI session"
+  if ($LASTEXITCODE -ne 0 -or @($sessions | Where-Object { $_ -match ('^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+'+$guiSession+'\s+(?:Active|\u8fd0\u884c\u4e2d)(?:\s|$)') }).Count -ne 1) { throw 'GUI session not active' }
+  function Assert-Gui {
+    $p = @(Get-Process Simlox -ErrorAction SilentlyContinue)
+    if ($p.Count -ne 1 -or $p[0].Id -ne 13340 -or $p[0].SessionId -ne $guiSession -or $p[0].StartTime.ToUniversalTime().ToString('o') -ne $guiStart) { throw 'GUI process changed' }
+  }
+  New-Item -ItemType Directory -Path $run -Force | Out-Null
+  $runCreated = $true
+  Trace "K01.var04 native: run directory created"
+  Copy-Item -LiteralPath $nativeInputPath -Destination (Join-Path $run 'input.json')
+  $sourceHashes = [ordered]@{}
+  foreach ($entry in $sources.GetEnumerator()) { $sourceHashes[$entry.Key] = $entry.Value[1] }
+  foreach ($name in @('build.py','check_roundtrip.py','run_native_ssh.ps1')) {
+    $sourceHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $case $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+  }
+  $sourceHashes.python = (Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash.ToLowerInvariant()
+  $sxi = Join-Path $run 'model.sxi'; $sxo = Join-Path $run 'model.sxo'
+  $commands = @(
+    [pscustomobject]@{ name='import'; args=('-silent -jimport "{0}" -save "{1}" -log "{2}" -close' -f (Join-Path $run 'input.json'),$sxi,(Join-Path $run 'import.log')) },
+    [pscustomobject]@{ name='export'; args=('"{0}" -silent -jexport "{1}" -log "{2}" -close' -f $sxi,(Join-Path $run 'roundtrip-raw.json'),(Join-Path $run 'export.log')) },
+    [pscustomobject]@{ name='calc'; args=('"{0}" -silent -threads 1 -calc -log "{1}" -close' -f $sxi,(Join-Path $run 'run.log')) },
+    [pscustomobject]@{ name='jsonreport'; args=('"{0}" -silent -jsonreport "{1}" -log "{2}" -close' -f $sxo,(Join-Path $run 'report-raw.json'),(Join-Path $run 'report-export.log')) }
+  )
+  [ordered]@{ schema='simlox-k01-var04-native/ssh-cli-v1'; run_id=$RunId; created_utc=(Get-Date).ToUniversalTime().ToString('o'); original_run_dir=$run; execution_mode='ssh_cli_v1'; session_id=0; ssh_ancestor_names=$ancestors; gui=[ordered]@{pid=13340;session_id=$guiSession;start_utc=$guiStart}; queue_mutex='Global\SimloxIssue18NativeQueue'; working_directory=$workingDirectory; planned_commands=@($commands | ForEach-Object { [ordered]@{name=$_.name;arguments=$_.args} }); source_hashes_before=$sourceHashes; publication_state='not_published' } | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath (Join-Path $run 'invocation.json') -Encoding UTF8
+  $steps = @(); $errorText = $null
+  foreach ($command in $commands) {
+    Trace "K01.var04 native: $($command.name)"
+    $step = [ordered]@{name=$command.name;arguments=$command.args;started_utc=(Get-Date).ToUniversalTime().ToString('o');completed_utc=$null;exit_code=$null;gui_preserved=$false;status='started';error=$null}
+    $steps += $step
+    try {
+      Assert-Gui
+      $process = Start-Process -FilePath $exe -ArgumentList $command.args -WorkingDirectory $workingDirectory -WindowStyle Hidden -PassThru -Wait
+      $step.exit_code = $process.ExitCode
+      Assert-Gui; $step.gui_preserved = $true
+      if ($process.ExitCode -ne 0) { throw "$($command.name) exit=$($process.ExitCode)" }
+      $required = switch ($command.name) { 'import' {@('model.sxi','import.log')} 'export' {@('roundtrip-raw.json','export.log')} 'calc' {@('model.sxo','run.log','model.log')} 'jsonreport' {@('report-raw.json','report-export.log')} }
+      foreach ($name in $required) { $path = Join-Path $run $name; if (-not (Test-Path -LiteralPath $path) -or (Get-Item -LiteralPath $path).Length -le 4) { throw "$($command.name) output $name absent/empty" } }
+      if ($command.name -eq 'calc') {
+        $log = Get-Content -LiteralPath (Join-Path $run 'run.log') -Raw -Encoding UTF8
+        $warningCodes = @([regex]::Matches($log, '\(warning #(\d+)\)') | ForEach-Object { $_.Groups[1].Value })
+        if ($log -notmatch 'Input conversion completed\. Errors: 0, Warnings: 2, Notes: 0' -or
+            ($warningCodes -join ',') -ne '108,126' -or
+            $log -notmatch 'rec 1: \(warning #126\) This system contains no items: TEACH-AIR-01' -or
+            [regex]::IsMatch($log, '\((?:error|notice) #')) {
+          throw 'unexpected converter diagnostic'
+        }
+      }
+      $step.status = 'completed'
+    } catch { $errorText = $_.Exception.Message; $step.status='failed'; $step.error=$errorText; break }
+    finally { $step.completed_utc=(Get-Date).ToUniversalTime().ToString('o'); ConvertTo-Json -InputObject $steps -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'steps.json') -Encoding UTF8 }
+  }
+  if (Test-Path -LiteralPath (Join-Path $run 'roundtrip-raw.json')) {
+    $step = [ordered]@{name='check_import_export';started_utc=(Get-Date).ToUniversalTime().ToString('o');completed_utc=$null;exit_code=$null;status='started';error=$null}
+    $steps += $step
+    try {
+      & $python (Join-Path $case 'check_roundtrip.py') $run | Set-Content -LiteralPath (Join-Path $run 'roundtrip-validation.json') -Encoding UTF8
+      $step.exit_code = $LASTEXITCODE
+      Assert-Gui
+      if ($step.exit_code -ne 0) { throw "roundtrip checker exit=$($step.exit_code)" }
+      $step.status='completed'
+    } catch { if (-not $errorText) { $errorText=$_.Exception.Message }; $step.status='failed'; $step.error=$_.Exception.Message }
+    finally { $step.completed_utc=(Get-Date).ToUniversalTime().ToString('o'); ConvertTo-Json -InputObject $steps -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'steps.json') -Encoding UTF8 }
+  }
+  $sourceHashesAfter = [ordered]@{}
+  foreach ($entry in $sources.GetEnumerator()) { $sourceHashesAfter[$entry.Key] = (Get-FileHash -LiteralPath $entry.Value[0] -Algorithm SHA256).Hash.ToLowerInvariant() }
+  foreach ($name in @('build.py','check_roundtrip.py','run_native_ssh.ps1')) { $sourceHashesAfter[$name] = (Get-FileHash -LiteralPath (Join-Path $case $name) -Algorithm SHA256).Hash.ToLowerInvariant() }
+  $sourceHashesAfter.python = (Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash.ToLowerInvariant()
+  foreach ($key in $sourceHashes.Keys) { if ($sourceHashes[$key] -ne $sourceHashesAfter[$key]) { $errorText = "source changed during run: $key" } }
+  $raw = @{}
+  foreach ($file in Get-ChildItem -LiteralPath $run -File) { if ($file.Name -ne 'invocation.json') { $raw[$file.Name] = [ordered]@{bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()} } }
+  [ordered]@{schema='simlox-k01-var04-native-closure/v1';run_id=$RunId;invocation_sha256=(Get-FileHash -LiteralPath (Join-Path $run 'invocation.json') -Algorithm SHA256).Hash.ToLowerInvariant();source_hashes_before=$sourceHashes;source_hashes_after=$sourceHashesAfter;raw=$raw;error=$errorText;publication_state='not_published'} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $run 'closure.json') -Encoding UTF8
+  $runSealed = $true
+  if ($errorText) { throw $errorText }
+  Write-Output ([ordered]@{run_id=$RunId;run_dir=$run;native_steps='completed'} | ConvertTo-Json)
+} catch {
+  $fatalError = $_.Exception.Message
+  throw
+} finally {
+  if ($runCreated -and -not $runSealed -and -not (Test-Path -LiteralPath (Join-Path $run 'closure.json'))) {
+    try {
+      $partialRaw = @{}
+      foreach ($file in Get-ChildItem -LiteralPath $run -File) {
+        if ($file.Name -ne 'invocation.json') { $partialRaw[$file.Name] = [ordered]@{bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()} }
+      }
+      $invocationPath = Join-Path $run 'invocation.json'
+      $invocationSha = if (Test-Path -LiteralPath $invocationPath) { (Get-FileHash -LiteralPath $invocationPath -Algorithm SHA256).Hash.ToLowerInvariant() } else { $null }
+      [ordered]@{schema='simlox-k01-var04-native-closure/v1';run_id=$RunId;invocation_sha256=$invocationSha;source_hashes_before=$sourceHashes;source_hashes_after=$null;raw=$partialRaw;error=$fatalError;publication_state='excluded_diagnostic';partial=$true} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $run 'closure.json') -Encoding UTF8
+    } catch { Write-Error "partial closure failed: $($_.Exception.Message)" }
+  }
+  if ($acquired) { $queue.ReleaseMutex() | Out-Null }
+  $queue.Dispose()
+}
