@@ -1,0 +1,29 @@
+{
+  "case": "F03-var02-two-base-stock-v1.0.0",
+  "checks_passed": 1866,
+  "checks_total": 1866,
+  "evidence": {
+    "base02_mission": "aircraft2 successful h8\u201310 in both",
+    "depot_closure_sha256": "200bb01b262dbde7f2715bf2bc8a6fb81b26004450ac9776394e3241f000d5cd",
+    "depot_only_base01_backorder_hours": 6,
+    "depot_report_sha256": "8525345da7990bf1aa8d3d5f87d69a83985eaf20b6008c9f7cef16ec78b40b6d",
+    "forward_base01_backorder_hours": 2,
+    "forward_closure_sha256": "a3909581260630fcb2c99f6ee4dd1c976b01db776e519e3147fae001d3a32bd0",
+    "forward_report_sha256": "b81f25f6e6d8de43a701fbf8de338ed90b9b173ac1623926c0b2c160bceda0ac",
+    "matched_lru_demand_hours": [
+      23.74,
+      48.2231,
+      48.2231
+    ]
+  },
+  "failures": [],
+  "limits": [
+    "One seed, two bases and three aircraft; only BASE-01 LRU opening stock changes as a business field.",
+    "Physical item IDs differ between arms and are matched by role and event chronology, not numeric equality.",
+    "Forward opening stock also changes downstream BASIC launch timing; equal final ResultSummary does not mean equal intermediate readiness.",
+    "No BASE-02 stock demand, route contention, repair-capacity contrast or larger-network behavior is established.",
+    "Half-hour report occupancies are reconciled from printed event times within rounding tolerance; aggregate ResourceResults does not expose per-base rows."
+  ],
+  "passed": true,
+  "verdict": "GO \u2014 bounded BASE-01 forward-stock comparison"
+}
