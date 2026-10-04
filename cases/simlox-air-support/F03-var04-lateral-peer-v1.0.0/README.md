@@ -1,0 +1,11 @@
+# F03.var04 two-base lateral peer
+
+This fixed-seed pair extends accepted F03.var03 BASE-01 risk demand with the accepted E08 LAT-01 immediate lateral rule. BASE-01 and BASE-02 are peers, BASE-02 opens with one LRU, and each base has an unchanged two-hour depot route. The paired business switch is only Control.ENLAT Y versus N; both inputs retain the stocked peer and lateral geometry. The [contract](contract.json) and [exact diff](exact-diff.json) pin this comparison.
+
+The first risk fault and BASE-01 LRU demand match at h22.24 and h23.74. With lateral enabled, physical peer item 4 leaves BASE-02, reaches BASE-01 at h24.24 and clears the backorder after 0.5 hour. Depot item 2 replenishes BASE-02 at h25.74. With lateral disabled, depot item 2 instead reaches BASE-01 at h25.74, clearing that backorder after two hours; no lateral issue occurs. First aircraft repair completes h24.5733 versus h26.0733, and the first BASIC mission starts h25.0733 versus h26.5733. The later random fault paths diverge. Whole-run backorder totals of one versus six item-hours describe these runs but are not a controlled causal estimate for all later demands.
+
+## Reproduce and evidence
+
+Run python build.py and python describe_diff.py to verify frozen inputs. Run run_native_ssh.ps1 with Arm lateral_on or lateral_off and a new RunId serially through session-0 SSH. The runner verifies source hashes, sshd ancestry, the host mutex and active GUI PID 13340, then imports, exports, calculates and reports under the pinned SIMLOX executable. Run python validate_native.py to replay the two accepted run IDs, including 31 populated authored-table roundtrips, raw SHA closures, typed event and item identity, and all 120 half-hour System, Stock and Resource bins. Separate independent checks are under [review](review). [Evidence index](evidence-index.json) seals the ignored local SXI/SXO, logs and reports.
+
+This is one seed, a three-aircraft/two-base fleet, an immediate stocked-peer lateral rule and one matched first demand. Autonomous stations, other lateral timing or priority rules, simultaneous peer demands, contention, alternate seeds, GUI behavior, and cross-engine equivalence remain unverified. F04 and Issue #18 remain open.

@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F03",
+  "variant_id": "F03.var04",
+  "version": "1.0.0-candidate",
+  "scope": "A two-base, three-aircraft risk fleet with one stocked BASE-02 peer. Add accepted E08 LAT-01 immediate lateral geometry and compare Control.ENLAT Y/N with all other business inputs fixed.",
+  "accepted_parent": {
+    "package": "F03-var03-demand-location-v1.0.0",
+    "input_sha256": "df4daeab5076e4b29b2d2a04c0a90bddd0af589af1e0dce2483c48fce5c2a06c",
+    "closure_sha256": "d759fa4d7bc7992c4d5d27c695a5809d28d06fa47c1e2e1a86d733c5d4395cc9",
+    "signoff_sha256": "3bc03e7fe062df611dfdebbbc3da3845b97f6776a0a2477c13b0cd47dc543b1c"
+  },
+  "accepted_lateral_donor": {
+    "package": "E08-var01-immediate-lateral-v1.0.2",
+    "input_sha256": "630d7600e7ff77ddb057f05af0852b4f41ed6335718570f9fcf5eddd9f51c474",
+    "signoff_sha256": "62811d4761a05c7aea45e6b9514a6865d2ca54ca8a07d655ee656ddbad1e5986"
+  },
+  "inputs_sha256": {
+    "lateral_on": "470214d017cc149077b4a96b37573dd8b32f435ca45b571a3ea5c171bd2c4cbe",
+    "lateral_off": "f1466be0ecdf7fcc2edab029a81a61db4acf873dad4b478d0e28be4d54231e4b"
+  },
+  "exact_diff_sha256": "0f76d6fe560103467b9eff7a47b4af38659fe7628a48217a4f15ba869fb37f09",
+  "parameters": {
+    "seed": 1,
+    "nreps": 1,
+    "horizon_hours": 60,
+    "report_interval_hours": 0.5,
+    "aircraft": {"BASE-01": 2, "BASE-02": 1},
+    "lateral_group": "LAT-01 BASE-01/BASE-02, IMMEDIATE, TLAT 0.5 hours, DLAYL N",
+    "base02_lru_opening_stock": 1,
+    "base01_lru_opening_stock": 0,
+    "depot_lru_opening_stock": 2,
+    "depot_routes": "two hours in each direction from either base"
+  },
+  "expected_timeline": [
+    "The accepted parent has BASE-01 LRU demands at h23.74 and twice h48.2231; the peer stock and lateral source may affect physical item IDs and later random timing. Require matched demand/fault evidence before paired causal claims.",
+    "With ENLAT=Y, a BASE-02 spare may reach BASE-01 in 0.5 hour before the ordinary two-hour depot route; with ENLAT=N the peer configuration remains present but disabled. Check actual lateral/depot item identity, replenishment, backorder, repair/mission effects, and both bases' stock ledgers.",
+    "The BASE-02 aircraft and mission remain active; verify they do not consume the stocked peer item in this seed."
+  ],
+  "acceptance_hypotheses": [
+    "Fresh serial guarded SSH0/mutex/GUI13340 runs import/export/calculate/report with zero conversion errors and no unreviewed diagnostics, exact populated-table roundtrip, nonempty native output, and raw-file SHA closures.",
+    "Only ENLAT changes as a paired business field, while true two-base lateral geometry and peer stock are present in both arms. A shortcut that relies on the setting without physical peer issue is insufficient.",
+    "Trace aircraft, item and station identities, peer/depot transports, base/depot inventory, report System/Stock/Resource half-hour bins and terminal states. Do not generalize to different lateral rules, autonomous stations, overlapping demands or route contention."
+  ]
+}
