@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K06",
+  "variant_id": "K06.var01",
+  "version": "0.2.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "k06-var01-opi-sxi-merge-v020-ssh-20261005-01",
+  "scope": "Derive a JSON donor from accepted K02.var01 named input by removing only the conflicting K02-BASE Station instance; import it to a new native SXI, copy those bytes as .opi, import into accepted K01.var04 target SXI, save a separate SXI, export, calculate and report. This tests one self-built input-file merge, not OPUS10-generated content.",
+  "target": {
+    "package": "K01-var04-parent-child-model-diff-v1.0.0",
+    "run_id": "k01-var04-duration-v100-ssh-20261004-01",
+    "native_sxi_sha256": "eedc015f9cd53c94036803656b0c84c83ddadcd92299397e769f4489482116c6",
+    "native_sxi_bytes": 189251,
+    "closure_sha256": "5200cc3f73c3dfce1b89f61314a0d98e460c4a9a08888139da0e3f8e3baa2b10"
+  },
+  "source": {
+    "package": "K02-var01-json-structure-v1.0.1",
+    "run_id": "k02-var01-named-v101-ssh-20261004-01",
+    "native_sxi_sha256": "60c7a5cddd2af357282d948aa92409f526d751a173b19c931f9a5213f83e8815",
+    "native_sxi_bytes": 189410,
+    "closure_sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3",
+    "input_sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00",
+    "signoff_sha256": "e4f14cbdb2e74237189a46d2a743101b4033a0f3d59c38619ca7eb208ca67e89"
+  },
+  "derived_source": {
+    "json_sha256": "5cb8abade62adb4f82fa7629b6f64867cb8d8ae57507b8b16ab521a17e7d1fab",
+    "delta": "Remove K02-BASE Station instance containing BASE-01; keep K02-AUX Station instance containing K02-NAMED and every other table/field unchanged.",
+    "reason": "The sealed v0.1.0 import saved a merged SXI but native conversion failed with error #2013 because BASE-01 was present in both default and named Station instances."
+  },
+  "prior_diagnostic": {
+    "run_id": "k06-var01-opi-sxi-merge-v010-ssh-20261005-01",
+    "closure_sha256": "59d9d60183fb252f3d57a8d93a004584e6978fd1005e121f8388b2e214ed2bbb",
+    "finding": "The original accepted K02 native source imported and saved, but BASE-01 appeared in both default and K02-BASE Station instances; calc error #2013 and a four-byte SXO prevented acceptance."
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [157, 158, 167],
+    "rule": "The GUI manual describes merging OPUS10 .opi or SIMLOX .sxi data into an open input and says imported same-key values overwrite target values. The CLI -import file entry explicitly mentions .sxi, so .opi acceptance through that CLI command is a hypothesis."
+  },
+  "frozen_delta": "Build one derived JSON input by deleting only K02-BASE Station instance from accepted K02 named JSON. Native -jimport it to a new source.sxi, copy the resulting bytes to source.opi, and request CLI -import into an accepted K01 target.sxi followed by -save of merged.sxi.",
+  "acceptance_hypotheses": [
+    "The accepted target copy retains its SHA-256 and byte count, the derived JSON bytes match the frozen builder, and accepted parent closures still match.",
+    "Native -jimport creates a nonempty source.sxi from the derived JSON; its exact bytes copied as source.opi are accepted by CLI -import into target.sxi and save as merged.sxi.",
+    "The merged JSON export contains BASE-01 exactly once and K02-NAMED exactly once. Record both ProblemDescription rows and their provenance; this table has no key, so source data may append. Native conversion has zero errors, nonempty output and the accepted mission timeline."
+  ],
+  "gate": "Publish only if new native source import, .opi-to-.sxi merge, roundtrip, calculation, report and independent raw-seal replay pass with explicit Station and duplicate-key assertions. Otherwise keep a diagnostic. Never infer OPUS10-origin equivalence, .opo result points, LORA, phase scenario, or general K06 behavior.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, host-wide Issue #18 mutex, protected GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One self-built common-format .opi generated from accepted K02 JSON with one Station instance removed; CLI documentation only names .sxi for -import; no OPUS10-generated data, .opo, GUI, cross-engine or general merge claim."]
+}

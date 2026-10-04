@@ -1,0 +1,3 @@
+# Independent read-only replay — K06.var01 v0.1.0
+
+Decision: **NO-GO for merge acceptance; preserve as a sealed diagnostic.** A separate reviewer checked all 10 source hashes before and after the run, the invocation SHA, all 11 raw SHA-256/size seals, copied K01/K02 native input bytes, three SSH0 steps and the protected GUI PID 13340 evidence. Import saved a merged SXI and JSON export, but Station contains `BASE-01` twice across instances. Native converter error #2013 made the SXO four bytes; no report was produced. The extra sealed raw file is SIMLOX's target backup. The v0.2.0 source removes only the source-side `K02-BASE` instance and remains a distinct candidate.
