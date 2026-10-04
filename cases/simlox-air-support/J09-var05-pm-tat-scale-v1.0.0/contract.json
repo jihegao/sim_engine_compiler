@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-j09-var05-pm-tat-scale-pre-run-contract/v1",
+  "case_id": "J09",
+  "variant_id": "J09.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Test ScaleFactors.SCPMT=2 against accepted D03's one-aircraft, one-hour CAL24 calendar PM task with the 24-hour interval unchanged. Seek a directly observable native PM work-duration change; otherwise retain this run as a diagnostic.",
+  "accepted_parent": {
+    "package": "D03-calendar-pm-v1.0.0",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "run_id": "d03-calendar-v100-ssh-20261001-02",
+    "closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1"
+  },
+  "scale_schema_precedent": {
+    "package": "J09-var04-pm-interval-scale-v1.0.0",
+    "input_sha256": "e58a615dca7dca19608cee4546940d3823188559d49c37604ffbe6d064777486",
+    "closure_sha256": "e13eccaca8f8f145d0138005556f82eb313ce5503881494c83a146749dabaf8d",
+    "evidence_index_sha256": "888ba0e9e96be769d85d8cf26adb165162aa502eb6c41382db03f959c3741329"
+  },
+  "scaled_input_sha256": "320d4ec6459c4e3b926f725360d363d38d7267c4f986afcba22eb4fa31c10c98",
+  "exact_diff_sha256": "304d6bd03ccaf78a023eccf2872f54d75e7e13e2ce587300ff78e397161d93c9",
+  "source": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "parameters": {
+    "seed": 1,
+    "simulation_horizon_hours": 60,
+    "report_interval_hours": 0.5,
+    "expected_report_bins": 120,
+    "authored_calendar_pm_interval_hours": 24,
+    "authored_pm_subtask_hours": 1,
+    "scale_factors": {"SCFRT": 1.0, "SCRPT": 1.0, "SCLDT": 1.0, "SCPMI": 1.0, "SCPMT": 2.0, "SCTRT": 1.0}
+  },
+  "pre_run_hypotheses": [
+    "The source appends only one ScaleFactors row with SCPMT2; all 31 D03 parent tables, PMINT24 CALHOURS, one-hour PMLocation PMT and TaskBreakDown duration, seed1 and 60-hour horizon remain unchanged.",
+    "Fresh guarded session-0 SSH import, export, calculation and report must pass with GUI PID13340 preserved, zero converter errors, only reviewed warnings #108/#126 and sealed raw hashes. All 18 parent populated source tables must roundtrip exactly; ScaleFactors may gain only optional double null columns with its six authored values unchanged.",
+    "A positive SCPMT effect requires an event-level PM work-duration or completion-time change from accepted D03. One possible result is a two-hour task at 24–26 and a later second task; that timing is conditional and must be measured. If no direct PM timing change occurs, this candidate is diagnostic, not positive J09.var05 acceptance.",
+    "Trace each PM task/subtask, ready-state interval, resource request and mission outcome through hour60. Separate a scaled PM task from a scaled PM interval; SCPMI remains 1.0.",
+    "Reconcile all 120 System and Stock half-hour bins, PM start/completion markers, integrated NSYPM, mission summary and terminal state against D03. Obtain separate author and independent read-only replays before any publication.",
+    "Limit any accepted behavior to this CAL24 task/seed/scale value/horizon; do not infer other PM tasks, intervals, repair scales, GUI or cross-engine behavior."
+  ]
+}
