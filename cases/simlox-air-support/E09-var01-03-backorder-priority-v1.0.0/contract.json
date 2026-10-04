@@ -1,0 +1,44 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "E09",
+  "variant_ids": ["E09.var01", "E09.var02", "E09.var03"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e09-backorder-priority-v100-ssh-20261004-01",
+  "scope": "At one physical depot, contrast FIFO and urgency-prioritized allocation of a repaired LRU between an earlier ordinary BASE-01 replenishment request and a later BASE-02 aircraft-blocking backorder; test Control.ENBOP and depot Station.BOPRI as a three-arm gate in one fixed SIMLOX 2017 source family.",
+  "dependency": {
+    "parent_package": "E12-var02-two-fault-control-v1.0.0",
+    "parent_input_sha256": "65f6790c712552ff8fd6db322a2a9f5e345d3e9679cb28bea4a15f781a55dd3b",
+    "parent_closure_sha256": "03cd6c4974035c6547bb6b391127d90ab2a2d150e27b7084b66411f205986760",
+    "parent_signoff_sha256": "13d815bb9ffddb848c91595c6b6f4cca010178b8d2d1140240d8507ecbc88688",
+    "instructional_prerequisites": [
+      {"case_id": "E03", "package": "E03-two-aircraft-shared-spare-v1.0.0", "signoff_sha256": "dedf59901c805c7bbfd6c7421f02d0b051d0fbbc38c97819970988203e47c4e1"},
+      {"case_id": "E07", "package": "E07-item-specific-transport-v1.0.1", "signoff_sha256": "f0683a30a42aa101c4c88ac242d7d6b1d38857dfc56f650cce0bab44323120fc"}
+    ]
+  },
+  "inputs_sha256": {
+    "fifo": "65ea74ec48d1486448cbee8c6d0e59304bad6fc54ddfac2a4ac8360150ba94ad",
+    "priority": "d13f0d832f6ee2961bdf107e195d27a162a2aca5c06a97b43337438ce2bb6b43",
+    "disabled": "b542056f8292bf64df187a4ad9871de67eea348023ab262322ee733c7b3380b0"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [234, 322, 324, 444, 445, 446],
+    "rule": "Control.ENBOP=N ignores station backorder prioritisation. At the depot, Station.BOPRI=Y serves backorders by urgency at the supported station, prioritizing a station that itself has backorders over ordinary first-come-first-served replenishment. This test requires actual competing queued requests before an inbound item is allocated."
+  },
+  "frozen_source_delta": [
+    "Derive all arms from accepted E12.var02 two-fault individual-row control: seed1, one aircraft each at BASE-01 and BASE-02, shared DEPOT-01, 3.5-hour missions at h8/h20/h32, LRU failures at h9.8829/h11.1325 in the accepted parent, 36-hour horizon.",
+    "Set BASE-02 and DEPOT-01 opening TEACH-LRU-01 stock from 1 to 0; BASE-01 opening stock remains 1. Retain one-hour depot item repair and one-hour downward / three-hour upward item-specific transport. This is intended to queue an ordinary BASE-01 replenishment before a BASE-02 aircraft-blocking backorder, both before the first failed LRU is repaired.",
+    "FIFO arm has Control.ENBOP=Y and DEPOT-01 Station.BOPRI=N; priority arm has Y/Y; disabled arm has Control.ENBOP=N and depot BOPRI=Y. Only description, these two flag fields and the shared opening-stock changes differ from the accepted parent. Only description and the flags differ among arms."
+  ],
+  "acceptance_hypotheses": [
+    "All three inputs import/export with exact populated-cell roundtrip, zero converter errors and usable SXO/event/report outputs. Warnings are classified.",
+    "Before the first inbound repaired item is allocated, raw events prove an earlier ordinary BASE-01 depot request and a later BASE-02 demand that waits for an aircraft-blocking spare; both requests remain outstanding concurrently.",
+    "At the first depot inbound item, FIFO sends the item to BASE-01 while priority sends it to BASE-02; disabled matches FIFO on the allocation and relevant downstream events. Every physical item has a single location or trip at a time; stock, outstanding demand and transport events reconcile.",
+    "Per-station stock/backorder report rows and mission outcomes reconcile with the event sequence; no conclusion is drawn from final success rate alone."
+  ],
+  "gate": "Publish only the arm comparisons for which concurrent demand, distinct destination and Control/Station gate effects are directly established by sealed native events plus independent read-only replay. If the two requests do not coexist or priorities do not change allocation, retain immutable diagnostic and redesign a new version; no inference from manual or process exit alone.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 identity, immutable run path, 60-second targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One fixed seed, two bases, one depot, one item type and one inbound repaired item; no generalized priority tie-breaker, other demand mixes, lateral support, GUI or cross-engine claim."]
+}
