@@ -1,0 +1,87 @@
+{
+  "schema": "simlox-f03-demand-location-diff/v1",
+  "parent_changed_tables": [
+    "ProblemDescription"
+  ],
+  "pair_changed_tables": [
+    "ProblemDescription",
+    "Unit",
+    "MissionPreparation",
+    "MissionTurnround"
+  ],
+  "pair_changed_cells": [
+    {
+      "table": "ProblemDescription",
+      "row": 1,
+      "key": "F03.var03 risk-fleet demand at BASE-01; second unit at BASE-02",
+      "column": "PDESC",
+      "risk_base1": "F03.var03 risk-fleet demand at BASE-01; second unit at BASE-02",
+      "risk_base2": "F03.var03 risk-fleet demand at BASE-02; second unit at BASE-01"
+    },
+    {
+      "table": "Unit",
+      "row": 1,
+      "key": "TEACH-UNIT",
+      "column": "STID",
+      "risk_base1": "BASE-01",
+      "risk_base2": "BASE-02"
+    },
+    {
+      "table": "Unit",
+      "row": 2,
+      "key": "TEACH-UNIT-2",
+      "column": "STID",
+      "risk_base1": "BASE-02",
+      "risk_base2": "BASE-01"
+    },
+    {
+      "table": "MissionPreparation",
+      "row": 1,
+      "key": "BASIC-MISSION",
+      "column": "STID",
+      "risk_base1": "BASE-01",
+      "risk_base2": "BASE-02"
+    },
+    {
+      "table": "MissionPreparation",
+      "row": 2,
+      "key": "RISK-MISSION",
+      "column": "STID",
+      "risk_base1": "BASE-01",
+      "risk_base2": "BASE-02"
+    },
+    {
+      "table": "MissionPreparation",
+      "row": 3,
+      "key": "BASE2-MISSION",
+      "column": "STID",
+      "risk_base1": "BASE-02",
+      "risk_base2": "BASE-01"
+    },
+    {
+      "table": "MissionTurnround",
+      "row": 1,
+      "key": "BASIC-MISSION",
+      "column": "STID",
+      "risk_base1": "BASE-01",
+      "risk_base2": "BASE-02"
+    },
+    {
+      "table": "MissionTurnround",
+      "row": 2,
+      "key": "RISK-MISSION",
+      "column": "STID",
+      "risk_base1": "BASE-01",
+      "risk_base2": "BASE-02"
+    },
+    {
+      "table": "MissionTurnround",
+      "row": 3,
+      "key": "BASE2-MISSION",
+      "column": "STID",
+      "risk_base1": "BASE-02",
+      "risk_base2": "BASE-01"
+    }
+  ],
+  "business_delta": "Move TEACH-UNIT with two risk aircraft BASE-01 to BASE-02 and TEACH-UNIT-2 with one aircraft BASE-02 to BASE-01, with matching mission preparation/turnround location rows; all stock, resources, routes, repair/PM and schedules fixed."
+}
