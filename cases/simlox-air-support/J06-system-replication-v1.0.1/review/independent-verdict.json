@@ -1,0 +1,43 @@
+{
+  "case": "J06.var02 System replication TOTAL/TIME/SNAPS",
+  "checks_passed": 12716,
+  "checks_total": 12716,
+  "evidence": {
+    "child_input_sha256": "60d34ec2679a72895f0378d7bb8cffec71bc2bc969a198c6227349b66c338258",
+    "closure_sha256": "516a38de676cafeba19bdf6d7c3c7ea1676b97b91dee561956b77bf6911f557b",
+    "default_report_sha256": "16eab1fda9185b0fd26043336d29660cedceb9d8cb9439aea2ad8c3b25ee30b8",
+    "first_replication_mission_hours": [
+      8,
+      10
+    ],
+    "first_replication_terminal_ready": 12,
+    "h9_operating_aircraft_frequency": {
+      "0": 3,
+      "2": 5,
+      "4": 5,
+      "6": 2,
+      "8": 1
+    },
+    "replication_count": 16,
+    "replication_report_sha256": "5e387ffe21e406e92e9cd6f89398ab40e18fd72216b0d882e2bb3da13bc41230",
+    "settings_sha256": "6417a4f4ece02e758b4cae90afb674ec93d3c0b3aa730bdb6334df036d746882",
+    "snapshot_hours": [
+      9,
+      11
+    ],
+    "snapshot_rows": 32,
+    "system_time_rows": 1152,
+    "system_total_rows": 16
+  },
+  "failures": [],
+  "limits": [
+    "One installed CLI engine, this 12-aircraft Poisson model, 16 fixed-seed replications, a 36-hour horizon, and System TOTAL/TIME/SNAPS report settings.",
+    "ENLOG shows first-rep events only. Replications 2–16 are validated through their native result rows, not individual event logs.",
+    "Numeric System aggregates equal means of corresponding per-rep rows; null fields remain null. No general formula is asserted for other report tables or metrics.",
+    "The excluded v1.0.0 percentile probe stopped on warning #502. No percentile or STLOW distribution claim is accepted.",
+    "No population distribution, GUI-only, or cross-engine conclusion follows from these sixteen replications."
+  ],
+  "passed": true,
+  "schema": "independent-j06-var02-system-replications-readonly/v1",
+  "verdict": "GO: bounded 16-replication System result exposure"
+}
