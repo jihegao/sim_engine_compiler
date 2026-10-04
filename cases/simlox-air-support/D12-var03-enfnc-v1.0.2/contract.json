@@ -1,0 +1,68 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D12",
+  "variant_id": "D12.var03",
+  "version": "1.0.2-candidate",
+  "publication_state": "not_published",
+  "run_id": "d12-var03-enfnc-v102-ssh-20261004-01",
+  "excluded_diagnostic": {
+    "package": "D12-var03-enfnc-v1.0.0",
+    "closure_sha256": "a3815862f60e0a45e1f564de99a6332570ed7b627a853caf26246cfd698e1aa3",
+    "reason": "Converter error #204: scheduled missions at hours 20 and 32 exceed the shortened 14-hour simulation period. No simulation result was accepted."
+  },
+  "excluded_no_exposure_diagnostic": {
+    "package": "D12-var03-enfnc-v1.0.1",
+    "closure_sha256": "f5dd3a62bb88783093fe75cf24dabb9556c86f1ec85f441b99ae10a6534dc3e0",
+    "reason": "Both arms ran with converter errors zero but generated no failure within the 14-hour window; logs and reports were identical, so no ENFNC effect was observable."
+  },
+  "scope": "Paired SIMLOX 2017 CLI comparison of MaterielPM.ENFNC=N versus Y when one explicit noncritical failure and one noncritical calendar PM await the same aircraft and shared maintenance worker. Compare native task initiation, resource order and completion, not only final readiness.",
+  "dependency": {
+    "parent_package": "D08-var03-criticality-v1.0.0",
+    "parent_arm": "failure-mode CRITF=0 explicit noncritical CM",
+    "input_sha256": "36d20f6be3bcb877ff925542aa2a3f95324a7e1562ed57f18c1561fba27fe59e",
+    "closure_sha256": "47a0f9aa98a0682afa4a997de86e880ea0f9e654cee16587b9f6e309d8196fbe",
+    "signoff_sha256": "ace40efeac9e2b2854f0d56a2635b397c8988db6b882bc6d91645539b3237749",
+    "maintenance_pattern_package": "D05-maintenance-competition-v1.0.0",
+    "maintenance_pattern_input_sha256": "4443d057ade36010a84186aa0f9ac8279886563db190ed80699b7fe48ad2baad",
+    "maintenance_pattern_signoff_sha256": "e645b900f397a955d2b588aa5f0e4d50f2f4b7d082a09f35e7b89a4dfaf23c11"
+  },
+  "inputs_sha256": {
+    "n": "f4f00ac9367f0d4ca45c40aa961be263b2528477fd905c6a05d75317af421c9f",
+    "y": "1ec80886def9436cf9f42ed983e5b1b759ae136232335c98b8a4316fae11dec1"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [202, 203, 204, 217, 218, 357, 358, 367, 370, 371, 373, 374],
+    "rule": "MaterielPM.ENFNC defaults to N; Y enforces noncritical repair actions before a noncritical PM on the same system. The manual's normal order is critical repair, critical PM, noncritical PM, noncritical repair. Direct event evidence is required for this particular overlap."
+  },
+  "frozen_source_delta": [
+    "Derive both arms from accepted D08.var03 failure-mode CRITF=0 input, retaining the first scheduled mission and explicit FM-POS-A direct repair route.",
+    "Enable PM; shorten simulation and collection horizon 36 to 14 hours and retain only the first h8 mission row; raise explicit FM-POS-A FRQ equally in both arms from 300000 to 3000000 per million operating hours; add one 9.9-hour calendar PM with DTIM=0.5 and MNOCC=1; add shared P-MAINT resource and half-hour CM/one-hour PM subtasks; bind CM to its task.",
+    "The paired arms differ only in descriptive text and PM9P9.ENFNC N versus Y."
+  ],
+  "parameters": {
+    "seed": 1,
+    "nreps": 1,
+    "horizon_hours": 14,
+    "result_interval_hours": 0.5,
+    "pm_interval_hours": 9.9,
+    "pm_deferment_fraction": 0.5,
+    "pm_max_occurrences": 1,
+    "cm_work_hours": 0.5,
+    "pm_work_hours": 1.0,
+    "worker_capacity": 1,
+    "failure_frequency_per_million_operating_hours": 3000000
+  },
+  "acceptance_hypotheses": [
+    "A noncritical FM-POS-A failure occurs before the first mission returns at hour 10; PM9P9 is due while that mission is active. Confirm from native logs, because source changes can alter random draws.",
+    "At return, both noncritical tasks are pending. Native ENFNC=N and Y event traces differ in their CM/PM initiation or actual work order in the direction documented by the manual. Determine exact times and worker leases from the native log.",
+    "Both arms retain every authored populated cell through native import/export, converter zero errors and usable outputs. Reconcile events with contiguous System and Resource report bins and terminal state."
+  ],
+  "gate": "If the necessary noncritical failure/PM overlap or a pairwise ENFNC scheduling difference is absent, preserve this immutable run as an excluded diagnostic and revise a new version. Publish only directly observed ordering with separate read-only replay; do not claim general priority, PMRID, other failure/PM criticality or counter behavior.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 active and identity-preserved, immutable run path, 60-second targeted child watchdog, source/tool hashes before/after and raw SHA-256 closure.",
+  "limits": [
+    "One explicit noncritical failure mode, one calendar PM, one aircraft/base/worker and one seed. No general ENFNC law, critical PM contrast, PMRID interaction, remote-base, GUI or cross-engine claim.",
+    "Only the first h8 mission is retained in the 14-hour simulation window."
+  ]
+}
