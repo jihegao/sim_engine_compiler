@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-k07-thread-parameter-cross-reference/v1",
+  "case_id": "K07",
+  "variant_id": "K07.var04",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "evidence_mode": "source-bound reuse of accepted native runs; no new native invocation",
+  "catalog_delta": "CLI thread parameter",
+  "instructional_prerequisite": {
+    "K02_index_sha256": "01c75cdf51d6a22f2f627dcc6d70ffc87c7f6b976ea4ca6d43deee35fdf40dce",
+    "K07_cli_workflow_index_sha256": "21c84e9847c6ba1387513279bef6310505dd8c7162b703c29431a3bde3a4f135",
+    "role": "K02/K07 provide input-format and guarded CLI workflow instruction, not the thread-study model parent."
+  },
+  "tested_model": {
+    "parent_case": "J04.var03@1.0.0",
+    "parent_index_sha256": "19613d91d135578e6df0d1bd0b09fbd0ea9141a2cbb2347ada2c408cdf93ef0e",
+    "thread_study_case": "J04.var04@1.0.0",
+    "thread_study_index_sha256": "a43c103df5f5cbf688f812ff6df8651966012409d7dbb1080a49f8f0853f1ba9",
+    "thread_study_contract_sha256": "35f6057de35b680b41269aa7a91b0631ab77d309fe84017cf67d02c0d735f684",
+    "thread_study_independent_verdict_sha256": "f437f3a89c83dbaa3c181205412732deb4df77ddffb988f68a32fbfc22f2ca4a",
+    "input_sha256": "2fa710997450dcd32190145e4df3d6c0e2e81c76b1236e174af0685c0a80c991",
+    "seed": "1",
+    "configured_repetitions": 32,
+    "thread_one_run_ids": ["j04-var03-nreps-cap-accepted-20261001-01", "j04-var03-nreps-cap-accepted-20261001-02"],
+    "thread_two_run_ids": ["j04-var04-thread2-accepted-20261001-02", "j04-var04-thread2-accepted-20261001-03"],
+    "report_sha256": "15687df9d5893444416b8d7638c42b6090150703c8a8be7c03e871d111fbec34",
+    "first_replication_log_sha256": "2899cf8e0c38cccc81b53fdad021ade6a7cfa904768255d4afa74484c6fe3279"
+  },
+  "acceptance_claim": "For one accepted seed-one NREP32 J04 input on installed SIMLOX 2017, two guarded -threads 1 calculations and two guarded -threads 2 calculations produced byte-identical raw JSON reports and first-replication event logs. The four source-bound runs already exist and are reused here without native rerun.",
+  "gate": "Recheck the accepted source, invocation, closure, manifest and 44 raw SHA seals for the four run IDs; inspect actual -threads arguments and converter diagnostics; replay report/log parity and independent J04 verdict without importing its checker. Publish only an explicit K07.var04 cross-reference to that bounded J04 evidence.",
+  "limits": ["No fresh K07 or K02-specific thread run.", "Only one source model, seed and thread-count pair; the remaining 31 per-replication event histories are not exposed by ENLOG.", "No general parallel determinism, performance scaling, other thread counts/seeds, GUI or cross-engine claim."]
+}
