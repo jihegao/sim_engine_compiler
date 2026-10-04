@@ -1,0 +1,47 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D15",
+  "variant_id": "D15.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "d15-var01-pmrf-v100-ssh-20261004-01",
+  "selected_report_run_id": "d15-var01-pmrf-v100-item-report-ssh-20261004-01",
+  "scope": "A fixed-seed paired system CAL24 preventive-maintenance PMReplacement experiment: a scheduled one-LRU exchange with PMRF=1 versus PMRF=0.5, using four calendar opportunities over 120 hours, local stock and removed-item overhaul.",
+  "dependency": {
+    "geometry_parent": "D14-var01-monitored-item-pm-v1.0.1",
+    "geometry_input_sha256": "29dd9638ecaf5980b7ecf90ef41644afbbcca3a9b15f88dceb8f2fe3e5c32903",
+    "geometry_closure_sha256": "7a0977eefefb06be79860ad0982efa2f8c0d4259c8b0905e2a17a5fca9122ead",
+    "geometry_signoff_sha256": "848bb2d59d6fc918e73b7a1e551e1e427d40ad6d38a35569321835fbaed807f0",
+    "catalog_parent": "D03-calendar-pm-v1.0.0",
+    "catalog_parent_signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1"
+  },
+  "inputs_sha256": {
+    "certain": "4c047fad6e2a36463729959d4334c5107e1f62bbad0a055af51738dc28af5119",
+    "fractional": "ed0b027ed5b738e119ba4cb48c82a55926f0beca5e0e787952b7d7c3d0fd8632"
+  },
+  "report_settings": {
+    "installed_default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "base01_selector_sha256": "10fe133a68250503041a18bfc6512b03326af9f073c294b9d954a4a3340f260b",
+    "method": "Rebuild accepted J08-format ItemPositionSettings selector from pinned installed Default.sxs and independently select BASE-01."
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [203, 217, 218, 385, 386, 387, 388, 389, 390, 391, 392, 393],
+    "rule": "PMReplacement demand is sent at PM-task start; removed subitems leave after REMOVE and replacement waits until all are present. SCHED=Y sends removed item to PMLocation overhaul. PMRF=1 is deterministic; PMRF<1 is a random per-item draw. PMFailureMode is a separate later variant and is not inferred here."
+  },
+  "frozen_source_delta": [
+    "Use accepted D14.var01 monitored geometry: one aircraft, one installed LRU, one local stocked spare, one base and the accepted three missions. Retain explicit item structure and local PMLocation for the removed LRU.",
+    "Convert the item OPHOURS PM into system CALHOURS PM SYS-CAL24 with a 24-hour interval, same system PMLocation PMT0.5 and item overhaul PMLocation PMT1.0. PMReplacement is SCHED=Y, PMRQ1 and no OPID. Extend Control and ResultCollection to h120, track the item, and add half-hour ITEM collection.",
+    "Only ProblemDescription and PMReplacement.PMRF differ between certain and fractional arms (1.0 versus 0.5). Seed1, all missions, opening stock, operation parameters and repair/transport structure are identical."
+  ],
+  "acceptance_hypotheses": [
+    "Both sources import/export with exact populated-cell roundtrip, zero converter errors, reviewed warnings, usable SXO/event/default-report outputs and a station-selected ItemResults report from each sealed SXO.",
+    "System CAL24 PM opportunities are visible in both arms; each physically performed scheduled replacement sends item demand at PM task start, removes an installed physical LRU, fits a distinct stocked or overhauled LRU, and sends the removed LRU to the local item PM action. Physical IDs and stock reconcile without duplication.",
+    "Certain arm performs an exchange at every observed PM opportunity. Fractional arm has at least one observed exchange and one observed no-exchange opportunity under fixed seed1; otherwise this candidate is retained as a diagnostic and a new frozen version/seed panel is needed.",
+    "Selected station item-stock rows and aggregate system PM occupancy align with events through h120; mission outcomes and terminal state are documented, not inferred from PMRF alone."
+  ],
+  "gate": "Publish only if all native and selected-report seals/roundtrips pass, the four observed PM opportunities contain the specified deterministic and mixed fractional pattern, event-level item demand/removal/fit/overhaul and stock ledger reconcile, and independent read-only replay agrees. If converter or native behavior contradicts the frozen hypotheses, keep an immutable diagnostic and revise a new version.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID13340/session1 identity, immutable run path, targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One seed, one system, one LRU position, one local spare and four calendar opportunities; no general PMRF probability estimate, multiple quantities, SCHED=N, PMFailureMode, GUI or cross-engine claim."]
+}
