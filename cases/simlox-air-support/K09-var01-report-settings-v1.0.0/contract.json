@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K09",
+  "variant_id": "K09.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "k09-var01-report-settings-v100-ssh-20261004-01",
+  "parent": {
+    "publication_id": "J05.var01.global_window.1.0.1",
+    "package": "../J05-collection-window-v1.0.1",
+    "run_id": "j05-baseline-v101-20261001-01",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "sxo_sha256": "d0f7290327d70c17c1bc6d41c3a19ba966773d58d7c9b587770a89def7f506a7",
+    "closure_sha256": "544ac02924741dae7f002b6bc3bb5c3002fe6b2d0f4a4cdd88088c5d5fd3c5ad",
+    "signoff_sha256": "8c30b1b1a563c2350431fe7978eea12ae8c33bd112584dc3b53006d509ba9e95",
+    "default_report_sha256": "b9b7d970e7f12763f0098eb2d2c546cc2ed2b68792840e74f2175fcd4ca14099"
+  },
+  "settings": {
+    "installed_default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "mission_enabled_sha256": "ce17b329540fadf72b6256c9ead15913ce853bf847b5d09a2ef98cf56a6c57e5",
+    "builder_sha256": "695c6f932a1a60ad6daf2d12e43ece8bc45ebd92a100c56950b429d94702d354",
+    "delta": "Only eight single-byte MissionSettings selection values change from N to Y in a copy of the installed Default.sxs; all other bytes are identical. The derived proprietary settings file stays under ignored runs/."
+  },
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [143, 144, 148, 149, 168, 171],
+    "rule": "Report settings can be saved and loaded as .sxs; -rpts loads a specified settings file and -report generates a report from an existing .sxo. Report table selection is per configured identifier combination."
+  },
+  "scope": "One previously accepted J05/A01 SXO, three report-only exports in order: explicit default-a, mission-enabled, explicit default-b. No simulation recalculation or source model change.",
+  "acceptance_hypotheses": [
+    "The source SXO, parent closure, settings and executable remain SHA-stable through all three guarded session-0 SSH report steps while the protected GUI survives.",
+    "The two default report JSON exports are byte-identical to each other and to the accepted J05 baseline report; the mission-enabled export adds mission-specific tables with 72 half-hour MissionResults bins and a one-row fixed mission summary.",
+    "Common ProblemDescription, ResultSummary, SystemResults and StockTotalResults tables are equal across all three exports. The single mission starts at hour 8, succeeds at 10, and has two completed operating hours in the mission-enabled report; its 72 System and Stock bins and terminal state remain those of the accepted parent.",
+    "A separate reviewer independently verifies source fingerprints, all raw seals, settings byte delta, report table equality, event/report reconciliation and no model recalculation."
+  ],
+  "gate": "Publish only if all three exact report outputs and independent replay satisfy these frozen hypotheses. If an equality or report-selection hypothesis fails, retain this version as an excluded diagnostic and freeze a new version for a narrower claim.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID13340/session1 identity, immutable run path, hidden native children, targeted watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["One previously simulated fixed-seed SXO and two settings. No GUI visual comparison, export to images/spreadsheets, report formatting fidelity, alternate model, cross-engine or full K09 claim."]
+}
