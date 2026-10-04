@@ -1,0 +1,39 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "F03",
+  "variant_id": "F03.var03",
+  "version": "1.0.0-candidate",
+  "scope": "Fixed-seed two-base demand-location contrast. Swap the station assignments of the accepted F03.var02 depot-only risk unit and the one-aircraft second unit, with their mission preparation and turnround rows. Depot routes, stock, resources, repair, PM, schedules, seed and 60-hour window stay fixed.",
+  "accepted_parent": {
+    "package": "F03-var02-two-base-stock-v1.0.0",
+    "input_sha256": "ed0c7e77844cc87f9f1cfe1fddc45d387072adec979dd93f99dd897d60347819",
+    "closure_sha256": "200bb01b262dbde7f2715bf2bc8a6fb81b26004450ac9776394e3241f000d5cd",
+    "signoff_sha256": "0b1d1a2944d9f69ec454abb24fbb2ce15a13551d2dc5a5198fe83f9bba18a9da"
+  },
+  "inputs_sha256": {
+    "risk_base1": "df4daeab5076e4b29b2d2a04c0a90bddd0af589af1e0dce2483c48fce5c2a06c",
+    "risk_base2": "999ebd4cdabd89d3b840cc6175eece45d1ab4a4fb29850cc41cca5915d6465b9"
+  },
+  "exact_diff_sha256": "d9051420d6c949fce7eb9ee05e5dd2cdcc1a766818b70504ceb9d5e1d2cf0fce",
+  "parameters": {
+    "seed": 1,
+    "nreps": 1,
+    "horizon_hours": 60,
+    "report_interval_hours": 0.5,
+    "system_type": "TEACH-AIR-01",
+    "aircraft": {"TEACH-UNIT": 2, "TEACH-UNIT-2": 1},
+    "risk_unit_station": {"risk_base1": "BASE-01", "risk_base2": "BASE-02"},
+    "stock": "zero BASE-01 and BASE-02 LRU opening stock; two depot LRU positions",
+    "route": "symmetric two-hour BASE-01/BASE-02 to DEPOT-01 legs"
+  },
+  "expected_timeline": [
+    "The accepted parent exhibits three risk-fleet LRU demands at BASE-01. The control arm should reproduce those source identities and events if a descriptive-only change is inert.",
+    "The station-swap arm should place the two-aircraft risk unit and its fault-driven LRU demands at BASE-02 and the one-aircraft BASE2 mission at BASE-01. Do not assume random draws or event timing are invariant until checked against native output.",
+    "Compare station-scoped item demand, physical transport origin/destination, base backorder and repair/mission events. Aggregate reports may be identical for symmetric capacities and routes; do not infer per-base demand from aggregate bins alone."
+  ],
+  "acceptance_hypotheses": [
+    "Two fresh serial guarded SSH0/mutex/GUI13340 native runs import/export/calculate/report, have zero conversion errors and no unreviewed diagnostics, roundtrip all populated authored tables and seal raw evidence.",
+    "The pair changes only unit station and associated mission preparation/turnround station fields as a coherent demand-location switch, plus descriptive text. Stock, resource, repair/PM and depot-route business rows are identical.",
+    "A bounded demand-location claim requires traceable aircraft and item IDs, matched or explained fault/demand sequence, correct station-scoped transport and inventory ledger, aggregate System/Stock/Resource half-hour bins, and terminal disposition. Other demand timing, route asymmetry, interbase transfer and larger-network effects remain outside scope."
+  ]
+}
