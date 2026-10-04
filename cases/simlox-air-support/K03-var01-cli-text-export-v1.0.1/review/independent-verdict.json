@@ -1,0 +1,29 @@
+{
+  "checks_passed": 437,
+  "checks_total": 437,
+  "closure_sha256": "19114d2e6877b4dd67ea9d2a4019527d6d6f973d19ff919f58f997113c690d73",
+  "failures": [],
+  "json_sha256": "7d3a6ebe5b9b1170dca1d8115555ebb26dc4c47c03cc325e4d6576bd921dc9e9",
+  "limits": [
+    "The source SXI is unchanged and both CLI exports succeeded; no text reimport was tested.",
+    "Text places the two named Station instances after Operations rather than adjacent to default Station as in JSON; instance identity and rows are preserved.",
+    "The exported OperationProfile.DTIM is 0.3 in text versus 0.3333333333333333 in JSON, so numeric text fidelity is not established.",
+    "Clipboard, Excel XML, other formatting choices and GUI pathways remain untested.",
+    "v1.0.0 failed a runner gate on an optional empty text log after creating the same text bytes; it is excluded.",
+    "The separate K04 sparse-include failure was caused by a default Control row in the included SXI and says nothing about this text export."
+  ],
+  "observed_precision_changes": [
+    {
+      "column": "DTIM",
+      "instance": "",
+      "json": 0.3333333333333333,
+      "row": 0,
+      "table": "OperationProfile",
+      "text": "0.3"
+    }
+  ],
+  "passed": true,
+  "schema": "independent-k03-var01-v101-text-export/v1",
+  "text_sha256": "a12424532b92c1f5f0b69dee595b7488f88ad71cabc270cfb08e90a52eeb38eb",
+  "verdict": "GO: bounded CLI text export with documented precision loss"
+}

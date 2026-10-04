@@ -1,0 +1,3 @@
+# K03.var01 v1.0.0: excluded runner diagnostic
+
+This frozen probe copied the accepted K02.var01 named Station SXI and called native `-texport` with `-twidth 4096 -tsep !`. SIMLOX created a 16,119-byte `model.txt` and exited zero, but its optional `-log` target was zero bytes. The v1.0.0 runner mistakenly required a nonempty log and stopped before the planned JSON comparator. Its immutable local run `k03-var01-text-v100-ssh-20261004-01` has closure SHA-256 `a36ff4174fc64341cdbbbbf7930fe32a37792905b25b1c05dc729aa783af29a9`, with the text output and error sealed. This run is excluded from accepted K03 scope. [v1.0.1](../K03-var01-cli-text-export-v1.0.1/README.md) corrects the log gate and performs a fresh native run.
