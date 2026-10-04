@@ -1,0 +1,186 @@
+{
+  "case": "K04.var04 v1.0.0",
+  "checks_passed": 244,
+  "checks_total": 244,
+  "evidence": {
+    "arms": {
+      "control": {
+        "error_codes": [
+          "2043"
+        ],
+        "sxo_bytes": 4,
+        "warning_codes": [
+          "108",
+          "108",
+          "126"
+        ]
+      },
+      "key": {
+        "error_codes": [
+          "2013"
+        ],
+        "sxo_bytes": 4,
+        "warning_codes": [
+          "108",
+          "126"
+        ]
+      }
+    },
+    "closure_sha256": "ba80df26eeb356de0e00853364bf229ac3d927116f6a930b00581c7f083b190e",
+    "independent_odbc": {
+      "control": {
+        "contents": {
+          "Control": {
+            "columns": [
+              "NREPS",
+              "SIMPE",
+              "RSEED",
+              "APID",
+              "RCINT",
+              "RCSTA",
+              "RCEND",
+              "ENPM",
+              "ENLAT",
+              "ENROB",
+              "ENALU",
+              "TCLEV",
+              "ENLOG",
+              "RMVFR",
+              "WTLIM",
+              "RRFIM",
+              "ENBOP",
+              "DRAOS",
+              "PRMVF",
+              "PRPLF",
+              "PERCL",
+              "MAXPL",
+              "RELOP",
+              "ENPNM"
+            ],
+            "rows": [
+              [
+                1,
+                36,
+                "1",
+                "AIR_BASIC",
+                0.5,
+                0,
+                36,
+                "N",
+                null,
+                null,
+                null,
+                null,
+                "Y",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            ]
+          },
+          "Station": {
+            "columns": [
+              "STID",
+              "DESCR",
+              "QTY",
+              "TYPE"
+            ],
+            "rows": [
+              [
+                "BASE-01",
+                "Teaching base",
+                1,
+                "WS"
+              ]
+            ]
+          }
+        },
+        "tables": [
+          "Control",
+          "Station"
+        ]
+      },
+      "key-level1": {
+        "contents": {
+          "IncludeFiles": {
+            "columns": [
+              "INCFN",
+              "INCCO",
+              "NOTE"
+            ],
+            "rows": [
+              [
+                "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K04-var04-duplicate-control-key-v1.0.0\\runs\\k04-var04-duplicate-control-key-v100-ssh-20261004-01\\key-level2.mdb",
+                "Second BASE-01 Station source",
+                null
+              ]
+            ]
+          },
+          "Station": {
+            "columns": [
+              "STID",
+              "DESCR",
+              "QTY",
+              "TYPE"
+            ],
+            "rows": [
+              [
+                "BASE-01",
+                "First BASE-01 Station source",
+                1,
+                "WS"
+              ]
+            ]
+          }
+        },
+        "tables": [
+          "IncludeFiles",
+          "Station"
+        ]
+      },
+      "key-level2": {
+        "contents": {
+          "Station": {
+            "columns": [
+              "STID",
+              "DESCR",
+              "QTY",
+              "TYPE"
+            ],
+            "rows": [
+              [
+                "BASE-01",
+                "Second BASE-01 Station source",
+                1,
+                "WS"
+              ]
+            ]
+          }
+        },
+        "tables": [
+          "Station"
+        ]
+      }
+    },
+    "raw_file_count": 25
+  },
+  "failures": [],
+  "limits": [
+    "These are two isolated zero-simulation converter rejections from one frozen installed CLI run; neither arm produced a valid report.",
+    "The #2043 Control case used one full additional Control row; the #2013 Station case repeated BASE-01 across two MDB include levels. Other table, key, field, and conflict precedence behavior is untested.",
+    "Both logs contain reviewed #108/#126 warnings; the duplicate-Control log has #108 twice. Corrupted incidental File-path text in native run.log does not change the exact form/record error attribution.",
+    "GUI and registry preservation are sealed runner observations, not independent historical host snapshots."
+  ],
+  "passed": true,
+  "run_id": "k04-var04-duplicate-control-key-v100-ssh-20261004-01",
+  "schema": "independent-readonly-review/v1",
+  "verdict": "GO — bounded duplicate-Control #2043 and repeated-Station-key #2013 converter rejections"
+}

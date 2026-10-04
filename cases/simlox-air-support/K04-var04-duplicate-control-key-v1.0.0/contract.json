@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K04",
+  "variant_id": "K04.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Two isolated IncludeFiles conflict arms from the accepted K04.var01 nested MDB parent: a one-level MDB adds a complete duplicate Control row alongside required BASE-01 Station; a two-level MDB chain repeats the BASE-01 Station key in two included files. No sparse SXI import is used.",
+  "dependency": {
+    "package": "K04-var01-nested-mdb-include-v1.0.0",
+    "main_input_sha256": "aa0064561c2a1aa9738422c8090ca125478c0517e16010022634bd985da6fa52",
+    "level2_station_source_sha256": "2c2fc671f6084ce90a4635526e50dc6df4b7ebd087c8fd8eca4080839c5a3ddb",
+    "closure_sha256": "e8530f8e5cd65f788b70596e5f755f0b84ae350b66b7cff8746de36f23e3c0d0",
+    "signoff_sha256": "b508239bff323d4155bfb5ec10f3e8e3921d30e7ed6720cc5d42ce5b14d9d4ee"
+  },
+  "inputs_sha256": {
+    "control_main": "341597dd22c735049d619b7ca11e7655e14d3848ddfba7e68b81527b841d6d9a",
+    "key_main": "1377d074140da59ce9e7dddf7f534859520d98969f3c8fe6e773568249765bab",
+    "control_mdb_source": "ef7e2ac537f5b92884c9542ef7920c5b150bdfa4a523a56f039c05e36b4e92b4",
+    "key_level1_source": "cf5eb1e9fbf7768e51e852947b6cf0f749e6c147c01a4294bd49b5c0ad6286a6",
+    "key_level2_source": "4a38dde128264c57ec195e952b2f4f2e67a53404d2899ba99cb1d8ac263df093"
+  },
+  "run_id": "k04-var04-duplicate-control-key-v100-ssh-20261004-01",
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [537, 538],
+    "rule": "Included input tables merge across files; Control is an example of a table allowed only once. This contract separately probes a repeated Station key across included MDB files."
+  },
+  "frozen_commands": [
+    "create and ODBC-readback a Control plus Station MDB",
+    "create and ODBC-readback a Station leaf MDB and an IncludeFiles plus Station level1 MDB",
+    "import and JSON-export each main SXI",
+    "calculate each SXI in guarded session-0 CLI and preserve its native log and SXO",
+    "export a JSON report only for any arm that produces a usable SXO"
+  ],
+  "acceptance_hypotheses": [
+    "Each main source differs from accepted K04.var01 only in its IncludeFiles path and comment; both MDB sources encode exactly their frozen user tables and rows.",
+    "The duplicate-Control arm should traverse the MDB and report a table-already-defined Control converter error without unrelated invalid Control-field errors.",
+    "The repeated-key arm should traverse both included MDBs and expose a deterministic Station key-collision or merge result; its exact native behavior is classified from the sealed run, not presumed.",
+    "GUI PID/start/session, host mutex, source/tool fingerprints and original MDB association are preserved or restored."
+  ],
+  "gate": "Do not publish a generic duplicate Control or key-conflict rule from an error contaminated by unrelated source failures or a partial native run. Seal both arms and classify each independently; only an independently replayed bounded outcome can enter the publication index.",
+  "limitations": [
+    "This candidate covers one full duplicate Control row and one Station key repeated across two MDB include levels. It does not establish all conflict precedence, all table types, GUI behavior, missing-file handling, SXI/OPI include behavior, or full K04 coverage."
+  ]
+}
