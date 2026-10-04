@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D12",
+  "variant_id": "D12.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "d12-var02-three-level-v100-ssh-20261004-01",
+  "scope": "Paired SIMLOX 2017 CLI comparison of a two-link PM topology versus a three-level CAL24 <- BIG48P5 <- TOP49 chain. Both arms retain BIG48P5.PMRID=CAL24 and add TOP49 due at hour 49; only TOP49.PMRID null versus BIG48P5 differs behaviorally. Determine whether TOP49 initiation stops a physically active BIG48P5 task and how the shared worker and already-canceled CAL24 tasks resolve.",
+  "dependency": {
+    "package": "D12-var01-active-small-v1.0.0",
+    "input_sha256": "cddf59ab7d557f6c643138ce8241fa43d7d5a569396538a6934bf7de00b3ffd1",
+    "closure_sha256": "2139f7097f58c42a93c7469d4fda4ad65efc1cbcb08150573ae20692def3e87c",
+    "signoff_sha256": "f16fff197f5e93798eb240143e8d74da4f9d39b4b4d825bd54814ab0ddd0db45",
+    "accepted_behavior": "CAL24 task3 performs at 48-48.5 and is stopped by BIG48P5 on aircraft1; middle task5 then performs 48.5-49.5, task6 49.5-50.5, and waiting CAL24 task4 stops before work. Two aircraft share one worker."
+  },
+  "inputs_sha256": {
+    "unlinked": "2d9598b68fe52e31bdfffe2830e4990d72c791a7a023a95d5e020f9513719532",
+    "linked": "e097e0fe91bafaa3cf3fbaeada4654b9ff73dba56ce5314a631894a420cf737c"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [370, 371, 373, 374, 375],
+    "rule": "MaterielPM.PMRID names one related smaller PM; initiating the current PM cancels that related task and resets its counters. The manual does not state that cancellation is automatically transitive through a chain; observe each link separately."
+  },
+  "frozen_source_delta": [
+    "Derive both arms from the accepted D12.var01 active-small linked input, keeping seed1, one replication, two aircraft, one worker, 60-hour horizon, CAL24 at 24/48 with ENREG=Y, and BIG48P5.PMRID=CAL24 due48.5.",
+    "Append TOP49 system PM with CALHOURS interval49, ATIM=DTIM=0, one-hour INSPECT subtask at BASE-01 requiring the sole P-MAINT worker, plus descriptive text.",
+    "The two arms differ only in TOP49.PMRID null versus BIG48P5 and ProblemDescription."
+  ],
+  "parameters": {
+    "seed": 1,
+    "nreps": 1,
+    "horizon_hours": 60,
+    "result_interval_hours": 0.5,
+    "small_pm_interval_hours": 24,
+    "middle_pm_interval_hours": 48.5,
+    "top_pm_interval_hours": 49,
+    "top_pm_work_hours": 1,
+    "worker_capacity": 1
+  },
+  "acceptance_hypotheses": [
+    "The two arms have identical native event traces before TOP49 becomes due at hour 49. CAL24 has already been stopped on the performing aircraft at 48.5 by BIG48P5, and BIG48P5 is physically performing when TOP49 starts; confirm from native logs rather than assuming parent random-stream parity.",
+    "With TOP49.PMRID=BIG48P5, initiation of TOP49 may stop that related middle task. The direct versus chain-linked event ordering, worker release/rebooking, remaining middle task, and PM starts/completions must be established from native logs and report bins. Do not infer transitive CAL24 cancellation or counter values without direct evidence.",
+    "Both arms retain all authored populated cells through native import/export, zero converter errors and usable outputs. Individual PM/worker events reconcile with 120 half-hour System/Resource/Stock bins and terminal state."
+  ],
+  "gate": "Accept only a pairwise TOP49.PMRID effect on a physically performing BIG48P5 task after exact source diff, zero converter errors, valid simulation output, event/worker/report reconciliation and separate read-only replay. If the exposure or differential effect is absent, preserve the immutable run as a diagnostic and revise a new version; do not publish a three-level PM behavior claim.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 active and identity-preserved, immutable run path, 60-second targeted child watchdog, source/tool hashes before/after and raw SHA-256 closure.",
+  "limits": [
+    "One three-PM chain, two aircraft, one seed, one base and one shared worker; no general transitivity, counter reset, ENFNC, remote-base, GUI or cross-engine claim.",
+    "TOP49 and BIG48P5 both due within a half-hour; behavior at other spacing or PM task duration is unverified."
+  ]
+}
