@@ -1,0 +1,38 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "D13",
+  "variant_ids": ["D13.var03"],
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "d13-dynamic-maxpm-v100-ssh-20261004-01",
+  "scope": "Paired SIMLOX 2017 MaxPMProfile time-varying capacity at one unit: both arms 0 until h24.25 and 1 until h24.75, then rise to 2 versus hold at 1. Observe physical CAL24 PM work around each capacity boundary.",
+  "dependency": {
+    "parent_package": "D13-var02-maxpm-two-v1.0.0",
+    "parent_input_sha256": "d65ba7873f89e9b8e391b731a04aaa9622b346b6f8fa7d4547e177b42a285e41",
+    "parent_closure_sha256": "7d577663225a98f5f0406cc3e77d3c3cc74cd8fe6f340457363c85e74a976d9d",
+    "parent_signoff_sha256": "cc41f1ebd10038724c8e291ea8a9c8baee140b2733dcc2ef01361e2913ece50c"
+  },
+  "inputs_sha256": {
+    "rise": "3e9a0c1f79eb57ed0eeb054649e4d991e41e33d55eca3ee365c4df7260eb65f1",
+    "hold": "ea01ffdbee9258a5f82d035881f8dd574aad85cc281c690e379b06e9feb76630"
+  },
+  "manual": {
+    "file": "SIMLOX.pdf",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [376, 377, 378, 379],
+    "rule": "Unit.MAXPMP references MaxPMProfile, whose timed <LIMIT> rows override Unit.MAXPM; noncritical PM is postponed above the current limit and critical PM can bypass the limit. Explicit limit periods must not overlap."
+  },
+  "frozen_source_delta": [
+    "Derive both arms from accepted D13 static MAXPM=2 input with seed1, two aircraft, three scheduled h8/h20/h32 missions, one CAL24 PM with DTIM0.5, and 36-hour horizon.",
+    "Set Unit.MAXPM=0 as a scalar fallback and Unit.MAXPMP=CAP24 in both arms. Add one MaxPMProfile with nonoverlapping 0-24.25 limit0, 24.25-24.75 limit1, and 24.75-36 limit2 (rise) or limit1 (hold).",
+    "Only ProblemDescription and the final MaxPMProfile.MAXPM cell differ between arms."
+  ],
+  "acceptance_hypotheses": [
+    "Both arms create CAL24 PM task objects at h24 and do no physical PM work before the h24.25 capacity increase.",
+    "At h24.25 one aircraft physically starts PM in each arm. At h24.75 the rise arm starts the second aircraft while the first is still working; the hold arm waits until capacity is released. Native events and report bins must distinguish this.",
+    "Both inputs roundtrip populated cells, have zero converter errors and usable SXOs; report PM occupancy, mission outcomes, and terminal state reconcile."
+  ],
+  "gate": "Publish only if the native logs prove the timed profile's physical PM effect with an otherwise identical paired source, clean conversion, sealed raw evidence, and independent read-only replay. If import or behavior differs, retain the immutable run as an excluded diagnostic; revise a new version. Do not infer hidden capacity counters.",
+  "execution_guard": "Session-0 SSH with sshd ancestor, Global\\SimloxIssue18NativeQueue, GUI PID 13340/session 1 identity, immutable run path, 60-second targeted child watchdog, source hashes before/after and raw SHA-256 closure.",
+  "limits": ["Two aircraft, one seed, one unit, one CALHOURS PM, one 0-to-1-to-2 profile transition sequence; no general boundary law, overlap-error behavior, nested/repeated profile, GUI or cross-engine claim."]
+}
