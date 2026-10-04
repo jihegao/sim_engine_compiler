@@ -1,0 +1,33 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K05",
+  "variant_id": "K05.var05",
+  "version": "1.0.2-candidate",
+  "publication_state": "not_published",
+  "scope": "Runtime IncludeFiles of a one-row task-local Access MDB with required BASE-01 Station, while the main SXI retains K02-NAMED Station and other accepted K02 rows.",
+  "dependency": {
+    "package": "K02-var01-json-structure-v1.0.1",
+    "input_sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00",
+    "closure_sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3",
+    "behavior_specific_limit": "K02 established its named Station CLI JSON slice only; K05 tests database runtime include."
+  },
+  "inputs_sha256": {
+    "main": "ed57d43da4315fcd2f4fbd5cd80840c2add42adf9227bcfc947ad99477575044",
+    "database_source": "2c2fc671f6084ce90a4635526e50dc6df4b7ebd087c8fd8eca4080839c5a3ddb"
+  },
+  "run_id": "k05-var05-mdb-v102-ssh-20261004-01",
+  "manual": {
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [110, 111, 537, 538],
+    "rule": "IncludeFiles.INCFN accepts an MDB through its default Access ODBC association and merges same-name input tables at calculation. Full path avoids current-directory dependence."
+  },
+  "frozen_commands": ["create task-local MDB with x86 Jet", "readback through x86 ODBC", "import main JSON to SXI", "export main SXI JSON", "temporarily map MDB to the installed 64-bit Access driver during calculation and restore the prior association", "calculate main SXI", "export JSON report"],
+  "acceptance_hypotheses": [
+    "The MDB has exactly one Station table and one authored BASE-01 row, confirmed via x86 ODBC readback and sealed SHA-256.",
+    "The main SXI retains its sole IncludeFiles row and its other authored rows.",
+    "Calculation loads the MDB BASE-01 Station with zero converter errors and produces a usable SXO and report.",
+    "Native events and report are byte-identical to accepted K02.var01 named baseline; the source-row union equals K02 except IncludeFiles."
+  ],
+  "gate": "Any missing include, wrong path, row mismatch, converter error, unusable result, unexplained behavior difference, GUI change or source fingerprint change is NO-GO.",
+  "limitations": ["This candidate depends on a guarded, temporary per-user MDB driver association; the earlier unmodified mapping pointed to a missing 64-bit ODBC driver. It does not establish ODBC editor import/export, aliases, nulls, invalid values, nested or relative includes, or full K04/K05 coverage."]
+}

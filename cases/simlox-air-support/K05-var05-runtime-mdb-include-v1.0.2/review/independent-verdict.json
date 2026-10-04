@@ -1,0 +1,45 @@
+{
+  "case": "K05.var05 v1.0.2",
+  "checks_passed": 143,
+  "checks_total": 143,
+  "evidence": {
+    "closure_sha256": "893322aa6d0c2d91f4d03a7d4171f9c0ca506a10d443098848c8abaf4f2d87c5",
+    "independent_odbc": {
+      "columns": [
+        "STID",
+        "DESCR",
+        "QTY",
+        "TYPE"
+      ],
+      "rows": [
+        [
+          "BASE-01",
+          "Teaching base",
+          1,
+          "WS"
+        ]
+      ],
+      "tables": [
+        "Station"
+      ]
+    },
+    "mdb_sha256": "243529146687dae5a01ee6f4629c3a59e270a640cc06be15c8124549862c7c10",
+    "model_log_sha256": "2d2e6c368305203052e347748dab8f36261947dae6f6a189fad4312e47c0a491",
+    "report_rows": {
+      "StockTotalResults": 72,
+      "SystemResults": 72
+    },
+    "report_sha256": "5a3fd9007de442ce0f7a5210cd61cfe1e3a362774300497020341dc05d478655"
+  },
+  "failures": [],
+  "limits": [
+    "One frozen installed-CLI run and one absolute task-local MDB include; no relative, nested, invalid, multiple-table, or cross-engine behavior established.",
+    "The registry before/during/after values are sealed runner observations and restore-path code; this replay did not independently snapshot the historical registry state.",
+    "The native log proves a Station row was inserted, while the independent 32-bit ODBC read verifies the sealed MDB has exactly one user TABLE and the expected row. Jet system tables are excluded from that count.",
+    "Event/report byte parity demonstrates this one model's behavior; it does not prove general equivalence of MDB and JSON source semantics."
+  ],
+  "passed": true,
+  "run_id": "k05-var05-mdb-v102-ssh-20261004-01",
+  "schema": "independent-readonly-review/v1",
+  "verdict": "GO — bounded runtime MDB IncludeFiles one-row Station merge"
+}
