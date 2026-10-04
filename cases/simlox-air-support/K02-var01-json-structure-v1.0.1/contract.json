@@ -1,0 +1,21 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "K02",
+  "variant_id": "K02.var01",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "scope": "Corrected, separately gated SIMLOX 2017 CLI JSON probes: named Station instances with native empty-default canonicalization, and one-based inactive-row index 2, each derived from accepted K01.var04.",
+  "behavior_specific_dependency": "K01.var04 established the accepted CLI-visible A01-derived model source and native mission behavior. K02 tests JSON structural fidelity on that same model. K01 GUI view and template scope is not a prerequisite for these CLI assertions and remains unverified.",
+  "accepted_parent": {"package": "K01-var04-parent-child-model-diff-v1.0.0", "input_sha256": "d1ff80f7e0de8259b6f38b6373c7ad4797d897e17c4397a7060dfbefbeb851dc", "closure_sha256": "5200cc3f73c3dfce1b89f61314a0d98e460c4a9a08888139da0e3f8e3baa2b10"},
+  "inputs_sha256": {"inactive2": "0614e3cb935b519369197b3d3ee4991a28c25cb80b6f9a593615a12fa85f0389", "named": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00"},
+  "excluded_v100_diagnostics": {"inactive_index1_closure_sha256": "f747cf95b1577bdebdbb27a14556ec1cd77a674d65ef986818d0fdeede209eee", "named_strict_topology_closure_sha256": "46462267656e8550e998e99b4f60aba910c3483441b5fbc88284dc2850c80a94", "observed": "Index 1 blanked BASE-01 and caused converter errors; named Station export added an empty default instance while preserving both named business rows and unchanged parent behavior."},
+  "manual": {"file": "SIMLOX.pdf", "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", "physical_pages": [152, 153, 154, 167, 168], "observed_rule": "JSON has model/tables/columns/instances; datatype string/integer/double; null blank cells; inactive_rows lists row positions; -jimport/-jexport perform native CLI exchange.", "uncertainty": "The manual does not specify zero-based versus one-based inactive_rows positions."},
+  "parameters": {"nreps": 1, "seed": 1, "horizon_hours": 36, "result_interval_hours": 0.5, "mission_start_hours": 8, "mission_duration_hours": 3, "double_precision_probe": "OperationProfile.DTIM=0.3333333333333333"},
+  "expected_converter": {"errors": 0, "warnings": 2, "notes": 0, "warning_codes_in_order": [108, 126]},
+  "acceptance_hypotheses": {
+    "inactive2": ["Diagnostic test of whether Station.inactive_rows=[2] targets the second row while BASE-01 stays active. The v1.0.0 index-1 export omitted inactive_rows and blanked the targeted row, so a similarly lossy export is anticipated and would remain NO-GO for lossless JSON fidelity.", "Check converter errors and warnings, accepted K01 h7 order/h8 launch/h11 completion, 72-bin report and terminal state; these may pass even if the inactive row and metadata are lost in export."],
+    "named": ["Native -jimport/-jexport preserves both explicitly named Station instances K02-BASE and K02-AUX, their keys/rows/nulls/types and all other authored rows and columns. One native-added blank default Station instance with one all-null row is allowed and must be recorded; no other authored row or metadata may change.", "Unused K02-NAMED causes no change to the accepted K01 mission log, 72-bin numeric report or terminal state, with zero conversion errors and no new warnings."]
+  },
+  "gate": "Each arm is accepted or rejected separately against its frozen source and native closure. For named, exactly the observed native-added all-null default Station instance is allowed; both authored named instances must remain exact. For inactive2, any loss of inactive metadata or authored row is NO-GO. Converter error, extra warning, changed mission or invalid output is NO-GO for either. No general multi-instance or inactive-index law is inferred from one row/table.",
+  "limitations": ["A01/K01 GUI views and SXT templates, general K02 JSON forms, inactive rows of other tables, larger precision values, other instance layouts and cross-engine behavior remain unverified.", "A successful arm is a bounded K02 CLI slice, not full K02 or automatic prerequisite clearance for K04-K07."]
+}

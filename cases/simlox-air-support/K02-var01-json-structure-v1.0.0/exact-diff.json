@@ -1,0 +1,18 @@
+{
+  "schema": "simlox-k02-var01-json-probes-diff/v1",
+  "parent": "accepted K01.var04 CLI source-difference model",
+  "arms": {
+    "inactive": [
+      {"table": "ProblemDescription", "instance": "", "row": 0, "column": "PDESC", "from": "K01.var04 v1.0.0 A01-derived three-hour model comparison", "to": "K02.var01 v1.0.0 JSON inactive probe"},
+      {"table": "Station", "instance": "", "operation": "append_row", "key": "K02-INACTIVE", "source": "BASE-01 row copy", "description": "Unused inactive station"},
+      {"table": "Station", "instance": "", "operation": "set_inactive_rows", "from": null, "to": [1]}
+    ],
+    "named": [
+      {"table": "ProblemDescription", "instance": "", "row": 0, "column": "PDESC", "from": "K01.var04 v1.0.0 A01-derived three-hour model comparison", "to": "K02.var01 v1.0.0 JSON named probe"},
+      {"table": "Station", "instance": 0, "operation": "name_instance", "from": "", "to": "K02-BASE"},
+      {"table": "Station", "operation": "append_instance", "instance_name": "K02-AUX", "key": "K02-NAMED", "source": "BASE-01 row copy", "description": "Unused named-instance station"}
+    ]
+  },
+  "other_cells_and_tables": "unchanged",
+  "publication_state": "not_published"
+}
