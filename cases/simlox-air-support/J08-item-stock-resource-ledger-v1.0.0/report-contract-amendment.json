@@ -1,0 +1,20 @@
+{
+  "schema": "simlox-j08-report-contract-amendment/v1",
+  "case_id": "J08",
+  "original_contract_sha256": "2483565c8c33d2f67b91e1ea2fdb3cd6c735735e64ca16c2fd902a7baaf29861",
+  "native_run_id": "j08-ledger-v100-ssh-20261004-01",
+  "native_closure_sha256": "e573fcffad7e8e88b00093b06e2e926535b5cbc8b486e7b931e8af9185c8a649",
+  "native_sxo_sha256": "8f4f050646849bc452d5dddb1b866d965b25c71e44ba08e5565ff021abf2b903",
+  "excluded_selected_report": {
+    "run_id": "j08-item-report-v100-ssh-20261004-01",
+    "closure_sha256": "e01856fdb3245331ab661f158bd8ccb8d16d178c8fab187bf9facbb138895e4e",
+    "settings_sha256": "cef1a365666d984f1abe25f8cbe93f13a8cc3347f6793c4ba64d491895571f21",
+    "observation": "The report export completed but omitted ItemResults and ItemResultsTotal. This exactly matches the accepted I02 selected-selector diagnostic, which also omitted those tables. It is excluded from J08 item-position acceptance."
+  },
+  "alternate_report": {
+    "settings_sha256": "2cc8e6c0ea3470ea33fe3fbd42fcaae4c6e5a36e33d645aef8b56f0fa21262d9",
+    "settings_provenance": "Accepted I02 full item-position selector deterministically generated from installed Default.sxs with SHA-256 1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d; prior I02 item-results report exported ItemResults and ItemResultsTotal.",
+    "only_change_from_excluded_settings": "Two byte positions 68819 and 68833 are N in the excluded selector and Y in the full selector; native J08 SXO, input and simulation are unchanged.",
+    "acceptance_hypothesis": "A fresh guarded report-only export from the sealed J08 SXO with the full selector will emit one TEACH-LRU-01/DEPOT-01 ItemResults series and ItemResultsTotal. Exact field values require author and independent event-ledger reconciliation after export."
+  }
+}
