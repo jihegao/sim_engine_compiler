@@ -1,0 +1,7 @@
+# K07.var04 — source-bound CLI thread parameter
+
+K07.var04's planned delta is the SIMLOX CLI thread parameter. The accepted [J04.var04 thread study](../J04-var04-thread-repro-v1.0.0/cli-scope-signoff-2026-10-01.md) already tests the relevant command with stronger multi-replication evidence: two accepted `-threads 1` parent calculations and two guarded `-threads 2` calculations on byte-identical seed-one, NREP32 input. This dossier replays and cross-references those original source, invocation, closure, raw-result, and independent-review pins. **It starts no new native run.** [K02](../K02-var01-json-structure-v1.0.1/cli-scope-signoff-2026-10-04.md) and [K07's CLI workflow](../K07-var02-cli-evidence-v1.0.0/cli-scope-signoff-2026-10-04.md) are instructional prerequisites; the tested model parent is J04.var03.
+
+All four accepted runs produced byte-identical native JSON reports and first-replication event logs, with converter errors zero. The report records NREP32 and the same aggregate System and Stock results. Their original 44 raw files remain locally sealed in the J04 packages and are indexed by those packages. The excluded J04 probe and validator-crash attempt are not promoted.
+
+This is an explicit reuse of one installed executable's evidence for one input and two thread counts. It does not prove K02-specific thread behavior, the other 31 per-replication event histories, general parallel determinism, performance scaling, GUI, or cross-engine equivalence.
