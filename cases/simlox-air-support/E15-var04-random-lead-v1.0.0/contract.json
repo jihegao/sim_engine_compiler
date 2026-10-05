@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-random-lead-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e15-var04-random-lead-v100-ssh-20261005-01",
+  "scope": "One fixed-seed random reorder lead child from the accepted E15 explicit-three stock-based DU depot parent, without rerunning the parent.",
+  "accepted_parent": {
+    "package": "E15-var07-explicit-istoh-v1.0.1",
+    "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+    "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+    "evidence_index_sha256": "8b8c7e08b7e056a83084298478988cf8582c8369ab252e810f30ba6e39d6aab1",
+    "event_log_sha256": "06629a8dc4688786012a304b0e0d6b390a684349b6a280c00b3a6555e3ba5960",
+    "selected_report_sha256": "5ff76859bb5f0173380619067caa633c2f413796e8705675f39bbba230959b1d"
+  },
+  "source": {
+    "input_sha256": "b43318b6dbbd470e6634c04b9cb90fc699d8ccb05dc87d0ebd9e2fb72c33f261",
+    "builder_sha256": "e3331e29da2b9f2970222d16aca12bfba70e2184e73005cf7c4bff4b620e4c2c",
+    "roundtrip_checker_sha256": "d49629115a60a4746d1d32791fae823a41a3d113679637e84dd8031b2fed3775",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c",
+    "selector_builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "frozen_delta": "The sole parent-to-child source cell difference is ItemReorder record 1 LEADTD null to <EXP>. LEADT remains 1.0 hour. All 31 table structures, STSIZ4/ROSIZ2/ISTOH3, seed1, 36-hour horizon, half-hour collection, TRACK=Y, and report selector are inherited.",
+  "manual_boundary": "Installed SIMLOX 2017 manual physical page 345 states LEADTD is a TimeDistributions ID or predefined <EXP>; with LEADT specified, sampled lead time has LEADT as mean. Physical pages 343-345 and 446-447 define the stock-based reorder point and lead. This case claims one observed sample, not the distribution's statistical law.",
+  "execution_guard": "One unique SSH session-0 run with sshd ancestor and Global\\SimloxIssue18NativeQueue mutex; protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z; hidden target-only watchdog; exact source fingerprints before/after and immutable local raw SHA closure.",
+  "predeclared_gates": [
+    "Independent read-only reviewers verify accepted E02 prerequisite and E15 parent seals, installed manual, sole LEADTD source delta, runner SHA pins, unoccupied run directory, and GUI identity before the native call.",
+    "Native import/export preserves all 21 row-containing authored tables exactly. Calculation has zero converter errors, known warning #108 only, nonempty valid SXO and event log, and complete selected ten-table report. Four native stages exit zero with GUI unchanged.",
+    "Depot opens with physical IDs 0-2. The inherited ordinary h10 demand issues depot ID0, lowers on-hand from three to two, and triggers one fixed two-item order at h10 with no hour-zero order. Its sampled reorder time must be finite and positive, differ from deterministic parent time 1, and its delivery event must occur at h10 plus the sampled time when within the 36-hour horizon. If beyond horizon, verify the outstanding order and absence of delivery. Reconcile all physical identities and event order.",
+    "All 72 half-hour depot ItemResults bins must reconcile nominal STSZ4, h10 issue, sampled delivery if any, one NRO at h10, NBO and terminal state. Reconcile selected mission/system/aggregate stock reports against the accepted parent without assuming exact equality of inventory totals.",
+    "Any source, converter, native, event, report, raw seal, selector, or GUI discrepancy excludes this frozen version as a diagnostic. Preserve failure bytes and review a separately frozen recovery version."
+  ],
+  "limits": [
+    "One seed, one DU/depot, one reorder, predefined exponential lead with one-hour mean, 36-hour horizon; no statistical validation of the distribution or multiple outstanding orders.",
+    "GUI-only behavior, cross-engine equivalence, full E15.var04/E15 and Issue #18 remain unverified."
+  ]
+}
