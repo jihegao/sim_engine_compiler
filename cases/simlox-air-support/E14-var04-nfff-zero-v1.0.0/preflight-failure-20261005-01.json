@@ -1,0 +1,15 @@
+{
+  "schema": "simlox-native-preflight-failure/v1",
+  "run_id": "e14-var04-nfff-zero-v100-ssh-20261005-01",
+  "stage": "SSH session-0 source provenance preflight, before mutex and run-directory creation",
+  "result": "excluded_diagnostic",
+  "ssh_exit_code": 1,
+  "native_simlox_child_started": false,
+  "run_directory_created": false,
+  "protected_gui_pid": 13340,
+  "protected_gui_session": 1,
+  "contract_sha256": "8ee01679884a419d22c148023cdd8217420d31a6b090dd34b25c40794d4fd190",
+  "runner_sha256": "cc03231a48902edbf95ab118c54a64cf80f92b54f7d03ebd7ea9eda93ff40dcd",
+  "observed_failure": "PowerShell 5 removed quote characters in the inline python -c argument. Python reported SyntaxError: unexpected character after line continuation character, and the runner threw 'published parent index Git bytes or CRLF relation differ'. The separately run same verifier logic in local PowerShell 7 exited zero. No native behavior was tested.",
+  "recovery": "Freeze this failed candidate. Put the byte verifier in a pinned Python file in a new version, use a new run ID, and obtain fresh independent preflight before the sole native diagnostic."
+}
