@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-zero-reorder-lead-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e15-var02-zero-lead-v100-ssh-20261005-01",
+  "scope": "One accepted-parent child-only zero versus nonzero reorder lead-time contrast on the tracked stock-based TEACH-DU-01/DEPOT-01. Change only ItemReorder.LEADT 1.0-to0.0. Reuse the accepted explicit-three parent without recalculation.",
+  "accepted_parent": {
+    "package": "E15-var07-explicit-istoh-v1.0.1",
+    "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+    "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+    "evidence_index_sha256": "8b8c7e08b7e056a83084298478988cf8582c8369ab252e810f30ba6e39d6aab1",
+    "event_log_sha256": "06629a8dc4688786012a304b0e0d6b390a684349b6a280c00b3a6555e3ba5960",
+    "selected_report_sha256": "5ff76859bb5f0173380619067caa633c2f413796e8705675f39bbba230959b1d"
+  },
+  "source": {
+    "input_sha256": "59ee308d5c42d04e870c79a018897f7fdb125e2850dbb85a639dff64244e4525",
+    "builder_sha256": "4750845e940528c221b945cf2e350fde999b15adcd86386784759b657821f36f",
+    "roundtrip_checker_sha256": "443f79058461a71d1a30eba4c4cb9f1008f8c86d9f45d5972787e485d710a8da",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c",
+    "selector_builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "frozen_delta": "The sole parent-to-child source cell difference is ItemReorder rec1 LEADT floating value 1.0-to0.0. StockAllocation depot STSIZ4/ROSIZ2/ISTOH3, 31 table structures, fixed seed1, 36h horizon, half-hour collection, TRACK=Y and selected report setting remain inherited.",
+  "manual_boundary": "Installed manual physical pp343-345 states ItemReorder.LEADT is a mandatory nonnegative hour value giving the delay between reorder decision and corresponding delivery. A value0 is permitted. The stock-based strategy uses fixed ROSIZ2 at reorder point STSIZ-ROSIZ=2.",
+  "execution_guard": "One unique SSH session0 run with sshd ancestor and Global\\SimloxIssue18NativeQueue mutex; protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z; hidden target-only watchdog; source fingerprints before/after and immutable local raw SHA closure.",
+  "predeclared_gates": [
+    "Two independent reviewers verify accepted parent native seals and source, manual pp343-345, sole LEADT cell delta, all literal runner SHA pins and unoccupied run ID before native execution.",
+    "Native import/export exactly preserves 21 authored row-containing tables before calculation. Converter Errors0/Warnings1 sole #108/Notes0, valid SXO/event/ten-table report, and protected GUI survives four serial native stages.",
+    "Depot opens with three physical items. The inherited hour-ten ordinary demand issues physical ID0, lowering on-hand to two and triggering one fixed two-item reorder. With LEADT0, the same order is delivered at hour10 rather than accepted-parent hour11; new physical items restore depot stock to four at hour10. No order occurs at hour0. Reconcile all physical identities, event order, shipment, failed item and terminal stock; unexpected timing or quantity excludes this frozen contract.",
+    "All 72 selected depot half-hour ItemResults bins show STSZ4, STOHA3 before h10 then4 through h36, one NRO at h10 and NBO0; ItemResultsTotal mean equals (20*3+52*4)/72. Reconcile mission/system/StockTotal and terminal readiness against accepted parent; report boundary sampling must agree with complete event ledger.",
+    "Any source, converter, raw seal, native result, event order, report, selector or GUI discrepancy makes this version an excluded diagnostic; retain it and separately review any replacement."
+  ],
+  "limits": [
+    "One DU/depot/fixed seed, LEADT0 versus accepted LEADT1, one hour-ten demand, stock-based STSIZ4/ROSIZ2/ISTOH3 over 36h; no other leads, random LEADTD, multiple outstanding orders, changes, transfers or time-based strategy.",
+    "GUI-only behavior, cross-engine equivalence, full E15.var02/E15 and Issue #18 remain unverified."
+  ]
+}
