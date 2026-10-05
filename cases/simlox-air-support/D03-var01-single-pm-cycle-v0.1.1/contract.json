@@ -1,0 +1,66 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D03",
+  "variant_id": "D03.var01",
+  "version": "0.1.1-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "单周期/多周期",
+  "question": "Against the accepted two-cycle D03 calendar-PM model, does stopping after the first 24-hour PM and all three planned missions but before the second PM produce exactly one completed PM cycle with the aircraft ready at hour 36?",
+  "ownership": {
+    "branch": "codex/simlox-d03-var01-one-cycle-20261006",
+    "remote_variant_branch_or_package_at_selection": "absent",
+    "native_run_id_reserved": "d03-var01-onecycle-v011-ssh-20261006-01"
+  },
+  "prelaunch_revision": {
+    "excluded_version": "D03-var01-single-pm-cycle-v0.1.0",
+    "excluded_prelaunch_no_go_sha256": "a19f508c055ac943d497d54651e18ec0950edeb5cdadcac1bfafcaa5cc44eb42",
+    "reason": "v0.1.0 checked the 18-table import/export roundtrip after calc; v0.1.1 gates calc on a successful check immediately after export",
+    "excluded_native_run_started": false
+  },
+  "accepted_parent": {
+    "package": "D03-calendar-pm-v1.0.0",
+    "run_id": "d03-calendar-v100-ssh-20261001-02",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1",
+    "closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8",
+    "model_log_sha256": "edd41c34046fb92e53a3f5eb8569cec3a932aa00aed8e878ecc40ef45826a4a5",
+    "report_sha256": "a9cc414e9b40da06be620e5fb64c52e0db41ec6fe959ac0874497d358232a84e"
+  },
+  "instructional_prerequisites": [
+    {"case_id": "A02", "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"},
+    {"case_id": "B02", "evidence_sha256": "bceddd5983e9187bf8be19464b04ad5b2136bf665f6d4d9d676928b8c2354c61"}
+  ],
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [202,203,204,230,231,265,266,271,272,273,274,275,370,371,372,373,374,375,387,388,389,402,403,404,532,533],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "source_delta": {
+    "cells": [
+      "ProblemDescription.PDESC may label the single-cycle child",
+      "Control.SIMPE 60 to 36 hours",
+      "Control.RCEND 60 to 36 hours",
+      "ResultCollection MISSION and SYSTEM RCEND 60 to 36 hours"
+    ],
+    "retained": [
+      "one aircraft, fixed seed 1, one repetition",
+      "three scheduled two-hour missions starting at hours 8, 20 and 32 with DTIM 1/3 hour",
+      "CAL24 MaterielPM CALHOURS interval 24 hours and one-hour BASE-01 task",
+      "Control.ENPM=Y and RCINT=0.5 hour",
+      "all parent model tables and values outside the five declared cells"
+    ]
+  },
+  "predeclared_acceptance": [
+    "Independent GO_CONTRACT_ONLY must precede child source creation; a separate frozen source, exact diff, roundtrip checker, runner, behavior checker and GO_PRELAUNCH must precede one native launch.",
+    "The single session-0 SSH run must hold Global\\SimloxIssue18NativeQueue, preserve GUI PID13340/session1/exact start/responding, use a unique empty run directory, and seal successful or failed raw outputs without rerunning the accepted parent.",
+    "Import/export must preserve every authored row-containing table; converter errors must be zero and warnings classified; model, event and report files must be valid. A zero native process exit without those artifacts is not a semantic pass.",
+    "The three missions must start at hours 8, 20 and 32, complete successfully at 10, 22 and 34, and return before the 36-hour stop. The one CAL24 PM must start at 24 and complete at 25. A second PM start at 49 or any additional PM task must be absent before the child horizon.",
+    "Reconcile all 72 half-hour SystemResults and StockTotalResults rows against events: exactly one PM start/completion, no failures or repairs, six mission aircraft-hours, one PM aircraft-hour, 26 ready and 35 available aircraft-hours, final ready aircraft 1 and no active PM. Treat these quantities as hypotheses until native replay."
+  ],
+  "limits": [
+    "This is a horizon-truncated contrast with the accepted two-PM parent. It does not establish the general calendar-PM recurrence rule or behavior after hour 36.",
+    "The fixed schedule has no PM/mission overlap, resource shortage or PM item demand. GUI visual and cross-engine behavior remain unverified.",
+    "The second PM at hour 49 is an accepted parent observation, not a task in the child window. K01/K08 GUI capture blockers, K06 source gap, I07 opening-stock-three, E05.var02 exact-time, and overall Issue18 completion remain outside this case."
+  ]
+}
