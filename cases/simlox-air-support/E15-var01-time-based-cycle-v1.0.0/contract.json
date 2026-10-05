@@ -1,0 +1,68 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var01",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e15-var01-timecycle-v100-ssh-20261005-01",
+  "scope": "One fixed-seed initial stock-based versus time-based reorder contrast on accepted E15 default-on-hand DU depot stock. New child changes only ItemReorder.ROINT null(default0) to16 hours, retains LEADT1, STSIZ4, ROSIZ2 and omitted ISTOH (default4), and tests the first scheduled order after the shared hour-10 ordinary demand.",
+  "prerequisites": {
+    "E02": {
+      "package": "E02-zero-stock-local-backorder-v1.0.0",
+      "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+      "signoff_sha256": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6"
+    },
+    "E15": {
+      "package": "E15-var07-explicit-istoh-v1.0.1",
+      "input_sha256": "602dedfdb3491ab430abe4c68426c28203738fe1b2b1173d5d66955d00b6102e",
+      "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+      "event_log_sha256": "f7fb876b752fd8b824defa81bd014fd05a75921d12c352a6940e51b4730bffbf",
+      "selected_report_sha256": "d7ed894a40efefc577b0520a4bfb0387d9cb0ea907357eef2e058d1438d96499",
+      "role": "Direct accepted stock-based default-on-hand comparator, nominal/on-hand4, ROSIZ2 and one h10 depot issue, no order."
+    }
+  },
+  "source": {
+    "input_sha256": "d37bdc10592dff04e521d66276b49f9404dfea0511fac5ea73ef201b02b22b1f",
+    "builder_sha256": "3c73d81c94788c2247c6f3e7b3640d06cb9b2cddf317f09311a5646429682694",
+    "roundtrip_checker_sha256": "5b286dcb38a3c4eb5cb61bd4742365933f4fdf1dd94d53628ab6532eeeb5b3b5",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [343, 345, 447],
+    "manual_boundary": "ROINT>0 selects fixed-interval time-based reorder with variable quantity to reach nominal STSIZ; ROSIZ is ignored with a warning. In time-based strategy ISTOH must be at least STSIZ. Positive strategy cannot later be switched to stock-based by ChangesItemReorder."
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "station": "DEPOT-01",
+    "point": "AIR_BASIC",
+    "item_type": "DU_discardable",
+    "nominal_STSIZ": 4,
+    "initial_ISTOH": null,
+    "effective_opening_on_hand": 4,
+    "ROSIZ": 2,
+    "parent_ROINT": null,
+    "child_ROINT_hours": 16,
+    "LEADT_hours": 1,
+    "ordinary_demand_hour": 10,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "collection_interval_hours": 0.5
+  },
+  "frozen_delta": "Only ItemReorder [TEACH-DU-01,DEPOT-01] column ROINT changes null(default0) to16.0. All other model rows and columns, including ProblemDescription, are semantically identical to the accepted E15 default-on-hand source.",
+  "report_selector": {
+    "builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "settings_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c"
+  },
+  "execution_guard": "One unique serial SSH0 run under Global\\SimloxIssue18NativeQueue; protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z; hidden target-only watchdog; pinned parent/input/exe/manual/selector; exact 21-table native pre-calc roundtrip; source hashes before and after; raw SHA closure.",
+  "predeclared_gates": [
+    "Two independent reviewers check installed manual pp343/345/447, accepted E02/E15 byte pins, sole ROINT delta, omitted-ISTOH time-based validity, timeline and runner before native use.",
+    "Native import/export must exactly preserve all 21 authored populated tables before calc. Conversion errors0, notes0, sole #108 logging warning plus one row-specific ROSIZ-ignored warning for time-based reorder; any other diagnostic, invalid SXO, empty event log or report, or changed GUI/source fails the frozen gate.",
+    "Shared h10 ordinary demand issues depot physical ID0 toward base, reducing depot on-hand4-to3, and ID0 arrives at base h12. Stock-based accepted parent has no reorder. Time-based child makes no demand-triggered h10 order, then the first scheduled h16 cycle starts one variable-sized order to restore nominal4 and receives one newly identified physical DU at h17 after LEADT1. Exact batch, ID and timing are hypotheses to verify, not inferred from manual alone.",
+    "Reconcile all physical stock snapshots, demand, reorder, in-transit and arrival records, terminal depot stock and all 72 selected half-hour depot STSZ/STOHA/NRO/NBO bins. Expected child STOHA4 before h10, 3 from h10 until h17, 4 after h17; NRO marks the h16 order interval only. Compare all ten selected report tables with accepted parent and enumerate any differences, including mission/system/aggregate stock metrics.",
+    "If schedule origin, warning, order, quantity, ledger, source or report differs, retain immutable raw as diagnostic; revise only under a separately reviewed version rather than loosening this gate."
+  ],
+  "limits": [
+    "One DU/depot/fixed seed, one positive ROINT16 cycle and one h10 demand with no other stock perturbation. This tests initial time-based reorder only, not scheduled strategy changes.",
+    "No other interval, multiple outstanding orders, random lead, time-cycle boundary tie, ROSIZ choice, transfer interaction, GUI, cross-engine, full E15.var01/E15 or Issue #18 claim."
+  ]
+}
