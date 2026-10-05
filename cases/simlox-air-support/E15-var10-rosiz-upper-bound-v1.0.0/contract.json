@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-air-support-negative-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var10",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e15-var10-rosiz-over-limit-v100-ssh-20261005-01",
+  "scope": "One stock-based discardable TEACH-DU-01 depot reorder from accepted E15 explicit-three. Change only the depot StockAllocation.ROSIZ from 2 to 6 while STSIZ stays 4; test installed-manual maximum ROSIZ <= STSIZ+1 as a bounded negative converter case.",
+  "prerequisites": {
+    "E02": {
+      "package": "E02-zero-stock-local-backorder-v1.0.0",
+      "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+      "signoff_sha256": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6",
+      "role": "Accepted E15 catalog dependency for local item stock and demand."
+    },
+    "E15": {
+      "package": "E15-var07-explicit-istoh-v1.0.1",
+      "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+      "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+      "role": "Direct accepted 31-table stock-based DU source: depot STSIZ4, ROSIZ2, ISTOH3, LEADT1."
+    }
+  },
+  "source": {
+    "input_sha256": "7ca2f1179edba26db4105e41d8988f4e9137dffa1451dfaa23f22b05247fceeb",
+    "builder_sha256": "9c6ff6a5d2b5b8e43a7547ad0da102ea33bca2ac5ab5761f85cf6ed0d25db6f3",
+    "roundtrip_checker_sha256": "e4be9a9fa4a73242d57b9d891d5233caf5a6b487838aaa28b2ee14b566a377e3",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_page": 517,
+    "manual_boundary": "For a discardable stock-based reorder, point = STSIZ - ROSIZ must be at least -1; ROSIZ must not exceed STSIZ + 1."
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "station": "DEPOT-01",
+    "point": "AIR_BASIC",
+    "strategy": "stock_based",
+    "initial_STSIZ": 4,
+    "parent_ROSIZ": 2,
+    "candidate_ROSIZ": 6,
+    "maximum_documented_ROSIZ": 5,
+    "initial_ISTOH": 3,
+    "lead_hours": 1,
+    "seed": "1",
+    "horizon_hours": 36
+  },
+  "frozen_delta": "Only StockAllocation row [AIR_BASIC,TEACH-DU-01,DEPOT-01] column ROSIZ changes 2 to 6. All other model tables and rows including ProblemDescription are semantically identical to the accepted E15 explicit-three source.",
+  "execution_guard": "One unique serial SSH0 run under Global\\SimloxIssue18NativeQueue; protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z; hidden targeted child and watchdog; source hashes before and after; import/export exact 21 populated-table roundtrip before converter gate; raw SHA closure.",
+  "predeclared_gates": [
+    "Independent reviewer verifies accepted E02/E15 source pins, exact single-field parent delta, manual p517 boundary and native runner before the call.",
+    "Import and native JSON export retain all 21 authored populated tables exactly. Native calculation/conversion produces an explicit row- or value-specific error for ROSIZ6 above STSIZ4+1, with no valid simulation output; preserve native code and exact diagnostic text rather than inventing a code.",
+    "If converter allows a valid run, emits only a warning, errors for another reason, or roundtrip/guard/source checks fail, preserve the immutable run as an excluded diagnostic and do not publish a positive limit claim.",
+    "No report export or expected successful behavior timeline is part of this invalid-input contract. Accepted E15 behavior is pinned and not rerun."
+  ],
+  "limits": [
+    "One fixed stock-based discardable DU, depot row, STSIZ4 and candidate ROSIZ6; exact converter behavior only.",
+    "No general invalid-value taxonomy, time-based policy, runtime inventory, GUI behavior, cross-engine parity, all E15.var10/E15 or Issue #18 claim."
+  ]
+}
