@@ -1,0 +1,32 @@
+{
+  "schema": "simlox-air-support-source-bound-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var05",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "scope": "Source-bound mapping of the accepted I07.var02 v1.0.1 scheduled ROSIZ2-to-1 pair to the five-hour depot item-stock demand-free interval [5,10). No new native execution or raw copy.",
+  "accepted_parent": {
+    "package": "I07-var02-rosiz-v1.0.1",
+    "evidence_index_sha256": "f2804b40ace4a062f64f3c9983c809fa6b8d69c0a9aaea379a8997e844f797c4",
+    "contract_sha256": "7fdb7ac423e8921f22acb30ba0b675cfa271cb36740b43f6f28b6034da09ec30",
+    "signoff_sha256": "dd1a18eef446f73564a18c09a900a2ccc211840545d4e5de70b2064be40c47d0",
+    "run_id": "i07-var02-rosiz-v101-ssh-20261005-01",
+    "run_closure_sha256": "70f370b089a2bc477ebd38027be4e5bcebe94e23dc963fd8103272b9d8b660ce",
+    "control_input_sha256": "c6aa9ee1f86204dba3922765a29fa5225547710827db144b6abcacf106eaf84e",
+    "change_input_sha256": "b179428b3f72158bf9d32ce2675cc107fbadc60c6c3597bbab92abf24f70b2c2",
+    "independent_review_sha256": "25e3df9d67c2f6b232dab08e31ea25665f41e114164a8b80f5a04689dd88d4fe"
+  },
+  "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "manual_physical_pages": [515, 516, 517],
+  "predeclared_gates": [
+    "Verify all parent source and run bytes against its published evidence index, including all original raw seals; do not duplicate or change raw evidence.",
+    "Verify exact paired input difference: only child ChangesStockAllocation ROSIZ1 at h5 versus an all-null control placeholder, with depot nominal and opening on-hand four and initial ROSIZ two.",
+    "For [5,10), check both complete native event logs have no depot item-stock demand, transfer, reorder start/completion, delivery or physical depot stock move. Other mission/system events may occur.",
+    "Check all ten selected depot ItemResults half-hour rows per arm cover [5,10) exactly and retain STSZ4/STOHA4/NRO0/NBO0; compare with the immediately prior bin and first h10 demand/order boundary.",
+    "Independent reviewer replays the interval assertions without importing the author checker. If any gate fails, retain as diagnostic and do not publish a positive interval claim."
+  ],
+  "limits": [
+    "This is a five-hour depot item-stock demand-free interval inside a 36-hour accepted run; the mission activates at h7 and a component fails before h10, so it is not a no-event or full-horizon no-demand simulation.",
+    "The native log does not separately print the scheduled h5 parameter application. No claim about an indefinite absence of spontaneous orders, other stock levels, a transfer, GUI, cross-engine, full I07.var05, full I07 or Issue #18."
+  ]
+}
