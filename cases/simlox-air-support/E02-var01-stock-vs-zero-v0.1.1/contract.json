@@ -1,0 +1,55 @@
+{
+  "schema": "simlox-air-support-derived-contrast-contract/v1",
+  "case_id": "E02",
+  "variant_id": "E02.var01",
+  "version": "0.1.1-contract-candidate",
+  "publication_state": "not_published",
+  "question": "For the accepted fixed-seed local LRU replacement model, how does opening one local spare versus zero local spares change the first demand, physical fit, repair return, backorder, and aircraft readiness?",
+  "evidence_mode": "read-only comparison of two separately accepted native runs; no new native run or new input",
+  "parents": {
+    "stock_one": {
+      "case_id": "E01",
+      "package": "E01-local-spare-explicit-replacement-v1.0.0",
+      "run_id": "e01-v100-ssh-20260929-01",
+      "input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+      "signoff_sha256": "c52dd13ba1f6fab05032ebf80597940099241bb652f2c3a73a26edbf059c1110",
+      "closure_sha256": "1713af4ca149f3fe3bd80bb8a033372475762eec787e36e38aeaddf8c385f5c6"
+    },
+    "stock_zero": {
+      "case_id": "E02",
+      "package": "E02-zero-stock-local-backorder-v1.0.0",
+      "run_id": "e02-v100-ssh-20260929-01",
+      "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+      "signoff_sha256": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6",
+      "closure_sha256": "a8ec55f67c710be700cb4dc3663c7f79041d69c2021edb9924c1d0daddda04ef"
+    },
+    "repair_prerequisite": {
+      "case_id": "E05",
+      "signoff_sha256": "e7f4e82be24e09d258345e5f8084ac99e822e8384cb5c8698fbd1ea687105f2f"
+    }
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages_inherited_from_accepted_e02": [211, 212, 213, 218, 219, 220, 338, 339, 340, 444, 445, 446],
+    "catalog_delta": "有货/零库存"
+  },
+  "controlled_delta": {
+    "business_change": "StockAllocation.STSIZ for AIR_BASIC / TEACH-LRU-01 / BASE-01 changes from 1 to 0",
+    "allowed_changed_tables": ["ProblemDescription", "StockAllocation"],
+    "fixed": ["seed 1", "36 hour horizon", "one aircraft", "installed LRU failure configuration", "10 minute REMOVE", "20 minute REPLACE", "one hour local ItemRepair", "8/20/32 hour mission schedule", "SIMLOX executable SHA-256 fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"]
+  },
+  "predeclared_acceptance": [
+    "Recompute both accepted parent input, signoff, closure, and every closure raw file SHA-256 and size; preserve original files byte-for-byte.",
+    "Independently compare all source table schemas and rows, allowing only ProblemDescription and the one StockAllocation.STSIZ 1-to-0 cell; no unlisted source delta.",
+    "Confirm both existing runs' four CLI steps, exact 20 row-containing table roundtrips, zero conversion errors, valid SXO/event/report, and accepted independent replays from their sealed evidence.",
+    "Trace the first failed physical LRU and opening stock, demand, issue or backorder, REMOVE, physical REPLACE start and end, removed-item ItemRepair, return or backorder clearance, and aircraft readiness in both raw event logs. Explicitly map E01 failed LRU ID1 and issued spare ID0 versus E02 failed-and-repaired LRU ID0; distinguish a task started event from starts performing physical fit.",
+    "Recompute 72 aligned half-hour system and aggregate stock rows for each arm; reconcile demand, stock, backorder occupancy, aircraft availability, and terminal state with events, not only signoff prose.",
+    "Report the observed one-hour readiness shift and backorder occupancy only for this fixed seed/executable pair. The aircraft has the same first failure time and type at hour 9.8829, but the failed physical LRU IDs differ; do not infer cross-run item identity, general causal behavior, or random-stream equivalence."
+  ],
+  "limits": [
+    "This package reuses two accepted runs and contains no newly executed native model. It can publish a bounded comparison only if all original raw seals and source/behavior gates pass in independent read-only replay.",
+    "Physical installed identity after fit, other seeds, multiple simultaneous demands, alternate supply, reorder, GUI visual behavior, cross-engine equivalence, and general stock policy remain unverified.",
+    "K01/K08 GUI captures, I07 opening-stock-three diagnostic, E05.var02 exact-time tie, and E02.var03 excluded failures are outside this contract."
+  ]
+}
