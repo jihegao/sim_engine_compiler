@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-above-nominal-istoh-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var07",
+  "version": "1.0.2-candidate",
+  "publication_state": "not_published",
+  "run_id": "e15-var07-istoh-five-v102-ssh-20261005-01",
+  "scope": "One accepted-parent child-only fixed-seed stock-based depot opening-stock test for catalog E15.var07 above-nominal ISTOH. Change only explicit TEACH-DU-01/DEPOT-01 StockAllocation.ISTOH3-to5, with nominal STSIZ4, ROSIZ2, LEADT1 and inherited hour-ten demand. No accepted parent rerun.",
+  "accepted_parent": {
+    "package": "E15-var07-explicit-istoh-v1.0.1",
+    "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+    "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+    "evidence_index_sha256": "8b8c7e08b7e056a83084298478988cf8582c8369ab252e810f30ba6e39d6aab1",
+    "event_log_sha256": "06629a8dc4688786012a304b0e0d6b390a684349b6a280c00b3a6555e3ba5960",
+    "selected_report_sha256": "5ff76859bb5f0173380619067caa633c2f413796e8705675f39bbba230959b1d"
+  },
+  "source": {
+    "input_sha256": "897fc56e248f71b0b2c6e2616d4be476b24d7564f76053768d3980e93ccc6a7e",
+    "builder_sha256": "841b4963014e22be3cf996a25e38e54a52a7b06e7e0737dd4f1c3e6f639e7547",
+    "roundtrip_checker_sha256": "684279d087f82efb3921eb8eb6ad5e6839d6a51dd7851284a882dc6ed6e7558d",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c",
+    "selector_builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "frozen_delta": "The only parent-to-child source cell difference is StockAllocation rec2 ISTOH integer 3-to5. All 31 table structures and other rows/columns, item TRACK, seed1, 36h horizon, half-hour collection, nominal STSIZ4, ROSIZ2, LEADT1 and selected report setting are unchanged.",
+  "manual_boundary": "Installed manual physical pages 445-447 says ISTOH is optional at reorder positions, defaults to STSIZ+AINST, and explicit ISTOH can exceed nominal STSIZ during the initial phase. For stock-based strategy it must be at least STSIZ-ROSIZ (here 2). It changes initial stock only, not the long-term reorder rule. Manual also says actual on-hand is ordinarily <= nominal except this initial exception.",
+  "execution_guard": "One unique SSH session0 run with sshd ancestor and Global\\SimloxIssue18NativeQueue mutex; protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z; hidden target-only watchdog; source fingerprint before/after and immutable local raw SHA closure.",
+  "predeclared_gates": [
+    "Two independent reviewers verify accepted parent source/native seals, manual pp445-447, exact one-cell delta, all literal runner source pins and unoccupied run ID before native execution.",
+    "Native import/export exactly preserves 21 authored row-containing tables before calculation. Converter Errors0/Warnings1 sole #108/Notes0, valid nonempty SXO/event log and ten-table selected report; protected GUI survives four serial native stages.",
+    "Initial depot physical stock is five, one above nominal STSIZ4. The inherited first ordinary demand issues one depot physical item at h10 toward base and reduces depot on-hand to four; the stock-based point is STSIZ-ROSIZ=2, so no reorder starts from this single issue. No h0/h10 order is assumed from the extra opening unit. Reconcile every physical identity, shipment, failed item and terminal stock; if the native first demand timing or stock state differs, exclude this frozen contract.",
+    "All 72 selected depot half-hour ItemResults bins show STSZ4, STOHA5 before h10 then4 through h36, NRO0 and NBO0. Reconcile complete event log, ItemResultsTotal average, mission/system/StockTotal tables and terminal readiness against accepted parent and default-on-hand observations. Do not infer a general above-nominal cap or later replenishment from one demand.",
+    "Any frozen source, warning, raw seal, native result, ledger, selector or GUI discrepancy makes this version an excluded diagnostic; retain it and require a separate reviewed version for reinterpretation."
+  ],
+  "limits": [
+    "One DU/depot/fixed seed, STSIZ4/ROSIZ2, explicit opening ISTOH5, one hour-ten demand, 36h. No multiple demands, outstanding orders, AINST, transfer, other values or time-based strategy.",
+    "GUI-only behavior, cross-engine equivalence, full E15.var07/E15 and Issue #18 remain unverified."
+  ]
+}
