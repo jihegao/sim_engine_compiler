@@ -1,0 +1,82 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var07",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var07-sametime-rosiz-out-v100-ssh-20261005-01",
+  "scope": "One fixed-seed matched pair with an h5 depot OUT transfer in both arms and an h5 ROSIZ two-to-one scheduled change only in the child. The existing discardable DU stock-based point has nominal four, opening on-hand three and one-hour reorder lead. Compare whether the simultaneous transfer applies the new ROSIZ when it next changes reorder state; preserve any failed native result.",
+  "prerequisites": {
+    "E15": {
+      "package": "E15-var07-explicit-istoh-v1.0.1",
+      "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+      "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+      "role": "Direct 31-table stock-based DU source, nominal4/opening3/ROSIZ2."
+    },
+    "I02_OUT": {
+      "package": "I02-var02-out-transfer-v1.0.0",
+      "input_sha256": "7b15a1e0a6efcee9c772ac39dd52bb742a6eb23b6b711cf8e3cbc681aabe07e0",
+      "signoff_sha256": "bde5bddc4a836684a90e452d9ad2f86fa4a9b64d451356908397c2fe00c0c4c7",
+      "evidence_index_sha256": "0fdc685cf5c249b272dfcecf4c4abba717d132a503d3be4fd99b299bcd3623d0",
+      "role": "Accepted seven-column ItemTransfer OUT syntax and physical/nominal transfer accounting, but on another item."
+    },
+    "I07_var02": {
+      "package": "I07-var02-rosiz-v1.0.1",
+      "signoff_sha256": "dd1a18eef446f73564a18c09a900a2ccc211840545d4e5de70b2064be40c47d0",
+      "evidence_index_sha256": "f2804b40ace4a062f64f3c9983c809fa6b8d69c0a9aaea379a8997e844f797c4",
+      "role": "Accepted isolated h5 ROSIZ change has no immediate order; h10 demand later triggers one. This run does not repeat it."
+    }
+  },
+  "source": {
+    "builder_sha256": "e0f2f04ac82e2e0c56b8104427f3d313625613c95da6dda40f38587b56a0358a",
+    "roundtrip_checker_sha256": "661fc059772876cae671f407577c5f662689f824673d9ef6903d473a5df2312a",
+    "inputs_sha256": {
+      "control": "00dc90534017a29487d64dd77e025cbb69bba9c9d7dfeec71b4add7d2f0cc800",
+      "change": "0e37911e46621b07223c918cebf24240801023b4759099b0835a91b098f475d1"
+    },
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [445, 446, 447, 481, 482, 515, 516, 517],
+    "manual_boundary": "ChangesStockAllocation only changes ROSIZ on an existing stock row. The change itself never immediately orders; next demand or scheduled transfer reapplies the strategy. ROSIZ change can make the next order exceed its new value. Item transfers adjust nominal STSIZ and reorder point but do not themselves change configured ROSIZ; for a same-time ROSIZ change and transfer, the new ROSIZ is used to test whether a reorder is needed."
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "station": "DEPOT-01",
+    "point": "AIR_BASIC",
+    "strategy": "stock_based",
+    "item_type": "DU_discardable",
+    "initial_nominal_STSIZ": 4,
+    "initial_on_hand_ISTOH": 3,
+    "initial_ROSIZ": 2,
+    "changed_ROSIZ": 1,
+    "transfer_hour": 5,
+    "transfer": "one available physical DU OUT from DEPOT-01 to <OUTSIDE>, TFDT zero",
+    "change_hour": 5,
+    "ordinary_demand_hour": 10,
+    "lead_hours": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "collection_interval_hours": 0.5
+  },
+  "frozen_delta": "Both arms share only the description change from E15 and two added tables: the accepted ItemTransfer schema with the same one-unit OUT row at h5, and ChangesStockAllocation with one all-null control placeholder versus an h5 ROSIZ=1 child row. The sole paired value difference is that ChangesStockAllocation row. All 31 inherited E15 tables and every other business input are unchanged.",
+  "report_selector": {
+    "builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c"
+  },
+  "execution_guard": "One immutable matched-pair run; session-0 SSH and sshd ancestor; Global\\SimloxIssue18NativeQueue; sole protected GUI PID13340/session1 identity around each hidden child; target-only watchdog; exact pre-calc roundtrip; strict converter warning gate; before/after source and raw SHA closure.",
+  "predeclared_gates": [
+    "An independent reviewer checks manual p515-517, accepted E15/I02/I07 pins, exact paired delta, same-time transfer semantics and runner before native execution. A unique run path is unoccupied.",
+    "Both arms import and exactly roundtrip all 23 authored row-containing tables before calc; converter Errors0/Warnings1 sole #108/Notes0, valid SXO/event/selected report, and unchanged GUI identity are required.",
+    "The same h5 one-unit OUT transfer removes one existing depot physical DU in both arms, reducing nominal STSZ four-to-three and on-hand three-to-two. No extra physical movement arises from the ROSIZ row alone.",
+    "The h5 transfer changes reorder state. Under ROSIZ2 the new reorder point is one, and stock state two predicts no control order. Under ROSIZ1 the new reorder point is two; a child-only h5 order is the positive same-time hypothesis. Its batch size is recorded from native events and stock state, not assumed to equal new ROSIZ one.",
+    "Reconcile any later h10 demand, all order starts/completions/arrivals, in-transit physical IDs, 72 selected depot half-hour STSZ/STOHA/NRO/NBO bins and complete native stock snapshots. Do not attribute shared transport or mission outcomes to ROSIZ without a paired contrast.",
+    "If the same-time child-only h5 order does not occur, or import/roundtrip/warning/report/ledger/source evidence fails, seal this immutable run as diagnostic and do not publish a positive same-time ROSIZ claim."
+  ],
+  "limits": [
+    "One fixed seed, one existing discardable DU stock point, one h5 available-stock zero-delay OUT and one h5 ROSIZ change. The transfer changes nominal and physical stock together; the matched control is needed to isolate ROSIZ.",
+    "No unavailable-stock transfer, nonzero transport duration, multiple orders/locations, time-based reorder, other event tie ordering, GUI, cross-engine or full I07/Issue #18 claim."
+  ]
+}
