@@ -1,0 +1,62 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D01",
+  "variant_id": "D01.var03",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "终点仍在修理",
+  "question": "For the accepted single-aircraft direct-system-repair D01 model, does stopping at hour 34.25 preserve the second observed repair as started but unfinished at the simulation horizon, with the aircraft still unavailable and the completed first repair unchanged?",
+  "parent": {
+    "package": "D01-system-direct-repair-v1.0.0",
+    "run_id": "d01-v100-ssh-20260929-01",
+    "input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450",
+    "signoff_sha256": "428224849277100ebd7b97f068308e43617884759cb3a82e1792ddebeae772b3",
+    "closure_sha256": "c3769da04ae3e8e754ff172cb0bed9317a0ec7ec5352913086341cc0ad489c05",
+    "raw_model_log_sha256": "71c46a192990c81bf27ed6fd1b41ea15b5ada25834131a7700d4d1b779e83161",
+    "raw_report_sha256": "cb21d4b6f7c3c35b8d42412e60bb6ca85d178b4ef6e9d61d71ca294ba94fc83a"
+  },
+  "instructional_prerequisite": {
+    "case_id": "A02",
+    "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"
+  },
+  "method_precedents": [
+    {
+      "case_id": "J05.var01",
+      "reason": "Accepted quarter-hour global result-collection interval and field semantics",
+      "signoff_sha256": "8c30b1b1a563c2350431fe7978eea12ae8c33bd112584dc3b53006d509ba9e95"
+    },
+    {
+      "case_id": "D05.var04",
+      "reason": "Accepted in-progress direct repair at a shortened horizon, with completion absent",
+      "signoff_sha256": "6a6f2c82c027e84fee22b8895f2bb53d4af2d65749846a76a074a0abab2ae22f"
+    }
+  ],
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [190, 191, 211, 212, 230, 231, 240, 246, 258, 349, 350, 351, 352, 353, 354, 532, 533],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "source_delta": {
+    "business_cells": [
+      "Control.SIMPE 36 to 34.25 hour",
+      "Control.RCINT 0.5 to 0.25 hour",
+      "Control.RCEND 36 to 34.25 hour",
+      "ResultCollection MISSION and SYSTEM rows: RCINT 0.5 to 0.25 and RCEND 36 to 34.25 hour"
+    ],
+    "description_label": "ProblemDescription.PDESC may name the child; all other table schemas and values stay equal to the accepted parent",
+    "retained": ["one aircraft", "three scheduled starts at hours 8, 20 and 32", "System.FRT=300000 per million OPHOURS", "SystemRepair.DIRPT=0.5 hour at BASE-01", "seed 1", "one repetition", "no installed Item or stock", "Control.RCSTA=0"]
+  },
+  "predeclared_acceptance": [
+    "Independently review this contract, accepted parent/prerequisite/precedent pins and all 12 raw parent seals before building a child candidate. Freeze generated input, full cell diff, runner, roundtrip checker, behavior checker, source hashes and one unique run ID; obtain separate GO_PRELAUNCH before native launch.",
+    "One session-0 SSH run must hold Global\\SimloxIssue18NativeQueue, guard the sole responsive GUI PID13340/session1/exact start identity, use a new empty run directory, and seal raw outputs or failed stages without rerunning the accepted parent.",
+    "Import/export must preserve all authored row-containing tables. Converter errors must be zero and warnings classified; all four CLI steps must yield nonempty model, event and report files. A converter rejection or invalid report excludes the positive hypothesis even if its process exits zero.",
+    "The third planned mission must have an observed critical failure and return by hour 34, direct repair task 1 must begin at hour 34 with 0.5-hour planned duration, and the hour-34.5 completion/ready events present in the accepted parent must be absent in this child. The hour-34.25 terminal state must still have one aircraft in repair and zero ready; first repair completion at hour 10.5 and middle-mission success at hour 22 must remain observable.",
+    "Reconcile every quarter-hour SystemResults and StockTotalResults row from 0 to 34.25 to the event timeline, including two failure events, only one completed repair, the final in-repair occupancy, ready/available/mission integrals and mission summary. Exactly 137 quarter-hour bins are expected if native honors the 34.25 collection end. Independently replay read-only raw evidence before acceptance."
+  ],
+  "limits": [
+    "This is one fixed seed, one half-hour direct-system-repair rule and one shortened horizon. It does not prove post-horizon completion or general terminal-work policy.",
+    "The source changes result-collection granularity as well as the simulation end so the terminal quarter-hour is directly observable. It is not a matched half-hour report comparison to the parent.",
+    "Printed timestamps alone do not prove same-time priority. GUI visual behavior, cross-engine equivalence, K01/K08 capture blockers, I07 opening-three, E05.var02 exact-time and overall D01/Issue18 completion remain outside scope."
+  ]
+}
