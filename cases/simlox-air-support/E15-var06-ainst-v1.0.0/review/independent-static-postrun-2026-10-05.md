@@ -1,0 +1,18 @@
+# Second independent static post-run review — E15.var06 AINST v1.0.0
+
+**Verdict: GO, bounded CLI evidence for one omitted-ISTOH/AINST2 opening-stock case.** This was read-only review; no native process was started by the reviewer. Publication still requires completed author/independent validation, evidence index and scope signoff.
+
+## Seals and guarded execution
+
+- The child closure SHA-256 is `7c42c897afe1f7cafc74de60c3cbec0535f262f1aebf8e9ddc9c20ace6fcf3cb`; `error` is null. All 13 listed raw artifacts match their byte sizes and SHA-256, and the invocation hash matches. All 15 recorded source hashes equal the current files and are identical before/after. The copied input is byte-identical to frozen `native-input.json`.
+- The accepted default parent native closure SHA-256 `f00b8fc07a4deb1db33b6142f0704e373a5db09197e8f6190fd0b22947e6feff` and selected-report closure SHA-256 `640e77479b0930137ca7f97e1f346babc9de7132ec33cd6f9ca400fb8295b249` retain null errors, unchanged source hashes, and 12/12 plus 2/2 raw seals.
+- Invocation records SSH session 0, an `sshd.exe` ancestor, global mutex and protected GUI PID 13340/session 1/start time. Exactly four import/export/calc/selected-report stages exited zero and recorded GUI preservation. The report command reads this run's SXO with the pinned depot selector. The converter is Errors 0, Warnings 1 (sole #108), Notes 0; SXO, event log and selected report are nonempty. Independent comparison confirms all 21 authored populated tables' column names/types and rows survive import/export. This roundtrip statement excludes empty-table and native metadata identity.
+
+## Complete observed stock and result contrast
+
+- The direct accepted-parent source delta is only depot `StockAllocation.AINST` null→2; `ISTOH` remains null, nominal `STSIZ=4`, `ROSIZ=2`, reorder point 2 and `LEADT=1`. This fits installed manual pp.445–447's omitted-ISTOH rule `STSIZ+AINST=6`.
+- The child log opens depot physical IDs 0–5, base spare ID 6 and installed ID 7. The h9.8829 failure causes a base/depot demand at h10. Base ID 6 is fitted, depot ID 0 departs toward base, and depot IDs 1–5 remain (five on hand). Failed installed ID 7 is discarded at h10.1667; the aircraft is ready at h10.5. ID 0 arrives and restocks base at h12. No child reorder or new-item delivery is logged through h36. Terminal physical inventory is depot IDs 1–5, base ID 0 and installed ID 6, conserving eight opening units less one discard.
+- All 72 selected depot ItemResults bins are contiguous for `TEACH-DU-01/DEPOT-01`, with `STSZ=4`, `NBO=NRO=0`, `STOHA=6` for 20 bins `[0,10)` and 5 for 52 bins `[10,36)`. Their mean `(20×6+52×5)/72=5.27777778` agrees with ItemResultsTotal 5.27777767 within float precision; the total has NRO 0.
+- The parent selected report has the same ten tables. The 72 ItemResults rows differ only in their 72 STOHA cells, all +2 child versus parent; ItemResultsTotal differs only in mean STOHA (+2). The other eight tables, including ResultSummary, mission, system and StockTotalResults, are cell-identical. Both logs have one first-mission abort at h9.8829, two later mission successes and terminal aircraft readiness one. The changed physical item numbering is expected from the two added opening units.
+
+This establishes the manual's omitted-ISTOH calculation for this one AINST value, seed, DU depot and demand. It does not test explicit ISTOH precedence, other values, multiple demands, later replenishment, outstanding orders, other stations, GUI-only behavior or cross-engine equivalence.

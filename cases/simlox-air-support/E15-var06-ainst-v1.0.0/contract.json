@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-additional-initial-stock-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var06",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e15-var06-ainst-two-v100-ssh-20261005-01",
+  "scope": "One accepted-parent child-only additional initial stock test at the tracked stock-based TEACH-DU-01/DEPOT-01. Change only StockAllocation.AINST null-to2, keep ISTOH null and nominal STSIZ4/ROSIZ2/LEADT1. Reuse the accepted default-on-hand E15 run without recalculation.",
+  "accepted_parent": {
+    "package": "E15-var07-explicit-istoh-v1.0.1",
+    "input_sha256": "602dedfdb3491ab430abe4c68426c28203738fe1b2b1173d5d66955d00b6102e",
+    "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+    "evidence_index_sha256": "8b8c7e08b7e056a83084298478988cf8582c8369ab252e810f30ba6e39d6aab1",
+    "event_log_sha256": "f7fb876b752fd8b824defa81bd014fd05a75921d12c352a6940e51b4730bffbf",
+    "selected_report_sha256": "d7ed894a40efefc577b0520a4bfb0387d9cb0ea907357eef2e058d1438d96499"
+  },
+  "source": {
+    "input_sha256": "2dda78a252f89e3f23ffd04771a2d58f0f8d9a3d95d66f2e7193db153aeb7d50",
+    "builder_sha256": "4b2b6e4b3dd7e7af6b810feb5315c4f8e1e1d83774502c0c3d0d1f9221731bf3",
+    "roundtrip_checker_sha256": "86868fa22cbad9e44ec23dc5283416a9b7ab00bd3c1cc007d546731ee6086b24",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c",
+    "selector_builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "frozen_delta": "The sole accepted-parent-to-child source cell difference is StockAllocation rec2 AINST null-to2. ISTOH remains null, nominal STSIZ4, ROSIZ2, one-hour LEADT, TRACK=Y, seed1, 36h horizon, half-hour collection and all other 31 table structures and cells remain inherited.",
+  "manual_boundary": "Installed manual physical pp445-447: AINST and ISTOH are optional and relevant at reorder positions; absent explicit ISTOH is interpreted as STSIZ+AINST. Thus this one value2 should open with physical on-hand6 while nominal STSIZ stays4. It affects the initial phase, not the long-term stock-based reorder point STSIZ-ROSIZ=2.",
+  "execution_guard": "One unique SSH session0 run with sshd ancestor and Global\\SimloxIssue18NativeQueue mutex; protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z; hidden target-only watchdog; source fingerprint before/after and immutable local raw SHA closure.",
+  "predeclared_gates": [
+    "Two independent reviewers verify accepted parent native seals and source, manual pp445-447, sole AINST cell delta, all literal runner SHA pins and unoccupied run ID before native execution.",
+    "Native import/export exactly preserves 21 authored row-containing tables before calculation. Converter Errors0/Warnings1 sole #108/Notes0, valid SXO/event/ten-table report, and the protected GUI survives four serial native stages.",
+    "Initial depot physical stock is six while nominal STSIZ is four. The inherited first ordinary demand issues one depot physical item at h10 toward base and reduces depot on-hand to five; no reorder starts at h0 or from that one issue. Reconcile physical identities, shipment, failed item, and terminal stock; unexpected timing or state excludes this frozen contract.",
+    "All 72 selected depot half-hour ItemResults bins show STSZ4, STOHA6 before h10 then5 through h36, NRO0 and NBO0; ItemResultsTotal mean equals (20*6+52*5)/72. Reconcile complete event log, mission/system/StockTotal and terminal readiness against accepted parent; no general later-demand inference.",
+    "Any source, warning, raw seal, native result, selector, physical ledger, report or GUI discrepancy makes this version an excluded diagnostic; retain it and separately review any replacement."
+  ],
+  "limits": [
+    "One DU/depot/fixed seed, AINST2 with ISTOH omitted, STSIZ4/ROSIZ2, one inherited hour-ten demand and 36h; no alternative AINST, explicit ISTOH precedence, repeated demand, outstanding orders, other stations or time-based strategy.",
+    "GUI-only behavior, cross-engine equivalence, full E15.var06/E15 and Issue #18 remain unverified."
+  ]
+}
