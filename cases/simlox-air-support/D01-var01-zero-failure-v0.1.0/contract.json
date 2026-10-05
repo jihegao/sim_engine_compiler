@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D01",
+  "variant_id": "D01.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "零故障对照",
+  "question": "For the accepted installed-LRU D01 model, does setting both matched traditional OPHOURS FRT rates to zero leave all three scheduled missions free of observed failure, replacement demand and repair while keeping the local spare physically on hand?",
+  "parent": {
+    "package": "D01-installed-lru-direct-repair-v1.0.0",
+    "run_id": "d01-lru-v100-ssh-20260929-01",
+    "input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+    "signoff_sha256": "e2c567a5db6b1af672fa279b448b36ff43ed68a90c2c529bdf5506ed2cd39832",
+    "closure_sha256": "3642d558e98abd31f4510e213286182f9ce0d6eda0a86f6185c64f439f7e79f0"
+  },
+  "instructional_prerequisite": {
+    "case_id": "A02",
+    "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages_inherited_from_accepted_d01": [211, 212, 218, 219, 239, 240, 241, 247, 248, 338, 339, 340, 349, 350, 351, 402, 403, 444, 445, 446],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "source_delta": {
+    "business_cells": ["System row TEACH-AIR-01 FRT 300000 to 0", "Item row TEACH-LRU-01 FRT 300000 to 0"],
+    "description_label": "ProblemDescription.PDESC may name the child; all other table schemas and values stay equal to the accepted parent",
+    "retained": ["System.OPID=OPHOURS", "Item.OPID=OPHOURS", "one installed critical LRU", "SystemRepair.SURPT=0.5 hour", "ItemRepair.DIRPT=1 hour", "StockAllocation.STSIZ=1", "one aircraft", "scheduled starts at 8, 20 and 32 hours", "seed 1", "36-hour horizon", "one repetition"]
+  },
+  "predeclared_acceptance": [
+    "Independently review this contract, exact parent/prerequisite pins and 12 raw parent seals before building a native candidate. Freeze generated input, full cell diff, runner, roundtrip checker, behavior checker, hashes and one unique run ID; obtain a separate independent GO_PRELAUNCH before native launch.",
+    "A session-0 SSH run must hold Global\\SimloxIssue18NativeQueue, guard the only responsive GUI PID 13340/session 1 with its exact observed start identity, use a new empty run directory, and seal all raw outputs and failed stages without rerunning the accepted parent.",
+    "Native import/export must preserve every authored row-containing table. Converter errors must be zero; every warning must be attributed. Four CLI steps must produce valid nonempty model, event and report files with a successful roundtrip check.",
+    "If native accepts FRT=0 at both matched levels, require exactly the three planned missions to launch and complete without failure, cancellation or replacement demand, and the one physical local spare to remain on hand. Any failure, stock issue, repair, unexpected conversion diagnostic or invalid report excludes this frozen positive hypothesis; preserve the diagnostic rather than relabeling it as success.",
+    "Reconcile all 72 half-hour system and stock rows, mission summary, flight-hour and ready-hour integrals, zero failure/repair/demand/backorder counters and terminal readiness to the native event timeline. Physical stock ID comes from raw events, not an aggregate report field. Obtain a separately authored read-only replay before acceptance or publication."
+  ],
+  "limits": [
+    "This is a matched System/Item zero-FRT control under one seed/executable and three two-hour scheduled missions. It does not isolate which rate field independently suppresses failure or prove general zero-failure behavior for other mechanisms, failure modes, rates, seeds or horizons.",
+    "The zero-failure child changes the stochastic event path. It cannot be compared with the parent by assuming equal random draws or all later event times.",
+    "GUI visual behavior, cross-engine equivalence, K01/K08 capture blockers, I07 opening-three, E05.var02 exact-time and completion of D01 or Issue #18 remain outside this scope."
+  ]
+}
