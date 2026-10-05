@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-report-extension-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var10",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var10-report-only-v101-ssh-20261005-01",
+  "scope": "One report-only selected export from the already completed, byte-sealed child SXO in excluded v1.0.0. No recalculation, import or export of the model. Combine that new report with the original control report, complete byte-identical native logs, exact row-specific warning #172 and 22-table source roundtrip to test ignored ROSIZ on an existing non-reorder BASE-01 stock row.",
+  "diagnostic_parent": {
+    "package": "I07-var10-nonreorder-base-v1.0.0",
+    "evidence_index_sha256": "cffc5ceace86d89da7ea5ffc33d5e287fd0eefbea1e27cea391d209713937542",
+    "contract_sha256": "0d9b2857583c5d1aadf8ee75d407f62433bf79662d1c8c65dd62caf1c49370c3",
+    "run_id": "i07-var10-nonreorder-base-v100-ssh-20261005-01",
+    "closure_sha256": "4e54e45660e4a7fe4f2793ab622d75f9b2aa5f0c1830b16ec036e0a78fe8572d",
+    "child_sxo_sha256": "37cd82fdf1f60d0f6055f3f57f0254c4231d3bc1b18e514c3f034df6fde8571f",
+    "control_sxo_sha256": "08aba19408d1bbd1fa9a29fc2b8810f3549c2c50985e0170a50469801474bd91",
+    "control_report_sha256": "e56a2de326bf91f50d6155f5a81ed5f881fa352e2aebb62e804564dbb3536405",
+    "paired_log_sha256": "06629a8dc4688786012a304b0e0d6b390a684349b6a280c00b3a6555e3ba5960"
+  },
+  "report_selector": {
+    "path_package": "E15-var07-explicit-istoh-v1.0.1",
+    "settings_builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "settings_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c"
+  },
+  "environment": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_page": 515,
+    "protected_gui_pid": 13340,
+    "protected_gui_session": 1
+  },
+  "reviewed_diagnostic": {
+    "parent_frozen_gate_result": "excluded_diagnostic: child warnings #108 and #172, while frozen runner allowed only #108; child selected report not exported",
+    "child_converter_summary": [0, 2, 0],
+    "child_warning_codes": ["108", "172"],
+    "warning_172_text": "No reorder data defined. ROSIZ ignored. TEACH-DU-01 / BASE-01",
+    "parent_control_summary": [0, 1, 0],
+    "parent_control_warning_codes": ["108"]
+  },
+  "predeclared_gates": [
+    "Independent reviewers approve exact #172 ignored-value diagnostic, original closure/source/raw seals, byte-identical control/change native logs and a report-only SSH0 runner before the single report call.",
+    "The report-only runner pins the original excluded closure, child SXO, control report/logs, selector/settings, executable and contract; creates a new unique run under the nonblocking global mutex, with SSH0/sshd and protected GUI identity, hidden targeted watchdog, before/after source hashes and raw SHA closure.",
+    "The new run invokes only -report/-rpts/-rjexport on the sealed child SXO; no -calc, -jimport, -jexport, -save or raw change to the parent run. A valid nonempty JSON report and zero native report exit are required.",
+    "The new child selected report has 72 depot ItemResults bins and all rows/columns of all ten report tables match the original control report, with physical BASE and DEPOT stock identities traced from byte-identical complete native event logs. Original #172 is accepted as the observed ignored-value diagnostic only for this exact BASE stock row.",
+    "If any report, source, guard, warning or ledger gate fails, retain both immutable runs, classify v1.0.1 as diagnostic and do not publish the positive ignored-value claim."
+  ],
+  "limits": [
+    "The positive result, if accepted, combines an original calculation that remains an excluded strict-gate diagnostic with a separately reviewed report-only extension. It does not retroactively mark v1.0.0 accepted.",
+    "One existing non-reorder BASE-01 stock row for a discardable DU and one h5 ROSIZ setting; no other invalid item/station type, missing StockAllocation row, time-based strategy, multiple events, GUI, cross-engine, full I07.var10/I07 or Issue #18 claim."
+  ]
+}
