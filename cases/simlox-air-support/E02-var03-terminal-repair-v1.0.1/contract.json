@@ -1,0 +1,21 @@
+{
+  "schema": "simlox-issue18-case-contract/v1",
+  "case_id": "E02",
+  "variant_id": "E02.var03",
+  "version": "1.0.1",
+  "status": "read_only_replay_correction_independent_review_pending",
+  "publication_state": "not_published",
+  "native_source_package": "E02-var03-terminal-repair-v1.0.0",
+  "native_source_commit": "b7a201309cd81ca6b888f7c3738c56aa16e95228",
+  "native_run_id": "e02-var03-terminal-repair-v100-ssh-20261006-01",
+  "native_input_sha256": "6d2b20e4ddc92bd5dc0894537152e12dbb3598c1d725c18eb025d4c19b14f28e",
+  "native_closure_sha256": "6ab8105d82a1ef154bfb50307cdaeb6b2f9b45a7c44353e389e048662f1350c5",
+  "original_author_validator_sha256": "87e8a47da455a19be6dbdb02aae5a2bf49d1d093eceddda7761d985615c5519d",
+  "original_failed_replay_sha256": "8d8a0b20e226d1039036a0b7c88ace17024e6f1ca4ec9bc75173d0bda5e1ae72",
+  "corrected_readonly_validator_sha256": "03dc3a9cab28b5982474baf89fe1aff8d7cf641b57aca2ef0589786c2ecf7a61",
+  "corrected_author_replay_sha256": "ee8d4bfefe5b59e80e986f9e429974190261209d3daa9c7487dd411b75a215ce",
+  "failure_preservation": "The v1.0.0 native source, runner, run directory, closure and failing author validator are immutable. The original replay has two text-matcher false negatives, and its exact output remains sealed. This version executes only read-only replay against those original raw files.",
+  "correction": "Anchor the item DIRP task-start line so it does not also match its subtask, and test for a system-ready event only after the first failure so the initial h0 ready event is not mistaken for recovery.",
+  "behavior_gate": "Require all 260 repaired author checks, separately written independent raw replay and bounded review before any behavior acceptance or publication. Require 22 complete half-hour SystemResults and StockTotalResults rows; one open backorder, physical ID0 direct repair pending and aircraft unavailable at h11. Post-horizon outcomes remain unobserved.",
+  "native_execution": "none in v1.0.1; accepted parent and v1.0.0 child are not rerun"
+}

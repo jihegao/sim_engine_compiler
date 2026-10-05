@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-issue18-case-contract/v1",
+  "case_id": "E02",
+  "variant_id": "E02.var03",
+  "version": "0.1.0",
+  "status": "contract_candidate_independent_review_pending",
+  "publication_state": "not_published",
+  "question": "When a zero-stock local replacement backorder and direct item repair are still active at the simulation horizon, which native terminal state and interval results are observable?",
+  "accepted_parent": {
+    "package": "E02-zero-stock-local-backorder-v1.0.0",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "signoff_sha256_local": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6",
+    "closure_sha256": "a8ec55f67c710be700cb4dc3663c7f79041d69c2021edb9924c1d0daddda04ef",
+    "raw_seals": "all parent closure raw size and SHA-256 records must be checked before freezing a child",
+    "accepted_behavior": "At h10 one backorder starts with zero local stock; failed physical ID0 begins one-hour direct repair at h10.1667, returns at h11.1667 to clear the backorder, and the system is ready at h11.5."
+  },
+  "prerequisites": [
+    "Accepted E01 physical replacement and E05 local repair/reissue remain separately pinned and behavior-accepted."
+  ],
+  "candidate_delta": {
+    "conceptual_change": "Stop the otherwise identical E02 model at h11, while the first local repair and backorder are pending.",
+    "control_table": "Control",
+    "control_fields": {"SIMPE": [36.0, 11.0], "RCEND": [36.0, 11.0]},
+    "result_table": "ResultCollection",
+    "result_field": "RCEND 36.0 to 11.0 in both MISSION and SYSTEM rows",
+    "other_authored_business_values": "unchanged; any description-only edit must be listed in the exact frozen parent-child diff",
+    "seed": "1",
+    "report_interval_hours": 0.5
+  },
+  "hypothesis_not_guarantee": "The accepted parent gives a first demand at h10, repair start h10.1667, and repair completion h11.1667. With only the horizon and report end set to h11, the child may stop with one open backorder, one LRU in direct repair, and an unavailable aircraft. Actual child events and native report values must decide; truncating the parent log is not native evidence.",
+  "prelaunch_gate": [
+    "Independently confirm the catalog variant meaning, manual horizon/report-end rules, E01/E05 prerequisites, E02 published parent signoff, closure and every local raw seal.",
+    "Prove the exact source diff is limited to declared horizon/report-end cells, with no silent changed default or mission schedule; pin source and validator hashes.",
+    "Use a unique version and run ID, fresh empty directory, one session-0 SSH native child under Global\\SimloxIssue18NativeQueue, and fresh protected GUI PID/session/start/responding checks. Do not rerun accepted controls."
+  ],
+  "native_gate": [
+    "Exact import/export equality for all authored row-containing tables; converter zero errors with every warning interpreted; valid SXO, full event log and default raw JSON report.",
+    "Trace physical ID0 through failure, h10 demand/backorder, removal and direct repair start; require no repair completion, stock return, backorder clearance or physical fit work before the h11 horizon.",
+    "Reconcile every raw stock/backorder event and all contiguous half-hour SystemResults and StockTotalResults bins over [0,11). Do not infer physical stock membership from aggregate StockTotalResults.",
+    "Freeze invocation, source before/after, all original raw and failed byte hashes; require an independent read-only raw replay and bounded review before any publication."
+  ],
+  "limits": "One zero-stock LRU, base, seed and h11 cutoff only. Post-horizon completion is unobserved in this child. No general termination rule, other cutoff/seed, GUI, cross-engine, full E02.var03/E02 or Issue #18 claim. K01/K08 capture blockers and I07 opening-stock-three exclusion remain unchanged."
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "simlox-issue18-case-contract/v1",
+  "case_id": "E02",
+  "variant_id": "E02.var03",
+  "version": "0.1.1",
+  "status": "revised_contract_candidate_independent_review_pending",
+  "publication_state": "not_published",
+  "question": "When a zero-stock local replacement backorder and direct item repair are still active at the simulation horizon, which native terminal state and interval results are observable?",
+  "accepted_parent": {
+    "package": "E02-zero-stock-local-backorder-v1.0.0",
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "signoff_sha256_local": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6",
+    "closure_sha256": "a8ec55f67c710be700cb4dc3663c7f79041d69c2021edb9924c1d0daddda04ef",
+    "raw_seals": "all parent closure raw size and SHA-256 records must be checked before freezing a child",
+    "accepted_behavior": "At h10 one backorder starts with zero local stock; failed physical ID0 begins one-hour direct repair at h10.1667, returns at h11.1667 to clear the backorder, and the system is ready at h11.5."
+  },
+  "prerequisites": [
+    {
+      "case": "E01",
+      "signoff_sha256": "c52dd13ba1f6fab05032ebf80597940099241bb652f2c3a73a26edbf059c1110"
+    },
+    {
+      "case": "E05",
+      "signoff_sha256": "e7f4e82be24e09d258345e5f8084ac99e822e8384cb5c8698fbd1ea687105f2f"
+    }
+  ],
+  "candidate_delta": {
+    "conceptual_change": "Stop E02 at h11 with the inherited h20/h32 future mission rows removed solely to keep all scheduled missions inside the new simulation period.",
+    "control_table": "Control",
+    "control_fields": {
+      "SIMPE": [
+        36.0,
+        11.0
+      ],
+      "RCEND": [
+        36.0,
+        11.0
+      ]
+    },
+    "result_table": "ResultCollection",
+    "result_field": "RCEND 36.0 to 11.0 in both MISSION and SYSTEM rows",
+    "other_authored_business_values": "unchanged; any description-only edit must be listed in the exact frozen parent-child diff",
+    "seed": "1",
+    "report_interval_hours": 0.5,
+    "operation_profile": "Retain only the h8 BASIC-MISSION row; remove inherited h20 and h32 scheduled rows. Do not change the retained row."
+  },
+  "hypothesis_not_guarantee": "Accepted E02 has first demand h10, repair start h10.1667 and completion h11.1667. With SIMPE/RCEND h11 and future missions removed, child may stop with one open backorder, physical ID0 still in repair and unavailable aircraft. Native child prefix must agree with accepted E02 through h11; a changed prefix blocks the contrast. Parent truncation alone is not native evidence.",
+  "prelaunch_gate": [
+    "Independently confirm catalog variant meaning, manual pp230-231/532-533 horizon and collection rules, E01/E05 prerequisite signoffs, E02 published parent signoff, closure and all 12 local raw seals. Review D12.var03 v1.0.0 converter error #204 precedent for future missions beyond a shorter horizon.",
+    "Prove exact source diff is limited to Control SIMPE/RCEND, both ResultCollection RCEND cells, deletion of h20/h32 OperationProfile rows and any declared description edit; pin source and validator hashes. Confirm h8 mission returns before h11.",
+    "Use a unique version and run ID, fresh empty directory, one session-0 SSH native child under Global\\SimloxIssue18NativeQueue, and fresh protected GUI PID/session/start/responding checks. Do not rerun accepted controls."
+  ],
+  "native_gate": [
+    "Exact import/export equality for all authored row-containing tables; converter zero errors with every warning interpreted; valid SXO, full event log and default raw JSON report.",
+    "Trace physical ID0 through failure, h10 demand/backorder, removal and direct repair start; require no repair completion, stock return, backorder clearance or physical fit work before the h11 horizon.",
+    "Require exact native event-prefix parity with sealed E02 parent through h11 for failure, demand, removal and repair start; otherwise classify the child as diagnostic and do not attribute terminal contrast solely to the shorter horizon.",
+    "Reconcile every raw stock/backorder event and exactly 22 contiguous half-hour SystemResults and StockTotalResults bins over [0,11). Do not infer physical stock membership from aggregate StockTotalResults.",
+    "Freeze invocation, source before/after, all original raw and failed byte hashes; require an independent read-only raw replay and bounded review before any publication."
+  ],
+  "limits": "One zero-stock LRU, base, seed and h11 cutoff only. Post-horizon completion is unobserved in this child. No general termination rule, other cutoff/seed, GUI, cross-engine, full E02.var03/E02 or Issue #18 claim. K01/K08 capture blockers and I07 opening-stock-three exclusion remain unchanged."
+}
