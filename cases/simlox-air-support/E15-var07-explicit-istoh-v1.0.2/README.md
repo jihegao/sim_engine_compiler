@@ -1,0 +1,9 @@
+# E15.var07 explicit opening stock five above nominal four
+
+This package adds a bounded value-five observation to the already published E15.var07 above-nominal CLI evidence. The direct accepted parent is E15.var07 v1.0.1 with explicit depot opening `ISTOH=3`. The child changes only that StockAllocation cell to `5`; nominal `STSIZ=4`, `ROSIZ=2`, one-hour lead time, the fixed seed and all other 31 table structures remain inherited. The accepted parent was not recalculated.
+
+One protected SSH session-0 run completed native import, export, calculation and selected report export. The 21 authored populated tables roundtripped exactly. Conversion reported zero errors, warning #108 only, and zero notes. The complete event log opens depot physical IDs 0–4 (five on hand), with base ID5 and installed ID6. The inherited hour-10 demand uses depot ID0, leaving four on hand; the ID arrives at base at hour 12. No reorder starts during the 36-hour run. The failed installed ID6 is discarded, two of three missions succeed, and the aircraft is ready at the terminal boundary.
+
+All 72 selected half-hour depot bins show `STSZ=4`, `STOHA=5` before hour 10 then `4`, and `NRO=NBO=0`. Eight other selected report tables match the accepted parent; only ItemResults and ItemResultsTotal differ. The one extra opening unit prevents the parent's hour-10 two-unit reorder in this fixed one-demand setting. This run does not establish a general upper cap, multiple-demand policy, other values or seeds, GUI behavior, cross-engine equivalence, all of E15.var07, or Issue #18.
+
+The [frozen contract](contract.json), [CLI signoff](cli-scope-signoff-2026-10-05.md), [author replay](author-validation-2026-10-05.json), independent reviews under `review/`, and [evidence index](evidence-index.json) record the exact scope. Original native raw remains in ignored local `runs/`, sealed by the index.

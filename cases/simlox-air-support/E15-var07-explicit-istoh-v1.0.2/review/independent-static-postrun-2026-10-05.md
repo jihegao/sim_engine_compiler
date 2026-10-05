@@ -1,0 +1,18 @@
+# Independent static post-run review — E15.var07 v1.0.2
+
+**Verdict: GO, bounded CLI evidence for one above-nominal opening-stock case.** The frozen contract's observed gates pass. This is a read-only replay; no native process was started by the reviewer. Publication still needs the package's author/independent validation, evidence index, and scope signoff.
+
+## Provenance and execution
+
+- New run `e15-var07-istoh-five-v102-ssh-20261005-01` closure SHA-256 `15d7d85c1fb2d2612bb8a4ce6b446e161e6974b0640db0ec6f2787e381cbdd3d` has `error: null`; all 13 listed raw files match their byte sizes and SHA-256. Its invocation hash matches the closure. All 15 recorded source SHA values equal current files and are identical before/after. Copied input bytes match the frozen input.
+- Accepted parent native closure SHA-256 `79e4729d44a4a3ed524ad9e0f0559c4d98c3aff64278bf553c3768f956c435e5` and selected-report closure SHA-256 `1bf91edb10034e912a49e1b810f7d5697f351a0eb50d51cefd8fa24bcdc9bbb8` retain null errors and intact 12/12 plus 2/2 raw seals.
+- Invocation records SSH session 0, an `sshd.exe` ancestor, protected GUI PID 13340/session 1/start time, and the global mutex. Import, export, calc and selected report are the only four native steps; each exited 0 and records GUI preserved. The report command reads this run's SXO with the pinned depot selector. Import/export logs and 358589-byte SXO, nonempty event log, and selected JSON report support the stated output lineage. Converter is exactly Errors 0, Warnings 1 (#108), Notes 0.
+- Independent comparison of the authored input with the native export finds all 21 authored row-containing tables' column names/types and populated rows equal. As noted at preflight, this does not claim equality of empty-table metadata or native-added key flags.
+
+## Physical and report reconciliation
+
+- The source remains a single-cell child of accepted explicit-three: depot `StockAllocation.ISTOH` 3→5, with `STSIZ=4`, `ROSIZ=2`, `LEADT=1`, seed and 36-hour horizon fixed. At initialization depot IDs 0–4 are in stock (five), base ID 5 is in stock, and ID 6 is installed. The h9.8829 failure becomes the h10 demand. Base issues ID 5, depot issues ID 0 to base, and failed ID 6 is discarded at h10.1667. ID 0 reaches base at h12; the system is ready at h10.5. There is no reorder event or delivery in the child. Terminal stock is depot IDs 1–4 and base ID 0, with ID 5 installed. This conserves the seven opening physical units less one discard.
+- All 72 selected depot ItemResults half-hour bins are contiguous, have the correct IID/STID, `STSZ=4`, `NBO=0`, `NRO=0`; `STOHA=5` for the 20 bins before h10 and 4 for the remaining 52 bins. The arithmetic average is 4.27777778, matching ItemResultsTotal 4.27777767 within float precision; the total has `NRO=0`. Demand/stock-issue fields show one depot demand and issue.
+- Parent selected report has the same ten tables. Seven non-item result tables plus ProblemDescription are cell-identical; only ItemResults (22 STOHA cells and one NRO cell) and ItemResultsTotal (STOHA average and NRO total) differ. Parent starts with depot 3, issues one at h10 to 2, places one two-unit reorder, receives both at h11, and then has 4; child starts at 5, issues one at h10 to 4 and never reorders. Parent and child ResultSummary, mission, system, and StockTotal values are equal; the event logs agree on one h9.8829 mission abort and successes at h22/h34.
+
+This establishes the manual's permitted **initial** above-nominal exception for this one DU/depot/seed and one demand. It does not establish a general upper cap, multiple-demand or later replenishment behavior, other ISTOH values, GUI-only behavior, or cross-engine equivalence.
