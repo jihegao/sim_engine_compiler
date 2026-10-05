@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-negative-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var09",
+  "version": "1.0.1-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var09-time-to-stock-v101-ssh-20261005-01",
+  "scope": "One fixed-seed negative time-based to stock-based reorder-strategy switch attempt on accepted E15.var01. Correct excluded v1.0.0 diagnostic confound by explicitly repeating the unchanged initial LEADT1 in the ChangesItemReorder row, then test sole inconsistent-ROINT rejection. No accepted parent or old diagnostic recalculation.",
+  "accepted_parent": {
+    "package": "E15-var01-time-based-cycle-v1.0.1",
+    "signoff_sha256": "b875964c50598dda9b65dbebb66d9339fa560cf5846b8abc3c345014adbdaa52",
+    "evidence_index_sha256": "b29bd16a3ebf1d4bdde6d1a5c743dddda8da82a785d777fdd399a403d8ee5af5",
+    "input_sha256": "d37bdc10592dff04e521d66276b49f9404dfea0511fac5ea73ef201b02b22b1f",
+    "event_log_sha256": "d37165d77f783427b0311c983c3a47f32d3bc7cfc75518063036c03d6c436349"
+  },
+  "excluded_parent": {
+    "package": "I07-var09-strategy-switch-v1.0.0",
+    "evidence_index_sha256": "0c7604985a1d86afe768b7657f8b33127e8a4cd73e363f0fe429a6972ea169c0",
+    "closure_sha256": "f2d8b69aa92152c51d95b1811f70456eeafbaa87afe565889de9ac9e6c2ae38e",
+    "input_sha256": "62317d269a873e75244f46595efaa0bcb558015d5c9734b776bdaa83ee40869b",
+    "run_id": "i07-var09-time-to-stock-v100-ssh-20261005-02",
+    "frozen_gate": "NO_GO: converter errors #84 undefined LEADT and #375 inconsistent ROINT, invalid SXO; confounded."
+  },
+  "source": {
+    "input_sha256": "a1d4215ee8d480502eb65abf889ed636d4e688596b1d17c146b3240cfb9ed13f",
+    "builder_sha256": "0b214d969635c6677cb3f2d8a4a9fc5b5cc84878eb68671eff03c4d5a2acd281",
+    "roundtrip_checker_sha256": "b1991c1a53cfee22a8975760318f340455c3fdbfb8a2307480aab7e7e744e747",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [
+      345,
+      497,
+      498,
+      499
+    ]
+  },
+  "frozen_delta": "Relative to excluded v1.0.0, only ChangesItemReorder.LEADT null-to1.0 changes in the same row. Relative to accepted E15.var01 source, this new table has sole row IID TEACH-DU-01/STID DEPOT-01/TIMEC5/LEADT1/ROINT0, others null; parent ItemReorder.LEADT1/ROINT16 and all 31 original tables remain identical.",
+  "reviewed_prior_observation": "Excluded v1.0.0 run had exact 22-table roundtrip, Errors2 (#84 undefined LEADT, #375 inconsistent ROINT) under ChangesItemReorder rec1, Warnings #108/#376, Notes0, four-byte SXO and no event log. These observations informed this separate contract; v1.0.0 remains excluded.",
+  "manual_boundary": "Installed manual pp345,497-499 says ROINT>0 time-based, ROINT default0 stock-based, ChangesItemReorder may modify ROINT but may not switch strategy. The original interval must pass before a change takes effect; TIMEC5 is authored data, not an observed application at h5. LEADT is mandatory in reorder data and 1.0 repeats the initial value.",
+  "execution_guard": "One unique serial SSH session0 run under Global\\SimloxIssue18NativeQueue, sshd ancestor, protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z, hidden target-only 60s watchdog, exact source and old10 raw seals before/after, raw SHA closure.",
+  "predeclared_gates": [
+    "Two independent reviewers rehash every literal source and old diagnostic pin, inspect manual and the sole LEADT correction, and review runner before native use.",
+    "Native import/export exactly preserves 22 authored populated tables. Converter reports Errors1, Warnings2 (#108/#376), Notes0; the sole error is #375 `Inconsistent change of ROINT: TEACH-DU-01/DEPOT-01` under ChangesItemReorder rec1. Error #84 or any other error excludes the result.",
+    "Simulation produces no valid SXO (absent or at most four bytes) and no substantive event log; no report export is attempted. Source/raw/GUI guards and terminal closure pass.",
+    "If any frozen gate differs, preserve v1.0.1 as excluded diagnostic; never relabel the v1.0.0 confounded run. A new versioned review is required for reinterpretation."
+  ],
+  "limits": [
+    "One attempted time-based ROINT16 to stock-based ROINT0 change authored at h5, with LEADT1 unchanged, one item/depot/seed. No runtime application time is proven by a converter rejection.",
+    "Reverse stock-to-time switch, other intervals/change times, completed cycle, GUI, cross-engine, full I07.var09/I07 and Issue #18 remain unverified."
+  ]
+}
