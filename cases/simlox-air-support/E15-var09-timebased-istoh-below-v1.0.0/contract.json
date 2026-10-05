@@ -1,0 +1,42 @@
+{
+  "schema": "simlox-e15-var09-below-nominal-negative-contract/v1",
+  "case_id": "E15",
+  "variant_id": "E15.var09",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "e15-var09-istoh-below-v100-ssh-20261005-01",
+  "scope": "One below-nominal initial stock negative candidate in a time-based DU depot. The accepted E15.var01 v1.0.1 report-only extension supplies the equality/default ISTOH4 comparator without any parent rerun. Child source changes only depot StockAllocation.ISTOH null to 3 while STSIZ4 and ROINT16 remain fixed.",
+  "accepted_parent": {
+    "package": "E15-var01-time-based-cycle-v1.0.1",
+    "signoff_sha256": "b875964c50598dda9b65dbebb66d9339fa560cf5846b8abc3c345014adbdaa52",
+    "evidence_index_sha256": "b29bd16a3ebf1d4bdde6d1a5c743dddda8da82a785d777fdd399a403d8ee5af5",
+    "source_input_package": "E15-var01-time-based-cycle-v1.0.0",
+    "input_sha256": "d37bdc10592dff04e521d66276b49f9404dfea0511fac5ea73ef201b02b22b1f",
+    "event_log_sha256": "d37165d77f783427b0311c983c3a47f32d3bc7cfc75518063036c03d6c436349",
+    "selected_report_sha256": "d41c5d0a17e0456453f24bd2c142c2c2c84095ec7e65e7a7e5fdaffdc373c1e0",
+    "old_v100_warning_gate": "Excluded: actual #376 ROSIZ-ignored warning was attributed to StockAllocation rec2, not frozen ItemReorder rec1. The independently reviewed v1.0.1 report-only extension accepts the bounded time-based behavior; it does not retroactively pass the old gate."
+  },
+  "prerequisite_E02": {
+    "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+    "signoff_sha256": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6"
+  },
+  "source": {
+    "input_sha256": "59c8e15370a9b792890e89b157a4a7f88dac30333bcf221fea4824b98dbd7152",
+    "builder_sha256": "406166c173fabf5f447da127e7766b4c9e1c01fa14ccf671fc84615c86a3737e",
+    "roundtrip_checker_sha256": "2af10f07debd1588eab42dd0d29d8087876229284d57ceccc9b06b295bb32e82",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "manual_boundary": "Installed SIMLOX 2017 manual physical p447: absent ISTOH resolves to STSIZ+AINST; in a time-based reorder strategy ISTOH must not be less than STSIZ. The accepted parent uses absent ISTOH, AINST absent, effective opening four equal STSIZ4. Child sets ISTOH3, below nominal by one. Exact converter enforcement is a hypothesis.",
+  "execution_guard": "One unique SSH session-0 run with sshd ancestor and Global\\SimloxIssue18NativeQueue mutex, protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z, hidden target-only watchdog, source SHA before/after and immutable local raw closure.",
+  "predeclared_gates": [
+    "Two independent reviewers verify the accepted v1.0.1 parent and its excluded v1.0.0 native diagnostic, E02 prerequisite, installed manual, sole source-cell delta, pins, unoccupied run ID, and native guards before execution.",
+    "Native import/export exactly preserves 21 row-containing authored tables. Conversion explicitly rejects the below-nominal depot ISTOH value with at least one target-row or value-specific error and no valid simulation output. Preserve exact error code and text; do not invent them in advance.",
+    "If the converter merely warns or produces a valid SXO, this frozen negative hypothesis fails. Preserve all raw bytes as an excluded diagnostic and review any report-only recovery separately without recalculating. Do not reinterpret the failed run as accepted behavior.",
+    "No selected report or successful stock ledger is expected from this invalid-input contract. The equality comparator uses the accepted parent's sealed native behavior and report; do not rerun it."
+  ],
+  "limits": [
+    "One DU/depot, ROINT16, STSIZ4, explicit ISTOH3 versus accepted effective ISTOH4; negative converter claim only.",
+    "No general lower-bound rule, other seeds or stock states, GUI-only behavior, cross-engine equivalence, full E15.var09/E15 or Issue #18 claim."
+  ]
+}
