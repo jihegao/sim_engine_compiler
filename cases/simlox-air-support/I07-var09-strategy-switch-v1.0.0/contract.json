@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var09",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var09-time-to-stock-v100-ssh-20261005-02",
+  "scope": "One fixed-seed negative capability test from accepted E15.var01 initial time-based reorder. Add exactly one ChangesItemReorder row at h5 targeting the existing TEACH-DU-01/DEPOT-01 time-based ItemReorder, setting ROINT16 to0, an attempted time-based to stock-based strategy switch that the installed manual explicitly forbids. No accepted parent behavior is rerun.",
+  "dependency": {
+    "package": "E15-var01-time-based-cycle-v1.0.1",
+    "accepted_signoff_sha256": "b875964c50598dda9b65dbebb66d9339fa560cf5846b8abc3c345014adbdaa52",
+    "evidence_index_sha256": "b29bd16a3ebf1d4bdde6d1a5c743dddda8da82a785d777fdd399a403d8ee5af5",
+    "parent_input_sha256": "d37bdc10592dff04e521d66276b49f9404dfea0511fac5ea73ef201b02b22b1f",
+    "parent_event_log_sha256": "d37165d77f783427b0311c983c3a47f32d3bc7cfc75518063036c03d6c436349",
+    "parent_report_sha256": "d41c5d0a17e0456453f24bd2c142c2c2c84095ec7e65e7a7e5fdaffdc373c1e0"
+  },
+  "source": {
+    "input_sha256": "62317d269a873e75244f46595efaa0bcb558015d5c9734b776bdaa83ee40869b",
+    "builder_sha256": "a344ddf233ffb2a98c1e28f3db6489524e4f6b418fc7314763da09b2f1fd1abc",
+    "roundtrip_checker_sha256": "2c5fbacbf670261823352d6597ef7e63089f9c38fb1ff58b316e17c9e3b550fa",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [
+      345,
+      497,
+      498,
+      499
+    ]
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "station": "DEPOT-01",
+    "parent_ROINT_hours": 16,
+    "scheduled_change_hour": 5,
+    "child_ROINT_hours": 0,
+    "STSIZ": 4,
+    "ROSIZ": 2,
+    "effective_opening_on_hand": 4,
+    "LEADT_hours": 1,
+    "horizon_hours": 36,
+    "seed": "1"
+  },
+  "frozen_delta": "Parent native-input model has 31 tables. Candidate adds only one 8-column ChangesItemReorder table immediately after ItemReorder, with sole row IID TEACH-DU-01, STID DEPOT-01, TIMEC5.0, ROINT0.0 and other change fields null. No existing rows or values, including ProblemDescription, are changed.",
+  "manual_boundary": "Installed SIMLOX 2017 manual p345 and pp497-499: initial ROINT>0 selects time-based strategy, R\u041eINT may be modified in ChangesItemReorder but changing from time-based to stock-based or vice versa is not possible. Change references an existing ItemReorder row; no stock/transport behavior claim is inferred from documentation.",
+  "execution_guard": "One unique serial session-0 SSH native run, sshd ancestor, Global\\SimloxIssue18NativeQueue, protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z, hidden targeted 60s watchdog, source hashes before/after and raw SHA closure.",
+  "predeclared_gates": [
+    "Two independent reviewers inspect accepted parent byte pins, installed manual, exact sole source delta and guarded runner before native use.",
+    "Import/export preserve all 22 authored populated tables exactly. Calculation converter reports at least one error explicitly attributed to ChangesItemReorder rec1 and the attempted strategy change; no valid SXO or substantive event log is produced. Any warning is recorded but does not replace this error/no-valid-output gate.",
+    "If the installed converter instead warns, silently ignores, accepts the change, emits valid results, or fails a guard or source pin, retain the full raw closure as excluded diagnostic. A separately versioned contract and independent review are required before interpreting any such result.",
+    "A successful expected negative test supports only this exact time-based to stock-based change at h5 on one DU/depot/seed, and says nothing about the reverse direction or the future cycle behavior."
+  ],
+  "limits": [
+    "One ROINT16-to0 attempted switch at h5; no reverse stock-to-time switch, other timing/value, group target, completed reorder, GUI or cross-engine claim.",
+    "Negative converter behavior would not establish full I07.var09/I07 or Issue #18 completion."
+  ]
+}

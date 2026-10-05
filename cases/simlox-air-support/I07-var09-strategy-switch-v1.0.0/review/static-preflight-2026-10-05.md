@@ -1,0 +1,11 @@
+# I07.var09 static preflight — 2026-10-05
+
+**GO for one guarded negative diagnostic.** This review does not establish the converter outcome; no native command was run.
+
+I independently recomputed the frozen SHA-256 values for the contract (`26e9499f…`), runner (`287ef37d…`), builder (`a344ddf2…`), child input (`62317d26…`), roundtrip checker (`2c5fbacb…`), accepted E15 parent input, signoff, evidence index, event log and selected report, plus the installed executable and manual. All matched. PowerShell parsing returned zero errors; both Python files parsed. The direct parent has 31 tables. The child has the same 31 tables with identical parsed contents and one inserted `ChangesItemReorder` table. Its sole row targets `TEACH-DU-01` at `DEPOT-01`, sets `TIMEC=5` and `ROINT=0`, and leaves the remaining change values null. The parent reorder interval is 16 hours.
+
+The installed manual at physical p345 forbids changing from time-based to stock-based reorder strategy. Physical pp497–498 also say a scheduled interval change cannot take effect before the original interval has elapsed. Thus hour 5 identifies the authored `TIMEC`; it is not evidence that the change would already be effective at hour 5. The frozen contract appropriately asks for a source-attributed converter rejection and makes no inventory prediction.
+
+The runner requires its one contract run ID, an SSH session-0 process with `sshd.exe` ancestry, an available global mutex, and active protected GUI PID13340/session1/start identity. It pins source and dependency bytes before launch, uses a hidden CLI child with a 60-second target-identity watchdog, requires import/export and exact 22-populated-table roundtrip before calculation, then requires a `ChangesItemReorder` record-1 error describing reorder strategy and no usable SXO or substantive event log. It records steps, converter lines, before/after source hashes and a raw-file closure even when a gate fails. A warning-only result, unrelated error, accepted calculation or valid output cannot satisfy the frozen negative gate and must remain an excluded diagnostic.
+
+The verdict covers launch safety and the bounded source model only. It does not establish the native rejection, reverse-direction behavior, or general I07 semantics.

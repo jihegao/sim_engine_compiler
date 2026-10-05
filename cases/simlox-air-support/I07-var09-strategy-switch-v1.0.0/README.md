@@ -1,0 +1,7 @@
+# I07.var09 v1.0.0 excluded diagnostic
+
+This candidate added one `ChangesItemReorder` row at hour 5 to the accepted E15.var01 time-based depot model, requesting `ROINT=0` to switch to stock-based reorder. The installed manual forbids a strategy switch. The original SSH launch stopped before any native call because a parent signoff SHA had a 63-character typo; that preflight failure and the corrected independent reviews are retained.
+
+The corrected `-02` native run roundtripped 22 populated tables, then reported two converter errors under `ChangesItemReorder` record 1: #84 (`LEADT` undefined) and #375 (inconsistent `ROINT` change). It wrote a four-byte invalid SXO and no event log. Error #84 confounds attribution of the negative result to the strategy switch alone. The frozen row-specific rejection gate failed and this version remains `excluded_diagnostic`. Ten native raw files and source fingerprints are retained locally under immutable SHA-256 seals. No accepted parent behavior was rerun.
+
+A separately versioned follow-up may repeat the accepted parent `LEADT=1` in the change row while retaining the attempted `ROINT=0`; it requires a new reviewed contract and native run. This diagnostic alone does not accept I07.var09 behavior.
