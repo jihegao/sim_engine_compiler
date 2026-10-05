@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-derived-contrast-contract/v1",
+  "case_id": "E01",
+  "variant_id": "E01.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "隐式拆装比例/显式子工序",
+  "question": "In the accepted one-aircraft, one-local-spare fixed-seed LRU replacement runs, what event timing does the native default implicit REMOVE/FIT split produce versus an explicit 10-minute REMOVE and 20-minute REPLACE TaskBreakDown, while the total system replacement remains 0.5 hour?",
+  "evidence_mode": "read-only comparison of already accepted D01 installed-LRU and E01 local-spare native runs; no new native execution",
+  "parents": {
+    "implicit_default": {
+      "case_id": "D01",
+      "package": "D01-installed-lru-direct-repair-v1.0.0",
+      "run_id": "d01-lru-v100-ssh-20260929-01",
+      "input_sha256": "eb57ef7bdb9829241303d3827c10ef957e6bb5e8f4f5f6034bb6f5dc603b3b93",
+      "signoff_sha256": "e2c567a5db6b1af672fa279b448b36ff43ed68a90c2c529bdf5506ed2cd39832",
+      "closure_sha256": "3642d558e98abd31f4510e213286182f9ce0d6eda0a86f6185c64f439f7e79f0"
+    },
+    "explicit_breakdown": {
+      "case_id": "E01",
+      "package": "E01-local-spare-explicit-replacement-v1.0.0",
+      "run_id": "e01-v100-ssh-20260929-01",
+      "input_sha256": "84ca1828f3669d2c91c9d826cae3187e0968ae9f8fed602d97155d2e82e99931",
+      "signoff_sha256": "c52dd13ba1f6fab05032ebf80597940099241bb652f2c3a73a26edbf059c1110",
+      "closure_sha256": "1713af4ca149f3fe3bd80bb8a033372475762eec787e36e38aeaddf8c385f5c6"
+    }
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages_inherited_from_accepted_e01": [211, 212, 400, 401, 402, 403, 404],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "source_delta": {
+    "allowed_changed_tables": ["ProblemDescription", "SystemRepair", "Tasks", "TaskBreakDown"],
+    "implicit_arm": "SystemRepair.SURPT=0.5 hour with no SURPTID or explicit task breakdown; native event log reports an implicit 0.25-hour remove and 0.25-hour fit",
+    "explicit_arm": "SystemRepair.SURPT remains 0.5 hour; SURPTID binds E01-SURP with TaskBreakDown SEQ1 <REMOVE> DURN1/6 hour and SEQ2 <REPLACE> DURN1/3 hour",
+    "fixed": ["seed 1", "36-hour horizon", "one aircraft", "one local spare", "installed TEACH-LRU-01 failure configuration", "one-hour local ItemRepair", "8/20/32-hour mission schedule"]
+  },
+  "predeclared_acceptance": [
+    "Recompute accepted parent input, signoff, closure and all closure raw-file hashes/sizes for each arm; preserve original bytes.",
+    "Independently compare every source table schema/row; permit only the four E01 parent-diff tables and verify the exact SURPTID/Tasks/TaskBreakDown values, with SURPT total unchanged.",
+    "Verify accepted independent parent replays, SSH0/mutex/GUI guard records, four native CLI steps, exact import/export table roundtrips, zero conversion errors, valid SXO/event/report and documented warning #108.",
+    "From both raw event logs, trace the same observed first aircraft failure time/type and physical failed LRU ID1, issue of spare ID0 at hour 10, REMOVE start/end, physical FIT or REPLACE start/end, direct repair of removed ID1, stock return and aircraft readiness. Separate physical step events from task creation and honor native log timestamp rounding.",
+    "Recompute all 72 aligned half-hour SystemResults and StockTotalResults rows and ResultSummary in both arms, compare complete row values, and report whether aggregate equality masks the five-minute shift in removed-item repair/return. Check one demand, zero backorders and terminal ready state.",
+    "Conclude only that the two accepted configurations produce the observed 15/15 versus 10/20 subtask schedules with equal half-hour system turnaround. Do not claim the explicit mechanism alone causes the split difference, because explicitness and step durations change together."
+  ],
+  "limits": [
+    "No newly varied same-duration implicit/explicit experiment is included; this is a derived mapping to two accepted fixed-seed configurations.",
+    "Other SURPT values, breakdown lengths, seeds, physical installation identity after fit, GUI visual content, cross-engine equivalence and general native fallback rules remain unverified.",
+    "K01/K08 GUI capture blockers, I07 opening-stock-three, E05.var02 exact-time tie, and other excluded diagnostics are outside this contract."
+  ]
+}
