@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D03",
+  "variant_id": "D03.var02",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "无任务/任务冲突",
+  "question": "If the accepted D03 model's second two-hour mission is scheduled at hour 24.5 instead of hour 20, so its nominal mission window overlaps the first CAL24 PM window, which activity proceeds and how do the mission, PM and full 60-hour status ledgers reconcile?",
+  "ownership": {
+    "branch": "codex/simlox-d03-var02-pm-mission-conflict-20261006",
+    "remote_variant_branch_or_package_at_selection": "absent",
+    "native_run_id_reserved": "d03-var02-mission245-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "D03-calendar-pm-v1.0.0",
+    "run_id": "d03-calendar-v100-ssh-20261001-02",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1",
+    "closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8"
+  },
+  "instructional_prerequisites": [
+    {"case_id": "A02", "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"},
+    {"case_id": "B02", "evidence_sha256": "bceddd5983e9187bf8be19464b04ad5b2136bf665f6d4d9d676928b8c2354c61"}
+  ],
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [270, 271, 387, 388, 389],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_rules": [
+      "OperationProfile.STIM specifies the scheduled mission start within the explicit profile; for individual fixed missions DTIM is the maximum allowed start delay before cancellation (pages 270-271).",
+      "The accepted parent has one CAL24 calendar PM row with a referenced one-hour subtask (pages 387-389); its actual first PM occupies hours 24-25, established by the accepted native run."
+    ]
+  },
+  "source_delta": {
+    "only_changed_cell": "OperationProfile BASIC-SCHEDULE/BASIC-MISSION second row STIM 20.0 to 24.5 hours",
+    "retained": [
+      "First and third missions STIM 8 and 32 hours; MissionType.DURN=2 hours; second mission DTIM=0.3333333333333333 hours",
+      "One aircraft, fixed seed 1, one repetition and 60-hour horizon",
+      "MaterielPM.PMINT=24 CALHOURS, ATIM=DTIM=0, PMLocation task reference and sole TaskBreakDown.DURN=1 hour",
+      "Control.ENPM=Y and all MISSION/SYSTEM half-hour result collection settings",
+      "All other authored source cells and all table structure; STIM is part of the native OperationProfile key, so the moved row has a new key identity even though its other field values are retained"
+    ]
+  },
+  "predeclared_acceptance": [
+    "Independent GO_CONTRACT_ONLY must precede child source creation. Frozen source, exact diff, roundtrip checker, runner and behavior validator need a separate GO_PRELAUNCH before one native child.",
+    "A single session-0 SSH run must hold Global\\SimloxIssue18NativeQueue, preserve the actual responding GUI PID/session/exact start, use a unique empty run directory and seal success or failure without rerunning the accepted parent.",
+    "Import/export must preserve all 18 authored row-containing tables before calculation. Converter errors must be zero, warnings classified, and SXO, event log and report valid; a zero native exit alone is not acceptance.",
+    "The shifted mission's nominal [24.5,26.5] interval intersects the accepted parent's first PM [24,25]. Do not preclaim PM/mission priority: determine from native event identities and times whether PM starts on schedule, defers, waits, overlaps, or is omitted, and whether the shifted mission starts, delays, cancels, or completes.",
+    "Require an event-supported conflict (at least one PM or mission event/status timing differs from the nonconflicting accepted D03 parent as a result of the one-cell schedule shift). If the native ledger shows no attributable conflict, label this a timing probe and do not accept the catalog variant as conflict behavior.",
+    "Reconcile every field of all 120 half-hour SystemResults and StockTotalResults rows, ResultSummary, event log, three mission identities, PM starts/completions, terminal status and ready/available/mission/PM aircraft-hours. Compare stable prefix before the changed mission's notification with the accepted parent and explain each later divergence; do not infer physical stocked items from aggregate PNB.",
+    "Independent postrun replay must rehash source and 12+12 parent/child raw seals and independently test the ledger before any bounded signoff or PR. Preserve any failed diagnostic and all original pins."
+  ],
+  "limits": [
+    "One fixed seed, one aircraft, a single shifted mission and one calendar PM task at one unit; no general same-time event priority, resource contention, alternate deferment or recurrence rule follows.",
+    "The scheduled mission/parent PM windows overlap; actual conflict behavior must be established from native output rather than source timing alone.",
+    "GUI visual and cross-engine behavior remain unverified. K01/K08 capture blockers, K06 source gap, I07 opening-stock-three and E05.var02 exact-time remain open; Issue18 overall is unfinished."
+  ]
+}
