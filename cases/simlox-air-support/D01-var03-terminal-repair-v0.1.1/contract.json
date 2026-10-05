@@ -1,0 +1,105 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D01",
+  "variant_id": "D01.var03",
+  "version": "0.1.1-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "终点仍在修理",
+  "question": "For the accepted single-aircraft direct-system-repair D01 model, does stopping at hour 34.375 (after the third scheduled mission latest permitted return but before the observed hour-34.5 repair completion) preserve the second repair as started but unfinished, with the aircraft still unavailable and the first completed repair unchanged?",
+  "parent": {
+    "package": "D01-system-direct-repair-v1.0.0",
+    "run_id": "d01-v100-ssh-20260929-01",
+    "input_sha256": "d418c811f2e1a9ad047af19038a3d0881d404adf0919d2e52dab70e6100ee450",
+    "signoff_sha256": "428224849277100ebd7b97f068308e43617884759cb3a82e1792ddebeae772b3",
+    "closure_sha256": "c3769da04ae3e8e754ff172cb0bed9317a0ec7ec5352913086341cc0ad489c05",
+    "raw_model_log_sha256": "71c46a192990c81bf27ed6fd1b41ea15b5ada25834131a7700d4d1b779e83161",
+    "raw_report_sha256": "cb21d4b6f7c3c35b8d42412e60bb6ca85d178b4ef6e9d61d71ca294ba94fc83a"
+  },
+  "instructional_prerequisite": {
+    "case_id": "A02",
+    "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"
+  },
+  "method_precedents": [
+    {
+      "case_id": "J05.var01",
+      "reason": "Accepted result-collection field semantics and quarter-hour evidence; eighth-hour resolution is a new native hypothesis",
+      "signoff_sha256": "8c30b1b1a563c2350431fe7978eea12ae8c33bd112584dc3b53006d509ba9e95"
+    },
+    {
+      "case_id": "D05.var04",
+      "reason": "Accepted in-progress direct repair at a shortened horizon, with completion absent",
+      "signoff_sha256": "6a6f2c82c027e84fee22b8895f2bb53d4af2d65749846a76a074a0abab2ae22f"
+    }
+  ],
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [
+      190,
+      191,
+      211,
+      212,
+      230,
+      231,
+      240,
+      246,
+      258,
+      265,
+      266,
+      271,
+      272,
+      273,
+      274,
+      275,
+      349,
+      350,
+      351,
+      352,
+      353,
+      354,
+      532,
+      533
+    ],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "source_delta": {
+    "business_cells": [
+      "Control.SIMPE 36 to 34.375 hour",
+      "Control.RCINT 0.5 to 0.125 hour",
+      "Control.RCEND 36 to 34.375 hour",
+      "ResultCollection MISSION and SYSTEM rows: RCINT 0.5 to 0.125 and RCEND 36 to 34.375 hour"
+    ],
+    "description_label": "ProblemDescription.PDESC may name the v0.1.1 child; all other table schemas and values, including third-mission DTIM 1/3 hour, stay equal to the accepted parent",
+    "retained": [
+      "one aircraft",
+      "three scheduled starts at hours 8, 20 and 32",
+      "System.FRT=300000 per million OPHOURS",
+      "SystemRepair.DIRPT=0.5 hour at BASE-01",
+      "seed 1",
+      "one repetition",
+      "no installed Item or stock",
+      "Control.RCSTA=0"
+    ]
+  },
+  "predeclared_acceptance": [
+    "Independently review this v0.1.1 contract and the excluded v0.1.0 failure, accepted parent/prerequisite/precedent pins and all 12 raw parent seals before building the child. Freeze generated input, full cell diff, runner, roundtrip checker, behavior checker, source hashes and one new unique run ID; obtain separate GO_PRELAUNCH before native launch.",
+    "One session-0 SSH run must hold Global\\SimloxIssue18NativeQueue, guard the sole responsive GUI PID13340/session1/exact start identity, use a new empty run directory, and seal raw outputs or failed stages without rerunning the accepted parent.",
+    "Import/export must preserve all authored row-containing tables. Converter errors must be zero and warnings classified; all four CLI steps must yield nonempty model, event and report files. A converter rejection or invalid report excludes the positive hypothesis even if its process exits zero.",
+    "The third scheduled mission may start as late as hour 32+1/3 and has two-hour duration, so its allowed latest return is below SIMPE=34.375. Native must observe the seeded third critical failure and return at hour 34; direct repair task 1 must begin at hour 34 with 0.5-hour planned duration, and the hour-34.5 completion/ready events present in the accepted parent must be absent. The hour-34.375 terminal interval must have one aircraft in repair and zero ready; first repair completion at hour 10.5 and middle-mission success at hour 22 remain observable.",
+    "Reconcile every eighth-hour SystemResults and StockTotalResults row from 0 to 34.375 to the event timeline, including two failure events, only one completed repair, terminal in-repair occupancy, ready/available/mission integrals and mission summary. Exactly 275 eighth-hour bins are expected if native honors the collection end. Independently replay read-only raw evidence before acceptance."
+  ],
+  "limits": [
+    "This is one fixed seed, one half-hour direct-system-repair rule and one shortened horizon. It does not prove post-horizon completion or general terminal-work policy.",
+    "The source changes result-collection granularity as well as the simulation end so the terminal eighth-hour is directly observable. It is not a matched half-hour report comparison to the parent.",
+    "Printed timestamps alone do not prove same-time priority. GUI visual behavior, cross-engine equivalence, K01/K08 capture blockers, I07 opening-three, E05.var02 exact-time and overall D01/Issue18 completion remain outside scope.",
+    "The v0.1.0 converter rejection is excluded evidence. The new 0.125-hour interval is not accepted from J05 by itself and must be observed in the child report."
+  ],
+  "excluded_precursor": {
+    "package": "D01-var03-terminal-repair-v0.1.0",
+    "run_id": "d01-var03-terminal-v010-ssh-20261006-01",
+    "reason": "Converter error #204 at Operations record 1: STIM 32 + DTIM 1/3 + DURN 2 permits a latest return around 34.333, beyond SIMPE 34.25. No simulation result was produced.",
+    "closure_sha256": "dadd724454ec461a83e75946b54cb4a50e7cee57b777ad00cf842949a4dce5f2",
+    "failure_seal_sha256": "40fde15b06ae281cd0c6042ee02ad1ae510e0e6554aea156aac9ffcbba9e51a1",
+    "independent_postfailure_sha256": "18b829c6d61e26e3aeb97e9ceab4a56ecc686ddb89a53ae9d82158b246d9d6d7"
+  }
+}
