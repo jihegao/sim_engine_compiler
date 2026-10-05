@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-issue18-case-contract/v1",
+  "case_id": "E05",
+  "variant_id": "E05.var02",
+  "version": "0.1.0",
+  "status": "contract_candidate_independent_review_pending",
+  "publication_state": "not_published",
+  "question": "Does the second local LRU demand occur before, at, or after completion of the first removed item's direct repair, and how does the native stock/backorder ledger respond at the boundary?",
+  "accepted_controls": [
+    {
+      "package": "E05-local-repair-reissue-v1.0.0",
+      "input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca",
+      "first_repair_start_printed_hour": 9.92193,
+      "first_repair_finish_printed_hour": 10.9219,
+      "second_demand_printed_hour": 22.0,
+      "observed_boundary": "repair_before_demand; repaired physical ID1 is issued from stock without a backorder"
+    },
+    {
+      "package": "E05-var01-repair-backorder-v1.0.2",
+      "input_sha256": "5d91b1315d1a3d6321285492e8fcd4a3afd61bc8420347713f5646c31cfe5d08",
+      "evidence_index_sha256": "d0d577a4417c7965af749bebf677f1165fbf8e46128a0aa2fc3d5f46f2718d79",
+      "first_repair_start_printed_hour": 9.92193,
+      "first_repair_finish_printed_hour": 22.9219,
+      "second_demand_printed_hour": 22.0,
+      "observed_boundary": "demand_before_repair; backorder clears when repaired physical ID1 returns"
+    }
+  ],
+  "candidate_child": {
+    "parent_package": "E05-local-repair-reissue-v1.0.0",
+    "sole_authored_delta": "ItemRepair record 1 TEACH-LRU-01/BASE-01 DIRPT changes from 1 hour to a value targeting the second demand's repair-completion boundary; all other authored cells and the seed remain fixed",
+    "initial_estimate_hours_not_frozen_input": 12.078067,
+    "estimate_origin": "22.0 minus the six-decimal printed first repair start 9.921933; native event times are printed with limited precision, so this estimate does not establish an exact tie",
+    "exact_tie_gate": "An at-boundary result requires native raw evidence that independently identifies equal event times at sufficient precision and resolves ordering. If equality or ordering is ambiguous, retain a diagnostic only and do not claim an exact-tie rule."
+  },
+  "required_prelaunch_review": [
+    "Independently reread manual pages for direct item repair, local stock and backorders; verify accepted parent controls and raw seals without rerunning them.",
+    "Check whether this fixed seed, frozen model and a single DIRPT delta can produce a testable exact-time contrast. Reject an unobservable exact tie before native launch.",
+    "Freeze a new source version, exact parameter and SHA, runner and validator after contract approval; use one new unique run path and the existing serial SSH mutex and protected GUI identity."
+  ],
+  "native_acceptance_gate": [
+    "Import/export must preserve all authored row-containing tables; converter must produce no errors and an interpretable warning set; SXO, event log and selected report must be valid.",
+    "Read exact child event ordering and physical item identities from original event logs; reconcile every stock and backorder transition and all half-hour system and aggregate stock bins.",
+    "Preserve invocation, source before/after, all raw and failed byte hashes; obtain separately written independent read-only replay and bounded sign-off before publication."
+  ],
+  "limits": "No exact-tie, FIFO, general threshold, post-fit installed physical ID, other seed, GUI, cross-engine or full E05/Issue #18 claim before native evidence and independent review. K01/K08 capture blockers and I07 opening-stock-three exclusion remain unchanged."
+}
