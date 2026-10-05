@@ -1,0 +1,7 @@
+# I07.var02 opening-stock-three ROSIZ change: diagnostic
+
+This matched pair starts from the accepted tracked DU depot stock parent with nominal `STSIZ=4`, explicit opening `ISTOH=3`, and `ROSIZ=2`. The child alone schedules `ROSIZ=1` at hour 5, before the inherited hour-10 demand. Both arms use the same seed, horizon, report selection and 31 inherited table structures.
+
+The h5 change imports and roundtrips, but makes no immediate order or physical stock movement. Both native event logs and selected reports are byte-identical. Hour-10 demand issues depot physical ID0, lowering on-hand from three to two, and both arms start a two-item reorder. Two new IDs5/6 arrive at hour 11, restoring on-hand to four; ID0 reaches the base at hour 12. All 72 depot half-hour report bins and terminal stock reconcile. The first batch in the changed arm is **two**, despite authored `ROSIZ=1` at h5. This pair does not demonstrate an effective changed batch policy.
+
+The frozen [contract](contract.json), [diagnostic signoff](cli-scope-signoff-2026-10-05.md), [evidence index](evidence-index.json), author replay and independent read-only review preserve the narrower observation. The 24 native raw files remain ignored locally and pinned by SHA-256. A separate [v1.0.1 case](../I07-var02-rosiz-v1.0.1/README.md) uses opening stock four to demonstrate a discriminating order outcome. This v1.0.0 diagnostic does not replace that bounded publication or complete I07.var02.

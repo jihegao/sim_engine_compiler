@@ -1,0 +1,9 @@
+# Independent post-run review — I07.var02 v1.0.0
+
+**GO for the bounded diagnostic; no substantive batch-policy contrast.** The separate standard-library replay passed **1,138/1,138** assertions. It verified the invocation and closure, 24 raw seals, all pinned source hashes before and after, eight guarded session-0 steps, 22 row-containing authored-table roundtrips in each arm, exact conversion summary Errors0/Warnings1/Notes0 with sole #108, the full event logs, and every selected half-hour depot stock row.
+
+Both arms' `model.log` files are byte-identical to each other and to the accepted E15 explicit-three parent (SHA-256 `06629a8dc4688786012a304b0e0d6b390a684349b6a280c00b3a6555e3ba5960`). Their ten selected report tables are also byte-identical, and every non-description report row equals the accepted E15 selected report. The change row at h5 causes no immediate reorder or stock move. At h10, each arm consumes depot physical DU ID0, starts one **two-unit** reorder, then receives IDs5 and6 at h11; ID0 reaches BASE-01 at h12. Failed DU ID4 is discarded. The first mission aborts after the h9.8829 failure; the next two succeed; aircraft readiness returns at h10.5.
+
+Selected depot ItemResults has 72 bins per arm: STSZ4 and ordinary NBO0 throughout, STOHA3 before h10, STOHA2 for h10–11, and STOHA4 thereafter. The reorder marker occurs in the h10 bin. System, aggregate stock and mission tables each have 72 bins and equal the accepted parent. The result supports this one source-bound no-immediate-order observation. It does **not** demonstrate a distinct new ROSIZ1 batch policy, general behavior for other stock states, or full catalog I07.var02 acceptance. The v1.0.0 contract explicitly anticipated identical arms and restricted the conclusion accordingly.
+
+Closure SHA-256: `e67d4cdf424471b65aa169571441c5c4715573656e61a18a7e02db2fd6d922be` (see replay JSON for recomputed seal). No native process was invoked by this review.
