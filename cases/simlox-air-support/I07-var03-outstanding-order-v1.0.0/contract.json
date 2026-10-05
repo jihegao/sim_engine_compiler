@@ -1,0 +1,71 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var03",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var03-outstanding-v100-ssh-20261005-01",
+  "scope": "One new guarded CLI run with ChangesItemReorder.LEADT one-to-three at h10.5, after the accepted E15/I07 h10 stock-based order starts and before its original h11 delivery. Reuse accepted I07.var01 h5-change and E15 explicit-three raw evidence as comparators; do not rerun them.",
+  "parents": {
+    "I07_var01": {
+      "package": "I07-var01-reorder-lead-time-v1.0.0",
+      "input_sha256": "4269922f65f8c3ecee867451c2a4c308287c42ebb7c974af93618c7e4e1138e0",
+      "signoff_sha256": "65fed727959df7e50542eeea3d97d0af71c166d7e77b3d4c950207f4c64978bd",
+      "evidence_index_sha256": "0397256f6b190cba91a5c9aad2dc1388053aa304861a8411d8e41d2212050382",
+      "run_closure_sha256": "321a06fdd1b3fd505ba6f2a4748b9cc19fcad8eadbff1169fbc3746dde9462f9",
+      "accepted_behavior": "Same LEADT three change at h5 precedes h10 order and yields h13 delivery."
+    },
+    "E15": {
+      "package": "E15-var07-explicit-istoh-v1.0.1",
+      "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+      "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+      "accepted_behavior": "Opening depot on-hand three, nominal four, ROSIZ two, h10 demand starts two-unit order under LEADT one and yields h11 delivery."
+    }
+  },
+  "source": {
+    "builder_sha256": "fa38b42bdb549a2c3bfc628d2a8db3360596f30094e5e56d72dec7f203128e8d",
+    "roundtrip_checker_sha256": "7c723805efb33fb96031a07f9d14f4fafa732a30ee0c319c9d18bdd67354d3a9",
+    "input_sha256": "82942e5b7dedefba724edfac4e560b4cebab3c1c01a855050cfb8e24efe2ff4b",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "manual_physical_pages": [445, 446, 447, 481, 482, 497, 498, 499],
+    "manual_boundary": "A scheduled ChangesItemReorder update changes the existing ItemReorder settings. An order already started keeps its own delivery time; a later order uses the updated lead. The native log may show order start and completion without separately printing change application."
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "station": "DEPOT-01",
+    "strategy": "stock_based",
+    "initial_nominal_STSIZ": 4,
+    "initial_on_hand_ISTOH": 3,
+    "initial_ROSIZ": 2,
+    "initial_LEADT_hours": 1,
+    "changed_LEADT_hours": 3,
+    "change_hour": 10.5,
+    "existing_order_start_hour": 10,
+    "original_delivery_hour": 11,
+    "early_change_delivery_hour": 13,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "collection_interval_hours": 0.5
+  },
+  "frozen_delta": "Against accepted I07.var01 change-input, only shared description and ChangesItemReorder.TIMEC 5 to 10.5 differ. All business inputs, including LEADT three in the scheduled row, initial ItemReorder.LEADT one, demand, stock and random seed are unchanged.",
+  "report_selector": {
+    "builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c"
+  },
+  "execution_guard": "One immutable run; session-0 SSH and sshd ancestor; Global\\SimloxIssue18NativeQueue; sole protected GUI PID13340/session1 identity checked around each hidden CLI child; target-only watchdog; before/after source and raw SHA closure.",
+  "predeclared_gates": [
+    "Independent pre-run review confirms the accepted comparator bytes, exact source delta, manual boundary, unique run ID and guarded runner before the native call.",
+    "Before calculation, the pinned checker exactly compares all 22 authored row-containing tables with native export. Calculation and selected ItemResults export then require converter Errors0/Warnings1 (#108 only)/Notes0 and valid nonempty native outputs.",
+    "The h10 depot demand and one two-unit order begin before the h10.5 change; the existing order still completes and delivers physical DU IDs 5 and 6 at h11 under its original one-hour lead. There is no new order or physical movement at h10.5.",
+    "The accepted h5 I07.var01 changed arm delivers its otherwise matched order at h13 under three-hour lead. Compare accepted raw event and selected results by byte pins without rerunning it.",
+    "Reconcile every one of 72 half-hour selected depot bins, full physical stock snapshots, order start/completion/arrival, base shipment, outstanding interval, backorder and terminal stock. Mission, system and aggregate stock results should remain matched within the declared contrast.",
+    "If the order delivery changes to h13, a source pin or native ledger differs, or the prior h5 comparator cannot be verified, seal the run as diagnostic and do not publish a positive retention claim."
+  ],
+  "limits": [
+    "One fixed seed, one existing stock-based order and one mid-flight LEADT change. No new post-change order is induced, so this run alone does not demonstrate changed settings on a later order; that fact comes from the accepted I07.var01 h5 comparator.",
+    "No time-based ROINT cycle, random lead, two outstanding orders, tie-time change, other depot, GUI behavior, cross-engine equivalence or full I07/Issue #18 claim."
+  ]
+}
