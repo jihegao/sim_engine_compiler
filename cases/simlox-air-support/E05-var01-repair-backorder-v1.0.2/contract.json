@@ -1,0 +1,75 @@
+{
+  "schema": "simlox-issue18-case-contract/v1",
+  "case_id": "E05",
+  "variant_id": "E05.var01",
+  "version": "1.0.2",
+  "run_id": "e05-var01-repair-backorder-v102-ssh-20261005-01",
+  "native_input_sha256": "5d91b1315d1a3d6321285492e8fcd4a3afd61bc8420347713f5646c31cfe5d08",
+  "author_validator_sha256": "80c61f5dd59c9ac4d969570602170d5344aa6b77ce7140a74d02790c1a120ee3",
+  "ledger_replay_sha256": "3bf2e3c711b02c5ba32af47bd539d44b938a0dc030185e4afc944e5bfc934e57",
+  "shared_validator_module_sha256": "43b42fbc5f6d2b9ecbeb82b1419224d6a99025c1be5c600dd959f77d362b6354",
+  "native_binding_module_sha256": "d7cb8cdb670d6ac24536254904d9ac527bee1cfa1d9954dca9bd6a7d9ca0c28a",
+  "prior_excluded": {
+    "version": "1.0.0",
+    "local_snapshot_commit": "b122009b6ff8d411e13c6363ff876e71815839f8",
+    "independent_no_go_sha256": "4217c5761e6ec84538748a127f612b794c4ac4a04099638cedb1f8564f5beab7",
+    "reason": "Prelaunch NO-GO on incomplete task/wait/terminal, per-bin report, and source-binding checks; no native run."
+  },
+  "prior_excluded_v101": {
+    "version": "1.0.1",
+    "local_snapshot_commit": "3d18f3d39d0171907a9c15924ddfa528508ba567",
+    "independent_no_go_sha256": "56c8d1377820ca3e5493ae3aac8622448cfc2e3c7211c90c54c8acaf7d9b044f",
+    "reason": "Prelaunch NO-GO on unobserved installed-item continuity, incomplete per-task/subtask lineage, and unpinned transitive native_binding module; no native run."
+  },
+  "status": "contract_candidate_not_native_accepted",
+  "publication_scope": "one fixed-seed local LRU direct-repair turnaround contrast against accepted E05",
+  "parent": {
+    "package": "E05-local-repair-reissue-v1.0.0",
+    "input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca",
+    "signoff_sha256": "e7f4e82be24e09d258345e5f8084ac99e822e8384cb5c8698fbd1ea687105f2f",
+    "closure_sha256": "e75836bcd99ba838d4ef247973794a2bf38fbddd4904d69337d631ba983d01ef",
+    "raw_seal_count": 12,
+    "accepted_behavior": "three local LRU repair/restock/issue cycles, without backorders"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [338, 339, 340, 629, 630, 631, 684, 685, 686, 687, 688, 690],
+    "rule": "ItemRepair.DIRPT is direct repair turnaround in hours without a subtask override; SystemResults NSYRY/NSYUA are time-averaged system states, StockTotalResults NBO/PNB are time-averaged backorder states, NDF is a demand count, and ROS/WT/WTS are demand-time shortage and wait measures."
+  },
+  "delta": {
+    "table": "ItemRepair",
+    "record": 1,
+    "identity": {"IID": "TEACH-LRU-01", "STID": "BASE-01"},
+    "column": "DIRPT",
+    "before_hours": 1.0,
+    "after_hours": 13.0,
+    "other_authored_cells_unchanged": true
+  },
+  "inherited_configuration": {
+    "seed": "1",
+    "horizon_hours": 36,
+    "collection_period_hours": 0.5,
+    "local_nominal_stock": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "hypothesis_not_guarantee": "With the accepted parent's first removed-item repair starting near hour 9.92193 and second demand near hour 22, a thirteen-hour direct repair may leave no stock at that demand. Failure timing and any later demand must be read from this child's native event log, not copied from the parent.",
+  "physical_identity_observability": "The accepted E05 native log issues stock item ID0 and records its fit task completion, but the next critical failed installed item is ID2; no intervening log event maps ID0 to installed ID2. The CLI report contains aggregate SystemResults and StockTotalResults, not an installed physical-item map. This bounded contract verifies critical-failure ID through arriving-system failure, demand, removal and DIRP repair, and replacement stock ID through issue/receipt and fit task. It does not assert cross-fit installed physical ID continuity or terminal installed physical ID; those remain unverified. The terminal fit receipt ID and system-ready state are separately reported.",
+  "report_gate": {
+    "command": "SIMLOX -jsonreport of the child SXO, with the accepted E05 default report settings; no new selector",
+    "raw_format": "Preserve exact raw report bytes; the installed writer's trailing commas are normalized only in a separate in-memory parser copy",
+    "required_tables": ["SystemResults", "StockTotalResults"],
+    "required_bins": "72 half-hour rows in each required table over [0,36)",
+    "reconciliation": "Require every child backorder to clear before hour 36. For each half-hour bin independently integrate ready, system-repair and backorder event intervals, check SystemResults NSYRY/NSYUA/NFAIL and state partitions, and check aggregate StockTotalResults NBO/PNB/NDF plus demand-bin ROS/WT/WTS. Physical item IDs, on-hand membership and every stock transition are proven from the complete event log, not inferred from aggregate StockTotalResults. Printed event-time comparisons use at most 0.001 hour and float32 bin fractions at most 0.003. Other report fields are outside this bounded acceptance."
+  },
+  "native_gate": [
+    "Before launch, independently verify parent publication, all 12 parent local raw seals, manual rule, only one authored source-cell delta, exact 20 row-containing table shape, frozen source hashes, unique run ID and no active owner.",
+    "Use one serial SSH session-0 run under Global\\SimloxIssue18NativeQueue; require only the protected GUI PID 13340 in active session 1 with pinned start UTC 2026-09-28T10:09:56.8261381Z. Use a fresh run directory; do not rerun accepted parents or retry a failed directory.",
+    "Require exact import/export roundtrip of all 20 authored row-containing tables before calculation; converter Errors=0, interpreted warnings, valid nonempty SXO, full event log and the pinned default JSON report.",
+    "Trace each critical failed-item ID through the arriving-system failure, demand, removal, DIRP task/subtask and repair return. Trace each replacement stock ID through issue or backorder receipt, fit subtask and SURP completion. Verify the prior fit and receipt finish before a later failure, but do not infer an unlogged ID mapping from the replacement receipt to the next installed failed item. Report the terminal fit receipt ID, system-ready state and any pending repair without claiming an installed physical ID. Reconcile every event-log stock transition and all 72 half-hour SystemResults and StockTotalResults rows; do not call StockTotalResults an item-level stock ledger.",
+    "Accept a backorder contrast only if at least one child demand waits for a previously removed item's direct repair, with physical item identity and wait/fit times supported by the raw log and stock report. Otherwise preserve a failed diagnostic and do not publish the hypothesis as behavior.",
+    "Freeze invocation, raw and failure hashes; require a separately written independent read-only replay and bounded scope review before PR."
+  ],
+  "limits": "One teaching LRU, base, seed, DIRPT=13 versus accepted DIRPT=1. Post-fit installed physical ID and cross-cycle ID continuity are not exposed by the CLI log and remain unverified. No general timing law, FIFO, remote supply, reorder, resource contention, GUI-only, cross-engine or full E05/Issue 18 claim. K01/K08 GUI observations stay blocked; I07 opening-stock-three stays excluded."
+}
