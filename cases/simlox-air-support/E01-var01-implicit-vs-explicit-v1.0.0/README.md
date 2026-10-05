@@ -1,0 +1,9 @@
+# E01.var01 — implicit split versus explicit replacement subtasks
+
+This package maps the catalog's `隐式拆装比例/显式子工序` boundary to two already accepted one-aircraft, one-spare native runs: [D01 installed LRU](../D01-installed-lru-direct-repair-v1.0.0/cli-scope-signoff-2026-09-29.md) and [E01 local spare](../E01-local-spare-explicit-replacement-v1.0.0/cli-scope-signoff-2026-09-29.md). It performs no new SIMLOX execution. The copied [contract](contract.json) is byte-identical to the independently approved v0.1.0 contract.
+
+The D01 input has `SystemRepair.SURPT=0.5` hour with no explicit task binding; its native log shows REMOVE 10–10.25 and FIT 10.25–10.5. E01 retains `SURPT=0.5`, binds `E01-SURP`, and supplies `<REMOVE>` for 1/6 hour followed by `<REPLACE>` for 1/3 hour. Its native log shows REMOVE 10–10.1667 and FIT 10.1667–10.5. Both runs first fail installed LRU ID1 at hour 9.8829, issue spare ID0 at hour 10, and regain aircraft readiness at 10.5. Removed ID1 returns to stock at 11.25 versus 11.1667. Their ResultSummary and all 72 half-hour SystemResults and StockTotalResults rows are equal, so the five-minute item timing shift requires the event logs.
+
+Run `python replay.py` from any working directory for a read-only source, provenance, raw-seal, event and report comparison. The 24 original raw files remain in their accepted parent `runs/` directories. [Author replay](author-replay.json) passed 90/90 checks; a separately authored [independent replay](review/independent-verdict.json) passed 328/328. The [evidence index](evidence-index.json) seals the parent raw files and review sources.
+
+This observation changes explicitness and step durations together. It does not isolate the causal effect of an explicit TaskBreakDown or prove default split behavior for other replacement durations, configurations, seeds, GUI views or engines.
