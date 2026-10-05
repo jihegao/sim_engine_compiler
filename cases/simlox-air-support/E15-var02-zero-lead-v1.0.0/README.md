@@ -1,0 +1,9 @@
+# E15.var02 zero versus one-hour reorder lead time
+
+This package compares one stock-based tracked DU depot with `ItemReorder.LEADT=0` against its accepted `LEADT=1` explicit-three parent. The child changes only that cell; nominal `STSIZ=4`, `ROSIZ=2`, opening `ISTOH=3`, fixed seed, demand and all other 31 table structures are inherited. The accepted parent was not recalculated.
+
+One guarded SSH session-0 run preserved the protected SIMLOX GUI and completed import, export, calculation and selected report export. All 21 authored populated tables roundtripped exactly; conversion had zero errors, sole warning #108, and zero notes. Hour-10 ordinary demand issues depot physical ID0, lowering stock from three to two. The stock-based reorder starts, completes and delivers two new physical IDs5/6 at hour 10 with zero lead time, restoring depot stock to four. In the accepted one-hour parent, the same order arrives at hour 11. Depot ID0 reaches base at hour 12, the failed installed item is discarded, two of three missions succeed, and the aircraft is ready at the terminal boundary.
+
+All 72 half-hour selected depot bins show `STSZ=4`, `NBO=0`, one `NRO` in the hour-10 bin, and `STOHA=3` before hour 10 then `4`. Only the two parent bins covering `[10,11)` differ in on-hand stock, plus ItemResultsTotal mean (3.7222223 versus parent 3.6666667); eight other selected report tables match. This supports one zero versus one-hour lead-time contrast. Other leads, random lead distributions, multiple orders, GUI-only behavior, cross-engine semantics, full E15.var02/E15 and Issue #18 remain unverified.
+
+The [frozen contract](contract.json), [CLI signoff](cli-scope-signoff-2026-10-05.md), [author replay](author-validation-2026-10-05.json), independent reviews under `review/` and [evidence index](evidence-index.json) record the bounded result. Original native raw remains ignored locally in `runs/`, with size and SHA-256 seals in the index.
