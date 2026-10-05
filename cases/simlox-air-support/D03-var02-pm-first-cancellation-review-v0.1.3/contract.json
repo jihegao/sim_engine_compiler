@@ -1,0 +1,67 @@
+{
+  "schema": "simlox-air-support-readonly-evidence-contract/v1",
+  "case_id": "D03",
+  "variant_id": "D03.var02",
+  "version": "0.1.3-readonly-reanalysis-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "无任务/任务冲突",
+  "mode": "read_only_reanalysis_of_one_preserved_native_diagnostic; no_native_rerun",
+  "question": "Does the already sealed D03.var02 v0.1.2 run satisfy the previously GO-reviewed v0.1.1 contract's PM-attributed mission cancellation branch, with full event and report reconciliation, while the v0.1.2 mission-first branch remains excluded?",
+  "prior_no_go_contract": {
+    "package": "D03-var02-mission-pm-conflict-v0.1.0",
+    "contract_sha256": "e1b6170e48ab80ea9a998add06e04759b6f4ef60db375787b71682985b159477",
+    "independent_no_go_sha256": "dd39ea3f083071b2784431fbc961405786b266e6f6cab93f302b8297fc489082",
+    "status": "NO_GO_CONTRACT; no native source or run was created"
+  },
+  "predeclared_basis": {
+    "package": "D03-var02-mission-pm-conflict-v0.1.1",
+    "contract_sha256": "dbcfecd118156612290a08d3b5052d127243c42228abc2c7115378655a04031b",
+    "frozen_child_input_sha256": "393f80c1c271d3687862c639bfc5e7aa1c534e7a375d9c773a2afb18066c1427",
+    "independent_contract_go_sha256": "2fb6efc716e5439fd74d10bf82ccb012686f5d9ea102518141ad40f5b35a51be",
+    "prelaunch_no_go_sha256": "6ec5ffb8e4cc3542f213278e1e2f40cfd0116a04aa96b8a156f783b33c45b9fd",
+    "relevant_predeclared_gate": "An explicit mission booking/wait/delay/cancellation attributable to active or pending PM can meet the conflict mechanism if every field of 120 System and Stock rows, ResultSummary, the event log and integrals are independently reconciled.",
+    "same_input_requirement": "The v0.1.1 frozen child native-input.json, v0.1.2 frozen child native-input.json and sealed v0.1.2 run input.json must be byte-identical at the stated SHA before applying the earlier broad gate."
+  },
+  "preserved_failed_branch": {
+    "package": "D03-var02-mission-pm-conflict-v0.1.2",
+    "contract_sha256": "695ee5088fb51610344da22111684e7d8c9cf46cf63c097a0fe877e77442387c",
+    "prelaunch_go_sha256": "19391523a3c0a803c16700486cec9f04fde9665e8689770f334e4f4e3794e80b",
+    "author_failed_verdict_sha256": "0e83052ee12b8c99fe33a231652fd9a59a77b5702aa7da84b99505e57bdfcb87",
+    "independent_no_go_verdict_sha256": "6652f981885f77e002efe27d28f36976e605fa49364409c7e048dff35bf433cf",
+    "independent_no_go_memo_sha256": "47f4613ffe50f2d5e62a16b3d0c1357add2d29aee230f4b3ec919cb6c6de96b6",
+    "status": "NO_GO_FULL_CONTRACT for its mission-first branch; do not relabel it as accepted"
+  },
+  "sealed_run": {
+    "package": "D03-var02-mission-pm-conflict-v0.1.2",
+    "run_id": "d03-var02-mission245-v012-ssh-20261006-01",
+    "input_sha256": "393f80c1c271d3687862c639bfc5e7aa1c534e7a375d9c773a2afb18066c1427",
+    "closure_sha256": "0ddcb125d5350b913501445ceebcd2a8f2ceb30c0cb4f5dc36aa4bbe83f5718e",
+    "model_log_sha256": "ccb469955f4fdb054582d0fdbe92051299664ffdfb3268fb3b754107f089fa58",
+    "report_sha256": "8c49c0f5b745ad2df55247467e0f0ba286f60585947e687c04294c3bd2e7eb0b",
+    "independent_diagnostic_script_sha256": "a88d99041acedf10f30c7aaa12cfb51fbbe33ff3cfce0a07010974f7d8e556ae",
+    "raw_location_policy": "local_only_ignored_runs_not_committed"
+  },
+  "accepted_parent": {
+    "package": "D03-calendar-pm-v1.0.0",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1",
+    "closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [270, 271, 272, 273, 387, 388, 389],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "read_only_acceptance": [
+    "Rehash v0.1.1 reviewed broad contract/GO/NO_GO, v0.1.2 failed branch, frozen one-cell input, native invocation/closure, all 12 parent and 12 child raw size/SHA seals and unmodified manual/executable pins. A prior failed checker is evidence, not a passing verdict.",
+    "Confirm only OperationProfile second-row STIM 20 to 24.5 changed across 216 position-based source cells. Confirm 18 authored tables survived import/export before calc, converter 0 errors/only #108 and #126 warnings/0 notes, five guarded SSH0/mutex/GUI steps, valid SXO/log/report.",
+    "Require mission identity 1 allocated h23.5 to the sole aircraft, PM task CAL24 start h24 with explicit aircraft departure from ready into PM, identity 1 canceled h24.8333 without start/completion, PM completion and aircraft ready h25. Other missions 0 and 2 succeed h8-10 and h32-34. Second PM h49-50. Compare event prefix only before h19 and do not infer a general event priority rule.",
+    "Independently reconstruct every field of all 120 SystemResults rows from native mission/PM/ready event intervals with the accepted parent's four stable state templates and a maximum 5e-5 numeric boundary tolerance. Require all 120 x 16 StockTotalResults fields equal the item-free parent. Require all 11 ResultSummary fields to reconcile to two successes out of three, including native 2/3 float representation.",
+    "Reconcile report PM start/completion markers, zero failure/repair, 51.5 ready, 58 available, 4 flight, 2 PM and 2.5 reserved aircraft-hours, plus terminal one ready aircraft/no PM. A separate independent read-only replay and publication review must pass before bounded signoff and PR."
+  ],
+  "limits": [
+    "One seed, one aircraft, one moved two-hour mission and one CAL24 PM task without resources or physical stocked items; observed cancellation is not a general priority, deadline, PM recurrence or resource rule.",
+    "v0.1.0 NO_GO contract, v0.1.1 NO_GO_PRELAUNCH and v0.1.2 NO_GO_FULL_CONTRACT remain preserved and excluded from accepted status; no accepted parent or child rerun.",
+    "GUI visual, cross-engine parity, K01/K08 capture blockers, K06 source gap, I07 opening-stock-three, E05.var02 exact-time and Issue18 overall remain open."
+  ]
+}
