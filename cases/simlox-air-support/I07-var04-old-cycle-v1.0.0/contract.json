@@ -1,0 +1,40 @@
+{
+  "schema": "simlox-air-support-time-cycle-change-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var04",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var04-old-cycle-v100-ssh-20261005-01",
+  "scope": "One fixed-seed child-only interval-shortening attempt on accepted E15.var01 time-based DU depot reorder. The accepted parent ROINT16/LEADT1 has h10 demand and h16 initial-cycle order. Child adds ChangesItemReorder TIMEC5/LEADT1/ROINT8. Test whether the old initial cycle is retained through h16; no accepted parent recalculation.",
+  "accepted_parent": {
+    "package": "E15-var01-time-based-cycle-v1.0.1",
+    "input_sha256": "d37bdc10592dff04e521d66276b49f9404dfea0511fac5ea73ef201b02b22b1f",
+    "signoff_sha256": "b875964c50598dda9b65dbebb66d9339fa560cf5846b8abc3c345014adbdaa52",
+    "evidence_index_sha256": "b29bd16a3ebf1d4bdde6d1a5c743dddda8da82a785d777fdd399a403d8ee5af5",
+    "event_log_sha256": "d37165d77f783427b0311c983c3a47f32d3bc7cfc75518063036c03d6c436349",
+    "selected_report_sha256": "d41c5d0a17e0456453f24bd2c142c2c2c84095ec7e65e7a7e5fdaffdc373c1e0"
+  },
+  "source": {
+    "input_sha256": "6ee3b921af12f0455970dd62152c6b54e46a1112eb890ddfc9b10a4520c31505",
+    "builder_sha256": "69c889a984d74cfd34a9941bfbae462021fcf12287464ba6ad7b2b83878789c5",
+    "roundtrip_checker_sha256": "ffe80ff3aabec6c62c001c8045255b889f6ffa6a0280d4d6da266aab73d7261b",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c",
+    "selector_builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "frozen_delta": "Exactly one new ChangesItemReorder table/row; all 31 accepted parent tables, seed1, 36-hour horizon and report settings unchanged. Row IID TEACH-DU-01/STID DEPOT-01/TIMEC5/LEADT1/ROINT8, remaining fields null. LEADT1 repeats mandatory original value. Initial ItemReorder.ROINT16 remains unchanged.",
+  "manual_boundary": "Installed manual physical pages 345 and 497-499 define positive ROINT as time-based and say changes to the interval become effective only after the original interval completes. TIMEC5 is authored source data, not an observed log event. This single run cannot prove the later eight-hour cycle if no later stock deficit produces an order.",
+  "execution_guard": "One unique SSH session0 run with sshd ancestor, Global\\SimloxIssue18NativeQueue mutex, protected GUI PID13340/session1/start 2026-09-28T10:09:56.8261381Z, hidden target-only watchdog, exact source pins before/after and local raw SHA closure.",
+  "predeclared_gates": [
+    "Two independent reviewers verify accepted parent and selector bytes, manual, sole-table delta, literal runner pins, old parent raw evidence and expected timeline before native use.",
+    "Native import/export preserves all 22 authored row-containing tables exactly before calculation. Converter is Errors0/Warnings2 (#108/#376)/Notes0; SXO and event log are nonempty and a selected ten-table JSON report exports.",
+    "No reorder or stock movement occurs at h5 change alone. The common h10 ordinary demand issues depot physical ID0 toward base; it reaches base h12. The child's first time-based order remains at h16 with one-hour lead and one item delivered h17 as new ID6, like the accepted parent. An h8 order would fail this gate.",
+    "Reconcile every child reorder/start/completion/delivery and complete physical stock snapshots, all 72 half-hour selected depot ItemResults bins (STSZ4, STOHA4 before h10, 3 h10-h17, 4 afterward; NRO only h16, NBO0), mission/system/aggregate stock results and terminal readiness against accepted parent. Do not infer a later eight-hour order when stock remains full.",
+    "Any frozen source, native output, warning, ledger, report or GUI guard discrepancy excludes this version under its immutable run ID. No accepted parent rerun or post hoc gate change."
+  ],
+  "limits": [
+    "One item/depot/seed, ROINT16-to8 authored at h5, first cycle and one h10 demand only. The new interval's later application is not directly observed.",
+    "Other intervals including catalog 80-to40, later demand, outstanding orders, reverse switch, multiple stations, GUI, cross-engine, full I07.var04/I07 and Issue #18 remain unverified."
+  ]
+}

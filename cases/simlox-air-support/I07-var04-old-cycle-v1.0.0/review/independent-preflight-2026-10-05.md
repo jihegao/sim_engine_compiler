@@ -1,0 +1,15 @@
+# Independent pre-run review — I07.var04 v1.0.0
+
+**Decision: GO for one guarded, bounded old-cycle probe.** This review did not invoke SIMLOX. The frozen hypothesis is falsifiable: after an authored h5 ROINT16→8 change, a first order at h8 would fail; retention of the parent h16 first order, h17 one-unit delivery and matching stock/report ledger would support only the initial-cycle observation. The later eight-hour schedule is not exercised by the one-demand, 36-hour model.
+
+## Source and reference checks
+
+- Contract SHA-256 `dcb86a3309d90020f8dd1f846459d918a1391677e3e9c3ecfa4bfac247be5436`; runner `6b0f397afa25168d8e4b9001c5638cc6e3ae3f463b396ee002f9bdef95c77899`; child input `6ee3b921af12f0455970dd62152c6b54e46a1112eb890ddfc9b10a4520c31505`. All **13** literal runner source pins are 64-character SHA-256 values and match the current files, including accepted E15.var01 source/signoff/index/event/selected-report, selector/builder, executable and manual. PowerShell parses with zero errors. The unique run ID `i07-var04-old-cycle-v100-ssh-20261005-01` is unoccupied.
+- The accepted parent has 31 tables. The child has the same 31 tables byte-for-byte after JSON parsing and adds only an eight-column ChangesItemReorder table with one row: IID `TEACH-DU-01`, STID `DEPOT-01`, TIMEC `5`, LEADT `1`, ROINT `8`, remaining values null. Initial ItemReorder.ROINT16/LEADT1, seed and h36 horizon remain unchanged. The child has 22 row-containing authored tables for exact pre-calculation roundtrip.
+- Catalog I07.var04 is the “old cycle not yet ended” boundary. Installed manual physical p345 defines positive ROINT as time-based; pp497–498 expressly say a scheduled change applies only after the original reorder interval passes, with an 80→40 example. LEADT is mandatory and repeating 1 avoids the undefined-LEADT confound seen in the separate I07.var09 diagnostic. The accepted E15 parent has depot DU ID0 issued at h10, its first order at h16, and one replacement ID6 delivered h17. Its converter has Errors0/Warnings2 (#108/#376)/Notes0 with #376 attributed to StockAllocation rec2, as the child gate expects.
+
+## Runner and evidence gates
+
+The runner checks SSH session0 with an `sshd.exe` ancestor, the nonblocking host mutex, protected GUI PID13340/session1/start time and active session, then runs hidden children with a PID/command-line-verified 60-second watchdog. It rehashes source before/after, checks exact authored-table import/export before calculation, requires exact converter summary and row-specific warning set, then requires nonempty SXO/event log and selected ten-table report. It seals invocation, steps, outcome and raw file hashes; on a gate failure it retains an excluded diagnostic. These safeguards are adequate for this one-run preflight.
+
+Post-run review must derive h5 absence, h10 physical ID0 shipment, h16 order/h17 ID6 arrival, all 72 depot ItemResults bins, other report tables and terminal readiness directly from sealed raw. Matching the first cycle cannot establish a later eight-hour order or general scheduling behavior. No GUI-only or cross-engine claim follows.
