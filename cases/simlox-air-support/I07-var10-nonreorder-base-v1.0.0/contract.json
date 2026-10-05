@@ -1,0 +1,85 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var10",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var10-nonreorder-base-v100-ssh-20261005-01",
+  "scope": "One fixed-seed matched pair from accepted E15 explicit-three. Both arms retain the original base stock row STSIZ1 with no ItemReorder at BASE-01 and the original depot stock reorder. Only the child schedules ROSIZ1 at BASE-01 h5. Test the installed-manual rule that ROSIZ values at a non-reorder location are ignored by comparing conversion, complete events, physical stock and selected depot results; preserve any failed native evidence.",
+  "prerequisites": {
+    "E15": {
+      "package": "E15-var07-explicit-istoh-v1.0.1",
+      "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+      "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+      "role": "Direct 31-table stock-based DU source, nominal4/opening3/ROSIZ2."
+    },
+    "I02_OUT": {
+      "package": "I02-var02-out-transfer-v1.0.0",
+      "input_sha256": "7b15a1e0a6efcee9c772ac39dd52bb742a6eb23b6b711cf8e3cbc681aabe07e0",
+      "signoff_sha256": "bde5bddc4a836684a90e452d9ad2f86fa4a9b64d451356908397c2fe00c0c4c7",
+      "evidence_index_sha256": "0fdc685cf5c249b272dfcecf4c4abba717d132a503d3be4fd99b299bcd3623d0",
+      "role": "Accepted seven-column ItemTransfer OUT syntax and physical/nominal transfer accounting, but on another item."
+    },
+    "I07_var02": {
+      "package": "I07-var02-rosiz-v1.0.1",
+      "signoff_sha256": "dd1a18eef446f73564a18c09a900a2ccc211840545d4e5de70b2064be40c47d0",
+      "evidence_index_sha256": "f2804b40ace4a062f64f3c9983c809fa6b8d69c0a9aaea379a8997e844f797c4",
+      "role": "Accepted isolated h5 ROSIZ change has no immediate order; h10 demand later triggers one. This run does not repeat it."
+    }
+  },
+  "source": {
+    "builder_sha256": "9fa394b0ba1b9c9064fdc74d08e97d4a150a2014898c176a7c879f5d88f45159",
+    "roundtrip_checker_sha256": "67b72d1044570bf65bfc06b0f8ca0aa844061b0645c787e5ce8934f75b2babb1",
+    "inputs_sha256": {
+      "control": "07d9dfa3ad3afbe3ea2ba8770002423e8ee7188e04c0e69d7684576b74659c1d",
+      "change": "a48ff90f6627530a00af13c355513a06c85c47df4d4647bbb0b1e6d6e5e6841d"
+    },
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_physical_pages": [
+      515,
+      516,
+      517
+    ],
+    "manual_boundary": "ChangesStockAllocation ROSIZ is relevant only for discardable/partially repairable items at a reorder location with stock-based strategy. Values for other item/station combinations are ignored. Changes require an existing StockAllocation row. The base stock row exists but has no ItemReorder row; the depot stock-based reorder remains unchanged."
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "station": "BASE-01",
+    "point": "AIR_BASIC",
+    "strategy": "stock_based",
+    "item_type": "DU_discardable",
+    "initial_nominal_STSIZ": 1,
+    "initial_on_hand_ISTOH": null,
+    "initial_ROSIZ": null,
+    "changed_ROSIZ": 1,
+    "transfer_hour": null,
+    "transfer": null,
+    "change_hour": 5,
+    "ordinary_demand_hour": 10,
+    "lead_hours": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "collection_interval_hours": 0.5
+  },
+  "frozen_delta": "Both arms derive from accepted E15 explicit-three by adding ChangesStockAllocation with one all-null control placeholder versus child [AIR_BASIC,TEACH-DU-01,BASE-01,5,1,null]. Description is shared; all inherited 31 tables remain byte-semantically unchanged. The base is a stock row but has no ItemReorder record; the depot retains the accepted reorder strategy.",
+  "report_selector": {
+    "builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c"
+  },
+  "execution_guard": "One immutable matched-pair run; session-0 SSH and sshd ancestor; Global\\SimloxIssue18NativeQueue; sole protected GUI PID13340/session1 identity around each hidden child; target-only watchdog; exact 22-table pre-calc roundtrip; strict sole #108 converter warning gate; before/after source and raw SHA closure.",
+  "predeclared_gates": [
+    "Independent reviewer checks installed manual p515-517, accepted E15/I07 source pins, existing BASE StockAllocation and absence of BASE ItemReorder, exact paired delta and runner before native execution; unique run path unused.",
+    "Both arms import and exactly roundtrip all 22 authored populated tables before calc; converter Errors0/Warnings1 sole #108/Notes0, valid SXO/event/selected report and unchanged GUI identity required. Any extra diagnostic makes this run an excluded diagnostic pending review.",
+    "Positive ignored-value hypothesis: both arms have the same native event sequence and physical stock ID ledger despite child-only h5 BASE ROSIZ1; shared h10 ordinary demand takes BASE ID3, depot ID0, depot order2 arrives h11 and base replenishment arrives h12 in both. These IDs/quantities are predictions to verify, not assumptions.",
+    "Compare every stock snapshot, all 72 selected depot STSZ/STOHA/NRO/NBO bins and all non-description numeric report tables across arms. Do not infer internal parameter application from absence of an event.",
+    "If source, warning, ledger or paired-output equality fails, preserve immutable raw evidence as diagnostic and do not publish an ignored-value claim."
+  ],
+  "limits": [
+    "One fixed seed, one existing non-reorder base stock row for a discardable DU, one h5 ROSIZ change and one h10 ordinary demand. This tests a non-reorder station, not a non-discardable item type.",
+    "No other invalid item/station pair, missing StockAllocation row, time-based policy, multiple events, GUI, cross-engine, full I07.var10/I07 or Issue #18 claim."
+  ]
+}
