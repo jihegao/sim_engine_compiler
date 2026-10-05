@@ -1,0 +1,26 @@
+{
+  "schema": "simlox-independent-readonly-review/v1",
+  "run_id": "i07-var03-outstanding-v100-ssh-20261005-01",
+  "decision": "GO_BOUNDED",
+  "passed": true,
+  "checks_passed": 2360,
+  "checks_total": 2360,
+  "failures": [],
+  "contract_sha256": "e511d3ce02d03b594517a0eaeec4d9906a7d06be907e6eba4f9c4ef3ea5dd8c3",
+  "closure_sha256": "ba3e97cd3dedd79796107e44e46fc9ae5e0b9b90ed4c4df0bdadcc6c2c53dec3",
+  "raw_files_sealed": 13,
+  "input_sha256": "82942e5b7dedefba724edfac4e560b4cebab3c1c01a855050cfb8e24efe2ff4b",
+  "report_sha256": "bfaec3b78c0fb1b5413cf83e7a215e815be576c9d2703c162790026f249fea27",
+  "observed": {
+    "source_contrast": "Accepted I07.var01 changed input differs only by description and ChangesItemReorder.TIMEC 5 to 10.5.",
+    "new_run": "The two-unit depot order starts h10 with one-hour lead, completes h11, and delivers physical DU IDs 5 and 6. No reorder or stock movement is logged at h10.5.",
+    "controls": "New event log equals accepted I07.var01 no-change and E15 explicit-three logs byte-for-byte; accepted I07.var01 h5-change order arrives h13.",
+    "item_ledger": "Depot STSZ4 all 72 bins; STOHA3 until h10, 2 from h10 to h11, then 4; NRO1 only [10,10.5); NBO0 throughout.",
+    "report_comparison": "Every non-description report table equals the accepted one-hour control. Against early-change comparator, only ItemResults.STOHA bins [11,13) and integrated ItemResultsTotal.STOHA differ."
+  },
+  "limits": [
+    "One fixed seed, one already-started stock-based reorder, one scheduled LEADT change, and a 36-hour horizon.",
+    "The log does not separately confirm application of the h10.5 change; unchanged pending-order timing is the observed fact, supported by the source-isolated pair and accepted early-change control.",
+    "No post-change new order, multiple outstanding orders, time-based interval, tie-time boundary, GUI behavior, other engine, or general update rule is proven."
+  ]
+}
