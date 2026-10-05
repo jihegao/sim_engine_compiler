@@ -1,0 +1,74 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "E03",
+  "variant_id": "E03.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "单需求/竞争",
+  "question": "With the accepted two-aircraft E03 model and one local spare, does reducing the single OperationProfile row's IQTY from two separate simultaneous one-aircraft missions to one produce one observable replacement demand without a backorder, compared with the accepted two-demand competitive parent?",
+  "parent": {
+    "case_id": "E03",
+    "package": "E03-two-aircraft-shared-spare-v1.0.0",
+    "run_id": "e03-v100-ssh-20260929-01",
+    "input_sha256": "657c0d52116c09ef2dbd009209f461f6fb4ed3570327c4305e0e4608f208cbf0",
+    "signoff_sha256": "dedf59901c805c7bbfd6c7421f02d0b051d0fbbc38c97819970988203e47c4e1",
+    "closure_sha256": "b200b18fbbed80dcc7ff9e9f4e2e1d7952734449b49a400a509d054090a9b7d6"
+  },
+  "instructional_prerequisites": [
+    {
+      "case_id": "E02",
+      "signoff_sha256": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6"
+    },
+    {
+      "case_id": "A03",
+      "signoff_sha256": "6c8d3998f20e216d0403b807866fcbe306f68ebc6f376693334435e808747b2b"
+    }
+  ],
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages_inherited_from_accepted_e03": [
+      211,
+      212,
+      213,
+      218,
+      219,
+      220,
+      240,
+      444,
+      445,
+      446
+    ],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+  },
+  "source_delta": {
+    "only_business_cell": "OperationProfile row BASIC-SCHEDULE/BASIC-MISSION at STIM=8, ITYPE=SCHEDULED: IQTY 2 to 1",
+    "description_label": "ProblemDescription.PDESC may change to name the child; all other table schemas/cells must remain byte-logically equal to the accepted parent",
+    "retained": [
+      "SystemDeployment.QTYPS=2",
+      "MissionType.NOS=1",
+      "MissionType.MNOS=1",
+      "StockAllocation.STSIZ=1",
+      "matched System/Item FRT=3000000 per million OPHOURS",
+      "ItemRepair.DIRPT=4 hours",
+      "seed 1",
+      "36-hour horizon",
+      "one repetition"
+    ]
+  },
+  "predeclared_acceptance": [
+    "Freeze source model, generator, exact parent diff, contract, checker and unique run ID/hash before any native call. Independent static and prelaunch reviews must GO, and accepted parent/prerequisite source/behavior pins must match.",
+    "Import and roundtrip all authored row-containing tables exactly; native conversion must have zero errors, valid nonempty SXO/event/report, four completed CLI steps and one explained logging warning #108. Preserve failed artifacts and do not repair in the run directory.",
+    "Observe exactly one mission instance/aircraft launch from the changed IQTY row. If no critical installed LRU failure occurs in that one mission on the frozen seed, stop with an inconclusive preserved run rather than calling the no-backorder result a stock-demand test.",
+    "If one qualifying failure occurs, trace its exact aircraft and failed physical LRU identity through abort/return, system replacement demand, unique issuance of the opening spare, REMOVE, physical REPLACE, local four-hour ItemRepair, return to stock, and aircraft readiness. Require exactly one demand and zero backorders; diagnose every additional failure, demand or supply event instead of silently ignoring it.",
+    "Reconcile all 72 aligned half-hour SystemResults and StockTotalResults rows, mission result, opening and terminal on-hand stock, demand count, backorder occupancy, replacement work/repair occupancy and terminal readiness across both deployed aircraft. Do not assume the child shares the parent's failure timestamp, aircraft assignment or physical IDs merely because the seed matches.",
+    "Before native launch, use a fresh unique empty run directory, session-0 SSH ancestry, host-wide Global\\SimloxIssue18NativeQueue, and verify the sole protected GUI PID 13340 has the expected session/start identity and remains responsive. Hold the mutex throughout; do not touch the GUI or use the failed capture helper. Freeze raw outputs by size/SHA and obtain a separately authored read-only replay before any acceptance or publication."
+  ],
+  "limits": [
+    "A one-mission child versus two-mission parent changes exposure and random requests. Any shared first failure time would be an observation, not an assumption; later outcomes cannot be attributed solely to stock competition without an appropriate controlled comparison.",
+    "One spare and at most one observed demand cannot prove FIFO, priority or allocation fairness. This variant does not cover simultaneous same-time demands, two backorders, alternate supply or general stock policy.",
+    "If the one-mission child produces no qualifying physical demand, the contract is unproven and must not be published as a successful negative result.",
+    "GUI visual behavior, cross-engine equivalence, other seeds/stock levels, K01/K08 captures, I07 opening-three, E05.var02 exact-time tie and full E03/Issue #18 remain unverified or excluded."
+  ],
+  "native_input_sha256": "0fd7210b04aa8383a7288d3af0374fc96265c19f8d315612bee23a85c4d63879"
+}
