@@ -1,0 +1,7 @@
+# Independent E15.var04 postrun review
+
+**GO, bounded:** the separate read-only replay passes 761/761 checks. The candidate differs from the accepted explicit-three parent in exactly `ItemReorder.LEADTD` null→`<EXP>`; `LEADT=1` remains. The guarded SSH0 run completed four stages, preserved the protected GUI, and sealed 13 raw files. The converter reported zero errors, sole warning #108 and zero notes; 21 authored row-containing tables retained every populated cell.
+
+The depot opens with physical IDs 0–2, issues ID0 at h10, and starts one two-item reorder with a logged sampled lead of 1.12383 hours. It delivers new IDs 5 and 6 at h11.1238, while ID0 arrives at the base at h12. The selected depot ItemResults has 72 half-hour rows: `STOHA=3` through h10, `2` in [10,11), approximately 3.504694 in [11,11.5), then `4` through h36. The fractional row is the time-weighted portion of the h11–11.5 interval after delivery; its slight difference from arithmetic using the log's rounded h11.1238 is within print precision. Its 72-row mean matches ItemResultsTotal. Only that fractional ItemResults cell and the ItemResultsTotal mean differ from the accepted parent; the other eight selected tables match, including mission, system and aggregate stock. Terminal aircraft readiness is one.
+
+The evidence supports one fixed-seed predefined exponential lead draw and its physical/report timing. It cannot establish the exponential distribution's population law, other seeds or stock states, multiple orders, GUI behavior, or general E15.var04 acceptance.
