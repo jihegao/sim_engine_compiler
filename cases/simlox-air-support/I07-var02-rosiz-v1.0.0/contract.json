@@ -1,0 +1,94 @@
+{
+  "schema": "simlox-air-support-contract/v1",
+  "case_id": "I07",
+  "variant_id": "I07.var02",
+  "version": "1.0.0-candidate",
+  "publication_state": "not_published",
+  "run_id": "i07-var02-rosiz-v100-ssh-20261005-01",
+  "scope": "A matched fixed-seed control and scheduled-change pair on one accepted stock-based TEACH-DU-01 reorder at DEPOT-01. Nominal depot stock is four, initial on-hand three, and initial ROSIZ two. The child alone schedules ROSIZ one at hour five, before the inherited hour-ten ordinary demand. No transfer is introduced in this pair.",
+  "prerequisites": {
+    "E02": {
+      "package": "E02-zero-stock-local-backorder-v1.0.0",
+      "input_sha256": "12ef9bfd6ab88f7a796733bca0a283bfbf4e0be525eba02f3e98122212ac49dd",
+      "signoff_sha256": "c28abcac8c3b8a55d0f58adf87ec3038555102d6b7bc2b35dc84ab9793e42ad6",
+      "accepted_scope": "One zero-local-stock backorder and repair return, not stock reorder."
+    },
+    "E15": {
+      "package": "E15-var07-explicit-istoh-v1.0.1",
+      "input_sha256": "bb57aecc7285d8eef5c71ba1b7f6b6f7dd9fb4cc46f3e6d88e863eb1da3f206f",
+      "signoff_sha256": "ee38eb8e347ab7e9bd093102c05e0a3d597d7ac692d152bbd1ae00b59bf61a96",
+      "accepted_scope": "Tracked DU depot STSIZ four, ROSIZ two, explicit ISTOH three; one hour-ten demand and two-unit reorder with one-hour lead. This is the direct source parent, not acceptance of the catalog's above-nominal E15.var07 boundary."
+    },
+    "I02_IN": {
+      "package": "I02-var01-in-transfer-v1.0.2",
+      "input_sha256": "85ee84d85e610f753215882fca59cc3331a9ce0f3313ae635f2a7422e8abcf4d",
+      "signoff_sha256": "bb59990b569359e8b71f06567cb240f675ee10e4548aae5e65a4b15b5bdae05f",
+      "accepted_scope": "One zero-delay IN transfer and station-specific nominal/on-hand stock ledger."
+    },
+    "I02_BETWEEN": {
+      "package": "I02-var03-between-transfer-v1.0.0",
+      "input_sha256": "4842382bd3728f7f9520d3b20e1ad7148f7436f5132e9cc933773550d64b4560",
+      "signoff_sha256": "c9dfa4fa0bcad297abf106c6b828f938d610279bd3d44af72e035907f36aa1ef",
+      "accepted_scope": "One zero-delay BETWEEN transfer after IN, with depot/base physical and nominal stock ledgers. No transfer is reused by this experiment."
+    }
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pdf_pages": [445, 446, 447, 481, 482, 515, 516, 517],
+    "manual_boundary": "ChangesStockAllocation may change only ROSIZ for an existing POINT/IID/STID stock row. The change itself does not place an order; the next demand or scheduled transfer reapplies the strategy. The first subsequent order may exceed the new ROSIZ. Stock state includes on-hand, outstanding reorders and transfers; nominal STSIZ and actual on-hand are distinct."
+  },
+  "environment": {
+    "simlox_exe_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "protected_gui_pid": 13340,
+    "protected_gui_session": 1,
+    "execution": "Unique immutable run directory; session-0 loopback SSH with sshd ancestor; nonblocking Global\\SimloxIssue18NativeQueue mutex; no concurrent native job; GUI identity checked before and after each hidden CLI child."
+  },
+  "configuration": {
+    "item": "TEACH-DU-01",
+    "type": "DU",
+    "point": "AIR_BASIC",
+    "station": "DEPOT-01",
+    "stock_strategy": "stock_based",
+    "initial_nominal_STSIZ": 4,
+    "initial_on_hand_ISTOH": 3,
+    "initial_ROSIZ": 2,
+    "child_ROSIZ": 1,
+    "change_hour": 5,
+    "inherited_first_ordinary_demand_hour": 10,
+    "lead_hours": 1,
+    "seed": "1",
+    "repetitions": 1,
+    "horizon_hours": 36,
+    "collection_interval_hours": 0.5
+  },
+  "frozen_source": {
+    "builder_sha256": "7229c6d3ebbc20f6a48de1892139522cd2cfc1767bb0126b909c07776e4cf2ad",
+    "roundtrip_checker_sha256": "a6fb170a2754b1959774cf99ab7250ea669b79bf305896270a07cac6ba5f2e66",
+    "inputs_sha256": {
+      "control": "b1d2db036b0817aaf437e0426bf2bc86893b6c2211e474f3d5ab90c89ce86412",
+      "change": "8b402d63e1e1565cb065350f1f8faee5e96460c830432bab262d3294df820bc1"
+    },
+    "parent_delta": "Both arms change the parent description to the same text and add an otherwise identical six-column ChangesStockAllocation table immediately after StockAllocation. The control has one all-null placeholder; the child has POINT AIR_BASIC, IID TEACH-DU-01, STID DEPOT-01, TIMEC five, ROSIZ one, NOTE null. All 31 inherited tables, including initial StockAllocation and ItemReorder, are unchanged except shared description.",
+    "paired_delta": "The only value difference between the two frozen inputs is the ChangesStockAllocation row: all-null control versus one scheduled ROSIZ=1 row."
+  },
+  "report_selector": {
+    "builder_sha256": "d2ede31eba96985da2e6671ef0f81fe0d010f5e2d6889f09531519e11c73df1e",
+    "default_sha256": "1c2bb5380a2ac2e57fd3f0c782794154d331100c2bec2206d0caa430d3e21a5d",
+    "selector_sha256": "841a6a077741566cac02b84e0cb35f4154f13a857e5665909a483cd6c051316c",
+    "purpose": "Select TEACH-DU-01 at DEPOT-01 ItemResults and mission tables in each arm."
+  },
+  "predeclared_gates": [
+    "Before native execution, an independent reviewer confirms source, parent, manual, dictionary and pair-diff pins; the runner is frozen and a unique run ID is unoccupied.",
+    "Both arms import and export with exact 22 row-containing-table roundtrip before calculation. Converter summary is Errors0/Warnings1/Notes0 with sole #108 logging warning, matching the accepted direct parent; any other diagnostic excludes the run. Both arms require valid nonempty SXO, event log and selected report. The protected GUI survives every native child.",
+    "The change arm has no reorder between hour five and the inherited hour-ten demand, and no physical or nominal stock movement caused by the scheduled change alone. The control is checked on the same interval.",
+    "After the hour-ten demand, enumerate every reorder start, size, completion, arrival and physical item identity in each arm. Do not assume the child's first batch equals the new ROSIZ of one; a first batch larger than one is permitted only if its native event and stock-state ledger reconcile.",
+    "Across all 72 half-hour selected depot ItemResults bins per arm, reconcile STSZ, STOHA, NRO, ordinary demand/backorder and terminal stock with the full raw event ledger, including shipments to the base, outstanding orders and arrivals. Reconcile mission, system and aggregate stock results to accepted E15 scope.",
+    "If both arms are observationally identical, the conclusion may cover scheduled-row acceptance and no-immediate-order behavior only; it must not claim a demonstrated new batch policy. Any import, report, ledger, identity or event discrepancy is a failed predeclared gate retained under its immutable run ID."
+  ],
+  "limits": [
+    "One fixed seed, one DU stock-based reorder point, one ordinary demand, h5 ROSIZ 2-to-1 change and a 36-hour horizon; no time-based reorder, multiple outstanding orders, random lead, transfer at the change time, other stations or seeds.",
+    "The control and change remain matched in initial stock and business events; CLI-only evidence does not verify GUI display or cross-engine semantics.",
+    "A publication based on this experiment cannot close full I07.var02 or Issue #18 without evidence of the broader catalog boundary."
+  ]
+}
