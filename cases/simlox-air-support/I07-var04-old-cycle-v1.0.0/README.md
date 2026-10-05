@@ -1,0 +1,9 @@
+# I07.var04 initial time-based cycle retention
+
+This package tests one scheduled interval shortening on the accepted E15.var01 time-based tracked DU depot model. The accepted parent starts with `ROINT=16` and `LEADT=1`; the child alone adds `ChangesItemReorder` at hour 5 with `ROINT=8` and unchanged mandatory `LEADT=1`. All 31 parent tables, seed, horizon and selected-report settings remain identical. The parent native run is reused as sealed evidence and was not recalculated.
+
+One guarded SSH session-0 child run roundtripped all 22 authored populated tables, converted with Errors0/Warnings2 (#108/#376)/Notes0, and produced a valid SXO, event log and ten-table selected report. Its complete event log and report are byte-identical to the accepted parent. No reorder occurs at hour 5 or hour 8. The common hour-10 demand sends depot physical ID0 toward base, which receives it at hour 12. The first and only time-based order starts at hour 16 and delivers one new physical ID6 at hour 17. Every half-hour depot ItemResults bin has nominal STSZ4 and NBO0; on-hand stock is 4 before hour 10, 3 until hour 17, then 4, with NRO1 only at hour 16.
+
+The observation supports retention of the original first 16-hour cycle after the hour-5 change. SIMLOX does not log a separate application event, and full stock after hour 17 leaves the later eight-hour cadence unobserved. This one 16-to-8 run does not satisfy the catalog's specific 80-to-40 example or establish later cycles, other items or seeds, GUI behavior, cross-engine equivalence, full I07.var04/I07, or Issue #18.
+
+The [contract](contract.json), [signoff](cli-scope-signoff-2026-10-05.md), [author replay](author-validation-2026-10-05.json), independent reviews and [evidence index](evidence-index.json) provide the bounded record. Native raw files remain under ignored local `runs/` with byte seals in the index.
