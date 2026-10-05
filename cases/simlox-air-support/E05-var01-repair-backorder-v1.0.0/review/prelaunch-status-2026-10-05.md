@@ -1,0 +1,21 @@
+# E05.var01 v1.0.0 prelaunch status, 2026-10-05
+
+**NO NATIVE LAUNCH. Independent runner prelaunch GO remains pending.** The requested independent reviewer turn ended with `Selected model is at capacity. Please try a different model.` No reviewer verdict on the runner was returned. Do not treat the earlier independent **contract** GO as runner approval. Do not retry the reviewer immediately after this capacity error.
+
+## Read-only checks completed
+
+- Live `simlox/main` ref was `51e544825ee73fa17a8fe416de2bae3ce0ccc68e` after PR #461; product `main` was `a1a44c72f64d754b711abe4095f1111f8a5ba896`. The reviewed E14.var04 v1.0.2 package and 432-entry publication index matched the merged ref.
+- Catalog E05.var01 is planned; accepted direct E05 parent and its 12 local raw seals match input, signoff, and closure pins. No local E05.var01 package or remote `*e05*var01*` branch existed before this work. The contract review GO is for `contract.json` SHA-256 `def25059e64b08a8b8528bcc156ce7ce4e05581c81cc70ff3e7e2e2cd9ccebff` only.
+- Candidate child input SHA-256 `5d91b1315d1a3d6321285492e8fcd4a3afd61bc8420347713f5646c31cfe5d08` differs from the accepted E05 input only at `ItemRepair` record 1 `TEACH-LRU-01/BASE-01 DIRPT` 1 to 13 hours. `check_source.py` passed on the host and under actual session-0 SSH PowerShell 5.1. Its parent raw seal count is 12 and parent authored row-containing table count is 20.
+- Runner SHA-256 `3a837c7c7429bce407e519db012d950b756ef6dc8cbf11d2cf28e2b2451e2f70` parsed with zero PowerShell errors locally and over SSH PowerShell 5.1. The bundled Python `build.py` and `check_source.py` file invocations succeeded over that SSH route.
+- SSH read-only preflight showed GUI PID 13340, session 1, start UTC `2026-09-28T10:09:56.8261381Z`, `Responding=true`, and no child run directory `e05-var01-repair-backorder-v100-ssh-20261005-01`. The runner's exact `qwinsta` active-session predicate matched one session under SSH. No native child was started.
+
+## Recovery condition
+
+Obtain a fresh independent read-only prelaunch GO on the **current complete package and runner bytes**, including literal pins, PS5 path semantics, exact roundtrip before calculation, default report, serial mutex, protected GUI, child-only watchdog, failure closure, and the acceptance checker. Correct any finding in a new frozen version/run ID if required. Immediately before launch, recheck live ownership, package hashes, vacant unique run directory, session-0 SSH, GUI PID/session/start/response, and no active native child; use the existing host-wide mutex. Preserve any failure rather than reusing the run directory. No PR/publication is authorized from this candidate without native evidence and independent replay.
+
+## Resumed package and second capacity stop
+
+The author completed `validate_native.py` before requesting the second prelaunch review. It binds local source and raw bytes, checks every observed material transition and identity, and reconciles the complete event-log backorder occupancy with 72 half-hour aggregate report bins. This is author code only; independent correctness has not been established. The current contract SHA-256 is `69929e2efb3913aff4e73f8a6524e9fd4af792653ebf66fe3ab285c9ea594375`, runner SHA-256 is `ebaae05c1b3c2e57cacbb1e85f1a400c9f2ad3d4c2eb8b9b731947f3a5fa5cf3`, and validator SHA-256 is `aa61ae4fb4bda80677c1842cabb626bd7500b39c9ed5da3c2751f0ebb703acac`. The contract binds the validator hash; the runner binds both the contract and validator hashes.
+
+Actual session-0 SSH PowerShell 5.1 parsed the current runner with zero errors and reported those same three hashes. Its read-only preflight saw only GUI PID 13340 in session 1 with start UTC `2026-09-28T10:09:56.8261381Z`, `Responding=true`, one active GUI-session match, the global mutex available when briefly acquired and released, and the unique v1.0.0 run directory absent. No SIMLOX child was launched. The independent reviewer retry returned the exact error `Selected model is at capacity. Please try a different model.` again before any verdict. Do not immediately retry after this second capacity stop. Recovery is independent prelaunch GO on this complete package when reviewer capacity is available, followed by a fresh live preflight; a finding requires repair and a new frozen version/run ID if any native attempt has begun.

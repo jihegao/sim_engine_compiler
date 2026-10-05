@@ -1,0 +1,59 @@
+{
+  "schema": "simlox-issue18-case-contract/v1",
+  "case_id": "E05",
+  "variant_id": "E05.var01",
+  "version": "1.0.0",
+  "run_id": "e05-var01-repair-backorder-v100-ssh-20261005-01",
+  "native_input_sha256": "5d91b1315d1a3d6321285492e8fcd4a3afd61bc8420347713f5646c31cfe5d08",
+  "author_validator_sha256": "aa61ae4fb4bda80677c1842cabb626bd7500b39c9ed5da3c2751f0ebb703acac",
+  "status": "contract_candidate_not_native_accepted",
+  "publication_scope": "one fixed-seed local LRU direct-repair turnaround contrast against accepted E05",
+  "parent": {
+    "package": "E05-local-repair-reissue-v1.0.0",
+    "input_sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca",
+    "signoff_sha256": "e7f4e82be24e09d258345e5f8084ac99e822e8384cb5c8698fbd1ea687105f2f",
+    "closure_sha256": "e75836bcd99ba838d4ef247973794a2bf38fbddd4904d69337d631ba983d01ef",
+    "raw_seal_count": 12,
+    "accepted_behavior": "three local LRU repair/restock/issue cycles, without backorders"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pdf_pages": [338, 339, 340],
+    "rule": "ItemRepair.DIRPT is the direct repair turnaround time in hours when no direct repair subtasks override it"
+  },
+  "delta": {
+    "table": "ItemRepair",
+    "record": 1,
+    "identity": {"IID": "TEACH-LRU-01", "STID": "BASE-01"},
+    "column": "DIRPT",
+    "before_hours": 1.0,
+    "after_hours": 13.0,
+    "other_authored_cells_unchanged": true
+  },
+  "inherited_configuration": {
+    "seed": "1",
+    "horizon_hours": 36,
+    "collection_period_hours": 0.5,
+    "local_nominal_stock": 1,
+    "remove_minutes": 10,
+    "fit_minutes": 20,
+    "scheduled_launch_hours": [8, 20, 32]
+  },
+  "hypothesis_not_guarantee": "With the accepted parent's first removed-item repair starting near hour 9.92193 and second demand near hour 22, a thirteen-hour direct repair may leave no stock at that demand. Failure timing and any later demand must be read from this child's native event log, not copied from the parent.",
+  "report_gate": {
+    "command": "SIMLOX -jsonreport of the child SXO, with the accepted E05 default report settings; no new selector",
+    "raw_format": "Preserve exact raw report bytes; the installed writer's trailing commas are normalized only in a separate in-memory parser copy",
+    "required_tables": ["SystemResults", "StockTotalResults"],
+    "required_bins": "72 half-hour rows in each required table over [0,36)",
+    "reconciliation": "Check stock total backorder and demand fields against the event ledger only within their documented report meaning. Physical item IDs, on-hand membership and every stock transition are proven from the complete event log, not inferred from aggregate StockTotalResults."
+  },
+  "native_gate": [
+    "Before launch, independently verify parent publication, all 12 parent local raw seals, manual rule, only one authored source-cell delta, exact 20 row-containing table shape, frozen source hashes, unique run ID and no active owner.",
+    "Use one serial SSH session-0 run under Global\\SimloxIssue18NativeQueue; require only the protected GUI PID 13340 in active session 1 with pinned start UTC 2026-09-28T10:09:56.8261381Z. Use a fresh run directory; do not rerun accepted parents or retry a failed directory.",
+    "Require exact import/export roundtrip of all 20 authored row-containing tables before calculation; converter Errors=0, interpreted warnings, valid nonempty SXO, full event log and the pinned default JSON report.",
+    "Trace every observed demand and physical LRU identity through issue or backorder, removal, direct repair, repair return, installation and terminal state. Reconcile every event-log stock transition and all 72 half-hour SystemResults and StockTotalResults rows, including any unfinished repair at horizon; do not call StockTotalResults an item-level stock ledger.",
+    "Accept a backorder contrast only if at least one child demand waits for a previously removed item's direct repair, with physical item identity and wait/fit times supported by the raw log and stock report. Otherwise preserve a failed diagnostic and do not publish the hypothesis as behavior.",
+    "Freeze invocation, raw and failure hashes; require a separately written independent read-only replay and bounded scope review before PR."
+  ],
+  "limits": "One teaching LRU, base, seed, DIRPT=13 versus accepted DIRPT=1; no general timing law, FIFO, remote supply, reorder, resource contention, GUI-only, cross-engine or full E05/Issue 18 claim. K01/K08 GUI observations stay blocked; I07 opening-stock-three stays excluded."
+}
