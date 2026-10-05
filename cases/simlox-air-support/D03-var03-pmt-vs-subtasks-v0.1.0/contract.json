@@ -1,0 +1,63 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D03",
+  "variant_id": "D03.var03",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "配置PMT与工序合计不同",
+  "question": "When the accepted D03 CAL24 PM retains its referenced one-hour subtask, does changing only PMLocation.PMT from one to four hours leave the observed PM work duration, recurrence and full 60-hour report ledger unchanged?",
+  "ownership": {
+    "branch": "codex/simlox-d03-var03-pmt-override-20261006",
+    "remote_variant_branch_or_package_at_selection": "absent",
+    "native_run_id_reserved": "d03-var03-pmt4-task1-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "D03-calendar-pm-v1.0.0",
+    "run_id": "d03-calendar-v100-ssh-20261001-02",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1",
+    "closure_sha256": "9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8",
+    "model_log_sha256": "edd41c34046fb92e53a3f5eb8569cec3a932aa00aed8e878ecc40ef45826a4a5",
+    "report_sha256": "a9cc414e9b40da06be620e5fb64c52e0db41ec6fe959ac0874497d358232a84e"
+  },
+  "instructional_prerequisites": [
+    {"case_id": "A02", "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"},
+    {"case_id": "B02", "evidence_sha256": "bceddd5983e9187bf8be19464b04ad5b2136bf665f6d4d9d676928b8c2354c61"}
+  ],
+  "related_accepted_precedent": {
+    "case_id": "J09",
+    "variant_id": "J09.var05",
+    "package": "J09-var05-pmt-fallback-pair-v1.0.1",
+    "signoff_sha256": "42d1d718462057e64208b7bd1d8d45e8d2d17fece7b22b9242b0f14f62701ac9",
+    "relationship": "Its preserved task-referenced diagnostic had SCPMT2 but unchanged PM work and a report identical to D03; its accepted task-free pair tests a separate PMT fallback. Neither directly tests changing authored PMT while the subtask remains referenced."
+  },
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [387, 388, 389],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_rule": "Physical page 389 says PMLocation.PMT is overridden for PM actions split into subtasks; total duration is calculated from the subtasks."
+  },
+  "source_delta": {
+    "only_changed_cell": "PMLocation row CAL24/TEACH-AIR-01/BASE-01 PMT 1 to 4 hours",
+    "retained": [
+      "PMLocation.TID=PM-CAL24 and TaskBreakDown SEQ1 DURN=1 hour",
+      "MaterielPM.PMINT=24 CALHOURS and ATIM=DTIM=0",
+      "one aircraft, fixed seed 1, one repetition and 60-hour horizon",
+      "three nonconflicting scheduled two-hour missions and all other 215 authored cell values",
+      "Control.ENPM=Y and all MISSION/SYSTEM half-hour result collection settings"
+    ]
+  },
+  "predeclared_acceptance": [
+    "Independent GO_CONTRACT_ONLY must precede child source creation; a separate frozen source, exact diff, roundtrip checker, runner, behavior checker and GO_PRELAUNCH must precede one native launch.",
+    "A single session-0 SSH run must hold Global\\SimloxIssue18NativeQueue, preserve GUI PID13340/session1/exact start/responding, use a unique empty run directory and seal success or failure without rerunning the accepted parent.",
+    "Import/export must preserve all 18 authored row-containing tables before calculation. Converter errors must be zero, warnings classified, and SXO, event log and report valid; a zero native exit alone is not a pass.",
+    "The conditional no-change hypothesis is PM starts at hours 24 and 49, one-hour subtask work and PM completion at 25 and 50, three successful missions at 10, 22 and 34, and no additional PM/failure/repair before hour 60.",
+    "Reconcile every field of all 120 half-hour SystemResults and StockTotalResults rows, event log, ResultSummary, PM starts/completions, ready/unavailable status and integrated PM aircraft-hours against accepted D03; treat exact equality as a falsifiable hypothesis until native replay."
+  ],
+  "limits": [
+    "This tests one authored PMT value with one referenced one-hour task at one fixed seed and 60-hour horizon. It does not establish a general precedence rule across arbitrary subtasks, PMT values, PMTD distributions, resources, item demand or scale factors.",
+    "The three missions do not conflict with PM. GUI visual and cross-engine behavior remain unverified.",
+    "K01/K08 GUI capture blockers, K06 source gap, I07 opening-stock-three, E05.var02 exact-time, D03.var02 conflict and overall Issue18 completion remain open."
+  ]
+}
