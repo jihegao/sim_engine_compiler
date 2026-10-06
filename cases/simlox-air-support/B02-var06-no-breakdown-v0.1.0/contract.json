@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B02",
+  "variant_id": "B02.var06",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "With the linked PREP-FIXED task retained but its two authored TaskBreakDown rows absent, does native preparation use scalar MissionPreparation.DURN=0.75 hour and emit only the synthetic seqno 0 subtask?",
+  "ownership": {
+    "branch": "codex/simlox-b02-var06-no-breakdown-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for B02.var06 no-breakdown control",
+    "native_run_id_reserved": "b02-var06-no-breakdown-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B02-serial-preparation-v1.0.2",
+    "version": "1.0.2",
+    "input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+    "contract_sha256": "9692402d7ab43aa5592ccc7f0020ce6425a183629793c254dc08b764c282ab98",
+    "publication_sha256": "bceddd5983e9187bf8be19464b04ad5b2136bf665f6d4d9d676928b8c2354c61",
+    "independent_review_sha256": "124fe64f8fe9a70e101ada86da47490d5e5cece87fce717fefc31e1e88f4e0db",
+    "run_id": "b02-v102-ssh-20260929-01",
+    "closure_sha256": "3bbaffe3460da2195a4084cb3b92e1fc9c605a5d01380619abf92e3cd107f570",
+    "accepted_behavior": "Two authored serial subtasks: SEQ1 h7–h7.166667, SEQ2 h7.166667–h7.5; mission launch h8 and success/return h10. Eleven local raw files sealed."
+  },
+  "instructional_prerequisite": {
+    "case_id": "B01",
+    "version": "1.0.1",
+    "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+    "closure_sha256": "046a7724f053f63e6967e3c3e803f726fd5f4b6322015239cb25a380c6446516",
+    "control_behavior": "Linked PREP-FIXED task without authored breakdown rows emits one synthetic subtask 0 seqno 0 for scalar DURN 0.5 hour, h7–h7.5."
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [294, 295, 296, 402, 403, 404],
+    "interpretation": "MissionPreparation.DURN is non-negative, mandatory and no longer overridden when no TaskBreakDown rows are authored; TaskBreakDown is optional and an authored breakdown uses summed subtask durations in strict sequence."
+  },
+  "source_delta": {
+    "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+    "child_input_sha256": "7596ea50dc770bf9726a0d3300c0c2b0a881b772e57db0c3a079a3629714a939",
+    "only_change": "Clear the two TaskBreakDown instance0 rows for PREP-FIXED SEQ1 INSPECT and SEQ2 SERVICE; retain the empty table and every other table/instance/row/cell, including unused SubTaskType definitions.",
+    "retained": "MissionPreparation scalar DURN0.75 and TID PREP-FIXED; NOPER1; h8 one-aircraft mission, seed, 36-hour horizon and half-hour collection."
+  },
+  "predeclared_acceptance": [
+    "Independent contract review pins accepted B02 and B01 source, publication and local closures/raw seals without rerunning accepted cases.",
+    "Freeze builder, exact row-deletion diff, 16 row-containing-table roundtrip checker including the empty TaskBreakDown table, strict event/report validator and unique SSH0 runner; require independent exact-file prelaunch GO before native.",
+    "Require absent unique run directory, actual SSH session0 with sshd ancestry, free Global\\SimloxIssue18NativeQueue, exact responding GUI PID/session/start, stable source hashes, failure-byte preservation and serial native stages.",
+    "Require exact authored-table import/export identity, converter errors zero with only classified #108/#126 warnings, substantive SXO and JSON report. Rejection or missing report is NO_GO for behavior.",
+    "Require one h7 mission notice/physical aircraft allocation; linked preparation and system task start h7; exactly one synthetic subtask 0 seqno 0 starts h7, performs planned 0.75 hour and completes h7.75, with main task/preparation completion h7.75. No SEQ1/SEQ2 authored-subtask lifecycle, resource wait, cancellation or delay. Mission launch h8, task h8.5–9.5, success and physical return h10.",
+    "Require full 72x40 System ledger: versus B02 parent, only [7.5,8) NSYMP changes 0 to 0.5 and NSYMR changes 1 to 0.5; all other System cells and all 72x16 Stock, 11 ResultSummary and ProblemDescription fields equal the parent. Preparation integral 0.75, reserved 0.25, flight 2, ready 33 aircraft-hours, terminal ready one.",
+    "Independently replay source/raw SHA and sizes, physical event identities/order, complete ledgers and bounded limits before any simlox/main PR."
+  ],
+  "limits": [
+    "Inherited Tasks.DESCR text says Serial 10+20-minute and is stale for the child. Retained unused SubTaskType rows do not represent performed work.",
+    "One seed, one aircraft, one mission, one linked task without authored breakdown or resources; no general scalar fallback, random duration, repeated mission, GUI visual, cross-engine, performance, full B02.var06 or Issue18 claim.",
+    "K01/K08 capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}
