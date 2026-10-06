@@ -1,0 +1,9 @@
+# C04.var02 — cutoff before, equal to, or after preparation completion
+
+This is a **read-only reclassification** of three accepted C04 1.0.0 final CLI runs. It creates no new input and calls no simulator. The [corrected contract](contract.json) pins the published C04 source, C03 staffing-1 parent, three final native closures, and all raw seals. The old v0.1.0 contract and independent NO_GO remain excluded.
+
+The inputs differ only in `OperationProfile.DTIM`: 0.51, 0.50, or 0.49 hour with `STIM=8`, placing the declared latest launch at 08:30:36, 08:30:00, or 08:29:24. The before and equal runs have byte-identical full event logs and reports. At the equal boundary, aircraft 1 completes preparation and releases P-CREW at h8.5 before the two-aircraft mission starts; it succeeds h9.5. In the after run, the mission cancels h8.49 while aircraft 1 is still working. The log records its stop, partial preparation, turnround factor 0.98, crew release, and both aircraft ready again.
+
+The [author replay](check_reclassification.py) passed **18,094/18,094** checks twice with identical verdict bytes. The [separate independent replay](review/independent-verdict.json) passed **17,325/17,325** checks. Together they verify 25 accepted C04 local and Git source identities, the direct C03 parent, **33 final C04 raw seals plus 11 C03 parent seals**, the excluded horizon-wait failure, native roundtrips, event order, and every cell of six report tables (**5,210 per arm**). Before and equal reports are entirely equal; before and after differ in 0/4/15/0/1/1 cells in contract table order. The cancelled run's h8–8.5 fractional results are time-weighted.
+
+This is one fixed-seed CLI observation, not a general deadline or same-time scheduling rule. The [scope note](cli-scope-signoff-2026-10-07.md) records the limits. The evidence index seals the final source and raw identities; independent publication review remains pending.
