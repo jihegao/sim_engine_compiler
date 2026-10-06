@@ -1,0 +1,3 @@
+# D04.var01 v0.2.1 — excluded read-only analysis
+
+This version preserves the sealed v0.2.0 child and corrects only JSON serialization of tuple-keyed source-cell diagnostics. It launched no SIMLOX process. The author report SHA-256 `a97cb3916cfc4f134fac293549003f6af145cbc21ee78d36a7252c6dd99ea619` records **7,067/7,068** checks and remains `NO_GO`: its one failed check used a truncated 63-character expected SHA for the published OPHOURS=4 sibling closure. The actual full 64-character closure SHA is `98d30d678431fb8ce6661b2cac2b5a3681b226bca32a8076c7eac8899e18dea0`, which matches the guarded v0.2.0 runner and the sibling's sealed bytes. This version is excluded; v0.2.2 is a separate read-only correction.

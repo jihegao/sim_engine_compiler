@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D04",
+  "variant_id": "D04.var01",
+  "version": "0.2.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "before/at/over OPHOURS threshold; proposed third arm, total three mission-hours above a two-hour threshold",
+  "question": "With accepted D04's fixed two-hour and one-hour missions unchanged, does changing only MaterielPM.PMINT from 3 to 2 OPHOURS trigger a single one-hour PM on first return h10-11, and leave the aircraft free of another PM after the second one-hour mission through h60?",
+  "ownership": {
+    "branch": "codex/simlox-d04-var01-over-threshold-20261006",
+    "remote_new_arm_branch_or_package_at_selection": "absent",
+    "native_run_id_reserved": "d04-var01-op2-v020-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "D04-flight-hour-pm-v1.0.0",
+    "run_id": "d04-flight-v100-ssh-20260930-01",
+    "input_sha256": "d0b0ee5b74f3afe5f05b418771774adcf8ef987b0f553f1bfd535874955c790a",
+    "signoff_sha256": "44d668fa724b1cf63370c88a560e42d3f4e324071eee720a036d2905185fe831",
+    "closure_sha256": "3cae72c375ef7a7c8dc63d785a33e97e9bd6103655fc28971abf5a0ccb24df45",
+    "scope": "one generic aircraft, h8-10/h40-41 missions, OPHOURS3 and PM h41-42"
+  },
+  "accepted_sibling_below_threshold": {
+    "package": "D04-var01-threshold-not-reached-v0.1.1",
+    "input_sha256": "cb8d6045df3b395583e3df2290b61376afa4fa9e8bc82a1c6f53fcfb44e2bddd",
+    "signoff_sha256": "aef907c1d2c36298dd4af715878c46ad49531b349cb48a8a855397132ee69ccb",
+    "evidence_index_sha256": "ea18b22019ec034c227c98d183692c74fbbe46ae26b0a4e9afcadc7e14a8131e",
+    "scope": "OPHOURS4 after three scheduled mission-hours, no PM through h60"
+  },
+  "instructional_prerequisite": {
+    "case_id": "D03", "package": "D03-calendar-pm-v1.0.0",
+    "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+    "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [202, 370, 371, 372, 373, 374, 375],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "interpretation": "The manual defines PMINT in OPID and OPHOURS as operation hours; exact threshold trigger and reset behavior must be established by child native events and report, not presumed from manual wording alone."
+  },
+  "source_delta": {
+    "only_changed_cell": "MaterielPM PMID=OP3 PMINT 3.0 to 2.0 OPHOURS; all other authored cells, IDs, descriptions and table structures unchanged",
+    "retained": "one aircraft, seed1, h8-10 BASIC and h40-41 SHORT missions, 60-hour horizon, PM task/subtask one hour, ATIM=DTIM=0"
+  },
+  "predeclared_acceptance": [
+    "Independent contract GO before child source creation. Freeze exactly one PMINT3-to2 cell among 221 authored cells, child input SHA, roundtrip and behavior checkers, guarded runner, and separate independent GO_PRELAUNCH before any native child.",
+    "Require fresh actual SSH session0/sshd ancestry, unoccupied Global\\SimloxIssue18NativeQueue, unique absent v0.2.0 run directory, responding GUI PID/session/exact start, installed manual/executable SHA, accepted D04/D03 and published sibling input/signoff/index pins, and source hashes before and after native steps. Do not rerun either accepted arm.",
+    "Import/export must retain exact row-containing authored tables before calc; converter errors0, individually classified warnings, valid SXO/event/report, complete closure and SHA/size seals. Process exit0 alone is insufficient.",
+    "Require first mission h8-10 and second h40-41 with explicit physical aircraft identity and outcomes. Compare event prefix strictly before h10 to accepted D04. Require exactly one system PM task and one referenced one-hour subtask starting h10 and completing h11, no second PM through h60, and report NPMS1 only at h10, NPMT1 only at h11, PM occupancy only h10-11. If timing or count differs, preserve raw evidence and record NO_GO rather than weakening the gate.",
+    "Reconstruct all fields in all 120 half-hour System rows, all 120 Stock rows and all 11 ResultSummary fields from child events and parent templates, with time-shifted PM at h10-11 versus accepted parent h41-42 and no item demand. Compare sibling OPHOURS4 no-PM arm separately; never infer physical stock from aggregate PNB.",
+    "Reconcile integrated child flight3, PM1, available59, ready54 aircraft-hours, exactly one PM start/completion, terminal ready/no PM, and full event/report consistency; include explicit checks for h10-11 PM and h41-42 ready states. A matching integral alone is not enough.",
+    "Independent read-only postrun replay, accepted-parent/child/sibling local raw and source seals, bounded signoff, independent staged and remote publication reviews are required before PR/merge. Preserve every negative diagnostic and prior v0.1.0/v0.1.1 history."
+  ],
+  "limits": [
+    "One over-threshold configuration and one seed/aircraft/schedule; the accepted at-threshold and below-threshold arms remain separately published and byte-pinned.",
+    "No direct PM counter trace, partial-mission threshold crossing, other operation parameter, second PM cycle under sufficient exposure, failure/resource interaction, GUI visual or cross-engine claim.",
+    "K01/K08 capture blockers, K06 source gap, I07 opening-stock-three, E05.var02 exact-time and overall Issue18 remain open."
+  ]
+}
