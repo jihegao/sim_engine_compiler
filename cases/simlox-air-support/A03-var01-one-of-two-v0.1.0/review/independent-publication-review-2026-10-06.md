@@ -1,0 +1,10 @@
+# Independent staged publication review — A03.var01 v0.1.0
+
+**Decision: GO_STAGED** for the bounded fixed-seed CLI claim. This review applies to the 22-path staged snapshot on 2026-10-06, before commit or PR.
+
+- The staged paths are `.gitattributes`, 20 files in this case package, and `cases/simlox-air-support/publication-index-v1.json`. No run, raw, product-runtime, or unrelated path is staged. The two new `.gitattributes` overrides preserve the original bytes of the author-validation and independent-verdict JSON files.
+- Evidence index SHA-256 is `5e91871b915dde1b9c7a3584384a3c3764f6667f7fada19d23b1a9ce79086a3f`. All 18 indexed source byte sizes and SHA-256 values match both local files and staged Git blobs. The signoff is staged byte-identically, SHA-256 `ee68e7d0aae2dfa343f3e6dc9ecac4fce238c741a41b6a0564e358d5bb9d14bc`. Both indexed local closure files match their size/hash records, as do all 11 accepted A03 parent and 12 child raw files. Raw files remain local.
+- The staged publication index parses to 455 entries with 455 unique publication IDs. Its first 454 entries equal `origin/simlox/main` exactly. The sole appended A03.var01 entry resolves to this signoff and evidence index and states the observed one-of-two aircraft cancellation and release, 72-bin ledgers, author 4395/4395 and independent 4405/4405 verdicts, and one-seed/single-wave limits. Those counts and the `GO_BOUNDED` decisions match the sealed review JSON. The inherited two-aircraft ProblemDescription is disclosed as stale.
+- The root publication index has CRLF working-tree bytes and LF staged Git bytes; removing CR characters from the working-tree line endings yields the staged blob exactly. All 18 indexed package sources match staged bytes directly. `git -c core.whitespace=cr-at-eol diff --cached --check` passes.
+
+This is publication approval for the observed one-aircraft, one-seed, one-wave A03 shortage trace only. It does not establish a general assignment rule, an alternate availability case, GUI behavior, or complete A03.var01 coverage. This memo is intentionally excluded from the self-sealed evidence index.
