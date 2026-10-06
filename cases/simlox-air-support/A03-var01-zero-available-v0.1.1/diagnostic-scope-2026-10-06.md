@@ -1,0 +1,7 @@
+# A03.var01 zero availability v0.1.1 — excluded diagnostic
+
+Run `a03-var01-zero-v011-ssh-20261006-01` used the same byte-identical `QTYPS=0` input under a new contract and run ID. All five guarded native stages completed, including JSON report export. It retained the exact 13 authored tables, the converter's 0/3/1 diagnostics, one h7 demand requesting two aircraft, no physical allocation or launch, and cancellation at h8.33333. Its 72×40 System and 72×16 Stock reports and 11 summary fields are available for read-only review.
+
+The frozen author validator returned **NO_GO**, 4,445 checks with exactly 72 failures: every `SystemResults.FTMO` cell is native null where that version required numeric zero. The separate [independent diagnostic review](review/independent-diagnostic-2026-10-06.md) agrees. Manual pages 642–643 define FTMO as an average mission-operation fraction per system, so null with zero deployed systems is a plausible interpretation, not a retroactive pass. The original run and verdict remain excluded.
+
+The unchanged `closure.json` SHA-256 is `2897a7ed4825f3e3fd10cd8ff33d7ad21ba0621b40dcd0c0b752fe5df9ae9bd7`, sealing 12 raw files. `report-raw.json` SHA-256 is `f4654be8dd23dd960e476ec54ab7168922b29d97e58559b746e50a82a3e8cf29`; `review/author-validation.json` SHA-256 is `9943bcb2518b8ef9b840f43ded2b0b5358f554d7a59a19555062946c9d7537f3`. A later version must use a new contract, validator and run ID.
