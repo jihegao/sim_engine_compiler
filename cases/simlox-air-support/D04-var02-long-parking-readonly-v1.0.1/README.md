@@ -1,0 +1,11 @@
+# D04.var02 long parking — read-only bounded catalog mapping
+
+This package maps catalog D04.var02 to the existing accepted [D04 operation-hour PM run](../D04-flight-hour-pm-v1.0.0/cli-scope-signoff-2026-09-30.md). It does not create or rerun a native model. D04's one aircraft flies h8–10, then has no flight for 30 calendar hours until h40–41. The accepted D04 input SHA-256 is `d0b0ee5b74f3afe5f05b418771774adcf8ef987b0f553f1bfd535874955c790a`; its closure SHA-256 is `3cae72c375ef7a7c8dc63d785a33e97e9bd6103655fc28971abf5a0ccb24df45`.
+
+The first v1.0.0 contract received independent `NO_GO_CONTRACT` because “mission0” did not distinguish mission allocation from flight at h39–40. Its bytes and review are preserved. The corrected v1.0.1 contract uses `NSYMA` for mission allocation and `NSYMO` for in-flight occupancy; independent contract review returned `GO_CONTRACT_ONLY` before the author replay.
+
+The sealed event log has the first return at h10 and second mission order/allocation at h39. All 58 half-hour bins h10–38.5 show ready1, available1, allocated0, flight0, PM0. The two h39–40 bins are allocated1, ready0, available1 and flight0. Flight occupies h40–41; the sole PM starts at h41 after the second return and completes h42. All 120 System and 120 Stock bins and the 11-field summary have the expected complete shape. Author read-only replay passes **349/349** with [report](review/author-readonly-validation-2026-10-06.json) SHA-256 `93826bf13c43f5ce9789fe010229e23045e085d0cba5f6e2367eaac0a5cd15c2`.
+
+Two author checker failures remain sealed in `review/`: v1 used the wrong field name for the accepted roundtrip file, and v2 matched both system PM and subtask lines. Their original reports and checker snapshots are retained. They are analysis failures, not new native failures; accepted D04 input and raw files were not modified.
+
+This is one seed, one aircraft and one fixed gap. The report does not expose the PM counter directly, so any lack-of-accrual interpretation comes from the event timing together with the installed manual's OPHOURS definition. Other parking lengths, schedules, further PM cycles, GUI visual behavior, cross-engine parity and Issue #18 overall remain unverified. K01/K08 GUI capture blockers, K06 gap, I07 opening-stock-three and E05.var02 exact-time remain open or excluded as previously recorded.
