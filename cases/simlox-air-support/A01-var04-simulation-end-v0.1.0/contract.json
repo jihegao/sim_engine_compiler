@@ -1,0 +1,62 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A01",
+  "variant_id": "A01.var04",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "On the accepted A01 mission that flies h8–10, does changing only Control.SIMPE from h36 to h9 stop the physical simulation with the mission still active, in contrast to the accepted J05 SYSTEM collection-only cutoff at h9 that preserves the h10 success?",
+  "ownership": {
+    "branch": "codex/simlox-a01-var04-simulation-end-20261006",
+    "local_and_remote_owner_at_selection": "none found",
+    "native_run_id_reserved": "a01-var04-simpe9-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "J05-horizon-v1.0.0",
+    "publication_id": "J05.var05.collection_end_vs_simulation_period.1.0.0",
+    "input_file": "rcend9-input.json",
+    "input_sha256": "820245982879328592a23d2189bb0bf480136f4365b53a002db9161c08687f0b",
+    "contract_sha256": "bc98a78c7c54263fe445e23182e98e9357526080405cc3041c23c4730db5de52",
+    "signoff_sha256": "f8a9bb725fcb58cabb0a4e4e58450a7da00656c97becd9e3f7bd88c954de14b3",
+    "independent_verdict_sha256": "2e81c5e9ffb5ce06211d0a656ec4d104cbcabeccf7f634d8e2c9c4f3637e9abc",
+    "run_id": "j05-horizon-rcend9-v100-20261001-01",
+    "closure_sha256": "488771daa37e1361ae4f1384aef45fc4a2efd59ef800d6ba416195480c4afe14",
+    "model_log_sha256": "6337dc631e574eb9fab1eb24c45b4a3e1568d7e645282051c234a032591887ed",
+    "report_raw_sha256": "6dfedd72da9e32f49365ae9c86e854d8ed46781186cfe26f0c4db241c6cfe7a6",
+    "accepted_behavior": "SIMPE36, SYSTEM RCEND9, MISSION and Control RCEND36: h8–10 mission succeeds with h10 return, 18 SYSTEM half-hour rows through h9, 72 Stock half-hour rows through h36 and 11 summary fields."
+  },
+  "prerequisite_a01": {
+    "package": "A01-single-aircraft-single-mission",
+    "version": "1.0.0",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "contract_sha256": "29d81aeadc5b138b07a3e6242fec8df74a768998c71d3ee0e5e4ca0bf45c7cb6",
+    "signoff_sha256": "20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa",
+    "evidence_index_sha256": "2fe2383e513b0e59c581d5e7b48ec8da000a674a9f41e257b0e4f91836deb880",
+    "final_run_id": "a01-bound-final-20260927-03",
+    "final_closure_sha256": "7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e",
+    "replay_run_id": "a01-bound-replay-20260927-04",
+    "replay_closure_sha256": "3781103d253f08c6d3f8f84572877f6b65319a18c10a9e40736e608f829811ee"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [230, 231],
+    "interpretation": "SIMPE ends simulation activities even if an operational profile has not ended. RCEND limits collected time-dependent results and can be set by result type independently of SIMPE."
+  },
+  "source_delta": {
+    "only_changed_cell": "Control.SIMPE 36 to 9 hours on accepted J05.var05 input",
+    "retained": "Control.RCEND36, SYSTEM ResultCollection.RCEND9, MISSION ResultCollection.RCEND36, half-hour intervals, one aircraft, mission STIM8/DURN2, fixed seed and every other authored cell"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must resolve the exact accepted J05 and A01 source, signoff, closure and raw byte pins before constructing a child. The accepted runs will not be repeated.",
+    "Freeze a strict one-cell parent diff, distinct negative control for collection-only versus physical h9 cutoff, exact authored-table roundtrip checker, full behavior validator and unique SSH0 native runner. Obtain fresh independent prelaunch GO bound to file SHA before native.",
+    "Require the existing serial mutex, absent unique run directory, actual SSH0/sshd ancestry, no second native child, responsive protected GUI exact PID/session/start identity and frozen source hashes before and after. Preserve any failed bytes without reusing the directory.",
+    "If import or converter rejects Control.SIMPE9 with retained later collection RCEND, preserve the precise native diagnostic and mark this version NO_GO. Do not reinterpret a converter error as a physical simulation result.",
+    "For a valid calculation require native event-log horizon9, h8 mission start on physical aircraft0, no h10 completion/success/return in the h9 run, and no event timestamp greater than9. The accepted J05 parent h10 success remains independently pinned.",
+    "Require 18 half-hour System rows ending h9 and equal to the accepted J05 System rows in every field, and a bounded Stock ledger that ends at h9 with 18 half-hour rows matching the accepted parent prefix. A different report shape is a frozen-gate NO_GO pending a new version, not a postrun adjustment.",
+    "Require all report tables and 11 ResultSummary fields to be present, NREP1 and the reported upper time bound h9. Independently reconcile the exact remaining summary fields with the event and interval evidence before bounded acceptance; do not infer mission success solely from summary fractions.",
+    "Separate read-only independent replay must verify every source/raw SHA, event and ledger field, the stopped physical mission, and the accepted J05 counterexample without importing the author validator. Bounded signoff, staged/remote independent review and authorized simlox/main PR/merge are required for publication."
+  ],
+  "limits": [
+    "One fixed A01/J05 model, seed and h9 SIMPE boundary only; no general end-of-simulation law, partial-bin interval, other A01.var04 arms, GUI visual, cross-engine or performance claim.",
+    "K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded. Issue18 remains unfinished."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A02",
+  "variant_id": "A02.var03",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "When two fixed A02 missions of the same type are scheduled for h8 with one aircraft and DTIM 1/3 hour, does the native run keep one physical aircraft on at most one mission, cancel the competing mission by its deferment limit, and still complete the later h32 mission?",
+  "ownership": {
+    "branch": "codex/simlox-a02-var03-same-time-20261006",
+    "local_and_remote_variant_owner_at_selection": "none found",
+    "native_run_id_reserved": "a02-var03-same-time-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "A02-single-aircraft-repeated-missions",
+    "version": "1.0.0",
+    "input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "contract_sha256": "f192c22de44ec20cf8581e2652ce8b4a44fc315acb7998624be340cb5a42a465",
+    "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e",
+    "evidence_index_sha256": "b584816ca459c75bd5de160eb44b7b458c0dbe1b478c56142c44a3283732041d",
+    "final_run_id": "a02-bound-final-20260927-03",
+    "final_closure_sha256": "fc0cc2d0578d2e8d126e79886ab2ba72238a725aea86c361ede6d48dadc6a69a",
+    "replay_run_id": "a02-bound-replay-20260927-04",
+    "replay_closure_sha256": "9a44bc9f5d52cfd2178545315b6cd9b380585e98c36502025b329e380f1909d1",
+    "accepted_behavior": "one aircraft, three nonoverlapping successful fixed missions h8–10, h20–22 and h32–34; 34 local raw SHA seals"
+  },
+  "prerequisite_a01": {
+    "package": "A01-single-aircraft-single-mission",
+    "version": "1.0.0",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "contract_sha256": "29d81aeadc5b138b07a3e6242fec8df74a768998c71d3ee0e5e4ca0bf45c7cb6",
+    "signoff_sha256": "20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa",
+    "evidence_index_sha256": "2fe2383e513b0e59c581d5e7b48ec8da000a674a9f41e257b0e4f91836deb880",
+    "final_run_id": "a01-bound-final-20260927-03",
+    "final_closure_sha256": "7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e",
+    "replay_run_id": "a01-bound-replay-20260927-04",
+    "replay_closure_sha256": "3781103d253f08c6d3f8f84572877f6b65319a18c10a9e40736e608f829811ee"
+  },
+  "accepted_cancellation_analogue": {
+    "package": "A02-var01-insufficient-gap-v0.1.1",
+    "input_sha256": "df7d693e7364c50d489723c2d4c336c1225959e1e03cfb6535f82d9cf32a2109",
+    "contract_sha256": "f674de2448d4c97e909da95c1c0a3c9ffbea743da19bb0042d16ba6d5137a6d5",
+    "signoff_sha256": "29f87822b829995d547fc81f02fb558189d5214c76d844cfa06ede5e5a6bf98c",
+    "evidence_index_sha256": "d0f464c7aaf14c86fbcae8ddecda4149136af20b978467dd9b8a93fa0445f149",
+    "independent_verdict_sha256": "fa667cfc7c6f2c0ad4409240780fe3e5c54d0f02c2115fd7b12f109289710fe4",
+    "run_id": "a02-var01-insufficient-gap-v011-ssh-20261006-01",
+    "closure_sha256": "fff531321e18b8c8074ca172da5b83c729d7aa356484cbd2c00e3d05305546b1",
+    "observed_scope": "second mission h9.5 was created at h8.5, waited, then cancelled at h9.83333 before first return h10; first and third succeed, 12 raw seals. This establishes a comparator, not same-time ordering."
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [271, 272, 273, 275],
+    "interpretation": "OperationProfile permits repeated identical key rows for another mission of the same type at the same time, though duplicate keys are discouraged for relational database export. DTIM is the maximum start delay for fixed missions; insufficient ready and prepared aircraft causes cancellation. No row-order priority rule is claimed."
+  },
+  "source_delta": {
+    "only_changed_cell": "second OperationProfile.STIM 20 to 8 hours among 179 authored cells",
+    "retained": "first and third STIM8/32, three distinct profile rows, same mission type, one physical aircraft, DTIM 1/3 hour each, seed, horizon36 and all other cells"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review first; pin accepted A01/A02 source, signoff, indexes and 68 local raw files plus the published A02.var01 insufficient-gap analogue source, independent verdict, closure and 12 local raw files. Do not rerun accepted parents.",
+    "Freeze an exact one-cell parent diff, a negative control distinguishing two simultaneous rows from the nonoverlapping parent and h9.5 analogue, exact populated-table roundtrip checker, full behavior validator and unique guarded SSH0 runner. Obtain independent static prelaunch GO bound to exact source hashes.",
+    "Require no converter errors, classified warnings, exact retained duplicate OperationProfile keys and three rows after native import/export. If converter or native calculation rejects identical keys, seal precise failure and exclude this version without claiming physical competition.",
+    "Require actual SSH session0/sshd ancestry, serial mutex, absent unique run directory, no conflicting native child, responsive GUI actual PID/session/exact start, and frozen source hashes before/after. Preserve any failure bytes without reuse.",
+    "For a valid native run require exactly two distinct early mission identities generated from the h8 rows, exactly one physical aircraft allocated to at most one early mission, exactly one early launch at h8 and success/return at h10, exactly one other early mission waiting and cancelling no later than h8+1/3 before h10, with no task/start/success for the cancelled identity. Either early identity may win; the winner and event order must be reported exactly, not generalized as a tie-breaker rule.",
+    "Require the later mission identity at h32 to launch and succeed h32–34 on the same physical aircraft, with native horizon36, no failure/damage/PM/stock demand, and no overlapping physical flights.",
+    "Require complete 72×40 System and 72×16 Stock half-hour rows, all 11 ResultSummary fields and ProblemDescription, all parsed report fields individually reconciled against event and physical ledgers. Predicted total flight is 4 hours, terminal ready aircraft count 1 and four success fractions MTMF/MSTF/MSUF/STMF approximately 2/3. Any discrepancy is NO_GO, with no postrun gate relaxation.",
+    "Separate independently authored read-only replay must verify source/raw SHA and size seals, both early identities and full event order, complete System/Stock/summary fields and the analogue without importing the author validator. Bounded signoff, staged/remote independent review and authorized simlox/main PR/merge precede publication."
+  ],
+  "limits": [
+    "One fixed-seed, one-aircraft duplicate-key JSON import and same-time competition only; no general tie-order, database export compatibility, other mission counts or deadlines, GUI visual, cross-engine or performance claim.",
+    "K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time excluded; A01.var04 SIMPE9 one-cell contract NO_GO is preserved, and Issue18 remains unfinished."
+  ]
+}
