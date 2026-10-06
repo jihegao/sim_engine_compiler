@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B04",
+  "variant_id": "B04.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "On the accepted one-aircraft cross-midnight B04 turnround model, does shortening only MissionTurnround.DURN from 1 to 0.75 hour free the aircraft at h24.25, allow its serial 0.5-hour preparation to finish exactly at the h24.75 scheduled second launch, and avoid the accepted parent's h25 delay?",
+  "ownership": {
+    "branch": "codex/simlox-b04-var01-turnround-boundary-20261006",
+    "local_and_remote_variant_owner_at_selection": "none found",
+    "native_run_id_reserved": "b04-var01-release-boundary-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B04-cross-midnight-turnround-v1.0.1",
+    "version": "1.0.1",
+    "turnround_input_sha256": "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5",
+    "control_input_sha256": "9cc5c39a6d2d93b98c03fc0c483bf90963a76e67be6953444003f30bfa8dd98c",
+    "contract_sha256": "d65cef9a589fef1234bc1d09c649c61af31190ea867c8d7c4a106aa43f1fb6ca",
+    "signoff_sha256": "ba1c23cde50c706881c3d34da3c2d886ed6f43600e4e175a8681f82e122585ef",
+    "source_diff_sha256": "b13bdadbeeda7c7a38bec265882eaee53e3d3d3546748a641f5d06d322942f17",
+    "turnround_run_id": "b04-v101-turnround-20260930-01",
+    "turnround_closure_sha256": "85d25bd8fa2a053639ca9a93b3bbdd78a5c04e3db9a5d826e27998d500f95ae1",
+    "control_run_id": "b04-v101-control-20260930-01",
+    "control_closure_sha256": "c1c99765128e22ed73cba808fe019f1b943f95596f8ffb79aff8033781d609d4",
+    "accepted_behavior": "same physical aircraft completes first mission h21.5-23.5; one-hour turnround h23.5-24.5 delays second 0.5-hour preparation to h24.5-25 and second launch to h25, with h27 return and h27-28 turnround; the no-turnround control launches second mission at h24.75. Both accepted runs have 12 sealed local raw files."
+  },
+  "instructional_prerequisites": {
+    "B02": "published B02 1.0.2 fixed serial preparation is the accepted B04 source parent",
+    "A02": "published A02 repeated-mission behavior is an accepted B04 prerequisite"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [183, 305, 306],
+    "interpretation": "After return a system remains associated with its mission until turnround completes; MissionTurnround.DURN is mandatory calendar time for the task, overridden only by subtasks. This model has no turnround subtasks or resource demand. The manual does not establish the exact h24.25 release-to-preparation or h24.75 launch event order, which is the native question."
+  },
+  "source_delta": {
+    "only_changed_cell": "MissionTurnround row0 DURN 1.0 to 0.75 hour among 204 authored cells",
+    "retained": "two scheduled waves h21.5 and h24.75, one-hour second-wave delay allowance, two serial preparation subtasks totaling 0.5 hour, one aircraft, seed/horizon36, collection interval0.5, and all other authored cells"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must pin accepted B04 source, signoff, diff, both closures and all 24 local raw files, plus accepted B02/A02 behavior; no accepted native run may be repeated.",
+    "Freeze exact one-cell positional parent diff, negative control from accepted h24.5 release and h25 launch, exact populated-table roundtrip checker, complete behavior validator and unique SSH0 runner. Require independent static prelaunch GO bound to exact SHA before native.",
+    "Require actual SSH0/sshd ancestry, free Global\\SimloxIssue18NativeQueue, absent unique run directory, only protected responding GUI PID/session/start, stable source SHA before/after and preserved failure bytes.",
+    "Import/export must retain only MissionTurnround.DURN0.75 and all authored populated tables. Converter errors zero and warnings classified are mandatory; rejection or missing report is NO_GO and proves no physical behavior.",
+    "For valid calculation require first mission/return at h21.5-23.5, first turnround h23.5-24.25 across midnight, second notice h23.75, physical aircraft0 allocation/preparation start h24.25 and end h24.75 before scheduled h24.75 launch, success/return h26.75 and second turnround h26.75-27.5. No mission cancellation, delay or other aircraft. Exact same-time event order is observational for this source only.",
+    "Require complete 72x40 System, 72x16 Stock, 11 ResultSummary and ProblemDescription fields. Independently derive each half-hour System ledger, including fractional occupation bins from h24.25, h24.75, h26.75 and h27.5; Stock, summary, first mission and stable columns must match accepted B04, and terminal aircraft ready. Unexpected output is NO_GO with no postrun relaxation.",
+    "Require separately authored read-only replay of every source/raw SHA and size, event identity/order and report field, bounded signoff, independent staged and remote review, and authorized simlox/main PR/merge."
+  ],
+  "limits": [
+    "One seed, aircraft, two fixed waves and one turnround duration only; this does not establish general same-time priority, resource-constrained turnround, repair, other missions or B04 in full.",
+    "GUI visual, cross-engine and performance remain unverified; K01/K08 capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded; Issue18 unfinished."
+  ]
+}
