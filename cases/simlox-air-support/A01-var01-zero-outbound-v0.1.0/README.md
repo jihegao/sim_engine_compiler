@@ -1,0 +1,5 @@
+# A01.var01 zero outbound fraction — bounded CLI evidence
+
+The independently reviewed contract pins accepted A01 1.0.0 and declares a single `MissionType.TFOUT` change from 0.25 to 0. The frozen child input SHA-256 is `ac0c134a34362c2cec6ec6c51a90b0f81a7d21b229e8ec76a2595a818d14e3ea`. The builder and exact source-cell diff checker passed: one of 155 authored cells changes. Contract and prelaunch reviews were GO before the sole guarded native run `a01-var01-tfout0-v010-ssh-20261006-01` (closure SHA-256 `ea378b70e1e5af5f37b47dc2dd20a4318943fdb24a1608745eccf549eda809af`).
+
+The child task starts h8, completes h9.5 and its mission succeeds h10. All 72 System and Stock rows and the 11 summary fields match accepted A01. Author read-only validation passed 4,113/4,113, and separately authored replay passed 4,480/4,480 GO_BOUNDED. The 12 child raw files and 34 accepted final/replay raw files have SHA/size seals; no parent was rerun. A sum-to-one fraction and a zero return fraction require separate later arms.

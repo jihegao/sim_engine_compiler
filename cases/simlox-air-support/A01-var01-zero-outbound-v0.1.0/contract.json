@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A01",
+  "variant_id": "A01.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "With the accepted fixed h8–10 A01 mission unchanged, does setting only MissionType.TFOUT from 0.25 to 0 move its observed mission task start from h8.5 to h8 while preserving the h9.5 task completion and successful h10 mission return?",
+  "ownership": {
+    "branch": "codex/simlox-a01-var01-zero-outbound-20261006",
+    "remote_and_local_variant_owner_at_selection": "none found",
+    "native_run_id_reserved": "a01-var01-tfout0-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "A01-single-aircraft-single-mission",
+    "version": "1.0.0",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "contract_sha256": "29d81aeadc5b138b07a3e6242fec8df74a768998c71d3ee0e5e4ca0bf45c7cb6",
+    "signoff_sha256": "20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa",
+    "final_run_id": "a01-bound-final-20260927-03",
+    "final_closure_sha256": "7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e",
+    "replay_run_id": "a01-bound-replay-20260927-04",
+    "replay_closure_sha256": "3781103d253f08c6d3f8f84572877f6b65319a18c10a9e40736e608f829811ee",
+    "scope": "one ready aircraft, one fixed h8–10 mission; event task start h8.5 and completion h9.5; both native runs accepted only for the normal path"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [262, 265],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_interpretation": "Each optional outbound/return fraction is 0–1, defaults to 0 and is included in DURN; their sum must not exceed 1. The exact boundary event order must be observed natively."
+  },
+  "source_delta": {
+    "only_changed_cell": "MissionType.TFOUT 0.25 to 0 for BASIC-MISSION",
+    "retained": "TFRET 0.25, DURN 2 h, fixed mission h8–10, 36 h horizon, one aircraft ID 0, no preparation/resource/fault/PM/stock mechanism, seed and collection interval"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must approve this bounded zero-outbound arm before child source creation. The sum-to-one and TFRET-zero arms are separate future contracts; do not claim full A01.var01 from one child.",
+    "Freeze a child JSON input with exactly one authored MissionType.TFOUT cell changed from the accepted A01 input, plus exact source diff, independent negative control, strict behavior validator, guarded SSH0 runner and unique absent run directory. Bind the accepted parent source, signoff, both raw closure seals and installed manual/executable hashes.",
+    "Require fresh actual SSH session 0 and sshd ancestry, free Global\\SimloxIssue18NativeQueue, responsive protected GUI PID/session/exact start identity, no conflicting native child, and before/after hashes of all frozen source. Do not rerun accepted A01 final or replay.",
+    "Import/export must retain the authored nonempty business tables and TFOUT=0 exactly; converter errors zero and each warning classified. Calculation must yield nonempty SXO/event/report. Zero exit alone is insufficient; preserve every failed input, raw log and closure under a unique run ID.",
+    "Match the accepted parent event prefix before h8. Require the same physical aircraft and one successful h8–10 mission, task start exactly h8 and task completion exactly h9.5; retain TFRET=0.25. Do not infer phase timing from nominal DURN alone or from a report aggregate.",
+    "Read and reconcile every field of all 72 half-hour System and Stock rows and all ResultSummary fields against the accepted parent and event-derived expected mission timeline. Require planned/started/completed wave and sortie counts, ready/flight integrals and terminal state unchanged; any unplanned difference is NO_GO, not an expectation to relax after the run.",
+    "A separate independent read-only replay must check source/parent/raw SHA and sizes, task/mission event identities and times, complete ledgers and terminal state without importing the author validator. Bounded signoff, evidence index, staged and remote independent reviews, and authorized PR/merge are required before publication."
+  ],
+  "limits": [
+    "One zero-outbound fraction child of one accepted fixed mission, seed and aircraft; no sum-to-one, TFRET-zero, alternate duration, multiple mission or travel-geography claim.",
+    "No GUI visual, cross-engine equivalence, performance or full A01.var01/Issue18 claim; K01/K08 GUI capture and K06 source gap remain blocked."
+  ]
+}
