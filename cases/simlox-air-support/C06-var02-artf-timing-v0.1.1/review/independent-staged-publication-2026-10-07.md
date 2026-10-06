@@ -1,0 +1,9 @@
+# Independent staged publication review — C06.var02
+
+Decision: **GO_STAGED** for the exact read-only C06.var02 v0.1.1 snapshot. This memo is untracked and excluded from the evidence-index source list; it is not part of the staged snapshot reviewed here.
+
+Exactly **15** intended paths are staged: the two preserved v0.1.0 `NO_GO_CONTRACT` files, twelve v0.1.1 package files (11 indexed source plus `evidence-index.json`), and one root publication-index append. The v0.1.1 evidence-index SHA-256 is `89dbbba6599b7b8c7a0ff851bffdcfe09b509c73e7b02aff05ebbed5e58695e7`. All 11 source SHA-256/size pins match both local and staged Git blob bytes. The two old files match their exclusion pins and staged blobs. Accepted C06 17 plus C03 16 local/published source identities, four C06.var01 context pins, the C03 parent 11 and C06 pair 24 local raw seals, and all three invocation/closure chains pass; the independent audit checked 141 byte pins with zero mismatch. No raw run or product-runtime path is staged. The staged diff passes `core.whitespace=cr-at-eol` whitespace checking.
+
+The root index parses to **481** unique publication IDs. Its first 480 entries and non-entry metadata match `origin/simlox/main`; only the bounded C06.var02 entry is appended. That entry correctly distinguishes this ARTF1→2 comparison at fixed P-CREW0/P-ALT2 from C06.var01's capacity comparison at fixed ARTF2. It describes existing accepted runs, the h7.5 P-ALT preparation contrast, six-table report differences `1/0/13/0/2/1`, the excluded v0.1.0 wording defect, and limits without claiming a fresh native run or a general scaling law. Signoff and README match the sealed author `GO_BOUNDED` **13,331/13,331** and independent `GO_BOUNDED` **14,219/14,219** verdicts.
+
+The verdict applies to these staged bytes only. It makes no claim about a future remote PR, hosted CI, or full Issue 18 coverage.
