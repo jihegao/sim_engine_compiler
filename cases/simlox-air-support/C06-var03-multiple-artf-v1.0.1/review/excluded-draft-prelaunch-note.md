@@ -1,0 +1,5 @@
+# Excluded prelaunch draft
+
+The first source manifest (`excluded-draft-prelaunch-manifest.json`, SHA-256 `39c0279333c1c81e8c2bc22b638a55b952108b871129051bac5585d6ead275e7`) pinned runner SHA-256 `4109fa097e7cac28a7444b144357700b482e599ed4a7cc667615f8c81e43659b` and manifest builder SHA-256 `dfb5617524496b07fd7757ae0d86948ecc316a6cf29af00d18679a2f4f91a021`. Those exact versions are preserved as `excluded-draft-runner.ps1` and `excluded-draft-manifest-builder.py`. Every other source listed in the draft manifest retains the same bytes in place.
+
+It included a child-process watchdog that could terminate a still-running native process and a source-after validation path that could prevent the ordinary closure from being written on source drift. Both were corrected before any SSH preflight, independent prelaunch approval, or native child. This draft manifest is excluded from execution and publication. Its other source pins remain recorded in the preserved manifest; no native output was generated from it.

@@ -1,0 +1,20 @@
+# C06.var03 v1.0.1 independent read-only postrun replay
+
+**Decision: GO_BOUNDED.** The separately authored standard-library replay passed **11,774/11,774** checks with no failure. Script SHA256: `32f5e292c7fc058c4155bc1cbab13e4aec40523629ea405c644518d62de53bfb`. Deterministic LF verdict SHA256: `465a5f2242137fc434fb2ae1ca8be3b40e955b85efc8af513f900cc7793965c1` (identical on a second run). No author validator was imported, and no native process was rerun.
+
+## Evidence and source
+
+- Frozen v1.0.1 contract SHA256 `48a29f63e819e85dc3f9de856199c63441f32f34104dade338ef1ca246bd2384`; excluded v1.0.0 contract and independent `NO_GO_CONTRACT` memo retain their original byte pins and no native child.
+- The 31-entry prelaunch manifest SHA256 `96e62ff1d1bd532df45bca301b5d3635fad9a636d8a6de0c91b7dd01d58648e7`, exact independent prelaunch approval, and clean SSH0 preflight SHA256 `9f4aab50e7babeeaf56d6c504968d5bc026a3abb9bd921e51b05923e802fdf63` match both child invocations and closures. Accepted C03/C06 published and local source bytes and their **11+12** original raw seals were rehashed. Each child has **13** raw SHA/size seals and stable before/after source maps.
+- Factor1 closure SHA256 `c81a9187f4eaa81527569c23d5986244a755c3c36c785765daa48827a71de360`; factor3 closure SHA256 `9c04671966c7226f86cfe4f22efaba7d9e8dfa1a1d44c235ab33851265564a71`. The closure `error` field is an empty string, the runner's successful PowerShell `[string]` representation; it is asserted exactly. The serial six-step record for each arm has exit zero, four distinct native child PIDs in session 0, and preserved GUI PID 13340/session 1/start 1790590196826.
+- Both authored inputs match the accepted C06 parent except the predeclared Resource, ResourceAllocation, SubTaskResource, and ProblemDescription changes. The arms differ only in description and second requirement ARTF **1 versus 3**. Exact all-instance, row-containing **20-table** import/export roundtrip passed in both arms. Converter diagnostics are zero errors, warnings **#108/#126 only**, zero notes.
+
+## Physical and report ledger
+
+At h7.5, both aircraft IDs 0 and 1 failed availability tests for P-CREW and P-AUX. Each task booked **one P-ALT and one P-AUXALT**, two bookings per alternative type across both tasks, with no primary booking. Factor1 planned work lasted 0.666667 h, and both typed alternatives were released at h8.16667; the mission launched then and succeeded/completed at h9.16667. Factor3 planned work lasted 1 h, release/launch occurred at h8.5, and mission success/completion at h9.5. Each physical aircraft returned ready; no unresolved resource wait, mission cancellation, or fault-driven repair appears.
+
+The replay compared **all 10,420 cells** across six report tables per arm to an independent interval ledger and the accepted C06 parent, preserving exact identity/null fields and tolerating only float32 numeric rounding. All 72 half-hour System, StockTotal, and Resource rows in each arm match. Factor1's complete SystemResults, StockTotalResults, and ResultSummary tables equal the accepted parent. Both summaries report one replication and MTMF/MSTF/MSUF/STMF 1. Stock has no demand, movement, or backorder. Aggregate resource capacity is four; ResourceResultsTotal.NRUM is approximately **0.0740741** for factor1 and **0.1111111** for factor3, corresponding to **8/3 versus 4 resource person-hours**. System integrals are **4/3 versus 2 aircraft preparation-hours** and 2 aircraft flight-hours in each arm. Both aircraft are ready at terminal h36, and all four alternative units are available.
+
+In-memory tamper probes detected a changed SystemResults bin17 NSYMA cell, a changed source ARTF cell, and a changed typed resource booking, without altering any raw file.
+
+**Limit:** This confirms the native max(2,1) versus max(2,3) timing contrast for one fixed-seed, two-aircraft, one-subtask composition with both primaries unavailable and both alternatives available. It does not establish a general factor law, partial-resource behavior, probabilistic selection, persistent resource IDs, other seeds, or GUI visual behavior.
