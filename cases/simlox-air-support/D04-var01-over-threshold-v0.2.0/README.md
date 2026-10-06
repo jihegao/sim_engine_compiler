@@ -1,0 +1,7 @@
+# D04.var01 OPHOURS=2 third threshold arm — sealed native diagnostic
+
+This frozen child of accepted D04 changes only `MaterielPM.PMINT` from 3 to 2 among 221 authored source cells. The numeric 2 is authoritative; `PMID=OP3` and the three-hour human description remain historical labels to preserve a one-cell experiment. Child input SHA-256 is `35866de7c9414c9dc39e75416c3464ec00b1d6c5d2f987749c428323dc57e092`.
+
+Independent contract and prelaunch reviews returned GO before the sole guarded SSH session-0 native run `d04-var01-op2-v020-ssh-20261006-01`. The runner held `Global\SimloxIssue18NativeQueue`, preserved GUI PID13340/session1/exact start, pinned D04, D03 and the published OPHOURS=4 sibling, and completed import, export, exact 18 row-containing table roundtrip, calculation and JSON report. Converter errors were zero, warnings only #108/#126, notes zero. The closure SHA-256 is `7b25240fd45645f599e00ebaf6b750ac0246bba0bea1e44f1c0da0532f0e9146`; 12 local raw files are ignored, not committed. Accepted parent and sibling were not rerun.
+
+The original frozen author validator SHA-256 `dd40c5a0c483475a0627cb1ad4711d7f8db55ab918565a9138502dd045e13318` failed while serializing tuple-keyed source-cell diagnostics, before it could write a verdict. Its failure trace SHA-256 `61aef56b20679d9aeb618c17ff0a13a84a988c8f09877307ea43e1d25c7b7f93` is preserved. The read-only v0.2.1 and v0.2.2 packages separately analyze this sealed run; no native rerun is permitted or needed.

@@ -1,0 +1,46 @@
+{
+  "schema": "simlox-air-support-readonly-reanalysis-contract/v1",
+  "case_id": "D04",
+  "variant_id": "D04.var01",
+  "version": "0.2.2-readonly-candidate",
+  "publication_state": "not_published",
+  "kind": "read_only_reanalysis_of_sealed_v020_child",
+  "question": "After the v0.2.1 serialization repair exposed one truncated sibling-closure SHA literal, do all original source, raw and behavioral gates pass when only that literal is corrected against the already sealed published sibling?",
+  "ownership": {
+    "branch": "codex/simlox-d04-var01-over-threshold-20261006",
+    "new_native_run": "none"
+  },
+  "sealed_run": {
+    "package": "D04-var01-over-threshold-v0.2.0",
+    "run_id": "d04-var01-op2-v020-ssh-20261006-01",
+    "contract_sha256": "ea9cb13d9b40d701502b05079fafb0a36dd3f27c0bb347e12cb17d2dc8f21499",
+    "input_sha256": "35866de7c9414c9dc39e75416c3464ec00b1d6c5d2f987749c428323dc57e092",
+    "closure_sha256": "7b25240fd45645f599e00ebaf6b750ac0246bba0bea1e44f1c0da0532f0e9146"
+  },
+  "preserved_failed_v020": {
+    "validator_sha256": "dd40c5a0c483475a0627cb1ad4711d7f8db55ab918565a9138502dd045e13318",
+    "failure_log_sha256": "61aef56b20679d9aeb618c17ff0a13a84a988c8f09877307ea43e1d25c7b7f93",
+    "failure": "TypeError serializing tuple-keyed diagnostic; no verdict produced"
+  },
+  "preserved_failed_v021": {
+    "package": "D04-var01-over-threshold-reanalysis-v0.2.1",
+    "contract_sha256": "0d1b6b38d631413811b76596104afb2f67e15f77ceeb392ed5c8ece8317af355",
+    "checker_sha256": "5fdc73ea6f9b328a5f6e1d4cf6283d552671e3203ddf8ee3675bec3af1ee34a7",
+    "author_verdict_sha256": "a97cb3916cfc4f134fac293549003f6af145cbc21ee78d36a7252c6dd99ea619",
+    "result": "7067/7068, sole failed check sibling closure SHA: actual 64-character 98d30d...e18dea0 versus expected truncated 63-character 98d30d...e18dea",
+    "native_run": "none"
+  },
+  "accepted_sibling_closure_sha256": "98d30d678431fb8ce6661b2cac2b5a3681b226bca32a8076c7eac8899e18dea0",
+  "predeclared_acceptance": [
+    "Independent contract review must approve a one-literal source correction before author replay. Keep v0.2.0 and v0.2.1 sources, raw, failure logs, failed verdict and their pins immutable; do not launch SIMLOX.",
+    "New checker must differ from v0.2.1 only in the expected sibling closure SHA literal, adding the final zero already used by the v0.2.0 guarded runner and verified against the sibling's actual closure. The JSON-safe diagnostic serializer, all original h10/h41 behavior gates and every row-field expectation remain byte-identical.",
+    "Require exact sealed v0.2.0 child closure/invocation and all 12 child, 12 D04 parent and 12 OPHOURS4 sibling raw SHA/size seals, plus original input/contract, v0.2.0 and v0.2.1 failed evidence, accepted signoffs and independent prelaunch GO. Full author replay must pass every check; any new mismatch is NO_GO, not a reason to relax behavior.",
+    "A separately authored independent read-only replay must verify the one-cell PMINT3-to2 source, exactly one PM h10-11, no h41 PM, both missions, full 120x40 System and 120x16 Stock rows and 11 summary fields, and all source/raw lineage without importing the author checker.",
+    "Bounded signoff, evidence index covering all failed versions and new correction, independent staged/remote review and authorized PR/merge precede publication. Limit conclusions to the three fixed numeric thresholds/one seed/aircraft/schedule; no direct counter, GUI visual, cross-engine or overall Issue18 claim."
+  ],
+  "limits": [
+    "v0.2.0 original validator and v0.2.1 truncated-pin verdict remain excluded, not retroactively passed.",
+    "No new native run or input modification; one fixed-seed one-aircraft three-arm threshold panel only.",
+    "K01/K08 capture blockers, K06 gap, I07 opening-stock-three, E05.var02 exact-time and overall Issue18 remain open."
+  ]
+}
