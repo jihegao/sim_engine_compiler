@@ -1,0 +1,5 @@
+# B02.var04: predefined repair subtask in preparation
+
+This v0.1.1 candidate changes one authored cell from accepted B02 1.0.2: `TaskBreakDown` `PREP-FIXED` SEQ1 uses the built-in `<REPAIR>` in place of custom `INSPECT`. The installed SIMLOX 2017 manual restricts `<REPAIR>` to direct item/system repair. Accepted B05.var05 supplies a valid direct-repair control; it is not rerun. The v0.1.0 source and prelaunch NO_GO are preserved: that validator required the error on `TaskBreakDown` record 1 even though an analogous native error was reported on its linking table.
+
+The [contract](contract.json) defines a narrow negative converter gate that accepts a contextual error on the changed row or its `MissionPreparation` link. This package is not published and has no native result. A native run requires independent contract and exact-file prelaunch review, a fresh SSH session-0/GUI/mutex check, and the reserved unique run ID. Any failed or unexpected native output is preserved rather than reinterpreted as acceptance.

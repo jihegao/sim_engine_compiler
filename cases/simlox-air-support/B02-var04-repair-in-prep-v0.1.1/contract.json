@@ -1,0 +1,57 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B02",
+  "variant_id": "B02.var04",
+  "version": "0.1.1-contract-candidate",
+  "publication_state": "not_published",
+  "question": "Does the SIMLOX 2017 converter reject predefined <REPAIR> when it is the first subtask of a mission preparation, while that identifier is valid in a direct system repair task?",
+  "ownership": {
+    "branch": "codex/simlox-b02-var04-predefined-repair-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for B02.var04 predefined-required-subtask legality",
+    "native_run_id_reserved": "b02-var04-repair-prep-v011-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B02-serial-preparation-v1.0.2",
+    "input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+    "run_id": "b02-v102-ssh-20260929-01",
+    "closure_sha256": "3bbaffe3460da2195a4084cb3b92e1fc9c605a5d01380619abf92e3cd107f570",
+    "raw_file_count": 11,
+    "accepted_behavior": "Two authored serial preparation subtasks: SEQ1 INSPECT h7-7.16667, SEQ2 SERVICE h7.16667-7.5, then successful h8-10 mission."
+  },
+  "instructional_prerequisite": {
+    "package": "B01-fixed-preparation-v1.0.1",
+    "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+    "run_id": "b01-v101-ssh-20260929-06",
+    "closure_sha256": "046a7724f053f63e6967e3c3e803f726fd5f4b6322015239cb25a380c6446516",
+    "raw_file_count": 11
+  },
+  "positive_control": {
+    "package": "B05-var05-direct-repair-subtask-v1.0.0",
+    "input_sha256": "c2f84ff172d15a6ded2f61d0399edcf53c4e0049168cd69780892e33e4065f2b",
+    "behavior": "A predefined <REPAIR> subtask is accepted within a linked direct SystemRepair task without a SubTaskType definition. This control is read only and will not be rerun."
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [294, 295, 296, 400, 401, 402, 403, 404],
+    "interpretation": "Predefined <REPAIR> is mandatory for direct repair tasks broken into subtasks and can be used only in direct item/system repair; brackets are part of its ID. MissionPreparation links PREP-FIXED and is not a repair task."
+  },
+  "source_delta": {
+    "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+    "child_input_sha256": "e408ff21a8dc9cb7c12ae5acd50d14089846299a4382e40303c9d68edc472d7e",
+    "authored_cells": 185,
+    "only_changed_cell": "TaskBreakDown instance0 row0 (PREP-FIXED SEQ1) SUTID INSPECT to <REPAIR>",
+    "retained": "SEQ1 DURN 1/6 hour, SEQ2 SERVICE DURN 1/3 hour, existing custom SubTaskType rows, MissionPreparation TID PREP-FIXED and scalar DURN 0.75, one h8 mission, seed and 36-hour horizon. No user-defined <REPAIR> row is added."
+  },
+  "predeclared_acceptance": [
+    "Recheck accepted B02 and B01 source and exact parent/prerequisite raw closure seals without rerunning; pin valid B05 <REPAIR> source control and installed manual/dictionary bytes.",
+    "Require frozen one-cell source diff and exact 17 row-containing-table import/export identity before calculation. If import/export rejects, preserve the failed run but do not count it as the scoped converter result.",
+    "Require actual SSH session 0 with sshd.exe ancestry, free Global\\SimloxIssue18NativeQueue, absent unique run directory, exact responding GUI PID/session/start, stable source hashes and independent exact-file prelaunch GO.",
+    "At conversion require exactly one native error on either TaskBreakDown record 1 or linked MissionPreparation record 1. The diagnostic must identify <REPAIR>/REPAIR or the linked PREP-FIXED task and invalid subtask breakdown/preparation context; the exact code is not pre-guessed. A generic error on another form, an unidentified reference, or multiple errors is NO_GO. Only classified #108/#126 warnings may coexist.",
+    "The calculation must not produce a substantive valid SXO or physical simulation/report. A zero exit code is insufficient; preserve even a tiny invalid SXO and every log. No report-export attempt after the negative converter gate.",
+    "Independently replay the source bytes, full exact roundtrip, diagnostic count/context, absence of physical execution, all raw hashes and failure seals before any publication. If native accepts <REPAIR>, record a counterexample and exclude this negative contract. The v0.1.0 over-specific prelaunch NO_GO and its source identities remain excluded and preserved."
+  ],
+  "limits": [
+    "This tests one invalid predefined subtask use in one mission preparation; it does not establish every predefined-required-subtask rule, exact error-code stability, GUI validation or cross-engine behavior.",
+    "K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}
