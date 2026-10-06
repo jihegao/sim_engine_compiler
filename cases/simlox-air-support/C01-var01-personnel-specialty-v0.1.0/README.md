@@ -1,0 +1,9 @@
+# C01.var01 personnel specialty v0.1.0
+
+This package classifies one [accepted C01 personnel-capacity pair](../C01-personnel-capacity-v1.0.2/README.md) for the catalog's C01.var01 question. Both sources have two `SPECIAL` personnel at the same station and a demand for two `P-CREW` on INSPECT SEQ1. The qualified source allocates two `P-CREW`; the wrong-specialty source allocates two `P-OTHER` instead. The only source differences are those two `ResourceAllocation.RQTY` cells. The mission, seed, description, task breakdown, demand and total personnel capacity are identical.
+
+Both original guarded SSH session-0 native runs preserve all 20 row-containing source tables on import/export, including 17 substantive tables and three all-null placeholders. With matching crew, two are booked before INSPECT work h7–7.16667 and released before SERVICE; the mission launches h8 and succeeds h10. With only `P-OTHER`, the exact `P-CREW` request fails, nothing is booked or worked, no launch occurs, and the mission cancels at observed h7.58333. Complete six-table reports contain 72 System, StockTotal and Resource half-hour rows per arm, plus summary and resource total rows.
+
+The [contract](contract.json) received independent preflight GO. `python check_reclassification.py` passes 147 author checks; the separate reviewer under `review/` passes 11,079 checks, including every one of the 5,210 report cells per arm and all original source/raw identities. The [evidence index](evidence-index.json) pins the two original closures and 22 raw files in their existing directories. It records accepted C01 `.gitignore` local CRLF and published Git LF byte identities separately.
+
+This is one fixed-seed exact-resource-ID observation. It does not test alternative resource substitution, general personnel qualification rules, other quantities, shifts, contention, GUI visuals, cross-engine parity, or full C01.var01 and Issue #18 completion.

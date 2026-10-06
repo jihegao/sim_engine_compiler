@@ -1,0 +1,43 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "C01",
+  "variant_id": "C01.var01",
+  "version": "0.1.0-read-only-reclassification-candidate",
+  "publication_state": "not_published",
+  "question": "For one two-person P-CREW INSPECT demand, does equal total SPECIAL personnel capacity qualify differently when it belongs to P-CREW versus P-OTHER?",
+  "ownership": {
+    "branch": "codex/simlox-c01-var01-specialty-20261007",
+    "local_or_remote_c01_var01_owner_at_selection": "none found",
+    "native_child_planned": false
+  },
+  "catalog": {
+    "planned_variant_delta": "matching versus mismatching personnel specialty",
+    "source": "catalog-v2.json C01.var01",
+    "accepted_parent": "C01-personnel-capacity-v1.0.2 published CLI scope; C01.var02 capacity-only reclassification separately accepted"
+  },
+  "accepted_source_pair": {
+    "package": "C01-personnel-capacity-v1.0.2",
+    "original_independent_report_sha256": "b8b0bd11bfbde8c84e6e9bf9a4bb82a58da23e3436ce775082265d28c6d31f73",
+    "qualified": {"variant": "capacity-2", "input_sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c", "run_id": "c01-v102-cap2-ssh-20260929-05", "closure_sha256": "770537c9097ba24fbec533d5c6f1eafa29153c18bde63cd0b1bc621a65c55163"},
+    "wrong_specialty": {"variant": "wrong-specialty", "input_sha256": "e1341e7abfc8e1f4c853ba11648c0dfb1de6a90de3341aecae180af8ea4d0783", "run_id": "c01-v102-wrong-ssh-20260929-03", "closure_sha256": "610b2b9d12352a9ca06f9241c2d20f824bfa759fffd0a6f202d2ee1b4a44ba8f"},
+    "raw_location": "C:/Users/user/dev/sim_engine_compiler-b02-v102/cases/simlox-air-support/C01-personnel-capacity-v1.0.2/runs",
+    "published_source_byte_exception": ".gitignore local CRLF 8 bytes and published Git LF 7 bytes have distinct SHA identities and equal normalized content"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [397, 398, 399, 407, 408, 409, 410, 411, 412, 413, 414],
+    "interpretation": "SubTaskResource binds P-CREW quantity two to INSPECT SEQ1. The configured P-OTHER personnel are a separate SPECIAL resource ID; no alternative ARID or substitution is declared."
+  },
+  "predeclared_acceptance": [
+    "Use only the accepted C01 capacity-2 and wrong-specialty source/run pair, without new native launch or accepted source/raw edits. Verify original source, closure/invocation, all 22 raw SHA/size seals, original independent report and published Git byte identities separately from local .gitignore CRLF bytes.",
+    "Require the two full source inputs to differ only in two ResourceAllocation.RQTY cells: P-CREW 2-to-0 and P-OTHER 0-to-2; total SPECIAL capacity remains two, ProblemDescription and every other source table remain identical. Verify exact native roundtrip of all 20 row-containing tables, including 17 value-bearing tables and three null placeholders.",
+    "Require both arms to request P-CREW quantity two for INSPECT SEQ1 with no ARID substitute. In the qualified arm, verify booking of two P-CREW before work h7-7.16667, release before SERVICE, successful mission h8-10 and 20 person-minutes of resource use. In the wrong-specialty arm, verify P-CREW request fails despite two P-OTHER, no P-OTHER booking, no partial booking/work/launch, and observed h7.58333 cancellation.",
+    "Reconcile every cell of all six native report tables per arm: ProblemDescription, ResultSummary, 72 SystemResults, 72 StockTotalResults, 72 ResourceResults and ResourceResultsTotal. Require the capacity-two successful system/crew ledger versus the wrong-specialty failed/waiting ledger, with equal total personnel capacity and terminal aircraft ready.",
+    "A separate standard-library read-only reviewer must verify exact source/Git and local raw identities, sibling delta, event order, and full report cells before bounded evidence-index publication. Preserve failed review attempts if a gate fails."
+  ],
+  "limits": [
+    "One fixed-seed preparation request and two original accepted runs; no independent new C01.var01 native replication.",
+    "This tests exact RID matching in the declared source, not alternative resource substitution, other specialty rules, partial-booking generality, resource shifts or multi-aircraft contention.",
+    "The observed cancellation time is not a general deadline formula. GUI visual, cross-engine, full C01.var01 and Issue #18 remain open; K01/K08 capture blockers and excluded diagnostics remain unchanged."
+  ]
+}
