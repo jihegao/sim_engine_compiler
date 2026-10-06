@@ -1,0 +1,53 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A03",
+  "variant_id": "A03.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "With one ready aircraft deployed against the accepted A03 mission's NOS=MNOS=2, does the native model call and wait or immediately reject the wave, and does it prevent a one-aircraft launch through the h8 plus one-third-hour delay deadline?",
+  "ownership": {
+    "branch": "codex/simlox-a03-var01-one-of-two-20261006",
+    "local_and_remote_variant_owner_at_selection": "none found",
+    "native_run_id_reserved": "a03-var01-one-of-two-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "A03-two-aircraft-formation-v1.0.1",
+    "version": "1.0.1",
+    "input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "contract_sha256": "123b5391d0b17fdd0b7d61088c883e7cfb891892fe89c7cb85b27e30868ea34d",
+    "signoff_sha256": "6c8d3998f20e216d0403b807866fcbe306f68ebc6f376693334435e808747b2b",
+    "independent_review_sha256": "646e2076eb03565b4fb390b98d8651c5c1403380a28a9d5b99bb9a06a37d9282",
+    "run_id": "a03-v101-ssh-gui-20260929-01",
+    "local_run_dir": "C:\\Users\\user\\Documents\\Codex\\2026-09-28\\simlox-issue18-ssh-current\\cases\\simlox-air-support\\A03-two-aircraft-formation-v1.0.1\\runs\\a03-v101-ssh-gui-20260929-01",
+    "closure_sha256": "a3b4a2739b5b098c956aa19428cf997b2079aab858e22fb5ea9c4486a4209edd",
+    "accepted_behavior": "Two ready physical aircraft of one type meet NOS=MNOS=2, jointly launch the sole h8 scheduled wave, succeed and complete at h10, and yield four aircraft flight-hours; 11 original native raw files are locally sealed."
+  },
+  "instructional_prerequisite": {
+    "case_id": "A02",
+    "input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e",
+    "behavior_scope": "published fixed scheduled mission and repeated-wave baseline"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [184, 186, 187, 262, 263, 264],
+    "interpretation": "For quantity-based assignment, MissionType.MNOS is the minimum required to start and NOS the nominal target. A mission below minimum can remain called while waiting for systems until the latest allowable start; it cannot launch with fewer than MNOS. The manual does not decide whether this one-of-two source temporarily allocates its sole aircraft or the exact native cancellation timestamp."
+  },
+  "source_delta": {
+    "only_changed_cell": "SystemDeployment row0 QTYPS 2 to 1; preserve MissionType.NOS=MNOS=2, fixed h8 wave, DTIM one-third hour, one aircraft type/unit, seed, 36-hour horizon, collection interval 0.5 and all other authored cells",
+    "negative_control": "accepted A03 parent jointly launches two aircraft at h8 and completes at h10; no accepted run is repeated"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must pin accepted A03 input, contract, signoff, independent review, closure and all 11 local raw files, plus the published A02 prerequisite; do not rerun the parent.",
+    "Freeze exact positional one-cell parent diff, independent negative control, authored-table roundtrip checker, strict source/raw/event/report validator, unique SSH0 runner and separately reviewed prelaunch GO bound to their SHA values before native.",
+    "Require actual SSH0/sshd ancestry, free Global\\SimloxIssue18NativeQueue, absent unique run directory, exact responding GUI PID/session/start, stable source SHA before/after and preserved failure bytes.",
+    "Import/export must retain QTYPS=1 and unchanged NOS=MNOS=2. Converter errors zero and classified warnings are mandatory; rejection or missing report is NO_GO for physical behavior.",
+    "Predeclare two acceptable assignment traces: the sole aircraft may be temporarily assigned or left ready while the mission waits. In either trace, zero mission launches, sorties, successes and completions are required. A cancellation or mission wait timeout must be identified by mission ID at or before the h8+one-third-hour delay deadline, with no second physical aircraft. If temporarily assigned, this deliberately strict bounded test also requires an ID-specific System arrives release event at the cancellation timestamp within 0.0001 hour; the manual does not guarantee that event, and its absence is NO_GO even if terminal readiness appears. If native semantics differ, retain all evidence rather than relaxing the gate.",
+    "Require complete 72x40 System, 72x16 Stock, 11 ResultSummary and ProblemDescription field reconciliation using the actual predeclared assignment trace, zero flight aircraft-hours, zero stock movement, and one terminal ready aircraft; no summary-only acceptance.",
+    "Require separately authored read-only replay of every source/raw SHA and size, exact source delta, event identity/order and all report fields, bounded signoff, independent staged and remote review, and authorized simlox/main PR/merge."
+  ],
+  "limits": [
+    "One seed, type, unit and scheduled wave with one available of two required aircraft only; no zero-available, exactly-minimum alternative, mixed types, fault/PM, GUI, cross-engine, performance or full A03.var01 claim.",
+    "K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded; Issue18 remains unfinished."
+  ]
+}

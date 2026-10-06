@@ -1,0 +1,17 @@
+# Independent A03.var01 postrun replay — 2026-10-06
+
+**Verdict: GO_BOUNDED, 4,405/4,405 independently authored checks.** The source-bound conclusion is one available aircraft versus MissionType.NOS=MNOS=2 in one fixed-seed h8 scheduled wave. The sole native child run is `a03-var01-one-of-two-v010-ssh-20261006-01`; closure SHA256 `56b4e09312b3df67495d4961e296fea0c3e0f5f01413c5e1f2ae3fb243ac1772`. I did not call native SIMLOX, touch the GUI, edit raw files, or import/call the author validator.
+
+## Seals and execution
+
+- Rehashed all 21 source-before/after pins including accepted A03 input/contract/signoff/review/closure, A02 prerequisite, installed manual/executable/dictionary, final child contract/input/runner/validator, and exact independent prelaunch approval. Source-before equals source-after and the invocation source map. The original accepted A03 closure's 11 raw SHA256/size seals and the child closure's 12 raw SHA256/size seals all match local bytes. Invocation SHA and copied child input match the closure and frozen source.
+- The child source has 155 authored positional cells, with only `SystemDeployment` row0 `QTYPS` 2→1. `MissionType.NOS=MNOS=2`, h8 schedule and all other cells are unchanged. All 13 authored row-containing tables match the native export's columns, instances, and rows exactly. Native import, export, checker, calculation and JSON report are five ordered completed steps (four native calls) with SSH session0/sshd ancestry, global mutex record and GUI PID13340/session1/start1790590196826 preserved. Converter shows errors0, warnings #108 and #126 only, notes0, and valid nontrivial SXO.
+
+## Physical and report result
+
+- The log has a single mission identity `<BASIC-MISSION,TEACH-UNIT,0,0,0>`: h7 order/create/request for two; physical aircraft `<TEACH-AIR-01,0>` allocated and removed from the ready pool at h7. It waits for the second aircraft until the h8.33333 deadline, cancels at h8.33333, performs zero-time turnround, records `System arrives <TEACH-AIR-01,0>` and restores ID0 to ready at h8.33333. No ID1, mission launch, mission task, mission success/completion, failure, or PM occurs. The accepted parent instead launches IDs0+1 at h8 and completes at h10.
+- Every cell of 72×40 SystemResults reconciles to the h7–h8.33333 assigned interval: NSYMA and NSYMR carry about 1.33333 aircraft-hours, NSYRY carries about 34.66667 ready aircraft-hours, NSYA remains 1, and NSYMO/FTMO/STACC remain zero. Stable fields, including `SYDT=null`, match the accepted parent. All 72×16 StockTotalResults cells equal the accepted parent (no stock movement); all 11 ResultSummary fields match the no-launch hypothesis; ProblemDescription columns/row are preserved. The unchanged description still says “two-aircraft”; physical source and event IDs establish the one-aircraft child.
+
+The raw default JSON report contains a trailing comma; the independent checker removes it only in memory while preserving sealed bytes. This result proves only the observed temporary-assignment branch for this seed, aircraft type, unit, and scheduled wave. It does not establish behavior for zero available aircraft, exactly MNOS, alternate formations/types, faults/PM, other scheduling, GUI equivalence, or cross-engine conformance.
+
+Independent replay script SHA256 `d98c6fe78b054aac71245b302671678095e36bcdf66148ed864c5cf5642e01a8`; machine verdict SHA256 `26daffd726ad21c802df65cdd3774e348498f40b36715e9b1c3e8cf2081c21d3` (`GO_BOUNDED`, 4,405 checks, zero failures).
