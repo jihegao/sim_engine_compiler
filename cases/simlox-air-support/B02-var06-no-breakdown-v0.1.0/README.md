@@ -1,0 +1,7 @@
+# B02.var06: scalar preparation without authored breakdown
+
+This bounded control removes the two `PREP-FIXED` `TaskBreakDown` rows from the [accepted B02 1.0.2 parent](../B02-serial-preparation-v1.0.2/evidence-2026-09-29.md). The empty table remains, as do the linked `Tasks` row, unused `SubTaskType` definitions, `MissionPreparation.DURN=0.75`, one-hour notice, fixed seed and h8 mission. [build.py](build.py) and [check_parent_diff.py](check_parent_diff.py) enforce that exact source delta.
+
+The single guarded SSH session-0 native run `b02-var06-no-breakdown-v010-ssh-20261006-01` is sealed in the ignored local `runs` directory and indexed in `evidence-index.json`. The log shows one synthetic `subtask 0 seqno 0` with planned 0.75-hour work, h7–7.75, followed by main preparation completion. The mission launches h8 and succeeds/returns h10. The full System, Stock, summary and description ledgers are checked by [validate_native_cli.py](validate_native_cli.py). The exported empty `TaskBreakDown` table may have one all-null placeholder row; [check_roundtrip.py](check_roundtrip.py) rejects any populated row and compares all 16 authored populated tables exactly.
+
+The inherited `Tasks.DESCR` says “10+20-minute” and is stale for this control; the unused subtask type definitions are not performed work. This one-seed CLI result does not establish a general scalar fallback rule, resource competition, repeated missions, GUI visual behavior, or cross-engine parity.
