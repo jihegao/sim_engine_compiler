@@ -1,0 +1,63 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "D04",
+  "variant_id": "D04.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "catalog_delta": "threshold before/at/over, bounded at-versus-below-threshold arm only",
+  "question": "With the accepted D04 one-aircraft 2-hour and 1-hour missions unchanged, does changing only MaterielPM.PMINT from 3 to 4 OPHOURS leave the aircraft free of PM through the 60-hour horizon after only three mission-hours accrue?",
+  "ownership": {
+    "branch": "codex/simlox-d04-var01-threshold-boundary-20261006",
+    "remote_variant_branch_or_package_at_selection": "absent",
+    "native_run_id_reserved": "d04-var01-op4-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "D04-flight-hour-pm-v1.0.0",
+    "run_id": "d04-flight-v100-ssh-20260930-01",
+    "input_sha256": "d0b0ee5b74f3afe5f05b418771774adcf8ef987b0f553f1bfd535874955c790a",
+    "signoff_sha256": "44d668fa724b1cf63370c88a560e42d3f4e324071eee720a036d2905185fe831",
+    "closure_sha256": "3cae72c375ef7a7c8dc63d785a33e97e9bd6103655fc28971abf5a0ccb24df45",
+    "scope": "one fixed-seed generic aircraft, h8-10 and h40-41 missions, OPHOURS=3 PM at h41-42"
+  },
+  "instructional_prerequisites": [
+    {
+      "case_id": "D03",
+      "package": "D03-calendar-pm-v1.0.0",
+      "input_sha256": "5f2f74e6fe19df29d691ca44601a04a8c9a3663cbeca07f33c18a01b7c0f1a32",
+      "signoff_sha256": "8c609dc19b1a4b7f027da9538096c5171244609b80cab9026e1ad360cd9006d1"
+    }
+  ],
+  "source": {
+    "manual_id": "SIMLOX-2017-USERS-REFERENCE",
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [202, 370, 371, 372, 373, 374, 375],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_rules": [
+      "After return from a mission, the system PM mission-hours counter decreases; a PM Job is created when a counter reaches zero (physical page 202).",
+      "MaterielPM.PMINT is measured in MaterielPM.OPID; predefined OPHOURS denotes operational hours (physical pages 370-372).",
+      "MaterielPM.ATIM=DTIM=0 in the parent/child; no intentional anticipation or deferment tolerance (physical pages 372-373)."
+    ]
+  },
+  "source_delta": {
+    "only_changed_cell": "MaterielPM PMID=OP3 PMINT 3.0 to 4.0 OPHOURS; PMID/DESCR/TID and all other cells unchanged",
+    "retained": [
+      "MissionType BASIC-MISSION DURN2 and SHORT-MISSION DURN1, scheduled STIM8 and40, one aircraft, seed1, one repetition and 60-hour horizon",
+      "MaterielPM.OPID=OPHOURS, ATIM=DTIM=0, PMLocation one-hour INSPECT task, all PM IDs and task IDs",
+      "All other authored table/instance/row/column structure and source cells"
+    ]
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must approve this bounded at-versus-below-threshold comparison before child source creation. Freeze child input SHA, exact one-cell diff, roundtrip/behavior checkers and guarded runner; require separate independent GO_PRELAUNCH before one native child.",
+    "Require an unoccupied serial queue, unique absent run directory, fresh actual SSH session-0 ancestry, protected responding GUI PID/session/exact start, installed manual/executable pins, and source hashes before and after the native steps. Preserve any failure without rerunning accepted D04.",
+    "Native import/export must retain all authored row-containing tables before calculation. Converter errors must be zero, warnings individually classified, valid nonempty SXO/event/report files, and a complete closure with raw SHA/size seals; process exit zero alone is insufficient.",
+    "Require mission identities, starts h8/h40, completions h10/h41 and both successes to be established from child events. Require no PM task/subtask start or completion through h60 and no PM occupancy or NPMS/NPMT markers in the full report. Compare the child and accepted-parent event prefix strictly before h41 only.",
+    "Independently reconstruct every field of all 120 SystemResults half-hour rows from the mission/reservation/ready events and accepted-parent state templates, explicitly resolving h41-42 parent PM versus child ready. Require every field of all 120 StockTotalResults rows and all 11 ResultSummary fields to reconcile, without inferring physical stock from aggregate PNB.",
+    "Reconcile integrated child flight=3, ready=55, available=60, PM=0 aircraft-hours and terminal aircraft ready/no PM; independently calculate reservation/mission metrics and compare parent. If unexpected PM or other divergence occurs, retain raw evidence and record a failed contract, not a post-hoc rule change.",
+    "Independent postrun replay, 12+12 raw seal checks, bounded signoff, independent staged and remote publication reviews are required before a PR/merge. Preserve any original negative diagnostics and source byte pins."
+  ],
+  "limits": [
+    "Only the OPHOURS=3 accepted parent and proposed OPHOURS=4 child with total three scheduled mission hours are compared. This is one arm of catalog D04.var01, not a full before/at/over panel or a general threshold law.",
+    "One aircraft, fixed seed and mission schedule, no failure, item, resource contention, prelife, nonzero ATIM/DTIM, second PM cycle or alternative operation parameter.",
+    "GUI visual, cross-engine parity, K01/K08 capture blockers, K06 source gap, I07 opening-stock-three, E05.var02 exact-time and overall Issue18 remain open."
+  ]
+}
