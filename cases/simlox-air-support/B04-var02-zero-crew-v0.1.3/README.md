@@ -1,0 +1,9 @@
+# B04.var02 zero turnround crew v0.1.3
+
+This bounded child changes only `ResourceAllocation.RQTY` from one to zero in the accepted [sufficient-crew B04.var02 parent](../B04-var02-turnround-resource-v0.1.1/README.md). The one `P-CREW` request on `TURN-STEPS` sequence one, both scheduled mission waves, seed, 36-hour horizon, and other 248 authored cells are retained. The frozen [contract](contract.json) and [parent-diff checker](check_parent_diff.py) define the comparison.
+
+The earlier adjacent `B04-var02-zero-crew-v0.1.2` package remains excluded after an exact-file prelaunch NO_GO; no native child ran under that version. Its original source and review bytes remain in place. This version has a separate contract, validator, runner, independent contract review, and exact-file prelaunch approval.
+
+The only approved native run is `runs/b04-var02-zero-crew-v013-ssh-20261007-01`, under actual SSH session 0 and the host-wide native mutex. Its closure seals raw files locally; `runs/` is ignored by Git. The native child completed import, export, roundtrip, calculation, report export, and author behavior validation. Independent replay and bounded publication status are recorded separately in `review/` and the signoff.
+
+The observed first mission launched at h21.5 and completed at h23.5. The first turnround requested one crew at h23.5 and failed availability at h23.5 and h24 without booking or performing the first subtask. The second mission was ordered at h23.75 and cancelled at the native-observed h25 deadline without launching. The report records the waiting resource state through the h36 horizon. This is one fixed-seed, one-aircraft shortage arm; it does not establish general cancellation timing, shifts, substitution, competition, GUI visual behavior, cross-engine parity, or full Issue #18 completion.

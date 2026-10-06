@@ -1,0 +1,7 @@
+# B04.var02 zero-crew initial staged publication review
+
+**Decision: NO_GO_STAGED for the current staged snapshot.** The staged evidence index SHA-256 is `05e05cacff79a89ed437ef0d1cbac6d915d8577a7e28ca0a8abb753e4af83693`. This memo is deliberately untracked and excluded from the frozen index.
+
+The 31 staged paths are confined to the 11-file v0.1.2 excluded package, the v0.1.3 package (18 indexed source files plus evidence index), and one root publication-index append. `git -c core.whitespace=cr-at-eol diff --cached --check` passed. The v0.1.3 signoff and independent verdict report bounded GO, 5,633/5,633 B04 checks and 13/13 C01 supplemental checks; the v0.1.2 native run is absent. The full staged-byte/raw audit was stopped when the following factual defect was identified, so this memo makes no claim that every index pin was verified.
+
+In `evidence-index.json`, `accepted_parent.accepted_behavior` says **“one P-CREW completes both first turnround subtasks.”** The accepted parent source and event log show the P-CREW requested and leased for INSPECT (TURN-STEPS SEQ1) only; SERVICE (SEQ2) explicitly requests no resources. The wording incorrectly attributes the unresourced SERVICE step to P-CREW. Correct the index generator's source phrase, regenerate the evidence index, restage the changed bytes, and request a fresh complete staged audit. Do not alter the sealed raw runs or the preserved v0.1.2 NO_GO evidence.

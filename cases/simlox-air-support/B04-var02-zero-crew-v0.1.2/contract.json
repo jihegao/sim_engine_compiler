@@ -1,0 +1,54 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B04",
+  "variant_id": "B04.var02",
+  "version": "0.1.2-contract-candidate",
+  "publication_state": "not_published",
+  "question": "When the accepted B04.var02 turnround subtask still requests one P-CREW but available quantity is changed from one to zero, does the first post-mission turnround wait without booking or performing work, preventing the same aircraft from launching the second mission?",
+  "ownership": {
+    "branch": "codex/simlox-b04-var02-zero-crew-20261007",
+    "local_and_remote_zero_capacity_owner_at_selection": "none found",
+    "native_run_id_reserved": "b04-var02-zero-crew-v012-ssh-20261007-01"
+  },
+  "accepted_parent": {
+    "package": "B04-var02-turnround-resource-v0.1.1",
+    "input_sha256": "0d799bc6b2d4f8184db0bc33ddbffcaa51a822478b746fab3d4be9d942ee34d5",
+    "run_id": "b04-var02-turn-resource-v011-ssh-20261006-01",
+    "closure_sha256": "e9fb116596e60ad9d80d2c888c3c4f5c41543d44baee58130111082cc9b6e723",
+    "raw_file_count": 13,
+    "independent_verdict_sha256": "68982d3de6fd455390bb8a89134d73bb4e7420922f8b2b4f93dabd2adf3873a4",
+    "accepted_behavior": "One P-CREW permits two turnround INSPECT leases, first h23.5-23.6667 and second h26.75-26.9167, allowing the second mission h24.75-26.75; all System, Stock and Resource report cells have been reconciled."
+  },
+  "capacity_zero_precedent": {
+    "package": "C01-personnel-capacity-v1.0.2",
+    "input_sha256": "02d1e3c1cdb585b73a00cf73b58f9d5fe6295c45c6fdc282a7c80c443499fdeb",
+    "run_id": "c01-v102-cap0-ssh-20260929-03",
+    "closure_sha256": "722e9eab571f8a7bc32aa593fe8782b30cc182a4a196b93f0f559129f85f4dcd",
+    "raw_file_count": 11,
+    "scope": "A different B02 preparation task requests two P-CREW at zero capacity, waits without booking or work, and its mission cancels. This is mapping precedent, not the B04 physical parent."
+  },
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [183, 305, 306, 397, 398, 399, 407, 408, 409, 410, 411, 412, 413, 414],
+    "tables": ["ResourceAllocation", "SubTaskResource", "MissionTurnround", "TaskBreakDown", "ResultCollection"]
+  },
+  "frozen_model": {
+    "child_input_sha256": "fa7b9040fced6267aa5781cb0761df41b803c0cccaf8c218a2aa0c1de01b24bb",
+    "only_changed_cell": "ResourceAllocation row0 RQTY one to zero among 249 authored cells",
+    "unchanged": "One aircraft, both scheduled waves, one-crew requirement on TURN-STEPS SEQ1, resource type and allocation point, no alternate, turnround and preparation steps, one-hour second-wave delay allowance, seed, h36 horizon, report settings and all other source cells."
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must bind the accepted B04.var02 v0.1.1 and C01 capacity-zero sources, closures and every local raw SHA/size seal, and manually justify the single-cell resource-capacity contrast. No accepted run is repeated.",
+    "Freeze exact one-cell positional parent diff, all 21-table import/export roundtrip, converter/error gate, event and complete-report validator, actual SSH0 runner, all SHA values and unique run directory; obtain independent exact-file prelaunch GO before one serial native child.",
+    "Guard actual SSH session0/sshd ancestry, free Global\\SimloxIssue18NativeQueue, absent run path, stable source hashes and responding GUI PID 13340/session1/start1790590196826. Preserve even failed native outputs and raw hashes.",
+    "Require converter Errors0 and classified warnings, nonempty SXO/event/report, and exact preservation of RQTY0 and all 21 authored row-containing tables. A converter rejection proves no physical behavior and is a separate NO_GO outcome.",
+    "Require first mission identity and h21.5 launch/h23.5 success to match accepted parent. At first turnround h23.5 require a P-CREW quantity-one request and failed availability with capacity zero, no P-CREW booking/lease, no INSPECT performance/completion, no SERVICE start, no turnround completion or System arrives. The next mission may be ordered and later cancelled at a native-observed time, but it must not launch or complete. Its exact cancellation time is not inferred from input.",
+    "Reconcile every System, Stock and Resource half-hour bin, ResultSummary, ResourceResultsTotal and description against the complete native event timeline; prefix bins ending at or before h23.5 must match the sufficient-resource parent. Resource capacity and utilization must remain zero, with observable waiting recorded. No unobserved GUI or simulated continuation is accepted from a summary alone. If the physical/report record contradicts these invariants or cannot explain the terminal state, return NO_GO without changing the gate postrun.",
+    "Require separate standard-library read-only replay of source/raw SHA and size, complete physical events, report fields and state integrals, then bounded staged/remote byte reviews before authorized simlox/main PR/merge."
+  ],
+  "limits": [
+    "This candidate concerns one fixed-seed, one-aircraft, zero-capacity turnround shortage. It cannot establish general cancellation deadlines, partial resource booking, competition, shifts or substitution.",
+    "GUI visual, cross-engine and performance remain unverified; K01/K08 capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time excluded; Issue #18 unfinished."
+  ]
+}
