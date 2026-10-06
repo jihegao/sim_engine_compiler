@@ -1,0 +1,390 @@
+"""Independent read-only replay of three accepted C01 capacity runs."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+
+
+HERE = Path(__file__).resolve().parent
+CASE = HERE.parent
+REPO = CASE.parents[2]
+SOURCE = CASE.parent / "C01-personnel-capacity-v1.0.2"
+OLD = CASE.parent / "C01-var02-capacity-threshold-v0.1.0"
+RAW = Path(
+    r"C:\Users\user\dev\sim_engine_compiler-b02-v102\cases\simlox-air-support"
+    r"\C01-personnel-capacity-v1.0.2\runs"
+)
+OUT = HERE / "independent-verdict.json"
+RUNS = {
+    2: "c01-v102-cap2-ssh-20260929-05",
+    1: "c01-v102-cap1-ssh-20260929-04",
+    0: "c01-v102-cap0-ssh-20260929-03",
+}
+
+
+def sha_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def sha(path: Path) -> str:
+    return sha_bytes(path.read_bytes())
+
+
+def read_json(path: Path):
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def native_json(path: Path):
+    source = path.read_text(encoding="utf-8-sig")
+    result = []
+    inside = False
+    escape = False
+    for index, char in enumerate(source):
+        if inside:
+            result.append(char)
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                inside = False
+        elif char == '"':
+            inside = True
+            result.append(char)
+        elif char == ",":
+            next_index = index + 1
+            while next_index < len(source) and source[next_index].isspace():
+                next_index += 1
+            if next_index == len(source) or source[next_index] not in "}]":
+                result.append(char)
+        else:
+            result.append(char)
+    return json.loads("".join(result))
+
+
+def tables(model):
+    return {table["name"]: table for table in model["tables"]}
+
+
+def rows(table):
+    return [row for instance in table["instances"] for row in instance["rows"]]
+
+
+def overlap(left, right, start, end):
+    return max(0.0, min(right, end) - max(left, start))
+
+
+class Checks:
+    def __init__(self):
+        self.count = 0
+        self.failures = []
+
+    def check(self, condition, label):
+        self.count += 1
+        if not condition:
+            self.failures.append(label)
+
+
+def eq(actual, expected, tolerance=3e-5):
+    if isinstance(actual, (int, float)) and isinstance(expected, (int, float)):
+        return abs(actual - expected) <= tolerance
+    return actual == expected
+
+
+def git_blob(path: Path):
+    result = subprocess.run(
+        ["git", "show", f"HEAD:{path.relative_to(REPO).as_posix()}"],
+        cwd=REPO,
+        capture_output=True,
+        check=False,
+    )
+    return result.stdout if result.returncode == 0 else None
+
+
+def check_report(checks: Checks, capacity: int, source_model, report):
+    table = tables(report["report"])
+    expected_names = {
+        "ProblemDescription",
+        "ResultSummary",
+        "SystemResults",
+        "StockTotalResults",
+        "ResourceResults",
+        "ResourceResultsTotal",
+    }
+    checks.check(set(table) == expected_names, f"cap{capacity} six report tables")
+    shapes = {
+        "ProblemDescription": (1, 1),
+        "ResultSummary": (1, 11),
+        "SystemResults": (72, 40),
+        "StockTotalResults": (72, 16),
+        "ResourceResults": (72, 16),
+        "ResourceResultsTotal": (1, 14),
+    }
+    for name, (count, width) in shapes.items():
+        checks.check(
+            len(rows(table[name])) == count and len(table[name]["columns"]) == width,
+            f"cap{capacity} {name} shape",
+        )
+    source_tables = tables(source_model)
+    checks.check(
+        rows(table["ProblemDescription"])[0][0]
+        == rows(source_tables["ProblemDescription"])[0][0],
+        f"cap{capacity} description",
+    )
+    outcome = int(capacity == 2)
+    summary = [1, 0, 36, outcome, 0, outcome, 0, outcome, 0, outcome, 0]
+    for index, (actual, expected) in enumerate(zip(rows(table["ResultSummary"])[0], summary)):
+        checks.check(actual == expected, f"cap{capacity} summary {index}")
+
+    sys = table["SystemResults"]
+    sys_columns = [column["name"] for column in sys["columns"]]
+    prep_end = 7.5 if capacity == 2 else 7 + 7 / 12
+    phases = {
+        "NSYRY": [(0, 7), (10 if capacity == 2 else prep_end, 36)],
+        "NSYMP": [(7, prep_end)],
+        "NSYMR": [(7.5, 8)] if capacity == 2 else [],
+        "NSYMO": [(8, 10)] if capacity == 2 else [],
+    }
+    for index, row in enumerate(rows(sys)):
+        start = index / 2
+        end = start + 0.5
+        occupancy = {
+            name: sum(overlap(start, end, left, right) for left, right in spans) / 0.5
+            for name, spans in phases.items()
+        }
+        expected = {name: 0 for name in sys_columns}
+        expected.update(
+            {
+                "UNID": "Total over all Units",
+                "SID": "Total over all Systems",
+                "STINT": start,
+                "ETINT": end,
+                "NSYA": 1,
+                "SYDT": None,
+                "NPSTA": int(start == 7),
+                "NPSUC": int(capacity == 2 and start == 7.5),
+            }
+        )
+        expected.update(occupancy)
+        expected["NSYMA"] = 1 - occupancy["NSYRY"]
+        expected["FTMO"] = occupancy["NSYMO"]
+        expected["STACC"] = occupancy["NSYMO"]
+        for name, actual in zip(sys_columns, row):
+            checks.check(eq(actual, expected[name]), f"cap{capacity} System {index} {name}: {actual} vs {expected[name]}")
+    stock = table["StockTotalResults"]
+    stock_columns = [column["name"] for column in stock["columns"]]
+    for index, row in enumerate(rows(stock)):
+        expected = {name: 0 for name in stock_columns}
+        expected.update({"STINT": index / 2, "ETINT": (index + 1) / 2, "PNB": 1})
+        for name in ("NBOU", "ROS", "ROST", "WT", "WTT", "WTS"):
+            expected[name] = None
+        for name, actual in zip(stock_columns, row):
+            checks.check(eq(actual, expected[name]), f"cap{capacity} Stock {index} {name}")
+    resource = table["ResourceResults"]
+    resource_columns = [column["name"] for column in resource["columns"]]
+    used = [(7, 7 + 1 / 6)] if capacity == 2 else []
+    waiting = [(7, 7 + 7 / 12)] if capacity < 2 else []
+    for index, row in enumerate(rows(resource)):
+        start = index / 2
+        end = start + 0.5
+        use_average = capacity * sum(overlap(start, end, a, b) for a, b in used) / 0.5
+        wait_average = (2 - capacity) * sum(overlap(start, end, a, b) for a, b in waiting) / 0.5
+        expected = {name: 0 for name in resource_columns}
+        expected.update(
+            {
+                "RID": "Total over all Resources",
+                "STID": "Total over all Stations",
+                "STINT": start,
+                "ETINT": end,
+                "NR": capacity,
+                "NRA": capacity,
+                "NRN": capacity,
+                "NRUM": use_average,
+                "NRW": wait_average,
+            }
+        )
+        for name, actual in zip(resource_columns, row):
+            checks.check(eq(actual, expected[name]), f"cap{capacity} Resource {index} {name}: {actual} vs {expected[name]}")
+    total = table["ResourceResultsTotal"]
+    total_columns = [column["name"] for column in total["columns"]]
+    expected_total = {name: 0 for name in total_columns}
+    expected_total.update(
+        {
+            "RID": "Total over all Resources",
+            "STID": "Total over all Stations",
+            "NR": capacity,
+            "NRA": capacity,
+            "NRN": capacity,
+            "NRUM": capacity * (1 / 6) / 36 if capacity == 2 else 0,
+            "NRW": (2 - capacity) * (7 / 12) / 36 if capacity < 2 else 0,
+        }
+    )
+    for name, actual in zip(total_columns, rows(total)[0]):
+        checks.check(eq(actual, expected_total[name]), f"cap{capacity} ResourceTotal {name}")
+    return table
+
+
+def check_events(checks: Checks, capacity: int, run: Path):
+    log = (run / "model.log").read_text(errors="replace")
+    mission = "<BASIC-MISSION,TEACH-UNIT,0,0,0>"
+    aircraft = "<TEACH-AIR-01,0>"
+    required = [
+        f"Time: 7 {mission} mission allocates system: {aircraft}",
+        f"Time: 7 {aircraft} preparation started, mission: {mission}",
+        f"Time: 7  subtask 0 seqno 1 within system preparation task 0 on {aircraft} requests resources",
+        f"Availability test on  <P-CREW at <BASE-01,0>> request for: 2 {'OK' if capacity == 2 else 'failed'}",
+    ]
+    if capacity == 2:
+        required += [
+            "Time: 7  <P-CREW at <BASE-01,0>> allocated to maintenance task: 2  available now: 0",
+            f"Time: 7  subtask 0 seqno 1 within system preparation task 0 on {aircraft} starts performing, planned to last for 0.166667 hours",
+            "Time: 7.16667  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 2  available now: 2",
+            f"Time: 7.16667  subtask 1 seqno 2 within system preparation task 0 on {aircraft} starts performing, planned to last for 0.333333 hours",
+            f"Time: 7.5 {aircraft} preparation ended, mission: {mission}",
+            f"Time: 8 {mission} mission starting, duration: 2 : {aircraft}",
+            f"Time: 10 {mission} mission success:",
+            f"Time: 10 {mission} mission completed: {aircraft}",
+            f"Time: 10 <TEACH-UNIT at <BASE-01,0>> systems ready: 1 :{aircraft}",
+        ]
+        forbidden = ["mission cancelled:", "request for: 2 failed"]
+    else:
+        required += [
+            f"Time: 7.58333 {mission} mission cancelled:",
+            f"Time: 7.58333  subtask 0 seqno 1 within system preparation task 0 on {aircraft} resource waiting stopped",
+            f"Time: 7.58333 <TEACH-UNIT at <BASE-01,0>> systems ready: 1 :{aircraft}",
+        ]
+        forbidden = [
+            "allocated to maintenance task: 2",
+            "subtask 0 seqno 1 within system preparation task 0 on <TEACH-AIR-01,0> starts performing",
+            "mission starting, duration: 2",
+            "mission success:",
+        ]
+    positions = []
+    for fragment in required:
+        checks.check(log.count(fragment) == 1, f"cap{capacity} event {fragment}")
+        positions.append(log.find(fragment))
+    checks.check(positions == sorted(positions) and all(index >= 0 for index in positions), f"cap{capacity} event order")
+    for fragment in forbidden:
+        checks.check(fragment not in log, f"cap{capacity} absent {fragment}")
+
+
+def main():
+    checks = Checks()
+    contract = read_json(CASE / "contract.json")
+    checks.check(sha(CASE / "contract.json") == "1cfcfd8200a81dd9d19745770581b6d33f28096bc58c03685dc412ea183b7d6a", "v011 contract")
+    checks.check(sha(HERE / "independent-contract-go-2026-10-07.md") == "96faa5789da7d5612170be4bb99c0d044f33eb027bb14eb6a0524e2c902d1dae", "contract review")
+    checks.check(sha(OLD / "contract.json") == "387e13629309cdcaa0d8a81c65fe1d0c075ecda4958636dbf8b5f5911de7f44a", "v010 excluded contract")
+    checks.check(sha(OLD / "review" / "independent-contract-no-go-2026-10-07.md") == "fcccb580fb24da792141bbc692cbebd4b9766e91bbc84593629c7d2cc4619656", "v010 NO_GO memo")
+    checks.check(sha(SOURCE / "review" / "independent-readonly-2026-09-29.json") == contract["accepted_source"]["original_independent_report_sha256"], "original accepted review pin")
+    tracked = subprocess.run(["git", "ls-files", "--", SOURCE.relative_to(REPO).as_posix()], cwd=REPO, capture_output=True, text=True, check=True).stdout.splitlines()
+    for relative in tracked:
+        local = REPO / relative
+        published = git_blob(local)
+        if local.name == ".gitignore":
+            checks.check(local.read_bytes() == b"/runs/\r\n" and sha(local) == "8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f", "local CRLF .gitignore")
+            checks.check(published == b"/runs/\n" and sha_bytes(published) == "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933", "published LF .gitignore")
+        else:
+            checks.check(published is not None and published == local.read_bytes(), f"published byte identity {relative}")
+    source_models = {}
+    report_tables = {}
+    run_info = {}
+    for capacity, run_id in RUNS.items():
+        source_file = SOURCE / "inputs" / f"capacity-{capacity}.json"
+        run = RAW / run_id
+        closure = read_json(run / "closure.json")
+        invocation = read_json(run / "invocation.json")
+        pin = contract["accepted_source"][f"capacity_{capacity}"]
+        checks.check(sha(source_file) == pin["input_sha256"], f"cap{capacity} source input")
+        checks.check(sha(run / "closure.json") == pin["closure_sha256"], f"cap{capacity} closure")
+        checks.check(sha(run / "invocation.json") == closure["invocation_sha256"], f"cap{capacity} invocation")
+        checks.check(
+            closure["input_sha256"] == invocation["input_sha256"] == sha(source_file)
+            and invocation["contract_sha256"] == sha(SOURCE / "contract.json"),
+            f"cap{capacity} source and contract pins",
+        )
+        checks.check(closure["run_id"] == run_id and len(closure["raw"]) == 11, f"cap{capacity} run and seal count")
+        for name, seal in sorted(closure["raw"].items()):
+            file = run / name
+            checks.check(file.is_file() and file.stat().st_size == seal["bytes"] and sha(file) == seal["sha256"], f"cap{capacity} seal {name}")
+        checks.check((run / "input.json").read_bytes() == source_file.read_bytes(), f"cap{capacity} native input copy")
+        checks.check(invocation["session_id"] == 0 and invocation["ssh_connection_present"], f"cap{capacity} SSH0")
+        steps = read_json(run / "steps.json")
+        checks.check([step["name"] for step in steps] == ["import", "export", "calc", "jsonreport"], f"cap{capacity} stage names")
+        for step in steps:
+            checks.check(step["exit_code"] == 0 and step["coexisting_gui_present_after"], f"cap{capacity} stage {step['name']}")
+        calc = (run / "run.log").read_text(errors="replace").lower()
+        checks.check("errors: 0" in calc and "warnings: 2" in calc and "notes: 0" in calc and "warning #108" in calc and "warning #126" in calc, f"cap{capacity} converter")
+        checks.check((run / "model.sxo").stat().st_size > 4, f"cap{capacity} usable SXO")
+        source_model = read_json(source_file)["model"]
+        source_models[capacity] = source_model
+        authored = tables(source_model)
+        exported = tables(native_json(run / "roundtrip-raw.json")["model"])
+        checks.check(
+            sum(bool(rows(table)) for table in authored.values()) == 20
+            and sum(any(any(value is not None for value in row) for row in rows(table)) for table in authored.values()) == 17,
+            f"cap{capacity} 20 row-containing, 17 containing values",
+        )
+        for name, table in authored.items():
+            other = exported[name]
+            checks.check([column["name"] for column in table["columns"]] == [column["name"] for column in other["columns"]], f"cap{capacity} roundtrip columns {name}")
+            for instance, native_instance in zip(table["instances"], other["instances"]):
+                for source_row, native_row in zip(instance["rows"], native_instance["rows"]):
+                    for index, value in enumerate(source_row):
+                        checks.check(value == native_row[index], f"cap{capacity} roundtrip {name} {index}")
+        check_events(checks, capacity, run)
+        report_tables[capacity] = check_report(checks, capacity, source_model, native_json(run / "report-raw.json"))
+        run_info[str(capacity)] = {"run_id": run_id, "closure_sha256": sha(run / "closure.json"), "raw_seals": len(closure["raw"])}
+
+    # Every corresponding source cell must be common except the qualified
+    # P-CREW allocation quantity. This also pins the common description.
+    base = tables(source_models[2])
+    source_differences = {}
+    for capacity in (1, 0):
+        other = tables(source_models[capacity])
+        differences = []
+        for name, table in base.items():
+            paired = other[name]
+            checks.check([column["name"] for column in table["columns"]] == [column["name"] for column in paired["columns"]], f"pair cap{capacity} columns {name}")
+            for source_instance, paired_instance in zip(table["instances"], paired["instances"]):
+                for row_index, (source_row, paired_row) in enumerate(zip(source_instance["rows"], paired_instance["rows"])):
+                    for column_index, (before, after) in enumerate(zip(source_row, paired_row)):
+                        if before != after:
+                            differences.append((name, row_index, table["columns"][column_index]["name"], before, after))
+        checks.check(differences == [("ResourceAllocation", 0, "RQTY", 2, capacity)], f"cap{capacity} sole source delta")
+        source_differences[str(capacity)] = differences
+    demand = rows(base["SubTaskResource"])
+    checks.check(any(row[:4] == ["PREP-FIXED", 1, "P-CREW", 2] for row in demand), "fixed two-person demand")
+    checks.check(rows(base["ProblemDescription"]) == rows(tables(source_models[1])["ProblemDescription"]) == rows(tables(source_models[0])["ProblemDescription"]), "common description")
+    # In addition to independent expected-cell checks above, compare all
+    # corresponding report cells where the source-bound arms should agree.
+    for left, right in ((1, 0),):
+        for name in ("ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"):
+            if name == "ResultSummary":
+                pass
+            for row_index, (lrow, rrow) in enumerate(zip(rows(report_tables[left][name]), rows(report_tables[right][name]))):
+                for column_index, (lvalue, rvalue) in enumerate(zip(lrow, rrow)):
+                    checks.check(eq(lvalue, rvalue), f"cap1/cap0 report equality {name} {(row_index, column_index)}")
+    report_cells_each = sum(len(rows(table)) * len(table["columns"]) for table in report_tables[2].values())
+    checks.check(report_cells_each == 5210, "5210 report cells per arm")
+    result = {
+        "schema": "simlox-c01-var02-independent-readonly-replay/v1",
+        "decision": "GO_BOUNDED" if not checks.failures else "NO_GO",
+        "checks_passed": checks.count - len(checks.failures),
+        "checks_total": checks.count,
+        "failures": checks.failures,
+        "contract_sha256": sha(CASE / "contract.json"),
+        "runs": run_info,
+        "accepted_raw_seals": sum(item["raw_seals"] for item in run_info.values()),
+        "report_cells_each": report_cells_each,
+        "scope": "Retrospective fixed-seed qualified P-CREW capacity 2/1/0 for one two-person preparation demand.",
+        "limits": "No new C01.var02 native replication, general partial-booking or cancellation-time law, substitution, shift, GUI visual or cross-engine claim.",
+    }
+    OUT.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8", newline="\n")
+    print(json.dumps({"decision": result["decision"], "checks": checks.count, "failures": checks.failures[:25]}, indent=2))
+
+
+if __name__ == "__main__":
+    main()
