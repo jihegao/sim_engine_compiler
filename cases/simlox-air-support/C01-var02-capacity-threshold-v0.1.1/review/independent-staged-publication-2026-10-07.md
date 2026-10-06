@@ -1,0 +1,18 @@
+# C01.var02 independent staged publication review — 2026-10-07
+
+**Decision: GO_STAGED** for bounded, read-only classification of the three accepted C01 capacity runs. This memo remains untracked during this audit and is outside the frozen evidence index and staged snapshot. The task brief said 16 staged paths; the actual intended scoped set is **17**: three excluded v0.1.0 files, thirteen v0.1.1 package files including its evidence index, and one root publication-index append.
+
+## Staged scope and source bytes
+
+- The staged path list contains exactly those 17 paths, with no native `runs/`, product runtime or unrelated file. `git -c core.whitespace=cr-at-eol diff --cached --check` exits 0.
+- v0.1.1 evidence-index SHA-256 `d8ed47ba85da1f666517b7c43c149f5e355eb614112d5bcb87c343be617ec49f`: all **12/12** new source SHA-256/size records match disk bytes and staged Git blobs. The thirteenth v0.1.1 package file is the index. The three excluded v0.1.0 source/index records also match disk and staged Git blobs; they include contract SHA-256 `387e13629309cdcaa0d8a81c65fe1d0c075ecda4958636dbf8b5f5911de7f44a` and independent `NO_GO_CONTRACT` memo SHA-256 `fcccb580fb24da792141bbc692cbebd4b9766e91bbc84593629c7d2cc4619656`. No v0.1.0 native run is claimed or staged.
+- All **18/18** accepted C01 1.0.2 source records match their separately pinned local and published `origin/simlox/main` SHA-256/size identities. Seventeen have identical bytes. The known `.gitignore` exception is exact: local eight-byte `/runs/\r\n` SHA-256 `8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f`; published seven-byte `/runs/\n` SHA-256 `127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933`. The index does not assert equality for these distinct byte streams.
+- Original capacity-two/one/zero closures, invocations and all **33/33** local raw SHA-256/size seals match the new index and original closures. Their input pins match the three accepted sources. Raw runs remain in the separate local checkout and are not staged here.
+
+## Verdict, claim and root entry
+
+The v0.1.1 contract SHA-256 `1cfcfd8200a81dd9d19745770581b6d33f28096bc58c03685dc412ea183b7d6a` corrects the v0.1.0 contract defects: only P-CREW `ResourceAllocation.RQTY` varies across 2/1/0, and every cell of all six default report tables is gated. The original author first-pass `NO_GO` result SHA-256 `dce64d54ab6e04e78f851a9f31e0d09ca6dd9703cc708d93bc6ec5f96efc59aa` remains preserved; the corrected author result records **203/203** checks. Independent verdict SHA-256 `0953bff7d9bf7a7acb8ffdda23a41db620caeac500cd8ae8f2dc00d91bbce653` records `GO_BOUNDED`, **20,657/20,657** checks including **5,210 report cells per arm** across ProblemDescription, ResultSummary, 72 System, 72 StockTotal, 72 Resource and ResourceResultsTotal rows. Its memo distinguishes 17 value-bearing from three all-null placeholder tables in the 20 row-containing-table roundtrip.
+
+README and signoff correctly report capacity-two h7 booking/release of two people for ten minutes, h8 launch/h10 success, and capacity-one/zero failed request without partial booking/work/launch followed by observed h7.58333 cancellation. They do not promote this time to a general deadline rule or claim a new native run, wrong-specialty arm, other capacities, substitution, contention, GUI visual behavior or full C01.var02. The root publication index preserves all prior **468** entries and non-entry metadata and adds one unique bounded **469th** ID, `C01.var02.capacity_threshold.0.1.1`; its signoff and evidence-index links resolve. No material overclaim or staged byte mismatch was found.
+
+Remote PR bytes, CI state and merge readiness require separate review.

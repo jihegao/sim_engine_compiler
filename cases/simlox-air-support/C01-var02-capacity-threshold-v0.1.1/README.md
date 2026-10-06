@@ -1,0 +1,11 @@
+# C01.var02 capacity threshold v0.1.1
+
+This package classifies three [accepted C01 personnel-capacity runs](../C01-personnel-capacity-v1.0.2/README.md) against the catalog's C01.var02 question: a two-person `P-CREW` demand with qualified capacity two, one, or zero. It creates no new SIMLOX input or run. The accepted fourth `wrong-specialty` arm belongs to a separate question and is not counted here.
+
+The three sources differ in only the `ResourceAllocation.RQTY` value for `P-CREW`: 2, 1, or 0. `ProblemDescription`, B02 mission and schedule, seed, aircraft, preparation breakdown and the two-person `SubTaskResource` request are identical. All 17 populated business tables roundtrip in each original native run.
+
+At capacity two, the original event ledger books both crew before INSPECT work at h7, releases both after ten minutes, starts SERVICE at h7.16667, launches h8, and succeeds h10. The full resource report integrates 20 person-minutes. At capacity one and zero the two-person request fails, no partial booking or subtask work occurs, and the mission cancels at observed h7.58333 without launch. The 72 half-hour System, StockTotal and Resource rows plus ResultSummary, ResourceResultsTotal and ProblemDescription are checked for each arm.
+
+The first v0.1.0 contract was rejected before implementation because it allowed a description difference that is absent and omitted explicit gates for three report tables. Its source and NO_GO review remain preserved. The v0.1.1 [contract](contract.json) received a separate independent GO before this read-only replay. The author checker passes 203 checks; the independent reviewer passes 20,657, including all 5,210 report cells in each of the three arms. Both use the original raw directories under `C:/Users/user/dev/sim_engine_compiler-b02-v102/`; the [evidence index](evidence-index.json) pins all selected closures and 33 raw files without copying them. The accepted C01 `.gitignore` is locally CRLF but published LF; both byte identities are retained separately.
+
+This is one fixed-seed capacity threshold observation. It does not establish a general deadline rule, substitution, shifts, contention, other demand values or capacities, GUI visual behavior, cross-engine parity, or full C01.var02 and Issue #18 completion.
