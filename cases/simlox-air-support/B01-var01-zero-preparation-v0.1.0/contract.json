@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B01",
+  "variant_id": "B01.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "Does a present MissionPreparation row with DURN zero and its unchanged PREP-FIXED task emit an instantaneous preparation lifecycle at the h7 notice, reserve the aircraft until the h8 mission launch, and leave the fixed mission outcome unchanged?",
+  "ownership": {
+    "branch": "codex/simlox-b01-var01-zero-prep-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for B01.var01 zero-duration preparation",
+    "native_run_id_reserved": "b01-var01-zero-prep-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B01-fixed-preparation-v1.0.1",
+    "version": "1.0.1",
+    "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+    "contract_sha256": "ba69048c60af627fae257e603fd4f4cba1a800e91c73a3a0ef071b2c2c5cde68",
+    "publication_sha256": "8ba57b104c8f5822514c6f9996eb92e21ecf66d371203635cdb0a170c2f1466d",
+    "independent_review_sha256": "2ba31cadde57d0680fc931ca4b1caa09406f40f83871671d7e2d37e5cac25d06",
+    "run_id": "b01-v101-ssh-20260929-06",
+    "closure_sha256": "046a7724f053f63e6967e3c3e803f726fd5f4b6322015239cb25a380c6446516",
+    "accepted_behavior": "One positive half-hour preparation h7–7.5, mission launch h8 and success/return h10; 11 local raw files sealed."
+  },
+  "instructional_prerequisite": {
+    "case_id": "A01",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "signoff_sha256": "20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [181, 182, 294, 295, 296, 297],
+    "interpretation": "MissionPreparation.DURN is mandatory non-negative floating-point calendar duration, at most the notice period. Zero is allowed by the manual's value domain; whether task lifecycle events and counters persist at zero is a native behavior question."
+  },
+  "diagnostic_context_not_accepted_parent": "An earlier A01 zero-duration row without PREP-FIXED/TID emitted h7 instant preparation and NPSTA=NPSUC1 in the h7–7.5 bin; the accepted A01 no-row source reports NPSTA0. This is advisory only because the child retains B01's TID and Tasks row.",
+  "source_delta": "Only MissionPreparation row0 DURN changes 0.5 to 0 among 167 authored cells. Preserve TID=PREP-FIXED, Tasks row, mission NOPER1, h8 wave, seed, 36-hour horizon, half-hour collection and every other authored cell.",
+  "predeclared_acceptance": [
+    "Independent contract review must pin the accepted B01 1.0.1 source, contract, publication, independent review, closure and all 11 local raw files, plus the published A01 prerequisite. Do not rerun either accepted case.",
+    "Freeze a byte-pinned one-cell builder/diff, 15-row-containing-table roundtrip checker, strict event/report validator, and unique SSH0 runner; require independent exact-file prelaunch GO before native.",
+    "Require an absent unique run directory, actual SSH session0 with sshd ancestry, free Global\\SimloxIssue18NativeQueue, exact responding GUI PID/session/start, stable source hashes, failure-byte preservation and serial native stages.",
+    "Require exact authored-table import/export identity, converter errors zero with only classified #108/#126 warnings, substantive SXO, and JSON report. Rejection or missing report is NO_GO for behavior.",
+    "Require one h7 mission notice/physical aircraft allocation and a single PREP-FIXED preparation/task/subtask start, planned zero-hour work and completion at h7 on the same aircraft. No second lifecycle, positive preparation work, resource wait, cancellation or delay is allowed. Mission launch h8, task h8.5–9.5, success and physical return h10 must match the accepted B01 parent.",
+    "Require full 72x40 System ledger: relative to B01 parent, h7–7.5 NSYMP changes 1→0, NSYMR 0→1 and NPSUC 0→1; h7.5–8 NPSUC changes 1→0; all other System cells and all 72x16 Stock, 11 ResultSummary and ProblemDescription fields match parent. NPSTA remains 1 at h7–7.5, preparation aircraft-hours are zero, reserved aircraft-hours one, flight aircraft-hours two, ready aircraft-hours 33, terminal ready one.",
+    "Independently replay source/raw SHA and sizes, exact physical event identities/order, complete ledgers and bounded limits before any simlox/main PR."
+  ],
+  "limits": [
+    "One seed, one aircraft, one mission, one zero-duration preparation row and no resource demand; no distribution, repeated mission, competing work, GUI visual, cross-engine, performance, full B01.var01 or Issue18 claim.",
+    "K01/K08 capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}
