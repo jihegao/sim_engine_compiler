@@ -1,0 +1,48 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A03",
+  "variant_id": "A03.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "When three ready aircraft are deployed and the sole h8 A03 mission needs exactly two, does SIMLOX allocate two distinct aircraft, leave one ready, launch on time and return both without creating an extra sortie?",
+  "ownership": {
+    "branch": "codex/simlox-a03-var01-three-available-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for three-available/two-required arm",
+    "native_run_id_reserved": "a03-var01-three-avail-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "A03-two-aircraft-formation-v1.0.1",
+    "version": "1.0.1",
+    "input_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4",
+    "contract_sha256": "123b5391d0b17fdd0b7d61088c883e7cfb891892fe89c7cb85b27e30868ea34d",
+    "signoff_sha256": "6c8d3998f20e216d0403b807866fcbe306f68ebc6f376693334435e808747b2b",
+    "independent_review_sha256": "646e2076eb03565b4fb390b98d8651c5c1403380a28a9d5b99bb9a06a37d9282",
+    "run_id": "a03-v101-ssh-gui-20260929-01",
+    "closure_sha256": "a3b4a2739b5b098c956aa19428cf997b2079aab858e22fb5ea9c4486a4209edd",
+    "accepted_behavior": "Two ready same-type aircraft jointly allocated at h7, launched the sole mission at h8, succeeded and returned at h10, giving one wave, two sorties and four aircraft flight-hours. Eleven local raw files are sealed."
+  },
+  "instructional_prerequisite": {
+    "case_id": "A02",
+    "input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [184, 185, 186, 187, 188, 262, 263, 264, 265, 642, 643],
+    "interpretation": "NOS=MNOS=2 sets the nominal and minimum physical aircraft count for this mission. FTMO is average mission-operation fraction per system; with two of three deployed systems in flight for h8–10, an aggregate FTMO of two-thirds in those bins is an analytic prediction to be tested, not prior native evidence for this source."
+  },
+  "source_delta": "Only SystemDeployment row0 QTYPS changes 2 to 3 among 155 authored cells. Preserve MissionType.NOS=MNOS=2, fixed h8 wave, h7 notice, one-third-hour delay allowance, seed, 36-hour horizon, half-hour collection and all other authored cells.",
+  "predeclared_acceptance": [
+    "Independent contract review must pin the accepted A03 1.0.1 source, contract, signoff, independent review, closure and all 11 local raw files, plus the published A02 prerequisite. Do not rerun the accepted parent.",
+    "Freeze a byte-pinned builder, exact positional one-cell diff, 13-row-containing-table roundtrip checker, strict event/report validator and unique SSH0 runner; require independent prelaunch GO bound to exact hashes before native.",
+    "Require an absent unique run directory, actual SSH session0 and sshd ancestry, free Global\\SimloxIssue18NativeQueue, exact responding GUI PID/session/start, stable source hashes, failure-byte preservation and serial native stages.",
+    "Require exact authored-table import/export identity, converter errors zero with only classified #108/#126 warnings, valid simulation and JSON report. Rejection or missing report is NO_GO for behavior.",
+    "Require three distinct deployed physical aircraft at h0. The sole h7 demand requests two, allocates exactly two distinct IDs from the three, never allocates the third, launches those same two at h8, completes one mission successfully and returns those two at h10. No third sortie, waiting through the deadline, cancellation, fault, maintenance or stock demand is allowed. Do not assume which two IDs are selected before the run.",
+    "Require the complete 72x40 System ledger: three deployed and ready outside h7–10; from h7–8 two reserved plus one ready; from h8–10 two in mission operation plus one ready. Integrals are 102 ready, 2 reserved and 4 flight aircraft-hours. Relative to the accepted two-aircraft parent, NSYA and NSYRY add one in every bin, FTMO is two-thirds rather than one only in h8–10, and all other System fields match the parent's corresponding bin. Terminal ready is three.",
+    "Require all 72x16 Stock cells and all 11 ResultSummary fields to equal the accepted parent, including NREP1 and MTMF/MSTF/MSUF/STMF1. ProblemDescription is unchanged. Independently replay all source/raw SHA and sizes, physical event identities/order, full ledgers and bounded limits before any simlox/main PR."
+  ],
+  "limits": [
+    "One seed, type, unit, wave and single surplus aircraft only; no larger fleet, alternate allocation priority, mixed type, preparation, fault, GUI visual, cross-engine, performance, full A03.var01 or Issue18 claim.",
+    "Inherited Unit.DESCR says one-aircraft and is stale for this three-aircraft deployment. K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}
