@@ -1,0 +1,11 @@
+# C03.var01 v0.1.1 corrected staged publication review — 2026-10-07
+
+**Decision: GO_STAGED** for the present, bounded C03.var01 read-only package. This review memo remains untracked and outside the self-sealed evidence index; it is not a native or remote PR review.
+
+The first staged review NO_GO for stale signoff wording is preserved as `review/independent-staged-no-go-2026-10-07.md`, SHA-256 `7f3cd60656764a7930874cd709f472d23218e2acc743e5275b1efd8a39129338`. The corrected signoff now says the source-byte index is sealed and this fresh publication review is pending. It cites the preserved finding and retains the observed fixed-seed limits. README and signoff links resolve.
+
+The rebuilt evidence index SHA-256 is `987519ac76f60fbdb8fb3e848c4619a67a82bb9f69c488bf6525da3caf443b01`. I independently checked the byte size and SHA-256 of all **12** new indexed sources and **two** excluded v0.1.0 sources against both disk and staged Git blobs: zero mismatches. All **16** accepted C03 source records match local and published Git identities, including the declared `.gitignore` CRLF/LF difference. Three final closure and invocation seals, closure raw maps, and all **33** original raw SHA/size seals match. The author verdict is 16,955/16,955 and the separately authored read-only replay verdict is 18,091/18,091; their bounded physical and report claims agree with the signoff.
+
+Exactly **16** intended paths are staged: the preserved v0.1.0 contract and NO_GO review, the corrected v0.1.1 package, and root `publication-index-v1.json`. No native runs, proprietary raw files, product runtime files, or unrelated paths are staged. `git diff --cached --check` passes. The root publication index has **473 unique IDs**: its first 472 entries and metadata are unchanged from the committed base, and the one new entry describes this fixed-seed, no-new-native three-arm staffing comparison. Staged publication-index JSON and worktree JSON parse identically; root line-ending normalization does not alter the entry.
+
+This GO applies to source and staged publication content only. It makes no general aircraft priority, crew regrant, cancellation deadline, GUI behavior, cross-engine or full Issue #18 claim. No native/GUI call or accepted source/raw edit was made.

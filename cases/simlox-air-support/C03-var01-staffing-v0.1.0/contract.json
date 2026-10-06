@@ -1,0 +1,85 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "C03",
+  "variant_id": "C03.var01",
+  "version": "0.1.0-read-only-reclassification-candidate",
+  "publication_state": "not_published",
+  "question": "For the accepted one-wave, two-aircraft formation, what physical preparation and mission outcomes were observed with a shared P-CREW capacity of two, one, or zero?",
+  "ownership": {
+    "branch": "codex/simlox-c03-var01-staffing-20261007",
+    "base_commit": "388f74a046ca2c389ff21a2d79875e9196c69f78",
+    "local_case_package_or_branch_found_before_creation": false,
+    "remote_branch_match_found_by_git_ls_remote": false,
+    "authenticated_pr_title_search_reported_no_exact_c03_var01": true,
+    "native_child_planned": false
+  },
+  "catalog": {
+    "source": "cases/simlox-air-support/catalog-v2.json C03.var01",
+    "planned_delta": "personnel two/one/zero",
+    "accepted_parent": "C03-shared-crew-formation-v1.0.2 published CLI scope",
+    "instructional_prerequisites": ["C02", "A03"],
+    "prerequisite_source_inputs": {
+      "C02_single_both_sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+      "A03_formation_sha256": "d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4"
+    }
+  },
+  "accepted_source": {
+    "package": "C03-shared-crew-formation-v1.0.2",
+    "contract_sha256": "e2c7ade63916f1d2ff976f63d6c7898e445194af3b733ac5296fdf4faab8045d",
+    "evidence_report_sha256": "c775be70b01efec0bfb8c8b8de22332a96a566a4951ba7975ab0e53b87f6c0",
+    "original_independent_report_sha256": "4acfa440725a1991335df3bdde9e844e83a40a6e0b1b6ab1c9fd39816a39c674",
+    "published_source_file_count": 16,
+    "published_local_byte_exception": {
+      "path": ".gitignore",
+      "local_crlf_bytes": 8,
+      "local_sha256": "8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f",
+      "published_git_lf_bytes": 7,
+      "published_git_sha256": "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933"
+    },
+    "raw_location": "C:/Users/user/dev/sim_engine_compiler-b02-v102/cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/runs",
+    "arms": {
+      "staffing_2": {
+        "variant": "staffing-2",
+        "input": "inputs/staffing-2.json",
+        "input_sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0",
+        "run_id": "c03-v102-staff2-ssh-20260929-04",
+        "closure_sha256": "7f8f26da9d48758838635968a5ec878ea079b6ca6cf00feb8b755ea4573ff92a"
+      },
+      "staffing_1": {
+        "variant": "staffing-1",
+        "input": "inputs/staffing-1.json",
+        "input_sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789",
+        "run_id": "c03-v102-staff1-ssh-20260929-02",
+        "closure_sha256": "8c078f6f3c2660bbdd3f98e3eba8132718bc537eecd80a779c3983e4058b46f2"
+      },
+      "staffing_0": {
+        "variant": "staffing-0",
+        "input": "inputs/staffing-0.json",
+        "input_sha256": "50682827a363aeb2cb35f860f78671fffd1ea48fbea655ce664eb2c1e2b19267",
+        "run_id": "c03-v102-staff0-ssh-20260929-02",
+        "closure_sha256": "41063c7f0dc509988a68f48247df5b93a4d8eeacab2be3bc6ba389fe2060c68d"
+      }
+    }
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_page_ranges": [[180, 184], [286, 294], [397, 414]],
+    "source_bound_interpretation": "MissionType.NOS/MNOS and SystemDeployment.QTYPS express a two-aircraft requirement; a single ResourceAllocation row provides the shared site-level SPECIAL P-CREW pool; SubTaskResource requests one crew on each aircraft's INSPECT step. MissionFormation alternatives are not authored."
+  },
+  "predeclared_acceptance": [
+    "Use only the accepted final staffing-2 -04, staffing-1 -02 and staffing-0 -02 C03 native runs. The staffing-2 -03 and all -01 discovery runs, stalled pre-native SSH attempts, and older unpublished C03 candidates are excluded. Recompute accepted source contract/evidence/independent-review and input hashes, each closure/invocation hash, all 33 closure raw SHA/size seals, and the 16 published Git source identities separately from the local CRLF .gitignore bytes. No new native execution is authorized.",
+    "Compare every table, column, instance, row and authored cell across the three accepted inputs. Exactly one shared ResourceAllocation row at POINT AIR_BASIC, RID P-CREW, STID BASE-01 changes only RQTY 2/1/0; description, seed, two physical aircraft, one formation mission, NOS=MNOS=2, planned h8 start, one-hour flight, 0.5-hour preparation and one-unit crew request per aircraft remain equal. Require all authored populated cells of each 20 row-containing-table native roundtrip; identify any native-added all-null placeholders separately.",
+    "Require all three invocations to show SSH session 0, sshd ancestry and the preserved responsive GUI PID 13340 in session 1, host-wide mutex, four successful native steps import/export/calc/JSON report, valid nontrivial SXO, zero converter errors, warnings exactly #108/#126, and no unreviewed notes. A zero exit code alone is insufficient.",
+    "For capacity two, require the same mission ID to allocate physical aircraft IDs 0 and 1 at h7.5. Both independent preparation tasks request and book one P-CREW before performing h7.5–8, both release at h8, both finish preparation, the two-aircraft mission launches together h8, succeeds and completes h9, and both systems return ready. The two bookings over 0.5 hour total 60 crew person-minutes; there is no crew wait.",
+    "For capacity one, require both aircraft allocated and their preparation requests at h7.5. Aircraft ID0 books the sole crew and performs h7.5–8 while ID1 has a failed availability test and waits without a lease. At h8 ID0 releases and ID1 is retested/granted the same crew, works h8–8.5 and releases. The two-aircraft mission launches only after both preparations at h8.5, succeeds/completes h9.5 and both systems return ready. Work again totals 60 crew person-minutes; ID1 contributes 30 resource-wait minutes. Assert event order and physical IDs, not a general tie-break policy.",
+    "For capacity zero, require both physical aircraft allocated at h7.5, each has a distinct failed one-unit P-CREW request, neither crew booking nor preparation work nor mission launch occurs, both waits stop when the one mission cancels at the observed h8.5, and both systems return ready. Resource waiting totals 120 aircraft-request-minutes over h7.5–8.5. Do not derive a universal deadline from h8.5.",
+    "Reconcile every cell of all six native report tables per arm: ProblemDescription (1x1), ResultSummary (1x11), SystemResults (72x40), StockTotalResults (72x16), ResourceResults (72x16) and ResourceResultsTotal (1x14), 5,210 cells per arm and 15,630 in total. Derive all 72 half-hour System/Resource state and integral cells from the physical event windows and native schema; assert complete Stock equality across arms and empty demand/backorder, common description and appropriate positive versus cancelled summary. In the resource ledger require NRUM 2 for staffing-2 h7.5–8, NRUM 1 for staffing-1 h7.5–8.5, NRUM 0 for staffing-0; NRW 1 for staffing-1 h7.5–8 and NRW 2 for staffing-0 h7.5–8.5, with corresponding 36-hour totals. ResourceResults.NRA is not a free-worker complement of NRUM.",
+    "A separate standard-library read-only replay must recompute source and raw seals, exact sibling delta, physical lease/request/release/mission order, all six report tables and every cell before bounded publication. Preserve any failed review and do not alter accepted C03 raw or source evidence."
+  ],
+  "limits": [
+    "Retrospective fixed-seed three-run classification of a single two-aircraft formation and one P-CREW resource pool; no new C03.var01 native replication.",
+    "The staffing pair isolates RQTY within this authored model, but the observed event ordering does not establish a general aircraft priority, release-to-regrant tie-break, resource scheduling or mission deadline rule.",
+    "The 2/1/0 observations do not cover equipment scarcity, alternate formations, shifts, substitute personnel, faults, GUI-only behavior, cross-engine parity or performance.",
+    "Only the stated CLI evidence is in scope; full C03 variants and Issue #18 completion are not claimed."
+  ]
+}
