@@ -1,0 +1,49 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A03",
+  "variant_id": "A03.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "With the accepted one-of-two A03 mission still requiring two aircraft, does explicitly deploying zero aircraft through SystemDeployment.QTYPS=0 retain a valid scheduled demand that cancels without physical allocation?",
+  "ownership": {
+    "branch": "codex/simlox-a03-var01-zero-available-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for zero-available arm",
+    "native_run_id_reserved": "a03-var01-zero-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "A03-var01-one-of-two-v0.1.0",
+    "version": "0.1.0",
+    "input_sha256": "6b5807f42006a85f63777529d258ea1b563e5747f527821ab704f05f1d696709",
+    "contract_sha256": "4dee8c85767195aef9e382be9aaa0c9169236873408698863227f6e883d8728c",
+    "signoff_sha256": "ee68e7d0aae2dfa343f3e6dc9ecac4fce238c741a41b6a0564e358d5bb9d14bc",
+    "evidence_index_sha256": "5e91871b915dde1b9c7a3584384a3c3764f6667f7fada19d23b1a9ce79086a3f",
+    "independent_verdict_sha256": "26daffd726ad21c802df65cdd3774e348498f40b36715e9b1c3e8cf2081c21d3",
+    "run_id": "a03-var01-one-of-two-v010-ssh-20261006-01",
+    "closure_sha256": "56b4e09312b3df67495d4961e296fea0c3e0f5f01413c5e1f2ae3fb243ac1772",
+    "accepted_behavior": "With QTYPS=1 and MissionType.NOS=MNOS=2, aircraft0 allocates at h7, waits for a second aircraft, and is released when the sole h8 wave cancels at h8.33333 without launch. Twelve local raw files are sealed."
+  },
+  "instructional_prerequisites": {
+    "A03": "published two-aircraft formation v1.0.1 supplies the accepted nominal-two successful control and is pinned through the accepted parent",
+    "A02": "published fixed scheduled mission baseline is an accepted A03 prerequisite"
+  },
+  "manual_and_dictionary": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "installed_dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "physical_pages": [184, 186, 187, 262, 263, 264],
+    "mapping": "SystemDeployment.QTYPS is a mandatory integer whose dictionary domain is non-negative; the dictionary does not by itself prove QTYPS=0 is accepted by the converter or that an undeployed system retains a report row. MissionType.MNOS=2 is the minimum required to start and the scheduled profile has DTIM=1/3 hour."
+  },
+  "source_delta": "Only SystemDeployment row0 QTYPS changes from 1 to 0 among 155 authored cells. Preserve MissionType.NOS=MNOS=2, h8 wave, delay allowance, seed, 36-hour horizon and all other authored cells.",
+  "predeclared_acceptance": [
+    "Independent contract review must verify the accepted parent source, signoff, index, verdict, closure and all 12 local raw seals plus the A03/A02 prerequisite chain before any child execution.",
+    "Freeze a byte-pinned builder, exact 155-cell positional diff, import/export identity checker, guarded SSH0 runner and strict postrun validator; require independent prelaunch GO bound to exact hashes and unique run ID.",
+    "The runner must require an absent unique run directory, actual SSH session0 and sshd ancestry, free Global\\SimloxIssue18NativeQueue, exact responding GUI PID/session/start, stable source hashes and failure-byte preservation. No accepted parent native run may be repeated.",
+    "If the importer or converter rejects QTYPS=0, seal the exact diagnostic and mark physical behavior NO_GO; do not infer no-aircraft cancellation or alter the frozen source after the run.",
+    "If conversion succeeds, require exact authored-table roundtrip and converter errors zero. The one scheduled h8 demand must order at h7, request two, allocate no physical aircraft, never launch or succeed, and cancel at the configured h8.33333 deadline. An absent demand, additional mission, or different cancellation is NO_GO for this contract.",
+    "Require complete available native report tables and all saved cells to reconcile with zero physical deployed systems and no stock demand; the SystemResults table may contain zero rows or 72 half-hour zero-count rows, as predeclared from the dictionary's lack of a zero-deployment reporting guarantee. Any nonzero physical aircraft count, flight, maintenance, stock transition or unexplained missing report is NO_GO.",
+    "Independently replay every source/raw SHA and size, sole source delta, converter diagnostics, physical event identity/order, complete report fields and bounded conclusion before any simlox/main PR."
+  ],
+  "limits": [
+    "This probes one explicit QTYPS=0 row under one fixed seed, type, unit and scheduled wave. A converter rejection is a diagnostic, not proof of runtime cancellation or general zero-availability semantics.",
+    "No alternate model that omits the deployment row, mixed formation, fault, GUI, cross-engine, performance, full A03.var01 or Issue18 claim. K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}
