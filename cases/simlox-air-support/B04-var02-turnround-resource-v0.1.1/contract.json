@@ -1,0 +1,57 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B04",
+  "variant_id": "B04.var02",
+  "version": "0.1.1-contract-candidate",
+  "publication_state": "not_published",
+  "question": "On the accepted B04.var05 two-step turnround, does one available P-CREW resource requested by TURN-STEPS SEQ 1 get acquired and released for each post-mission INSPECT without changing the physical two-mission timeline?",
+  "ownership": {
+    "branch": "codex/simlox-b04-var02-turnround-resource-20261006",
+    "local_variant_directory_remote_variant_branch_and_open_pr_at_selection": "none found",
+    "native_run_id_reserved": "b04-var02-turn-resource-v011-ssh-20261006-01"
+  },
+  "prelaunch_history": {
+    "v0.1.0_no_go_sha256": "9ccf07faf96cdb1870c3b88a40071afa30e07f30346aef6dbad1455bbcc8a4ce",
+    "reason": "The first frozen validator omitted ResourceResultsTotal from report topology and did not reconcile its 36-hour average; v0.1.0 had no native run."
+  },
+  "accepted_parent": {
+    "package": "B04-var05-turnround-breakdown-v0.1.0",
+    "input_sha256": "965a3acc431696e56b760b07323e4cf11cb571e030885fff708787ce84f3e42f",
+    "run_id": "b04-var05-turnbreak-v010-ssh-20261006-01",
+    "closure_sha256": "58a4838596f96e07d5d20fff3cc4e02a7d3ef07f539d61f3a5c5caf0ca84b545",
+    "raw_file_count": 13,
+    "independent_verdict_sha256": "fe9deac260919c28a7b5ee410f22d798d7d562de5b764d35b28d208bd0947fff",
+    "behavior": "One aircraft: first flight h21.5-23.5; unresourced turnround INSPECT h23.5-23.6666667 and SERVICE h23.6666667-24; second preparation h24-24.5; second launch h24.75, return h26.75; second turnround h26.75-27.25. Full System/Stock/summary report reconciled."
+  },
+  "instructional_prerequisites": {
+    "B02": "published serial preparation parent accepted",
+    "A02": "published repeated-mission parent accepted",
+    "C01": "published C01 v1.0.2 capacity-two resource model maps SubTaskResource(TID,SEQ,RID,QTY) to SPECIAL personnel and ResourceAllocation at Control.APID=AIR_BASIC; input SHA-256 a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c; capacity-two closure SHA-256 770537c9097ba24fbec533d5c6f1eafa29153c18bde63cd0b1bc621a65c55163"
+  },
+  "source": {
+    "manual": "SIMLOX 2017 User's Manual",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [183, 305, 306, 397, 398, 399, 407, 408, 409, 410, 411, 412, 413, 414],
+    "tables": ["MissionTurnround", "TaskBreakDown", "Resource", "ResourceAllocation", "SubTaskResource", "ResultCollection"]
+  },
+  "frozen_model": {
+    "child_input_sha256": "0d799bc6b2d4f8184db0bc33ddbffcaa51a822478b746fab3d4be9d942ee34d5",
+    "parent_authored_cells": 221,
+    "child_authored_cells": 249,
+    "delta": "No parent cell changes or removal. Add P-CREW SPECIAL resource quantity one at AIR_BASIC/BASE-01; demand one P-CREW with probability one on TURN-STEPS SEQ 1 only; add RESOURCE half-hour collection 0-36. Exactly 28 added authored cells in four rows.",
+    "unchanged": "Same one aircraft, two waves, mission notice and delay allowance, two turnround steps, preparation, horizon, seed, all other source tables and values."
+  },
+  "predeclared_acceptance": [
+    "Independently review manual/resource mapping, accepted B04.var05 and C01 parent source/closure/raw identity, exact 28-cell delta and strict checker before native. Accepted parent runs must not be repeated.",
+    "Freeze builder, input, contract, exact table-roundtrip checker, complete author validator, runner, and expected report ledger before a separately signed exact-file prelaunch GO. A changed file invalidates GO.",
+    "At actual session-0 SSH/sshd ancestry, require a free Global\\SimloxIssue18NativeQueue, absent unique run directory, protected responding GUI PID 13340/session 1/start 1790590196826, stable source hashes and preserved failed bytes. One serial child only.",
+    "Import/export all 21 row-containing authored tables exactly, including all parent rows and four new rows. Converter Errors=0 and classified warnings; failure or missing report means no physical claim.",
+    "Read native events for both P-CREW leases: requested one, acquired before TURN-STEPS INSPECT starts, released after it ends, with no resource waiting or alternate resource. Expected first h23.5-23.6666667 and second h26.75-26.9166667 are falsifiable, not inferred as observations.",
+    "Require both missions to retain the accepted parent's identity, launch, return, turnround, preparation and terminal state. Independently reconcile all 72 half-hour System and Stock bins, all ResultSummary/description fields against accepted parent, all 72x16 ResourceResults bins, and the 1x14 ResourceResultsTotal against capacity one and native events. Resource busy integral should be 1/3 person-hour and total-window NRUM should be 1/108; unexpected changes are NO_GO rather than postrun relaxation.",
+    "Preserve source/raw/failure SHA-256 and size records, separate independent read-only full replay, bounded signoff, staged and remote byte review before authorized simlox/main PR/merge."
+  ],
+  "limits": [
+    "One fixed seed, one aircraft and one sufficient resource only. This does not establish insufficient/zero capacity, resource contention, shifts, substitution, fault, PM or full B04.var02 behavior.",
+    "GUI-only behavior, cross-engine and performance remain unverified; K01/K08 capture blockers and K06 remain, excluded I07 opening-stock-three/E05.var02 exact-time/A01.var04/J05 remain. Issue #18 is unfinished."
+  ]
+}
