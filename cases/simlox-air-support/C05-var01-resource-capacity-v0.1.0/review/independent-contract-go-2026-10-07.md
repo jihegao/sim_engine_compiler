@@ -1,0 +1,16 @@
+# C05.var01 independent contract review
+
+**Decision: GO_CONTRACT_ONLY** for `contract.json` SHA-256 `096c4a6d23079c46416e06b8d79229033a13ecc23db29eb1ea6c2bf2524390ad`. This authorizes read-only replay design against the existing accepted C05 runs. It is not a new native-run approval or a publication verdict.
+
+## Evidence checked
+
+- The current branch and HEAD match the contract's branch and base commit `19dcb7845e68f6bce2524c15cddcdcd8bb9edbe5`; the proposed package had no tracked local predecessor. The parent reports an authenticated exact PR search with no C05.var01 match; the frozen contract conservatively records that search as `not_verified`.
+- Independently rehashed **90** literal byte/size pins with zero mismatches: A03 and C01 prerequisite local and published Git files; all 17 accepted C05 published source files against local and Git bytes; three original invocation/closure files; and all **36** raw files. The installed manual SHA and the accepted C05 signoff identify the same source. No accepted source or raw file was changed.
+- Parsed A03 and C05 source tables directly. A03 to C05 adds `MissionResource` and changes only `ProblemDescription`, `Resource`, and `ResourceAllocation`; the three C05 arms differ only in `ProblemDescription` and the single `AIR_BASIC`/`MISSION-CREW`/`BASE-01` `RQTY` cell **2, 1, 0**. `MissionResource` requires one crew per aircraft. The teaching source retains a two-hour mission and one seed.
+- Read all three native event logs. Capacity 2 books both crew units at h7, starts the two-aircraft mission h8, and completes/releases h10. Capacity 1 books and assigns ID0 at h7 while ID1 fails the crew availability test; the mission cancels h8.33333 and frees the reservation. Capacity 0 books and assigns none and cancels h8.33333. These observed events support the contract's rejection of an all-or-none *formation-assignment* claim.
+- Parsed each default report using a normalized in-memory copy of its preserved raw bytes. Each has the declared six tables and **5,210 cells**: 1, 11, 2,880, 1,152, 1,152, and 14. Direct cell comparisons against capacity 2 give the declared 2-vs-1 counts **1/4/27/0/223/5** and 2-vs-0 counts **1/4/26/0/222/5** in table order. The 72 System, Stock, and Resource bins make a full-cell replay gate feasible.
+- Original invocations record SSH session 0 with `sshd.exe` ancestry, global queue mutex, and protected GUI PID 13340/session 1; five recorded stages per arm have GUI-preserved status. This contract properly limits that historical provenance to the original accepted runs and makes no new GUI claim.
+
+## Boundary
+
+The catalog's capacity 2/1/0 slice is distinct as a bounded cross-reference to the accepted C05 three-arm evidence, though it does not add an experiment or establish the catalog's one-hour example. Original C05's pre-run all-or-none hypothesis remains rejected. A later independent checker must still prove every frozen source/raw pin, exact populated-table roundtrip, physical resource and aircraft ledger, all report cells, and the stated contrasts before any bounded publication. This contract gives no general rule for other seeds, resource types, deadlines, ground-preparation resources, GUI behavior, or cross-engine equivalence.
