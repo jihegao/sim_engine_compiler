@@ -1,0 +1,45 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B04",
+  "variant_id": "B04.var03",
+  "version": "0.1.0-read-only-reclassification-candidate",
+  "publication_state": "not_published",
+  "question": "In the accepted linked-turnround model, is the next mission announced and preassigned while the same aircraft is still performing post-mission turnround, and does physical allocation/preparation wait until turnround completion?",
+  "ownership": {
+    "branch": "codex/simlox-b04-var03-early-notice-20261007",
+    "local_or_remote_b04_var03_owner_at_selection": "none found",
+    "native_child_planned": false
+  },
+  "catalog": {
+    "planned_variant_delta": "next mission notice before turnround completion",
+    "instructional_parent": "B04 post-flight turnround; B02 and A02 already accepted for the source run",
+    "source": "catalog-v2.json B04.var03 and progressive-catalog-v2.md B04"
+  },
+  "accepted_source_run": {
+    "package": "B04-var05-turnround-breakdown-v0.1.0",
+    "input_sha256": "965a3acc431696e56b760b07323e4cf11cb571e030885fff708787ce84f3e42f",
+    "run_id": "b04-var05-turnbreak-v010-ssh-20261006-01",
+    "closure_sha256": "58a4838596f96e07d5d20fff3cc4e02a7d3ef07f539d61f3a5c5caf0ca84b545",
+    "raw_file_count": 13,
+    "report_raw_sha256": "df1c6055ce7cd32dea0e02112ab752bc34ec2484311e7d0baa44b04910a1c87a",
+    "independent_verdict_sha256": "fe9deac260919c28a7b5ee410f22d798d7d562de5b764d35b28d208bd0947fff",
+    "accepted_behavior": "First mission h21.5-23.5, linked turnround h23.5-24, second mission notice/preassignment h23.75, physical allocation and preparation after turnround at h24, planned launch h24.75 and success h26.75."
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [181, 182, 183, 305, 306, 307, 400, 401, 402, 403, 404],
+    "interpretation": "Turnround retains the aircraft under the prior mission until work finishes; early notice may create/preassign the next mission, while physical release/allocation follows the observed turnround completion."
+  },
+  "predeclared_acceptance": [
+    "Use only a read-only reinterpretation of the already accepted B04.var05 run. Verify its exact input, closure, every raw SHA/size seal, independent verdict, source contract and published Git bytes; do not launch a new native process or modify that run.",
+    "Require same aircraft and mission identities throughout: first mission success/completion h23.5, turnround start h23.5; two serial turnround subtasks active through h24. The second mission notice, creation, activation and preassignment must occur at h23.75 after turnround starts and before its completion. No physical allocation, preparation or second launch before turnround completion.",
+    "Require turnround completion and System arrives at h24, then second mission physical allocation/preparation at h24, preparation completion h24.5, launch h24.75, success/completion h26.75. Distinguish preassignment from physical allocation and avoid claiming internal same-time priority from h24 printed ordering.",
+    "Reconcile the complete native report and 36-hour terminal state, including every System/Stock bin and summary field, against the accepted B04.var05 event timeline. Confirm no cancellation, failure, PM, stock or resource wait in this particular source run.",
+    "A separate reviewer must execute a standard-library read-only replay over source and raw seals, all relevant event identities/times/order, and the full report, then review the bounded evidence index and published Git blobs. The accepted parent run is not repeated."
+  ],
+  "limits": [
+    "This is a retrospective classification of one accepted fixed-seed source run; it does not create an independent native replication or a matched later-notice control.",
+    "It establishes only notice/preassignment before completion with later physical allocation in this input, not arbitrary notice lead time, competition, other seeds, general same-time ordering, GUI visual behavior, cross-engine behavior, full B04.var03 or Issue #18 completion.",
+    "K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three, E05.var02 exact-time, A01.var04 and J05 remain excluded."
+  ]
+}
