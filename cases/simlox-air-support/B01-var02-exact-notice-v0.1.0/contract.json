@@ -1,0 +1,60 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B01",
+  "variant_id": "B01.var02",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "For the accepted one-aircraft B01 preparation lasting 0.5 hour, does shortening only MissionType.NOPER from 1 to exactly 0.5 hour let the preparation complete at the scheduled h8 launch boundary while the mission still starts at h8?",
+  "ownership": {
+    "branch": "codex/simlox-b01-var02-notice-boundary-20261006",
+    "local_and_remote_variant_owner_at_selection": "none found",
+    "native_run_id_reserved": "b01-var02-exact-notice-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B01-fixed-preparation-v1.0.1",
+    "version": "1.0.1",
+    "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+    "contract_sha256": "ba69048c60af627fae257e603fd4f4cba1a800e91c73a3a0ef071b2c2c5cde68",
+    "source_diff_sha256": "79c801e621e6872b823e9558d3b9bdb2fe0555acdce34bb33147698695c9bb92",
+    "evidence_sha256": "8ba57b104c8f5822514c6f9996eb92e21ecf66d371203635cdb0a170c2f1466d",
+    "independent_verdict_sha256": "2ba31cadde57d0680fc931ca4b1caa09406f40f83871671d7e2d37e5cac25d06",
+    "run_id": "b01-v101-ssh-20260929-06",
+    "local_run_dir": "C:/Users/user/dev/sim_engine_compiler-b01-v101/cases/simlox-air-support/B01-fixed-preparation-v1.0.1/runs/b01-v101-ssh-20260929-06",
+    "closure_sha256": "046a7724f053f63e6967e3c3e803f726fd5f4b6322015239cb25a380c6446516",
+    "accepted_behavior": "one h8–10 successful mission, notice/allocation/preparation start h7, 0.5-hour preparation completes h7.5, 72 System and 72 Stock half-hour rows, one successful mission; 11 raw files bound by closure"
+  },
+  "prerequisite_a01": {
+    "package": "A01-single-aircraft-single-mission",
+    "version": "1.0.0",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "contract_sha256": "29d81aeadc5b138b07a3e6242fec8df74a768998c71d3ee0e5e4ca0bf45c7cb6",
+    "signoff_sha256": "20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa",
+    "evidence_index_sha256": "2fe2383e513b0e59c581d5e7b48ec8da000a674a9f41e257b0e4f91836deb880",
+    "final_run_id": "a01-bound-final-20260927-03",
+    "final_closure_sha256": "7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e",
+    "replay_run_id": "a01-bound-replay-20260927-04",
+    "replay_closure_sha256": "3781103d253f08c6d3f8f84572877f6b65319a18c10a9e40736e608f829811ee"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [262, 266, 294, 295, 296],
+    "interpretation": "MissionType.NOPER begins allocation before STIM and should normally cover pre-mission preparation. MissionPreparation.DURN must be less than or equal to NOPER and work occurs in that notice period; the proposed DURN0.5 equals NOPER0.5. DTIM remains 1/3 hour. Equality of completion and scheduled launch is a specific event-order question, not a general guarantee."
+  },
+  "source_delta": {
+    "only_changed_cell": "MissionType.NOPER 1 to 0.5 hour among 167 authored cells",
+    "retained": "MissionPreparation.DURN0.5, task mapping, STIM8, fixed DURN2, DTIM1/3, one aircraft, seed1, horizon36, 0.5-hour collection and all other cells"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must pin accepted B01 source, evidence, independent verdict, closure and all 11 local raw files, plus accepted A01 source/index and 34 local raw files. No accepted native run may be repeated.",
+    "Freeze an exact one-cell parent diff, negative control proving parent preparation starts h7 rather than proposed h7.5, exact authored-table roundtrip checker, complete behavior validator and a unique SSH0 runner. Obtain independent static prelaunch GO bound to exact SHA before native.",
+    "Require actual SSH0/sshd ancestry, free Global\\SimloxIssue18NativeQueue, absent unique run directory, no second native process, responsive GUI actual PID/session/exact start, stable source SHA before/after, and preserved failed bytes on any error.",
+    "Native import/export must retain the one NOPER0.5 value and all authored populated tables. Converter errors must be zero and warnings classified. A converter rejection or short output is NO_GO; do not infer physical behavior from it.",
+    "For valid calculation require notice and allocation at h7.5, physical aircraft0 preparation start h7.5 and end h8, mission launch h8 without cancellation or delay, task and h10 success/return on the same identity. Exact h8 event order must be reported; do not claim it generalizes to other same-time boundaries.",
+    "Require complete 72×40 System, 72×16 Stock, 11 ResultSummary and ProblemDescription fields. Stock, summary, physical flight2h and terminal ready1 must match accepted B01. Reconcile every System field and 0.5-hour interval against the h7.5–8 preparation and h8–10 flight ledger; any unexpected output is NO_GO, with no postrun relaxation.",
+    "A separately authored read-only replay must check source/raw SHA and size pins, exact event identity/order and every report field without importing the author validator. Bounded signoff, independent staged/remote review and authorized simlox/main PR/merge are required for publication."
+  ],
+  "limits": [
+    "One fixed seed, one preparation task, one aircraft and exact-equality NOPER boundary only; insufficient notice arm, resource shortages, other B01.var02 variants, GUI visual, cross-engine and performance remain unverified.",
+    "K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time excluded; Issue18 remains unfinished."
+  ]
+}
