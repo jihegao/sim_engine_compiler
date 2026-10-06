@@ -1,0 +1,23 @@
+# B02.var01 zero-duration first subtask: independent contract review
+
+**Decision: GO_CONTRACT_ONLY.** The frozen contract SHA-256 is `025c61d348fb2bb651fa7ef28fdd5d573bfd227e3256522e7255c0a60116fe39`. This approves a bounded, falsifiable design for a child of accepted B02 v1.0.2. It does not approve the future runner or a native launch. No native process was run for this review.
+
+## Provenance and source delta
+
+- Accepted B02 v1.0.2 input `fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34`, contract `9692402d7ab43aa5592ccc7f0020ce6425a183629793c254dc08b764c282ab98`, publication evidence `bceddd5983e9187bf8be19464b04ad5b2136bf665f6d4d9d676928b8c2354c61`, independent review `124fe64f8fe9a70e101ada86da47490d5e5cece87fce717fefc31e1e88f4e0db`, and run closure `3bbaffe3460da2195a4084cb3b92e1fc9c605a5d01380619abf92e3cd107f570` match the inspected files. All 11 accepted B02 raw closure SHA and size seals pass. Published B01 v1.0.1 prerequisite input `2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b` and closure `046a7724f053f63e6967e3c3e803f726fd5f4b6322015239cb25a380c6446516` match the contract.
+- The frozen child input SHA is `2bc50fd4bc65a2036c85683605bb4eb6201ba0126902d3ffa33eb2106c1a8a46`. An independent positional comparison and the read-only parent-diff checker found exactly one change among 185 authored cells: `TaskBreakDown` instance 0, row 0, `SEQ1 INSPECT.DURN` changes from `0.16666666666666666` hour to `0`. `SEQ2 SERVICE.DURN` remains `0.3333333333333333`; the `MissionPreparation.DURN` scalar remains `0.75`, with the same linked task, notice, mission, seed, horizon, and report collection. Builder SHA is `439f5f3c558dfd42490b83ec6d166d75665307652e4894db233a8b4ac8c93082`; diff checker SHA is `b7a2ae7db370317d8e3fb5c66be5415f666a116614505e1400d386fabf8f3ecd`.
+- B02.var01 is the cataloged zero-duration-subtask arm. No existing package, publication entry, or competing local/remote owner for this arm was found at selection. The reserved run ID is `b02-var01-zero-step-v010-ssh-20261006-01`.
+
+## Manual basis and frozen observable test
+
+The installed `SIMLOX.pdf` SHA is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`. Physical pages 294–296 describe mission preparation and its split into subtasks; pages 402–404 define ordered `TaskBreakDown` rows and the sum of their durations as the main task duration, overriding the scalar preparation duration. The installed table dictionary states that `TaskBreakDown.DURN` is mandatory and non-negative. This supports zero as a source value; it does not establish that the native engine will emit an instantaneous first-subtask lifecycle.
+
+The accepted parent log has SEQ1 h7–7.166667, SEQ2 h7.166667–7.5, launch h8, and success/return h10. The child acceptance gate requires a visible linked SEQ1 start and zero-work completion at h7, SEQ2 start h7 and completion at h7.333333333333333, and main preparation completion then. The same physical aircraft must launch h8, perform the h8.5–9.5 mission task, and succeed/return h10. Missing or duplicated SEQ1, positive SEQ1 work, a resource wait, cancellation, extra delay, or unclassified converter diagnostic fails the gate.
+
+The report gate compares every field of 72 half-hour `SystemResults` rows with the parent. Only four cells may differ: in [7,7.5), `NSYMP` 1→2/3, `NSYMR` 0→1/3, and `NPSUC` 0→1; in [7.5,8), `NPSUC` 1→0. `NPSTA` remains 1 in [7,7.5). All 72×16 `StockTotalResults` cells, 11 `ResultSummary` fields, and `ProblemDescription` must match. Expected integrals are preparation 1/3, reserved 2/3, flight 2, and ready 33 aircraft-hours, with terminal ready 1. Exact 17 row-containing-table import/export identity, zero converter errors, only classified #108/#126 warnings, substantive SXO, and a report are required before behavior acceptance.
+
+## Limits and next gate
+
+The inherited `Tasks.DESCR` still says “Serial 10+20-minute” and is a stale human label; the numeric first duration is zero. The `MissionPreparation.DURN=0.75` scalar is overridden input, not observed work. The result can support only this one fixed-seed, one-aircraft, one-mission, two-subtask case without modeled resource contention. It cannot establish general zero-duration handling, other seeds or schedules, GUI visual behavior, or full B02.var01/Issue 18 coverage.
+
+Before native launch, independently review exact frozen builder/checkers/validator/runner bytes, the 17-table roundtrip and converter gates, unique absent run path, SSH session 0 with sshd ancestry, global native mutex, exact protected GUI identity, source hashes before/after, and failure evidence preservation. A separate postrun raw replay is required for any bounded publication.
