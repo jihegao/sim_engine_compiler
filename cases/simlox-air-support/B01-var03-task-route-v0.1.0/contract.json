@@ -1,0 +1,52 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B01",
+  "variant_id": "B01.var03",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "When the 08:00 operation profile selects HOT-SORTIE instead of COLD-FIRST, does the same aircraft receive HOT-PREP rather than the cold two-step preparation, while the 12:00 and 16:00 sorties remain unchanged?",
+  "ownership": {
+    "branch": "codex/simlox-b01-var03-task-route-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for B01.var03",
+    "native_run_id_reserved": "b01-var03-task-route-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B03-explicit-cold-hot-v1.0.2",
+    "version": "1.0.2",
+    "input_sha256": "9c6b3c8955089b89caa1a71634eb78e9fd52069d5d710273e3a6bc710e19222c",
+    "contract_sha256": "0d3d18196ce57dcbc8f36070ac53c532cdbaa313e0b9088eca8974af8a35127a",
+    "accepted_run_id": "b03-v102-ssh-20260929-02",
+    "closure_sha256": "66bc79cf8609d89c5625299c7e61ede4f6f422e80af22e33bdbe166e18a6d96d",
+    "accepted_behavior": "COLD-FIRST at h8 uses PREP-FIXED SEQ1 10 minutes then SEQ2 20 minutes. HOT-SORTIE at h12 and h16 uses HOT-PREP SEQ1 10 minutes. All three two-hour missions succeed; eleven local raw files are sealed."
+  },
+  "instructional_prerequisite": {
+    "case_id": "A02",
+    "signed_scope_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [181, 182, 183, 294, 295, 296, 297, 400, 401, 402, 403, 404],
+    "interpretation": "The explicit mission type selected by the operation profile binds the matching MissionPreparation recipe and its linked TaskBreakDown. This arm tests a task route only, with the aircraft and station held constant."
+  },
+  "source_delta": {
+    "parent_input_sha256": "9c6b3c8955089b89caa1a71634eb78e9fd52069d5d710273e3a6bc710e19222c",
+    "child_input_sha256": "0cdb2bb68dcd49197988caba76b8d41e700b774139da98f33296c74c0d0d3c7b",
+    "only_change": "OperationProfile instance0 first row at STIM=8, SPRID COLD-FIRST to HOT-SORTIE; all other cells, tables, ordering and raw JSON bytes remain identical.",
+    "retained": "HOT-SORTIE and HOT-PREP already exist in the accepted B03 parent; no new recipe is introduced. One aircraft at BASE-01, three scheduled missions, seed, one-hour notice, 36-hour horizon and half-hour report are retained."
+  },
+  "predeclared_acceptance": [
+    "Independently verify accepted B03 and A02 source, publication, parent closure and all eleven parent raw seals without rerunning either parent.",
+    "Freeze exact one-cell builder, input, roundtrip checker, strict event/full-ledger validator and unique SSH0 runner; obtain independent exact-file prelaunch GO before native.",
+    "Require absent unique run directory, actual SSH session0 with sshd ancestry, free Global\\SimloxIssue18NativeQueue, exact responding GUI PID/session/start, stable hashes, failure-byte preservation and serial native stages.",
+    "Require exact authored-table import/export identity, converter errors zero with only classified #108/#126 warnings, substantive SXO and JSON report. Rejection or missing report is NO_GO for behavior.",
+    "The h8 mission is HOT-SORTIE, notice/allocation h7, linked HOT-PREP and one HOT-SERVICE SEQ1 perform h7 to h7+1/6 and complete then. No cold INSPECT/SERVICE or PREP-FIXED lifecycle occurs. The h12 and h16 missions retain the accepted hot route and times. All three launch at h8/h12/h16, succeed and return at h10/h14/h18.",
+    "Require full 72x40 System ledger: versus accepted B03, only [7,7.5) NSYMP changes 1 to 1/3 and NSYMR changes 0 to 2/3; all other System cells, all 72x16 Stock cells, 11 ResultSummary fields and ProblemDescription equal parent. Preparation integral changes 5/6 to 1/2 aircraft-hour; all three flights total 6 hours.",
+    "Independently replay source/raw SHA and sizes, event identities/order and full ledgers before any simlox/main PR."
+  ],
+  "limits": [
+    "This is one task-route arm of B01.var03; aircraft-type and station mappings are not tested.",
+    "The source explicitly selects HOT-SORTIE at h8; no history-driven cold/hot switching is claimed.",
+    "One seed, aircraft, station and no resources, faults or inventory; no GUI visual, cross-engine, performance, full B01.var03 or Issue18 claim.",
+    "K01/K08 capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}

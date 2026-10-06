@@ -1,0 +1,7 @@
+# B01.var03 task-route arm: explicit mission type
+
+This bounded arm uses the accepted [B03 1.0.2](../B03-explicit-cold-hot-v1.0.2/README.md) source and its sealed native run as the parent. It changes exactly the 08:00 `OperationProfile.SPRID` from `COLD-FIRST` to `HOT-SORTIE`. Both recipes already exist in the parent. The [contract](contract.json) predeclared the event and complete report comparison before the single native run. Version 0.1.0 remains frozen as a contract NO_GO because it omitted two `NPSUC` report cells; no v0.1.0 native run occurred.
+
+The single SSH session-0 run `b01-var03-task-route-v011-ssh-20261006-01` completed import, exact 17-table roundtrip, calculation and report under the host mutex while protecting GUI PID 13340. The first mission uses `HOT-PREP` and its one 10-minute `HOT-SERVICE` step; the 12:00 and 16:00 routes remain hot. Author validation passed 4,537/4,537 checks, and separately authored replay passed 4,278/4,278. The [signoff](cli-scope-signoff-2026-10-06.md) and [evidence index](evidence-index.json) distinguish the initial independent checker NO_GO from its read-only correction.
+
+Use `build.py --check`, `check_parent_diff.py`, and `validate_native_cli.py` to recheck frozen source and raw evidence. A new native run requires a new version, unique run ID and fresh independent prelaunch review. B01.var03's aircraft and site mapping arms are outside this version.
