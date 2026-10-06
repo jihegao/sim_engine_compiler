@@ -1,0 +1,58 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B04",
+  "variant_id": "B04.var05",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "Does an authored two-step turnround breakdown override MissionTurnround.DURN=1.0 hour and release the same aircraft after 0.5 hour?",
+  "ownership": {
+    "branch": "codex/simlox-b04-var05-turnround-breakdown-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for B04.var05 turnround breakdown",
+    "native_run_id_reserved": "b04-var05-turnbreak-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B04-cross-midnight-turnround-v1.0.1",
+    "input_sha256": "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5",
+    "run_id": "b04-v101-turnround-20260930-01",
+    "closure_sha256": "85d25bd8fa2a053639ca9a93b3bbdd78a5c04e3db9a5d826e27998d500f95ae1",
+    "raw_file_count": 12,
+    "accepted_behavior": "First mission returns h23.5; scalar one-hour turnround ends h24.5; second preparation h24.5-25, delayed second launch h25, successful return h27."
+  },
+  "instructional_prerequisites": [
+    {
+      "package": "B02-serial-preparation-v1.0.2",
+      "input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+      "closure_sha256": "3bbaffe3460da2195a4084cb3b92e1fc9c605a5d01380619abf92e3cd107f570"
+    },
+    {"case_id": "A02", "accepted_scope": "single-aircraft repeated fixed missions already pinned by accepted B04 parent"}
+  ],
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [305, 306, 307, 400, 401, 402, 403, 404],
+    "interpretation": "MissionTurnround.TID links a defined Tasks row; TaskBreakDown SEQ rows run strictly in order, and their summed durations override the turnround scalar DURN. Custom subtask identifiers represent time/resource demand only."
+  },
+  "source_delta": {
+    "parent_input_sha256": "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5",
+    "child_input_sha256": "965a3acc431696e56b760b07323e4cf11cb571e030885fff708787ce84f3e42f",
+    "one_existing_cell_changed": "MissionTurnround instance0 row0 TID null to TURN-STEPS",
+    "new_rows": [
+      "Tasks TURN-STEPS definition, without resource/category/level requirements",
+      "TaskBreakDown TURN-STEPS SEQ1 INSPECT DURN 1/6 hour",
+      "TaskBreakDown TURN-STEPS SEQ2 SERVICE DURN 1/3 hour"
+    ],
+    "retained": "One aircraft, both B04 mission times and delay allowance, original preparation task and its two rows, 1.0-hour turnround scalar, seed, 36-hour horizon, no resource/stock/failure mechanism."
+  },
+  "predeclared_acceptance": [
+    "Before native execution, verify exact accepted B04/B02 sources and full raw closure seals without rerun, plus A02 accepted scope; freeze this source, builder, contract, runner, validators and unique run ID for independent exact-file GO.",
+    "Require import/export identity of every populated authored table, including the linked TURN-STEPS task and both SEQ rows; converter Errors=0 with only explained warnings #108/#126; valid SXO, physical log and report.",
+    "Require actual SSH session 0 and sshd.exe ancestry, free Global\\SimloxIssue18NativeQueue, absent run directory, fresh responding GUI PID/session/start, stable source hashes and no other active native owner.",
+    "Require first mission return h23.5; TURN-STEPS SEQ1 h23.5 to h23.6666667, SEQ2 h23.6666667 to h24.0, with main turnround ending h24.0 rather than scalar h24.5. Both subtask lifecycles must be visible and tied to turnround, not just to the existing preparation.",
+    "Require second mission notice h23.75; subsequent allocation/preparation only after turnround release, two existing serial preparation steps totaling 0.5 hour, planned second launch h24.75 and successful return h26.75; second turnround h26.75 to h27.25 with the same two-step breakdown.",
+    "Reconcile all 72 System and Stock half-hour ledger rows and all report summary fields against native events and the accepted parent. Require no failure, PM, item demand, stock movement or resource wait; terminal aircraft ready at h36.",
+    "Seal every raw file including any failed output. Run an independent read-only replay of source delta, full roundtrip, events, report ledgers and all raw hashes before publication. If the native result differs, preserve the run as an excluded counterexample and do not weaken this gate post hoc."
+  ],
+  "limits": [
+    "This probes one custom two-step turnround on one aircraft and two deterministic missions; it does not establish arbitrary breakdown, waiting resources, same-time ordering, GUI-only behavior, cross-engine equivalence, full B04.var05 or Issue 18 completion.",
+    "K01/K08 GUI capture blockers and K06 remain; I07 opening-stock-three and E05.var02 exact-time diagnostic remain excluded."
+  ]
+}
