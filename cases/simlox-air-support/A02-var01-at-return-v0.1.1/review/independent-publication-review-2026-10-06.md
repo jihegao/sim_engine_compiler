@@ -1,0 +1,19 @@
+# Independent staged publication review — A02.var01 at return v0.1.1
+
+**Decision: GO_BOUNDED** for the staged, source-bound publication. Reviewed 2026-10-06 before commit or PR. This memo is intentionally excluded from the evidence index to avoid self-reference. No native run, GUI action or sealed-file edit was made.
+
+## Staged files and provenance
+
+The staged diff has exactly 45 paths: the excluded v0.1.0 diagnostic package, accepted-candidate v0.1.1 package, and one `publication-index-v1.json` change. No native run artifact, product-main file or unrelated path is staged. All **17/17** v0.1.0 and **24/24** v0.1.1 evidence-index source size/SHA-256 pins match both disk bytes and staged Git blobs. Their index SHA-256 values are respectively `8422a7ba6623a20d6a7175aa089bcea3277d1f6defbde9f3a689a187a36171bb` and `8d7f94775874a161218ce74fd6e94f8837646c1c1d28c782949e8d9c6b590f4a`. Any Git whitespace warnings on sealed CRLF source blobs do not change these byte identities.
+
+All **89/89** locally indexed raw SHA/size seals match: 68 accepted A01/A02 parent final/replay files, nine preserved v0.1.0 failed-run files, and 12 v0.1.1 child files. The excluded run closure and failure-seal pins match, with error `roundtrip checker exit=1`; import/export completed but calc/report did not run. Its v0.1.0 index says `excluded_not_accepted`. The repaired v0.1.1 checker was tested read-only against those old bytes and identifies 13 row-containing authored tables, of which ten contain values and three are all-null placeholders. Old evidence was neither overwritten nor accepted as a behavioral result.
+
+## Accepted-candidate observation
+
+The v0.1.1 child input is byte-identical to v0.1.0 and differs from accepted A02 in only second `OperationProfile.STIM` h20→h10 among 179 authored cells. New run closure SHA-256 `dbc799742064911d6fbbf478a2a352532a9b0ee87bafe16cd7fe70d9eae640ae` has no error and identical before/after source hashes. Its invocation records SSH session 0 with `sshd.exe` ancestry, host serial mutex and protected GUI PID 13340/session 1/exact start. Import, export, corrected roundtrip, calc and report steps each completed with exit code 0 and GUI preserved. Accepted A01/A02 and excluded v0.1.0 runs were not repeated.
+
+The native log shows mission 0 completing at h10, mission 1 then preassigning, allocating and starting at h10, and mission 2 at h32; all three succeed at h10, h12 and h34. This is one observed tie order, not a general ordering rule. Independently parsing the raw report gives 72 System rows × 40 fields; every cell matches the predeclared ready/reserved/flight template, with 28 ready hours, six flight hours and terminal ready one. All 72 Stock rows × 16 fields and the 11-field summary match accepted A02. The staged independent replay is `GO_BOUNDED` **4,494/4,494** with no failure. The author checks are **4,209/4,209**; their first JSON write failed on Python set serialization, and a separately pinned read-only serializer wrote the verdict without changing checks or native evidence. The signoff describes that limitation accurately.
+
+## Publication index and scope
+
+The staged publication index appends exactly one unique entry, `A02.var01.at_return_fixed_missions.0.1.1`, growing from 448 to 449. All prior 448 entries and non-entry metadata remain unchanged. The staged signoff SHA-256 is `36ea10668350a7439f8f03f3dc0358f9dc67397253fd427aeb03c51828b94dec` and confines acceptance to one fixed-seed, one-aircraft h10 return/relaunch observation. It does not claim general same-time scheduling, other A02.var01 arms, GUI visuals, cross-engine equivalence or Issue #18 completion. No publication blocker found.
