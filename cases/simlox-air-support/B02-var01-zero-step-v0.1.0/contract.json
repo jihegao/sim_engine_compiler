@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "B02",
+  "variant_id": "B02.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "Does a present, linked first TaskBreakDown subtask with DURN zero retain an observable instantaneous SEQ1 lifecycle before the positive SEQ2, while the effective main preparation duration becomes one third hour?",
+  "ownership": {
+    "branch": "codex/simlox-b02-var01-zero-step-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found for B02.var01 zero-duration subtask",
+    "native_run_id_reserved": "b02-var01-zero-step-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "B02-serial-preparation-v1.0.2",
+    "version": "1.0.2",
+    "input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+    "contract_sha256": "9692402d7ab43aa5592ccc7f0020ce6425a183629793c254dc08b764c282ab98",
+    "publication_sha256": "bceddd5983e9187bf8be19464b04ad5b2136bf665f6d4d9d676928b8c2354c61",
+    "independent_review_sha256": "124fe64f8fe9a70e101ada86da47490d5e5cece87fce717fefc31e1e88f4e0db",
+    "run_id": "b02-v102-ssh-20260929-01",
+    "closure_sha256": "3bbaffe3460da2195a4084cb3b92e1fc9c605a5d01380619abf92e3cd107f570",
+    "accepted_behavior": "INSPECT SEQ1 performs h7–h7.1666667; SERVICE SEQ2 performs h7.1666667–h7.5; one mission launches h8 and succeeds/returns h10. Eleven local raw files sealed."
+  },
+  "instructional_prerequisite": {
+    "case_id": "B01",
+    "version": "1.0.1",
+    "input_sha256": "2c5485a20bbad5404a706a9a55fad6b46d78679e7c087f7bb33da3af35b1a78b",
+    "closure_sha256": "046a7724f053f63e6967e3c3e803f726fd5f4b6322015239cb25a380c6446516"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [294, 295, 296, 402, 403, 404],
+    "interpretation": "The complete ordered TaskBreakDown determines total main preparation duration and overrides the MissionPreparation scalar. TaskBreakDown.DURN is mandatory and the installed table dictionary permits non-negative values. Whether a zero first subtask is observable remains a native question."
+  },
+  "source_delta": {
+    "parent_input_sha256": "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34",
+    "child_input_sha256": "2bc50fd4bc65a2036c85683605bb4eb6201ba0126902d3ffa33eb2106c1a8a46",
+    "authored_cells": 185,
+    "only_changed_cell": "TaskBreakDown instance0 row0 SEQ1 INSPECT DURN 0.16666666666666666 to 0",
+    "retained": "SEQ2 SERVICE DURN one third hour, MissionPreparation scalar DURN 0.75 hour, PREP-FIXED task linkage, notice h7, mission h8–10, seed, 36-hour horizon, half-hour reports and all other authored cells"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review pins accepted B02 source, publication, review, closure and all 11 local raw files, plus published B01 prerequisite, without rerunning either accepted case.",
+    "Freeze builder, one-cell diff, exact 17 row-containing-table roundtrip checker, strict event/report validator and unique SSH0 runner; require independent exact-file prelaunch GO before native.",
+    "Require absent unique run directory, actual SSH session0 with sshd ancestry, free Global\\SimloxIssue18NativeQueue, exact responding GUI PID/session/start, stable source hashes, failure-byte preservation and serial native stages.",
+    "Require exact authored-table import/export identity, converter errors zero with only classified #108 and #126 warnings, substantive SXO, and JSON report. Rejection or missing report is NO_GO for behavior.",
+    "Require one h7 mission notice/physical aircraft allocation and a single linked preparation/task with SEQ1 INSPECT zero-work start and completion at h7, then SEQ2 SERVICE start h7 and completion at h7.333333333333333, and main preparation completion at the same time. No omitted or duplicated SEQ1, positive SEQ1 work, resource wait, cancellation or delay is allowed. Mission launch h8, task h8.5–9.5, success and physical return h10 match the accepted parent.",
+    "Require full 72x40 System ledger: versus B02 parent, h7–7.5 NSYMP changes 1 to 2/3, NSYMR 0 to 1/3 and NPSUC 0 to 1; h7.5–8 NPSUC changes 1 to 0; all other System cells and all 72x16 Stock, 11 ResultSummary and ProblemDescription fields match parent. NPSTA remains 1 at h7–7.5; preparation aircraft-hours one third, reserved aircraft-hours two thirds, flight aircraft-hours two, ready aircraft-hours 33, terminal ready one.",
+    "Independently replay source/raw SHA and sizes, exact physical event identities/order, complete ledgers and bounded limits before any simlox/main PR."
+  ],
+  "limits": [
+    "The inherited Tasks.DESCR text says Serial 10+20-minute but the first numeric duration is zero. The main scalar 0.75 is an overridden input, not measured work.",
+    "One seed, one aircraft, one mission, two linked serial subtasks without resources; no general zero-duration, distribution, repeated mission, competing work, GUI visual, cross-engine, performance, full B02.var01 or Issue18 claim.",
+    "K01/K08 capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}
