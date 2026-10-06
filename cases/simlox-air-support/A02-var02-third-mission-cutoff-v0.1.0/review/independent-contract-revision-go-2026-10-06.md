@@ -1,0 +1,7 @@
+# Independent A02.var02 amended contract review — 2026-10-06
+
+**GO_CONTRACT_ONLY** for amended contract SHA-256 `5feb16862f49421faf2b7a52ad58b321e39138f6b31d208de5edb0587df9b57e`. This supersedes the earlier contract-only memo, which binds the previous SHA. No child input or native run was present during this amended review.
+
+The amendment fills the A01 prerequisite provenance gap: its accepted contract SHA-256 `29d81aeadc5b138b07a3e6242fec8df74a768998c71d3ee0e5e4ca0bf45c7cb6` and signoff SHA-256 `20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa` match disk. The added final and replay run IDs resolve to the already pinned closure SHA-256 values `7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e` and `3781103d253f08c6d3f8f84572877f6b65319a18c10a9e40736e608f829811ee`. The A01/A02 68 raw seals and J05 analogue pins checked in the earlier review remain unchanged; no behavior gate changed.
+
+The bounded hypothesis remains a sole `ResultCollection` SYSTEM `RCEND` h36→h33 cell change in accepted A02, with `Control.SIMPE=36` and the MISSION collection end h36. Required native event-log identity, 66×40 System prefix, 72×16 Stock parity, all 11 summary fields and other non-System report tables remain strict and falsifiable. The accepted J05 `rcend9` raw pair directly supports this as an analogue, but the h32–34 A02 mission crossing still requires observation. No native or GUI process was invoked and no frozen source was edited for this review.
