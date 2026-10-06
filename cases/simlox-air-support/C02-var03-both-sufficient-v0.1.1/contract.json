@@ -1,0 +1,80 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "C02",
+  "variant_id": "C02.var03",
+  "version": "0.1.1-read-only-reclassification-candidate",
+  "publication_state": "not_published",
+  "question": "In the accepted C02 fixed-seed runs, how are jointly sufficient P-CREW x1 and E-GSE x1 booked and released when INSPECT is a single 30-minute step versus the first 10-minute step of serial INSPECT plus unresourced SERVICE?",
+  "ownership": {
+    "branch_at_contract_freeze": "codex/simlox-c02-var03-both-sufficient-20261007",
+    "local_case_package_or_branch_found": false,
+    "remote_branch_match_found_by_git_ls_remote": false,
+    "github_pr_search": "GitHub REST pull-list query returned HTTP 404; no PR-absence claim is based on that query",
+    "native_child_planned": false
+  },
+  "catalog": {
+    "source": "cases/simlox-air-support/catalog-v2.json C02.var03",
+    "planned_delta": "both personnel and equipment sufficient",
+    "accepted_parent": "C02-joint-resources-v1.0.2 published CLI scope",
+    "instructional_prerequisites": ["C01", "B02", "B01"]
+  },
+  "accepted_source": {
+    "package": "C02-joint-resources-v1.0.2",
+    "contract_sha256": "caf2ecca02bcaebad5bab1337cd37c765b545f108ad363a9e25058a62d9e8cff",
+    "original_independent_report_sha256": "6a2ee36473b85de15c72fc896375afb050d6cec60572a5fd4e46d64a56af4264",
+    "evidence_report_sha256": "9b6015e9bb0781d35436caa077ecd5021a113997c7f2fdcbdd4595adb6069b94",
+    "published_local_byte_exception": {
+      "path": ".gitignore",
+      "local_crlf_bytes": 8,
+      "local_sha256": "8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f",
+      "published_git_lf_bytes": 7,
+      "published_git_sha256": "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933"
+    },
+    "raw_location": "C:/Users/user/dev/sim_engine_compiler-b02-v102/cases/simlox-air-support/C02-joint-resources-v1.0.2/runs",
+    "arms": {
+      "single_both": {
+        "input": "inputs/single-both.json",
+        "input_sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+        "run_id": "c02-v102-single-both-ssh-20260929-02",
+        "closure_sha256": "35620fbc5f948cc798b0d6f455c6473f15e9fc7509375bd270a2f7b35fb9c63f"
+      },
+      "serial_both": {
+        "input": "inputs/serial-both.json",
+        "input_sha256": "f7b9c19958d96cdc8a6bf955fd94a52e61b12e6dd116e310683732688dbf550e",
+        "run_id": "c02-v102-serial-both-ssh-20260929-02",
+        "closure_sha256": "86c0de86b8494953d39704aafe64f6aab7038e2a649d684a926739b399670c84"
+      },
+      "single_equipment_zero_control": {
+        "input": "inputs/single-equipment-zero.json",
+        "input_sha256": "f22fa4ef442ec7690238d86b1a04f18c6455ae1aa56c769cfbbe4025786ab5a5",
+        "run_id": "c02-v102-single-zero-ssh-20260929-02",
+        "closure_sha256": "a131fd9c892d79541ac9e61a9930a0603c3a1212922e4866dbb4e29f84719619"
+      },
+      "serial_equipment_zero_control": {
+        "input": "inputs/serial-equipment-zero.json",
+        "input_sha256": "2f209a5420432263b588230624d7586a3edecab2da613efbf65d6a1e8df862fa",
+        "run_id": "c02-v102-serial-zero-ssh-20260929-02",
+        "closure_sha256": "79ab8014a50ed3797a537d8395c9ba1a60b97eb27be26b187e5c93860bbe6d64"
+      }
+    }
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [397, 398, 399, 400, 407, 408, 409, 410, 411, 412, 413, 414],
+    "interpretation": "SubTaskResource binds both one-unit requests to INSPECT SEQ1; ResourceAllocation supplies separate SPECIAL capacities. The serial SERVICE SEQ2 has no explicit resource request."
+  },
+  "predeclared_acceptance": [
+    "Use only the four accepted C02 final -02 native runs; the -01 discovery runs and older C02 1.0.1 candidate are excluded. Recompute accepted input, contract, independent report, invocation and closure hashes; every closure raw SHA/size seal (11 per run, 44 total); and published source Git bytes separately from the local CRLF .gitignore identity. No native rerun is authorized by this contract.",
+    "Compare all authored tables and instances. Within each fixed topology, the available and equipment-zero inputs differ only at ResourceAllocation E-GSE RQTY 1 versus 0. Across topologies, the single arm has TaskBreakDown INSPECT SEQ1 DURN 0.5 hours, while the serial arm has INSPECT SEQ1 DURN 1/6 hour plus unresourced SERVICE SEQ2 DURN 1/3 hour. All other source cells, including P-CREW RQTY1, both INSPECT SEQ1 one-unit requests, P-OTHER RQTY0, description, station, mission, seed and horizon, must match. Require exact authored populated-cell native roundtrip of all 20 row-containing tables in each run; permit native-added all-null placeholder rows only when identified as such.",
+    "In single-both, identify the same physical aircraft and mission: both availability tests succeed, P-CREW and E-GSE each book one unit before INSPECT performs from h7 to h7.5, and both release at h7.5. In serial-both, both book before INSPECT performs h7 to h7.16667 and release at h7.16667; SERVICE then performs without either booked resource to h7.5. Both cases launch h8, succeed/complete h10 and return the aircraft ready. Require physical event ordering, no extra resource booking and no failures.",
+    "Reconcile the two available-arm ResourceResults h7-7.5 NRUM values 2 versus approximately 2/3, corresponding to 60 versus 20 combined resource-minutes, and ResourceResultsTotal NRUM values approximately 1/36 versus 1/108. Keep the 72 half-hour bins and all other report fields source-bound. Require exact equality of the other four report tables between available arms and only the two named NRUM cells to differ within ResourceResults and ResourceResultsTotal; no unspecified numeric report drift is accepted.",
+    "As matched controls, require both equipment-zero inputs retain their respective topology but have E-GSE RQTY0. Each log must show crew available, equipment unavailable, neither resource booked, no preparation work or launch, and h7.58333 cancellation. Their model logs and six report tables must be byte-identical to each other as sealed; this control does not turn the available-topology comparison into a one-cell causal experiment.",
+    "Independently reconcile every cell of all six native report tables in each run: ProblemDescription, ResultSummary, 72 SystemResults, 72 StockTotalResults, 72 ResourceResults and ResourceResultsTotal (5,210 cells per run). Verify the event-derived state intervals and resource usage/wait integrals, exact summary, stock, and terminal state. Do not interpret ResourceResults.NRA as the complement of NRUM."
+  ],
+  "limits": [
+    "Retrospective one-seed four-run classification; no new C02.var03 native replication or isolated single-cell comparison between single and serial topology.",
+    "The observed available-arm difference is resource occupancy under two different authored task decompositions with the same total preparation duration. Do not infer general task-topology equivalence, resource inheritance, or a universal resource-release rule.",
+    "The matched zero-capacity controls bound the observation but do not prove general all-or-none acquisition or a cancellation-time formula.",
+    "No delayed arrival, partial capacity, shift, substitute resource, multi-aircraft contention, GUI visual behavior, cross-engine parity, performance or full Issue #18 acceptance claim."
+  ]
+}

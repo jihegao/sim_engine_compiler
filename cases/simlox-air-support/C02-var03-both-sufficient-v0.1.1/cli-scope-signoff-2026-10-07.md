@@ -1,0 +1,13 @@
+# C02.var03 corrected read-only scope assessment
+
+**Status: bounded CLI behavior accepted for the four reused final runs; ready for source-byte index and independent publication review.**
+
+The corrected frozen contract SHA-256 is `97bf1d7392aa8b3b5c626b737193fec42485e31604f791614bd22b6d8e904a9d`. Independent contract review is GO_CONTRACT_ONLY at `review/independent-contract-2026-10-07.md` SHA-256 `61f332a6ed1485a3f6ce427d2a37a6cccea5309ec8b346a8713bd7424daf6612`. The v0.1.0 wrong evidence-report provenance literal and its NO_GO review remain excluded.
+
+The author read-only checker passed **28,139/28,139** assertions on two runs with identical verdict bytes. It checked 18 accepted published C02 source paths (separate local CRLF and Git LF `.gitignore` identities), four accepted inputs/closures/invocations, **44** local raw SHA/size seals, all authored populated cells in each of four 20 row-containing-table native roundtrips, event chronology, and every cell of six report tables (**5,210 per run**). The four CLI calculations already belonged to accepted C02 1.0.2; this classification introduced no native run.
+
+Within either task topology, E-GSE capacity one versus zero is the sole source cell difference. Between the positive topologies, the sole changed source table is TaskBreakDown: a single INSPECT of 0.5 hour versus INSPECT of 1/6 hour followed by unresourced SERVICE of 1/3 hour. Both positive logs show P-CREW and E-GSE booked before INSPECT work and released on its completion, at h7.5 for single and h7.16667 for serial. Both launch h8 and succeed h10. Positive reports are equal in every cell except ResourceResults h7–7.5 `NRUM` (2 versus about 2/3) and ResourceResultsTotal `NRUM` (about 1/36 versus 1/108), matching 60 versus 20 combined resource-minutes. The two zero-capacity controls have byte-identical model logs and reports, no partial booking, and an observed h7.58333 cancellation.
+
+The separate independent read-only replay passed **54,584/54,584** checks across four final runs, 44 original raw SHA/size seals and all 20,840 report cells. Its verdict is `review/independent-verdict.json` SHA-256 `9b9aa3a90bed3428f63917a8cf6afcde15cd02bc1e559ff1fee91d2dbb659284`; its postrun memo is SHA-256 `2c9ca3c13d4dff7ef648842a076cfe7568bdfa188d810a9b923b9cb4444cabcb`. No native behavior was repeated.
+
+The bounded result does not infer a universal acquisition or release rule, a causal effect isolated to one input cell across topologies, general task-topology equivalence, a cancellation deadline formula, GUI visual behavior or cross-engine parity. ResourceResults `NRA` remains a native reported measure and is not used as the complement of busy workers. Source-byte index and independent publication review remain required.
