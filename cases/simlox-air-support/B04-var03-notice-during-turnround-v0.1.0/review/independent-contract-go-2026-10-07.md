@@ -1,0 +1,15 @@
+# B04.var03 independent contract review — 2026-10-07
+
+**Decision: GO_CONTRACT_ONLY.** This permits a read-only reclassification of the already accepted B04.var05 fixed-seed run. It is not approval for a new native run or a claim that notice timing has been varied independently.
+
+## Frozen evidence checked
+
+- Candidate `contract.json`: SHA-256 `cdae7dc60ab3593e48514811f9e4635bcc00f26f11039f3a189eeb4d1479e798`.
+- Accepted B04.var05 input `965a3acc431696e56b760b07323e4cf11cb571e030885fff708787ce84f3e42f`, contract `5292459de185e04ef445ff89e4e20cb1c8d9148151f767340b59893d089d3020`, and independent verdict `fe9deac260919c28a7b5ee410f22d798d7d562de5b764d35b28d208bd0947fff` match both local files and `HEAD` Git blobs. Its evidence index and signoff likewise match local and published Git bytes. The accepted run closure is `58a4838596f96e07d5d20fff3cc4e02a7d3ef07f539d61f3a5c5caf0ca84b545`; invocation hash matches the closure, source hashes before and after are identical, and all **13 of 13** local raw files match their recorded sizes and SHA-256 hashes. The raw report hash is `df1c6055ce7cd32dea0e02112ab752bc34ec2484311e7d0baa44b04910a1c87a`.
+- Installed manual SHA-256 `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`; physical pages 181–183 cover mission creation, activation, allocation and preparation; pages 305–307 define turnround and its duration; pages 400–404 describe task breakdown and subtasks. Catalog B04.var03 calls for the next mission notice before support completion. There was no B04.var03 owner at selection in the contract; this review is confined to the current candidate branch.
+
+## Observable event chain
+
+In the sealed B04.var05 `model.log`, mission `<BASIC-MISSION,TEACH-UNIT,0,0,0>` succeeds/completes at h23.5. Turnround task 1 on physical `<TEACH-AIR-01,0>` starts at h23.5; its first subtask completes at h23.6667 and the second starts then. Mission `<BASIC-MISSION,TEACH-UNIT,0,0,1>` is ordered, created, activated and preassigns that same aircraft at h23.75, while the second turnround subtask is in progress. At h24 the subtask and turnround task complete, `System arrives` is logged, and only then does mission 1 physically allocate the aircraft and begin preparation. Preparation ends h24.5; mission 1 launches h24.75 and succeeds/completes h26.75. The contract correctly distinguishes preassignment from physical allocation and avoids inferring a general engine priority from h24 printed ordering.
+
+The distinct catalog mapping is defensible as a source-bound observation of early notice during turnround. The full-report and terminal reconciliation gates are appropriate for a subsequent independent read-only replay, using the same accepted run and published bytes. Publication must keep the contract's limits: one fixed seed, no later-notice comparator or independent replication, no general timing or same-time priority rule, and no claim that a new B04.var03 native experiment was run. A replay failure on any sealed event, source or report gate would require a separate NO_GO; this contract decision does not pre-accept that replay.
