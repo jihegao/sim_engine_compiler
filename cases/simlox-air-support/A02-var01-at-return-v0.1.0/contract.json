@@ -1,0 +1,62 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A02",
+  "variant_id": "A02.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "In the accepted one-aircraft three-mission A02 schedule, does changing only the second OperationProfile.STIM from h20 to h10 place that mission exactly at the first mission's h10 return and produce three successful h8–10, h10–12 and h32–34 sorties without an extra aircraft, missed deadline or altered third mission?",
+  "ownership": {
+    "branch": "codex/simlox-a02-var01-at-return-20261006",
+    "remote_and_local_variant_owner_at_selection": "none found",
+    "native_run_id_reserved": "a02-var01-at-return-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "A02-single-aircraft-repeated-missions",
+    "version": "1.0.0",
+    "input_sha256": "84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8",
+    "contract_sha256": "f192c22de44ec20cf8581e2652ce8b4a44fc315acb7998624be340cb5a42a465",
+    "signoff_sha256": "608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e",
+    "evidence_index_sha256": "b584816ca459c75bd5de160eb44b7b458c0dbe1b478c56142c44a3283732041d",
+    "final_run_id": "a02-bound-final-20260927-03",
+    "final_closure_sha256": "fc0cc2d0578d2e8d126e79886ab2ba72238a725aea86c361ede6d48dadc6a69a",
+    "replay_run_id": "a02-bound-replay-20260927-04",
+    "replay_closure_sha256": "9a44bc9f5d52cfd2178545315b6cd9b380585e98c36502025b329e380f1909d1",
+    "scope": "one aircraft, three fixed mission starts h8/h20/h32 and completions h10/h22/h34, 34 sealed local raw files"
+  },
+  "prerequisite_a01": {
+    "package": "A01-single-aircraft-single-mission",
+    "version": "1.0.0",
+    "input_sha256": "8bbd31d05630cc4a44c4b03b715d17e2f4a1ee1601352952089efd3e584f98b7",
+    "contract_sha256": "29d81aeadc5b138b07a3e6242fec8df74a768998c71d3ee0e5e4ca0bf45c7cb6",
+    "signoff_sha256": "20ca6217068b2c6b998e70f26a82b065ebf6a15e555769c176baee204c137afa",
+    "evidence_index_sha256": "2fe2383e513b0e59c581d5e7b48ec8da000a674a9f41e257b0e4f91836deb880",
+    "final_run_id": "a01-bound-final-20260927-03",
+    "final_closure_sha256": "7e253f9acdeed55197e191530f7e9ad8d88abe387326fd7b4c5152da3529288e",
+    "replay_run_id": "a01-bound-replay-20260927-04",
+    "replay_closure_sha256": "3781103d253f08c6d3f8f84572877f6b65319a18c10a9e40736e608f829811ee",
+    "scope": "one ready aircraft and one fixed mission accepted normal path; no same-time return/relaunch claim"
+  },
+  "source": {
+    "manual_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [266, 271, 272, 273, 275],
+    "native_executable_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "manual_interpretation": "For a fixed mission, STIM is the scheduled start, NOPER begins allocation in advance, and DTIM is maximum start delay before cancellation. A mission may start once its minimum prepared systems are available within DTIM. Exact return/relaunch same-time ordering is not specified and must be observed."
+  },
+  "source_delta": {
+    "only_changed_cell": "OperationProfile second BASIC-SCHEDULE/BASIC-MISSION row STIM 20 to 10 hours",
+    "retained": "first/third STIM h8/h32, DURN 2 hours, NOPER 1 hour, DTIM one third hour, single physical aircraft TEACH-AIR-01, 36 hour horizon, half-hour collection, seed, fault/preparation/stock-free model and all other authored cells"
+  },
+  "predeclared_acceptance": [
+    "An independent contract review must approve this at-return arm before child source creation. The parent is an accepted three-sortie normal path; this child tests a distinct same-time return/relaunch boundary. Insufficient-gap and other A02.var01 arms require separate contracts and cannot be inferred from this result.",
+    "Freeze a JSON child with exactly one authored OperationProfile.STIM cell changed from 20 to 10 among 179 authored cells, plus strict parent diff, a parent negative control that fails the second-start h10 gate, exact import/export check, full behavior validator and guarded SSH0 runner. Bind accepted A01 and A02 parent source, signoff, evidence and raw closures, plus installed manual/executable hashes.",
+    "Immediately before a sole native child, require actual SSH session0 and sshd ancestry, free Global\\SimloxIssue18NativeQueue, unique absent run directory, responsive GUI PID/session/exact start and no conflicting native process. Protect source hashes before/after; do not rerun A01 or A02 accepted runs.",
+    "Import/export must retain every row-containing authored business table and the STIM h8/h10/h32 values exactly. Converter errors must be zero and each warning classified; any rejection, empty output, short report or mismatched roundtrip is NO_GO with sealed failure in the reserved directory.",
+    "Require distinct physical mission identities and one aircraft: first h8–10, second start exactly h10 and complete h12, third h32–34, all successful and no cancellation/abort. Do not presume whether h10 return or relaunch appears first in the log; require all markers and classify the actual order. A second start after h10 or cancellation is NO_GO for this positive at-return arm even if within DTIM.",
+    "Reconcile every field in all 72 half-hour System and Stock rows and all ResultSummary fields with a separately derived event-and-state ledger. Require exactly three completed sorties, six flight hours, correct reservation/ready intervals and terminal state; account explicitly for the overlap of the second mission's h9 notice with the first flight. Do not compare changed time bins to parent for equality or relax unplanned differences after the run.",
+    "A separately authored independent read-only replay must check all source and raw SHA/size pins, physical events, h10 same-time boundary, complete ledgers and terminal state without importing the author validator. Bounded signoff, staged and remote independent reviews and authorized PR/merge are required before publication."
+  ],
+  "limits": [
+    "One fixed-seed, one-aircraft, at-return scheduled second mission with h8/h10/h32 starts; no insufficient-gap, other deferment, stochastic duration, multiple aircraft, full A02.var01 or Issue18 claim.",
+    "No GUI visual, cross-engine or performance claim. K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded."
+  ]
+}
