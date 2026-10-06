@@ -1,0 +1,51 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "A03",
+  "variant_id": "A03.var01",
+  "version": "0.1.0-contract-candidate",
+  "publication_state": "not_published",
+  "question": "With one ready aircraft and a nominal requirement of two, does changing only MissionType.MNOS from two to one allow the accepted one-of-two A03 mission to launch on time at h8 and succeed with one physical aircraft?",
+  "ownership": {
+    "branch": "codex/simlox-a03-var01-min-one-20261006",
+    "local_and_remote_arm_owner_at_selection": "none found; distinct from published one-of-two minimum-two arm",
+    "native_run_id_reserved": "a03-var01-min-one-v010-ssh-20261006-01"
+  },
+  "accepted_parent": {
+    "package": "A03-var01-one-of-two-v0.1.0",
+    "version": "0.1.0",
+    "input_sha256": "6b5807f42006a85f63777529d258ea1b563e5747f527821ab704f05f1d696709",
+    "contract_sha256": "4dee8c85767195aef9e382be9aaa0c9169236873408698863227f6e883d8728c",
+    "signoff_sha256": "ee68e7d0aae2dfa343f3e6dc9ecac4fce238c741a41b6a0564e358d5bb9d14bc",
+    "evidence_index_sha256": "5e91871b915dde1b9c7a3584384a3c3764f6667f7fada19d23b1a9ce79086a3f",
+    "independent_verdict_sha256": "26daffd726ad21c802df65cdd3774e348498f40b36715e9b1c3e8cf2081c21d3",
+    "run_id": "a03-var01-one-of-two-v010-ssh-20261006-01",
+    "closure_sha256": "56b4e09312b3df67495d4961e296fea0c3e0f5f01413c5e1f2ae3fb243ac1772",
+    "accepted_behavior": "With QTYPS=1 and MissionType.NOS=MNOS=2, physical aircraft0 allocates at h7, waits for a second aircraft, and is released when the sole h8 wave cancels at h8.33333 without launch; 12 child raw files are locally sealed."
+  },
+  "instructional_prerequisites": {
+    "A03": "published two-aircraft formation v1.0.1 supplies the accepted nominal-two successful control and is pinned by the accepted parent",
+    "A02": "published fixed scheduled mission baseline is an accepted A03 prerequisite"
+  },
+  "manual": {
+    "installed_pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [184, 186, 187, 262, 263, 264, 551, 552, 553],
+    "interpretation": "For quantity-based assignment NOS is the desired count and MNOS the minimum needed to start. A mission that meets MNOS with fewer than NOS is prioritized to start on time rather than use DTIM to chase the desired count. MTMF measures active mission time, STMF active system time relative to desired system time, and MSTF/MSUF fixed mission start/success fractions. The manual does not fix every event tie or report floating-point rounding."
+  },
+  "source_delta": {
+    "only_changed_cell": "MissionType row0 MNOS 2 to 1 among 155 authored cells; preserve NOS=2, SystemDeployment.QTYPS=1, fixed h8 wave, h8+one-third-hour delay allowance, aircraft type/unit, seed, 36-hour horizon, half-hour collection and all other authored cells",
+    "negative_control": "accepted one-of-two minimum-two parent cancels without launch and remains sealed; do not rerun it"
+  },
+  "predeclared_acceptance": [
+    "Independent contract review must pin accepted one-of-two source, contract, signoff, evidence index, independent verdict, closure and 12 local raw files, plus the A03/A02 published prerequisite chain; no accepted native run may be repeated.",
+    "Freeze exact positional one-cell parent diff and h8.33333 cancellation negative control, authored-table roundtrip checker, strict source/raw/event/report validator and unique SSH0 runner. Require independent static prelaunch GO bound to exact SHA values before native.",
+    "Require actual SSH0/sshd ancestry, free Global\\SimloxIssue18NativeQueue, absent unique run directory, exact responding GUI PID/session/start, stable source SHA before/after and preserved failure bytes.",
+    "Import/export must retain QTYPS=1, NOS=2 and MNOS=1 over all 13 row-containing authored tables. Converter errors zero and classified warnings are mandatory; rejection or missing report is NO_GO for physical behavior.",
+    "For a valid calculation require only aircraft0 allocated at or after h7 notice, one on-time h8 launch carrying that aircraft and no second physical aircraft, two-hour mission, h10 success/completion/return, no waiting through h8.33333, cancellation, abort, fault or stock demand. Unexpected event order or identity is NO_GO without postrun relaxation.",
+    "Require complete 72x40 System and 72x16 Stock half-hour ledgers, all 11 ResultSummary fields and ProblemDescription. Analytically require one aircraft reserved h7-8, operating h8-10, otherwise ready, with 33 ready, one reserved and two flight aircraft-hours, terminal ready one, stock unchanged, MTMF=MSTF=MSUF=1, STMF=0.5 from two actual versus four desired aircraft flight-hours, and relative standard errors zero for one deterministic replication.",
+    "Require separately authored read-only replay of every source/raw SHA and size, exact source delta, event identity/order, all report fields and bounded signoff, then independent staged and remote review and authorized simlox/main PR/merge."
+  ],
+  "limits": [
+    "One seed, type, unit and wave with one aircraft equal to minimum but below nominal two; no zero-available, two-available, mixed type, fault, GUI, cross-engine, performance or full A03.var01 claim.",
+    "The unchanged inherited ProblemDescription says two-aircraft and is stale for this one-aircraft arm. K01/K08 GUI capture and K06 remain blocked; I07 opening-stock-three and E05.var02 exact-time remain excluded; Issue18 remains unfinished."
+  ]
+}
