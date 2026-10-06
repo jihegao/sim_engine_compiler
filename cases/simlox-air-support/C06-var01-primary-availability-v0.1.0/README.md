@@ -1,0 +1,11 @@
+# C06.var01 primary availability: accepted-run classification
+
+This package maps catalog C06.var01 to the already accepted C06 primary-capacity pair. It performs no native run. The [frozen contract](contract.json) pins the 17 accepted C06 and 16 C03 published source files with separate local and Git byte identities, the C03 staffing-two parent with 11 raw seals, and the two C06 runs with 24 raw seals. [Independent contract review](review/independent-contract-go-2026-10-07.md) is `GO_CONTRACT_ONLY`.
+
+The two C06 inputs differ only in `ProblemDescription.PDESC` and the `ResourceAllocation.RQTY` of primary `P-CREW` at `BASE-01`, **2→0**. Alternative `P-ALT` capacity remains two, and the shared preparation resource row keeps `ARID=P-ALT`, `ARTF=2`, and `RPROB=1`. Both aircraft IDs 0/1 prepare for the same mission. With primary capacity two, they book `P-CREW` at h7.5, finish preparation h7.83333, launch h8, and succeed h9. With primary capacity zero, they book `P-ALT`, finish h8.16667, launch then, and succeed h9.16667. Both arms end with two ready aircraft and no stock movement.
+
+The sealed reports have six tables and 5,210 cells per arm. Their exact pairwise changed-cell counts are **1/0/13/0/218/4** for ProblemDescription, ResultSummary, SystemResults, StockTotalResults, ResourceResults, and ResourceResultsTotal. All 72 half-hour System, Stock, and Resource rows are within the replay scope.
+
+The [author read-only checker](check_reclassification.py) passes **13,313/13,313** twice with identical [verdict](author-validation.json) SHA-256 `1132f7dfec4103a4aaa09f38e97e33f96e8b247aa466c472bf522afe5b93a33e`. Separate [independent replay](review/independent_replay.py) passes **14,192/14,192** with [verdict](review/independent-verdict.json) SHA-256 `708c0a84447c3e7393cf0f5a1fa87396aa2f66b894b0c32446c4715385e4f48b`. [make_evidence_index.py](make_evidence_index.py) pins both replays and seals the final source and raw chains; independent publication review remains pending.
+
+The observation overlaps published C06 alternative-resource evidence and adds no new native behavior. Since `ARTF=2` in both arms, the pair does not isolate its effect. It does not establish a general fallback or capacity law, additional alternatives, stochastic demand, GUI-only behavior, or cross-engine parity.
