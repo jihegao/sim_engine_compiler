@@ -1,0 +1,7 @@
+# Publication archive correction
+
+The first `evidence-index.json` was written after a dry content check and has SHA-256 `d54410100e50d0ed0b1ca866fea79a4e2b9b91f0510a3542d32e7b305b095bb3`. Its 118 source records still match the local files byte-for-byte. It is **NO_GO_PUBLICATION_ARCHIVE_ATTRIBUTES**: four copied historical `.gitattributes` and `.gitignore` files retained active metadata names inside `preserved-excluded-source/`, which could change Git's treatment of neighboring copies or hide them. No byte conversion of the current copies was observed. That subtree and the first index are retained locally as rejected evidence and are excluded from the v2 staged source list.
+
+The corrected `preserved-excluded-source-v2/` holds the same 22 historical, unpublished source byte sequences. Its four metadata files have inert `.gitattributes.bytes` / `.gitignore.bytes` names. `excluded-source-custody-map-v2.json` records each original path, old rejected copy path, new safe copy path, size and SHA-256; all three local identities were checked before v2 index generation. The original accepted source, ignored native run files, station selector binaries, v0.1.1 contract, author replay and independent behavioral verdict are unchanged.
+
+Only `evidence-index-v2.json`, its v2 guide/signoff and the root catalog entry are candidates for publication. The first index, old builder and old guide remain historical artifacts; their decision is not revised by the v2 result.

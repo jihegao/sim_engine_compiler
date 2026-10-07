@@ -1,0 +1,9 @@
+# E08.var04 bounded CLI signoff snapshot
+
+Decision: **GO_BOUNDED for retrospective read-only classification**, subject to separate content, staged and remote publication review. No new native run or accepted-source edit occurred.
+
+The accepted current-stock ON arm has physical peer ID1 at BASE-02 at h0, selects that stock at h10, receives it at BASE-01 h10.5 and returns the aircraft ready h10.8333. The accepted scheduled-future OFF arm starts with no peer stock, sends depot ID0 to BASE-02 h9–11, does not select a lateral shipment for the h10 failure, receives repaired ID1 at BASE-01 h15.1667 and returns the aircraft ready h15.5. Both arms retain the common mission schedule and printed first abort h9.8829. Description, peer starting stock and the scheduled transfer co-vary; no single-cell causal timing claim is made.
+
+Author replay checks 303 source/raw/context pins and all 48,684 source/event-derived report cells; expanded author self-check rejects 24 semantic mutations. Separately authored independent replay reports `GO_BOUNDED`, 48,684 cells, 16 accepted run filesets, 49 Git pins and 12 semantic rejections. The observed descriptive direct-arm difference is 498 cells across the default and three station report pairs. The original v0.1.0 contract NO_GO remains preserved and excluded.
+
+Historical invocations record SSH session zero, queue mutex and GUI identity, but not each native child PID/session. The no-wait `WTS=null` observation is a bounded native presentation convention, not a general manual law. No general lateral priority, DLAYL timing, GUI visual, cross-engine or performance conclusion follows. The root publication index is authoritative for final publication status.
