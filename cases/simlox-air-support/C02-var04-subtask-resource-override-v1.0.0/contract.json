@@ -1,0 +1,603 @@
+{
+  "schema": "simlox-air-support-case-contract/v1",
+  "case_id": "C02",
+  "variant_id": "C02.var04",
+  "version": "1.0.0",
+  "publication_state": "not_published",
+  "question": "Does explicit INSPECT SubTaskResource P-CREW-only suppress main-task E-GSE when the main TaskResource lists both and E-GSE capacity is zero?",
+  "ownership": {
+    "branch_at_contract_freeze": "codex/simlox-c02-var04-subtask-override-20261007",
+    "new_package": "C02-var04-subtask-resource-override-v1.0.0",
+    "native_child_planned": true,
+    "planned_run_ids": [
+      "c02-var04-v100-joint-ssh-20261007-01",
+      "c02-var04-v100-crewonly-ssh-20261007-01"
+    ],
+    "separate_contract_and_prelaunch_review_required": true
+  },
+  "catalog": {
+    "path": "cases/simlox-air-support/catalog-v2.json",
+    "pin": {
+      "sha256": "8c491ec16693cd64d212f986ed03dad5ed013d7e0bd8e170c0a4d1bf4450b55d",
+      "bytes": 264016
+    },
+    "planned_delta": "Subtask omission of a resource present at main task",
+    "accepted_parent": "C02.joint_resources.1.0.2",
+    "instructional_prerequisites": [
+      "C01",
+      "B02",
+      "B01"
+    ],
+    "execution_plan_pin": {
+      "sha256": "b9ad6572e9bedc4bbe6bcd928820a0861806167782910aa46bd83e1b4e0ccc66",
+      "bytes": 16533
+    }
+  },
+  "manual": {
+    "installed_pdf": "C:/Program Files/Systecon/SIMLOX/UserDoc/SIMLOX.pdf",
+    "pin": {
+      "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+      "bytes": 18124110
+    },
+    "physical_pages": [
+      397,
+      398,
+      399,
+      407,
+      408,
+      409,
+      414
+    ],
+    "interpretation": "Any explicit SubTaskResource row for TID/SEQ replaces the full main TaskResource set at that subtask; unspecified main resource types are not inherited. SPECIAL is modeled and ResourceAllocation E-GSE RQTY0 is unavailable."
+  },
+  "accepted_evidence": {
+    "C02": {
+      "package": "C02-joint-resources-v1.0.2",
+      "published_source": {
+        ".gitignore": {
+          "local_sha256": "8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f",
+          "local_bytes": 8,
+          "published_git_sha256": "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933",
+          "published_git_bytes": 7
+        },
+        "README.md": {
+          "local_sha256": "700e078c105512fe5a19f0f118a267f1873b51f71b324a3d5dfdc6b146169fb8",
+          "local_bytes": 1574,
+          "published_git_sha256": "700e078c105512fe5a19f0f118a267f1873b51f71b324a3d5dfdc6b146169fb8",
+          "published_git_bytes": 1574
+        },
+        "build.py": {
+          "local_sha256": "a1dcb48926f2020b4ee17876b3a85e0dd01c34eda9c680bc5b4afb51d68fe106",
+          "local_bytes": 5766,
+          "published_git_sha256": "a1dcb48926f2020b4ee17876b3a85e0dd01c34eda9c680bc5b4afb51d68fe106",
+          "published_git_bytes": 5766
+        },
+        "contract.json": {
+          "local_sha256": "caf2ecca02bcaebad5bab1337cd37c765b545f108ad363a9e25058a62d9e8cff",
+          "local_bytes": 4134,
+          "published_git_sha256": "caf2ecca02bcaebad5bab1337cd37c765b545f108ad363a9e25058a62d9e8cff",
+          "published_git_bytes": 4134
+        },
+        "evidence-2026-09-29.md": {
+          "local_sha256": "9b6015e9bb0781d35436caa077ecd5021a113997c7f2fdcbdd4595adb6069b94",
+          "local_bytes": 7423,
+          "published_git_sha256": "9b6015e9bb0781d35436caa077ecd5021a113997c7f2fdcbdd4595adb6069b94",
+          "published_git_bytes": 7423
+        },
+        "inputs/serial-both.json": {
+          "local_sha256": "f7b9c19958d96cdc8a6bf955fd94a52e61b12e6dd116e310683732688dbf550e",
+          "local_bytes": 43128,
+          "published_git_sha256": "f7b9c19958d96cdc8a6bf955fd94a52e61b12e6dd116e310683732688dbf550e",
+          "published_git_bytes": 43128
+        },
+        "inputs/serial-equipment-zero.json": {
+          "local_sha256": "2f209a5420432263b588230624d7586a3edecab2da613efbf65d6a1e8df862fa",
+          "local_bytes": 43128,
+          "published_git_sha256": "2f209a5420432263b588230624d7586a3edecab2da613efbf65d6a1e8df862fa",
+          "published_git_bytes": 43128
+        },
+        "inputs/single-both.json": {
+          "local_sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+          "local_bytes": 42924,
+          "published_git_sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+          "published_git_bytes": 42924
+        },
+        "inputs/single-equipment-zero.json": {
+          "local_sha256": "f22fa4ef442ec7690238d86b1a04f18c6455ae1aa56c769cfbbe4025786ab5a5",
+          "local_bytes": 42924,
+          "published_git_sha256": "f22fa4ef442ec7690238d86b1a04f18c6455ae1aa56c769cfbbe4025786ab5a5",
+          "published_git_bytes": 42924
+        },
+        "invoke_loopback.ps1": {
+          "local_sha256": "042ac06675e768667cc3a9c67c17c6012597b7c835c47060903cd7df6ecfa74e",
+          "local_bytes": 476,
+          "published_git_sha256": "042ac06675e768667cc3a9c67c17c6012597b7c835c47060903cd7df6ecfa74e",
+          "published_git_bytes": 476
+        },
+        "parent-diffs/serial-both.json": {
+          "local_sha256": "4e0d7326cc373a09b6002e3ff0c7272ac649fe5d4124096a01a5798d5c2affc5",
+          "local_bytes": 3509,
+          "published_git_sha256": "4e0d7326cc373a09b6002e3ff0c7272ac649fe5d4124096a01a5798d5c2affc5",
+          "published_git_bytes": 3509
+        },
+        "parent-diffs/serial-equipment-zero.json": {
+          "local_sha256": "0b3176d9a8da96c18ef954036df9e2b40462518a682ee4c25099a6ffd9403a5c",
+          "local_bytes": 3519,
+          "published_git_sha256": "0b3176d9a8da96c18ef954036df9e2b40462518a682ee4c25099a6ffd9403a5c",
+          "published_git_bytes": 3519
+        },
+        "parent-diffs/single-both.json": {
+          "local_sha256": "d18ea1aefdef3c9a93e60f1733edead706a6da4c81c9f761e22bbc18d7b4a40b",
+          "local_bytes": 4170,
+          "published_git_sha256": "d18ea1aefdef3c9a93e60f1733edead706a6da4c81c9f761e22bbc18d7b4a40b",
+          "published_git_bytes": 4170
+        },
+        "parent-diffs/single-equipment-zero.json": {
+          "local_sha256": "4a999bfd2618c37cfd5573369bcb432a098cc237e4b5fd937f37b41d54450a0f",
+          "local_bytes": 4180,
+          "published_git_sha256": "4a999bfd2618c37cfd5573369bcb432a098cc237e4b5fd937f37b41d54450a0f",
+          "published_git_bytes": 4180
+        },
+        "review/independent-readonly-2026-09-29.json": {
+          "local_sha256": "6a2ee36473b85de15c72fc896375afb050d6cec60572a5fd4e46d64a56af4264",
+          "local_bytes": 5182,
+          "published_git_sha256": "6a2ee36473b85de15c72fc896375afb050d6cec60572a5fd4e46d64a56af4264",
+          "published_git_bytes": 5182
+        },
+        "review_readonly.py": {
+          "local_sha256": "331eaad50f2cd7256aa15c800ef8acd7b34551a9d389b85d0b476b207f5a29e5",
+          "local_bytes": 20291,
+          "published_git_sha256": "331eaad50f2cd7256aa15c800ef8acd7b34551a9d389b85d0b476b207f5a29e5",
+          "published_git_bytes": 20291
+        },
+        "run_native_ssh.ps1": {
+          "local_sha256": "c790f1f7c7a07af78aeddb96fb44833192234234c1733d796876f195475e0439",
+          "local_bytes": 11762,
+          "published_git_sha256": "c790f1f7c7a07af78aeddb96fb44833192234234c1733d796876f195475e0439",
+          "published_git_bytes": 11762
+        },
+        "validate.py": {
+          "local_sha256": "d267616f087201811c10dc0c725eb3edea96b6e4a2652ad7d3215b89720de3f2",
+          "local_bytes": 17822,
+          "published_git_sha256": "d267616f087201811c10dc0c725eb3edea96b6e4a2652ad7d3215b89720de3f2",
+          "published_git_bytes": 17822
+        }
+      },
+      "single_equipment_zero": {
+        "path": "C:/Users/user/dev/sim_engine_compiler-b02-v102/cases/simlox-air-support/C02-joint-resources-v1.0.2/runs/c02-v102-single-zero-ssh-20260929-02",
+        "run_id": "c02-v102-single-zero-ssh-20260929-02",
+        "invocation": {
+          "sha256": "e919b1a52a350016b2a69c9827487a8b39e133255de77fd66ba480b03bf9cbd9",
+          "bytes": 2387
+        },
+        "closure": {
+          "sha256": "a131fd9c892d79541ac9e61a9930a0603c3a1212922e4866dbb4e29f84719619",
+          "bytes": 3065
+        },
+        "raw": {
+          "report-export.log": {
+            "bytes": 64,
+            "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+          },
+          "steps.json": {
+            "bytes": 3171,
+            "sha256": "704791abf04794b8be1c49024f382d08cf710501fbadb8729171bad4823b39fb"
+          },
+          "model.log": {
+            "bytes": 5460,
+            "sha256": "1b9df73890661150e41fc3f6b680ae4699ecd455bac8bd298ef7158d6f1a80e9"
+          },
+          "roundtrip-raw.json": {
+            "bytes": 58002,
+            "sha256": "5b7fe40e5e44bbf9980cfc81dce2032f0a6faf9d90cc5ff95606613e2f60a894"
+          },
+          "model.sxo": {
+            "bytes": 358190,
+            "sha256": "2cd418ae26b98d3068503546dfffcefc3e8e3b69a9dcbf2164d020ce28970a19"
+          },
+          "report-raw.json": {
+            "bytes": 148331,
+            "sha256": "92ae8cdf9962f95aafea7124d3394a5161e68b866af34a40bea3cc849f495b3f"
+          },
+          "run.log": {
+            "bytes": 974,
+            "sha256": "41a05ae798bb62c08845b575ba304bd84c069a1a9034203ed23bac7304f7e5f8"
+          },
+          "input.json": {
+            "bytes": 42924,
+            "sha256": "f22fa4ef442ec7690238d86b1a04f18c6455ae1aa56c769cfbbe4025786ab5a5"
+          },
+          "import.log": {
+            "bytes": 1817,
+            "sha256": "bd388576f4a2f374a16193c46fa1b9e1ff73c6ed87d58a6e786e24c51a52146b"
+          },
+          "export.log": {
+            "bytes": 225,
+            "sha256": "f8b69b1084f943d6706662152a08595e528f14e0034e3ba3f4db79ce16551abe"
+          },
+          "model.sxi": {
+            "bytes": 189912,
+            "sha256": "10c880cf6fe4c499aa7b31803fe338498020c3522b77a7b75066e8c44a24404e"
+          }
+        }
+      },
+      "single_both_context": {
+        "path": "C:/Users/user/dev/sim_engine_compiler-b02-v102/cases/simlox-air-support/C02-joint-resources-v1.0.2/runs/c02-v102-single-both-ssh-20260929-02",
+        "run_id": "c02-v102-single-both-ssh-20260929-02",
+        "invocation": {
+          "sha256": "6ffce11a789240dacc7c2259b74b9b4e24690a8b3ce8ad8e7d8c6e438b76e62f",
+          "bytes": 2377
+        },
+        "closure": {
+          "sha256": "35620fbc5f948cc798b0d6f455c6473f15e9fc7509375bd270a2f7b35fb9c63f",
+          "bytes": 3055
+        },
+        "raw": {
+          "report-export.log": {
+            "bytes": 64,
+            "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+          },
+          "steps.json": {
+            "bytes": 3171,
+            "sha256": "3d9b43698569f796469ea5b7b93cb30b2b7152eb14e6de518a7326e27009d128"
+          },
+          "model.log": {
+            "bytes": 6961,
+            "sha256": "f5d59ca8277d006c312405837b92b2d06f944364abd785697d287146235787bb"
+          },
+          "roundtrip-raw.json": {
+            "bytes": 58002,
+            "sha256": "403c48125a504504c1aa855c45250622c6bd9c078d0d3328f7325fbcdaceaf99"
+          },
+          "model.sxo": {
+            "bytes": 358190,
+            "sha256": "0fffeef51ac36fbdf665d4f2ee5fd328edade7cab3ee92e157c875293d196a6b"
+          },
+          "report-raw.json": {
+            "bytes": 148261,
+            "sha256": "f0879b5c66c95568bf13bc942f59eeaa34c83f8842d02a76e59c0eb3fc5cc732"
+          },
+          "run.log": {
+            "bytes": 974,
+            "sha256": "fbd669bd8c9e088ab86efa6ae811ee51e2804a4654685fa2760f012ecd97d8e2"
+          },
+          "input.json": {
+            "bytes": 42924,
+            "sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937"
+          },
+          "import.log": {
+            "bytes": 1817,
+            "sha256": "8b395292a6dc9c7a137b1a5ce20cbba60a51d1fc21383a13061a8040ebc8c658"
+          },
+          "export.log": {
+            "bytes": 225,
+            "sha256": "f4dd1db231505c03eff967c90c6def143e3be7c1a7e46d08b80a12730943e6b9"
+          },
+          "model.sxi": {
+            "bytes": 189912,
+            "sha256": "c99f729928ebfdc9f815fd3214b20d36e696dc9c82e58d014be25dbc1596df25"
+          }
+        }
+      }
+    },
+    "C01": {
+      "package": "C01-personnel-capacity-v1.0.2",
+      "published_source": {
+        ".gitignore": {
+          "local_sha256": "8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f",
+          "local_bytes": 8,
+          "published_git_sha256": "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933",
+          "published_git_bytes": 7
+        },
+        "README.md": {
+          "local_sha256": "6a5a7963181c2f2a015d84982a13b6286384dbf74837e6e3972cca2b2570a1a6",
+          "local_bytes": 1664,
+          "published_git_sha256": "6a5a7963181c2f2a015d84982a13b6286384dbf74837e6e3972cca2b2570a1a6",
+          "published_git_bytes": 1664
+        },
+        "build.py": {
+          "local_sha256": "26f81200646595fb7b6ec0e281b511518f57f5a97aff402aad3f7697bbb66fa5",
+          "local_bytes": 5879,
+          "published_git_sha256": "26f81200646595fb7b6ec0e281b511518f57f5a97aff402aad3f7697bbb66fa5",
+          "published_git_bytes": 5879
+        },
+        "contract.json": {
+          "local_sha256": "0107e7a014d46520e54080b99f58c663158fb52d2038d11bafc10673b4fdbc4d",
+          "local_bytes": 4687,
+          "published_git_sha256": "0107e7a014d46520e54080b99f58c663158fb52d2038d11bafc10673b4fdbc4d",
+          "published_git_bytes": 4687
+        },
+        "evidence-2026-09-29.md": {
+          "local_sha256": "4268614b93b374209d7683f2e33ad4fa0417450bb583191db357797ec9e25b7c",
+          "local_bytes": 7329,
+          "published_git_sha256": "4268614b93b374209d7683f2e33ad4fa0417450bb583191db357797ec9e25b7c",
+          "published_git_bytes": 7329
+        },
+        "inputs/capacity-0.json": {
+          "local_sha256": "02d1e3c1cdb585b73a00cf73b58f9d5fe6295c45c6fdc282a7c80c443499fdeb",
+          "local_bytes": 42504,
+          "published_git_sha256": "02d1e3c1cdb585b73a00cf73b58f9d5fe6295c45c6fdc282a7c80c443499fdeb",
+          "published_git_bytes": 42504
+        },
+        "inputs/capacity-1.json": {
+          "local_sha256": "12804f3f589abddf1a4a85e27e0bdf7f965ba6750517f4de18715e7e065ba2ad",
+          "local_bytes": 42504,
+          "published_git_sha256": "12804f3f589abddf1a4a85e27e0bdf7f965ba6750517f4de18715e7e065ba2ad",
+          "published_git_bytes": 42504
+        },
+        "inputs/capacity-2.json": {
+          "local_sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c",
+          "local_bytes": 42504,
+          "published_git_sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c",
+          "published_git_bytes": 42504
+        },
+        "inputs/wrong-specialty.json": {
+          "local_sha256": "e1341e7abfc8e1f4c853ba11648c0dfb1de6a90de3341aecae180af8ea4d0783",
+          "local_bytes": 42504,
+          "published_git_sha256": "e1341e7abfc8e1f4c853ba11648c0dfb1de6a90de3341aecae180af8ea4d0783",
+          "published_git_bytes": 42504
+        },
+        "invoke_loopback.ps1": {
+          "local_sha256": "990626cbf4502b80fcfdc6928def18113b4dfe4ca449d565a795b0ab0e1a5342",
+          "local_bytes": 476,
+          "published_git_sha256": "990626cbf4502b80fcfdc6928def18113b4dfe4ca449d565a795b0ab0e1a5342",
+          "published_git_bytes": 476
+        },
+        "parent-diffs/capacity-0.json": {
+          "local_sha256": "babd961569583c199d218d8b213b97b7dfaa4322602425cef8dfe9b6ef73bc41",
+          "local_bytes": 1832,
+          "published_git_sha256": "babd961569583c199d218d8b213b97b7dfaa4322602425cef8dfe9b6ef73bc41",
+          "published_git_bytes": 1832
+        },
+        "parent-diffs/capacity-1.json": {
+          "local_sha256": "4cde7c19a0930f988d4e54b77601e7b3de7b9d340e54a2c61d1d1f51d1fd6e70",
+          "local_bytes": 1832,
+          "published_git_sha256": "4cde7c19a0930f988d4e54b77601e7b3de7b9d340e54a2c61d1d1f51d1fd6e70",
+          "published_git_bytes": 1832
+        },
+        "parent-diffs/capacity-2.json": {
+          "local_sha256": "cba0bb3f452dc59e158dd43dfa03b8f43843b3e89e0f0b9a6dd13170cf52b8a1",
+          "local_bytes": 1832,
+          "published_git_sha256": "cba0bb3f452dc59e158dd43dfa03b8f43843b3e89e0f0b9a6dd13170cf52b8a1",
+          "published_git_bytes": 1832
+        },
+        "parent-diffs/wrong-specialty.json": {
+          "local_sha256": "42b07bc157052abeac1ca5b09632a0ed8754d0b038cf9b34830d46910234f18e",
+          "local_bytes": 1837,
+          "published_git_sha256": "42b07bc157052abeac1ca5b09632a0ed8754d0b038cf9b34830d46910234f18e",
+          "published_git_bytes": 1837
+        },
+        "review/independent-readonly-2026-09-29.json": {
+          "local_sha256": "b8b0bd11bfbde8c84e6e9bf9a4bb82a58da23e3436ce775082265d28c6d31f73",
+          "local_bytes": 5014,
+          "published_git_sha256": "b8b0bd11bfbde8c84e6e9bf9a4bb82a58da23e3436ce775082265d28c6d31f73",
+          "published_git_bytes": 5014
+        },
+        "review_readonly.py": {
+          "local_sha256": "09ceaa2ec5bd3a9af07e01afce39b81eb83f45f4b9abcb9603202d87e7ef8cad",
+          "local_bytes": 18228,
+          "published_git_sha256": "09ceaa2ec5bd3a9af07e01afce39b81eb83f45f4b9abcb9603202d87e7ef8cad",
+          "published_git_bytes": 18228
+        },
+        "run_native_ssh.ps1": {
+          "local_sha256": "5724b1431417378f214ccdba41675bc62835bf180b82a16328a21d49a1b306ff",
+          "local_bytes": 11724,
+          "published_git_sha256": "5724b1431417378f214ccdba41675bc62835bf180b82a16328a21d49a1b306ff",
+          "published_git_bytes": 11724
+        },
+        "validate.py": {
+          "local_sha256": "57e5c5b13aa65b9dd3f1e65028f4c0b3109393f152597d6a2fba044793838911",
+          "local_bytes": 19084,
+          "published_git_sha256": "57e5c5b13aa65b9dd3f1e65028f4c0b3109393f152597d6a2fba044793838911",
+          "published_git_bytes": 19084
+        }
+      },
+      "capacity_two_context": {
+        "path": "C:/Users/user/dev/sim_engine_compiler-b02-v102/cases/simlox-air-support/C01-personnel-capacity-v1.0.2/runs/c01-v102-cap2-ssh-20260929-05",
+        "run_id": "c01-v102-cap2-ssh-20260929-05",
+        "invocation": {
+          "sha256": "4e51e23984a79ee0a2851937eddb7a34887a2e662894fc4f12d3c8ff82a20aaf",
+          "bytes": 2365
+        },
+        "closure": {
+          "sha256": "770537c9097ba24fbec533d5c6f1eafa29153c18bde63cd0b1bc621a65c55163",
+          "bytes": 3047
+        },
+        "raw": {
+          "report-export.log": {
+            "bytes": 64,
+            "sha256": "1122e2fbfae5587783a0c305b308a833d6394e35b18a0088ce31c0ad6910123e"
+          },
+          "steps.json": {
+            "bytes": 3135,
+            "sha256": "0ff4b5708e7be6c45ba356b0056ae68ddf5ee67c67c3755d67f8eabbda0da893"
+          },
+          "model.log": {
+            "bytes": 6581,
+            "sha256": "b7664ee8d45d889c6c3c99ffcd82c095b56e194151e8343284d80c4f03710863"
+          },
+          "roundtrip-raw.json": {
+            "bytes": 57629,
+            "sha256": "99f4fb7cf8e25c513a658e51f899e181b08ea80dc0fb440bbffa29accab012f2"
+          },
+          "model.sxo": {
+            "bytes": 349964,
+            "sha256": "00f1e456ea38f6c96d3c0961894f421adc696de7d3c56e6652db19c4baa5c0f4"
+          },
+          "report-raw.json": {
+            "bytes": 148281,
+            "sha256": "b96da12e5c65113833e9575cf2bbc509f1d629539280a99929b6b5c5e414e802"
+          },
+          "run.log": {
+            "bytes": 962,
+            "sha256": "daa59393fc81f6e92336f73531d43bb56f68903ffa9dd8fb5d39dfb9ca5c0e07"
+          },
+          "input.json": {
+            "bytes": 42504,
+            "sha256": "a0d81fcfd065aa393b7ea9dace2b089e4779077e99cb242a2eae0299318c216c"
+          },
+          "import.log": {
+            "bytes": 1813,
+            "sha256": "0db799a73fe3682b33fb984e9a5b42f3ac36b2db6f496de45fc47a4ae043a0de"
+          },
+          "export.log": {
+            "bytes": 221,
+            "sha256": "606fa8405aad5ea7450fb09f89df95f96c4d925b7426472e316ef1189c04804c"
+          },
+          "model.sxi": {
+            "bytes": 189791,
+            "sha256": "40934ca22355d2af47cabcb824998bd59f3c4ba007c5b23c4fe07ca78e433cd3"
+          }
+        }
+      }
+    }
+  },
+  "source_design": {
+    "immediate_parent": "C02-joint-resources-v1.0.2/inputs/single-equipment-zero.json",
+    "parent_input_pin": {
+      "sha256": "f22fa4ef442ec7690238d86b1a04f18c6455ae1aa56c769cfbbe4025786ab5a5",
+      "bytes": 42924
+    },
+    "positive_context_input_pin": {
+      "sha256": "0bf522cd4c4387f110ceae34d7c1e4b4c8b40c8e495e7e27920a48e47bb5f937",
+      "bytes": 42924
+    },
+    "base_structure": {
+      "tables": 31,
+      "row_containing_tables": 20,
+      "populated_business_tables": 17,
+      "all_null_row_containing_placeholders": 3,
+      "taskresource_rows": 0,
+      "subtaskresource_rows": 2,
+      "horizon_hours": 36,
+      "half_hour_bins": 72
+    },
+    "shared_addition": {
+      "table": "TaskResource",
+      "columns": [
+        "TID",
+        "RID",
+        "QTY",
+        "RPROB",
+        "ARID",
+        "ARTF",
+        "ENRMS",
+        "NOTE"
+      ],
+      "rows": [
+        [
+          "PREP-FIXED",
+          "P-CREW",
+          1,
+          1,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "PREP-FIXED",
+          "E-GSE",
+          1,
+          1,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "other_common_source": "All other parent cells unchanged except each arm has a distinct ProblemDescription.PDESC; ResourceAllocation P-CREW1 E-GSE0 P-OTHER0; one INSPECT SEQ1 DURN0.5; no SERVICE SEQ2."
+    },
+    "joint_arm": {
+      "subtaskresource_rows": [
+        [
+          "PREP-FIXED",
+          1,
+          "P-CREW",
+          1,
+          1,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "PREP-FIXED",
+          1,
+          "E-GSE",
+          1,
+          1,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "description": "C02.var04 joint explicit INSPECT set with unavailable E-GSE"
+    },
+    "crewonly_arm": {
+      "subtaskresource_rows": [
+        [
+          "PREP-FIXED",
+          1,
+          "P-CREW",
+          1,
+          1,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "description": "C02.var04 crew-only explicit INSPECT set omitting main E-GSE"
+    },
+    "pair_isolation": "The candidate arms differ only in ProblemDescription.PDESC and deletion of explicit SubTaskResource PREP-FIXED/SEQ1/E-GSE; main TaskResource, capacities, mission, seed, horizon and INSPECT duration stay identical.",
+    "roundtrip_gate": "31 table schemas and instance names, all populated rows/cells exact; candidate has 21 row-containing tables including three all-null placeholders, or 18 populated business tables. Native all-null canonical placeholders may be identified but must not mask non-null drift."
+  },
+  "expected_report_shape": {
+    "ProblemDescription": [
+      1,
+      1
+    ],
+    "ResultSummary": [
+      1,
+      11
+    ],
+    "SystemResults": [
+      72,
+      40
+    ],
+    "StockTotalResults": [
+      72,
+      16
+    ],
+    "ResourceResults": [
+      72,
+      16
+    ],
+    "ResourceResultsTotal": [
+      1,
+      14
+    ],
+    "cells_per_arm": 5210,
+    "interval_hours": 0.5,
+    "horizon_hours": 36
+  },
+  "predeclared_acceptance": [
+    "Before native execution freeze exact two generated inputs, parent diffs, checker, validator, runner, contract and independent contract/prelaunch approvals by SHA256/size. Use two unique run IDs in serial SSH session0 with sshd ancestry, free host-wide mutex, no other SIMLOX child and exact responsive existing GUI PID13340/session1/start1790590196826 before/after each child. Preserve failure closure; no automatic retry or native child termination.",
+    "Rehash listed C02 and C01 published Git source bytes separately from local bytes, including .gitignore CRLF/LF exceptions; verify their three accepted invocations/closures and all 33 raw SHA256/size seals. Do not rerun accepted cases.",
+    "Require exact source design and pair isolation, one seed/repetition, all 31 authored tables and populated-cell import/export roundtrip. Converter Errors0 Warnings2 with exactly #108 and #126 Notes0, usable SXO, full model.log/report. A new warning or invalid source is NO_GO under this frozen gate.",
+    "Both runs identify the same BASIC-MISSION/TEACH-UNIT and TEACH-AIR-01 aircraft, h7 notice and INSPECT SEQ1 resource request. No stock demand, failure, transfer, item repair or unrelated resource booking.",
+    "Joint control tests P-CREW1 available and E-GSE1 unavailable h7, books neither, does no INSPECT work and launches no mission. Same mission cancels/cleans up. Its exact event log and all non-description report cells must match accepted C02 single-equipment-zero; if new main rows alter behavior, reject the comparison.",
+    "Crew-only child tests/books exactly P-CREW1, with no E-GSE availability test, request, booking or release for INSPECT despite main E-GSE. INSPECT performs h7–7.5, releases crew h7.5; preparation completes, same aircraft launches h8, succeeds/completes h10 and returns ready. No extra task, crew lease, E-GSE lease, pending work or backorder at h36.",
+    "Independently reconcile every parsed row identity, null and cell of both six-table reports, 5210 per arm. Joint non-description tables equal accepted single-equipment-zero; child SystemResults, StockTotalResults and ResultSummary equal accepted single-both, while ResourceResults and ResourceResultsTotal are derived from retained crew1/equipment0 capacities and physical work rather than assumed byte parity.",
+    "Resource ledger requires NR1 overall, joint NRUM0 and waiting only during failed h7 request until observed cancellation; child NRUM1 in h7–7.5 and zero elsewhere, child NRW0, integrated child use0.5 resource-hours and full-horizon NRUM mean0.5/36. Check all72 system/resource/stock bins, summary fractions, resource/aircraft terminal conservation.",
+    "Positive contrast requires absence of E-GSE typed request in child with main E-GSE still present and capacity zero. A successful aggregate report alone is insufficient."
+  ],
+  "limits": [
+    "Accepted C02 has empty TaskResource and cannot itself prove complete-set override. This is a new source-bound native pair after separate independent prelaunch approval.",
+    "Only one explicit PREP-FIXED/INSPECT SEQ1 fixed-seed one-aircraft set. No claim for absent SubTaskResource sets, other task types, probabilistic resource needs, partial capacities, substitutes, shifts, aircraft contention, GUI-only behavior, cross-engine parity or general deadline law.",
+    "Accepted C02 -01 discovery and unpublished C02 1.0.1 are context only, not acceptance parents.",
+    "Any frozen gate failure is an excluded diagnostic, not grounds for retroactive contract relaxation or an accepted native rerun."
+  ]
+}
