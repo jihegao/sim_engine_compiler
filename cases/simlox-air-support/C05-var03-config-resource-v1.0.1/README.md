@@ -1,0 +1,13 @@
+# C05.var03 configured mission resources — frozen prelaunch snapshot
+
+This file records the state **before** a C05.var03 v1.0.1 native run. It remains a historical prelaunch source pin after execution. Postrun findings belong in a separate results/signoff file.
+
+The frozen contract compares a two-aircraft, one-mission source with two true `CBSID` configurations, A and B. Both arms keep one A and one B requirement and the same crew capacity 2/radio capacity 0. The B `MissionResource` row requests crew in one arm and radio in the other. The configuration A row requests crew in both. `BSID` does not stand in for `CBSID`.
+
+`build.py` deterministically derives both 33-table inputs from the accepted A16 source and accepted C05 resource rows. `exact-diff.json` records every parent-to-arm table change and the two pair differences. `check_roundtrip.py` checks all authored row-containing tables and native placeholder boundaries. `verify_sources.py` checks local and published Git source bytes, 48 accepted raw seals and installed documentation. `validate_native_cli.py` checks typed physical events and all 5,210 cells of each default report against a separately coded event-derived oracle. Its live mode runs before closure; `--sealed` is for postrun verification.
+
+The source and report hypotheses are predeclared in `contract.json`. A radio shortage may leave a partial A allocation; the negative arm requires no mission launch. The stock gate counts item types and observed event IDs without assuming one literal ID survives a configuration removal and return. No general configuration/resource precedence, atomic formation, GUI rendering or other-seed behavior is claimed.
+
+v1.0.0 is an excluded contract/model-only diagnostic with no native run. Its independent NO_GO addendum and corrected observability note remain pinned. The early v1.0.1 PRI1 input draft is separately preserved under `review/excluded-priority-draft/`; the active inputs set A priority 1 and B priority 2. Neither excluded draft is an accepted behavior result.
+
+Only the controller may invoke the guarded runner. A pure `-PreflightOnly` SSH session-0 file invocation must pass and receive a separate independent exact-file prelaunch approval before the reserved pair can run. The runner never stops or retries a SIMLOX child, preserves a raw closure on failure, and checks the existing GUI identity before and after each child.

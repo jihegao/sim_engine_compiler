@@ -1,0 +1,5 @@
+# Rejected draft builder hash correction
+
+The independent publication draft NO_GO memo is preserved unchanged. Its statement that the rejected evidence index SHA-256 `92ec81f5ad87e392dc44718a5dc5acc83579da047e27d8fbed12d92dba8952e0` pins builder SHA `6117a489875aefe1d3bde0d9d34f1818bd799c78b4f3f9be4928400f1321caa7` is contradicted by that exact saved index. Parsing `review/excluded-index-schema-draft-2026-10-07.json` yields `source_files["make_evidence_index.py"]` as **10,297 bytes / SHA-256 `584fc4971423491d0edce2fd4ff627ceb637300f041f907198f4b355ad84b7c3`**, exactly matching `review/excluded-index-builder-draft-2026-10-07.py`. The string `6117a489` does not occur in the saved rejected index.
+
+An earlier mutable builder draft may have had SHA `6117a489...`, but its bytes are unavailable and are not claimed preserved. The 92ec index's actual 584fc builder pin is internally consistent. The publication NO_GO still holds for its missing standard `source` key and ambiguous entry status; those defects were corrected separately. This note does not modify old native evidence or the independent review memo.

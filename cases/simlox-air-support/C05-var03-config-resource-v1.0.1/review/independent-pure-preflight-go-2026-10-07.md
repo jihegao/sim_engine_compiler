@@ -1,0 +1,20 @@
+# Independent static gate: GO_PURE_PREFLIGHT
+
+This decision permits one read-only, actual SSH0 PowerShell 5 `-File -PreflightOnly` invocation. It does not approve a native SIMLOX child. The separate exact-byte approval remains absent until that preflight exits cleanly and its output is reviewed.
+
+## Frozen bytes reviewed
+
+- Contract SHA-256 `cc3aa75b3c4f6cec8fff57c0de28abf9ed552f4c0bc836e581295856ca30f283`.
+- Prelaunch manifest SHA-256 `fce232eff4e21f6f1dbb065e4f36bc166f1871f94dc97fe2cd7c3bbce671c4bb`, 67 source records. All 67 on-disk SHA-256 and byte-size records independently matched; it binds the installed executable `fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0`, manual `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`, and dictionary `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0`.
+- Runner SHA-256 `5294e312c83bb659dcac59200ded97039263a2c8fed7d8590d4cdb24deddda6b`; PowerShell parser errors: zero. Validator SHA-256 `fa9b0dd2f8d2fc12b88275abbb523c95b43eaddf6b831fb693956a4b617ea2da`; event report oracle SHA-256 `aadd1691c64db71598f7b32754afa61436dcfcf27dea22085b340ad47e2fbbf0`.
+- My separately authored standard-library replay remains prep-only, SHA-256 `0cb3dd82307825e06ccd5ee49b74cfdf69856a9cdc9b0bd7422abbd09d04adbf`; its self-check independently matched 23 accepted local/Git source identities, 48 accepted raw seals, candidate source topology and pair delta, accepted native event/report calibration, and seven in-memory tamper rejections. This is design evidence, not child acceptance.
+
+The v1.0.0 excluded 10-file draft inventory rehashed 10/10. The v1.0.1 wrong-priority six-file draft inventory rehashed 6/6. Earlier reviewer NO_GO records remain distinct and unchanged: source `6a0bcd4e783c3b0b02e3cab993cb1cad223642fe4b62dbf9ce315834bfcdd33b`, validator `f156cb67718829d91cbc06d37131421002965475a70f938974db51c1e86f2756`, and live-protocol `a5151d9a0871883a5786d15a47cc187e5dde143b7bee9246dbb423e06e63f16a`. No v1.0.0 native run occurred; both v1.0.1 reserved run directories and the native approval JSON are absent.
+
+## Static gate reasoning
+
+The runner pins its own bytes and manifest sources before invoking any child; verifies accepted closure/invocation/raw seals; requires SSH session 0 with `sshd.exe` ancestry, the global native mutex, and exactly the protected responding GUI PID 13340/session 1/start `1790590196826`; and requires both unique run directories absent. Its preflight branch writes a read-only evidence JSON and returns before run directory creation or native launch. The normal branch requires an exact independent approval bound to manifest, runner, validator, contract, two input hashes, both run IDs and a sealed SSH preflight path/hash. Native stages are serial import, export, exact 24-table roundtrip, calc, and default JSON report, then live behavior check. Each child is checked as session 0 after exit, with GUI rechecked before/after. It preserves immutable closure and failure seal; no process termination is scripted.
+
+The validator's live mode honestly expects five completed stages plus a started `check_behavior` row before closure exists. Its later sealed mode checks six completed stages, source before/after equality, invocation/closure/raw seals, and provenance. Converter warnings are bound to exact Form/record/code/message tuples; radio negative rejects any launch; positive requires two distinct base allocations/reconfiguration owners, A/B source-targeted item demand and configured preparation/launch links, h10 completion and physical returns. Report code compares every one of 5,210 native cells per arm with exact identity/null/integer rules and bounded event-time fractional tolerance. Calibration on accepted C05 and C05.var02 controls yielded only their known description/configuration differences.
+
+The actual SSH0/PowerShell 5 preflight result, mutex/GUI snapshot, source stability after that call, and final native authorization still require separate review. Any change to these frozen bytes withdraws this gate.

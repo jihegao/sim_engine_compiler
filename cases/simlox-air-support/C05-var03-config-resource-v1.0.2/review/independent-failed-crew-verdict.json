@@ -1,0 +1,105 @@
+{
+  "schema": "c05-var03-v102-independent-failed-crew-diagnostic/v1",
+  "decision": "NO_GO_FROZEN_PAIR",
+  "run_id": "c05-var03-v102-crew-ssh-20261007-01",
+  "radio_run_absent": true,
+  "crew_closure_sha256": "7e64959f168a24b3c7311b33f68c9fa14c44bec80a8202dc5047d9dba329bb3a",
+  "crew_failure_seal_sha256": "900e3a93757811307eed29011a4b8cd237b92cf1da68b6029bdccf553974266d",
+  "raw_seals": 13,
+  "source_pins": 77,
+  "authored_roundtrip_tables": 24,
+  "converter_warnings": 4,
+  "report_shape": {
+    "ProblemDescription": 1,
+    "ResultSummary": 11,
+    "SystemResults": 2880,
+    "StockTotalResults": 1152,
+    "ResourceResults": 1152,
+    "ResourceResultsTotal": 14
+  },
+  "reported_cells_present": 5210,
+  "report_cells_reconciled": {
+    "ProblemDescription": 1,
+    "ResultSummary": 11,
+    "SystemResults": 2880,
+    "StockTotalResults": 1152,
+    "ResourceResults": 1152,
+    "ResourceResultsTotal": 14
+  },
+  "physical_stock_edges": {
+    "TEACH-LRU-A": {
+      "demand_position_index": "0",
+      "opening_and_taken_id": "0",
+      "terminal_stock_level": 0,
+      "stock_returns": 0
+    },
+    "TEACH-LRU-B": {
+      "demand_position_index": "0",
+      "opening_and_taken_id": "2",
+      "terminal_stock_level": 0,
+      "stock_returns": 0
+    },
+    "aircraft_fit_edges": {
+      "base_aircraft_ids": [
+        "0",
+        "1"
+      ],
+      "start_hour": 7,
+      "end_hour": 7.33333,
+      "item_type_to_physical_aircraft_direct_log_link": false
+    }
+  },
+  "native_steps": [
+    [
+      "import",
+      "completed",
+      0
+    ],
+    [
+      "export",
+      "completed",
+      0
+    ],
+    [
+      "check_import_export",
+      "completed",
+      0
+    ],
+    [
+      "calc",
+      "completed",
+      0
+    ],
+    [
+      "jsonreport",
+      "completed",
+      0
+    ],
+    [
+      "check_behavior",
+      "failed",
+      1
+    ]
+  ],
+  "mission_start_hour": 8.0,
+  "mission_completion_hour": 10.0,
+  "h7_crew_assignments": 2,
+  "h7_assignment_releases": 2,
+  "h10_zero_operation_releases": 2,
+  "mission_start_crew_counts": [
+    0,
+    0
+  ],
+  "resource_total_nrma": 0,
+  "resource_total_nrmo": 0,
+  "summary": {
+    "NREP": 1,
+    "MTMF": 1,
+    "MSTF": 1,
+    "MSUF": 1,
+    "STMF": 1
+  },
+  "failed_contract_gate": "crew1 must remain booked for each configured A/B aircraft during shared mission",
+  "author_exception_cause": "resource oracle has 2 assigned starts but counts 4 mission deallocation ends, including 2 zero-quantity operation releases",
+  "scope": "sealed crew arm diagnostic only; radio arm never started; all crew report cells reconciled to observed zero crew occupancy, but frozen positive booking gate fails"
+}
