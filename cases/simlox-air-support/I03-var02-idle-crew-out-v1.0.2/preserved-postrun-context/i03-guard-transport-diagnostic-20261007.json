@@ -1,0 +1,32 @@
+{
+  "schema": "i03-root-guard-diagnostic-capture/v1",
+  "observed_exit_code": 0,
+  "tool_output_text": "{\r\n    \"schema\":  \"i03-root-guard-transport-diagnostic/v1\",\r\n    \"utc\":  \"2026-10-07T15:41:55.4700273Z\",\r\n    \"self_pid\":  10276,\r\n    \"self_session\":  0,\r\n    \"ancestor_ids\":  [\r\n                         16056,\r\n                         25048,\r\n                         19808,\r\n                         5372,\r\n                         468,\r\n                         888\r\n                     ],\r\n    \"matching_processes\":  [\r\n                               {\r\n                                   \"Name\":  \"pwsh.exe\",\r\n                                   \"ProcessId\":  23568,\r\n                                   \"ParentProcessId\":  6808,\r\n                                   \"SessionId\":  1,\r\n                                   \"CommandLine\":  \"\\\"C:\\\\Users\\\\user\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\\\" -Command \\\"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\\nssh -n -o BatchMode=yes -o ConnectTimeout=10 -i C:/Users/user/.ssh/id_rsa user@127.0.0.1 powershell.exe -NoProfile -NonInteractive -File C:/Users/user/Documents/Codex/2026-09-29/simlox-c04-deadline/repo/tmp/i03-guard-diagnostic-20261007.ps1; $taskDiagnosticRunnerLabel=\\u0027run_native_ssh_v3.ps1\\u0027\\\"\"\r\n                               }\r\n                           ],\r\n    \"native_process_started\":  false,\r\n    \"diagnostic_only\":  true\r\n}\r\n",
+  "diagnostic": {
+    "schema": "i03-root-guard-transport-diagnostic/v1",
+    "utc": "2026-10-07T15:41:55.4700273Z",
+    "self_pid": 10276,
+    "self_session": 0,
+    "ancestor_ids": [
+      16056,
+      25048,
+      19808,
+      5372,
+      468,
+      888
+    ],
+    "matching_processes": [
+      {
+        "Name": "pwsh.exe",
+        "ProcessId": 23568,
+        "ParentProcessId": 6808,
+        "SessionId": 1,
+        "CommandLine": "\"C:\\Users\\user\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\nssh -n -o BatchMode=yes -o ConnectTimeout=10 -i C:/Users/user/.ssh/id_rsa user@127.0.0.1 powershell.exe -NoProfile -NonInteractive -File C:/Users/user/Documents/Codex/2026-09-29/simlox-c04-deadline/repo/tmp/i03-guard-diagnostic-20261007.ps1; $taskDiagnosticRunnerLabel='run_native_ssh_v3.ps1'\""
+      }
+    ],
+    "native_process_started": false,
+    "diagnostic_only": true
+  },
+  "original_failure_pid_not_captured": true,
+  "interpretation": "The frozen guard's exact predicate classifies the initiating local session1 pwsh as a competitor solely from the runner label in its command line; this diagnostic invoked no native runner."
+}

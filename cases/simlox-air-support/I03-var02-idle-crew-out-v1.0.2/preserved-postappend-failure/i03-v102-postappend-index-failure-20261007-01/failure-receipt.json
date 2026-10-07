@@ -1,0 +1,57 @@
+{
+  "schema": "i03-postappend-index-rebuild-failure/v1",
+  "decision": "NO_GO_PUBLICATION_REPRO_ORIGINALS_PRESERVED",
+  "native_calls": 0,
+  "accepted_native_reruns": 0,
+  "original_native_verdict_checks": 14996,
+  "postappend_frozen_replay_checks": 14995,
+  "other_verdict_fields_exact": true,
+  "cause": "Frozen replay skips one prepublication catalog-exact check at >490 entries; original builder strict full-verdict comparison rejects count change. Mandatory catalog prefix/metadata/archive/baseGit gates remain.",
+  "records": {
+    "replay": {
+      "method": "review/independent_replay_v3.py",
+      "method_pin": {
+        "bytes": 58981,
+        "sha256": "e8a249c11df2f90f08e838f854432a27eeffacae5b814ceeb16ab4c00ad27e6e"
+      },
+      "exit_code": 0,
+      "streams": {
+        "stdout": {
+          "bytes": 1081,
+          "sha256": "13616cba1dfc619182b88273644ea0b14448afc69165e1affa4e79ac826b730e"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "builder": {
+      "method": "make_evidence_index.py",
+      "method_pin": {
+        "bytes": 9551,
+        "sha256": "dd02c07218289018c42d1ac1448af6454f06e2386cc87a540023d859b67b7f04"
+      },
+      "exit_code": 1,
+      "streams": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 798,
+          "sha256": "84a060ef68101efafd42ff6dbefb7aa349f66df5bc7871f8149b0c30dfc9b184"
+        }
+      }
+    }
+  },
+  "original_index": {
+    "bytes": 111090,
+    "sha256": "57d5ebba2f372f7f07ef092e5c2de58a5577988ade19587f13e522e3706339d8"
+  },
+  "unpublished_catalog491": {
+    "bytes": 491516,
+    "sha256": "de1ecc4a075a6c28b2fc9b70bf0219d42e3b2eed1a0be240c1fd17df8767501b"
+  },
+  "original_failure_tool_output_format": "Initial failure observed as decoded exec tool text; this separate read-only reproduction preserves original subprocess stdout/stderr bytes."
+}
