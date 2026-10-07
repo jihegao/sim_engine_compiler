@@ -1,0 +1,111 @@
+"""Read-only independent audit of the one actual I03.var11 SSH preflight."""
+import hashlib
+import json
+from pathlib import Path
+
+R = Path(__file__).resolve().parent.parent
+P = R / "cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0"
+RUN = "i03-var11-out-unarrived-v100-ssh-20261008-01"
+PREF = P / "review/preflight-ssh0-20261007T210756239Z.json"
+TRANS = P / "transport-evidence/ssh-preflight-20261007T210704457256Z-c11ed8db"
+ROOT_AUDIT = R / "tmp/i03-var11-root-ssh-preflight-audit-20261008.json"
+
+
+def sha(b):
+    return hashlib.sha256(b).hexdigest()
+
+
+def exact(path, size, digest):
+    b = path.read_bytes()
+    assert len(b) == size and sha(b) == digest, path
+    return b
+
+
+def read(path):
+    return json.loads(path.read_bytes())
+
+
+def eq_typed(a, b):
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(eq_typed(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(eq_typed(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+manifest_raw = exact(P / "prelaunch-manifest.json", 291150,
+                     "4aa438b946ff43b2e76f21eb1888f50ee976d1444cb568e5f52c13917f7703fe")
+m = json.loads(manifest_raw)
+assert m["schema"] == "i03-var11-out-unarrived-prelaunch-manifest/v1"
+assert m["run_id"] == RUN and len(m["source_files"]) == m["source_count"] == 782
+source = {}
+for x in m["source_files"]:
+    assert set(x) == {"key", "path", "bytes", "sha256"}, x
+    assert x["key"] not in source
+    f = Path(x["path"])
+    assert f.is_absolute()
+    exact(f, x["bytes"], x["sha256"])
+    source[x["key"]] = x["sha256"]
+source_sha = sha(json.dumps(source, ensure_ascii=False, separators=(",", ":")).encode())
+assert source_sha == "b5279df6ee3ec8c2b2a3971e1e9b77049d1d07441ff124ab327f9f925657431f"
+assert source["owned:preserved-catalog/catalog-at-selection-492.bytes"] == m["live_catalog_prelaunch_pin"]["sha256"]
+archive = P / "preserved-catalog/catalog-at-selection-492.bytes"
+archive_raw = exact(archive, m["live_catalog_prelaunch_pin"]["bytes"], m["live_catalog_prelaunch_pin"]["sha256"])
+live_catalog = Path(m["live_catalog_prelaunch_pin"]["path"])
+assert live_catalog.resolve() == (R / "cases/simlox-air-support/publication-index-v1.json").resolve()
+assert live_catalog.read_bytes() == archive_raw
+
+pref_raw = exact(PREF, 99824, "7279ee8d210fc6005b1826988328293387eea9a715559406de5aff333c4e67f1")
+pref = json.loads(pref_raw)
+assert pref["schema"] == "i03-var11-out-unarrived-ssh-preflight/v1"
+assert pref["run_id"] == RUN and pref["manifest_sha256"] == sha(manifest_raw)
+assert pref["source_map_sha256"] == source_sha
+assert eq_typed(pref["source_hashes"], source)
+for k, val in (("run_dirs_absent", True), ("mutex_free", True),
+               ("native_process_started", False)):
+    assert type(pref[k]) is bool and pref[k] is val
+for k, val in (("ssh_session", 0), ("ps_major", 5), ("wts_active_gui_count", 1),
+               ("accepted_raw_seals", 118), ("accepted_nonclosure_raw", 106),
+               ("accepted_closures", 6), ("accepted_invocations", 6),
+               ("excluded_failed_witness_raw", 26), ("total_original_raw", 144)):
+    assert type(pref[k]) is int and pref[k] == val, k
+assert pref["accepted_nonclosure_raw"] + pref["accepted_closures"] + pref["accepted_invocations"] == pref["accepted_raw_seals"]
+assert pref["accepted_raw_seals"] + pref["excluded_failed_witness_raw"] == pref["total_original_raw"]
+assert isinstance(pref["ssh_ancestors"], list) and "sshd.exe" in pref["ssh_ancestors"]
+assert eq_typed(pref["gui"], {"pid": 13340, "session_id": 1,
+                              "start_unix_ms": 1790590196826, "responding": True})
+assert PREF.resolve().parent == (P / "review").resolve()
+assert not PREF.is_symlink() and not PREF.parent.is_symlink()
+
+transport_raw = exact(TRANS / "transport-receipt.json", 1289,
+                      "91a41b22035e848d2b4a9bf5864ba83eb97246adeb80b11c0eeff7dbc472b3a5")
+t = json.loads(transport_raw)
+assert t["schema"] == "i03-var11-out-unarrived-ssh-transport/v1"
+assert t["mode"] == "preflight" and t["run_id"] == RUN
+assert type(t["native_approved"]) is bool and not t["native_approved"]
+assert type(t["exit_code"]) is int and t["exit_code"] == 0 and t["error"] is None
+assert t["manifest_sha256"] == sha(manifest_raw)
+assert t["runner_sha256"] == source["runner_script"]
+assert t["transport_sha256"] == sha((P / "ssh_transport.py").read_bytes())
+assert t["command"][-6:] == ["powershell.exe", "-NoProfile", "-NonInteractive", "-File",
+                              str((P / "run_native_ssh.ps1").resolve()).replace("\\", "/"), "-PreflightOnly"]
+assert t["command"][:2] == ["ssh", "-n"] and "BatchMode=yes" in t["command"]
+for name in ("ssh-stdout.bin", "ssh-stderr.bin"):
+    rec = t["streams"][name]
+    exact(TRANS / name, rec["bytes"], rec["sha256"])
+assert (TRANS / "ssh-stderr.bin").read_bytes() == b""
+assert (TRANS / "ssh-stdout.bin").read_bytes().decode().strip().replace("\\", "/") == str(PREF.resolve()).replace("\\", "/")
+
+root_raw = exact(ROOT_AUDIT, 1740, "b5e265bd3ac061d6e8100c7352eaa5579eee7fa3d0cdf2b634e10f8eb4452de6")
+root = json.loads(root_raw)
+assert root["decision"] == "ACTUAL_SSH5_FILE_PREFLIGHT_PASS_REQUIRES_FRESH_INDEPENDENT_PRELAUNCH"
+assert root["source_count_after_verified"] == 782 and root["source_map_sha256"] == source_sha
+assert root["native_calls"] == 0 and root["actual_run_absent"] and root["prelaunch_approval_absent"]
+assert not (P / "runs" / RUN).exists()
+assert not (P / "review/independent-prelaunch-go.json").exists()
+print(json.dumps({"decision": "GO_PRELAUNCH_READY", "source_count": 782,
+                  "source_map_sha256": source_sha, "preflight_sha256": sha(pref_raw),
+                  "transport_sha256": sha(transport_raw), "root_audit_sha256": sha(root_raw),
+                  "run_absent": True, "native_calls": 0}, sort_keys=True, separators=(",", ":")))

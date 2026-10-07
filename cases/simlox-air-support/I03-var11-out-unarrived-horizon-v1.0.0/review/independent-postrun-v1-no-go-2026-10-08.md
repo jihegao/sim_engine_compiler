@@ -1,0 +1,7 @@
+# Historical independent reader v1: NO_GO_METHOD
+
+The frozen prelaunch reader `independent_replay.py` (73,587 bytes, SHA-256 `08e64f0095a9cedfea45a4253418c844bf64c66aa15a4790b665ee4cde740170`) was run against the original sealed native files without editing them. It exited 1 after reaching its final author-receipt crosscheck. Its exact stdout is empty and stderr is 1,155 bytes, SHA-256 `f25c8e495512088117937d5d339a7e319c4952fcfae8ad6707a9ad0ec462078d`; the original-stream receipt at `tmp/i03-var11-independent-postrun-proof-v1/receipt.json` is 1,803 bytes, SHA-256 `483cd0c80cae25d82ed7dc1888a41be2e2f14bd5ddbac008e44a60fd919d3060`.
+
+The failing predicate required Python `int` for the author presentation field `timeline.out_departure`. The sealed author-validation JSON prints `6.0` as a floating JSON number. The reader's separate source, physical, report, stage, and raw checks had reached that final predicate; this original invocation does not establish independent postrun GO. The native six-stage run completed with integer exits 0. The root's first postrun audit-script error was a separate empty-string/null assertion about closure presentation, preserved by root; it is not a native failure.
+
+The original prelaunch manifest and approval continue to pin this v1 reader as their historical method identity. A distinct v2 reader and verdict assess the original bytes without changing that identity.

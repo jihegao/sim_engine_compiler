@@ -1,0 +1,155 @@
+"""Independent read-only audit of the frozen I03.var11 v4 contract draft."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import pathlib
+import struct
+import subprocess
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+CONTRACT = ROOT / "tmp/i03-var11-prospective-contract-draft-v4-20261008.json"
+LINEAGE = ROOT / "tmp/i03-var11-model-lineage-draft-v3-20261008.md"
+FREEZE = ROOT / "tmp/i03-var11-root-contract-freeze-v4-20261008.json"
+BASE = "50c552285f69e0b5a8bf82a8cdc6999b9e68f7cf"
+EXPECTED = {
+    CONTRACT: (325510, "67bef26d4fdec4d34e88b20e177239fb973aeba7152f72d26d4d9f9a4f9a79c1"),
+    LINEAGE: (3959, "a2a11671b994f66699fc575794082c26f38aab9d663369105471bf3c1c524924"),
+}
+checks = 0
+
+
+def require(condition: bool, label: str) -> None:
+    global checks
+    if not condition:
+        raise AssertionError(label)
+    checks += 1
+
+
+def pinned(path: pathlib.Path, size: int, sha: str) -> bytes:
+    body = path.read_bytes()
+    require(len(body) == size, f"size {path}")
+    require(hashlib.sha256(body).hexdigest() == sha, f"SHA {path}")
+    return body
+
+
+for p, (size, digest) in EXPECTED.items():
+    pinned(p, size, digest)
+c = json.loads(CONTRACT.read_text(encoding="utf-8"))
+f = json.loads(FREEZE.read_text(encoding="utf-8"))
+require(f["decision"] == "FROZEN_FOR_INDEPENDENT_CONTRACT_REVIEW_ONLY", "root freeze decision")
+require(f["contract"]["sha256"] == EXPECTED[CONTRACT][1], "root freeze contract")
+require(f["lineage"]["sha256"] == EXPECTED[LINEAGE][1], "root freeze lineage")
+require(c["source_lineage"]["base_commit"] == BASE == f["base"], "base commit")
+require(c["schema"] == "i03-var11-out-unarrived-prospective-contract/v1", "schema")
+require(c["phase"] == "contract_design_only_no_model_or_native", "phase")
+require(c["ownership"]["new_native_calls_so_far"] == 0 == f["new_native_calls"], "no new native")
+require(c["source_lineage"]["source_ref_count"] == 452, "source count")
+require(len(c["source_lineage"]["primary_parent_source_and_secondary_context_source_disk_vs_git_at_base"]) == 452, "source refs")
+require(len(c["source_lineage"]["original_raw"]) == 144, "raw refs")
+require(len(c["source_lineage"]["root_selection_context"]) == 7, "selection refs")
+require(len(c["source_lineage"]["installed"]) == 3, "installed refs")
+require(len(c["source_lineage"]["required_docs"]) == 8, "docs refs")
+
+# Git object reads use OIDs; `git show REF:path` has a Windows long-path failure.
+tree = subprocess.check_output(["git", "ls-tree", "-rz", BASE], cwd=ROOT)
+oids = {}
+for entry in tree.split(b"\0"):
+    if not entry:
+        continue
+    meta, name = entry.split(b"\t", 1)
+    oids[name.decode("utf-8")] = meta.split()[2].decode("ascii")
+refs = c["source_lineage"]["primary_parent_source_and_secondary_context_source_disk_vs_git_at_base"]
+require(len({r["path"] for r in refs}) == len(refs), "unique source paths")
+for r in refs:
+    p = ROOT / r["path"]
+    pinned(p, r["local_disk"]["bytes"], r["local_disk"]["sha256"])
+    oid = oids.get(r["path"])
+    require(oid is not None, f"Git tree path {r['path']}")
+    git_data = subprocess.check_output(["git", "cat-file", "blob", oid], cwd=ROOT)
+    require(len(git_data) == r["published_git_at_base"]["bytes"], f"Git size {p}")
+    require(hashlib.sha256(git_data).hexdigest() == r["published_git_at_base"]["sha256"], f"Git SHA {p}")
+
+raw = c["source_lineage"]["original_raw"]
+require(len({r["original_path"] for r in raw}) == 144, "unique original raw")
+require(sum(r["classification"] == "accepted_or_required_context" for r in raw) == 118, "accepted/context raw count")
+require(sum(r["classification"] == "excluded_failed_v100_witness" for r in raw) == 26, "failed witness raw count")
+for r in raw:
+    pinned(pathlib.Path(r["original_path"]), r["bytes"], r["sha256"])
+for section in ("installed", "required_docs", "root_selection_context"):
+    for r in c["source_lineage"][section]:
+        p = pathlib.Path(r.get("original_path", r["path"]))
+        if not p.is_absolute():
+            p = ROOT / p
+        pinned(p, r["bytes"], r["sha256"])
+sel = c["source_lineage"]["root_selection_context"]
+require(len({r["owned_inert_copy"] for r in sel}) == 7, "unique inert copies")
+require(all(r["owned_inert_copy"].startswith("preserved-root-selection/") and r["owned_inert_copy"].endswith(".bytes") for r in sel), "inert selection destinations")
+
+cat = c["source_lineage"]["catalog_at_selection"]
+require(cat["entry_count"] == 492, "catalog492")
+require(cat["owned_exact_archive"] == "preserved-catalog/catalog-at-selection-492.bytes", "archive name")
+pinned(ROOT / cat["path"], cat["local_disk"]["bytes"], cat["local_disk"]["sha256"])
+cat_git = subprocess.check_output(["git", "cat-file", "blob", oids[cat["path"]]], cwd=ROOT)
+require(len(cat_git) == cat["published_git_at_base"]["bytes"], "catalog Git size")
+require(hashlib.sha256(cat_git).hexdigest() == cat["published_git_at_base"]["sha256"], "catalog Git SHA")
+cat_doc = json.loads((ROOT / cat["path"]).read_text(encoding="utf-8"))
+require(len(cat_doc["entries"]) == 492, "catalog entry count")
+require({k: v for k, v in cat_doc.items() if k != "entries"} == cat["metadata"], "catalog metadata")
+require(len({e["publication_id"] for e in cat_doc["entries"]}) == 492, "catalog unique IDs")
+
+selection = json.loads(pathlib.Path(c["ownership"]["root_selection_receipt"]).read_text(encoding="utf-8"))
+require("I03-var11-out-unarrived-horizon-v1.0.0" in selection["candidate_package"], "selection package identity")
+require(selection["guard"]["candidate_run_exists"] is True, "embedded v06 guard truth")
+require("v06" in c["ownership"]["root_selection_guard_scope"] and "v11" in c["ownership"]["root_selection_guard_scope"], "guard distinction stated")
+package = ROOT / "cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0"
+run = package / "runs/i03-var11-out-unarrived-v100-ssh-20261008-01"
+require(not package.exists() and not run.exists(), "correct candidate package/run absent")
+require(selection["candidate_package"].lower() == str(package).lower(), "selection correct package path")
+require(selection["absent_candidate_run"].lower() == str(run).lower(), "selection correct absent run path")
+require(f["correct_candidate_path"].lower() == str(package).lower(), "root correct package")
+require(f["correct_unique_run_path"].lower() == str(run).lower(), "root correct run")
+
+d = c["source_delta"]
+require(d["parent_input"]["sha256"] == "b6cebc1b3a44e6bd462e222690e90026e8336e1ad55f0b68b2d9212c635176b4", "accepted parent input")
+parent = json.loads(pinned(ROOT / d["parent_input"]["path"], d["parent_input"]["bytes"], d["parent_input"]["sha256"]))
+require(d["all_authored_and_exported_tables"] == len(parent["model"]["tables"]) == 32, "parent 32 tables")
+require(d["authored_cell_count"] == 220 and d["authored_row_containing_tables"] == 21, "source topology")
+require(len(d["allowed_changes_exactly"]) == 2, "two cell changes")
+require({(x["table"], x["column"]) for x in d["allowed_changes_exactly"]} == {("ProblemDescription", "PDESC"), ("ResourceTransfer", "TFDT")}, "change locations")
+require(d["child_transfer_row"] == ["BASE-01", "<OUTSIDE>", "P-CREW", 6.0, 1, 40.0, None], "TFDT40 row")
+
+rg = c["report_gate"]
+require(rg["cells_per_arm"] == 5210 and len(rg["tables_in_order"]) == 6, "report scope")
+require(sum(t["rows"] * len(t["columns"]) for t in rg["topology"]) == 5210, "report cell arithmetic")
+sys_cols = rg["topology"][2]["columns"]
+classes = rg["system_field_classes"]
+require(len(sys_cols) == 40, "40 System columns")
+flattened = sum((v for v in classes.values()), [])
+require(len(flattened) == len(set(flattened)) and set(flattened) == set(sys_cols), "exhaustive disjoint System classes")
+res_cols = rg["topology"][4]["columns"]
+rclasses = rg["resource_fields"]
+rflat = rclasses["identity_and_interval"] + rclasses["source_event_dynamic"] + rclasses["source_event_zero"]
+require(len(rflat) == len(set(rflat)) and set(rflat) == set(res_cols), "exhaustive disjoint Resource classes")
+require(rg["resource_fields"]["total_expected_float32"] == {
+    "NR": struct.unpack("<f", struct.pack("<f", 42 / 36))[0],
+    "NRA": struct.unpack("<f", struct.pack("<f", 42 / 36))[0],
+    "NRN": struct.unpack("<f", struct.pack("<f", 42 / 36))[0],
+    "NRUM": struct.unpack("<f", struct.pack("<f", 2 / 36))[0],
+    "NRW": struct.unpack("<f", struct.pack("<f", 1 / 36))[0],
+}, "five exact float32 means")
+require(rg["source_event_integrals_aircraft_hours"] == {"FTMO": 2, "NSYA": 72, "NSYMA": 8, "NSYMO": 4, "NSYMP": 3, "NSYMR": 1, "NSYRY": 64, "STACC": 4}, "source-event integrals")
+require(rg["source_event_counts"] == {"NPSTA": 4, "NPSUC": 4}, "mission counts")
+require("5,209" in rg["full_cell_oracle"] and "additional check" in rg["full_cell_oracle"], "cross-arm equality supplemental")
+require("None predeclared" in rg["numeric_comparison"]["fractional_bin_from_printed_event_edges"], "no fractional tolerance")
+require("no epsilon" in rg["numeric_comparison"]["time_averaged_ResourceResultsTotal_dynamic_fields"], "no total epsilon")
+require(c["native_and_provenance_gate"]["future_six_stages"].startswith("Exactly ordered import → export → check_import_export → calc → jsonreport → check_behavior"), "ordered six stages")
+require("before calc" in c["native_and_provenance_gate"]["future_six_stages"], "roundtrip before calc")
+require(c["scope"]["testable_classification"].startswith("One started, quantity-one OUT task"), "bounded classification")
+require("No h46 event" in c["scope"]["h46_status"], "h46 not observed")
+require("not an accepted parent" in c["scope"]["secondary_context"], "secondary context only")
+require("NO_GO" in rg["unknown_formula_or_unexplained_cell"], "unknown formula fails")
+
+print(json.dumps({"schema":"i03-var11-independent-contract-audit/v4","decision":"PASS_CONTRACT_ONLY","checks":checks,"contract_sha256":EXPECTED[CONTRACT][1],"lineage_sha256":EXPECTED[LINEAGE][1],"sources":452,"raw":144,"root_context":7,"native_calls":0},sort_keys=True))

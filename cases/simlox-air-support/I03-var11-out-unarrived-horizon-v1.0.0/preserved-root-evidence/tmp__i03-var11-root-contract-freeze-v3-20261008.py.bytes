@@ -1,0 +1,45 @@
+from pathlib import Path
+import hashlib,json,subprocess,stat
+
+ROOT=Path(__file__).resolve().parents[1]
+def digest(b): return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def check(path,pin):
+    p=Path(path)
+    if not p.is_absolute(): p=ROOT/p
+    assert digest(p.read_bytes())==pin,(str(p),'byte pin mismatch')
+    return p
+def git(*args):
+    r=subprocess.run(['git',*args],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    assert r.returncode==0,(args,r.stderr.decode('utf-8','replace'))
+    return r.stdout
+cp=check('tmp/i03-var11-prospective-contract-draft-v3-20261008.json',{'bytes':324291,'sha256':'2428a284b500568e1877dec3b582154da4017db51ad5ebe4edd77b87aba71551'})
+lp=check('tmp/i03-var11-model-lineage-draft-v2-20261008.md',{'bytes':4932,'sha256':'64c22b95ccd9ad149bf88940f316880c77f9f7dcddf7bd4fdeff5daaaf8ae5af'})
+d=json.loads(cp.read_bytes()); s=d['source_lineage']; base=s['base_commit']
+assert git('rev-parse','HEAD').decode().strip()==base=='50c552285f69e0b5a8bf82a8cdc6999b9e68f7cf'
+assert git('diff','--name-only')==git('diff','--cached','--name-only')==b''
+assert not (ROOT/d['package']).exists()
+refs=s['primary_parent_source_and_secondary_context_source_disk_vs_git_at_base']
+assert len(refs)==452==s['source_ref_count']
+tree={}
+for item in git('ls-tree','-r','-z',base).split(b'\0'):
+    if not item: continue
+    meta,path=item.split(b'\t',1); tree[path.decode()]=meta.split()[2].decode()
+for r in refs:
+    check(r['path'],r['local_disk'])
+    assert digest(git('cat-file','blob',tree[r['path']]))==r['published_git_at_base'],r['path']
+raw=s['original_raw']; assert len(raw)==144
+for r in raw: check(r['original_path'],{'bytes':r['bytes'],'sha256':r['sha256']})
+for group in ('installed','required_docs','root_selection_context'):
+    for r in s[group]: check(r['path'],{'bytes':r['bytes'],'sha256':r['sha256']})
+cat=s['catalog_at_selection'];check(cat['path'],cat['local_disk'])
+assert digest(git('cat-file','blob',tree[cat['path']]))==cat['published_git_at_base']
+assert len(json.loads((ROOT/cat['path']).read_bytes())['entries'])==492
+assert 'import' in d['native_and_provenance_gate']['future_six_stages']
+assert len(d['source_delta']['allowed_changes_exactly'])==2
+assert d['report_gate']['cells_per_arm']==5210
+assert d['ownership']['new_native_calls_so_far']==0
+out=ROOT/'tmp/i03-var11-root-contract-freeze-v3-20261008.json';assert not out.exists()
+receipt={'schema':'issue18-i03-var11-root-contract-freeze/v1','decision':'FROZEN_FOR_INDEPENDENT_CONTRACT_REVIEW_ONLY','base':base,'contract':{'path':cp.relative_to(ROOT).as_posix(),**digest(cp.read_bytes())},'lineage':{'path':lp.relative_to(ROOT).as_posix(),**digest(lp.read_bytes())},'published_source_identities_verified':len(refs),'mandatory_original_raw_verified':len(raw),'catalog_entries':492,'case_package_absent':True,'new_native_calls':0,'construction_authorized':False}
+out.write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8',newline='\n')
+for p in (cp,lp,out,Path(__file__)):p.chmod(stat.S_IREAD)
+print(json.dumps(receipt))

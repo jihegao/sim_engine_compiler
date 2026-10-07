@@ -1,0 +1,9 @@
+# I03.var11 fixed OUT task unarrived at h36
+
+This package contains one original var11 native run and a byte-reused, accepted I03.var02 parent. Its only authored source changes are `ResourceTransfer.TFDT` 0→40 and `ProblemDescription.PDESC`. The source/export retains TFDT 40. The var11 log prints the quantity-one OUT task start at h6 with transfer time 40, and no linked arrival or cancellation through h36. The terminal **started-but-unarrived task quantity is one**; the completed OUT task quantity is zero. h46 is arithmetic only, not an observed event.
+
+The author’s sealed gate checked 5,210 child report cells. A separately versioned independent reader checked 5,210 cells per arm, all 5,209 non-description cells equal, 18,550 provenance and behavior checks, six session-0 stages with captured integer exit 0, and the 25 original child run files. The original approved independent reader failed a JSON presentation type check for `out_departure: 6.0`; that failure and its original stderr are preserved. The repaired reader accepts only a finite numeric value exactly equal to 6 in that field and retains strict integer quantity gates. The repair did not rerun native code.
+
+This is a bounded result for the pinned source, seed, executable and h36 horizon. The installed manual’s general OUT-delay wording conflicts with this fixed run and the earlier TFDT4 witness. The trace establishes a pending task quantity; it does not establish persistent individual person identity, an outside roster, a report transit display, or an observed h46 arrival. It does not prove behavior for other delays, transfer directions, scenarios, GUIs, engines or performance settings.
+
+The [postrun guide](REPRODUCTION-postrun.md) and [signoff](cli-scope-signoff-2026-10-08.md) describe the sealed files and read-only replay. The central publication catalog and Git merge determine publication status; this README records the reviewed evidence before those steps.

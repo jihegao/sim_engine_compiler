@@ -1,0 +1,119 @@
+"""Read-only exact-file gate for frozen I03.var11 prelaunch material."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0"
+PY = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+RUN = CASE / "runs/i03-var11-out-unarrived-v100-ssh-20261008-01"
+CONTRACT = "67bef26d4fdec4d34e88b20e177239fb973aeba7152f72d26d4d9f9a4f9a79c1"
+REPLAY = "08e64f0095a9cedfea45a4253418c844bf64c66aa15a4790b665ee4cde740170"
+SELF = "c2bac3ddf408c2a9df47ac9162234374ed1147ddc65cc51ee9677e80bb1617d0"
+
+
+def seal(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def strict_json(path: Path) -> dict:
+    def unique(pairs):
+        out = {}
+        for key, value in pairs:
+            assert key not in out, key
+            out[key] = value
+        return out
+    return json.loads(path.read_text(encoding="utf-8-sig"), object_pairs_hook=unique)
+
+
+def typed_equal(a, b):
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(typed_equal(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed_equal(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def run_pure(path: Path) -> dict:
+    cmd = [str(PY), "-X", "utf8", "-B", str(path)]
+    if path.name == "independent_replay.py":
+        cmd.append("--pure-fixture")
+    result = subprocess.run(cmd, cwd=REPO, capture_output=True)
+    assert result.returncode == 0 and result.stderr == b"", (path, result.returncode, result.stderr)
+    return json.loads(result.stdout)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--manifest-sha", required=True)
+    args = parser.parse_args()
+    assert len(args.manifest_sha) == 64 and all(c in "0123456789abcdef" for c in args.manifest_sha)
+    checks = 0
+    manifest_path = CASE / "prelaunch-manifest.json"
+    assert seal(manifest_path)["sha256"] == args.manifest_sha
+    manifest = strict_json(manifest_path)
+    assert manifest["schema"] == "i03-var11-out-unarrived-prelaunch-manifest/v1"
+    assert manifest["run_id"] == RUN.name and manifest["contract_sha256"] == CONTRACT
+    assert manifest["native_runs_authorized_by_manifest"] == 0
+    assert manifest["independent_replay_state"] == "exact method pinned; fresh approval required"
+    assert not RUN.exists() and not (CASE / "review/independent-prelaunch-go.json").exists()
+    checks += 7
+
+    rows = manifest["source_files"]
+    keys = [row["key"] for row in rows]
+    assert type(rows) is list and manifest["source_count"] == len(rows) == len(set(keys))
+    assert "catalog_live_prelaunch" not in keys
+    assert {"child_contract", "child_input", "behavior_validator", "runner_script",
+            "independent_replay", "independent_self_check",
+            "owned:preserved-catalog/catalog-at-selection-492.bytes"} <= set(keys)
+    source_map = {}
+    for row in rows:
+        assert set(row) == {"key", "path", "bytes", "sha256"}
+        path = Path(row["path"])
+        assert path.is_absolute() and seal(path) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        source_map[row["key"]] = row["sha256"]
+        checks += 2
+    assert source_map["child_contract"] == CONTRACT
+    assert source_map["independent_replay"] == REPLAY
+    assert source_map["independent_self_check"] == SELF
+    assert source_map["child_input"] == seal(CASE / "native-input.json")["sha256"]
+    checks += 6
+
+    archive = CASE / "preserved-catalog/catalog-at-selection-492.bytes"
+    live = REPO / "cases/simlox-air-support/publication-index-v1.json"
+    pin = manifest["live_catalog_prelaunch_pin"]
+    assert set(pin) == {"path", "bytes", "sha256"} and pin["path"] == str(live.resolve())
+    assert seal(archive) == seal(live) == {"bytes": pin["bytes"], "sha256": pin["sha256"]}
+    assert Path(next(r["path"] for r in rows if r["key"].startswith("owned:preserved-catalog/"))) == archive.resolve()
+    old, now = strict_json(archive), strict_json(live)
+    assert len(old["entries"]) == len(now["entries"]) == 492
+    assert typed_equal(old, now)
+    ids = [x["publication_id"] for x in now["entries"]]
+    assert len(ids) == len(set(ids)) and all(type(x) is str and x for x in ids)
+    checks += 6
+    assert (manifest["accepted_raw_records"], manifest["accepted_nonclosure_raw_records"],
+            manifest["excluded_failed_witness_raw_records"]) == (118, 106, 26)
+    checks += 1
+
+    replay, selfcheck = run_pure(CASE / "review/independent_replay.py"), run_pure(CASE / "review/independent_self_check.py")
+    assert replay["status"] == "STATIC_ONLY" and replay["checks"] == 10875
+    assert replay["parent_report_cells"] == replay["child_report_cells_predicted"] == 5210
+    assert selfcheck["status"] == "PASS_PURE_FIXTURE_ONLY" and selfcheck["semantic_rejections"] == 40
+    checks += 4
+    print(json.dumps({"schema": "i03-var11-independent-pure-preflight-audit/v1",
+                      "decision": "GO_PURE_PREFLIGHT_CANDIDATE", "source_records": len(rows),
+                      "checks": checks, "manifest_sha256": args.manifest_sha,
+                      "parent_cells": 5210, "predicted_child_cells": 5210,
+                      "semantic_rejections": 40, "native_process_started": False},
+                     separators=(",", ":")))
+
+
+if __name__ == "__main__":
+    main()

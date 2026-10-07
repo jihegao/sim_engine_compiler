@@ -1,0 +1,38 @@
+from pathlib import Path
+import hashlib,json,stat,re
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0'
+TRANSPORT=CASE/'transport-evidence/ssh-preflight-20261007T210704457256Z-c11ed8db'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_text(encoding='utf-8-sig'))
+t=load(TRANSPORT/'transport-receipt.json')
+assert t['mode']=='preflight' and t['native_approved'] is False and type(t['exit_code']) is int and t['exit_code']==0 and t['error'] is None
+assert t['command'][-1]=='-PreflightOnly' and '-File' in t['command']
+for name,p in t['streams'].items():assert pin(TRANSPORT/name)==p
+assert t['streams']['ssh-stderr.bin']['bytes']==0
+manifest=CASE/'prelaunch-manifest.json';m=load(manifest)
+assert pin(manifest)=={'bytes':291150,'sha256':'4aa438b946ff43b2e76f21eb1888f50ee976d1444cb568e5f52c13917f7703fe'}
+pref=Path((TRANSPORT/'ssh-stdout.bin').read_bytes().decode('utf-8-sig').strip())
+assert pref.parent.resolve()==(CASE/'review').resolve() and re.fullmatch(r'preflight-ssh0-\d{8}T\d{9}Z\.json',pref.name)
+p=load(pref)
+assert p['schema']=='i03-var11-out-unarrived-ssh-preflight/v1' and p['run_id']==m['run_id']
+for key,value in {'ssh_session':0,'ps_major':5,'wts_active_gui_count':1,'accepted_raw_seals':118,'accepted_nonclosure_raw':106,'accepted_closures':6,'accepted_invocations':6,'excluded_failed_witness_raw':26,'total_original_raw':144}.items():assert type(p[key]) is int and p[key]==value,(key,p[key])
+for key,value in {'mutex_free':True,'run_dirs_absent':True,'native_process_started':False}.items():assert type(p[key]) is bool and p[key] is value,key
+assert 'sshd.exe' in p['ssh_ancestors']
+assert p['gui']=={'pid':13340,'session_id':1,'start_unix_ms':1790590196826,'responding':True}
+assert p['manifest_sha256']==t['manifest_sha256']==pin(manifest)['sha256']
+assert len(m['source_files'])==m['source_count']==len(p['source_hashes'])==782
+assert list(p['source_hashes'])==[r['key'] for r in m['source_files']]
+for r in m['source_files']:
+    assert pin(Path(r['path']))=={k:r[k] for k in ('bytes','sha256')},r['key']
+    assert p['source_hashes'][r['key']]==r['sha256'],r['key']
+compact=json.dumps(p['source_hashes'],ensure_ascii=False,separators=(',',':')).encode('utf-8')
+assert hashlib.sha256(compact).hexdigest()==p['source_map_sha256']
+assert not (CASE/'runs'/m['run_id']).exists() and not (CASE/'review/independent-prelaunch-go.json').exists()
+for f in [pref,*TRANSPORT.iterdir()]:
+    if f.is_file():f.chmod(stat.S_IREAD)
+out=ROOT/'tmp/i03-var11-root-ssh-preflight-audit-20261008.json';assert not out.exists()
+receipt={'schema':'issue18-i03-var11-root-ssh-preflight-audit/v1','decision':'ACTUAL_SSH5_FILE_PREFLIGHT_PASS_REQUIRES_FRESH_INDEPENDENT_PRELAUNCH','manifest':pin(manifest),'preflight':{'path':pref.relative_to(CASE).as_posix(),**pin(pref)},'transport_records':[{'path':f.relative_to(CASE).as_posix(),**pin(f)} for f in sorted(TRANSPORT.iterdir()) if f.is_file()],'source_count_after_verified':782,'source_map_sha256':p['source_map_sha256'],'actual_context':{k:p[k] for k in ('ssh_session','ps_major','ssh_ancestors','gui','mutex_free','wts_active_gui_count')},'native_calls':0,'actual_run_absent':True,'prelaunch_approval_absent':True}
+out.write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8',newline='\n');out.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps(receipt))
