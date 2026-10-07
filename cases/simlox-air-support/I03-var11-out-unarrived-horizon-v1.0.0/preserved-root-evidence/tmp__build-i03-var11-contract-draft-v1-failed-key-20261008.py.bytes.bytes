@@ -1,0 +1,282 @@
+"""Read-only lineage assembly and one-time prospective contract draft; no native call."""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+
+
+ROOT = Path(__file__).resolve().parents[1]
+BASE = "50c552285f69e0b5a8bf82a8cdc6999b9e68f7cf"
+CASES = ROOT / "cases/simlox-air-support"
+PARENT = CASES / "I03-var02-idle-crew-out-v1.0.2"
+SECONDARY = CASES / "I03-var06-out-duration-counterexample-v1.0.1"
+PACKAGE = CASES / "I03-var11-out-unarrived-horizon-v1.0.0"
+RUN_ID = "i03-var11-out-unarrived-v100-ssh-20261008-01"
+OUT = ROOT / "tmp/i03-var11-prospective-contract-draft-v1-20261008.json"
+PARENT_INDEX = PARENT / "evidence-index-v2.json"
+SECONDARY_INDEX = SECONDARY / "evidence-index.json"
+CATALOG = CASES / "publication-index-v1.json"
+
+
+def pin(data: bytes) -> dict:
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def pfile(path: Path) -> dict:
+    return pin(path.read_bytes())
+
+
+def git(*args: str, input: bytes | None = None) -> bytes:
+    result = subprocess.run(["git", *args], cwd=ROOT, input=input, capture_output=True)
+    assert result.returncode == 0 and not result.stderr, (args, result.stderr)
+    return result.stdout
+
+
+assert not OUT.exists() and not PACKAGE.exists() and not (PACKAGE / "runs" / RUN_ID).exists()
+assert git("rev-parse", "HEAD").decode().strip() == BASE
+assert git("rev-parse", "origin/simlox/main").decode().strip() == BASE
+assert pfile(PARENT_INDEX)["sha256"] == "4060de5d7434ff675949b9eea7fb8f827ac0c72a56e530169b60ecb0da0724dc"
+assert pfile(SECONDARY_INDEX)["sha256"] == "b4e82d39d5780e3eb981a717a0c9b598489c62747e9acc1e5ab5bfeae4e9ffbb"
+parent_index = json.loads(PARENT_INDEX.read_bytes())
+secondary_index = json.loads(SECONDARY_INDEX.read_bytes())
+assert len(parent_index["source_files"]) == 192 and len(secondary_index["source_files"]) == 258
+
+source_pins: dict[str, dict] = {}
+for role, index, doc in (("accepted_primary_parent", PARENT_INDEX, parent_index),
+                         ("published_secondary_context", SECONDARY_INDEX, secondary_index)):
+    for row in doc["source_files"]:
+        path = index.parent / row["path"]
+        rel = path.relative_to(ROOT).as_posix()
+        expected = {key: row[key] for key in ("bytes", "sha256")}
+        assert pfile(path) == expected, rel
+        assert rel not in source_pins
+        source_pins[rel] = {"role": role, "local_disk": expected}
+    rel = index.relative_to(ROOT).as_posix()
+    assert rel not in source_pins
+    source_pins[rel] = {"role": role + "_index", "local_disk": pfile(index)}
+assert len(source_pins) == 452
+
+tree: dict[str, str] = {}
+for record in git("ls-tree", "-r", "-z", BASE).split(b"\0"):
+    if not record:
+        continue
+    header, path = record.split(b"\t", 1)
+    mode, kind, oid = header.split(b" ")
+    if kind == b"blob":
+        tree[path.decode("utf-8")] = oid.decode("ascii")
+assert all(name in tree for name in source_pins)
+oids = list(dict.fromkeys(tree[name] for name in source_pins))
+batch = git("cat-file", "--batch", input=("\n".join(oids) + "\n").encode("ascii"))
+blob_pins: dict[str, dict] = {}
+pos = 0
+for oid in oids:
+    end = batch.index(b"\n", pos)
+    parts = batch[pos:end].split()
+    assert parts[0].decode("ascii") == oid and parts[1] == b"blob"
+    size = int(parts[2]); start = end + 1
+    data = batch[start:start + size]
+    assert len(data) == size and batch[start + size:start + size + 1] == b"\n"
+    blob_pins[oid] = pin(data)
+    pos = start + size + 1
+assert pos == len(batch)
+source_refs = []
+for name, item in sorted(source_pins.items()):
+    git_pin = blob_pins[tree[name]]
+    assert item["local_disk"] == git_pin, name
+    source_refs.append({"path": name, "role": item["role"],
+                        "local_disk": item["local_disk"], "published_git_at_base": git_pin})
+
+raw_records = []
+for row in secondary_index["raw_files"]:
+    path = Path(row["path"])
+    if not path.is_absolute():
+        path = ROOT / path
+    assert pfile(path) == {k: row[k] for k in ("bytes", "sha256")}, path
+    classification = "excluded_failed_v100_witness" if row["section"] == "failed_v100_run" else "accepted_or_required_context"
+    raw_records.append({"classification": classification, "original_path": str(path),
+                        "section": row["section"], "bytes": row["bytes"], "sha256": row["sha256"]})
+assert len(raw_records) == 144
+assert sum(r["classification"] == "accepted_or_required_context" for r in raw_records) == 118
+assert sum(r["classification"] == "excluded_failed_v100_witness" for r in raw_records) == 26
+
+catalog_data = json.loads(CATALOG.read_bytes())
+assert len(catalog_data["entries"]) == 492
+catalog_local = pfile(CATALOG)
+catalog_rel = CATALOG.relative_to(ROOT).as_posix()
+catalog_git = blob_pins[tree[catalog_rel]] if tree[catalog_rel] in blob_pins else pin(git("cat-file", "blob", tree[catalog_rel]))
+assert catalog_local != catalog_git  # Preserve CRLF/LF identities distinctly.
+ids = [r["publication_id"] for r in catalog_data["entries"]]
+assert len(ids) == len(set(ids))
+assert {"I03.var02.idle_crew_out.1.0.2", "I03.var06.out_duration_counterexample.readonly.1.0.1"}.issubset(ids)
+
+docs = ["AGENTS.md", "README.md", "docs/architecture.md", "docs/semantic-baseline.md",
+        "docs/roadmap.md", "cases/simlox-air-support/execution-plan-v2.md",
+        "cases/simlox-air-support/ssh-cli-acceptance-policy-v1.md",
+        "cases/simlox-air-support/catalog-v2.json"]
+required_docs = [{"path": path, **pfile(ROOT / path)} for path in docs]
+installed = copy.deepcopy(secondary_index["installed"])
+assert len(installed) == 3
+for row in installed:
+    assert pfile(Path(row["path"])) == {k: row[k] for k in ("bytes", "sha256")}
+
+parent_input = PARENT / "native-input.json"
+parent_model = json.loads(parent_input.read_bytes())["model"]
+assert parent_model["database_version"] == 20160627 and len(parent_model["tables"]) == 32
+assert sum(len(i["rows"]) * len(t["columns"]) for t in parent_model["tables"] for i in t["instances"]) == 220
+tables = {t["name"]: t for t in parent_model["tables"]}
+transfer = tables["ResourceTransfer"]["instances"][0]["rows"]
+assert transfer == [["BASE-01", "<OUTSIDE>", "P-CREW", 6.0, 1, 0.0, None]]
+old_description = tables["ProblemDescription"]["instances"][0]["rows"][0][0]
+new_description = "I03.var11 OUT TFDT40 started but unarrived at h36"
+assert old_description == "I03.var02 idle crew OUT h6 versus accepted busy OUT h7.75"
+assert pfile(parent_input) == {"bytes": 43341, "sha256": "b6cebc1b3a44e6bd462e222690e90026e8336e1ad55f0b68b2d9212c635176b4"}
+
+old_contract = json.loads((CASES / "I03-var06-out-ignored-duration-v1.0.0/contract.json").read_bytes())
+report_gate = copy.deepcopy(old_contract["report_gate"])
+report_gate["full_cell_oracle"] = (
+    "Independently derive all 5,210 cells in EACH arm from exact source, full typed event intervals and separately predeclared bounded native presentation classes. "
+    "For the fixed one-unit OUT source, both arms have the same on-station resource/mission states through h36 if child has one h6 departure and no return or other divergence; "
+    "5,209 corresponding non-PDESC report cells are therefore expected equal, while PDESC differs as authored. Cross-arm equality is an additional check, never the oracle. "
+    "The child started-but-unarrived OUT task quantity is derived from its task edges, not from a report transit display or outside person observation."
+)
+report_gate["numeric_comparison"]["boundary_source"] = (
+    "Manual pp751,757-760 and source/event half-hour edges h6,7.5,8,8.5,19.5,20,20.5,36. "
+    "Exactly binary32-quantize five total means; no epsilon. h46 is only 6+40 arithmetic outside the observed horizon."
+)
+report_gate["unknown_formula_or_unexplained_cell"] = (
+    "NO_GO; named bounded presentation constants remain presentation, not general statistical formulas. "
+    "No candidate-cell fit, tolerance widening or claim that absent arrival proves a displayed transit field."
+)
+
+selection_files = []
+selection_dir = ROOT / "tmp/i03-var11-root-selection-proof-20261008"
+for path in sorted(selection_dir.iterdir()):
+    if path.is_file():
+        selection_files.append({"path": str(path), **pfile(path)})
+selection_files.append({"path": str(ROOT / "tmp/i03-var11-root-selection-20261008.py"),
+                        **pfile(ROOT / "tmp/i03-var11-root-selection-20261008.py")})
+selection_files.append({"path": str(ROOT / "tmp/i03-var11-live-selection-api-20261008.json"),
+                        **pfile(ROOT / "tmp/i03-var11-live-selection-api-20261008.json")})
+
+contract = {
+    "schema": "i03-var11-out-unarrived-prospective-contract/v1",
+    "case_id": "I03", "variant_id": "I03.var11", "version": "1.0.0",
+    "package": "I03-var11-out-unarrived-horizon-v1.0.0",
+    "run_id": RUN_ID,
+    "phase": "contract_design_only_no_model_or_native",
+    "publication_state": "unaccepted_candidate",
+    "classification_id": "I03.var11.started_unarrived_OUT_task_at_horizon.prospective.1.0.0",
+    "ownership": {
+        "root_selection_package_absent_before_draft": True,
+        "candidate_package_and_run_absent_when_this_draft_created": True,
+        "root_selection_receipt": str(selection_dir / "receipt.json"),
+        "author_scope": "Only this tmp contract and companion lineage; no case input/runner/checker/source or native call before independent contract GO.",
+        "root_scope": "Sole Git/catalog/SSH/native/GUI owner; fresh prelaunch source, mutex and live-owner gates are separate.",
+        "independent_reviewer_scope": "Fresh exact contract GO, then exact static/pure preflight and postrun review; no approval inherited from I03.var02 or I03.var06.",
+        "new_native_calls_so_far": 0,
+        "unique_run_directory_must_be_absent_at_prelaunch": RUN_ID,
+    },
+    "scope": {
+        "planned_catalog_delta": "I03.var11 终点仍在途",
+        "question": "With one P-CREW OUT task started at h6 and exported TFDT40, does its linked arrival remain absent through physical/log horizon h36?",
+        "testable_classification": "One started, quantity-one OUT task is unarrived at h36; derived task pending/in-transfer quantity1 and completed-OUT quantity0. This is a task-state statement only.",
+        "h46_status": "6+40=46 is arithmetic outside the observed run. No h46 event, actual arrival, outside pool or persistent person identity is asserted.",
+        "accepted_parent": "I03.var02.idle_crew_out.1.0.2 TFDT0, unchanged accepted original run; no rerun.",
+        "secondary_context": "Published I03.var06 fixed TFDT4 retrospective counterexample supports possible positive OUT duration, but its original v100 run remains NO_GO_RUN and is not an accepted parent.",
+        "manual_discrepancy": "Installed pp478-479 say TFDT ignored for OUT; fixed TFDT4 witness prints4/arrives h10. This does not prove how TFDT40 or off-horizon completion behaves.",
+        "not_claimed": ["actual h46 arrival", "persistent individual crew/person outside", "an outside resource pool or its availability", "NRN-minus-NR transit display", "general OUT law", "IN/BETWEEN", "GUI", "performance", "cross-engine", "entire I03 or Issue18 completion"],
+    },
+    "source_delta": {
+        "parent_input": {"path": parent_input.relative_to(ROOT).as_posix(), **pfile(parent_input)},
+        "allowed_changes_exactly": [
+            {"table": "ProblemDescription", "instance_name": "", "column": "PDESC", "from": old_description, "to": new_description},
+            {"table": "ResourceTransfer", "instance_name": "", "key": ["BASE-01", "<OUTSIDE>", "P-CREW", 6.0], "column": "TFDT", "from": 0.0, "to": 40.0},
+        ],
+        "child_transfer_row": ["BASE-01", "<OUTSIDE>", "P-CREW", 6.0, 1, 40.0, None],
+        "authored_cell_count": 220,
+        "all_authored_and_exported_tables": 32,
+        "authored_row_containing_tables": 21,
+        "native_empty_placeholder_tables": old_contract["source_delta"]["native_all_null_placeholder_tables"],
+        "database_version": 20160627,
+        "roundtrip_gate": "Compare exact 32-table order, full ordered column dictionaries/datatype/key with bool type sensitivity, instance names, row multiplicity and all authored cells. The 11 source-empty tables export one all-null width-matched placeholder row. Only PDESC and TFDT may differ from parent source. Export must retain child TFDT40 numerically (integer40 vs finite double40.0 in declared numeric cell is allowed; bool/nonfinite reject). Any normalization to0/4, metadata change, duplicate key/table/instance or converter error is NO_GO.",
+        "input_export_binding": "Exact child authored JSON, native import/export, run input and source before/after SHA maps must be pinned. Parent original source/raw remain byte-identical; no parent rerun.",
+    },
+    "source_fixed_context": {
+        "Control": {"NREPS": 1, "SIMPE_hours": 36.0, "RSEED": "1", "RCINT_hours": 0.5, "RCSTA_hours": 0.0, "RCEND_hours": 36.0, "ENPM": "N", "ENLOG": "Y"},
+        "ResourceAllocation": ["AIR_BASIC", "P-CREW", "BASE-01", 2, None],
+        "ResourceTransfer": ["BASE-01", "<OUTSIDE>", "P-CREW", 6.0, 1, 40.0, None],
+        "OperationProfile_start_hours": [8.0, 20.0],
+        "OperationProfile_DTIM_hours_each": 1.0,
+        "MissionType": {"MTID": "BASIC-MISSION", "NOS": 2, "MNOS": 2, "DURN_hours": 1.0, "TFOUT_fraction": 0.25, "TFRET_fraction": 0.25},
+        "mission_fraction_to_hours_for_this_DURN": {"outbound": 0.25, "return": 0.25},
+        "preparation_subtask_hours_each": 0.5,
+        "crew_demand_per_preparation_subtask": 1,
+        "latest_launch_from_schedule_and_DTIM_hours": [9.0, 21.0],
+    },
+    "event_ledger": {
+        "complete_trace": "Parse full native header, all timed lines, all untimed continuations and exact typed identities/quantity/order. Reject unknown, duplicated, orphan, missing or post-horizon events, including repeated native ready diagnostics only at their declared positions. Parse original parent independently too.",
+        "h6_required_order": [
+            "task 0 OUT created from P-CREW BASE-01 quantity1",
+            "P-CREW BASE-01 OUT demand/request quantity1",
+            "task 0 OUT starts with1 and prints transfer time40",
+            "one local physical and nominal decrement at their typed edges; no duplicate",
+        ],
+        "native_spacing": "Descriptions name typed tokens, not literal single-space raw lines; original native whitespace/trailing padding is SHA-sealed and accepted parser must bind values and line order.",
+        "arrival_gate": "Exactly zero arrival/completion/cancellation events for task0 at or before h36. Any h10, h36 or other within-horizon linked arrival fails, as does a second OUT task, backorder, duplicate decrement or unlinked transfer.",
+        "other_lifecycle": "Both mission waves, aircraft IDs, serial preparation, queue/book/using/free snapshots, h8.5/h20.5 launch, h9.5/h21.5 return, full diagnostics, and terminal h36 must match independently derived source/typed expectations; no broad raw prefix or file-byte equality shortcut.",
+        "parent_control": "Accepted TFDT0 task0 starts and arrives at h6. It is a comparator, not a rerun.",
+    },
+    "derived_quantity_ledger": {
+        "opening_local": 2,
+        "before_h6": {"local_total": 2, "started_unarrived_OUT_task_quantity": 0, "completed_OUT_task_quantity": 0},
+        "h6_to_terminal_h36": {"local_total": 1, "started_unarrived_OUT_task_quantity": 1, "completed_OUT_task_quantity": 0},
+        "conservation": "For this one typed OUT task only, opening2 = current local physical P-CREW1 + departed task quantity still unarrived1 + completed OUT task quantity0. Local free+booked+using=local physical1, subject to exact booking/usage intervals. Nominal local quantity decrements once at h6 and stays1. This is derived task-quantity accounting, not observed persistent outside-person or outside-pool state.",
+        "terminal": "At h36 source horizon, exactly one started OUT task with quantity1 has no linked arrival/cancellation; locally free1, booked0, using0, nominal1, derived unarrived1, completed OUT0. Any unexplained token or shifted edge is NO_GO.",
+    },
+    "report_gate": report_gate,
+    "negative_probes_required": [
+        "Source PDESC/TFDT other than the two exact deltas, TFDT bool/nonfinite/normalized export, changed metadata/key/instance/table order/placeholder, source/Git/raw seal mutation.",
+        "h6 printed transfer time0/4/39/41, wrong RID/STFID/STTID/quantity/task ID or order; missing/duplicate start, demand, nominal or local decrement.",
+        "Any task0 arrival/completion/cancellation at h10, h36 or any within-horizon time; extra OUT/backorder or orphan continuation; fabricated h46 observed event.",
+        "Missing/duplicate or reordered full typed mission, queue, booking, free, availability, ready or return diagnostics; conservation/terminal imbalance.",
+        "Report duplicate JSON keys/tables/instances, changed metadata/null/ID/count/whole-bin/zero, bool numeric, nonfinite, or adjacent binary32 total mean; independently compare all 5,210 cells in each arm.",
+        "Mutation probes must enter full unsealed semantic/oracle gates after original seals, not pass only because input SHA changed; source/closure/raw/provenance tampering separately rejects.",
+    ],
+    "native_and_provenance_gate": {
+        "current_authorization": "Contract design only; no input/model/runner/native before fresh independent GO_CONTRACT_ONLY.",
+        "future_prerequisites": ["fresh exact contract GO", "deterministic input and full source/event/report oracle with meaningful negatives", "frozen exact manifest and independent GO_PURE_PREFLIGHT", "actual SSH PowerShell5 -File zero-native preflight", "fresh GO_PRELAUNCH bound to exact input/runner/checker/manifest/run/preflight receipt", "root-only one unique native child"],
+        "future_runner": "Use neutral fixed-file SSH transport, exact stdout/stderr bytes, actual child PID/session0/integer OS exit, serial mutex until all children finish naturally, sshd ancestry and sole protected GUI PID13340/session1/startms1790590196826/responding/WTS active before/after each stage. No kill, timeout after connection, interruption, automatic retry, hidden approval inheritance or accepted parent rerun.",
+        "future_six_stages": "Import/export/calc/report/roundtrip/behavior with exact program/argv/time/PID/session/status, converter errors0 and only predeclared diagnostics, source maps before/after, raw closure and failure seal. Exit0 alone is insufficient; any failed stage preserves complete original output and NO_GO.",
+        "publication": "After native, separate independent raw/cell/content/staged/remote gates. No catalog append from author and no promotion of secondary v100 NO_GO.",
+    },
+    "source_lineage": {
+        "base_commit": BASE,
+        "accepted_primary_parent_index": {"path": PARENT_INDEX.relative_to(ROOT).as_posix(), **pfile(PARENT_INDEX)},
+        "published_secondary_context_index": {"path": SECONDARY_INDEX.relative_to(ROOT).as_posix(), **pfile(SECONDARY_INDEX)},
+        "primary_parent_source_and_secondary_context_source_disk_vs_git_at_base": source_refs,
+        "source_ref_count": 452,
+        "original_raw": raw_records,
+        "accepted_or_required_context_raw_count": 118,
+        "excluded_failed_v100_witness_run_count": 26,
+        "installed": installed,
+        "required_docs": required_docs,
+        "catalog_at_selection": {"path": catalog_rel, "entry_count": 492, "local_disk": catalog_local,
+                                 "published_git_at_base": catalog_git,
+                                 "metadata": {k: v for k, v in catalog_data.items() if k != "entries"},
+                                 "future_archive_required": "Copy exact local 492-entry bytes into new owned package after contract GO; require archive and distinct base Git blob. Before native exact live byte match; after authorized append typed full metadata and first492 entries plus unique IDs, not arbitrary fallback or dropped check."},
+        "root_selection_context": selection_files,
+        "parent_replay": {"method": "I03.var02 postappend accepted v2, historical 14996→14995 only one conditional catalog check as already published; do not inherit that conditional comparison for this new contract.",
+                          "secondary_direct_reader": "I03.var06 v1.0.1 independent 20433 checks, both 5210 cells, direct raw; its v100 original remains NO_GO_RUN."},
+        "dependency_scope": "C03/C08 accepted evidence is pinned through both published indices and 118 original accepted/context raw records; no new staffing/shift claims.",
+    },
+    "limits": ["No actual h46 event or observed outside person/pool", "No general OUT TFDT law or manual-wide correction", "No GUI/performance/cross-engine claim", "No accepted parent rerun or promotion of excluded v100 failure"],
+}
+
+payload = (json.dumps(contract, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+with OUT.open("xb") as stream:
+    stream.write(payload)
+print(json.dumps({"contract": str(OUT), **pin(payload), "source_refs": len(source_refs),
+                  "raw_records": len(raw_records), "package_absent": not PACKAGE.exists()}, sort_keys=True))

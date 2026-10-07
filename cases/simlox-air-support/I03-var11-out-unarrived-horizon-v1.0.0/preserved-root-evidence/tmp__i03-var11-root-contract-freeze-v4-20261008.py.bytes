@@ -1,0 +1,37 @@
+from pathlib import Path
+import hashlib,json,subprocess,stat
+ROOT=Path(__file__).resolve().parents[1]
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def exact(path,n,h):
+    p=Path(path);p=p if p.is_absolute() else ROOT/p
+    assert pin(p.read_bytes())=={'bytes':n,'sha256':h},str(p)
+    return p
+def git(*args):
+    r=subprocess.run(['git',*args],cwd=ROOT,capture_output=True);assert r.returncode==0,r.stderr
+    return r.stdout
+old=exact('tmp/i03-var11-prospective-contract-draft-v3-20261008.json',324291,'2428a284b500568e1877dec3b582154da4017db51ad5ebe4edd77b87aba71551')
+proof=ROOT/'tmp/i03-var11-root-contract-freeze-v3-20261008.json'
+assert hashlib.sha256(proof.read_bytes()).hexdigest()=='cc6e56902c088bd3c8263a381d5a32a4c71f8593f57ffc22ce4ae48c4d4aac20'
+cp=exact('tmp/i03-var11-prospective-contract-draft-v4-20261008.json',325510,'67bef26d4fdec4d34e88b20e177239fb973aeba7152f72d26d4d9f9a4f9a79c1')
+lp=exact('tmp/i03-var11-model-lineage-draft-v3-20261008.md',3959,'a2a11671b994f66699fc575794082c26f38aab9d663369105471bf3c1c524924')
+d=json.loads(cp.read_bytes());v3=json.loads(old.read_bytes())
+assert git('rev-parse','HEAD').decode().strip()==d['source_lineage']['base_commit']=='50c552285f69e0b5a8bf82a8cdc6999b9e68f7cf'
+assert git('diff','--name-only')==git('diff','--cached','--name-only')==b''
+for key in v3['source_lineage']:
+    assert d['source_lineage'][key]==v3['source_lineage'][key],('unexpected lineage change',key)
+for key in ('source_delta','source_fixed_context','event_ledger','derived_quantity_ledger','report_gate','scope','native_and_provenance_gate','negative_probes_required','limits'):
+    assert d[key]==v3[key],('unexpected semantic change',key)
+for r in d['source_lineage']['primary_parent_source_and_secondary_context_source_disk_vs_git_at_base']:
+    exact(r['path'],r['local_disk']['bytes'],r['local_disk']['sha256'])
+for r in d['source_lineage']['original_raw']:exact(r['original_path'],r['bytes'],r['sha256'])
+for group in ('installed','required_docs','root_selection_context'):
+    for r in d['source_lineage'][group]:exact(r['path'],r['bytes'],r['sha256'])
+cat=d['source_lineage']['catalog_at_selection'];exact(cat['path'],cat['local_disk']['bytes'],cat['local_disk']['sha256'])
+case=ROOT/'cases/simlox-air-support'/d['package'];run=case/'runs'/d['run_id']
+assert not case.exists() and not run.exists()
+assert 'candidate_run_exists:true' in d['ownership']['root_selection_guard_scope']
+out=ROOT/'tmp/i03-var11-root-contract-freeze-v4-20261008.json';assert not out.exists()
+receipt={'schema':'issue18-i03-var11-root-contract-freeze/v2','decision':'FROZEN_FOR_INDEPENDENT_CONTRACT_REVIEW_ONLY','contract':{'path':cp.relative_to(ROOT).as_posix(),**pin(cp.read_bytes())},'lineage':{'path':lp.relative_to(ROOT).as_posix(),**pin(lp.read_bytes())},'base':d['source_lineage']['base_commit'],'v3_full_git_audit_carried_only_for_identical452_refs_same_HEAD':pin(proof.read_bytes()),'disk_sources_rechecked':452,'mandatory_original_raw_rechecked':144,'catalog_entries':492,'correct_candidate_path':str(case),'correct_unique_run_path':str(run),'package_and_run_absent':True,'v3_root_helper_correction':'V3 checked ROOT/package basename rather than cases/simlox-air-support/package. That check is not authority for absence; original selection checked correct path. This v4 proof directly checks both correct paths. V3 source/raw/Git audit remains valid and byte-preserved.','new_native_calls':0,'construction_authorized':False}
+out.write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8',newline='\n')
+for p in (cp,lp,out,Path(__file__)):p.chmod(stat.S_IREAD)
+print(json.dumps(receipt))

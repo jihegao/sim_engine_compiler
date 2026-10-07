@@ -1,0 +1,48 @@
+"""Post-seal, in-memory adversarial checks for the sole receipt type repair."""
+import copy
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+
+repo = Path(__file__).resolve().parent.parent
+pkg = repo / "cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0"
+method = pkg / "review/independent_replay_v2.py"
+spec = importlib.util.spec_from_file_location("reviewer_v2", method)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+
+a = m.Audit()
+contract = m.native_json((pkg / "contract.json").read_bytes())
+parent, predicted = m.parent_and_prediction(contract, a)
+manifest, source_map, approval_raw, approval, preflight_raw, preflight = m.manifest_and_approval(a)
+author_raw = (m.CHILD_RUN / "author-validation.json").read_bytes()
+author_sha = hashlib.sha256(author_raw).hexdigest()
+original_native_json = m.native_json
+assert original_native_json(author_raw)["timeline"]["out_departure"] == 6.0
+
+values = [("bool", True), ("null", None), ("string", "6"),
+          ("early", 5.999), ("late", 6.001),
+          ("nan", float("nan")), ("inf", float("inf"))]
+results = []
+for label, value in values:
+    def injected(raw, replacement=value):
+        obj = original_native_json(raw)
+        if hashlib.sha256(raw).hexdigest() == author_sha:
+            obj = copy.deepcopy(obj)
+            obj["timeline"]["out_departure"] = replacement
+        return obj
+    m.native_json = injected
+    try:
+        m.sealed_child(contract, parent, predicted, manifest, source_map,
+                       approval_raw, approval, preflight_raw, preflight, m.Audit())
+    except AssertionError as exc:
+        assert str(exc) == "author receipt agrees with independent bounded child raw state", (label, str(exc))
+        results.append(label)
+    else:
+        raise AssertionError("receipt mutation escaped: " + label)
+m.native_json = original_native_json
+print(json.dumps({"status": "PASS_POSTSEAL_RECEIPT_NEGATIVES", "rejected": results,
+                  "original_author_receipt_sha256": author_sha,
+                  "method_sha256": hashlib.sha256(method.read_bytes()).hexdigest(),
+                  "native_calls": 0}, separators=(",", ":")))

@@ -1,0 +1,30 @@
+"""Preserve v3 and clarify reused v06 guard versus new v11 path absence."""
+import hashlib
+import json
+from pathlib import Path
+
+root = Path(__file__).resolve().parents[1]
+prior = root / "tmp/i03-var11-prospective-contract-draft-v3-20261008.json"
+out = root / "tmp/i03-var11-prospective-contract-draft-v4-20261008.json"
+assert not out.exists()
+raw = prior.read_bytes()
+d = json.loads(raw)
+d["ownership"]["root_selection_guard_scope"] = (
+    "The receipt embeds a reused I03.var06 GUI/SSH guard whose candidate_run_exists:true describes the "
+    "already preserved v06 run. It is NOT an I03.var11 run-existence finding. The frozen root selection helper "
+    "separately asserts the exact new I03.var11 package and run paths absent before it creates the receipt; "
+    "receipt.candidate_package and receipt.absent_candidate_run name those distinct new paths. Future prelaunch "
+    "must recheck actual v11 run absence and live owner/GUI/mutex; the point-time selection is not approval."
+)
+d["source_lineage"]["root_selection_receipt_interpretation"] = (
+    "Embedded guard.candidate_run_exists:true belongs solely to reused v06 guard context; no claim of v11 "
+    "existence is made. New v11 absence comes from the frozen selection script's separate exact TestPath/assertions."
+)
+d["draft_history"]["v3_contract"] = {
+    "path": str(prior), "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
+    "status": "preserved superseded proposal; reused v06 guard/new v11 absent-path distinction explicit only in v4",
+}
+payload = (json.dumps(d, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+with out.open("xb") as f:
+    f.write(payload)
+print(json.dumps({"path": str(out), "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}))

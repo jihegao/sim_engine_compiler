@@ -1,0 +1,80 @@
+from pathlib import Path
+import datetime as dt
+import hashlib,json,stat,subprocess,sys
+
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0'
+RUN=CASE/'runs/i03-var11-out-unarrived-v100-ssh-20261008-01'
+TRANSPORT=CASE/'transport-evidence/ssh-native-20261007T211734078985Z-8348db38'
+OUT=ROOT/'tmp/i03-var11-root-native-seal-proof-v2-20261008'
+
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_text(encoding='utf-8-sig'))
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+
+assert not OUT.exists()
+manifest=load(CASE/'prelaunch-manifest.json')
+assert pin(CASE/'prelaunch-manifest.json')=={'bytes':291150,'sha256':'4aa438b946ff43b2e76f21eb1888f50ee976d1444cb568e5f52c13917f7703fe'}
+source_map={r['key']:r['sha256'] for r in manifest['source_files']}
+assert len(source_map)==len(manifest['source_files'])==782
+for r in manifest['source_files']:
+    assert pin(Path(r['path']))=={k:r[k] for k in ('bytes','sha256')},r['key']
+catalog=manifest['live_catalog_prelaunch_pin']
+assert pin(Path(catalog['path']))=={k:catalog[k] for k in ('bytes','sha256')}
+approval=CASE/'review/independent-prelaunch-go.json'
+assert pin(approval)=={'bytes':960,'sha256':'30fc67c4cbb913179d6af87d2292c9b721b76ddde502a6aa2173c60613315312'}
+t=load(TRANSPORT/'transport-receipt.json')
+assert t['mode']=='native' and t['native_approved'] is True and type(t['exit_code']) is int and t['exit_code']==0 and t['error'] is None
+assert '-File' in t['command'] and '-PreflightOnly' not in t['command']
+for name,p in t['streams'].items():assert pin(TRANSPORT/name)==p
+assert t['streams']['ssh-stderr.bin']['bytes']==0
+closure=load(RUN/'closure.json');inv=load(RUN/'invocation.json');steps=load(RUN/'steps.json')
+assert not (RUN/'failure-seal.json').exists()
+assert closure['error'] in (None, '') and closure['step_error'] in (None, '')
+assert closure['run_id']==inv['run_id']==RUN.name
+assert closure['source_hashes_before']==closure['source_hashes_after']==inv['source_hashes_before']==source_map
+assert closure['invocation_sha256']==pin(RUN/'invocation.json')['sha256']
+assert closure['approval_sha256']==inv['approval_sha256']==pin(approval)['sha256']
+assert closure['manifest_sha256']==inv['manifest_sha256']==pin(CASE/'prelaunch-manifest.json')['sha256']
+pref=CASE/load(approval)['preflight_relative_path']
+assert closure['approved_preflight_sha256']==inv['approved_preflight_sha256']==pin(pref)['sha256']==load(approval)['preflight_sha256']
+assert inv['session_id']==0 and type(inv['session_id']) is int and 'sshd.exe' in inv['ssh_ancestors']
+assert inv['gui']=={'pid':13340,'session_id':1,'start_unix_ms':1790590196826,'responding':True}
+assert inv['queue_mutex']=='Global\\SimloxIssue18NativeQueue'
+raw={p.name for p in RUN.iterdir() if p.is_file()}-{'closure.json','invocation.json'}
+assert set(closure['raw'])==raw and len(raw)==23
+for name,p in closure['raw'].items():assert pin(RUN/name)==p
+assert [s['name'] for s in steps]==['import','export','check_import_export','calc','jsonreport','check_behavior']
+previous=None
+for n,s in enumerate(steps):
+    assert type(s['sequence']) is int and s['sequence']==n
+    assert s['status']=='completed' and type(s['exit_code']) is int and s['exit_code']==0
+    assert type(s['child_pid']) is int and s['child_pid']>0 and type(s['child_session_id']) is int and s['child_session_id']==0
+    assert s['capture_error'] is None and s['gui_preserved'] is True and s['error'] is None
+    start=dt.datetime.fromisoformat(s['started_utc']);end=dt.datetime.fromisoformat(s['completed_utc'])
+    assert start<=end and (previous is None or previous<=start);previous=end
+    for stream in ('stdout','stderr'):
+        p=Path(s[stream+'_path']);assert p.parent.resolve()==RUN.resolve()
+        assert pin(p)=={'bytes':s[stream+'_bytes'],'sha256':s[stream+'_sha256']}==closure['raw'][p.name]
+files=[p for p in RUN.iterdir() if p.is_file()]
+assert len(files)==25
+all_pins={p.name:pin(p) for p in files}
+for p in [*files,*TRANSPORT.iterdir()]:
+    if p.is_file():p.chmod(stat.S_IREAD)
+OUT.mkdir()
+stdout=OUT/'author-sealed-stdout.bin';stderr=OUT/'author-sealed-stderr.bin'
+cmd=[sys.executable,'-X','utf8','-B',str(CASE/'validate_native_cli.py'),str(RUN),'--sealed']
+started=utc()
+with stdout.open('xb') as o,stderr.open('xb') as e:
+    child=subprocess.Popen(cmd,cwd=ROOT,stdout=o,stderr=e);pid=child.pid;exit_code=child.wait()
+result=load(stdout)
+assert type(exit_code) is int and exit_code==0 and result['passed'] is True and stderr.stat().st_size==0
+assert result['report_cell_checks']==5210 and result['typed_event_records']==176
+assert result['timeline']['terminal_started_unarrived_task_quantity']==1 and result['timeline']['terminal_completed_out_task_quantity']==0
+assert all(pin(RUN/name)==p for name,p in all_pins.items())
+receipt={'schema':'issue18-i03-var11-root-native-seal-audit/v1','decision':'SEALED_NATIVE_COMPLETE_REQUIRES_INDEPENDENT_ACCEPTANCE','run_id':RUN.name,'source_records_verified':782,'original_run_files':25,'original_raw_files':23,'run_files':all_pins,'transport_files':{p.name:pin(p) for p in TRANSPORT.iterdir() if p.is_file()},'approval':pin(approval),'preflight':pin(pref),'author_sealed_command':cmd,'author_sealed_pid':pid,'author_sealed_exit_code':exit_code,'started_utc':started,'completed_utc':utc(),'proof_streams':{'stdout':pin(stdout),'stderr':pin(stderr)},'author_result':result,'native_reruns':0}
+(OUT/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8',newline='\n')
+for p in OUT.iterdir():p.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps(receipt,separators=(',',':')))

@@ -1,0 +1,37 @@
+"""Preserve draft v1 and write a corrected, distinct contract-only draft v2."""
+import hashlib
+import json
+from pathlib import Path
+
+root = Path(__file__).resolve().parents[1]
+prior = root / "tmp/i03-var11-prospective-contract-draft-v1-20261008.json"
+out = root / "tmp/i03-var11-prospective-contract-draft-v2-20261008.json"
+assert not out.exists()
+document = json.loads(prior.read_bytes())
+document["event_ledger"]["h6_required_order"] = [
+    "Exact typed raw line: task 0 OUT created from P-CREW at BASE-01.",
+    "Exact typed raw line: P-CREW at BASE-01 OUT transfer demand arrives; this line does not print quantity.",
+    "Exact typed raw line: task 0 OUT starts with quantity1 and prints transfer time40.",
+]
+document["event_ledger"]["derived_h6_decrements"] = (
+    "One local physical and one nominal P-CREW decrement are derived from the task start,"
+    " typed resource/availability snapshots and the independently reconstructed ResourceResults"
+    " intervals. The accepted h6 log does not print separate 'decrement' lines."
+)
+document["native_and_provenance_gate"]["future_converter_diagnostics"] = {
+    "errors": 0, "warning_count": 2, "warning_ids": [108, 126], "notes": 0,
+    "rule": "Require exactly the two source-bound log warnings seen in the accepted parent (ENLOG and no items) and no new warning; preserve complete original converter streams. An extra horizon/transfer warning is NO_GO for this frozen prospective contract."
+}
+document["draft_history"] = {
+    "v1_contract": {"path": str(prior), "bytes": len(prior.read_bytes()),
+                    "sha256": hashlib.sha256(prior.read_bytes()).hexdigest()},
+    "v1_builder_failed_key": {
+        "path": str(root / "tmp/build-i03-var11-contract-draft-v1-failed-key-20261008.py.bytes"),
+        "sha256": "c708686f3d1d153a0fc8731e4877980089cc61043df1429ef65354c90ec29570",
+        "failure": "Initial builder referenced missing source_delta.native_all_null_placeholder_tables before any contract file was written; original stderr exists only in tool transcript and is not byte-preserved."
+    },
+}
+payload = (json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+with out.open("xb") as f:
+    f.write(payload)
+print(json.dumps({"path": str(out), "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}))

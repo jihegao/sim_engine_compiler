@@ -1,0 +1,58 @@
+"""Distinct contract draft correcting stage order and historical custody."""
+import hashlib
+import json
+from pathlib import Path
+
+root = Path(__file__).resolve().parents[1]
+prior = root / "tmp/i03-var11-prospective-contract-draft-v2-20261008.json"
+out = root / "tmp/i03-var11-prospective-contract-draft-v3-20261008.json"
+assert not out.exists()
+raw_prior = prior.read_bytes()
+document = json.loads(raw_prior)
+document["native_and_provenance_gate"]["future_six_stages"] = (
+    "Exactly ordered import → export → check_import_export → calc → jsonreport → check_behavior. "
+    "The source/roundtrip checker must pass with actual integer OS exit0 and valid typed JSON before calc may start. "
+    "Bind exact program/argv, start/end order, PID/session0/status/byte streams and source before/after. "
+    "Converter errors0/warnings #108 and #126 only/notes0, raw closure and failure seal. "
+    "Any stage failure is NO_GO with all original outputs preserved; OS exit0 alone is insufficient."
+)
+document["negative_probes_required"][1] = (
+    "h6 printed transfer time0/4/39/41, wrong RID/STFID/STTID/quantity/task ID or order; "
+    "missing/duplicate of the three exact printed transfer lines; missing/duplicated DERIVED local or nominal quantity transition "
+    "as detected by complete task/snapshot/report ledgers. There are no separate raw decrement lines."
+)
+selection = document["source_lineage"]["root_selection_context"]
+assert len(selection) == 7
+for number, item in enumerate(selection):
+    path = Path(item["path"])
+    assert path.is_file()
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert digest == item["sha256"] and len(path.read_bytes()) == item["bytes"]
+    item["owned_inert_copy"] = f"preserved-root-selection/{number:02d}-{digest[:12]}.bytes"
+document["source_lineage"]["root_selection_reproduction_rule"] = (
+    "After contract GO create all seven named inert owned byte copies and an explicit original→copy "
+    "SHA/size map. Each owned copy is mandatory; verify the original tmp file too if present. "
+    "Absence of an original tmp context file in a fresh checkout is permitted only for these seven declared "
+    "selection files, not for any of the 118 accepted/context or 26 failed-witness raw originals. "
+    "No arbitrary missing-file fallback or new selection evidence may replace the point-time receipt."
+)
+catalog = document["source_lineage"]["catalog_at_selection"]
+catalog["owned_exact_archive"] = "preserved-catalog/catalog-at-selection-492.bytes"
+catalog["future_archive_required"] = (
+    "After contract GO create exactly the named inert archive with the pinned local 492-entry bytes; "
+    "keep the distinct base Git blob identity. Before native, require exact live point-time bytes. "
+    "After authorized publication append, require exact owned archive plus type-exact live schema/metadata, "
+    "first492 entries and unique IDs; later entries only. Never silently substitute a changed/missing archive "
+    "or drop a physical/report/provenance check."
+)
+document["draft_history"]["v2_contract"] = {
+    "path": str(prior), "bytes": len(raw_prior), "sha256": hashlib.sha256(raw_prior).hexdigest(),
+    "status": "preserved superseded proposal; stage order, selection custody and derived-transition wording repaired only in v3",
+}
+failed = Path(document["draft_history"]["v1_builder_failed_key"]["path"])
+document["draft_history"]["v1_builder_failed_key"]["bytes"] = failed.stat().st_size
+payload = (json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+with out.open("xb") as stream:
+    stream.write(payload)
+print(json.dumps({"path": str(out), "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest(),
+                  "selection_copy_records": len(selection)}))

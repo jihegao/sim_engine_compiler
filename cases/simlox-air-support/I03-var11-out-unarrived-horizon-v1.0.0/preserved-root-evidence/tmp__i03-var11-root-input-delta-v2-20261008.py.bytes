@@ -1,0 +1,36 @@
+from pathlib import Path
+import json,hashlib,stat
+ROOT=Path(__file__).resolve().parents[1]
+cp=ROOT/'cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0'
+parent=ROOT/'cases/simlox-air-support/I03-var02-idle-crew-out-v1.0.2/native-input.json'
+child=cp/'native-input.json'
+def digest(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert digest(parent)=={'bytes':43341,'sha256':'b6cebc1b3a44e6bd462e222690e90026e8336e1ad55f0b68b2d9212c635176b4'}
+assert digest(child)=={'bytes':43334,'sha256':'00dbffeae22c89606a694cbae4a24c37627f76befad5c2d8428c6aa6c9f8fc57'}
+p=json.loads(parent.read_bytes());c=json.loads(child.read_bytes());changes=[]
+def compare(a,b,path=()):
+    assert type(a) is type(b),('type',path,type(a),type(b))
+    if isinstance(a,dict):
+        assert list(a)==list(b),('dictionary key/order',path)
+        for k in a:compare(a[k],b[k],path+(k,))
+    elif isinstance(a,list):
+        assert len(a)==len(b),('list cardinality',path)
+        for i,(x,y) in enumerate(zip(a,b)):compare(x,y,path+(i,))
+    elif a!=b:changes.append({'path':list(path),'from':a,'to':b})
+compare(p,c)
+pt=p['model']['tables'];assert len(pt)==32
+assert sum(len(r) for t in pt for ins in t['instances'] for r in ins['rows'])==220
+pd=next(i for i,t in enumerate(pt) if t['name']=='ProblemDescription')
+tf=next(i for i,t in enumerate(pt) if t['name']=='ResourceTransfer')
+col=next(i for i,x in enumerate(pt[tf]['columns']) if x['name']=='TFDT')
+prefix=['model','tables']
+expected=[{'path':prefix+[pd,'instances',0,'rows',0,0],'from':'I03.var02 idle crew OUT h6 versus accepted busy OUT h7.75','to':'I03.var11 OUT TFDT40 started but unarrived at h36'}, {'path':prefix+[tf,'instances',0,'rows',0,col],'from':0.0,'to':40.0}]
+assert changes==expected,changes
+run=cp/'runs/i03-var11-out-unarrived-v100-ssh-20261008-01';assert not run.exists()
+old=ROOT/'tmp/i03-var11-root-input-delta-20261008.py';assert old.exists()
+out=ROOT/'tmp/i03-var11-root-input-delta-v2-20261008.json';assert not out.exists()
+receipt={'schema':'issue18-i03-var11-root-input-delta/v2','decision':'MODEL_DELTA_ONLY_PASS_NO_FREEZE_OR_NATIVE_APPROVAL','parent':digest(parent),'child':digest(child),'ordered_tables':32,'authored_cells':220,'changes':changes,'native_run_absent':True,'native_calls':0,'preserved_v1_checker':digest(old),'v1_failure':'KeyError rows: reviewer assumed table.rows rather than table.instances[].rows. Original decoded stderr is in tool transcript; no binary stderr claim. V1 source is read-only and not rerun.'}
+out.write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8',newline='\n')
+for f in (out,Path(__file__)):f.chmod(stat.S_IREAD)
+print(json.dumps(receipt))

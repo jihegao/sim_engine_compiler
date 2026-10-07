@@ -1,0 +1,223 @@
+"""Reviewer-only PURE fixture for the complete sealed replay path.
+
+Creates synthetic evidence under a unique ignored tmp directory. This is
+never a native run, prelaunch approval, or acceptance verdict.
+"""
+import hashlib
+import importlib.util
+import io
+import json
+import sys
+from contextlib import redirect_stdout
+from copy import deepcopy
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0"
+METHOD = CASE / "review/independent_replay.py"
+FIX = REPO / "tmp/i03-var11-independent-pure-sealed-fixture-v6"
+PY = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+
+spec = importlib.util.spec_from_file_location("independent_replay_pure_fixture", METHOD)
+m = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = m
+spec.loader.exec_module(m)
+
+
+def emit(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return data
+
+
+def js(obj):
+    return (json.dumps(obj, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
+
+
+def identity(path):
+    return m.pin(path.read_bytes())
+
+
+def main():
+    assert not FIX.exists(), "preserve first fixture bytes; use a new version"
+    package = FIX / "case"
+    run = FIX / m.CHILD_RUN.name
+    package.mkdir(parents=True)
+    run.mkdir()
+    emit(package / "contract.json", (CASE / "contract.json").read_bytes())
+    emit(package / "MODEL-LINEAGE.md", (CASE / "MODEL-LINEAGE.md").read_bytes())
+    emit(package / "native-input.json", (CASE / "native-input.json").read_bytes())
+    emit(package / "preserved-catalog/catalog-at-selection-492.bytes",
+         (CASE / "preserved-catalog/catalog-at-selection-492.bytes").read_bytes())
+
+    contract = m.native_json((CASE / "contract.json").read_bytes())
+    for rec in contract["source_lineage"]["root_selection_context"]:
+        emit(package / rec["owned_inert_copy"], (CASE / rec["owned_inert_copy"]).read_bytes())
+    audit = m.Audit()
+    parent, child = m.parent_and_prediction(contract, audit)
+    timeline = m.child_physical(m.pure_child_fixture((m.PARENT_RUN / "model.log").read_bytes()),
+                                audit, role="child")
+    expected = m.expected_report(contract, child, "child", timeline)
+
+    parent_report = m.native_json((m.PARENT_RUN / "report-raw.json").read_bytes())
+    report = deepcopy(parent_report)
+    report_tables = {t["name"]: t for t in report["report"]["tables"]}
+    report_tables["ProblemDescription"]["instances"][0]["rows"][0][0] = expected["ProblemDescription"][0]["PDESC"]
+    m.compare_report(contract, child, report, "child", audit, timeline)
+
+    parent_export = m.native_json((m.PARENT_RUN / "roundtrip-raw.json").read_bytes())
+    export = deepcopy(parent_export)
+    for table in export["model"]["tables"]:
+        if table["name"] == "ProblemDescription":
+            table["instances"][0]["rows"][0][0] = expected["ProblemDescription"][0]["PDESC"]
+        if table["name"] == "ResourceTransfer":
+            cols = [c["name"] for c in table["columns"]]
+            table["instances"][0]["rows"][0][cols.index("TFDT")] = 40
+    m.roundtrip(child, export, audit, "PURE child export")
+
+    emit(run / "input.json", (CASE / "native-input.json").read_bytes())
+    for name in ("model.sxi", "model.sxo", "import.log", "export.log", "run.log", "report-export.log"):
+        emit(run / name, (m.PARENT_RUN / name).read_bytes())
+    emit(run / "model.log", m.pure_child_fixture((m.PARENT_RUN / "model.log").read_bytes()))
+    emit(run / "roundtrip-raw.json", js(export))
+    emit(run / "report-raw.json", js(report))
+    emit(run / "roundtrip-validation.json", js({
+        "schema": "i03-var11-out-unarrived-roundtrip/v1", "passed": True, "issues": [],
+        "input_sha256": identity(run / "input.json")["sha256"],
+        "export_sha256": identity(run / "roundtrip-raw.json")["sha256"],
+        "table_objects": 32, "row_containing_tables": 21, "all_null_placeholder_tables": 11}))
+    emit(run / "author-validation.json", js({
+        "schema": "i03-var11-out-unarrived-behavior/v1", "passed": True,
+        "run_id": m.CHILD_RUN.name, "input_sha256": identity(run / "input.json")["sha256"],
+        "report_cell_checks": 5210, "typed_event_records": 176,
+        "timeline": {"out_departure": 6, "out_arrival": None, "transfer_quantity": 1,
+                     "terminal_free_crew": 1, "terminal_started_unarrived_task_quantity": 1,
+                     "terminal_completed_out_task_quantity": 0, "terminal_ready_aircraft": 2}}))
+    for name in ("import", "export", "calc", "jsonreport"):
+        emit(run / (name + "-stdout.txt"), b"PURE FIXTURE ONLY\n")
+    for name in ("import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"):
+        emit(run / (name + "-stderr.txt"), b"")
+
+    archive = package / "preserved-catalog/catalog-at-selection-492.bytes"
+    sources = [("child_contract", package / "contract.json"),
+               ("child_input", package / "native-input.json"),
+               ("behavior_validator", CASE / "validate_native_cli.py"),
+               ("runner_script", CASE / "run_native_ssh.ps1"),
+               ("independent_replay", METHOD),
+               ("independent_self_check", CASE / "review/independent_self_check.py"),
+               ("owned:preserved-catalog/catalog-at-selection-492.bytes", archive)]
+    rows = [{"key": key, "path": str(path.resolve()), **identity(path)} for key, path in sources]
+    source_map = {row["key"]: row["sha256"] for row in rows}
+    source_map_sha = hashlib.sha256(json.dumps(source_map, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+    live_catalog = m.REPO / "cases/simlox-air-support/publication-index-v1.json"
+    manifest = {"schema": "i03-var11-out-unarrived-prelaunch-manifest/v1", "run_id": m.CHILD_RUN.name,
+                "contract_sha256": m.CONTRACT_SHA, "source_count": len(rows), "source_files": rows,
+                "live_catalog_prelaunch_pin": {"path": str(live_catalog.resolve()), **identity(archive)},
+                "accepted_raw_records": 118, "accepted_nonclosure_raw_records": 106,
+                "excluded_failed_witness_raw_records": 26,
+                "native_runs_authorized_by_manifest": 0,
+                "independent_replay_state": "exact method pinned; fresh approval required"}
+    manifest_raw = emit(package / "prelaunch-manifest.json", js(manifest))
+    preflight_name = "preflight-ssh0-20261008T000000000Z.json"
+    preflight = {"schema": "i03-var11-out-unarrived-ssh-preflight/v1", "run_id": m.CHILD_RUN.name,
+                 "run_dirs_absent": True, "ssh_session": 0, "ps_major": 5,
+                 "ssh_ancestors": ["sshd.exe"], "mutex_free": True, "wts_active_gui_count": 1,
+                 "gui": {"pid": 13340, "session_id": 1, "start_unix_ms": 1790590196826,
+                 "responding": True}, "accepted_raw_seals": 118,
+                 "accepted_nonclosure_raw": 106, "accepted_closures": 6,
+                 "accepted_invocations": 6, "excluded_failed_witness_raw": 26,
+                 "total_original_raw": 144, "manifest_sha256": m.pin(manifest_raw)["sha256"],
+                 "source_map_sha256": source_map_sha, "source_hashes": source_map,
+                 "native_process_started": False}
+    preflight_raw = emit(package / "review" / preflight_name, js(preflight))
+    approval = {"schema": "i03-var11-out-unarrived-independent-prelaunch-go/v1",
+                "decision": "GO_PRELAUNCH", "run_id": m.CHILD_RUN.name,
+                "manifest_sha256": m.pin(manifest_raw)["sha256"],
+                "runner_sha256": source_map["runner_script"],
+                "validator_sha256": source_map["behavior_validator"],
+                "contract_sha256": m.CONTRACT_SHA, "input_sha256": source_map["child_input"],
+                "source_map_sha256": source_map_sha,
+                "independent_replay_sha256": source_map["independent_replay"],
+                "preflight_relative_path": "review/" + preflight_name,
+                "preflight_sha256": m.pin(preflight_raw)["sha256"]}
+    approval_raw = emit(package / "review/independent-prelaunch-go.json", js(approval))
+
+    original_pkg, original_run = m.PKG, m.CHILD_RUN
+    original_check = m.check_step_metadata
+    try:
+        m.PKG, m.CHILD_RUN = package, run
+        # The production helper's default argument was bound when the module
+        # loaded; provide this PURE run explicitly while exercising its body.
+        m.check_step_metadata = lambda inv, steps, a: original_check(inv, steps, a, run_dir=run)
+        commands, checkers = m.expected_stage_plan(run)
+        invocation = {"schema": "i03-var11-out-unarrived-invocation/v1",
+                      "run_id": original_run.name, "created_utc": "2026-10-08T00:00:00Z",
+                      "original_run_dir": str(run), "session_id": 0,
+                      "ssh_ancestors": ["sshd.exe"], "queue_mutex": r"Global\SimloxIssue18NativeQueue",
+                      "gui": preflight["gui"],
+                      "working_directory": r"C:\Users\user\Documents\Codex\2026-09-26\simlox-j35-event-parity\workspace",
+                      "manifest_sha256": approval["manifest_sha256"],
+                      "approval_sha256": m.pin(approval_raw)["sha256"],
+                      "approved_preflight_path": str(package / "review" / preflight_name),
+                      "approved_preflight_sha256": approval["preflight_sha256"],
+                      "independent_replay_sha256": source_map["independent_replay"],
+                      "input_sha256": source_map["child_input"], "contract_sha256": m.CONTRACT_SHA,
+                      "runner_script_sha256": source_map["runner_script"],
+                      "source_hashes_before": source_map, "publication_state": "not_published",
+                      "planned_commands": commands, "planned_checkers": checkers}
+        invocation_raw = emit(run / "invocation.json", js(invocation))
+        names = ("import", "export", "check_import_export", "calc", "jsonreport", "check_behavior")
+        plans = {x["name"]: x for x in commands + checkers}
+        steps = []
+        for index, name in enumerate(names):
+            stdout_name = ("roundtrip-validation.json" if name == "check_import_export" else
+                           "author-validation.json" if name == "check_behavior" else name + "-stdout.txt")
+            stdout = run / stdout_name
+            stderr = run / (name + "-stderr.txt")
+            steps.append({"sequence": index, "name": name,
+                          "program": plans[name]["program"], "arguments": plans[name]["arguments"],
+                          "started_utc": f"2026-10-08T00:00:{index * 2 + 1:02d}Z",
+                          "completed_utc": f"2026-10-08T00:00:{index * 2 + 2:02d}Z",
+                          "child_pid": 1000 + index, "child_session_id": 0, "exit_code": 0,
+                          "capture_error": None, "stdout_path": str(stdout), "stderr_path": str(stderr),
+                          "stdout_bytes": identity(stdout)["bytes"],
+                          "stderr_bytes": identity(stderr)["bytes"],
+                          "stdout_sha256": identity(stdout)["sha256"],
+                          "stderr_sha256": identity(stderr)["sha256"],
+                          "gui_preserved": True, "status": "completed", "error": None})
+        emit(run / "steps.json", js(steps))
+        raw = {p.name: identity(p) for p in sorted(run.iterdir()) if p.name != "invocation.json"}
+        closure = {"schema": "i03-var11-out-unarrived-closure/v1", "run_id": original_run.name,
+                   "manifest_sha256": approval["manifest_sha256"],
+                   "approval_sha256": m.pin(approval_raw)["sha256"],
+                   "approved_preflight_sha256": approval["preflight_sha256"],
+                   "invocation_sha256": m.pin(invocation_raw)["sha256"],
+                   "source_hashes_before": source_map, "source_hashes_after": source_map,
+                   "raw": raw, "step_error": None, "error": None,
+                   "publication_state": "not_published"}
+        emit(run / "closure.json", js(closure))
+        audit2 = m.Audit()
+        six = m.manifest_and_approval(audit2)
+        result = m.sealed_child(contract, parent, child, *six, audit2)
+        original_argv = sys.argv
+        stream = io.StringIO()
+        try:
+            sys.argv = [str(METHOD)]
+            with redirect_stdout(stream):
+                m.main()  # same complete default branch, against PURE fixture only
+        finally:
+            sys.argv = original_argv
+        default_result = json.loads(stream.getvalue())
+        assert default_result["status"] == "GO_BOUNDED_IF_ORIGINAL_RUN_SEALED"
+        assert default_result["parent_report_cells"] == default_result["child_report_cells"] == 5210
+        print(js({"schema": "i03-var11-independent-pure-sealed-fixture/v1",
+                  "status": "PURE_FIXTURE_ONLY", "checks": audit.checks + audit2.checks,
+                  "default_branch_checks": default_result["checks"],
+                  **result}).decode(), end="")
+    finally:
+        m.check_step_metadata = original_check
+        m.PKG, m.CHILD_RUN = original_pkg, original_run
+
+
+if __name__ == "__main__":
+    main()

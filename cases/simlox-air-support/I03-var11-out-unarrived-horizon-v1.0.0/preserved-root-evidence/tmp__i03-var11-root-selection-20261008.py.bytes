@@ -1,0 +1,90 @@
+"""Read accepted parents and select one unoccupied horizon-boundary candidate."""
+import hashlib,json,subprocess,sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+BASE='50c552285f69e0b5a8bf82a8cdc6999b9e68f7cf'
+PARENT=ROOT/'cases/simlox-air-support/I03-var02-idle-crew-out-v1.0.2'
+CONTEXT=ROOT/'cases/simlox-air-support/I03-var06-out-duration-counterexample-v1.0.1'
+CANDIDATE=ROOT/'cases/simlox-air-support/I03-var11-out-unarrived-horizon-v1.0.0'
+RUN=CANDIDATE/'runs/i03-var11-out-unarrived-v100-ssh-20261008-01'
+OUT=ROOT/'tmp/i03-var11-root-selection-proof-20261008'
+def pin(data):return {'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+def verify(path,row):assert pin(path.read_bytes())=={k:row[k] for k in ('bytes','sha256')},path
+def git(*args):return subprocess.check_output(['git',*args],cwd=ROOT)
+assert not OUT.exists() and not CANDIDATE.exists() and not RUN.exists()
+assert git('rev-parse','HEAD').decode().strip()==git('rev-parse','origin/simlox/main').decode().strip()==BASE
+assert not git('diff','--name-only') and not git('diff','--cached','--name-only')
+catalog=json.loads((ROOT/'cases/simlox-air-support/publication-index-v1.json').read_bytes())
+assert len(catalog['entries'])==492 and not any(x.get('variant_id')=='I03.var11' for x in catalog['entries'])
+for publication_id in ('I03.var02.idle_crew_out.1.0.2','I03.var06.out_duration_counterexample.readonly.1.0.1'):
+    assert len([x for x in catalog['entries'] if x['publication_id']==publication_id and x['publication_state']=='reusable_published'])==1
+planning=json.loads((ROOT/'cases/simlox-air-support/catalog-v2.json').read_bytes())
+plan=next(x for x in planning['cases'] if x['case_id']=='I03')
+assert plan['instructional_prerequisites']==['C03','C08']
+assert next(x for x in plan['boundary_variants'] if x['variant_id']=='I03.var11')['planned_delta']=='终点仍在途'
+expected_indices=[(PARENT/'evidence-index-v2.json',122338,'4060de5d7434ff675949b9eea7fb8f827ac0c72a56e530169b60ecb0da0724dc'),
+                  (CONTEXT/'evidence-index.json',318456,'b4e82d39d5780e3eb981a717a0c9b598489c62747e9acc1e5ab5bfeae4e9ffbb')]
+tree={}
+for rec in git('ls-tree','-r','-z',BASE).split(b'\0'):
+    if not rec:continue
+    meta,path=rec.split(b'\t',1);parts=meta.split()
+    if parts[1]==b'blob':tree[path.decode('utf-8')]=parts[2].decode('ascii')
+paths={}
+for index,size,sha in expected_indices:
+    assert pin(index.read_bytes())=={'bytes':size,'sha256':sha}
+    doc=json.loads(index.read_bytes())
+    for row in doc['source_files']:
+        path=index.parent/row['path'];verify(path,row)
+        rel=path.relative_to(ROOT).as_posix();want={k:row[k] for k in ('bytes','sha256')}
+        if rel in paths:assert paths[rel]==want
+        paths[rel]=want
+    paths[index.relative_to(ROOT).as_posix()]={'bytes':size,'sha256':sha}
+assert len(paths)==452
+oids=list(dict.fromkeys(tree[p] for p in paths))
+result=subprocess.run(['git','cat-file','--batch'],cwd=ROOT,input=('\n'.join(oids)+'\n').encode('ascii'),capture_output=True)
+assert result.returncode==0 and not result.stderr
+blobs={};pos=0
+for oid in oids:
+    end=result.stdout.index(b'\n',pos);size=int(result.stdout[pos:end].split()[2]);start=end+1
+    blobs[oid]=result.stdout[start:start+size];pos=start+size+1
+assert pos==len(result.stdout)
+for name,want in paths.items():assert pin(blobs[tree[name]])==want,name
+contract=json.loads((CONTEXT/'contract.json').read_bytes());lineage=contract['source_lineage']
+raw=json.loads((CONTEXT/'evidence-index.json').read_bytes())['raw_files']
+for row in raw:
+    path=Path(row['path']);verify(path if path.is_absolute() else ROOT/path,row)
+for row in lineage['required_docs']:verify(ROOT/row['path'],row)
+for row in lineage['installed']:verify(Path(row['path']),row)
+OUT.mkdir()
+commands=[('guard',['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',str(ROOT/'tmp/i03-var06-owner-guard-20261008.ps1')]),
+          ('accepted-replay',[sys.executable,'-X','utf8','-B',str(CONTEXT/'review/independent_replay.py')])]
+steps=[]
+for role,argv in commands:
+    run=subprocess.run(argv,cwd=ROOT,capture_output=True)
+    for stream,data in [('stdout',run.stdout),('stderr',run.stderr)]:
+        path=OUT/(role+'-'+stream+'.bin');path.write_bytes(data);path.chmod(0o444)
+    steps.append({'role':role,'exit':run.returncode,'stdout':pin(run.stdout),'stderr':pin(run.stderr)})
+    assert run.returncode==0 and not run.stderr,steps[-1]
+    data=json.loads(run.stdout)
+    if role=='guard':
+        assert data['ssh_present'] and data['self_session']==0 and data['powershell_major']==5 and data['mutex_free']
+        assert not data['runner_candidates'] and len(data['native'])==1 and data['active_gui_session1_count']==1
+        gui=data['native'][0];assert gui['pid']==13340 and gui['session']==1 and gui['start_ms']==1790590196826 and gui['responding'] is True
+        guard=data
+    else:
+        assert data==json.loads((CONTEXT/'preserved-independent-proof/replay-stdout.bin').read_bytes())
+        assert data['checks']==20433 and data['parent_report_cells']==data['child_report_cells']==5210
+        accepted=data
+receipt={'schema':'issue18-i03-var11-root-selection/v1','decision':'ELIGIBLE_CONTRACT_DESIGN_ONLY',
+         'base':BASE,'candidate_package':str(CANDIDATE),'absent_candidate_run':str(RUN),
+         'parent':'I03.var02.idle_crew_out.1.0.2','secondary_accepted_context':'I03.var06.out_duration_counterexample.readonly.1.0.1',
+         'required_C03_C08_behavior_and_raw_rechecked_by_accepted_reader':True,
+         'parent_context_source_blobs':452,'accepted_raw_records':144,'independent_checks':20433,
+         'new_native_calls':0,'parent_native_reruns':0,'guard':guard,'steps':steps,
+         'prospective_delta':'Parent PDESC plus ResourceTransfer.TFDT0→40; retain h6 one-unit OUT, horizon36, all other source fields.',
+         'prospective_question':'Does one started OUT task remain unarrived at the h36 log horizon? Expected completion h46 is arithmetic only and remains unobserved; no outside person/pool identity claim.',
+         'authorization_gate':'Independent prospective contract review before model/runner construction; exact source and prelaunch review before a unique serial native child.',
+         'known_exclusions':'K01/K08 capture blockers, I07 opening-three excluded, original I03.var06 v100 NO_GO unchanged.'}
+path=OUT/'receipt.json';path.write_bytes((json.dumps(receipt,indent=2)+'\n').encode('utf-8'));path.chmod(0o444)
+Path(__file__).chmod(0o444)
+print(json.dumps({'decision':receipt['decision'],'source_blobs':452,'raw_records':144,'receipt':pin(path.read_bytes()),'gui':gui},sort_keys=True))

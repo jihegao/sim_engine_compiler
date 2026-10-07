@@ -1,0 +1,9 @@
+# Independent GO_PRELAUNCH — I03.var11
+
+The one actual SSH5 `-File -PreflightOnly` call completed with OS exit 0 and no native child. The original receipt reports session 0, PowerShell 5, `sshd.exe` ancestry, free mutex, the exact responding GUI identity, absent reserved run, and 118 accepted/context plus 26 excluded-witness raw pins. The original SSH stderr is empty. This is approval for the sole run identified in the bound JSON; the runner must repeat its fresh source, GUI, mutex, ownership, and no-competing-runner guards.
+
+I independently rehashed all 782 frozen manifest source records, recomputed the ordered source-map digest, verified the exact catalog archive against the separate live prelaunch pin, and checked the typed receipt fields and complete source map. I rehashed the original transport receipt and stdout/stderr bytes and confirmed the transport invoked the exact pinned runner in preflight mode. The reserved run and approval were absent during this audit. The root audit is corroboration; this decision rests on the separately executed reviewer auditor at `tmp/i03-var11-independent-actual-preflight-audit-20261008.py`.
+
+Bound identities: manifest `4aa438b946ff43b2e76f21eb1888f50ee976d1444cb568e5f52c13917f7703fe`; source map `b5279df6ee3ec8c2b2a3971e1e9b77049d1d07441ff124ab327f9f925657431f`; preflight `7279ee8d210fc6005b1826988328293387eea9a715559406de5aff333c4e67f1`; transport `91a41b22035e848d2b4a9bf5864ba83eb97246adeb80b11c0eeff7dbc472b3a5`. The JSON approval binds the exact runner, validator, contract, input, and independent replay hashes.
+
+The child has not run. Its prospective h6 printed40/no-arrival-through-h36 and 5,210-cell results remain hypotheses until independent replay of sealed original output. The earlier I03.var06 v100 failure remains excluded evidence.
