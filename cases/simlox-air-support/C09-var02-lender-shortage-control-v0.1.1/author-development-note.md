@@ -1,0 +1,5 @@
+# Author checker development note
+
+During development of this new retrospective checker, initial in-memory probes exposed an omitted exact HOME physical-ID assertion. A later self-check count assertion said 21 although 22 listed mutations had been rejected. Both were corrected before the deterministic author verdict was saved. Those unsaved draft outputs and full draft bytes were not retained; this note does not claim to reconstruct them. No native run, accepted raw, frozen contract or earlier package was changed. The final self-check independently exercises the corrected physical-ID and mutation-count gates.
+
+After an announced preliminary author verdict, a separate root probe found that the mutable comparator allowed exact whole-bin FTMO zero to change by 10⁻⁹. The exact pre-fix comparator, preliminary author verdict and 22-rejection self-check output are preserved under `preserved-prefreeze/`, with the root probe script and result. The corrected comparator makes integer source-fixed FTMO zero exact, retains ≤5×10⁻⁷ serialization for noninteger 2/3, and the final self-check rejects the zero mutation. Preliminary outputs are not final acceptance.

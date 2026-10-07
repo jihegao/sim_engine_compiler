@@ -1,0 +1,20 @@
+# Independent retrospective ordinary-control replay — 2026-10-07
+
+**Decision: GO_BOUNDED_RETROSPECTIVE_CONTROL.** The sealed v1.0.2 ordinary run supports only the v0.1.1 retrospective control classification. The original prospective pair remains **NO_GO_PROSPECTIVE_PAIR** because its frozen live checker failed; the TTRSS shortage arm was never run. This is no approval for a new native run, a general lender-shortage rule, or a return-duration contrast.
+
+## Bound identities
+
+- Corrected contract: `2abc4d733557d97c0766c88599429cef756fcdf16315db56102076670c96632b`. Its independent contract review is `95742d1f230d33a0a520063a5983561819bc0d3d5a55b4258023e92caa100aad`. The v0.1.0 contract and independent NO_GO remain excluded.
+- Sealed ordinary run `c09-var02-v102-ordinary-ssh-20261007-01`: closure `30a99a36775224096dae27e938495dae5e12bb441cd493c2312baf5bef58d5df`, failure seal `43a64a32e56abdcf312482c16d56b391f6bb5eb0d939efa272a330e4ff86c73e`, invocation `ed2e0c12f69caac6f37597cd454a71190e9260a6726d450120a62708a694d756`.
+- Frozen 256-entry prelaunch manifest `0789c128a656b0d405932ec053dc80853ecc8f7dd692f9b4eb3041e80ee8ce4a`, original approval `ac594f3d2fd47f1a0c9faa858f1c99ed672575bd86560d32ff25f1aed3ae4250`, actual SSH0 preflight receipt `418a93293415705ecfc7f58706368a1d07fac2b382ec5da65fa04a45f6282e47`.
+- Independent replay `independent_replay.py`: `39e07b9be5647f8321c8ef1c96b46b23a5649ede8ad9ddf258dabfbabf22ed4c`. Deterministic LF verdict `independent-verdict.json`: `c40e80eeb4afb14e340de7ac84e6fcd66802d4d8b2b11e74050552f4848af211`. The separate contract pin auditor checked 356 direct/nested disk and Git references without mismatch.
+
+## Replayed evidence
+
+The script independently checks all 256 frozen source bytes before and after, 13 ordinary raw SHA/size seals, failure seal, six ordered steps (`0,0,0,0,0,1`), SSH0/GUI/mutex provenance, converter diagnostics, all 32 authored roundtrip tables, six report-table shapes, and **all 1,754 native report cells** against source and printed event expressions. It does not import the author validator or use the candidate report to construct expected values. The ordinary raw timeline has the TEACH repair wait 8.71988–8.96988, work 8.96988–9.46988, and HOME PM resource wait 9–9.96988 followed by actual PM subtask work 9.96988–10.2199. The mechanic is released, transported, booked at HOME, and released there; no simultaneous borrower/HOME booking is accepted. Stock remains the pinned PNB=1 baseline with the other stock counts/nullable measures as declared.
+
+The precision gate uses exact identifiers, nulls, source-fixed counts and complete bins; printed-time half-ULP propagation only for event-derived fractions, with field-specific ceilings. Interior FTMO uses serialization tolerance `5e-7`. Only SystemResults.NSYWR and ResourceResults.NRW in `[9,9.5)` use the predeclared `3e-6` exception: both report `0.9999978542327881` against expected `1`. The script rejects `±1e-5` mutations of those cells and 16 other semantic mutations, including count/null/identity changes, excess fractional exposure, missing bare PM work edges, incorrect resource location/task, return edge and request time. These 20 probes run against in-memory report values or event lines **after** the original seals pass; they are not mere hash failures.
+
+In `[9.5,10)`, the independent ledger reconciles ready 2, unavailable 1, PM wait `0.9397568106651306`, and active PM `0.06024317443370819`. The frozen v1.0.2 checker missed the actual plain `subtask 3 seqno 1 within system PM task 3 ... starts performing` event and failed before the second run. That failure and the whole-bin residue are preserved, not reclassified as a passed prospective check.
+
+To reproduce without changing the frozen verdict, run `python review/independent_replay.py` from this package. It prints the result and does not write. `--write-verdict` is an explicit one-time regeneration option; two subsequent default runs left the verdict hash unchanged. Raw and original source files were read only.
