@@ -1,0 +1,7 @@
+# Independent replay diagnostic — original approved method
+
+**Decision: NO_GO_INDEPENDENT_REPLAY for the frozen original method.** This is a reader-format failure, so the original independent method did not reach its physical or report assertions and cannot support acceptance.
+
+The one approved native child is `c02-var01-v101-personnel0-ssh-20261007-01`. Its sealed `closure.json` is 47,422 bytes, SHA-256 `d418d9a3ea70b8c6358b5f94bfc99427ba84fb336f7c6bba193ef7268dcbe68d`; its first bytes are `EF BB BF 7B 0D 0A 20 20`. The BOM is from PowerShell 5 UTF-8 output. The approved `review/independent_replay.py` remains exactly 40,642 bytes, SHA-256 `f3513bd42042597a49b6bf276117dc3a458d48ab079b4297b14a3be9aa19578f`. Default replay raises `json.decoder.JSONDecodeError: Unexpected UTF-8 BOM` at its `closure.json` `read_text(encoding="utf-8")`/`json.loads` line. No raw file or frozen source was changed.
+
+The author reports all six child stages had session 0 and integer exit 0 and its 10,420-cell validator passed; those statements do not substitute for the independent replay. The native run is preserved under its original ID and must not be rerun. A separately named read-only method may decode the closure with `utf-8-sig`, preserving every existing source, raw, event, report, provenance and numeric gate. It must have a new SHA and a new verdict, with this original failure retained as excluded review history.
