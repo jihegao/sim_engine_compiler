@@ -1,0 +1,7 @@
+# B03.var01 v0.1.2 CLI scope signoff snapshot
+
+**Bounded content:** retrospective COLD-FIRST full-report audit of accepted B03 v1.0.2 `-02`; no new native calls. Author v2 and independent v4 each reconcile all 4,044 report cells with exact metadata, nulls, discrete fields, complete typed log/header/untimed continuations and field-specific fractional bounds. Author 53 and independent 35 in-memory semantic mutations reject; the independent root probe receipt records another 37 rejects. Accepted source/local-Git dual bytes, two B03 run seals and the B02 format-context report are pinned separately.
+
+**Excluded history:** B03 `-01` failed validation; v0.1.0 contract NO_GO; v0.1.1 full-formula NO_GO; v0.1.2 author-v1 NO_GO due missed untimed failure continuation and wrong log horizon. Their frozen original bytes remain diagnostic. The final v2 author method and independent v4 method have distinct hashes in the evidence index. The five System presentation zeros (360 cells) and empty-stock PNB/nulls are bounded native-format checks, not statistical formulas or general laws.
+
+**Limits:** historical invocation gives SSH session zero and integer exits, not individual native child PID/session. No same-MTID thermal switch, cold-only causal, GUI, cross-engine, performance or whole-case claim. This signoff records the content decision; shared catalog, staged Git and remote publication checks are separate root/reviewer gates. See [README-publication.md](README-publication.md), [REPRODUCTION.md](REPRODUCTION.md) and [evidence-index.json](evidence-index.json).

@@ -1,0 +1,254 @@
+{
+  "decision": "ROOT_TARGETED_GATES_PASS",
+  "utc": "2026-10-07T13:04:46.726307+00:00",
+  "method_pins": {
+    "replay_v2.py": "d6d1798c7cb2428a59a70cf3040cbbe39af11fc79dfef5ca8624cbbe2018bcb9",
+    "self_check_v2.py": "1ac865b65ad83f009a3f3753db87368ed2364d5615abdbbb7b369b4d0d7e0bc7",
+    "METHOD-v2.md": "5fd93e80d75de41090d828f372d8b9e3d7d35b21b5f9f253174e7319c34a3a69"
+  },
+  "baselines": {
+    "replay_v2.py": {
+      "accepted_run_id": "b03-v102-ssh-20260929-02",
+      "contract_sha256": "28765ddfeb99c595318d63cc0bd9e6a364bd2122d8a592b2fdd81a4d0a4cea44",
+      "decision": "GO_BOUNDED_AUTHOR_REPLAY",
+      "excluded_run_id": "b03-v102-ssh-20260929-01",
+      "new_native_runs": 0,
+      "report_cells": 4044,
+      "roundtrip_populated_tables": 14,
+      "schema": "b03-var01-author-readonly-replay/v4",
+      "scope": "retrospective explicit cold-first full-report classification only",
+      "source_and_raw_identity_checks": 180,
+      "state_integrals_h": {
+        "FTMO_operation_for_one_aircraft": 6.0,
+        "NSYA_total_aircraft": 36,
+        "NSYMA_total_assigned": 9.0,
+        "NSYMO_operation": 6.0,
+        "NSYMP_active_preparation": 0.8333333333333321,
+        "NSYMR_assigned_prepared_waiting": 2.166666666666668,
+        "NSYRY_unassigned_ready": 27.0
+      },
+      "unpublished_historical_originals": {
+        "present": 59,
+        "total": 59
+      }
+    },
+    "self_check_v2.py": {
+      "baseline_cells": 4044,
+      "missing_unpublished_original_with_sealed_copy": "PASS",
+      "mutation_labels": [
+        "ready/prepared labels swapped",
+        "prepared wait erased",
+        "fractional hot preparation beyond printed bound",
+        "fractional hot prepared wait beyond printed bound",
+        "interior whole-bin state perturbed",
+        "source zero perturbed",
+        "bounded native presentation NSYAL changed",
+        "bounded native presentation STREQ changed",
+        "bounded native presentation STF changed",
+        "bounded native presentation STLOW changed",
+        "bounded native presentation SYDTU changed",
+        "undefined downtime changed",
+        "mission success count",
+        "summary success fraction",
+        "stock null changed to zero",
+        "stock PNB treated as quantity",
+        "stock invented demand",
+        "physical aircraft identity",
+        "instance metadata",
+        "column datatype metadata",
+        "extra table metadata",
+        "extra instance metadata",
+        "extra report root metadata",
+        "cold sequence swapped",
+        "same-time mission activation and allocation swapped",
+        "cold resource request changed",
+        "cold mission route changed",
+        "hot prep completion beyond printed bound",
+        "success/return same-time order",
+        "terminal extra mission",
+        "extra physical return outside expected waves",
+        "extra main preparation task",
+        "substituted aircraft in cold allocation",
+        "source work duration annotation changed",
+        "cold on-station task start moved",
+        "cold turnround MTID changed",
+        "coarsened hot completion exceeds cap",
+        "integer-coarsened work annotation",
+        "resource availability test failed suffix",
+        "activation requests ten aircraft",
+        "mission order suffix",
+        "turnround reduction factor",
+        "random-failure diagnostic time shift",
+        "unknown timed event inserted",
+        "balanced but extraneous resource event",
+        "invented failure in untimed return continuation",
+        "wrong native log horizon header",
+        "duplicate ready diagnostic",
+        "source MTID isolation",
+        "raw seal",
+        "invocation seal",
+        "closure seal",
+        "inert historical copy seal"
+      ],
+      "new_native_runs": 0,
+      "quoted_trailing_comma_parser": "PASS",
+      "schema": "b03-var01-author-self-check/v4",
+      "semantic_mutations_rejected": 53
+    }
+  },
+  "baseline_streams": {
+    "replay_v2.py/stdout": {
+      "path": "tmp/b03-v012-author-v2-root-replay_v2.py-stdout-20261007.txt",
+      "bytes": 904,
+      "sha256": "10229a301cb0a828b25ae9dbe963f3246d508fe67231e207b5207b981ba38d94"
+    },
+    "replay_v2.py/stderr": {
+      "path": "tmp/b03-v012-author-v2-root-replay_v2.py-stderr-20261007.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "self_check_v2.py/stdout": {
+      "path": "tmp/b03-v012-author-v2-root-self_check_v2.py-stdout-20261007.txt",
+      "bytes": 2339,
+      "sha256": "e65610a7e8b3c92bb44de1daf2d5ee1b0b364be12ffccf72313ae665cf71c2ae"
+    },
+    "self_check_v2.py/stderr": {
+      "path": "tmp/b03-v012-author-v2-root-self_check_v2.py-stderr-20261007.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "probes": [
+    {
+      "probe": "wrong_planned_work",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "coarse_planned_work",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "availability_test_suffix",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "requested_aircraft_count_suffix",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "ordered_mission_id_suffix",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "turnround_reduction_factor",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "monotonic_diagnostic_wrong_time",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "wrong_on_station_start",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "coarsened_hot_completion",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "invented_failure_continuation",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "wrong_terminal_horizon",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "extra_unknown_timed_edge",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "extra_subtask_completion",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "extra_root_metadata",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "extra_report_metadata",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "extra_table_metadata",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "extra_instance_metadata",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "extra_column_metadata",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "presentation_zero_NSYAL",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "presentation_zero_STREQ",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "presentation_zero_STF",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "presentation_zero_STLOW",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "presentation_zero_SYDTU",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "source_zero_tiny_residue",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "boolean_zero_substitution",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "undefined_SYDT_zero",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "stock_ROS_null_zero",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "stock_PNB_quantity",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "fraction_outside_actual_token_bound",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "nonfinite_fraction",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "wrong_roundtrip_database_version",
+      "result": "REJECTED"
+    },
+    {
+      "probe": "wrong_roundtrip_instance_name",
+      "result": "REJECTED"
+    }
+  ],
+  "actual_fraction_bound": 0.0001005,
+  "new_native_runs": 0,
+  "final_publication_go": false
+}
