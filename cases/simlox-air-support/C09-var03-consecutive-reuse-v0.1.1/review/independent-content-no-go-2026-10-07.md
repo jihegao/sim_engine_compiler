@@ -1,0 +1,9 @@
+# C09.var03 v0.1.1 publication-content gate — NO_GO_CONTENT
+
+This finding binds the author handoff with `evidence-index.json` SHA-256 `872489c56cf14548a4761ec5323bc8b5dc2f0dfa5110fb6c2d90aafc9c646df0` (33,667 bytes). It does not reverse the frozen contract GO or independent **GO_BOUNDED** read-only replay.
+
+The index's 57/57 package source SHA/size records match local bytes. Thirty-one already published dependency Git blobs also match; the other 26 records are new v0.1.0/v0.1.1 files awaiting staging. All six accepted run closures, six invocations, and 71 raw files match their 83/83 index records. The author verdict reports 16,212 checks and the independent verdict 15,892 checks, including 15,630 report cells. No new native run exists.
+
+**Publication blocker:** The current README lists three commands and general scope/limits, but the reusable-published guide described in `execution-plan-v2.md` step 7 also needs an explicit raw evidence index and failure diagnosis. README does not directly link `evidence-index.json`, show how the six accepted run paths and raw log/report files are resolved, state expected output and check counts for each command, or explain how to distinguish a byte-pin failure, native trailing-comma parse failure, event/ledger disagreement, or justified printed-time tolerance from a semantic mismatch. A reader therefore cannot independently triage a failed reproduction using the package guide.
+
+Recovery: preserve this exact review and the superseded index bytes; add a concrete reproduction guide or expand README with links to the contract and evidence index, accepted-run path resolution, exact commands and expected outputs, and failure triage. Keep the retrospective scope and no-native limitation explicit. Rebuild the evidence index after the guide and review are frozen, then request a fresh content review before catalog append or staging. No accepted source/raw or independent replay byte needs to change.
