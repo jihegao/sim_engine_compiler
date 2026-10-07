@@ -1,0 +1,14 @@
+# Author checker development notes
+
+These were author-draft check failures, not native failures. The draft bytes and failed stdout were not retained as frozen artifacts.
+
+- A first author oracle used exact Python numeric types for STINT/ETINT, rejecting semantically equal native JSON `0` and expected `0.0`. It now compares numeric interval values exactly while rejecting bool/nonfinite values.
+- The native return timestamp prints `10.2824`, fewer decimals than earlier events. Integrating that text initially differed from the report's Resource NR/NRA/NRRT h10–10.5 fractional cells by about `0.00007`. Those fields now have a declared `0.0001` bound for that bin; unrelated discrete and whole-bin values remain exact.
+- A first author checker expected four stage rows, omitting the existing `check_import_export` row. It used a converter-summary regex that omitted native commas and treated the two separate P-MECH deallocations as one event. It now checks all five sealed rows, the actual `Errors: 0, Warnings: 2, Notes: ...` syntax, and the h9.28243 deallocation specifically. No native data changed.
+- A later oracle draft allowed a small generic numeric bound for non-time-weighted counts, and then a fieldwide timing bound even for an expected full-bin zero. The final comparator requires exact invariant counts and full-bin values. The earlier complete draft file was not preserved; this note records the relevant behavior, not a reconstructed SHA.
+
+The final author checker was written twice with identical LF verdict SHA. The final self-check rejects nine interior-cell changes and verifies six scalar type/tolerance cases. The independent checker is separately authored and its own verdict is not derived from this code.
+
+An initial evidence-index draft (SHA `23f772d30698670f28de25fd0ae1c26a5501d5854b6c91f2644ddf6cfb869b9a`) was generated before the author checker directly rehashed the installed manual and dictionary. Its exact bytes and associated author checker, builder, signoff, and verdict are retained under `excluded-author-index-draft/`. The draft passed its then-declared gates but is superseded; current source pins and the final index include the two extra literal installed-document checks. No SIMLOX process or accepted raw file changed.
+
+The guide-gate draft index SHA `872489c56cf14548a4761ec5323bc8b5dc2f0dfa5110fb6c2d90aafc9c646df0` and a later content-reviewed but generic-audit-incompatible index SHA `fcc335ae233f6332e4a413add12ba7dc2870b48b5b062c79413fe1f3722dc371` are retained as uniquely named `evidence-index-*.json` files under `excluded-publication-guide-draft/`. The latter included a nested file named exactly `evidence-index.json`, which a generic recursive auditor could mistake for a live package index and could not resolve from the nested directory. The original bytes were renamed without modification, and the live index now pins both snapshots while excluding them from live-index discovery.

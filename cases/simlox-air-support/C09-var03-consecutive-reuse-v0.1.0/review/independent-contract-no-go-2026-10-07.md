@@ -1,0 +1,19 @@
+# Independent C09.var03 contract review — NO_GO_CONTRACT
+
+- Frozen contract: `contract.json`, 37,281 bytes, SHA-256 `0aa7c8269b95bf93795df830fa14bd50a5b25f6f9ecdf66db365fd524b970515`.
+- Decision: **NO_GO_CONTRACT** for this exact v0.1.0. No C09.var03 child source or native run was reviewed or authorized by this decision.
+
+## Evidence checked
+
+I independently rehashed all 32 pinned source files against their local bytes and the corresponding published Git blobs: the catalog, C09.var04 evidence index and verdict, 17 C09.var04 source files, and four source files each for C03, A17, and D01. All 64 byte comparisons matched. I independently rehashed the six pinned accepted run closures and six invocation files and every raw file: C09.var04 local/remote/disabled 36, C03 11, A17 12, and D01 12, for 71/71 raw seals. The installed SIMLOX manual SHA-256 is `39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3`; physical pp. 399–400 and 414–416 cover remote resource support, return after the task unless the next task immediately needs the resource, TTRS, and lender-shortage TTRSS. The installed dictionary SHA-256 is `11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0` and defines TTRSS in hours.
+
+The accepted remote log SHA-256 `28172e11ea223fa4387c6fbd7009407e78a62802e2f0ed4cfd21cfb338a99047` supports the proposed narrow retrospective comparison. Critical failures occur at h8.28243 and h8.46988; both repair requests occur at h8.53243. At h9.28243, lines 199–201 complete task 2 and **deallocate** P-MECH quantity 1; lines 207–217 retest, receive, **book and allocate** quantity 1 to task 3 and start its work; lines 221–222 then check whether to return the remote resource. This is a printed same-time release and regrant, with no positive-duration idle or second outward journey shown. The pool has quantity and station identity, not a persistent named individual resource identity. Return transport occurs only after task 3 and arrives at BASE-02 at h10.2824; this trace does not exercise lender-shortage TTRSS. Existing C09.var04 publication already mentions the two sequential repairs, so C09.var03 can only add bounded event-order/ledger detail.
+
+## Blocking contract defects
+
+1. `predeclared_event_gates.pool_identity_limit` says the borrowed quantity-one unit is **“continuously booked across the two tasks.”** That contradicts the sealed h9.28243 deallocation and subsequent rebooking, and also contradicts the contract's own `station_ledger` release/rebook gate. A correct checker could either reject the accepted trace or silently ignore this stated gate.
+2. `predeclared_report_gates.all_cells` requires comparing all 5,210 cells per arm **“to sealed native reports.”** Rehashing and reparsing a cell against the same report is a provenance check, not an independent report-value check. The separately named event/resource interval derivation does not explicitly require expected values for every report cell, including the six-table topology, nulls, discrete counts, IDs, summaries, and fractional metrics. Thus a later 15,630-cell success claim could pass a self-comparison while leaving report values untested.
+
+## Recovery
+
+Freeze this v0.1.0 contract and memo as excluded. In a new version, describe **contiguous use at printed time resolution with an explicit deallocation/rebooking at h9.28243**, without claiming continuous booking or person identity. Require every cell in each of the three six-table reports to be reconciled against independently derived source/event expectations, with exact topology, identifiers, nulls, and discrete counts; specify bounded, field-specific tolerance only for time-weighted fractional values and printed event-time precision. Pin this excluded contract and review, then request a fresh contract-only review before implementing the read-only checker. No new native run is needed for the proposed retrospective scope.
