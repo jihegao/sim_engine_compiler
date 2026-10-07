@@ -1,0 +1,9 @@
+# Author CLI scope signoff snapshot
+
+**Decision:** `GO_AUTHOR_REPLAY_ONLY` for the fixed, sealed ordinary-control/v1.0.7-child contrast. Independent behavior and publication decisions are separate. **New native runs:** 0. **Original prospective child:** `NO_GO_RUN`, behavior-checker OS exit 1; never promoted by this author signoff.
+
+The author replay verified 174 direct contract pins, inherited accepted 101 source Git/disk and 77 dual-byte identities, 130 original parent raw records, all 26 v1.0.7 run files including 23 closure raw and 25 failure-file seals, unchanged 1,726 source before/after hashes, exact two-cell source delta, 25 populated authored-table roundtrips in both arms, typed one-mechanic loan/return and HOME-PM ledgers, and all 1,754 report cells in each arm under the predeclared bounds. The self-check rejected 16 in-memory semantic mutations after the original sealed replay. The original child log's printed return annotation remains 0.5 while the linked measured interval is 0.125.
+
+The observed report difference counts are 1/0/12/0/6/4 in ProblemDescription/ResultSummary/SystemResults/StockTotalResults/ResourceResults/ResourceResultsTotal order. The unrounded source/event NRUM total has a tiny cross-arm difference below report serialization; the equal native cells independently pass each arm's bound. No tolerance was fitted from the child report.
+
+**Limits:** one fixed seed, topology, 12-hour horizon and original run pair; no general TTRSS selection law, explanation of the printed-duration discrepancy, persistent person identity, GUI claim, cross-engine equivalence or performance conclusion. Missing raw, unlinked physical edges or unaccounted report values fail. The central publication index, not this dated signoff snapshot, determines whether the bounded case has been published.

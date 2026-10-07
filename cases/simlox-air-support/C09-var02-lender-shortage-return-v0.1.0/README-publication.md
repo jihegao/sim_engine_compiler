@@ -1,0 +1,11 @@
+# C09.var02 fixed lender-return contrast
+
+This is a bounded **read-only replay**. The author and independent behavior replays have passed; independent content, staged and remote publication gates are separate. The authoritative current publication status is the [central index](../publication-index-v1.json); the frozen [contract-stage README](README.md) records the earlier contract-only state.
+
+The new retrospective checker directly parses the unchanged, sealed v1.0.7 child and separately accepted ordinary control. The child return task 0 **prints** `transportation time: 0.5` at h9.46988 and **arrives** at h9.59488, an elapsed 0.125 hours. The ordinary control prints 0.5 and arrives at h9.96988. The child HOME PM work starts h9.59488 and completes h9.84488; the control completes h10.2199. The printed annotation remains an unexplained raw observation. No annotation substitution is used for this replay.
+
+The author checker passes its fixed-source and raw custody gates, 25 populated authored-table roundtrips in each arm, complete typed resource/system/stock ledgers, and all 1,754 report cells in each arm. Its 16 semantic mutations are rejected after the original seals pass. The separate independent replay reconciles 3,508 report cells and rejects 53 semantic/provenance mutations. The author verdict is **GO_AUTHOR_REPLAY_ONLY** and the independent verdict is **GO_BOUNDED_RETROSPECTIVE_REPLAY_ONLY**. The original prospective v1.0.7 run remains **NO_GO_RUN** with final checker OS exit 1 and preserved failure seal. This package adds **zero native runs**.
+
+Read [REPRODUCTION.md](REPRODUCTION.md) for read-only commands, raw custody and failure diagnosis, [raw-custody-map.json](raw-custody-map.json) for exact retrieval identities, [contract.json](contract.json) for the bounded assertion set, and [cli-signoff.md](cli-signoff.md) for the author scope snapshot. The final [evidence index](evidence-index.json) is generated only after the independent replay files freeze; later content, staged and remote reviews remain outside its source cycle.
+
+This fixed pair does not establish a general TTRSS selection rule or logger algorithm, an individual mechanic identity, GUI-only behavior, cross-engine equivalence or performance. Any changed model, seed, route or native experiment requires a separate version and review.

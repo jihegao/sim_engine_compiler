@@ -1,0 +1,11 @@
+# C09.var02 — prospective shortage-return child v1.0.5
+
+This is the **frozen prelaunch contract snapshot** for one proposed SIMLOX CLI child in `C09-var02-lender-shortage-v1.0.5`. Only [contract.json](contract.json) and this README exist at this stage. No v1.0.5 input, runner, approval or native run exists. Independent exact-byte contract review is required before implementation.
+
+The accepted [lender-wait control](../C09-var02-lender-shortage-control-v0.1.1/README-publication.md) is a read-only parent. Its original v1.0.2 ordinary run remains a failed prospective pair result; only the separately published retrospective classification is accepted. The old shortage arm never started. The proposed child changes the ordinary input’s P-MECH `ResourceRemoteSupport.TTRSS` from 0.5 to 0.125 hour and updates `ProblemDescription.PDESC`. It does not rerun the control.
+
+The positive gate requires the same attributable loan, HOME lender shortage and return dispatch observed in the control, followed by a typed 0.125-hour return, HOME resource regrant and PM work. A source value alone cannot prove which return-time branch SIMLOX used. A changed pre-return path, ordinary 0.5-hour return, unmatched loan cycle or incomplete 1,754-cell report ledger is a diagnostic NO_GO.
+
+The excluded v1.0.3 contract mislabeled a UTC owner snapshot as Asia/Shanghai; the excluded v1.0.4 contract retained a v1.0.3 active-owner label. Both versions, their independent NO_GO memos and audits are pinned in this contract and remain unchanged. The current v1.0.5 initial owner receipt is **2026-10-07T05:19:23.0382130Z**. It confirms only that snapshot, including the absent proposed v1.0.5 run; all guards must be rechecked during actual prelaunch.
+
+The contract pins the merged control’s 101 source records, 130 local raw seals, 77 separately labeled local/Git accepted-source identities, custody map and original failure history. It predeclares exact count/null/whole-bin checks and narrow printed-time bounds. A new native execution requires fresh source pins, static and independent prelaunch gates, actual guarded SSH PowerShell 5 preflight and the unique v1.0.5 run ID. The root publication index remains the authority for publication status.
