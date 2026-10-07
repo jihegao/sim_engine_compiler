@@ -1,0 +1,15 @@
+# Independent v107 prelaunch review — GO_PRELAUNCH
+
+The exact frozen child is eligible for one guarded SSH0 native attempt under run ID `c09-var02-v107-shortage-ssh-20261007-01`. This decision is bound by `independent-prelaunch-go.json` SHA-256 `b69b82fd7cb24dd10450cf63a3cf710527f68f590076f7d8105cb0177b783676`. It does not accept a native result or authorize rerunning the accepted ordinary control or excluded v106 attempt.
+
+## Exact evidence
+
+- Contract `2051fca4baf9555adaab28d870726eee97fe38ac61537630d6b63d2b89a5bb99`; input `a036c16bbdd28b35047ba8a064722c6a1bde21c036435263dd5713dd710767a4`; runner `328bb29a8b4286e30251c9ec397301e4cbf0ad1cb4f1d916d3a1c8e6d721600c`; validator `43192622d57766fda4efe53ef2f58215b78ba40a7bf911881962ad58b9b0b671`.
+- Manifest `66f21ddd52d11c96756c9e24e4b3be7e6eb113e9efa24f6efecc28e5b88ec13c` has 1,726 unique SHA/size source records. My read-only audit rechecked all 1,726 current bytes, ten original and owned-copy harmless helper streams, and absent child/approval before the approval was written. It passed with no drift.
+- Actual `ssh -n` PowerShell 5 `-File ... -PreflightOnly` exited 0. Its owned receipt `review/preflight-ssh0-20261007T073001321Z.json` is 216,639 bytes, SHA `3bc0ac4bfa8aa395895f0a2626ec0cfcf8238928459163fbb98e7f66928e4ef0`. It reports SSH session 0 and sshd ancestry, PowerShell major 5, free global mutex, sole responsive protected GUI PID 13340/session 1/start 1790590196826, 130 accepted raw seals, ten closure/invocation chains, absent v107 run and `native_process_started:false`. Its 1,726 source hashes exactly equal the manifest; independent compact-JSON hashing reproduces source-map SHA `6795c588eb6f2d809008c4704876f341e3768c232e6ec71527b0fdce4b020936`.
+- Root separately exercised the production receipt parser with explicit Windows PowerShell 5 `-File`, after an initial local parser invocation had used PowerShell 7. The actual case receipt itself says major 5. The harmless helper SSH test previously captured real integer OS exits 0/7 and rejected null/typed-invalid records; that test is not a SIMLOX run.
+- Reviewer-owned `review/independent_replay.py` is 68,855 bytes, SHA `1ee55b22fe01512010baeeac4c49545d1690f7279144dc0b0e20353d56590d7b`. Its `--self-check` independently reconciles the accepted ordinary 1,754 report cells, rejects 23 parent and nine synthetic branch mutations, and documents v106 NO_GO_RUN. Default execution failed closed because the v107 child is absent. Postrun replay will require the exact approval, preflight, 1,726 source map, structured integer child exits/sessions, sealed raw files, physical trace, and all 1,754 child report cells.
+
+## Boundary
+
+The standing contract permits later linked cycles; the `.125` hour return gate applies only to the identity-matched shortage return. Full event/resource/station and report reconciliation remains a postrun requirement. A missing, malformed, ambiguous, or contrary native trace is NO_GO, with no relaxation of this frozen contract. The sole authorized native operation remains the one fresh v107 child call after the controller's immediate GUI, mutex, and owner guard.

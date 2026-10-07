@@ -1,0 +1,9 @@
+# C09.var02 lender return: retrospective contract snapshot
+
+This package is at the **contract-only, pending independent review** stage. It proposes a read-only classification of the sealed v1.0.7 child against the separately accepted v0.1.1 ordinary lender-wait control. It authorizes **zero new native runs**. The central publication index is the authority for any later published status.
+
+The v1.0.7 prospective child remains **NO_GO_RUN**. Its sixth captured step, the frozen behavior checker, exited 1. The unchanged child log prints `transportation time: 0.5` for return task 0 at h9.46988, yet records its arrival at h9.59488, an elapsed 0.125 hours. The accepted control prints 0.5 and arrives at h9.96988. The child's HOME PM starts work at h9.59488 and completes at h9.84488; the control PM completes at h10.2199. A later replay must retain the printed annotation and measured elapsed interval as separate observed values. An earlier in-memory annotation substitution was diagnostic only.
+
+[`contract.json`](contract.json) pins the exact source, native run, failure and parent custody bytes. It requires full typed task/resource/system/stock ledgers and source-derived comparison of all 1,754 report cells in each arm. Its numerical bounds, mutation rejects, unknowns and publication gates are prospective requirements for a **new read-only checker**. The contract does not infer a general TTRSS rule, logger algorithm, persistent person identity, GUI behavior, cross-engine equivalence or performance.
+
+After independent contract GO, the author may add a separate read-only replay and reproduction guide; an independent reviewer must verify the original raw, complete ledgers, report values, source identities and bounded scope. Source, run folders and prior review decisions remain immutable. No accepted parent or failed child is rerun.

@@ -1,0 +1,19 @@
+# Independent retrospective return review — 2026-10-07
+
+**Decision: GO_BOUNDED_RETROSPECTIVE_REPLAY_ONLY.** The unchanged sealed ordinary control and failed v107 child support the fixed-pair observation in contract `18e3e6a04d5aeb328b5db4e21a6956a4bf1360fd89d9ab4b0577e57b5d7f9978`. The original v107 prospective decision remains **NO_GO_RUN**. No new native process was run, and the second arm was not re-created.
+
+## Bound evidence
+
+- Independent contract GO `e5d1f954d921310a2975006033d306e5904522a31188f51dc823c06fa9a443ca`; reviewer-owned replay `independent_replay.py` 72,592 bytes/SHA `02bb9d431f7cecfa0ba8f725d818cf5256d12bb25fe07e934dc095032f8e5d37`; deterministic LF verdict `independent-verdict.json` 1,294 bytes/SHA `b0e8477c54efb21b074d2b9cfcb93b30682533b6118da158768837670f3a2dd6`.
+- Accepted control evidence index `c76f768942de24e9733e61e5dcf44755430fe5b910593f842710588536d3ff50`: 101 published source blobs, 77 separately pinned local/Git identities and 130 raw seals. Historical catalog is checked at base commit `d1d9a4dcbcfe146a0de41e01c3089dae235bb7ef`; later entries must preserve its first 486 entries and metadata.
+- Failed child closure `e09f5fa2549c088e4c3e25a9dc3acea660cac9e1331f4a012e3acaa981810715` seals 23 raw files; failure seal `1a8cbc59efeeae35bc30af33854bf85121b9cdb73dc5f84b2a20ea4e8650ee3a` seals 25 files. The 1,726 frozen prelaunch source pins match both before and after. The six recorded child OS exits are `0,0,0,0,0,1`, with the behavior checker failed; no result is reclassified as a passed prospective run.
+
+## Direct raw and report replay
+
+The independent script does not import author code or alter the log. It reads the original return-task line's printed **0.5 hour** annotation and the same task's h9.46988 start and h9.59488 arrival as separate facts: measured elapsed time is **0.125 hour**. The arrival has the linked BASE-02 P-MECH receipt and precedes HOME PM resource grant. Bare PM subtask work runs h9.59488–9.84488. The ordinary control's same return task starts h9.46988, arrives h9.96988, and HOME PM completes h10.2199. Task IDs, station receipts, mechanic quantity, booking/deallocation, wait closure and terminal resource state are checked from original events.
+
+Both six-table reports reconcile **all 1,754 cells per arm, 3,508 total** to source/event-derived expectations. Native report cells are tested outputs, never the expected-value oracle. The observed between-arm changed cells are ProblemDescription 1, ResultSummary 0, SystemResults 12, StockTotalResults 0, ResourceResults 6 and ResourceResultsTotal 4. Identifiers, nulls, exact zero and discrete counts use exact comparisons. Printed-time-derived fractions use field-specific bounds; the only named whole-bin exception is h9–9.5 SystemResults.NSYWR and ResourceResults.NRW at `3e-6`.
+
+After sealing original inputs, 53 in-memory probes reject: 23 accepted-control report/event mutations, 9 synthetic branch mutations, 18 failed-child raw/report mutations and 3 source/raw-seal or missing-file mutations. The child probes include changing the printed annotation, return arrival/task/station/quantity, PM ID or bare work, overlapping or orphan mechanic booking, exact-zero FTMO, null SYDT, discrete count, report identity, and both directions of `1e-5` change to the two named h9 cells. Synthetic later-cycle probes exercise parser and accounting logic only; they are not additional native evidence.
+
+The result is a bounded observation of this sealed pair. It does not establish a general logger convention, a general TTRSS selection law, or acceptance of the failed v107 prospective gate. Publication source/index and custody-guide review remain separate gates. Run `python review/independent_replay.py` from this package to print the same result read only; `--self-check` exercises the same gates without writing files.
