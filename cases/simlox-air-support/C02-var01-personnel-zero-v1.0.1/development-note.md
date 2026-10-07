@@ -1,0 +1,13 @@
+# Prelaunch author development notes
+
+The first mutable report oracle failed its accepted-parent rehearsal because it classified the source-exact half-hour `ETINT=0.5` as an unsupported fractional event field. The traceback was displayed during development but was not saved as a separate file. The correction classifies report interval boundaries explicitly; the accepted parent now independently replays all 5,210 cells.
+
+The first mutable physical checker checked h7 and cancellation events by presence and timestamp but did not require their line order. The reviewer identified this gap before any source manifest, preflight or native child existed. I corrected it before preserving the complete earlier draft bytes or a swap-probe output. Those earlier bytes and their hash are **unavailable**; this note does not claim an original snapshot. The current checker asserts ordered source-bound events, and `self_check.py` swaps the h7 request/test and cancellation/arrival lines in memory to require rejection.
+
+The synthetic crew-zero analogue is only a parser and report-oracle rehearsal using a copied accepted E-GSE-zero report with a changed description and typed availability lines. It is not native evidence for C02.var01. Its printed 7.58333 cancellation is never fixed as the new child's expected timestamp.
+
+The first runner draft is preserved byte-for-byte as `preserved-prefreeze/run-native-ownership-runner-draft.ps1` (13,482 bytes, SHA-256 `3597f2e4115a2592241397cdd0b5e97caa9dc485691dac05b7c4b1f89b4a217f`). It checked only PowerShell runner names and could have written a failure seal into an already-existing reserved run directory after a preflight rejection. The active draft checks other runner processes and records directory ownership only after successful creation; its failure path writes only to the owned directory. No native call used the preserved draft.
+
+The unapproved schema-review inventory is preserved as `preserved-prefreeze/prelaunch-manifest-provisional-2473db.json` (50,584 bytes, SHA-256 `2473db99971bd926e0ad83b778d1668d782c09741b35659a42ffe054c6b2a614`). It contained 151 records and a then-mutable reviewer method. It was removed from the active manifest filename; it never authorized preflight or native execution.
+
+The first local preflight-receipt test used a stale synthetic `shortage` run label even though it passed production receipt parsing. Its exact 5,547-byte source (SHA-256 `5910a1c2bbada50e262dc58794b221198dccb01a8d5f221bf6acbd50e2ef5c8f`) is preserved as `preserved-prefreeze/test-preflight-stale-runid.ps1`. The active test uses the reserved `personnel0` run ID and again passes two positives and 33 tamper rejections. Neither test invoked SIMLOX.
