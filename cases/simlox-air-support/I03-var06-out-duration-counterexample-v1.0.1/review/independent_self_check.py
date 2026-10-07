@@ -1,0 +1,152 @@
+"""In-memory semantic mutations after the original sealed replay passes.
+
+No original source or raw file is modified. This imports only the independent
+reviewer replay, never the author's implementation.
+"""
+
+import json
+import pathlib
+import runpy
+import struct
+from copy import deepcopy
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+M = runpy.run_path(str(ROOT / "review/independent_replay.py"))
+A = M["Audit"]
+run = ROOT.parent / "I03-var06-out-ignored-duration-v1.0.0/runs/i03-var06-out-dt4-v100-ssh-20261008-01"
+raw = (run / "model.log").read_bytes()
+parent_raw = (M["PARENT_RUN"] / "model.log").read_bytes()
+report = M["native_json"]((run / "report-raw.json").read_bytes())
+contract = M["native_json"]((ROOT / "contract.json").read_bytes())
+baseline = A()
+parent, predicted = M["parent_and_prediction"](contract, baseline)
+timeline = M["child_physical"](raw, baseline, role="child")
+M["paired_log_check"](parent_raw, raw, baseline)
+M["compare_report"](contract, predicted, report, "child", baseline, timeline)
+
+rejected = []
+
+
+def reject(name, action):
+    try:
+        action(A())
+    except (AssertionError, ValueError, KeyError, IndexError) as exc:
+        rejected.append({"name": name, "reason_type": type(exc).__name__})
+    else:
+        raise AssertionError("semantic mutation escaped: " + name)
+
+
+def mutate_log(name, old, new):
+    old = old.encode("utf-8")
+    new = new.encode("utf-8")
+    assert raw.count(old) == 1, (name, raw.count(old))
+    mutated = raw.replace(old, new, 1)
+    reject(name, lambda a: M["child_physical"](mutated, a, role="child"))
+
+
+def mutate_report(name, table, row, column, value):
+    mutated = deepcopy(report)
+    target = next(t for t in mutated["report"]["tables"] if t["name"] == table)
+    columns = [c["name"] for c in target["columns"]]
+    target["instances"][0]["rows"][row][columns.index(column)] = value
+    reject(name, lambda a: M["compare_report"](contract, predicted, mutated,
+                                                 "child", a, timeline))
+
+
+# Task duration and linked arrival are read directly from the original log.
+mutate_log("printed4_to0", b"starts with 1 resources, transfer time: 4".decode(),
+           "starts with 1 resources, transfer time: 0")
+mutate_log("printed4_to3", "starts with 1 resources, transfer time: 4",
+           "starts with 1 resources, transfer time: 3")
+mutate_log("arrival10_to9point5", "Time: 10  resource transfer task 0 (OUT)  arrives with 1 resources",
+           "Time: 9.5  resource transfer task 0 (OUT)  arrives with 1 resources")
+mutate_log("arrival_wrong_task", "Time: 10  resource transfer task 0 (OUT)  arrives with 1 resources",
+           "Time: 10  resource transfer task 1 (OUT)  arrives with 1 resources")
+mutate_log("arrival_wrong_quantity", "Time: 10  resource transfer task 0 (OUT)  arrives with 1 resources",
+           "Time: 10  resource transfer task 0 (OUT)  arrives with 2 resources")
+mutate_log("booking_free_count", "Time: 7.5  <P-CREW at <BASE-01,0>> allocated to maintenance task: 1  available now: 0",
+           "Time: 7.5  <P-CREW at <BASE-01,0>> allocated to maintenance task: 1  available now: 1")
+mutate_log("mission_duration", "Time: 8.5 <BASIC-MISSION,TEACH-UNIT,0,0,0> mission starting, duration: 1",
+           "Time: 8.5 <BASIC-MISSION,TEACH-UNIT,0,0,0> mission starting, duration: 2")
+mutate_log("untimed_return_continuation", "Time: 9.5 <TEACH-AIR-01,BASE-01,0> System arrives <TEACH-AIR-01,0>, mission success, \r\n no failures \r\n no PMTasks",
+           "Time: 9.5 <TEACH-AIR-01,BASE-01,0> System arrives <TEACH-AIR-01,0>, mission success, \r\n no failures \r\n no PMTasks changed")
+
+line = b"Time: 10  resource transfer task 0 (OUT)  arrives with 1 resources"
+assert raw.count(line) == 1
+reject("duplicate_arrival", lambda a: M["child_physical"](raw.replace(line, line + b"\r\n" + line, 1), a,
+                                                             role="child"))
+start = b"Time: 6  resource transfer task 0 (OUT)  starts with 1 resources, transfer time: 4"
+assert raw.count(start) == 1
+reject("double_local_decrement", lambda a: M["child_physical"](raw.replace(start, start + b"\r\n" + start, 1), a,
+                                                                   role="child"))
+reject("extra_other_log_line", lambda a: M["paired_log_check"](
+    parent_raw, raw + b"\r\nTime: 36  Start of day no 2", a))
+return_line = b"Time: 9.5 <TEACH-AIR-01,BASE-01,0> System arrives <TEACH-AIR-01,0>, mission success, "
+assert raw.count(return_line) == 1
+reject("missing_other_log_line", lambda a: M["paired_log_check"](
+    parent_raw, raw.replace(return_line + b"\r\n", b"", 1), a))
+
+# Exact report topology, nulls, whole bins, zeros and all five binary32 means.
+mutate_report("whole_bin_nominal", "ResourceResults", 13, "NRN", 1.00001)
+mutate_report("whole_zero_occupancy", "SystemResults", 0, "NSYMO", 1e-9)
+stock = next(t for t in report["report"]["tables"] if t["name"] == "StockTotalResults")
+stock_cols = [c["name"] for c in stock["columns"]]
+null_col = next(c for c in stock_cols if stock["instances"][0]["rows"][0][stock_cols.index(c)] is None)
+mutate_report("stock_null_to_zero", "StockTotalResults", 0, null_col, 0)
+
+for field in ("NR", "NRA", "NRN", "NRUM", "NRW"):
+    table = next(t for t in report["report"]["tables"] if t["name"] == "ResourceResultsTotal")
+    cols = [c["name"] for c in table["columns"]]
+    value = table["instances"][0]["rows"][0][cols.index(field)]
+    bits = int.from_bytes(struct.pack("<f", value), "little")
+    next_float = struct.unpack("<f", (bits + 1).to_bytes(4, "little"))[0]
+    mutate_report("binary32_one_ulp_" + field, "ResourceResultsTotal", 0, field, next_float)
+
+meta = deepcopy(report)
+meta["report"]["tables"].append(deepcopy(meta["report"]["tables"][0]))
+reject("duplicate_report_table", lambda a: M["compare_report"](contract, predicted, meta,
+                                                                   "child", a, timeline))
+meta = deepcopy(report)
+meta["report"]["tables"][0]["instances"][0]["instance_name"] = "changed"
+reject("instance_metadata", lambda a: M["compare_report"](contract, predicted, meta,
+                                                              "child", a, timeline))
+meta = deepcopy(report)
+meta["report"]["tables"][2]["columns"][0]["datatype"] = True
+reject("bool_column_metadata", lambda a: M["compare_report"](contract, predicted, meta,
+                                                                 "child", a, timeline))
+
+export = M["native_json"]((run / "roundtrip-raw.json").read_bytes())
+bad = deepcopy(export)
+bad["model"]["tables"].append(deepcopy(bad["model"]["tables"][0]))
+reject("duplicate_source_table", lambda a: M["roundtrip"](predicted, bad, a, "mutated export"))
+bad = deepcopy(export)
+transfer = next(t for t in bad["model"]["tables"] if t["name"] == "ResourceTransfer")
+transfer["instances"][0]["rows"][0][5] = 0
+reject("export_TFDT4_to0", lambda a: M["roundtrip"](predicted, bad, a, "mutated export"))
+
+# Exercise the same typed append-only catalog gate used in production replay.
+catalog = M["native_json"]((M["REPO"] / "cases/simlox-air-support/publication-index-v1.json").read_bytes())
+archive_shape = deepcopy(catalog)
+archive_shape["entries"] = archive_shape["entries"][:491]
+valid_append = deepcopy(archive_shape)
+new_entry = deepcopy(archive_shape["entries"][-1])
+new_entry["publication_id"] = "I03.var06.independent-synthetic-new-id"
+valid_append["entries"].append(new_entry)
+M["check_catalog_archive"](archive_shape, valid_append, A())
+bad = deepcopy(valid_append)
+bad["entries"][0]["publication_id"] += ".changed"
+reject("catalog_prefix_changed", lambda a: M["check_catalog_archive"](archive_shape, bad, a))
+bad = deepcopy(valid_append)
+bad["entries"][0]["publication_id"] = True
+reject("catalog_prefix_type_changed", lambda a: M["check_catalog_archive"](archive_shape, bad, a))
+bad = deepcopy(valid_append)
+bad["entries"][-1]["publication_id"] = bad["entries"][0]["publication_id"]
+reject("catalog_duplicate_new_id", lambda a: M["check_catalog_archive"](archive_shape, bad, a))
+bad = deepcopy(valid_append)
+metadata_key = next(k for k in bad if k != "entries")
+bad[metadata_key] = True
+reject("catalog_metadata_type_changed", lambda a: M["check_catalog_archive"](archive_shape, bad, a))
+
+print(json.dumps({"schema": "i03-var06-independent-retrospective-self-check/v1",
+                  "passed": True, "baseline_semantic_checks": baseline.checks,
+                  "negative_rejections": rejected}, sort_keys=True, indent=2))

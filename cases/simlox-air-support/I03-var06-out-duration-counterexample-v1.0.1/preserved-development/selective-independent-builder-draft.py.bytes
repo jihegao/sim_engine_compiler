@@ -1,0 +1,232 @@
+"""Deterministic, read-only by default, retrospective evidence-index builder."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+from json_codec import parse, typed_equal
+from replay_v101 import replay
+from verify_custody_v101 import HERE, REPO, checked, git_blob, git_tree, identity, verify
+
+
+INDEX = HERE / "evidence-index.json"
+PYTHON = Path(sys.executable)
+CONTRACT_SHA = "66465e9a5df6c3e5a95f6b9b6b046bb6ea3b448a6512cb3e88ff7f2993f803dc"
+AUTHOR_DECISION = "GO_BOUNDED_RETROSPECTIVE_COUNTEREXAMPLE"
+PUBLICATION_ID = "I03.var06.out_duration_counterexample.readonly.1.0.1"
+INDEPENDENT_METHOD_SHA = "80f73b72c52bc95d833a01f8d2f8835d4d194e41a06f39b0a7921c0d57126426"
+INDEPENDENT_SELF_CHECK_SHA = "e020c751fd9e9e82ffe1a0ee1dbc7d898b4c90d5d5f952f5904cf74a87930cd3"
+
+# Fixed inventory roots contain only already archived, inert source/context bytes.
+# New review content/staged/remote gates are deliberately outside this index cycle.
+SOURCE_TREES = (
+    "preserved-development",
+    "preserved-root-context",
+    "preserved-root-context-v2",
+    "preserved-root-context-v3",
+    "preserved-independent-proof",
+    "preserved-v100-source",
+)
+TOP_LEVEL = (
+    ".gitattributes", ".gitignore", "contract.json", "MODEL-LINEAGE.md",
+    "README.md", "README-publication.md", "REPRODUCTION.md",
+    "author-verdict.json", "cli-scope-signoff-2026-10-08.md",
+    "copy_context.py", "copy_v100_source.py", "event_ledger_v101.py",
+    "independent-proof-custody.json", "json_codec.py", "make_evidence_index.py", "publication-entry.json",
+    "replay_v101.py", "report_oracle_v101.py", "root-context-custody.json",
+    "self_check_v101.py", "source_gate_v101.py", "v100-source-custody.json",
+    "verify_custody_v101.py",
+)
+# Reviewer-owned files are explicit. Add only frozen acceptance artifacts before
+# the one-time index write. Post-index content/staged/remote reviews stay separate.
+REVIEW_FILES = (
+    "review/independent_replay.py",
+    "review/independent_self_check.py",
+    "review/independent-postrun-verdict.json",
+    "review/independent-postrun-go-2026-10-08.md",
+)
+
+
+def pin(path: Path) -> dict:
+    return identity(path.read_bytes())
+
+
+def stable_author_verdict() -> dict:
+    frozen = parse(HERE / "author-verdict.json")
+    current = replay()  # includes exact archive/live catalog prefix check every time
+    assert frozen["decision"] == current["decision"] == AUTHOR_DECISION
+    historical_count = frozen["custody"]["catalog_live_entries"]
+    current_count = current["custody"]["catalog_live_entries"]
+    assert type(historical_count) is type(current_count) is int
+    assert historical_count == 491 and current_count >= 491
+    frozen_without_live_count = json.loads(json.dumps(frozen))
+    current_without_live_count = json.loads(json.dumps(current))
+    del frozen_without_live_count["custody"]["catalog_live_entries"]
+    del current_without_live_count["custody"]["catalog_live_entries"]
+    assert typed_equal(frozen_without_live_count, current_without_live_count)
+    assert frozen["behavior"]["parent_cells"] == frozen["behavior"]["child_cells"] == 5210
+    assert frozen["historical_process"]["native_exit_codes"] == [0, 0, 0, 0, 0, 1]
+    return frozen
+
+
+def independent_verdict() -> dict:
+    assert pin(HERE / "review/independent_replay.py")["sha256"] == INDEPENDENT_METHOD_SHA
+    assert pin(HERE / "review/independent_self_check.py")["sha256"] == INDEPENDENT_SELF_CHECK_SHA
+    frozen = parse(HERE / "review/independent-postrun-verdict.json")
+    raw = subprocess.check_output([str(PYTHON), "-X", "utf8", "-B",
+                                   str(HERE / "review/independent_replay.py")], cwd=REPO)
+    current = json.loads(raw)
+    assert frozen["decision"] == current["status"] == AUTHOR_DECISION
+    assert frozen["original_v100_decision"] == current["original_v100_status"] == "NO_GO_RUN"
+    assert frozen["new_native_calls"] == 0
+    assert frozen["independent_checks"] == current["checks"] == 20433
+    assert frozen["report_cells_per_arm"] == current["parent_report_cells"] == current["child_report_cells"] == 5210
+    assert frozen["paired_report_differences"] == current["paired_differences"] == [["ProblemDescription", 0, "PDESC"]]
+    assert frozen["original_failed_run"]["native_and_checker_os_exits"] == [0, 0, 0, 0, 0, 1]
+    assert frozen["semantic_mutations_rejected"] == 29
+    return frozen
+
+
+def source_inventory() -> list[dict]:
+    names = set(TOP_LEVEL) | set(REVIEW_FILES)
+    for tree in SOURCE_TREES:
+        assert (HERE / tree).is_dir(), tree
+        for path in (HERE / tree).rglob("*"):
+            if path.is_file():
+                names.add(path.relative_to(HERE).as_posix())
+    assert "evidence-index.json" not in names
+    assert not any("__pycache__" in Path(n).parts or n.endswith(".pyc") for n in names)
+    assert not any(n.startswith("runs/") or n.startswith("transport-evidence/") for n in names)
+    return [{"path": name, **pin(HERE / name)} for name in sorted(names)]
+
+
+def build() -> dict:
+    assert pin(HERE / "contract.json")["sha256"] == CONTRACT_SHA
+    assert (HERE / ".gitattributes").read_bytes() == b"* -text\n"
+    assert verify()["passed"] is True
+    author = stable_author_verdict()
+    independent = independent_verdict()
+    entry = parse(HERE / "publication-entry.json")
+    assert entry["publication_id"] == PUBLICATION_ID
+    assert entry["case_id"] == "I03" and entry["variant_id"] == "I03.var06"
+    assert entry["new_native_runs"] == 0 and entry["original_prospective_decision"] == "NO_GO_RUN"
+    assert entry["evidence_index"] == "I03-var06-out-duration-counterexample-v1.0.1/evidence-index.json"
+    contract = parse(HERE / "contract.json")
+    lineage = contract["source_lineage"]
+    tree = git_tree(lineage["base_commit"])
+    dual = []
+    for section, count in (("parent_source_disk_and_git_at_base", 192),
+                           ("accepted_dependency_source_disk_and_git_at_base", 20),
+                           ("accepted_secondary_context_source_disk_and_git_at_base", 2)):
+        rows = lineage[section]
+        assert len(rows) == count
+        for row in rows:
+            checked(REPO / row["path"], row["local_disk"])
+            assert identity(git_blob(tree, row["path"])) == row["published_git_at_base"]
+            dual.append({"section": section, "path": row["path"],
+                         "local_disk": row["local_disk"],
+                         "published_git_at_base": row["published_git_at_base"]})
+    assert len(dual) == 214
+    accepted_raw = []
+    for section in ("accepted_parent_and_context_raw", "accepted_secondary_context_run_files"):
+        rows = lineage[section]
+        assert len(rows) == 59
+        for row in rows:
+            checked(Path(row["original_path"]), row)
+            accepted_raw.append({"section": section, "path": row["original_path"],
+                                 "bytes": row["bytes"], "sha256": row["sha256"]})
+    failed_raw = []
+    for row in contract["historical_failed_run"]["v100_raw_run_files"]:
+        checked(REPO / row["path"], row)
+        failed_raw.append({"section": "failed_v100_run", "path": row["path"],
+                           "bytes": row["bytes"], "sha256": row["sha256"]})
+    assert len(accepted_raw) == 118 and len(failed_raw) == 26
+    source_map = parse(HERE / "v100-source-custody.json")["records"]
+    context_map = parse(HERE / "root-context-custody.json")["records"]
+    assert len(source_map) == 117 and len(context_map) == 30
+    proof_map = parse(HERE / "independent-proof-custody.json")["records"]
+    assert len(proof_map) == 5
+    assert proof_map[0]["sha256"] == independent["root_exact_replay_proof"]["sha256"]
+    for item in proof_map:
+        checked(HERE / item["owned_copy"], item)
+        original = REPO / item["original"]
+        if original.exists():
+            checked(original, item)
+    catalog = lineage["catalog_at_selection"]
+    source = source_inventory()
+    assert len({r["path"] for r in source}) == len(source)
+    return {
+        "schema": "i03-var06-v101-retrospective-evidence-index/v1",
+        "publication_id": PUBLICATION_ID,
+        "case_id": "I03", "variant_id": "I03.var06", "version": "1.0.1",
+        "publication_state": "reusable_published_after_central_catalog_merge",
+        "bounded_decision": AUTHOR_DECISION,
+        "original_v100_decision": "NO_GO_RUN", "new_native_runs": 0,
+        "accepted_parent_runs_repeated": 0,
+        "classification_id": contract["classification_id"],
+        "contract_sha256": CONTRACT_SHA,
+        "source_base_commit": lineage["base_commit"],
+        "author_verdict_sha256": pin(HERE / "author-verdict.json")["sha256"],
+        "independent_method_sha256": INDEPENDENT_METHOD_SHA,
+        "independent_self_check_sha256": INDEPENDENT_SELF_CHECK_SHA,
+        "independent_verdict_sha256": pin(HERE / "review/independent-postrun-verdict.json")["sha256"],
+        "independent_postrun_memo_sha256": pin(HERE / "review/independent-postrun-go-2026-10-08.md")["sha256"],
+        "independent_checks": independent["independent_checks"],
+        "parent_report_cells": independent["report_cells_per_arm"],
+        "child_report_cells": independent["report_cells_per_arm"],
+        "corresponding_non_description_equal": author["behavior"]["corresponding_non_description_equal"],
+        "original_v100_process_exits": author["historical_process"]["native_exit_codes"],
+        "source_count": len(source), "source": source, "source_files": source,
+        "accepted_source_refs": dual,
+        "raw_record_count": len(accepted_raw) + len(failed_raw),
+        "raw_files": accepted_raw + failed_raw,
+        "v100_inert_source_copies": source_map,
+        "root_context_small_copies": context_map,
+        "root_independent_proof_copies": proof_map,
+        "installed": lineage["installed"],
+        "catalog_history": {
+            "path": catalog["path"],
+            "owned_exact_archive": "preserved-v100-source/preserved-root-context/cases__simlox-air-support__publication-index-v1.json",
+            "local_disk_at_selection": catalog["local_disk"],
+            "published_git_at_base": catalog["published_git_at_base"],
+            "entry_count_at_selection": 491,
+            "sealed_replay_policy": "Exact archive and base Git identity; live typed metadata/first491/unique IDs checked on every replay; later append permitted.",
+        },
+        "author_verdict_snapshot_catalog_live_entries": 491,
+        "author_verdict_rebuild_rule": "Current replay must check live prefix and metadata, have >=491 entries, and be type-exact equal to the saved verdict after removing only the live entry-count observation. No source, catalog, physical, report or provenance gate is skipped.",
+        "independent_verdict_rebuild_rule": "All fields including 20433 checks remain type-exact equal across catalog append.",
+        "source_location_policy": "Package-relative source pins have exact bytes and * -text; unpublished v100 non-run originals have named inert copies, with originals checked if present.",
+        "raw_location_policy": "All 118 accepted/context raw records and 26 failed v100 run files are mandatory at their original sealed paths; no substitute or native rerun.",
+        "limits": [
+            "Single installed binary, source row, task and fixed TFDT4/TFDT0 pair only.",
+            "Derived task quantity in transit/completed OUT is not a persistent outside person identity.",
+            "Some report cells use predeclared bounded native presentation fields, not physical statistical formulas.",
+            "Original v100 prospective checker and independent reader remain NO_GO; no new native run is accepted here.",
+            "No general OUT algorithm, IN/BETWEEN, GUI, performance, cross-engine or whole-I03/Issue18 claim.",
+        ],
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true", help="create the absent index once")
+    args = parser.parse_args()
+    doc = build()
+    data = (json.dumps(doc, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    if args.write:
+        with INDEX.open("xb") as stream:
+            stream.write(data)
+    elif INDEX.exists():
+        assert INDEX.read_bytes() == data, "frozen index differs from exact dry rebuild"
+    print(json.dumps({"schema": "i03-var06-v101-index-build/v1", "written": args.write,
+                      "source_count": len(doc["source_files"]), "raw_count": doc["raw_record_count"],
+                      "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()},
+                     sort_keys=True, separators=(",", ":")))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,9 @@
+# I03.var06 retrospective scope signoff snapshot
+
+**Historical execution:** the one v1.0.0 native run and original prospective checker remain `NO_GO_RUN`. No native process was started for this v1.0.1 evidence-only classification. The original four native and roundtrip-checker exits are 0; the behavior-checker exit is 1. All original source, 26 run files, 23 closure raw files and 25 failure-seal pins remain byte-identical.
+
+**Retrospective finding:** fixed TFDT4 is present in the child input and export. The linked OUT task departs with one unit at h6, prints transfer time 4 and arrives at h10, compared with the accepted TFDT0 parent arrival at h6. The derived in-transfer quantity lasts [6,10), with no second local decrement or transfer backorder. Both arms reconcile 5,210 report cells from their own source and typed events plus predeclared bounded native presentation fields. The one changed cell is PDESC; 5,209 corresponding cells are equal.
+
+**Custody and replay:** the [evidence index](evidence-index.json) is the exact source and raw pin map. The author and independent readers are separate, read-only methods. Historical 491-entry catalog bytes have a distinct owned archive and base Git identity; later catalog entries must preserve its typed prefix and metadata. The replay does not waive a behavior or catalog check after an append. The [reproduction guide](REPRODUCTION.md) records exact commands and restoration requirements.
+
+**Limit:** this is a counterexample for one installed binary, source row, run and task. It does not promote the v1.0.0 prospective run to acceptance or establish a general transfer algorithm, persistent person identity, GUI behavior, performance, cross-engine equivalence or Issue18 completion. Independent content, staged and remote publication gates are separate from this dated author scope statement.
