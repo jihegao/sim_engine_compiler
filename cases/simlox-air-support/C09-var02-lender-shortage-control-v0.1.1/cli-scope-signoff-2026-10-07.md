@@ -1,0 +1,7 @@
+# CLI scope signoff — C09.var02 lender-wait control
+
+**Author content decision:** GO_BOUNDED_RETROSPECTIVE_CONTROL for the sealed v1.0.2 ordinary run only. The independent read-only reviewer separately reached the same bounded disposition. This signoff is a content snapshot; the root publication index is authoritative for current publication state.
+
+The 12-hour input has 32 authored tables and 25 row-containing tables. All thirteen sole-run raw seals, the original failure seal, invocation and frozen source lineage are pinned. The physical trace has one outward P-MECH1 loan h8.71988–8.96988, HOME PM resource wait beginning h9, borrower release h9.46988, return to BASE-02 h9.96988, bare PM subtask work h9.96988–10.2199 and terminal pool restoration. The author and independent replays each check all 1,754 selected report cells from source and event ledgers. Author self-check: 23 rejected in-memory mutations, two within-bound accepts.
+
+The prospective v1.0.2 pair is still **NO_GO_PROSPECTIVE_PAIR**. Its frozen checker missed bare PM work and its exact [9,9.5) whole-bin gate conflicts with two calibrated native values; the v1.0.2 shortage arm never ran. This retrospective contract does not change either failed gate. Here TTRSS and TTRS both equal 0.5 hour, so the observed return proves no distinct conditional duration. There is no persistent mechanic-person identity or general priority, trip-count, GUI, cross-engine, performance or whole-case conclusion. A new paired child needs its own contract and independent prelaunch approval.
