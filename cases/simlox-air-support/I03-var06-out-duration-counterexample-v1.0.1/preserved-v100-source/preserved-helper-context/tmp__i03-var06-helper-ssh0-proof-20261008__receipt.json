@@ -1,0 +1,171 @@
+{
+  "schema": "issue18-i03-var06-root-helper-ssh0-proof/v1",
+  "started_utc": "2026-10-07T17:53:07.913010+00:00",
+  "native_simlox_started": false,
+  "decision": "NO_GO",
+  "source_pins": {
+    "captured_process.ps1": {
+      "bytes": 9028,
+      "sha256": "17285b90093c2d80c6241e1345b9926a2e4dd0f0b2b24f831c84c1cfa885b794"
+    },
+    "test_captured_process.ps1": {
+      "bytes": 4951,
+      "sha256": "22112fc0decf89fa8b704b4c47ea1397f090b6e042895122ca8f28abc94f9ac8"
+    },
+    "binary_capture_child.py": {
+      "bytes": 842,
+      "sha256": "52f28d5d705efad0fa035ab5031a96da5fa6a27571a2d9bb8f46648e5800c35e"
+    },
+    "review/independent-helper-test-only-go-2026-10-08.md": {
+      "bytes": 2061,
+      "sha256": "13c2b365fa918e8279d55747daa22dfd9823d69b3e831c3b22c4b510599063eb"
+    }
+  },
+  "calls": {
+    "guard-before": {
+      "command": [
+        "ssh",
+        "-n",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-i",
+        "C:/Users/user/.ssh/id_rsa",
+        "user@127.0.0.1",
+        "powershell.exe",
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:/Users/user/Documents/Codex/2026-09-29/simlox-c04-deadline/repo/tmp/i03-var06-owner-guard-20261008.ps1"
+      ],
+      "started_utc": "2026-10-07T17:53:07.915010+00:00",
+      "completed_utc": "2026-10-07T17:53:10.667631+00:00",
+      "exit_code": 0,
+      "stdout": {
+        "bytes": 998,
+        "sha256": "8be62a77f2c5fa6b1fc31af15a1748c4d791dc59f15197240d5f7dfe944cec06"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "helper-test": {
+      "command": [
+        "ssh",
+        "-n",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-i",
+        "C:/Users/user/.ssh/id_rsa",
+        "user@127.0.0.1",
+        "powershell.exe",
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:/Users/user/Documents/Codex/2026-09-29/simlox-c04-deadline/repo/cases/simlox-air-support/I03-var06-out-ignored-duration-v1.0.0/test_captured_process.ps1",
+        "-OutputDirectory",
+        "C:/Users/user/Documents/Codex/2026-09-29/simlox-c04-deadline/repo/tmp/i03-var06-helper-ssh0-fixture-20261008"
+      ],
+      "started_utc": "2026-10-07T17:53:10.675651+00:00",
+      "completed_utc": "2026-10-07T17:53:13.106526+00:00",
+      "exit_code": 0,
+      "stdout": {
+        "bytes": 123,
+        "sha256": "dc7699915a2ce24a9544cb9122d96e90707a9e5d0691379221a6bb444709555d"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "fixture_receipt": {
+    "bytes": 5508,
+    "sha256": "4bea0a15625ada2b0b37203e01b029927c198a442c398d076ffa2e97770baa24"
+  },
+  "fixture_summary": {
+    "schema": "i03-var06-binary-capture-test/v1",
+    "passed": true,
+    "native_process_started": false,
+    "session_id": 0,
+    "helper_sha256": "17285b90093c2d80c6241e1345b9926a2e4dd0f0b2b24f831c84c1cfa885b794",
+    "test_sha256": "22112fc0decf89fa8b704b4c47ea1397f090b6e042895122ca8f28abc94f9ac8",
+    "child_sha256": "52f28d5d705efad0fa035ab5031a96da5fa6a27571a2d9bb8f46648e5800c35e",
+    "tested_integer_exits": [
+      0,
+      7
+    ],
+    "injected_observation_joined": true,
+    "injected_drain_setup_joined": true,
+    "injected_async_drain_large_joined": true,
+    "semantic_rejections": 17,
+    "records": [
+      {
+        "child_pid": 4192,
+        "child_session_id": 0,
+        "exit_code": 0,
+        "stdout_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\exit0.stdout.bin",
+        "stderr_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\exit0.stderr.bin",
+        "stdout_bytes": 10,
+        "stderr_bytes": 10,
+        "stdout_sha256": "92568e8a5f100cbe8b570c6e6d83cb55e49b4c02bfff0ebd86285553c608bb4a",
+        "stderr_sha256": "653e3d540e89f96ddf01c6df443e8a16266743e22f6c1cda5f310bdb9c253924",
+        "capture_error": null
+      },
+      {
+        "child_pid": 25864,
+        "child_session_id": 0,
+        "exit_code": 7,
+        "stdout_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\exit7.stdout.bin",
+        "stderr_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\exit7.stderr.bin",
+        "stdout_bytes": 10,
+        "stderr_bytes": 10,
+        "stdout_sha256": "92568e8a5f100cbe8b570c6e6d83cb55e49b4c02bfff0ebd86285553c608bb4a",
+        "stderr_sha256": "653e3d540e89f96ddf01c6df443e8a16266743e22f6c1cda5f310bdb9c253924",
+        "capture_error": null
+      },
+      {
+        "child_pid": 17068,
+        "child_session_id": null,
+        "exit_code": 0,
+        "stdout_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\observed-error.stdout.bin",
+        "stderr_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\observed-error.stderr.bin",
+        "stdout_bytes": 10,
+        "stderr_bytes": 10,
+        "stdout_sha256": "92568e8a5f100cbe8b570c6e6d83cb55e49b4c02bfff0ebd86285553c608bb4a",
+        "stderr_sha256": "653e3d540e89f96ddf01c6df443e8a16266743e22f6c1cda5f310bdb9c253924",
+        "capture_error": "; session: injected post-Start session observation failure"
+      },
+      {
+        "child_pid": 19836,
+        "child_session_id": 0,
+        "exit_code": 0,
+        "stdout_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\drain-setup-error.stdout.bin",
+        "stderr_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\drain-setup-error.stderr.bin",
+        "stdout_bytes": 10,
+        "stderr_bytes": 10,
+        "stdout_sha256": "92568e8a5f100cbe8b570c6e6d83cb55e49b4c02bfff0ebd86285553c608bb4a",
+        "stderr_sha256": "653e3d540e89f96ddf01c6df443e8a16266743e22f6c1cda5f310bdb9c253924",
+        "capture_error": "injected post-Start stdout drain setup failure"
+      },
+      {
+        "child_pid": 1584,
+        "child_session_id": 0,
+        "exit_code": 0,
+        "stdout_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\async-drain-error-large.stdout.bin",
+        "stderr_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i03-var06-helper-ssh0-fixture-20261008\\async-drain-error-large.stderr.bin",
+        "stdout_bytes": 1310720,
+        "stderr_bytes": 1310720,
+        "stdout_sha256": "59fbefaa7b630fd2a180f3a82053459160fc9399581620cac188902330b65710",
+        "stderr_sha256": "bcb47a46064f9aab6bae4cd119f018c16667b22a71c60557c72e9d262681a488",
+        "capture_error": "; asynchronous stdout drain fault"
+      }
+    ]
+  },
+  "error": "AssertionError: ",
+  "completed_utc": "2026-10-07T17:53:13.115423+00:00"
+}

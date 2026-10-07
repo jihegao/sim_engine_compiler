@@ -1,0 +1,33 @@
+"""Freeze final retrospective contract proposal only; no package or native run."""
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+TMP = ROOT / 'tmp'
+OUT = TMP / 'i03-var06-v101-root-contract-freeze-20261008.json'
+FINAL = TMP / 'i03-var06-v101-retrospective-contract-draft-v5-20261008.json'
+NOTE = TMP / 'i03-var06-v101-model-lineage-draft-v4-20261008.md'
+
+def seal(p):
+    b = p.read_bytes()
+    return {'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest()}
+
+assert not OUT.exists()
+assert not (ROOT / 'cases/simlox-air-support/I03-var06-out-duration-counterexample-v1.0.1').exists()
+assert seal(FINAL) == {'bytes': 216817, 'sha256': '66465e9a5df6c3e5a95f6b9b6b046bb6ea3b448a6512cb3e88ff7f2993f803dc'}
+assert seal(NOTE) == {'bytes': 5127, 'sha256': 'cdcb581c84aac705dc79401b8336ac8b010567159e933f86dbf6d56558dbfa2d'}
+files = sorted([*TMP.glob('i03-var06-v101-retrospective-contract-draft*.json'),
+                *TMP.glob('i03-var06-v101-model-lineage-draft*.md')])
+pins = {str(p.relative_to(ROOT)): seal(p) for p in files}
+for p in files:
+    p.chmod(0o444)
+    assert seal(p) == pins[str(p.relative_to(ROOT))]
+result = {'schema': 'issue18-i03-var06-v101-root-contract-freeze/v1',
+          'decision': 'EXACT_RETROSPECTIVE_CONTRACT_PROPOSAL_FROZEN_ONLY',
+          'contract': seal(FINAL), 'lineage_note': seal(NOTE), 'all_draft_pins': pins,
+          'new_native_calls': 0, 'case_construction_started': False,
+          'independent_contract_go_required': True, 'original_v100_status': 'NO_GO_RUN'}
+OUT.write_bytes((json.dumps(result, indent=2) + '\n').encode('utf-8'))
+OUT.chmod(0o444)
+print(json.dumps({'decision': result['decision'], 'drafts_preserved': len(files), 'receipt': str(OUT)}))

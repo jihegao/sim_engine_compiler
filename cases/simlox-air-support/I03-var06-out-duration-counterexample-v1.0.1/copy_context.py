@@ -1,0 +1,102 @@
+"""Preserve small original preflight/native/failure context; no raw model copy."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+CONTRACT = json.loads((HERE / "contract.json").read_text(encoding="utf-8"))
+ARCHIVE = HERE / "preserved-root-context-v3"
+MAP = HERE / "root-context-custody.json"
+EXTRA = (
+    "tmp/i03-var06-v101-root-contract-freeze-20261008.json",
+    "tmp/i03-var06-v101-root-contract-freeze-20261008.py",
+    "tmp/i03-var06-v101-independent-contract-go-20261008.md",
+    "tmp/i03-var06-v101-independent-contract-audit-v5.py",
+    "tmp/i03-var06-v101-independent-contract-audit-v5.stdout.json",
+    "tmp/i03-var06-v101-independent-contract-audit-v5.stderr.bin",
+)
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def source_pins() -> list[dict]:
+    h = CONTRACT["historical_failed_run"]
+    combined = h["root_receipts_available"] + h["original_transport_files"] + h["root_preflight_transport_and_guard"] + h["root_native_transport_and_guard"]
+    by_path = {}
+    for row in combined:
+        key = str(Path(row["path"]).resolve()).lower()
+        if key in by_path:
+            assert by_path[key]["bytes"] == row["bytes"] and by_path[key]["sha256"] == row["sha256"]
+        by_path[key] = row
+    for name in EXTRA:
+        path = REPO / name
+        data = path.read_bytes()
+        by_path[str(path.resolve()).lower()] = {"path": name, "bytes": len(data), "sha256": sha(data)}
+    return sorted(by_path.values(), key=lambda x: x["path"].lower())
+
+
+def records() -> list[dict]:
+    out = []
+    seen = set()
+    for index, row in enumerate(source_pins()):
+        orig = Path(row["path"])
+        if not orig.is_absolute():
+            orig = REPO / orig
+        assert orig.is_file()
+        data = orig.read_bytes()
+        assert len(data) == row["bytes"] and sha(data) == row["sha256"], orig
+        rel = orig.relative_to(REPO).as_posix()
+        safe = f"{index:03d}-{row['sha256'][:12]}.bytes"
+        assert safe not in seen
+        seen.add(safe)
+        out.append({"original": rel, "owned_copy": "preserved-root-context-v3/" + safe,
+                    "bytes": row["bytes"], "sha256": row["sha256"],
+                    "original_if_present_must_match": True})
+    return out
+
+
+def check(items: list[dict]) -> None:
+    for row in items:
+        owned = HERE / row["owned_copy"]
+        assert owned.is_file()
+        data = owned.read_bytes()
+        assert len(data) == row["bytes"] and sha(data) == row["sha256"], owned
+        orig = REPO / row["original"]
+        if orig.exists():
+            assert orig.stat().st_size == row["bytes"] and sha(orig.read_bytes()) == row["sha256"], orig
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    args = parser.parse_args()
+    if args.write:
+        items = records()
+        assert not MAP.exists() and not ARCHIVE.exists(), "refuse overwrite"
+        ARCHIVE.mkdir(parents=True)
+        for row in items:
+            target = HERE / row["owned_copy"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((REPO / row["original"]).read_bytes())
+        MAP.write_text(json.dumps({"schema": "i03-var06-v101-root-context-custody/v1",
+                                   "record_count": len(items), "records": items},
+                                  indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    saved = json.loads(MAP.read_text(encoding="utf-8"))
+    assert saved["schema"] == "i03-var06-v101-root-context-custody/v1"
+    assert saved["record_count"] == len(saved["records"]) == 30
+    items = saved["records"]
+    assert len({row["original"] for row in items}) == 30
+    assert len({row["owned_copy"] for row in items}) == 30
+    assert all(row["owned_copy"].startswith("preserved-root-context-v3/") for row in items)
+    check(items)
+    print(json.dumps({"passed": True, "records": len(items), "write": args.write}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

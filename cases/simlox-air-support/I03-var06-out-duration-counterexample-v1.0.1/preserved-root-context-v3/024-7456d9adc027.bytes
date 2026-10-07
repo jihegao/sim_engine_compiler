@@ -1,0 +1,179 @@
+"""Independent read-only audit of I03.var06 retrospective contract-only candidate."""
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CONTRACT = REPO / "tmp/i03-var06-v101-retrospective-contract-draft-v5-20261008.json"
+CONTRACT_SHA = "66465e9a5df6c3e5a95f6b9b6b046bb6ea3b448a6512cb3e88ff7f2993f803dc"
+LINEAGE = REPO / "tmp/i03-var06-v101-model-lineage-draft-v4-20261008.md"
+LINEAGE_SHA = "cdcb581c84aac705dc79401b8336ac8b010567159e933f86dbf6d56558dbfa2d"
+V100 = REPO / "cases/simlox-air-support/I03-var06-out-ignored-duration-v1.0.0"
+PARENT = REPO / "cases/simlox-air-support/I03-var02-idle-crew-out-v1.0.2/runs/i03-var02-idle-out-v102-ssh-20261007-01"
+CHILD = V100 / "runs/i03-var06-out-dt4-v100-ssh-20261008-01"
+GIT = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe")
+
+
+def pin(path: Path) -> dict:
+    b = path.read_bytes()
+    return {"bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
+
+
+def check(path: Path, record: dict) -> None:
+    assert path.is_file() and pin(path) == {k: record[k] for k in ("bytes", "sha256")}, str(path)
+
+
+def typed(a, b) -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(typed(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def main():
+    check(CONTRACT, {"bytes": 216817, "sha256": CONTRACT_SHA})
+    check(LINEAGE, {"bytes": 5127, "sha256": LINEAGE_SHA})
+    c = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert c["case_id"] == "I03" and c["variant_id"] == "I03.var06"
+    assert c["version"] == "1.0.1" and c["run_id"] is None
+    assert c["phase"] == "contract_draft_only" and c["publication_state"] == "not_published"
+    assert c["native_and_provenance_gate"]["new_native_calls"] == 0
+    assert c["historical_v100_failed_hypothesis"]["status"] == "NO_GO_RUN, never accepted"
+    assert c["scope"]["failed_witness_role"].startswith("v100 is an immutable excluded")
+    assert not (REPO / c["package"]).exists()
+
+    lineage = c["source_lineage"]
+    assert lineage["base_commit"] == "3887a7fd5e387f078a716e49df62f894ce767700"
+    tree_raw = subprocess.check_output([str(GIT), "ls-tree", "-rz", lineage["base_commit"]], cwd=REPO)
+    tree = {}
+    for item in tree_raw.split(b"\0"):
+        if item:
+            header, path = item.split(b"\t", 1)
+            tree[path.decode("utf-8")] = header.split(b" ")[-1].decode("ascii")
+    pairs = 0
+    for section, n in (("parent_source_disk_and_git_at_base", 192),
+                       ("accepted_dependency_source_disk_and_git_at_base", 20),
+                       ("accepted_secondary_context_source_disk_and_git_at_base", 2)):
+        rows = lineage[section]
+        assert len(rows) == n
+        for row in rows:
+            check(REPO / row["path"], row["local_disk"])
+            git_bytes = subprocess.check_output([str(GIT), "cat-file", "blob", tree[row["path"]]], cwd=REPO)
+            assert {"bytes": len(git_bytes), "sha256": hashlib.sha256(git_bytes).hexdigest()} == row["published_git_at_base"]
+            assert row["byte_equal"] is (row["local_disk"] == row["published_git_at_base"])
+            pairs += 1
+    accepted = lineage["accepted_parent_and_context_raw"] + lineage["accepted_secondary_context_run_files"]
+    assert len(accepted) == 118
+    for row in accepted:
+        check(Path(row["original_path"]), row)
+    for row in lineage["installed"] + lineage["required_docs"]:
+        check(Path(row["path"]) if Path(row["path"]).is_absolute() else REPO / row["path"], row)
+
+    history = c["historical_failed_run"]
+    manifest = history["v100_manifest"]
+    check(REPO / manifest["path"], manifest)
+    old_manifest = json.loads((REPO / manifest["path"]).read_text(encoding="utf-8"))
+    assert old_manifest["source_count"] == len(old_manifest["source_files"]) == history["v100_source_record_count"] == 445
+    for row in old_manifest["source_files"]:
+        check(Path(row["path"]), row)
+    for section, n in (("v100_source_files", 31), ("v100_review_files", 31),
+                       ("v100_raw_run_files", 26)):
+        rows = history[section]
+        assert len(rows) == n
+        for row in rows:
+            check(REPO / row["path"], row)
+    for row in history["root_receipts_available"]:
+        check(Path(row["path"]), row)
+    assert len(history["root_receipts_available"]) == 5
+    for section, n in (("original_transport_files", 6),
+                       ("root_preflight_transport_and_guard", 7),
+                       ("root_native_transport_and_guard", 7)):
+        rows = history[section]
+        assert len(rows) == n
+        assert len({r["path"] for r in rows}) == n
+        for row in rows:
+            path = Path(row["path"])
+            check(path if path.is_absolute() else REPO / path, row)
+    assert "original SSH transport byte identity" in history["transport_custody_rule"]
+
+    root_custody = json.loads((V100 / "root-context-custody.json").read_text(encoding="utf-8"))
+    archived = next(r for r in root_custody["records"] if r["original_path"] == lineage["catalog_at_selection"]["path"])
+    archive_path = V100 / archived["owned_copy"]
+    check(archive_path, lineage["catalog_at_selection"]["local_disk"])
+    current = json.loads((REPO / archived["original_path"]).read_text(encoding="utf-8-sig"))
+    archive = json.loads(archive_path.read_text(encoding="utf-8-sig"))
+    assert len(archive["entries"]) == lineage["catalog_at_selection"]["entry_count"] == 491
+    assert len(current["entries"]) >= 491
+    assert typed(current["entries"][:491], archive["entries"])
+    assert typed({k: v for k, v in current.items() if k != "entries"},
+                 {k: v for k, v in archive.items() if k != "entries"})
+    ids = [x["publication_id"] for x in current["entries"]]
+    assert len(ids) == len(set(ids))
+
+    closure = json.loads((CHILD / "closure.json").read_text(encoding="utf-8-sig"))
+    failure = json.loads((CHILD / "failure-seal.json").read_text(encoding="utf-8-sig"))
+    invocation = json.loads((CHILD / "invocation.json").read_text(encoding="utf-8-sig"))
+    assert len(closure["raw"]) == 23 and len(failure["files"]) == 25
+    assert closure["source_hashes_before"] == closure["source_hashes_after"] == invocation["source_hashes_before"]
+    assert closure["step_error"] == closure["error"] == "child OS exit=1"
+    for name, row in closure["raw"].items():
+        check(CHILD / name, row)
+    for name, row in failure["files"].items():
+        check(CHILD / name, row)
+    steps = json.loads((CHILD / "steps.json").read_text(encoding="utf-8-sig"))
+    assert [x["exit_code"] for x in steps] == [0, 0, 0, 0, 0, 1]
+    assert all(x["child_session_id"] == 0 and x["capture_error"] is None for x in steps)
+    assert json.loads((CHILD / "author-validation.json").read_text(encoding="utf-8-sig"))["passed"] is False
+    assert (V100 / "review/independent-postrun-failed.stderr.bin").read_text(encoding="utf-8").endswith(
+        "KeyError: 'owned_exact_archive'\n")
+
+    report = c["report_gate"]
+    assert report["cells_per_arm"] == 5210
+    assert report["resource_fields"]["total_expected_float32"] == {
+        "NR": 1.1666666269302368, "NRA": 1.1666666269302368,
+        "NRN": 1.1666666269302368, "NRUM": 0.0555555559694767,
+        "NRW": 0.02777777798473835}
+    assert "source_event_dynamic" in report["system_field_classes"]
+    assert len(report["topology"]) == 6
+    assert sum(len(t["columns"]) * t["rows"] for t in report["topology"]) == 5210
+    topology = {t["name"]: set(t["columns"]) for t in report["topology"]}
+    system = report["system_field_classes"]
+    system_parts = [set(v) for v in system.values()]
+    assert sum(map(len, system_parts)) == len(set().union(*system_parts)) == 40
+    assert set().union(*system_parts) == topology["SystemResults"]
+    stock = report["stock_fields"]
+    stock_parts = [set(v) for v in stock.values()]
+    assert sum(map(len, stock_parts)) == len(set().union(*stock_parts)) == 16
+    assert set().union(*stock_parts) == topology["StockTotalResults"]
+    resource = report["resource_fields"]
+    resource_parts = [set(resource[k]) for k in ("identity_and_interval", "source_event_dynamic", "source_event_zero")]
+    assert sum(map(len, resource_parts)) == len(set().union(*resource_parts)) == 16
+    assert set().union(*resource_parts) == topology["ResourceResults"]
+    assert topology["ResourceResultsTotal"] == topology["ResourceResults"] - {"STINT", "ETINT"}
+    assert set(report["result_summary_expected"]) == topology["ResultSummary"]
+    assert topology["ProblemDescription"] == {"PDESC"}
+    assert "[6,10)" in c["physical_ledger"]["states"]
+    assert "person identity" in c["physical_ledger"]["states"]
+    assert "archive byte-identical inert copies" in history["portability_plan"]
+
+    print(json.dumps({"schema": "i03-var06-independent-retrospective-contract-audit/v1",
+                      "passed": True, "contract_sha256": CONTRACT_SHA,
+                      "accepted_local_git_pairs": pairs, "accepted_mandatory_raw": len(accepted),
+                      "v100_source_records": len(old_manifest["source_files"]),
+                      "v100_extra_source": len(history["v100_source_files"]),
+                      "v100_review": len(history["v100_review_files"]),
+                      "v100_original_run_files": len(history["v100_raw_run_files"]),
+                      "original_transport_and_root_guard_files": 20,
+                      "v100_closure_raw": len(closure["raw"]),
+                      "v100_failure_files": len(failure["files"]),
+                      "native_calls_new": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
