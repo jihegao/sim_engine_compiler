@@ -1,0 +1,7 @@
+# Native dispatch transport supplement
+
+The frozen GO_PRELAUNCH approval `independent-prelaunch-go.json` (959 bytes/SHA-256 `4a28ea81ad6acf591eaf746e98887d6cc97908764ed76c11278046014e744cdf`) authorizes **one** invocation of the reserved child through the unchanged neutral file-backed transport `tmp/i03-ssh-transport-v1-20261007.py` (2,348 bytes/SHA-256 `34571d878bce88b56aedbf9620f5bb155abad21ae5b56b630933ffb134dacdc1`) in `native` mode, after the root's immediate fresh GUI/mutex/owner check.
+
+The transport verifies the frozen manifest and runner hashes and the GO_PRELAUNCH decision before dispatch. It invokes the exact same `run_native_ssh_v3.ps1` through `ssh -n` and actual remote `powershell.exe -File`, without `-PreflightOnly`. The frozen runner independently validates the full typed approval, preflight receipt, source map, GUI/mutex and unique run path before creating a run or launching a native child. The transport records the command, integer SSH exit and original stdout/stderr bytes under a unique evidence directory; it has no kill, timeout after connection, or guard exception. The failed direct-shell preflight and controlled guard diagnostic remain separate excluded evidence.
+
+This supplement changes neither the approval JSON nor the frozen runner, manifest, source input, preflight receipt, or independent method. It does not authorize a repeat invocation or a changed transport, run ID, source pin, or protected GUI identity. Any failure must be sealed as observed and reviewed without retroactive gate changes.
