@@ -1,0 +1,23 @@
+"""Pinned no-argument read-only dispatch for independent var06 sealed classifier."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+
+REPO=Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+REVIEW=REPO/"cases/simlox-air-support/I04-var06-return-complete-transfer-v1.0.0/review"
+READER=REVIEW/"independent_classifier.py"
+PIN="ba4175c287b2ae1adf8dc6a24802205286df05df520a1d84298a1ca36ab90dcd"
+
+def check():
+    assert hashlib.sha256(READER.read_bytes()).hexdigest()==PIN
+    assert READER.stat().st_file_attributes & 1
+
+check()
+spec=importlib.util.spec_from_file_location("i04_var06_independent_sealed",READER)
+module=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+result=module.sealed()
+check()
+assert result["native_calls"]==result["accepted_checker_calls"]==0
+print(json.dumps({"decision":"GO_BOUNDED_RETURN_COMPLETE_CLASSIFICATION","result":result},sort_keys=True,separators=(",",":")))

@@ -1,0 +1,7 @@
+# Bounded parent-report attribution correction
+
+The first frozen independent verdict (`review/independent-verdict.json`, 4,290 bytes/SHA-256 `5a4aa6c2c3805f2e8d88f9f7adc26673e8e5ec42df13256fa4184fa5e0da9f69`) and first signoff (`cli-scope-signoff-2026-10-08.md`, 2,618 bytes/SHA-256 `c2caf5231e75a39e89ceaa35ef19606831f5c12619bea189d8c4eaf7dc751bdd`) used an overbroad phrase: “full-report provenance/evidence.” They remain immutable historical drafts and are not the final authority.
+
+The accepted I04.var01 `review/independent_replay.py` (parent index pin SHA-256 `cb2d9179d20425855810664db648af284abac7ff03b9855b44486a26c5c34722`) checks four-table topology, 72 interval times, selected h10/h10.5 ready values, terminal ready, mission summary, and zero-failure/stock-demand aggregates. Its 439/439 bounded GO does not compare every report cell. The new classification itself checks selected SystemResults cells only.
+
+The authoritative correction is `review/independent-verdict-v2.json` and `cli-scope-signoff-2026-10-08-v2.md`. They change only this attribution, retain the same captured independent source/sealed/negative proof identities, and add no native, accepted-checker, or semantic replay. The old self-check static NO_GO remains separate and excluded.

@@ -1,0 +1,26 @@
+"""Root binary capture of one pinned local byte-recovery method, no native dispatch."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, subprocess, sys, uuid
+R=Path(__file__).resolve().parents[1]
+assert len(sys.argv)==4
+P=Path(sys.argv[1]).resolve(strict=True);expected=sys.argv[2];label=sys.argv[3]
+assert P.is_relative_to(R/'tmp') and P.suffix=='.py'
+assert label and all(c.isalnum() or c=='-' for c in label)
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(P)['sha256']==expected and not P.stat().st_mode&stat.S_IWRITE
+Path(__file__).chmod(stat.S_IREAD)
+O=R/'tmp/i04-var06-root-recovery-proofs-v100-20261008'/(label+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+before={'root_capture':pin(Path(__file__)),'review_method':pin(P)}
+argv=[sys.executable,'-X','utf8','-B',str(P)];started=dt.datetime.now(dt.timezone.utc).isoformat()
+with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+ code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+after={'root_capture':pin(Path(__file__)),'review_method':pin(P)}
+d={'schema':'issue18-i04-var06-root-recovery-proof/v100','argv':argv,'started_utc':started,'completed_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'actual_exit':code,'method_before':before,'method_after':after,'streams':{n:pin(O/n) for n in ('stdout.bin','stderr.bin')},'native_dispatch':False,'local_byte_copy_mutation':True}
+with (O/'receipt.json').open('xb') as f:f.write((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'actual_exit':code,'method_unchanged':before==after,'streams':d['streams']}))
+for n in ('stdout.bin','stderr.bin'):
+ if (O/n).stat().st_size:print((O/n).read_bytes().decode('utf-8-sig','replace')[:12000])
+assert before==after
+raise SystemExit(code)

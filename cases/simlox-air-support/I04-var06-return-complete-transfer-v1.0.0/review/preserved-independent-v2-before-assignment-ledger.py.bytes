@@ -1,0 +1,365 @@
+"""Independent, read-only classification of the accepted I04.var01 raw evidence.
+
+The original-byte gate is separate from parse_semantic so private clone tests can
+exercise the event and physical-state predicates beneath the SHA gate.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import stat
+
+
+REPO = Path(__file__).resolve().parents[4]
+CASE = Path(__file__).resolve().parents[1]
+SCRATCH = REPO / "tmp/i04-var06-return-complete-classification-v100-20261008-01"
+MANIFEST = SCRATCH / "recovery-manifest.json"
+MANIFEST_SHA = "95ca366f43382a6370105231dabf58e0d9622b831611c47929a9582c79468789"
+PARENT = REPO / "cases/simlox-air-support/I04-var01-system-between-v1.0.0"
+RUN = PARENT / "runs/i04-var01-system-between-v100-ssh-20261005-01"
+LOG_SHA = "e9c2bbc20a9496c1ce72f3e4c2806c94d1a52ab8ee409a37ea790bc98eca1c8f"
+REPORT_SHA = "f1cd6496d7fbdeda3f6deb7d57ee16f762db27984e0aa27e13b16bc9715375b3"
+INPUT_SHA = "50cc69df36afa0cecbbf8e6e7d699012f8987bb06bee11a1e347235d397da0ea"
+INDEX_SHA = "7cc499df680969e65d178d9c1db90c32c44e80d784f3b6d2f75d50532b7d102b"
+VERDICT_SHA = "944bcac5d31ab378eb56dd4ae1983451cdd82b3e4463d4509577aa91e7531b32"
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def exact(path: Path, expected: str) -> bytes:
+    data = path.read_bytes()
+    assert digest(data) == expected, str(path)
+    return data
+
+
+def exact_object(value: object, keys: set[str]) -> dict:
+    assert type(value) is dict and set(value) == keys, (type(value), value)
+    return value
+
+
+def verify_recovery() -> dict:
+    manifest = json.loads(exact(MANIFEST, MANIFEST_SHA))
+    exact_object(manifest, {"copies", "copies_count", "native_calls", "accepted_checker_calls", "semantic_acceptance", "schema", "utc", "decision", "classification_is_native_run", "selection_receipt", "method"})
+    assert type(manifest["copies_count"]) is int and manifest["copies_count"] == 24
+    assert type(manifest["native_calls"]) is int and manifest["native_calls"] == 0
+    assert type(manifest["accepted_checker_calls"]) is int and manifest["accepted_checker_calls"] == 0
+    assert manifest["semantic_acceptance"] is False and manifest["classification_is_native_run"] is False and manifest["decision"] == "PASS_BYTE_RECOVERY_ONLY"
+    assert type(manifest["copies"]) is list and len(manifest["copies"]) == 24
+    names = set()
+    for row in manifest["copies"]:
+        exact_object(row, {"name", "original_path", "copy_path", "bytes", "sha256", "original_mode_before", "original_attributes_before", "original_mode_after", "original_attributes_after", "copy_readonly"})
+        assert type(row["name"]) is str and row["name"] not in names
+        names.add(row["name"])
+        assert type(row["bytes"]) is int and row["bytes"] >= 0
+        assert type(row["sha256"]) is str and re.fullmatch(r"[0-9a-f]{64}", row["sha256"])
+        assert row["original_mode_before"] == row["original_mode_after"]
+        assert row["original_attributes_before"] == row["original_attributes_after"]
+        assert row["copy_readonly"] is True
+        original = Path(row["original_path"])
+        copy = Path(row["copy_path"])
+        assert original.resolve(strict=True).is_relative_to(RUN.resolve(strict=True))
+        assert copy.resolve(strict=True) == (SCRATCH / "raw" / row["name"]).resolve(strict=True)
+        assert original.name == copy.name == row["name"]
+        a = original.read_bytes()
+        b = copy.read_bytes()
+        assert a == b and len(a) == row["bytes"] and digest(a) == row["sha256"]
+        assert stat.S_IMODE(original.stat().st_mode) == stat.S_IMODE(row["original_mode_after"])
+        assert original.stat().st_file_attributes == row["original_attributes_after"]
+        assert copy.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+
+    assert "between.log" in names and "between-report-raw.json" in names and "between-input.json" in names
+    exact(PARENT / "evidence-index.json", INDEX_SHA)
+    verdict = json.loads(exact(PARENT / "review/independent-verdict.json", VERDICT_SHA))
+    assert verdict["verdict"] == "GO_BOUNDED" and verdict["checks"] == verdict["passed"] == 439 and verdict["failed"] == []
+    return manifest
+
+
+AIR = r"<TEACH-AIR-01,([01])>"
+MISSION = r"<BASIC-MISSION,TEACH-GROUP,0,0,([01])>"
+UNIT = r"<(TEACH-UNIT(?:-2)?) at <(BASE-0[12]),0>>"
+STATION = r"<TEACH-AIR-01,(BASE-0[12]),0>"
+PAIR = r"<TEACH-AIR-01,([01])>,<TEACH-AIR-01,([01])>"
+
+
+def event(text: str) -> tuple:
+    """Parse one whole timed payload; no unknown or partially matched line passes."""
+    forms = (
+        ("failure", AIR + r" Next random failure will occur 1e\+010"),
+        ("ready_inc", AIR + r" nbr ready increased at unit: " + UNIT),
+        ("ready_dec", AIR + r" nbr ready decreased at unit: " + UNIT),
+        ("ready_list", UNIT + r" systems ready: ([12]) :(.*)"),
+        ("day", r" Start of day no ([01])"),
+        ("ordered", r"<TEACH-GROUP> mission ordered: BASIC-MISSION"),
+        ("created", MISSION + r" mission created: "),
+        ("activated", MISSION + r" mission activated, systems requested: 2"),
+        ("allocates", MISSION + r" mission allocates system: " + AIR),
+        ("release", AIR + r" releases excess resources \(if any\)"),
+        ("prep_start", AIR + r" preparation started, mission: " + MISSION),
+        ("prep_end", AIR + r" preparation ended, mission: " + MISSION),
+        ("mission_start", MISSION + r" mission starting, duration: 2 : " + PAIR),
+        ("task_start", MISSION + r" task starting: " + PAIR),
+        ("task_end", MISSION + r" task completed: " + PAIR),
+        ("success", MISSION + r" mission success: "),
+        ("completed", MISSION + r" mission completed: " + PAIR),
+        ("soon", STATION + r" System soon ready " + AIR + r", estimated remaining time: 0"),
+        ("turn_start", AIR + r" turnround started, mission: " + MISSION + r" reduction factor: 1"),
+        ("turn_end", AIR + r" turnround ended, mission: " + MISSION),
+        ("arrives", STATION + r" System arrives " + AIR + r", mission success, "),
+        ("system_ready", STATION + r" System ready " + AIR),
+        ("transfer_out", UNIT + r" system transfered out: " + AIR + r"\."),
+        ("transfer_in", UNIT + r" system transfered in: " + AIR + r"\."),
+        ("priority", STATION + r" Repair task priority list: "),
+    )
+    found = [(kind, m.groups()) for kind, pattern in forms if (m := re.fullmatch(pattern, text))]
+    assert len(found) == 1, (text, found)
+    kind, groups = found[0]
+    if kind == "ready_list":
+        unit, base, count, members = groups
+        assert (unit, base) in {("TEACH-UNIT", "BASE-01"), ("TEACH-UNIT-2", "BASE-02")}
+        m = re.fullmatch(r"<TEACH-AIR-01,([01])>(?:,<TEACH-AIR-01,([01])>)?", members)
+        assert m is not None
+        ids = tuple(x for x in m.groups() if x is not None)
+        assert len(ids) == int(count) and len(set(ids)) == len(ids)
+        return kind, unit, ids
+    if kind in ("ready_inc", "ready_dec", "transfer_out", "transfer_in"):
+        if kind.startswith("transfer"):
+            unit, base, ident = groups
+        else:
+            ident, unit, base = groups
+        assert (unit, base) in {("TEACH-UNIT", "BASE-01"), ("TEACH-UNIT-2", "BASE-02")}
+        return kind, ident, unit
+    if kind in ("soon", "arrives", "system_ready"):
+        base, ident = groups
+        return kind, ident, base
+    return (kind,) + groups
+
+
+def parse_semantic(data: bytes) -> dict:
+    assert b"\x00" not in data
+    text = data.decode("utf-8", "strict")
+    lines = text.splitlines()
+    assert len(lines) == 117 and lines[:2] == ["SIMLOX LOG FILE", "36"]
+    events = []
+    continuations = 0
+    last_time = -1.0
+    i = 2
+    while i < len(lines):
+        m = re.fullmatch(r"Time: (0|7|8|8\.5|9\.5|10|10\.5|19|20|20\.5|21\.5|22|24) (.*)", lines[i])
+        assert m is not None, (i, lines[i])
+        time = float(m.group(1))
+        assert time >= last_time
+        last_time = time
+        parsed = event(m.group(2))
+        events.append((time,) + parsed)
+        if parsed[0] == "arrives":
+            assert lines[i+1:i+3] == [" no failures ", " no PMTasks"]
+            continuations += 2
+            i += 2
+        elif parsed[0] == "priority":
+            assert lines[i+1] == "   "
+            continuations += 1
+            i += 1
+        i += 1
+    assert len(events) == 103 and continuations == 12
+
+    expected = []
+    def put(time, kind, *fields):
+        expected.append((float(time), kind, *tuple(str(x) if isinstance(x, int) else x for x in fields)))
+    def unit(ident, when):
+        return "TEACH-UNIT" if ident == 0 and when == 0 else "TEACH-UNIT-2"
+    def base(ident, when):
+        return "BASE-01" if ident == 0 and when == 0 else "BASE-02"
+
+    # Initial physical inventory: ID0 at source, ID1 at target.
+    for ident in (0, 1):
+        put(0, "failure", ident)
+        put(0, "ready_inc", ident, unit(ident, 0))
+        put(0, "ready_list", unit(ident, 0), (str(ident),))
+    put(0, "day", 0)
+    def assignment(mission, time, order):
+        put(time, "ordered")
+        put(time, "created", mission)
+        put(time, "activated", mission)
+        for ident in order:
+            put(time, "allocates", mission, ident)
+            put(time, "ready_dec", ident, unit(ident, mission))
+            put(time, "release", ident)
+        for ident in order:
+            put(time, "prep_start", ident, mission)
+        for ident in order:
+            put(time, "prep_end", ident, mission)
+            put(time, "failure", ident)
+    assignment(0, 7, (0, 1))
+    for ident in (0, 1):
+        put(8, "failure", ident)
+        put(8, "failure", ident)
+    for kind, time in (("mission_start", 8), ("task_start", 8.5), ("task_end", 9.5)):
+        put(time, kind, 0, 0, 1)
+    put(10, "success", 0)
+    put(10, "completed", 0, 0, 1)
+    for ident in (0, 1):
+        put(10, "failure", ident)
+        put(10, "soon", ident, base(ident, 0))
+        put(10, "turn_start", ident, 0)
+    for ident in (0, 1):
+        put(10, "turn_end", ident, 0)
+        put(10, "arrives", ident, base(ident, 0))
+        put(10, "ready_inc", ident, unit(ident, 0))
+        put(10, "system_ready", ident, base(ident, 0))
+        put(10, "system_ready", ident, base(ident, 0))
+        if ident == 0:
+            put(10, "ready_dec", 0, "TEACH-UNIT")
+            put(10, "transfer_out", 0, "TEACH-UNIT")
+        else:
+            put(10, "ready_list", "TEACH-UNIT-2", ("1",))
+        put(10, "priority", base(ident, 0))
+    put(10.5, "transfer_in", 0, "TEACH-UNIT-2")
+    put(10.5, "failure", 0)
+    put(10.5, "ready_inc", 0, "TEACH-UNIT-2")
+    put(10.5, "system_ready", 0, "BASE-02")
+    put(10.5, "system_ready", 0, "BASE-02")
+    put(10.5, "ready_list", "TEACH-UNIT-2", ("1", "0"))
+    assignment(1, 19, (1, 0))
+    for ident in (1, 0):
+        put(20, "failure", ident)
+        put(20, "failure", ident)
+    for kind, time in (("mission_start", 20), ("task_start", 20.5), ("task_end", 21.5)):
+        put(time, kind, 1, 1, 0)
+    put(22, "success", 1)
+    put(22, "completed", 1, 1, 0)
+    for ident in (1, 0):
+        put(22, "failure", ident)
+        put(22, "soon", ident, "BASE-02")
+        put(22, "turn_start", ident, 1)
+    for count, ident in enumerate((1, 0), 1):
+        put(22, "turn_end", ident, 1)
+        put(22, "arrives", ident, "BASE-02")
+        put(22, "ready_inc", ident, "TEACH-UNIT-2")
+        put(22, "system_ready", ident, "BASE-02")
+        put(22, "system_ready", ident, "BASE-02")
+        put(22, "ready_list", "TEACH-UNIT-2", tuple(str(x) for x in (1, 0)[:count]))
+        put(22, "priority", "BASE-02")
+    put(24, "day", 1)
+    assert len(expected) == 103, len(expected)
+    for number, (actual, wanted) in enumerate(zip(events, expected), 1):
+        assert actual == wanted, (number, actual, wanted)
+
+    # Independent physical ledger, including same-hour turnround and transfer order.
+    physical = {"0": "TEACH-UNIT", "1": "TEACH-UNIT-2"}
+    state = {"0": "not-ready", "1": "not-ready"}
+    ready = {"TEACH-UNIT": set(), "TEACH-UNIT-2": set()}
+    turning = set()
+    returned = set()
+    departed = set()
+    for t, kind, *fields in events:
+        if kind == "ready_inc":
+            ident, loc = fields
+            assert physical[ident] == loc and state[ident] in {"not-ready", "returned", "arrived"}
+            state[ident] = "ready"
+            ready[loc].add(ident)
+        elif kind == "ready_dec":
+            ident, loc = fields
+            assert physical[ident] == loc and ident in ready[loc]
+            ready[loc].remove(ident)
+            state[ident] = "not-ready"
+        elif kind == "allocates":
+            mission, ident = fields
+            assert state[ident] == "ready" and physical[ident] == ("TEACH-UNIT" if mission == "0" and ident == "0" else "TEACH-UNIT-2")
+        elif kind == "turn_start":
+            ident, _ = fields
+            assert state[ident] == "not-ready" and ident not in turning
+            turning.add(ident)
+        elif kind == "turn_end":
+            ident, _ = fields
+            assert ident in turning
+            turning.remove(ident)
+            returned.add(ident)
+        elif kind == "arrives":
+            ident, station = fields
+            assert ident in returned and station == ("BASE-01" if physical[ident] == "TEACH-UNIT" else "BASE-02")
+            returned.remove(ident)
+            state[ident] = "returned"
+        elif kind == "transfer_out":
+            ident, loc = fields
+            assert ident == "0" and t == 10 and loc == "TEACH-UNIT" and state[ident] == "not-ready"
+            assert ident not in ready[loc] and ident not in turning and ident not in returned
+            state[ident] = "transit"
+            physical[ident] = "transit"
+            departed.add(ident)
+        elif kind == "transfer_in":
+            ident, loc = fields
+            assert ident == "0" and t == 10.5 and loc == "TEACH-UNIT-2" and state[ident] == "transit" and ident in departed
+            departed.remove(ident)
+            physical[ident] = loc
+            state[ident] = "arrived"
+        elif kind == "ready_list":
+            loc, ids = fields
+            assert set(ids) == ready[loc]
+        assert len(set(physical)) == 2 and all(x in {"TEACH-UNIT", "TEACH-UNIT-2", "transit"} for x in physical.values())
+        assert sum(len(s) for s in ready.values()) <= 2
+    assert not turning and not returned and not departed
+    assert physical == {"0": "TEACH-UNIT-2", "1": "TEACH-UNIT-2"}
+    assert ready == {"TEACH-UNIT": set(), "TEACH-UNIT-2": {"0", "1"}}
+    return {"full_lines": len(lines), "timed_lines": len(events), "continuations": continuations, "transfer_out": 10, "transfer_in": 10.5, "fleet": 2}
+
+
+def selected_report(data: bytes) -> dict:
+    marker = b"         },\r\n      ]"
+    assert data.count(marker) == 1
+    parsed = json.loads(data.replace(marker, b"         }\r\n      ]"))
+    root = exact_object(parsed, {"report"})["report"]
+    tables = exact_object(root, {"tables"})["tables"]
+    return check_selected_tables(tables)
+
+
+def check_selected_tables(tables: list) -> dict:
+    assert type(tables) is list and [t["name"] for t in tables] == ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"]
+    table = tables[2]
+    exact_object(table, {"name", "columns", "instances"})
+    assert len(table["columns"]) == 40 and len(table["instances"]) == 1
+    inst = exact_object(table["instances"][0], {"instance_name", "rows"})
+    assert inst["instance_name"] == "Total over all Units;Total over all Systems;0.00;36.00"
+    rows = inst["rows"]
+    assert type(rows) is list and len(rows) == 72
+    names = [c["name"] for c in table["columns"]]
+    assert names[:5] == ["UNID", "SID", "STINT", "ETINT", "NSYRY"] and names[13] == "NSYA"
+    assert names[5:7] == ["NSYMA", "NSYMO"]
+    for index, start, stop, count in ((20, 10, 10.5, 1), (21, 10.5, 11, 2)):
+        row = rows[index]
+        assert type(row) is list and len(row) == 40
+        assert row[0:2] == ["Total over all Units", "Total over all Systems"]
+        for column, want in ((2, start), (3, stop), (4, count), (13, count), (5, 0), (6, 0)):
+            assert type(row[column]) in (int, float) and row[column] == want, (index, names[column], row[column])
+    return {"selected_rows": [20, 21], "checked_values": 12}
+
+
+def sealed() -> dict:
+    manifest = verify_recovery()
+    log = exact(RUN / "between.log", LOG_SHA)
+    copy_log = exact(SCRATCH / "raw/between.log", LOG_SHA)
+    report = exact(RUN / "between-report-raw.json", REPORT_SHA)
+    copy_report = exact(SCRATCH / "raw/between-report-raw.json", REPORT_SHA)
+    assert log == copy_log and report == copy_report
+    source = json.loads(exact(RUN / "between-input.json", INPUT_SHA))["model"]["tables"]
+    transfer = [t for t in source if t["name"] == "SystemTransfer"]
+    assert len(transfer) == 1
+    assert [c["name"] for c in transfer[0]["columns"]] == ["UFID", "UTID", "SID", "TFTIME", "TFQTY", "TFDT", "TFPRI", "NOTE"]
+    assert transfer[0]["instances"] == [{"instance_name": "", "rows": [["TEACH-UNIT", "TEACH-UNIT-2", "TEACH-AIR-01", 8.5, 1, 0.5, None, None]]}]
+    result = parse_semantic(copy_log)
+    result.update(selected_report(copy_report))
+    result.update(recovery_copies=manifest["copies_count"], native_calls=0, accepted_checker_calls=0)
+    return result
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sealed", action="store_true", required=True)
+    parser.parse_args()
+    print(json.dumps(sealed(), sort_keys=True, separators=(",", ":")))

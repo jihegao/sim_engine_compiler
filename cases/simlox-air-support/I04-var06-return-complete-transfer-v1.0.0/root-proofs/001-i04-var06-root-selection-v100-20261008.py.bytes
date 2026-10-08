@@ -1,0 +1,97 @@
+"""Read-only eligibility and byte/SSH boundary for a zero-native classification."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, subprocess, uuid
+R=Path(__file__).resolve().parents[1]
+BASE='fdaba58276b8efc87c4abc72d0a1d56247dc9538'
+PRODUCT='a1a44c72f64d754b711abe4095f1111f8a5ba896'
+P=R/'cases/simlox-air-support/I04-var01-system-between-v1.0.0'
+LINK=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1/evidence-index.json'
+PACKAGE=R/'cases/simlox-air-support/I04-var06-return-complete-transfer-v1.0.0'
+FUTURE=R/'tmp/i04-var06-return-complete-classification-v100-20261008-01'
+G=R/'tmp/issue18-next-owner-guard-20261008.ps1'
+OWNER=R/'tmp/i04-var06-root-live-ownership-20261008-01.json'
+def pin(b): return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):
+    def unique(rows):
+        d={}
+        for k,v in rows:
+            assert k not in d; d[k]=v
+        return d
+    return json.loads(p.read_bytes(),object_pairs_hook=unique,parse_constant=lambda x:(_ for _ in ()).throw(ValueError(x)))
+def exact(p,expected):
+    b=p.read_bytes(); assert pin(b)=={k:expected[k] for k in ('bytes','sha256')},str(p);return b
+def git(*args,input=None):
+    q=subprocess.run(['git','-c','core.longpaths=true',*args],cwd=R,input=input,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    assert q.returncode==0,(args,q.returncode,q.stderr[:200]);return q.stdout
+def save(p,b):
+    with p.open('xb') as f:f.write(b)
+    p.chmod(stat.S_IREAD)
+assert not PACKAGE.exists() and not FUTURE.exists()
+assert not git('diff','--name-only') and not git('diff','--cached','--name-only')
+assert git('rev-parse','origin/simlox/main').decode().strip()==BASE
+refs={name:oid for oid,name in (line.split() for line in git('ls-remote','origin','refs/heads/simlox/main','refs/heads/main').decode().splitlines())}
+assert refs=={'refs/heads/simlox/main':BASE,'refs/heads/main':PRODUCT}
+assert pin(OWNER.read_bytes())['sha256']=='59fa5056b4fc7e6a0ab863028e9a3ceb08e2bd16e0ba37cd9cd2d599fc20d934'
+owners=load(OWNER); results=owners['tool_results']
+assert all(x['status']=='fulfilled' and not x['value'].get('isError',False) for x in results)
+app=results[0]['value']; app=app.get('structuredContent') or json.loads(app['content'][0]['text'])
+relevant=[x for x in app['threads'] if x.get('projectId')=='5b414893-e022-4493-bde3-d8251dd0557d']
+assert app['unavailableHosts']==[] and all(x['status']=='notLoaded' for x in relevant if x['id']!='01a0ed5b-dc75-74f3-a26c-23674dd997d6')
+assert next(x for x in relevant if x['id']=='01a0ed5b-dc75-74f3-a26c-23674dd997d6')['status']=='active'
+assert results[1]['value']['structuredContent']['issues']==[]
+assert pin(LINK.read_bytes())=={'bytes':176439,'sha256':'09e0fe50532797f97d13b3a17fdd886adfc9a18c925038b15058b3850b2273ff'}
+pairs=load(LINK)['accepted_source_pairs'];assert len(pairs)==76
+tree={}
+for row in git('ls-tree','-r','-z',BASE,'--','cases/simlox-air-support').split(b'\0'):
+    if row:
+        meta,name=row.split(b'\t',1);mode,kind,oid=meta.decode().split();assert kind=='blob';tree[name.decode()]=oid
+ids=list(dict.fromkeys(x['oid'] for x in pairs)); blobdata=git('cat-file','--batch',input=('\n'.join(ids)+'\n').encode()); at=0;blobs={}
+for oid in ids:
+    end=blobdata.index(b'\n',at);fields=blobdata[at:end].decode().split();assert fields[:2]==[oid,'blob']
+    n=int(fields[2]);blobs[oid]=blobdata[end+1:end+1+n];assert blobdata[end+1+n:end+2+n]==b'\n';at=end+2+n
+assert at==len(blobdata)
+for row in pairs:
+    assert tree[row['path']]==row['oid']
+    exact(R/row['path'],row['disk']);assert pin(blobs[row['oid']])==row['git']
+    assert row['byte_equal']==((R/row['path']).read_bytes()==blobs[row['oid']])
+index=load(P/'evidence-index.json')
+assert pin((P/'evidence-index.json').read_bytes())['sha256']=='7cc499df680969e65d178d9c1db90c32c44e80d784f3b6d2f75d50532b7d102b'
+for name,row in index['source'].items():exact(P/name,row)
+assert len(index['source'])==15
+run=Path(index['run']['local_directory']);assert run==P/'runs/i04-var01-system-between-v100-ssh-20261005-01'
+raw={**index['run']['raw'],'invocation.json':index['run']['invocation'],'closure.json':index['run']['closure']};assert len(raw)==24
+originals=[]
+for name,row in sorted(raw.items()):
+    path=run/name;exact(path,row);originals.append({'path':str(path),**row,'read_only_observed':not bool(path.stat().st_mode&stat.S_IWRITE)})
+verdict=load(P/'review/independent-verdict.json');assert verdict['verdict']=='GO_BOUNDED' and verdict['checks']==verdict['passed']==439 and verdict['failed']==[]
+assert pin((P/'review/independent-verdict.json').read_bytes())['sha256']=='944bcac5d31ab378eb56dd4ae1983451cdd82b3e4463d4509577aa91e7531b32'
+CAT=R/'cases/simlox-air-support/publication-index-v1.json';disk=CAT.read_bytes();published=git('show',BASE+':'+CAT.relative_to(R).as_posix())
+assert published!=disk and published==disk.replace(b'\r\n',b'\n')
+catalog=load(CAT);assert len(catalog['entries'])==500
+assert not any(x.get('variant_id')=='I04.var06' for x in catalog['entries'])
+parent=[x for x in catalog['entries'] if x.get('publication_id')=='I04.var01.system_between_explicit_units.1.0.0'];assert len(parent)==1
+for key in ('A02','A17','D03','D09'):assert any(x.get('case_id')==key for x in catalog['entries'])
+for p,h in [(Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf'),'39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3'),(Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt'),'11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0')]:assert pin(p.read_bytes())['sha256']==h
+assert pin(G.read_bytes())=={'bytes':2081,'sha256':'e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'}
+O=R/'tmp/i04-var06-root-selection-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+save(O/'catalog-local-500.json.bytes',disk);save(O/'catalog-git-500.json.bytes',published)
+save(O/'accepted-parent-dependency-pairs.json',(json.dumps(pairs,indent=2)+'\n').encode())
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',G.as_posix()]
+with (O/'guard-stdout.bin').open('xb') as out,(O/'guard-stderr.bin').open('xb') as err:q=subprocess.run(argv,cwd=R,stdout=out,stderr=err)
+observed=None;error=None
+try:
+    assert type(q.returncode) is int and q.returncode==0 and (O/'guard-stderr.bin').read_bytes()==b''
+    observed=load(O/'guard-stdout.bin')
+    assert all(observed[k] is True for k in ('ssh_present','sshd_ancestor','mutex_free'))
+    assert observed['self_session']==0 and observed['powershell_major']==5 and observed['session_query_exit']==0 and observed['active_gui_session1_count']==1
+    assert observed['runner_candidates']==[] and len(observed['native'])==1
+    gui=observed['native'][0];assert gui['pid']==13340 and gui['session']==1 and gui['start_ms']==1790590196826 and gui['responding'] is True
+    for name,row in raw.items():exact(run/name,row)
+    for row in pairs:exact(R/row['path'],row['disk'])
+    assert not PACKAGE.exists() and not FUTURE.exists() and CAT.read_bytes()==disk
+except BaseException as e:error=f'{type(e).__name__}: {e}'
+record={'schema':'i04-var06-root-prospective-selection/v100','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'decision':'ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_ONLY' if error is None else 'NO_GO_PRESERVED','native_dispatch':False,'native_calls':0,'base':BASE,'product_main':PRODUCT,'parent_publication':parent[0],'parent_index':pin((P/'evidence-index.json').read_bytes()),'parent_source_files':15,'accepted_parent_dependency_pairs':76,'originals':originals,'originals_readonly_count':sum(x['read_only_observed'] for x in originals),'originals_writable_limitation':'Legacy originals are byte-pinned; future classifiers must use fresh byte-identical read-only copies, preserving originals and attributes.','proposed_package':str(PACKAGE),'proposed_classification_directory':str(FUTURE),'classification_is_not_native_run':True,'ownership_snapshot':pin(OWNER.read_bytes()),'catalog_local':pin(disk),'catalog_git':pin(published),'catalog_entries':500,'guard_argv':argv,'guard_actual_exit':q.returncode,'guard':observed,'guard_streams':{n:pin((O/n).read_bytes()) for n in ('guard-stdout.bin','guard-stderr.bin')},'method':pin(Path(__file__).read_bytes()),'error':error}
+save(O/'receipt.json',(json.dumps(record,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin((O/'receipt.json').read_bytes()),'decision':record['decision'],'originals':24,'pairs':76,'error':error}))
+assert error is None

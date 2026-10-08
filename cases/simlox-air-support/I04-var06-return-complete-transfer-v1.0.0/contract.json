@@ -1,0 +1,108 @@
+{
+  "schema": "i04-var06-return-complete-classification-prospective/v100",
+  "decision": "PROSPECTIVE_CONTRACT_ONLY",
+  "classification_id": "I04.var06.return_complete_transfer.1.0.0",
+  "proposed_package": "cases/simlox-air-support/I04-var06-return-complete-transfer-v1.0.0",
+  "classification_directory": "tmp/i04-var06-return-complete-classification-v100-20261008-01",
+  "classification_directory_is_native_run": false,
+  "accepted_parent": {
+    "publication_id": "I04.var01.system_between_explicit_units.1.0.0",
+    "run_id": "i04-var01-system-between-v100-ssh-20261005-01",
+    "source_index": {"path": "cases/simlox-air-support/I04-var01-system-between-v1.0.0/evidence-index.json", "bytes": 7440, "sha256": "7cc499df680969e65d178d9c1db90c32c44e80d784f3b6d2f75d50532b7d102b", "source_files": 15},
+    "input": {"path": "cases/simlox-air-support/I04-var01-system-between-v1.0.0/between-input.json", "bytes": 44614, "sha256": "50cc69df36afa0cecbbf8e6e7d699012f8987bb06bee11a1e347235d397da0ea"},
+    "log": {"path": "cases/simlox-air-support/I04-var01-system-between-v1.0.0/runs/i04-var01-system-between-v100-ssh-20261005-01/between.log", "bytes": 8158, "sha256": "e9c2bbc20a9496c1ce72f3e4c2806c94d1a52ab8ee409a37ea790bc98eca1c8f", "lines": 117, "timed_lines": 103},
+    "independent_verdict": {"path": "cases/simlox-air-support/I04-var01-system-between-v1.0.0/review/independent-verdict.json", "bytes": 1340, "sha256": "944bcac5d31ab378eb56dd4ae1983451cdd82b3e4463d4509577aa91e7531b32", "checks": 439, "passed": 439},
+    "signoff": {"path": "cases/simlox-air-support/I04-var01-system-between-v1.0.0/cli-scope-signoff-2026-10-05.md", "bytes": 2243, "sha256": "fa6de03b946b519e626efb5a85498db2049b2d92821feb7346fd4300b5982768"},
+    "originals_count": 24,
+    "dependency_disk_and_git_pairs": 76
+  },
+  "root_selection": {
+    "path": "tmp/i04-var06-root-selection-20261008/20261008T150201856194Z-f57fceea/receipt.json",
+    "bytes": 13588,
+    "sha256": "2f97e7766570da48201fa4837bff67949731b280c36c9f832860f6c5f652b889",
+    "outer_capture": {"path": "tmp/i04-var09-root-review-proofs-v100-20261008/i04-var06-v100-root-selection-20261008T150154799144Z-b7046c02/receipt.json", "bytes": 1355, "sha256": "9d9c5379b32160d4d10110d9bbea585e15f57c9daeab3d49066b88b2ac8a301e"},
+    "base_commit": "fdaba58276b8efc87c4abc72d0a1d56247dc9538",
+    "catalog_entries": 500,
+    "catalog_local_crlf": {"bytes": 541490, "sha256": "76e1f2d1a46e2436380131bffa94f49d47fddb72361af8b83d28dc365ac4e668"},
+    "catalog_git_lf": {"bytes": 536774, "sha256": "e2f999a4b0f612f33798f9bb70cb7b94c387f89b1d5531301b3919d49ce5ca98"}
+  },
+  "manual": {
+    "path_local_only": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "bytes": 18124110,
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [225, 479, 480, 481],
+    "relevant_rule": "System transfers take ready systems from a unit; an unavailable requested quantity may wait for availability and be split; TFDT measures BETWEEN departure-to-arrival delay. The manual's general higher-priority language does not prove priority against a simultaneous new mission in this fixed trace."
+  },
+  "source_delta": {"authored_input_changes": 0, "native_runs": 0, "accepted_parent_checker_reruns": 0, "new_report_exports": 0, "new_simlox_invocations": 0},
+  "source_predicate": {
+    "table": "SystemTransfer",
+    "columns": ["UFID", "UTID", "SID", "TFTIME", "TFQTY", "TFDT", "TFPRI", "NOTE"],
+    "key_columns": ["UFID", "UTID", "SID", "TFTIME"],
+    "only_row": ["TEACH-UNIT", "TEACH-UNIT-2", "TEACH-AIR-01", 8.5, 1, 0.5, null, null],
+    "meaning": "At hour 8.5 one BETWEEN transfer is scheduled from TEACH-UNIT/BASE-01 to TEACH-UNIT-2/BASE-02. The request is source-frozen, not separately printed in the accepted model log."
+  },
+  "positive_oracle": {
+    "log_byte_pin_and_full_parse": "Require the accepted 8,158-byte log SHA above, all 117 lines and 103 timed lines in exact order, and reject unknown, duplicate, omitted or mistimed events. The semantic parser is independent of the original accepted validator.",
+    "physical_aircraft_id": "TEACH-AIR-01,0",
+    "other_aircraft_id": "TEACH-AIR-01,1",
+    "first_mission_id": "BASIC-MISSION,TEACH-GROUP,0,0,0",
+    "second_mission_id": "BASIC-MISSION,TEACH-GROUP,0,0,1",
+    "ordered_microsteps": [
+      {"hour": 7, "event": "first mission assigns ID0 at source and ID1 at target; each ready count decreases"},
+      {"hour": 8, "event": "first mission starts with both aircraft"},
+      {"hour": 10, "event": "first mission succeeds and completes; ID0 turnround starts then ends before source-base return"},
+      {"hour": 10, "event": "ID0 returns to BASE-01 without failures or PM, source ready count increases, then source System ready lines print"},
+      {"hour": 10, "event": "ID0 ready count decreases and ID0 transfers out of TEACH-UNIT; ID1 subsequently completes turnround and remains at TEACH-UNIT-2"},
+      {"hour": 10.5, "event": "ID0 transfers in to TEACH-UNIT-2, target ready count increases, and target systems-ready list contains distinct IDs 1 and 0"},
+      {"hour": 19, "event": "second mission assigns both IDs at the target after transfer has completed"},
+      {"hour": 20, "event": "second mission starts with both IDs"},
+      {"hour": 22, "event": "second mission succeeds; both IDs return to target and finish ready"}
+    ],
+    "ledger_invariants": [
+      "Exactly two distinct physical aircraft; interpret the inner <TEACH-AIR-01,ID> as aircraft identity, not the outer station/controller descriptor.",
+      "ID0 is assigned on [7,10), source-ready only after turnround completion at 10, in transit on [10,10.5), and target-ready on [10.5,19).",
+      "ID1 remains at the target through the first mission/return; total physical fleet is always two, with one in transit on [10,10.5).",
+      "At transfer departure, source ready decreases once and physical source occupancy decreases once; at arrival, target occupancy and ready increase once. No duplicate transfer or aircraft creation.",
+      "First mission identity 0 and second mission identity 1 remain distinct. The request at 8.5 is source evidence only; log order at 10 is observed evidence."
+    ],
+    "report_selected_corroboration": {
+      "source": "accepted between-report-raw.json; only its one declared final trailing comma may be removed in memory; original bytes remain mandatory and unchanged",
+      "source_bytes": 103974,
+      "source_sha256": "f1cd6496d7fbdeda3f6deb7d57ee16f762db27984e0aa27e13b16bc9715375b3",
+      "SystemResults_instance_name": "Total over all Units;Total over all Systems;0.00;36.00",
+      "row_20_10_to_10_5": {"STINT": 10, "ETINT": 10.5, "NSYRY": 1, "NSYMA": 0, "NSYMO": 0, "NSYA": 1},
+      "row_21_10_5_to_11": {"STINT": 10.5, "ETINT": 11, "NSYRY": 2, "NSYMA": 0, "NSYMO": 0, "NSYA": 2},
+      "role": "Selected aggregate corroboration only; prior 439/439 parent GO is inherited by exact byte pins. This classification does not newly accept a complete report."
+    }
+  },
+  "decision_table": [
+    {"condition": "all historical source/raw/dependency pins pass and all independent semantic/selected-report predicates pass", "decision": "BOUNDED_RETURN_COMPLETE_TRANSFER_CLASSIFICATION"},
+    {"condition": "any original/source/catalog/dependency pin fails", "decision": "NO_GO_SOURCE_OR_CUSTODY"},
+    {"condition": "a required event, order, physical-ID ledger or selected report assertion fails", "decision": "NO_GO_SEMANTICS"},
+    {"condition": "evidence supports only a request time but not a logged request event", "decision": "retain source-frozen request wording; never claim a logged request"},
+    {"condition": "evidence is asked to establish maintenance completion, positive turnround duration or priority versus a simultaneous mission", "decision": "OUT_OF_SCOPE_NOT_ACCEPTED"}
+  ],
+  "prospective_negative_clones": [
+    "At the semantic parser layer beneath the outer SHA gate, move ID0 transfer-out before turnround-ended or before source System-ready; reject.",
+    "Change ID0 transfer-out to hour 8.5, duplicate it, remove it, or change it to aircraft ID1; reject each.",
+    "Change target transfer-in to hour 10, 11 or the source unit; reject each.",
+    "Duplicate/miss source ready decrement or target ready increment; reject conservation failure.",
+    "Swap first and second mission IDs, reorder h10 return/turnround or h10.5 target-ready microsteps, or append an unknown timed line; reject.",
+    "Mutate selected report bin 20 or 21 values, row identity/time, nullability, or insert bool in a numeric field; reject.",
+    "Outer sealed reader also rejects original-byte changes independently of semantic clone checks. Negatives use private in-memory clones, never original-file edits."
+  ],
+  "custody_policy": {
+    "historical_originals": "All 24 accepted parent originals remain mandatory exact-byte host paths. They presently have writable attributes; preserve original bytes and attributes. For later package construction, make byte-equal read-only proof copies under a unique ignored local directory, without changing originals or uploading bulky/proprietary raw data.",
+    "parent_sources": "Rehash all 15 source entries from accepted index and all 76 accepted dependency disk/Git pairs. Historical index publication_state is not_published; later catalog/signoff and root selection establish accepted bounded parent scope without rewriting the historical index.",
+    "catalog": "Current local CRLF and Git LF catalog500 are distinct byte identities. Typed first-500 entry prefix and prior publication pointers must be checked without equating raw bytes or rewriting catalog.",
+    "manual_and_private": "Installed manual and any unrelated/private app context remain local-only pin references; no full manual extract or private snapshot is copied into publication.",
+    "classification_proofs": "Author and independent classifiers use separately written implementations, frozen methods and unique original binary-stream/actual-exit captures; no author import into independent reader."
+  },
+  "explicit_limits": [
+    "Only the accepted fixed-seed two-unit, two-aircraft, zero-duration turnround return branch is classified.",
+    "No maintenance/repair completion branch or positive-duration turnround is observed.",
+    "No simultaneous new-mission competition or general transfer-priority law is established.",
+    "No whole I04.var06, implicit-unit, IN/OUT, GUI, cross-engine, performance or Issue18-complete claim follows.",
+    "No new native call, report export or rerun of an accepted parent checker is permitted for this classification."
+  ]
+}

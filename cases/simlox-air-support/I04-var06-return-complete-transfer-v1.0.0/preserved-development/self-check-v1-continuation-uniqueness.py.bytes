@@ -1,0 +1,132 @@
+"""Private semantic clones below the outer byte gate; no original is modified."""
+from __future__ import annotations
+
+import copy
+import json
+import sys
+from pathlib import Path
+
+CASE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(CASE / "author"))
+from classify import INPUT, LOG, REPORT, source_transfer, semantic_log, selected_report, selected_report_object
+from source_gate import PARENT, RECOVERY, exact, load, verify
+
+
+def replace_once(data: bytes, old: bytes, new: bytes) -> bytes:
+    assert data.count(old) == 1, (old, data.count(old))
+    return data.replace(old, new, 1)
+
+
+def swap_lines(data: bytes, a: bytes, b: bytes) -> bytes:
+    lines = data.splitlines(keepends=True)
+    left = [i for i, line in enumerate(lines) if line.rstrip(b"\r\n") == a]
+    right = [i for i, line in enumerate(lines) if line.rstrip(b"\r\n") == b]
+    assert len(left) == len(right) == 1
+    lines[left[0]], lines[right[0]] = lines[right[0]], lines[left[0]]
+    return b"".join(lines)
+
+
+def must_reject(label: str, callback) -> None:
+    try:
+        callback()
+    except (AssertionError, KeyError, IndexError, TypeError, ValueError, UnicodeError):
+        return
+    raise AssertionError(f"mutant accepted: {label}")
+
+
+def main() -> dict:
+    custody = verify()
+    log = exact(RECOVERY / "raw/between.log", LOG)
+    report = exact(RECOVERY / "raw/between-report-raw.json", REPORT)
+    source = load(exact(PARENT / "between-input.json", INPUT))
+    assert semantic_log(log)["transfer_arrival"] == 10.5
+    assert len(selected_report(report)["selected_system_results"]) == 2
+    assert source_transfer(source)["request_logged"] is False
+    rejects = 0
+
+    def log_negative(label: str, data: bytes) -> None:
+        nonlocal rejects
+        assert data != log
+        must_reject(label, lambda: semantic_log(data, check_signature=False))
+        rejects += 1
+
+    out = b"Time: 10 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>."
+    incoming = b"Time: 10.5 <TEACH-UNIT-2 at <BASE-02,0>> system transfered in: <TEACH-AIR-01,0>."
+    ended = b"Time: 10 <TEACH-AIR-01,0> turnround ended, mission: <BASIC-MISSION,TEACH-GROUP,0,0,0>"
+    returned = b"Time: 10 <TEACH-AIR-01,BASE-01,0> System arrives <TEACH-AIR-01,0>, mission success, "
+    ready_dec = b"Time: 10 <TEACH-AIR-01,0> nbr ready decreased at unit: <TEACH-UNIT at <BASE-01,0>>"
+    ready_line = b"Time: 10 <TEACH-AIR-01,BASE-01,0> System ready <TEACH-AIR-01,0>"
+
+    log_negative("return before turnround end", swap_lines(log, ended, returned))
+    log_negative("transfer before turnround end", swap_lines(log, ended, out))
+    log_negative("transfer at requested hour", replace_once(log, out, out.replace(b"Time: 10 ", b"Time: 8.5 ")))
+    log_negative("wrong physical transfer ID", replace_once(log, out, out.replace(b"<TEACH-AIR-01,0>.", b"<TEACH-AIR-01,1>.")))
+    log_negative("transfer to wrong unit", replace_once(log, incoming, incoming.replace(b"TEACH-UNIT-2 at <BASE-02,0>", b"TEACH-UNIT at <BASE-01,0>")))
+    log_negative("arrival at wrong time", replace_once(log, incoming, incoming.replace(b"Time: 10.5 ", b"Time: 11 ")))
+    log_negative("missing transfer arrival", replace_once(log, incoming, b"Time: 10.5 <TEACH-AIR-01,0> Next random failure will occur 1e+010"))
+    log_negative("duplicate transfer departure", replace_once(log, incoming, out))
+    # The second identical ready print is targeted by index, not by replace_once.
+    lines = log.splitlines(keepends=True)
+    indices = [i for i, line in enumerate(lines) if line.rstrip(b"\r\n") == ready_line]
+    assert len(indices) == 2
+    pos = lines.index(next(line for line in lines if line.rstrip(b"\r\n") == ready_dec))
+    lines[indices[1]], lines[pos] = lines[pos], lines[indices[1]]
+    log_negative("ready decrement before second ready print", b"".join(lines))
+    log_negative("unknown native event", replace_once(log, out, b"Time: 10 unknown transfer edge"))
+    log_negative("wrong second mission identity", replace_once(
+        log,
+        b"Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission allocates system: <TEACH-AIR-01,1>",
+        b"Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,0> mission allocates system: <TEACH-AIR-01,1>"))
+    log_negative("duplicate second-mission physical ID", replace_once(
+        log,
+        b"Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission allocates system: <TEACH-AIR-01,0>",
+        b"Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission allocates system: <TEACH-AIR-01,1>"))
+    log_negative("h22 return before turnround end", swap_lines(
+        log,
+        b"Time: 22 <TEACH-AIR-01,0> turnround ended, mission: <BASIC-MISSION,TEACH-GROUP,0,0,1>",
+        b"Time: 22 <TEACH-AIR-01,BASE-02,0> System arrives <TEACH-AIR-01,0>, mission success, "))
+    log_negative("wrong target ready roster", replace_once(
+        log,
+        b"Time: 10.5 <TEACH-UNIT-2 at <BASE-02,0>> systems ready: 2 :<TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+        b"Time: 10.5 <TEACH-UNIT-2 at <BASE-02,0>> systems ready: 2 :<TEACH-AIR-01,1>,<TEACH-AIR-01,1>"))
+    # Swap the first pair of untimed continuations. It must fail grammar order.
+    log_negative("return continuation reversed", replace_once(
+        log, b" no failures \r\n no PMTasks\r\n", b" no PMTasks\r\n no failures \r\n"))
+
+    report_at = report.rfind(b",")
+    parsed = load(report[:report_at] + report[report_at + 1:])
+    cols = [c["name"] for c in parsed["report"]["tables"][2]["columns"]]
+    report_cases = [
+        ("wrong transit ready count", 20, "NSYRY", 2),
+        ("wrong postarrival available count", 21, "NSYA", 1),
+        ("wrong bin start", 20, "STINT", 9.5),
+        ("bool as numeric", 20, "NSYRY", True),
+        ("wrong row identity", 21, "UNID", "TEACH-UNIT"),
+    ]
+    for label, rownum, column, value in report_cases:
+        clone = copy.deepcopy(parsed)
+        clone["report"]["tables"][2]["instances"][0]["rows"][rownum][cols.index(column)] = value
+        must_reject(label, lambda c=clone: selected_report_object(c))
+        rejects += 1
+
+    source_cases = [("request time", 3, 10.0), ("quantity", 4, 2),
+                    ("bool quantity", 4, True), ("delay", 5, 0.0),
+                    ("target", 1, "TEACH-UNIT")]
+    for label, column, value in source_cases:
+        clone = copy.deepcopy(source)
+        table = next(t for t in clone["model"]["tables"] if t["name"] == "SystemTransfer")
+        table["instances"][0]["rows"][0][column] = value
+        must_reject(label, lambda c=clone: source_transfer(c))
+        rejects += 1
+    clone = copy.deepcopy(source)
+    next(t for t in clone["model"]["tables"] if t["name"] == "SystemTransfer")["columns"][3]["key"] = False
+    must_reject("missing key flag", lambda: source_transfer(clone))
+    rejects += 1
+    return {"schema": "i04-var06-author-self-check/v100", "passed": True,
+            "private_negative_clones_rejected": rejects, "parent_checker_reruns": 0,
+            "native_calls": 0, "source_and_custody": custody,
+            "log_lines": 117, "timed_records": 103}
+
+
+if __name__ == "__main__":
+    print(json.dumps(main(), sort_keys=True))

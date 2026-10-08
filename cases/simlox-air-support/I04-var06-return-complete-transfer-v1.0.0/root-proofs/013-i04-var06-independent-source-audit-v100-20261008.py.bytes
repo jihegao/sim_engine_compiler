@@ -1,0 +1,116 @@
+"""Read-only independent source/custody check; no Git or accepted checker calls."""
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CASE = REPO / "cases/simlox-air-support/I04-var06-return-complete-transfer-v1.0.0"
+PARENT = REPO / "cases/simlox-air-support/I04-var01-system-between-v1.0.0"
+SELECTION_DIR = REPO / "tmp/i04-var06-root-selection-20261008/20261008T151141226728Z-9cc9c2b4"
+READER = CASE / "review/independent_classifier.py"
+READER_SHA = "ba4175c287b2ae1adf8dc6a24802205286df05df520a1d84298a1ca36ab90dcd"
+SELECTION_SHA = "7b70423434ab8b745d40c9f75d19256da5ee4391b37d1b3bae2e84089086c214"
+PAIRS_SHA = "202a4c265fcc04206247299d61b75f77f6b70b2477521f2c84843fd9c1f4c0d7"
+LOCAL_SHA = "76e1f2d1a46e2436380131bffa94f49d47fddb72361af8b83d28dc365ac4e668"
+GIT_SHA = "e2f999a4b0f612f33798f9bb70cb7b94c387f89b1d5531301b3919d49ce5ca98"
+MANUAL = Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf")
+DICTIONARY = Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt")
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def pin(path: Path, digest: str, size: int | None = None) -> bytes:
+    data = path.read_bytes()
+    assert sha(data) == digest and (size is None or len(data) == size), str(path)
+    return data
+
+
+def load(data: bytes):
+    def unique(pairs):
+        out = {}
+        for key, value in pairs:
+            assert key not in out
+            out[key] = value
+        return out
+    return json.loads(data, object_pairs_hook=unique,
+                      parse_constant=lambda s: (_ for _ in ()).throw(ValueError(s)))
+
+
+def typed(left, right):
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        return left.keys() == right.keys() and all(typed(left[k], right[k]) for k in left)
+    if isinstance(left, list):
+        return len(left) == len(right) and all(typed(a, b) for a, b in zip(left, right))
+    return left == right
+
+
+def main():
+    before = sha(READER.read_bytes())
+    assert before == READER_SHA and READER.stat().st_file_attributes & 1
+    spec = importlib.util.spec_from_file_location("independent_var06_reader_source_audit", READER)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    recovery = reader.verify_recovery()
+    selection = load(pin(SELECTION_DIR / "receipt.json", SELECTION_SHA, 13587))
+    owned_selection = load(pin(CASE / "preserved-context/root-selection-receipt.json.bytes",
+                               "2f97e7766570da48201fa4837bff67949731b280c36c9f832860f6c5f652b889", 13588))
+    assert selection["decision"] == "ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_ONLY"
+    assert owned_selection["parent_index"] == selection["parent_index"]
+    assert selection["native_calls"] == 0 and selection["native_dispatch"] is False
+    assert selection["accepted_parent_dependency_pairs"] == 76 and selection["parent_source_files"] == 15
+    index = load(pin(PARENT / "evidence-index.json", reader.INDEX_SHA, 7440))
+    assert len(index["source"]) == 15
+    for relative, expected in index["source"].items():
+        path = (PARENT / relative).resolve(strict=True)
+        assert path.is_relative_to(PARENT.resolve(strict=True))
+        pin(path, expected["sha256"], expected["bytes"])
+    pairs = load(pin(CASE / "source-maps/dependency-pairs.json", PAIRS_SHA, 32666))
+    assert type(pairs) is list and len(pairs) == 76
+    paths = set()
+    for row in pairs:
+        assert set(row) == {"path", "oid", "disk", "git", "byte_equal"}
+        assert type(row["path"]) is str and "\\" not in row["path"] and ".." not in Path(row["path"]).parts
+        assert row["path"] not in paths and len(row["oid"]) == 40
+        paths.add(row["path"])
+        assert row["byte_equal"] is (row["disk"] == row["git"])
+        target = (REPO / row["path"]).resolve(strict=True)
+        assert target.is_relative_to(REPO.resolve(strict=True))
+        pin(target, row["disk"]["sha256"], row["disk"]["bytes"])
+    assert set(index["source"]) | {"evidence-index.json"} == {path.removeprefix("cases/simlox-air-support/I04-var01-system-between-v1.0.0/")
+                                      for path in paths if path.startswith("cases/simlox-air-support/I04-var01-system-between-v1.0.0/")}
+    assert len(recovery["copies"]) == 24
+    assert len(index["run"]["raw"]) == 22
+    raw = {**index["run"]["raw"], "invocation.json": index["run"]["invocation"], "closure.json": index["run"]["closure"]}
+    assert {x["name"] for x in recovery["copies"]} == set(raw)
+    for row in recovery["copies"]:
+        assert {"bytes": row["bytes"], "sha256": row["sha256"]} == raw[row["name"]]
+    pin(MANUAL, "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3", 18124110)
+    pin(DICTIONARY, "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0", 78577)
+    local = pin(SELECTION_DIR / "catalog-local-500.json.bytes", LOCAL_SHA, 541490)
+    git = pin(SELECTION_DIR / "catalog-git-500.json.bytes", GIT_SHA, 536774)
+    assert local != git and local.replace(b"\r\n", b"\n") == git
+    local_obj = load(local)
+    git_obj = load(git)
+    assert typed(local_obj, git_obj) and len(local_obj["entries"]) == 500
+    current = load((REPO / "cases/simlox-air-support/publication-index-v1.json").read_bytes())
+    assert current.keys() == local_obj.keys() and len(current["entries"]) >= 500
+    assert typed({k: v for k, v in current.items() if k != "entries"},
+                 {k: v for k, v in local_obj.items() if k != "entries"})
+    assert typed(current["entries"][:500], local_obj["entries"])
+    assert not any(row.get("variant_id") == "I04.var06" for row in local_obj["entries"])
+    assert sha(READER.read_bytes()) == before
+    print(json.dumps({"decision": "PASS_INDEPENDENT_SOURCE_CUSTODY", "parent_sources": 15,
+                      "dependency_pairs_inherited_git_and_current_disk": 76, "originals_and_copies": 24,
+                      "catalog_prefix": 500, "manual_and_dictionary": 2, "native_calls": 0},
+                     sort_keys=True, separators=(",", ":")))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,5 @@
+# I04.var06 contract auditor development limit
+
+The first independent prospective auditor, `tmp/i04-var06-independent-contract-audit-v100-20261008.py` (6,048 bytes/SHA-256 `7a062eed5c709f4b6fe7b63505d31cc24bb80b779102da94c33c291c1b8c8c8c`), exited 1 in one local development run. It assumed a unique h10 `System ready <TEACH-AIR-01,0>` line. The accepted fixed log prints that exact line twice, so the assumption was wrong. This was a tool-decoded traceback only; no original binary stream or receipt was captured, and no accepted file or model was changed.
+
+The distinct v101 auditor (6,169 bytes/SHA-256 `74d9feea302aa8922f105b35a0dd9fda17a71a620d9f6c083effcf4e93164012`) requires exactly two consecutive matching ready lines before the ready decrement/transfer-out. Its local development run exited 0; root's separately captured original execution is required for contract GO. Neither auditor invoked Git, SSH, SIMLOX, a checker, or the accepted parent validator.

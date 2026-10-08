@@ -1,0 +1,35 @@
+"""One-shot read-only source-gate command for root original-stream capture."""
+from pathlib import Path
+import hashlib
+import stat
+import subprocess
+import sys
+
+R = Path(__file__).resolve().parents[1]
+CASE = R / "cases/simlox-air-support/I04-var06-return-complete-transfer-v1.0.0"
+PINS = {
+    "author/source_gate.py": (10007, "35f0344585e687895a2e8fe1ee509ff7024285ef00ae642e6d81da0616ee705f"),
+}
+
+
+def check() -> dict:
+    found = {}
+    for relative, expected in PINS.items():
+        p = CASE / relative
+        data = p.read_bytes()
+        actual = (len(data), hashlib.sha256(data).hexdigest())
+        assert actual == expected and not (p.stat().st_mode & stat.S_IWRITE), relative
+        found[relative] = actual
+    return found
+
+
+if __name__ == "__main__":
+    before = check()
+    q = subprocess.run([sys.executable, "-X", "utf8", "-B", str(CASE / "author/source_gate.py")],
+                       cwd=R, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    sys.stdout.buffer.write(q.stdout)
+    sys.stderr.buffer.write(q.stderr)
+    sys.stdout.buffer.flush()
+    sys.stderr.buffer.flush()
+    assert type(q.returncode) is int and check() == before
+    raise SystemExit(q.returncode)
