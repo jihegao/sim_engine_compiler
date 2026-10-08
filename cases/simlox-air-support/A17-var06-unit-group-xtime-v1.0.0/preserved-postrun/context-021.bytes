@@ -1,0 +1,63 @@
+"""Root-only absent-only promotion of reviewed bytes; no native execution."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, sys
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def exact(p,spec):
+ assert pin(p)==spec and p.stat().st_file_attributes&1 and not p.stat().st_file_attributes&1024,str(p)
+assert len(sys.argv)>=2
+mode=sys.argv[1];assert mode in ('review','inventory','manifest')
+freeze=R/'tmp/a17-var06-author-freeze-v100-20261009.json'
+exact(freeze,{'bytes':8429,'sha256':'8d8a75b0b5b51d20c6ab0c85c311177699af60e2e4cef1dd5e14cd30b6aaffd9'})
+author=json.loads(freeze.read_bytes());assert len(author['source_files'])==46
+for row in author['source_files']:exact(C/row['path'],{k:row[k] for k in ('bytes','sha256')})
+if mode=='review':
+ assert len(sys.argv)==2
+ work=[
+  ('tmp/a17-var06-independent-reader-draft-v104-20261009.py','review/independent_reader.py',{'bytes':41065,'sha256':'2c6526454f8fde0c90eff0e5a8145e712b3a37b4902dcbd19acbaedfd5c2599a'}),
+  ('tmp/a17-var06-independent-selfcheck-draft-v100-20261009.py','review/independent_self_check.py',{'bytes':5228,'sha256':'68daf704bb206a2e06aede3d51cc0c3edff6d0fe559f559bd56151716ae76749'}),
+  ('tmp/a17-var06-independent-static-method-go-v101-20261009.md','review/independent-static-go-2026-10-09.md',{'bytes':3380,'sha256':'ac3c38849a9cd13cd19d4129c3e208e8fcc3e39cf16c5d647332febb44db03d5'}),
+ ]
+ audit=None
+else:
+ assert len(sys.argv)==4
+ audit_path=Path(sys.argv[2]).resolve(strict=True)
+ assert audit_path.is_relative_to(R/'tmp/a17-var06-root-candidate-proofs-v100-20261009')
+ assert pin(audit_path)['sha256']==sys.argv[3] and audit_path.stat().st_file_attributes&1
+ audit=json.loads(audit_path.read_bytes())
+ assert audit['mode']=='audit-'+mode and audit['actual_exit']==0 and audit['error'] is None
+ assert audit['decision']=='PASS_CANDIDATE_STAGE_ONLY' and audit['native_dispatch'] is False and audit['canonical_writes']==0
+ assert audit['source_before']==audit['source_after']
+ for rel,spec in audit['source_after'].items():exact(C/rel,spec)
+ for name,spec in audit['streams'].items():exact(audit_path.parent/name,spec)
+ verdict=json.loads((audit_path.parent/'stdout.bin').read_bytes())
+ assert verdict==audit['parsed_stdout']
+ assert verdict['decision']==('PASS_INVENTORY_CANDIDATE' if mode=='inventory' else 'PASS_MANIFEST_CANDIDATE')
+ assert verdict['source_count']==(49 if mode=='inventory' else 193)
+ src='tmp/a17-var06-'+mode+'-candidate-v100-20261009.json'
+ assert audit['candidate']['path']==str(R/src)
+ spec={k:audit['candidate'][k] for k in ('bytes','sha256')}
+ assert verdict['candidate_sha256']==spec['sha256']
+ work=[(src,'source-inventory.json' if mode=='inventory' else 'prelaunch-manifest.json',spec)]
+for src,rel,spec in work:
+ exact(R/src,spec)
+ assert not (C/rel).exists(),rel
+O=R/('tmp/a17-var06-root-'+mode+'-promotion-v100-20261009.json')
+assert not O.exists()
+records=[]
+if mode=='review':
+ review=C/'review'
+ assert not review.exists()
+ review.mkdir(exist_ok=False)
+for src,rel,spec in work:
+ target=C/rel;assert target.parent.is_dir()
+ with target.open('xb') as f:f.write((R/src).read_bytes())
+ target.chmod(stat.S_IREAD);exact(target,spec)
+ records.append({'source':str(R/src),'target':str(target),**spec})
+for row in author['source_files']:exact(C/row['path'],{k:row[k] for k in ('bytes','sha256')})
+body={'schema':'a17-var06-root-promotion/v100','mode':mode,'utc':dt.datetime.now(dt.timezone.utc).isoformat(),'native_dispatch':False,'author_sources_unchanged':46,'promoted':records,'method':pin(Path(__file__)),'audit_receipt':{'path':str(audit_path),**pin(audit_path)} if audit is not None else None}
+with O.open('xb') as f:f.write((json.dumps(body,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O),**pin(O),'mode':mode,'promoted':len(records),'native_dispatch':False}))

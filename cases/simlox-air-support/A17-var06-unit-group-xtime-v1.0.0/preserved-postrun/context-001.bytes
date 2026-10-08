@@ -1,0 +1,151 @@
+"""Read-only parent/custody/live ownership and SSH guard for contract preparation."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,uuid
+R=Path(__file__).resolve().parents[1]
+BASE='270740a51e937be00b6975ab2960c16ccb131f5a'
+PRODUCT='a1a44c72f64d754b711abe4095f1111f8a5ba896'
+P=R/'cases/simlox-air-support/A17-multi-unit-group-v1.0.0'
+A03=R/'cases/simlox-air-support/A03-two-aircraft-formation-v1.0.1'
+A02=R/'cases/simlox-air-support/A02-single-aircraft-repeated-missions'
+C=R/'cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0'
+RUN=C/'runs/a17-var06-xtime-v100-ssh-20261009-01'
+CONTRACT=R/'tmp/a17-var06-prospective-v100-20261009-01'
+OWNER=R/'tmp/a17-var06-selection-ownership-v100-20261008.json'
+G=R/'tmp/issue18-next-owner-guard-20261008.ps1'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(b):
+ def unique(rows):
+  d={}
+  for k,v in rows:assert k not in d;d[k]=v
+  return d
+ return json.loads(b,object_pairs_hook=unique,parse_constant=lambda s:(_ for _ in ()).throw(ValueError(s)))
+def exact(p,h):
+ b=p.read_bytes();assert pin(b)['sha256']==h,str(p);return b
+def git(*a,data=None):
+ q=subprocess.run(['git','-c','core.longpaths=true',*a],cwd=R,input=data,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+ assert q.returncode==0,(a,q.stderr[:200]);return q.stdout
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+assert not C.exists() and not RUN.exists() and not CONTRACT.exists()
+assert not git('diff','--name-only') and not git('diff','--cached','--name-only')
+assert git('rev-parse','origin/simlox/main').decode().strip()==BASE
+refs={n:h for h,n in (r.split() for r in git('ls-remote','origin','refs/heads/simlox/main','refs/heads/main').decode().splitlines())}
+assert refs=={'refs/heads/simlox/main':BASE,'refs/heads/main':PRODUCT}
+OWNER.chmod(stat.S_IREAD)
+owner=load(OWNER.read_bytes())
+assert owner['unavailableHosts']==[] and owner['unavailableSources']==[] and owner['open_prs']['issues']==[]
+relevant=[x for x in owner['related_threads'] if x.get('projectId')=='5b414893-e022-4493-bde3-d8251dd0557d']
+assert all(x['status']=='notLoaded' for x in relevant if x['id']!='01a0ed5b-dc75-74f3-a26c-23674dd997d6')
+assert next(x for x in relevant if x['id']=='01a0ed5b-dc75-74f3-a26c-23674dd997d6')['status']=='active'
+expected={
+ P/'native-input.json':'66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974',
+ P/'contract.json':'c45b6b8dc4e77848e1243217225f053926aa29d9e8c0815f0dbd32da75bcec4e',
+ P/'cli-scope-signoff-2026-09-29.md':'77d204b5ca22222d1331051a68bb9c4fad2f50fc6ee94134d32d047dd5105e40',
+ P/'review/independent-readonly-2026-09-29.json':'1f20af7be347b5d52cffda50282a6f993b7cf949654e8dcbe9bc4413cffb4b4f',
+ A03/'native-input.json':'d7aa35c11a1426de1e74167cc6a3277879f4a2a5814792274490a43dcfe986a4',
+ A03/'cli-scope-signoff-2026-09-29.md':'6c8d3998f20e216d0403b807866fcbe306f68ebc6f376693334435e808747b2b',
+ A03/'review/independent-readonly-2026-09-29.json':'646e2076eb03565b4fb390b98d8651c5c1403380a28a9d5b99bb9a06a37d9282',
+ A02/'native-input.json':'84c5cca6c06384b850d2420297a3f5c2f5c553904f123f690190fdb42475e0b8',
+ A02/'cli-scope-signoff-2026-09-29.md':'608eef828a65ef7a8c738a3ec227b890421c29248ee8addd9e992a4c7e7e919e',
+ A02/'evidence-index.json':'b584816ca459c75bd5de160eb44b7b458c0dbe1b478c56142c44a3283732041d',
+ Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf'):'39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3',
+ Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt'):'11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0',
+}
+for p,h in expected.items():exact(p,h)
+for p in (P/'review/independent-readonly-2026-09-29.json',A03/'review/independent-readonly-2026-09-29.json'):
+ v=load(p.read_bytes());assert v['passed'] is True and v['differences']==[]
+assert not (P/'evidence-index.json').exists()
+catpath=R/'cases/simlox-air-support/publication-index-v1.json'
+local=exact(catpath,'33943b58bf5461ba3ef4c445a63d89b5897a72abcd4c1c48af7f8db64eb5ebaf')
+published=git('show',BASE+':'+catpath.relative_to(R).as_posix())
+assert pin(published)=={'bytes':541137,'sha256':'999d127d87036735b450bf0e93790e4fbe02b55dcb9872273ccfb5ce13129082'}
+assert local!=published and local.replace(b'\r\n',b'\n')==published
+catalog=load(local);assert len(catalog['entries'])==502
+parents=[]
+for d in (P,A03,A02):
+ matches=[x for x in catalog['entries'] if x.get('package')==d.name]
+ assert len(matches)==1 and matches[0]['case_id'] in ('A17','A03','A02')
+ assert 'reusable_published' in (d/'cli-scope-signoff-2026-09-29.md').read_text(encoding='utf-8-sig')
+ parents.append(matches[0])
+assert not any(x.get('variant_id')=='A17.var06' for x in catalog['entries'])
+tree={}
+for token in git('ls-tree','-r','-z',BASE,'--',*(p.relative_to(R).as_posix() for p in (P,A03,A02,R/'cases/simlox-air-support/J07-unit-type-report-v1.0.0'))).split(b'\0'):
+ if token:
+  meta,name=token.split(b'\t',1);mode,kind,oid=meta.decode().split();assert kind=='blob';tree[name.decode()]=oid
+ids=list(dict.fromkeys(tree.values()));stream=git('cat-file','--batch',data=('\n'.join(ids)+'\n').encode());at=0;blobs={}
+for oid in ids:
+ end=stream.index(b'\n',at);header=stream[at:end].decode().split();assert header[:2]==[oid,'blob'];n=int(header[2]);blobs[oid]=stream[end+1:end+1+n];assert stream[end+1+n:end+2+n]==b'\n';at=end+2+n
+assert at==len(stream)
+pairs=[]
+for path,oid in sorted(tree.items()):
+ disk=(R/path).read_bytes();blob=blobs[oid]
+ assert disk==blob or disk.replace(b'\r\n',b'\n')==blob,path
+ pairs.append({'path':path,'oid':oid,'disk':pin(disk),'git':pin(blob),'byte_equal':disk==blob})
+raw=[]
+def raw_exact(p,row):
+ b=p.read_bytes();assert pin(b)=={k:row[k] for k in ('bytes','sha256')},str(p)
+ raw.append({'path':str(p),**pin(b),'original_attributes':p.stat().st_file_attributes,'original_mode':p.stat().st_mode})
+run=P/'runs/a17-v100-ssh-20260929-01'
+cl=load(exact(run/'closure.json','f1885aa1c21bf2260d1d7671e762d18451d91a0fc0398cf45309574d16c2f76b'))
+assert len(cl['raw'])==12 and cl['error'] is None
+assert cl['source_hashes_before']==cl['source_hashes_after']
+exact(run/'invocation.json','286177cf998911c3e3519fa5c2a868ad73a479556204fdeb754dd94c1987ee6c')
+for name,row in cl['raw'].items():raw_exact(run/name,row)
+for name in ('closure.json','invocation.json'):raw_exact(run/name,pin((run/name).read_bytes()))
+a03run=Path(load((A03/'review/independent-readonly-2026-09-29.json').read_bytes())['run_directory'])
+c3=load(exact(a03run/'closure.json','a3b4a2739b5b098c956aa19428cf997b2079aab858e22fb5ea9c4486a4209edd'))
+assert len(c3['raw'])==11
+exact(a03run/'invocation.json','7dd01046c8c7a2e14ff282a4d15dc94551bde286761800b7e016f91f0ae40a8b')
+for name,row in c3['raw'].items():raw_exact(a03run/name,row)
+for name in ('closure.json','invocation.json'):raw_exact(a03run/name,pin((a03run/name).read_bytes()))
+a02=load((A02/'evidence-index.json').read_bytes());assert len(a02['runs'])==2
+for runrow in a02['runs']:
+ assert len(runrow['artifacts'])==17
+ for row in runrow['artifacts'].values():raw_exact(Path(row['path']),row)
+assert len(raw)==61 and len({x['path'] for x in raw})==61
+J=R/'cases/simlox-air-support/J07-unit-type-report-v1.0.0'
+JR=J/'runs/report-settings/a17-group-report-20261001-01'
+exact(J/'cli-scope-signoff-2026-10-01.md','6213c47adc9799dda17fd727131bb3f4873dfc8d096c87790a61fa1f8f43c3de')
+jreview=load((J/'review/independent-readonly-2026-10-01.json').read_bytes())
+assert jreview['decision']=='bounded_go_unit_type_reporting'
+assert all(x['pass'] is True for x in jreview['checks']) and len(jreview['checks'])==78
+jpub=[x for x in catalog['entries'] if x.get('publication_id')=='J07.var05.unit_type_report_selection.1.0.0'];assert len(jpub)==1
+parents+=jpub
+jc=load(exact(JR/'closure.json','6841bd6a37dc9c7b3340c94f6d80c011338e0b784a1449342d7583ea542cb128'))
+ji=load(exact(JR/'invocation.json','a14de458818b5ca5b55992fd72887d9ddcdae8cba2a87bcd6260e1be21c0fbb5'))
+assert jc['exit_code']==0 and len(jc['raw'])==2 and jc['invocation_sha256']==pin((JR/'invocation.json').read_bytes())['sha256']
+assert jc['source_sxo_sha256']==ji['source_sxo_sha256']==pin((run/'model.sxo').read_bytes())['sha256']
+assert ji['source_closure_sha256']==pin((run/'closure.json').read_bytes())['sha256']
+assert jc['settings_sha256']==ji['settings_sha256']=='e78466cc27d8c213e4d9bf4ed0065844471593069e81abe665cbd7fa4e9172ea'
+exact(J/'runs/report-settings/group.sxs',jc['settings_sha256'])
+exact(J/'report_group_parent_ssh.ps1',jc['runner_sha256']);assert jc['runner_sha256']=='84b858e47f1d84d6723bfe630ae272374c420f4ced543738eae5cf8323f04e02'
+for name,row in jc['raw'].items():raw_exact(JR/name,row)
+for p in (JR/'closure.json',JR/'invocation.json',J/'runs/report-settings/group.sxs'):raw_exact(p,pin(p.read_bytes()))
+assert len(raw)==66
+assert len(('File: '+str(RUN/'input.json')).encode('ascii'))<=199
+planner=load((R/'cases/simlox-air-support/catalog-v2.json').read_bytes())
+assert 'XTIME' in json.dumps(planner,ensure_ascii=False)
+exact(G,'e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f')
+O=R/'tmp/a17-var06-root-selection-v100-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+save(O/'catalog-local-502.json.bytes',local);save(O/'catalog-git-502.json.bytes',published);save(O/'accepted-source-pairs.json',(json.dumps(pairs,indent=2)+'\n').encode())
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',G.as_posix()]
+with (O/'guard-stdout.bin').open('xb') as out,(O/'guard-stderr.bin').open('xb') as err:q=subprocess.run(argv,cwd=R,stdout=out,stderr=err)
+guard=None;error=None
+try:
+ assert q.returncode==0 and (O/'guard-stderr.bin').read_bytes()==b''
+ guard=load((O/'guard-stdout.bin').read_bytes())
+ assert all(guard[k] is True for k in ('ssh_present','sshd_ancestor','mutex_free'))
+ assert guard['self_session']==0 and guard['powershell_major']==5 and guard['active_gui_session1_count']==1 and guard['session_query_exit']==0
+ assert guard['runner_candidates']==[] and len(guard['native'])==1
+ gui=guard['native'][0];assert gui['pid']==13340 and gui['session']==1 and gui['start_ms']==1790590196826 and gui['responding'] is True
+ for row in raw:
+  path=Path(row['path']);assert pin(path.read_bytes())=={k:row[k] for k in ('bytes','sha256')} and path.stat().st_file_attributes==row['original_attributes'] and path.stat().st_mode==row['original_mode']
+ for row in pairs:assert pin((R/row['path']).read_bytes())==row['disk']
+ assert catpath.read_bytes()==local and not C.exists() and not RUN.exists() and not CONTRACT.exists()
+except BaseException as e:error=type(e).__name__+': '+str(e)
+receipt={'schema':'a17-var06-root-contract-selection/v100','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'decision':'ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_ONLY' if error is None else 'NO_GO_PRESERVED','native_dispatch':False,'native_calls':0,'accepted_checker_calls':0,'base':BASE,'product_main':PRODUCT,'parent_publications':parents,'required_local_sources':[{'path':str(p),**pin(p.read_bytes())} for p in expected],'source_disk_git_pairs':len(pairs),'source_pair_file':pin((O/'accepted-source-pairs.json').read_bytes()),'mandatory_originals':raw,'mandatory_original_count':len(raw),'parent_index_absent_is_not_invented':True,'catalog_local':pin(local),'catalog_git':pin(published),'catalog_entries':502,'ownership_snapshot':pin(OWNER.read_bytes()),'guard_argv':argv,'guard_actual_exit':q.returncode,'guard':guard,'guard_streams':{n:pin((O/n).read_bytes()) for n in ('guard-stdout.bin','guard-stderr.bin')},'future_package':str(C),'future_run':str(RUN),'future_contract':str(CONTRACT),'pending_native_gates':['Independently reviewed prospective single XTIME delta and fixed J07 observation provenance','Frozen full60line log and typed4966 report oracle with sole STOTD0to1 delta','Exact source delta/version/input/runner freeze and strict converter path validation','Fresh independent preflight before serial native dispatch'],'method':pin(Path(__file__).read_bytes()),'error':error}
+save(O/'receipt.json',(json.dumps(receipt,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin((O/'receipt.json').read_bytes()),'decision':receipt['decision'],'source_pairs':len(pairs),'mandatory_originals':len(raw),'error':error}))
+assert error is None

@@ -1,0 +1,17 @@
+# Excluded pre-freeze audit dispatch
+
+The root attempted to dispatch the new independent postrun audit through the pinned neutral capture method. The capture guard refused before creating its output directory or invoking the auditor. Tool exec chunk881651, actual exit1; decoded tool output only exists for this pre-capture failure. No original binary stdout/stderr/receipt triplet was created, and none is reconstructed here. No native run or independent semantic replay occurred in this attempt.
+
+Target tmp/a17-var06-independent-actual-postrun-audit-v100-20261009.py was 9116bytes/SHA2567672818bd5ffd562b0f28d22453475f74475fcec696b41c377d9b00cae75099d as announced. Subsequent read-only observation chunk2a8881 showed attributes32/IsReadOnlyfalse. The exact guard required both matching SHA and RO. The reviewer must freeze the same bytes RO and confirm them before a new uniquely labelled dispatch; this does not authorize a native rerun.
+
+Decoded actual failure:
+
+```text
+Traceback (most recent call last):
+  File "C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo\tmp\i04-var09-root-review-capture-v100-20261008.py", line 11, in <module>
+    assert pin(P)['sha256']==expected and not P.stat().st_mode&stat.S_IWRITE
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+```
+
+The already completed sole native run and 39 sealed originals/25 recovered copies remain unchanged. Overall Issue18 and publication remain unfinished.

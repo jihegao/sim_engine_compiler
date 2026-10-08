@@ -1,0 +1,30 @@
+"""Create the sole next-case branch from the reviewed merged ref; no native work."""
+from pathlib import Path
+import hashlib,json,stat,subprocess
+R=Path(__file__).resolve().parents[1]
+BASE='270740a51e937be00b6975ab2960c16ccb131f5a'
+BRANCH='codex/simlox-a17-var06-unit-group-xtime-20261009'
+def git(*a,ok=(0,)):
+ q=subprocess.run(['git','-c','core.longpaths=true',*a],cwd=R,capture_output=True)
+ assert q.returncode in ok,(a,q.returncode,q.stderr)
+ return q
+def identity(p):
+ b=p.read_bytes();s=p.stat();return (len(b),hashlib.sha256(b).hexdigest(),s.st_mode,s.st_file_attributes)
+assert Path.cwd().resolve()==R
+assert git('rev-parse','HEAD').stdout.decode().strip()=='713b7e0c54383c37c9947fe98b1eca8502f463a7'
+assert git('rev-parse','origin/simlox/main').stdout.decode().strip()==BASE
+assert git('rev-parse','HEAD^{tree}').stdout==git('rev-parse',BASE+'^{tree}').stdout
+assert git('diff','--name-only').stdout==git('diff','--cached','--name-only').stdout==b''
+assert git('show-ref','--verify','--quiet','refs/heads/'+BRANCH,ok=(1,)).returncode==1
+assert git('ls-remote','origin','refs/heads/'+BRANCH).stdout==b''
+assert git('ls-remote','origin','refs/heads/simlox/main').stdout.decode().split()[0]==BASE
+assert not (R/'cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0').exists()
+paths=[R/x for x in git('ls-files','-z').stdout.decode().split('\0') if x]
+before={str(p):identity(p) for p in paths}
+q=git('switch','-c',BRANCH,BASE)
+print(q.stdout.decode('utf-8',errors='replace'),end='');print(q.stderr.decode('utf-8',errors='replace'),end='')
+assert git('rev-parse','HEAD').stdout.decode().strip()==BASE
+assert git('branch','--show-current').stdout.decode().strip()==BRANCH
+assert git('diff','--name-only').stdout==git('diff','--cached','--name-only').stdout==b''
+assert before=={str(p):identity(p) for p in paths}
+print(json.dumps({'branch':BRANCH,'head':BASE,'tracked_bytes_modes_attributes_preserved':len(paths),'native_calls':0}))

@@ -1,0 +1,203 @@
+"""Finite A17.var06 custody candidates; byte and attribute audit only.
+
+The parent of OUTROOT must be created exclusively by the root before this method
+is dispatched. This method creates one absent candidate at a time and never
+dispatches SIMLOX, an accepted checker, or an independent semantic reader.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CASE = REPO / "cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0"
+RUN_ID = "a17-var06-xtime-v100-ssh-20261009-01"
+RUN = CASE / "runs" / RUN_ID
+ROOT_CUSTODY = REPO / "tmp/a17-var06-root-native-custody-v100-20261009/20261008T192137549330Z-75862c6d/receipt.json"
+ROOT_CUSTODY_SHA = "c970a1dc21ab269018a04514a315cb81f7f3d0eb8f470d88560a68bf6103682d"
+GO = CASE / "review/independent-postrun-go.json"
+GO_EXTERNAL = REPO / "tmp/a17-var06-independent-postrun-go-v100-20261009.json"
+GO_SHA = "0159453ec9021af0d5de539a29ba6731a898b34e37ec96dcf100922ca19d34e4"
+PREFLIGHT = CASE / "review/preflight-ssh0-20261008T191408484Z.json"
+PREFLIGHT_SHA = "b0fdcc2bdd4cdc2c22f1e9170bb0b65eb4e735f975c44a0bdb15c91fa140c608"
+PREFLIGHT_CUSTODY = REPO / "tmp/a17-var06-root-actual-preflight-custody-v100-20261009.json"
+PREFLIGHT_CUSTODY_SHA = "e7326e5d8704ec19bfc5a6e47342c248fee0e95f32b80af42597123dd9ad84fa"
+NATIVE_PURE_SHA = "576d42676dfde1d5832b3e016dbe02aec9eb130726c20c1a83190e75c559c0fd"
+PREFLIGHT_PURE_SHA = "0678cb5e401ff5b6a3f084d372c05c9b72c332d99e5f0633f8088d446c9c6685"
+NATIVE_TRANSPORT = CASE / "transport-evidence/ssh-native-20261008T191956443157Z-9c7902f1"
+NATIVE_TRANSPORT_SHA = "f70c8af7520fe2d1faf39d30e4a36c545de57d14f379dcba28f13cb671a710fe"
+PREFLIGHT_TRANSPORT = CASE / "transport-evidence/ssh-preflight-20261008T191401241958Z-bfc3d6f2"
+PREFLIGHT_TRANSPORT_SHA = "d42a4260e613e3e6fc440c893b53d85dea233877c9f3f12aa5e5abfcef73a63a"
+OUTROOT = REPO / "tmp/a17-var06-author-postrun-candidates-v102-20261009"
+
+
+def seal(path: Path) -> dict:
+    assert path.is_file() and not path.is_symlink() and not path.is_junction(), str(path)
+    body = path.read_bytes()
+    return {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}
+
+
+def pinned(path: Path, sha: str) -> dict:
+    got = seal(path)
+    assert got["sha256"] == sha, str(path)
+    return json.loads(path.read_bytes())
+
+
+def original(path: Path, role: str, expected: dict | None = None) -> dict:
+    got = seal(path)
+    stat = path.stat()
+    assert stat.st_file_attributes & 1, str(path)
+    if expected is not None:
+        assert got == {key: expected[key] for key in ("bytes", "sha256")}
+        assert stat.st_mode == expected["mode"] and stat.st_file_attributes == expected["attributes"]
+        assert expected["readonly"] is True
+    return {"role": role, "path": str(path), **got}
+
+
+def signed_go() -> dict:
+    assert seal(GO) == seal(GO_EXTERNAL)
+    go = pinned(GO, GO_SHA)
+    assert go["schema"] == "a17-var06-independent-postrun-go/v100"
+    assert go["decision"] == "GO_BOUNDED_POSTRUN"
+    assert go["run_id"] == RUN_ID and go["native_run_directory"] == str(RUN)
+    assert go["native_custody_receipt_path"] == str(ROOT_CUSTODY)
+    assert go["native_custody_receipt_sha256"] == ROOT_CUSTODY_SHA
+    assert go["source_roles"] == 193 and go["sealed_originals"] == 39
+    assert go["recovered_raw_files"] == 25
+    assert go["native_reruns_authorized"] == 0 and go["publication_authorized"] is False
+    return go
+
+
+def pure_rows(proof_path: Path, proof_sha: str, label: str) -> list[dict]:
+    proof = pinned(proof_path, proof_sha)
+    assert proof["status"] == "passed" and proof["error"] is None
+    assert proof["run_id"] == RUN_ID and len(proof["checks"]) == 5
+    rows = [original(proof_path, label + ":pure-proof")]
+    expected_tools = ["build.py", "source_gate.py", "self_check.py",
+                      "make_source_inventory.py", "make_prelaunch_manifest.py"]
+    for tool, step in zip(expected_tools, proof["checks"], strict=True):
+        assert step["tool"] == tool and step["status"] == "completed"
+        assert type(step["exit_code"]) is int and step["exit_code"] == 0
+        assert step["capture_error"] is None and step["error"] is None
+        for stream in ("stdout", "stderr"):
+            path = Path(step[stream + "_path"])
+            assert path.parent == proof_path.parent
+            row = original(path, label + ":" + tool + ":" + stream)
+            assert {"bytes": row["bytes"], "sha256": row["sha256"]} == {
+                "bytes": step[stream + "_bytes"], "sha256": step[stream + "_sha256"]}
+            if stream == "stderr":
+                assert row["bytes"] == 0
+            rows.append(row)
+    assert len(rows) == 11
+    return rows
+
+
+def transport_rows(directory: Path, receipt_sha: str, mode: str) -> list[dict]:
+    receipt_path = directory / "transport-receipt.json"
+    receipt = pinned(receipt_path, receipt_sha)
+    assert receipt["mode"] == mode and type(receipt["exit_code"]) is int and receipt["exit_code"] == 0
+    assert receipt["error"] is None and receipt["run_id"] == RUN_ID
+    rows = [original(receipt_path, mode + ":transport-receipt")]
+    for name in ("ssh-stdout.bin", "ssh-stderr.bin"):
+        row = original(directory / name, mode + ":" + name)
+        assert {"bytes": row["bytes"], "sha256": row["sha256"]} == receipt["streams"][name]
+        rows.append(row)
+    return rows
+
+
+def raw_document() -> dict:
+    go = signed_go()
+    custody = pinned(ROOT_CUSTODY, ROOT_CUSTODY_SHA)
+    assert custody["source_roles"] == 193 and custody["source_bytes_modes_attributes_stable"] is True
+    assert custody["original_run"] == str(RUN) and len(custody["originals"]) == 39
+    assert custody["recovered_run"] == go["recovered_run_directory"]
+    assert len(custody["recovered"]) == 25
+    invocation = pinned(RUN / "invocation.json", custody["originals"][str(RUN / "invocation.json")]["sha256"])
+    pure_path = Path(invocation["pure_proof_path"])
+    run_rows = []
+    for path_text, expected in sorted(custody["originals"].items()):
+        path = Path(path_text)
+        if path.parent != RUN:
+            continue
+        row = original(path, "native_run_original", expected)
+        recovered = Path(custody["recovered_run"]) / path.name
+        assert path.name in custody["recovered"]
+        assert seal(recovered) == {key: expected[key] for key in ("bytes", "sha256")}
+        assert seal(recovered) == custody["recovered"][path.name]
+        assert recovered.stat().st_file_attributes & 1, str(recovered)
+        row["recovered_copy"] = str(recovered)
+        run_rows.append(row)
+    assert len(run_rows) == 25
+    assert {Path(row["path"]).name for row in run_rows} == set(custody["recovered"])
+    pure = pure_rows(pure_path, NATIVE_PURE_SHA, "native")
+    transport = transport_rows(NATIVE_TRANSPORT, NATIVE_TRANSPORT_SHA, "native")
+    rows = run_rows + pure + transport
+    assert len(rows) == 39 and len({row["path"] for row in rows}) == 39
+    assert {row["path"] for row in rows} == set(custody["originals"])
+    for row in rows:
+        original(Path(row["path"]), row["role"], custody["originals"][row["path"]])
+    return {"schema": "a17-var06-postrun-raw-custody-candidate/v102",
+            "independent_postrun_go": {"path": str(GO), **seal(GO), "decision": go["decision"]},
+            "mandatory_original_count": 39, "native_run_original_count": 25,
+            "native_pure_original_count": 11, "native_transport_original_count": 3,
+            "recovered_run_copy_count": 25, "small_owned_raw_copy_count": 0,
+            "root_custody": {"path": str(ROOT_CUSTODY), **seal(ROOT_CUSTODY)},
+            "records": rows}
+
+
+def preflight_document() -> dict:
+    go = signed_go()
+    sealed = pinned(PREFLIGHT_CUSTODY, PREFLIGHT_CUSTODY_SHA)
+    assert sealed["schema"] == "a17-var06-root-actual-preflight-custody/v100"
+    assert sealed["native_dispatch"] is False and sealed["files_readonly_after"] is True
+    assert len(sealed["files"]) == 15
+    receipt = pinned(PREFLIGHT, PREFLIGHT_SHA)
+    assert receipt["native_process_started"] is False and len(receipt["pure_checks"]) == 5
+    pure_path = Path(receipt["pure_proof_path"])
+    assert pure_path.parent == Path(receipt["pure_proof_directory"])
+    assert seal(pure_path)["sha256"] == receipt["pure_proof_sha256"] == PREFLIGHT_PURE_SHA
+    rows = [original(PREFLIGHT, "preflight:review-receipt")]
+    rows += pure_rows(pure_path, PREFLIGHT_PURE_SHA, "preflight")
+    rows += transport_rows(PREFLIGHT_TRANSPORT, PREFLIGHT_TRANSPORT_SHA, "preflight")
+    assert len(rows) == 15 and len({row["path"] for row in rows}) == 15
+    historical = {entry["path"]: entry for entry in sealed["files"]}
+    assert len(historical) == 15 and set(historical) == {row["path"] for row in rows}
+    for row in rows:
+        old = historical[row["path"]]
+        assert set(old) == {"path", "bytes", "sha256", "original_attributes"}
+        assert {key: old[key] for key in ("bytes", "sha256")} == {
+            key: row[key] for key in ("bytes", "sha256")}
+        assert type(old["original_attributes"]) is int and old["original_attributes"] == 32
+        assert Path(row["path"]).stat().st_file_attributes & 1
+    return {"schema": "a17-var06-postrun-preflight-custody-candidate/v102",
+            "independent_postrun_go": {"path": str(GO), **seal(GO), "decision": go["decision"]},
+            "root_preflight_custody": {"path": str(PREFLIGHT_CUSTODY), **seal(PREFLIGHT_CUSTODY)},
+            "mandatory_original_count": 15, "native_process_started": False,
+            "transport_self_captured": True, "outer_transport_capture_exists": False,
+            "records": rows}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--raw-candidate", type=Path)
+    group.add_argument("--preflight-candidate", type=Path)
+    args = parser.parse_args()
+    target = args.raw_candidate or args.preflight_candidate
+    assert target.is_absolute() and target.parent == OUTROOT and OUTROOT.is_dir()
+    assert not target.is_relative_to(CASE)
+    document = raw_document() if args.raw_candidate else preflight_document()
+    body = (json.dumps(document, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    with target.open("xb") as handle:
+        handle.write(body)
+    target.chmod(0o444)
+    print(json.dumps({"schema": "a17-var06-custody-candidate-check/v102", "bytes": len(body),
+                      "sha256": hashlib.sha256(body).hexdigest(), "records": len(document["records"]),
+                      "native_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

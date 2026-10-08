@@ -1,0 +1,128 @@
+"""Source-only A17.var06 evidence-index design. This draft cannot write an index.
+
+Final method requires independent postrun pins, a reviewed finite context map,
+and a root-authored publication-proof manifest before candidate execution.
+No mode calls SIMLOX, a checker, or an independent behavior reader.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CASE = REPO / "cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0"
+INDEX = CASE / "evidence-index.json"
+INVENTORY = CASE / "source-inventory.json"
+MANIFEST = CASE / "prelaunch-manifest.json"
+CATALOG = REPO / "cases/simlox-air-support/publication-index-v1.json"
+RUN = CASE / "runs/a17-var06-xtime-v100-ssh-20261009-01"
+ROOT_CUSTODY = REPO / "tmp/a17-var06-root-native-custody-v100-20261009/20261008T192137549330Z-75862c6d/receipt.json"
+INVENTORY_PIN = (8557, "6b81de61")  # final full SHA to bind before publication
+MANIFEST_PIN = (72081, "667f1ca7")  # final full SHA to bind before publication
+ROOT_CUSTODY_PIN = (19446, "c970a1dc21ab269018a04514a315cb81f7f3d0eb8f470d88560a68bf6103682d")
+GO_PIN = None  # independent receipt-bound GO pending
+SCOPE_PIN = None  # independent bounded signoff pending
+CONTEXT_PIN = None  # finite exact context map pending
+PROOF_MANIFEST_PIN = None  # root's finite publication proof original list pending
+PUB_ID = "A17.var06.unit_group_xtime.1.0.0"
+RUNTIME_TOP = {"runs", "test-output", "transport-evidence", "__pycache__"}
+SMALL = {
+    "model-run.log": (1052, "5619720783178638b334ffab5d939c9acfd87f34238cc647879534ec5e6c813b", "preserved-raw/raw-000.bytes"),
+    "model.log": (4039, "ae6c8430c26490c16e98f7ea66a0137ea7bcd1e309c1f2ba46a44940a0e7f33e", "preserved-raw/raw-001.bytes"),
+}
+
+
+def seal(path: Path, readonly: bool = True) -> dict:
+    assert path.is_file() and not path.is_symlink() and not path.is_junction(), str(path)
+    if readonly:
+        assert path.stat().st_file_attributes & 1, str(path)
+    body = path.read_bytes()
+    return {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}
+
+
+def pinned(path: Path, expected: tuple[int, str], readonly: bool = True) -> dict:
+    got = seal(path, readonly)
+    assert got == {"bytes": expected[0], "sha256": expected[1]}, str(path)
+    def unique(pairs: list[tuple[str, object]]) -> dict:
+        result = {}
+        for key, value in pairs:
+            assert key not in result, (path, key)
+            result[key] = value
+        return result
+    def nonfinite(value: str) -> None:
+        raise AssertionError((path, value))
+    doc = json.loads(path.read_bytes().decode("utf-8-sig"), object_pairs_hook=unique,
+                     parse_constant=nonfinite)
+    assert type(doc) is dict
+    return doc
+
+
+def frozen_prelaunch() -> tuple[dict, dict]:
+    assert len(INVENTORY_PIN[1]) == len(MANIFEST_PIN[1]) == 64, "draft pins not released"
+    inventory = pinned(INVENTORY, INVENTORY_PIN)
+    manifest = pinned(MANIFEST, MANIFEST_PIN)
+    assert inventory["schema"] == "a17-var06-source-inventory/v100"
+    assert manifest["schema"] == "a17-var06-prelaunch-manifest/v100"
+    assert inventory["source_count"] == len(inventory["source_files"]) == 49
+    assert manifest["source_count"] == len(manifest["source_files"]) == 193
+    for row in inventory["source_files"]:
+        assert set(row) == {"path", "bytes", "sha256"}
+        assert seal(CASE / row["path"]) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+    keys = set()
+    physical = {}
+    for row in manifest["source_files"]:
+        assert set(row) == {"key", "path", "bytes", "sha256"}
+        key = row["key"].casefold()
+        assert key not in keys
+        keys.add(key)
+        path = Path(row["path"])
+        identity = str(path.resolve(strict=True)).casefold()
+        pin = {"bytes": row["bytes"], "sha256": row["sha256"]}
+        assert identity not in physical or physical[identity] == pin
+        physical[identity] = pin
+        assert seal(path, readonly=row["key"].startswith("owned:")) == pin
+    return inventory, manifest
+
+
+def mandatory_custody() -> dict:
+    pinned(ROOT_CUSTODY, ROOT_CUSTODY_PIN)
+    raise AssertionError("draft custody method awaits reviewed final raw/preflight schema and pins")
+
+
+def case_rows(expected: set[str]) -> list[dict]:
+    assert INDEX.name not in expected
+    observed = set()
+    for root, dirs, files in os.walk(CASE, topdown=True, followlinks=False):
+        at = Path(root)
+        if at == CASE:
+            dirs[:] = [name for name in dirs if name not in RUNTIME_TOP]
+        for name in files:
+            rel = (at / name).relative_to(CASE).as_posix()
+            if rel != INDEX.name:
+                observed.add(rel)
+    assert observed == expected, {"missing": sorted(expected - observed),
+                                  "unexpected": sorted(observed - expected)}
+    assert len({name.casefold() for name in observed}) == len(observed)
+    return [{"path": rel, **seal(CASE / rel)} for rel in sorted(expected)]
+
+
+def build() -> dict:
+    assert GO_PIN and SCOPE_PIN and CONTEXT_PIN and PROOF_MANIFEST_PIN, "postrun gates pending"
+    inventory, manifest = frozen_prelaunch()
+    sys.path.insert(0, str(CASE))
+    import source_gate  # read-only Git source audit, never an accepted behavior checker
+    gate = source_gate.verify()
+    assert gate["passed"] is True and gate["accepted_disk_git_pairs"] == 59
+    assert gate["mandatory_originals"] == 66 and gate["catalog_prefix_entries"] == 502
+    # Final implementation must bind independent GO, finite raw/preflight/context maps,
+    # all mandatory original paths/attributes, the exact case source list, root proof
+    # manifest, and catalog typed prefix before serializing a candidate.
+    raise AssertionError("draft is intentionally non-executable before reviewed postrun closure")
+
+
+if __name__ == "__main__":
+    raise SystemExit("Source-only draft: no index candidate or canonical write mode")

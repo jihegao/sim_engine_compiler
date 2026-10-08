@@ -1,0 +1,68 @@
+"""Freeze the closed author-owned A17.var06 prelaunch sources once, without execution."""
+
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CASE = REPO / "cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0"
+SOURCE = CASE / "make_source_inventory.py"
+OUT = REPO / "tmp/a17-var06-author-freeze-v100-20261009.json"
+MISSING = {
+    "review/independent_reader.py", "review/independent_self_check.py",
+    "review/independent-static-go-2026-10-09.md",
+}
+
+
+def seal(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def main() -> None:
+    spec = importlib.util.spec_from_file_location("a17_var06_inventory", SOURCE)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert len(module.OWNED) == 49 and len(set(module.OWNED)) == 49
+    actual = {rel for rel in module.OWNED if (CASE / rel).is_file()}
+    assert set(module.OWNED) - actual == MISSING and len(actual) == 46
+    observed = set()
+    for root, dirs, files in os.walk(CASE, topdown=True, followlinks=False):
+        at = Path(root)
+        if at == CASE:
+            dirs[:] = [name for name in dirs if name not in module.GENERATED_TOP]
+        for name in files:
+            rel = (at / name).relative_to(CASE).as_posix()
+            if not module.excluded(rel):
+                observed.add(rel)
+    assert observed == actual
+    before = []
+    for rel in module.OWNED:
+        if rel in MISSING:
+            continue
+        path = CASE / rel
+        assert path.resolve(strict=True).is_relative_to(CASE.resolve(strict=True))
+        assert not path.is_symlink()
+        before.append({"path": rel, **seal(path)})
+    assert not OUT.exists(), "freeze receipt already exists"
+    for row in before:
+        path = CASE / row["path"]
+        path.chmod(0o444)
+        stat = path.stat()
+        assert stat.st_file_attributes & 0x1 and seal(path) == {k: row[k] for k in ("bytes", "sha256")}
+    receipt = {"schema": "a17-var06-author-source-freeze/v100", "case": str(CASE),
+               "source_count": 49, "frozen_count": 46, "pending_reviewer": sorted(MISSING),
+               "source_files": before, "native_calls": 0, "accepted_checker_calls": 0}
+    with OUT.open("xb") as stream:
+        stream.write((json.dumps(receipt, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+    OUT.chmod(0o444)
+    print(json.dumps({"receipt": str(OUT), **seal(OUT), "frozen_count": 46}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

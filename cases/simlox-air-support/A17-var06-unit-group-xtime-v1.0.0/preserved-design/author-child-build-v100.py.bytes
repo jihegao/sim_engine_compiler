@@ -1,0 +1,83 @@
+"""Construct immutable A17.var06 input/oracle candidates from pinned accepted bytes.
+
+This script makes no SIMLOX, SSH, accepted-checker, Git, or catalog call.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0"
+PARENT = REPO / "cases/simlox-air-support/A17-multi-unit-group-v1.0.0"
+SELECT = REPO / "tmp/a17-var06-root-selection-v100-20261008/20261008T182533111132Z-300daf73/receipt.json"
+
+
+def read_exact(path: Path, size: int, sha: str) -> bytes:
+    data = path.read_bytes()
+    assert len(data) == size and hashlib.sha256(data).hexdigest() == sha, path
+    return data
+
+
+def write_absent(path: Path, data: bytes) -> None:
+    with path.open("xb") as stream:
+        stream.write(data)
+
+
+def json_bytes(value: object) -> bytes:
+    return (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+
+
+def main() -> None:
+    selection = json.loads(read_exact(SELECT, 33195, "04d57600dd94386e2fd929bc3b01e2eab5f5c5cb21f23f130399b46a0dbfa7c2"))
+    assert selection["decision"] == "ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_ONLY"
+    assert selection["source_disk_git_pairs"] == 59
+    assert selection["mandatory_original_count"] == 66
+    source = read_exact(PARENT / "native-input.json", 43061, "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974")
+    before = b'"TEACH-UNIT-2",\n                2,\n                0.0,\n                null'
+    after = b'"TEACH-UNIT-2",\n                2,\n                1.0,\n                null'
+    assert source.count(before) == 1
+    child = source.replace(before, after)
+    parsed = json.loads(child)
+    table = [t for t in parsed["model"]["tables"] if t["name"] == "UnitGroupMember"]
+    assert len(table) == 1 and table[0]["instances"][0]["rows"] == [
+        ["TEACH-GROUP", "TEACH-UNIT", 1, 0.0, None],
+        ["TEACH-GROUP", "TEACH-UNIT-2", 2, 1.0, None],
+    ]
+    write_absent(CASE / "native-input.json", child)
+
+    exported = read_exact(PARENT / "runs/a17-v100-ssh-20260929-01/roundtrip-raw.json", 59625, "819bbdd65799d20441191f41ca4a5d4df9aaf658466dd49dd952707d96943a42")
+    old_export = b'[ "TEACH-GROUP", "TEACH-UNIT-2", 2, 0, null ]'
+    new_export = b'[ "TEACH-GROUP", "TEACH-UNIT-2", 2, 1, null ]'
+    assert exported.count(old_export) == 1
+    roundtrip_oracle = exported.replace(old_export, new_export)
+    assert json.loads(roundtrip_oracle)["model"]["tables"][-1]["instances"][0]["rows"][-1] == ["TEACH-GROUP", "TEACH-UNIT-2", 2, 1, None]
+    write_absent(CASE / "child-roundtrip-oracle.json", roundtrip_oracle)
+
+    log = read_exact(PARENT / "runs/a17-v100-ssh-20260929-01/model.log", 4039, "ae6c8430c26490c16e98f7ea66a0137ea7bcd1e309c1f2ba46a44940a0e7f33e")
+    assert len(log.splitlines()) == 60 and sum(x.startswith(b"Time: ") for x in log.splitlines()) == 52
+    write_absent(CASE / "prospective-log-oracle.bytes", log)
+
+    pins = {
+        "schema": "a17-var06-prospective-source-pins/v100",
+        "selection_receipt": {"path": str(SELECT), "bytes": 33195, "sha256": "04d57600dd94386e2fd929bc3b01e2eab5f5c5cb21f23f130399b46a0dbfa7c2"},
+        "accepted_source_pairs": {"path": str(CASE / "source-maps/accepted-source-pairs.json"), "bytes": 25276, "sha256": "66d9993d8ca7a3113811761b66e087574c3e8ca8c91ca295c0b651b8999ad541"},
+        "required_local_sources": selection["required_local_sources"],
+        "mandatory_originals": selection["mandatory_originals"],
+        "catalog_local_502": {"path": str(SELECT.parent / "catalog-local-502.json.bytes"), **selection["catalog_local"]},
+        "catalog_git_502": {"path": str(SELECT.parent / "catalog-git-502.json.bytes"), **selection["catalog_git"]},
+        "installed_exe": {"path": r"C:\Program Files\Systecon\SIMLOX\Simlox.exe", "bytes": 33196032, "sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"},
+        "python_runtime": {"path": r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe", "bytes": 106448, "sha256": "10d845f50a2af64e3500bb2fcb348b5bc98a75d8ddada63e45ba1da6a1fc79d1"},
+        "accepted_base_commit": selection["base"],
+        "catalog_entries_at_selection": 502,
+        "direct_parent_publication": "A17.two_units.1.0.0",
+        "report_instrumentation_publication": "J07.var05.unit_type_report_selection.1.0.0",
+    }
+    write_absent(CASE / "source-maps/prospective-source-pins.json", json_bytes(pins))
+    print(json.dumps({"schema": "a17-var06-author-build/v100", "source_cells": 203, "export_cells": 387, "physical_log_lines": 60, "native_calls": 0, "accepted_checker_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

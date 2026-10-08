@@ -1,0 +1,3 @@
+# Superseded author self-check draft
+
+The first local pure development invocation of `self_check.py` exited 1 at its own `replace_line` assertion. Several test tuples assumed wrong zero-based indices in the pinned 60-line accepted log. The command output was decoded by the local tool only; no original stdout/stderr binary files or receipt were captured. No SIMLOX, SSH, accepted checker, or native run was invoked. The failed source is preserved byte-for-byte as `self-check-v1-log-index-assumption.py.bytes` (5,348 bytes, SHA-256 `01a6960396a8de61d37ce203b24b85dbe5666b30ce256710b344cf587e3e1421`). The active self-check corrects its private mutation coordinates; it does not change the governing prospective contract or accepted originals.

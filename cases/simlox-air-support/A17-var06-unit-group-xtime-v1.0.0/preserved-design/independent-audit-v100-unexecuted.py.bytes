@@ -1,0 +1,144 @@
+"""Read-only independent A17.var06 prospective contract audit; no SIMLOX/Git/SSH calls."""
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+PRO = ROOT / 'tmp/a17-var06-prospective-v100-20261009-01'
+SEL = ROOT / 'tmp/a17-var06-root-selection-v100-20261008/20261008T182533111132Z-300daf73/receipt.json'
+CASE = ROOT / 'cases/simlox-air-support'
+A17 = CASE / 'A17-multi-unit-group-v1.0.0'
+J07 = CASE / 'J07-unit-type-report-v1.0.0'
+CONTROL = J07 / 'runs/report-settings/a17-group-report-20261001-01'
+PINS = {
+    PRO / 'contract.json': (7613, '58c12480998f691b619f305922eace2eb1b4aede71fbb779de77ad0085bb15e7'),
+    PRO / 'oracle-map.json': (4168, 'e1e713ec003cf0d2cba62e38161cd57c504161b3503b624f63d0e33067a40371'),
+    PRO / 'README.md': (3151, '529095708ff340d17d9878ed37fb28a84c33e509b9d9a2528673faa61dcab1fc'),
+    SEL: (33195, '04d57600dd94386e2fd929bc3b01e2eab5f5c5cb21f23f130399b46a0dbfa7c2'),
+    A17 / 'native-input.json': (43061, '66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974'),
+    A17 / 'runs/a17-v100-ssh-20260929-01/model.log': (4039, 'ae6c8430c26490c16e98f7ea66a0137ea7bcd1e309c1f2ba46a44940a0e7f33e'),
+    A17 / 'runs/a17-v100-ssh-20260929-01/model.sxo': (355493, 'f4c2fcd42c5620ec6e7adf163962bb6001a4a9acf49eee8d7adfeba50113349b'),
+    A17 / 'runs/a17-v100-ssh-20260929-01/roundtrip-raw.json': (59625, '819bbdd65799d20441191f41ca4a5d4df9aaf658466dd49dd952707d96943a42'),
+    J07 / 'runs/report-settings/group.sxs': (119120, 'e78466cc27d8c213e4d9bf4ed0065844471593069e81abe665cbd7fa4e9172ea'),
+    CONTROL / 'invocation.json': (1899, 'a14de458818b5ca5b55992fd72887d9ddcdae8cba2a87bcd6260e1be21c0fbb5'),
+    CONTROL / 'report-raw.json': (146793, '2c0894b74bab55c1d6cb239089e66980c7cd3d214bbab8b2b334bd89f7525474'),
+}
+
+
+def exact(path, count, digest):
+    raw = path.read_bytes()
+    assert len(raw) == count and hashlib.sha256(raw).hexdigest() == digest, path
+    return raw
+
+
+def strict_json(raw):
+    def pairs(items):
+        d = {}
+        for k, v in items:
+            assert k not in d, k
+            d[k] = v
+        return d
+    def bad_constant(value):
+        raise AssertionError(value)
+    return json.loads(raw, object_pairs_hook=pairs, parse_constant=bad_constant)
+
+
+def table(data, root, name):
+    return next(t for t in data[root]['tables'] if t['name'] == name)
+
+
+def rows(data, root, name):
+    t = table(data, root, name)
+    assert len(t['instances']) == 1 and t['instances'][0]['instance_name'] == ''
+    return t, t['instances'][0]['rows']
+
+
+def main():
+    raw = {str(p): exact(p, *pin) for p, pin in PINS.items()}
+    c = strict_json(raw[str(PRO / 'contract.json')])
+    o = strict_json(raw[str(PRO / 'oracle-map.json')])
+    s = strict_json(raw[str(SEL)])
+    assert c['schema'] == 'a17-var06-prospective-contract/v100'
+    assert o['schema'] == 'a17-var06-full-oracle-map/v100'
+    assert c['decision'] == 'PROSPECTIVE_CONTRACT_ONLY'
+    assert c['case_package_proposed'] == s['future_package']
+    assert c['native_run_directory_proposed'] == s['future_run']
+    assert c['selection']['root_receipt_sha256'] == PINS[SEL][1]
+    assert c['selection']['source_pair_count'] == 59 and c['selection']['mandatory_parent_original_count'] == 66
+    assert s['source_disk_git_pairs'] == 59 and s['mandatory_original_count'] == 66
+    assert s['native_calls'] == 0 and s['accepted_checker_calls'] == 0
+    assert not (ROOT / c['case_package_proposed']).exists()
+    assert not Path(c['native_run_directory_proposed']).exists()
+    assert c['business_delta']['changes'] == [{
+        'table': 'UnitGroupMember', 'instance_name': '',
+        'row_key': {'UGID': 'TEACH-GROUP', 'USTID': 'TEACH-UNIT-2'},
+        'column': 'XTIME', 'datatype': 'double', 'before': 0.0, 'after': 1.0}]
+    assert c['business_delta']['other_authored_cells_changed'] == 0
+    assert c['business_delta']['problem_description_unchanged'] is True
+    a = strict_json(raw[str(A17 / 'native-input.json')])
+    t, rr = rows(a, 'model', 'UnitGroupMember')
+    assert [x['name'] for x in t['columns']] == ['UGID', 'USTID', 'PRI', 'XTIME', 'NOTE']
+    assert rr == [['TEACH-GROUP', 'TEACH-UNIT', 1, 0.0, None],
+                  ['TEACH-GROUP', 'TEACH-UNIT-2', 2, 0.0, None]]
+    _, dep = rows(a, 'model', 'SystemDeployment')
+    assert [r[:3] for r in dep] == [['TEACH-AIR-01', 'TEACH-UNIT', 1],
+                                  ['TEACH-AIR-01', 'TEACH-UNIT-2', 1]]
+    _, mt = rows(a, 'model', 'MissionType')
+    assert len(mt) == 1 and mt[0][0] == 'BASIC-MISSION' and mt[0][2:4] == [2, 2]
+    source = o['source_oracle']; export = o['roundtrip_oracle']; log = o['physical_log_oracle']; report = o['report_oracle']
+    assert source['parent_sha256'] == PINS[A17 / 'native-input.json'][1]
+    assert (source['tables'], source['authored_rows'], source['authored_cells']) == (33, 20, 203)
+    x = strict_json(raw[str(A17 / 'runs/a17-v100-ssh-20260929-01/roundtrip-raw.json')])
+    xt, xr = rows(x, 'model', 'UnitGroupMember')
+    assert [r[:2] for r in xr] == [['TEACH-GROUP', 'TEACH-UNIT'], ['TEACH-GROUP', 'TEACH-UNIT-2']]
+    assert all(type(r[3]) in (int, float) and r[3] == 0 for r in xr)
+    assert export['parent_sha256'] == PINS[A17 / 'runs/a17-v100-ssh-20260929-01/roundtrip-raw.json'][1]
+    assert (export['tables'], export['exported_rows'], export['exported_cells']) == (33, 38, 387)
+    lb = raw[str(A17 / 'runs/a17-v100-ssh-20260929-01/model.log')]
+    assert b'\n' not in lb.replace(b'\r\n', b'') and lb.endswith(b'\r\n')
+    lines = lb.decode('ascii').splitlines()
+    assert len(lines) == 60 and sum(line.startswith('Time:') for line in lines) == 52
+    assert 'Time: 7 <BASIC-MISSION,TEACH-GROUP,0,0,0> mission allocates system: <TEACH-AIR-01,0>' in lines
+    assert 'Time: 7 <BASIC-MISSION,TEACH-GROUP,0,0,0> mission allocates system: <TEACH-AIR-01,1>' in lines
+    assert 'Time: 8 <BASIC-MISSION,TEACH-GROUP,0,0,0> mission starting, duration: 2 : <TEACH-AIR-01,0>,<TEACH-AIR-01,1>' in lines
+    assert 'Time: 8.5 <BASIC-MISSION,TEACH-GROUP,0,0,0> task starting: <TEACH-AIR-01,0>,<TEACH-AIR-01,1>' in lines
+    assert 'Time: 9.5 <BASIC-MISSION,TEACH-GROUP,0,0,0> task completed: <TEACH-AIR-01,0>,<TEACH-AIR-01,1>' in lines
+    assert 'Time: 10 <BASIC-MISSION,TEACH-GROUP,0,0,0> mission success: ' in lines
+    assert log['parent_sha256'] == PINS[A17 / 'runs/a17-v100-ssh-20260929-01/model.log'][1]
+    assert (log['expected_physical_lines'], log['expected_timed_lines']) == (60, 52)
+    assert log['expected_body'] == 'byte_equal_to_parent_original'
+    inv = strict_json(raw[str(CONTROL / 'invocation.json')])
+    closure_path = CONTROL / 'closure.json'
+    closure = strict_json(closure_path.read_bytes())
+    parent_closure_path = A17 / 'runs/a17-v100-ssh-20260929-01/closure.json'
+    assert hashlib.sha256(parent_closure_path.read_bytes()).hexdigest() == inv['source_closure_sha256'] == 'f1885aa1c21bf2260d1d7671e762d18451d91a0fc0398cf45309574d16c2f76b'
+    assert inv['source_sxo_sha256'] == closure['source_sxo_sha256'] == PINS[A17 / 'runs/a17-v100-ssh-20260929-01/model.sxo'][1]
+    assert inv['settings_sha256'] == closure['settings_sha256'] == PINS[J07 / 'runs/report-settings/group.sxs'][1]
+    assert closure['raw']['report-raw.json'] == {'bytes': 146793, 'sha256': PINS[CONTROL / 'report-raw.json'][1]}
+    assert closure['exit_code'] == 0 and inv['selector'] == 'group' and inv['scope'] == 'report_only_candidate'
+    assert 'A17-multi-unit-group-v1.0.0' in inv['command'] and 'group.sxs' in inv['command']
+    rep = strict_json(raw[str(CONTROL / 'report-raw.json')])
+    ts = rep['report']['tables']
+    assert [t['name'] for t in ts] == report['tables_ordered']
+    cells = sum(len(t['columns']) * sum(len(i['rows']) for i in t['instances']) for t in ts)
+    assert cells == report['typed_row_cells_total'] == 4966
+    assert sum(c['name'] == 'STOTD' for t in ts for c in t['columns']) == 1
+    ft, fr = rows(rep, 'report', 'FixedMissionResults')
+    assert len(fr) == 1
+    names = [col['name'] for col in ft['columns']]
+    cell = report['only_changed_cell']
+    assert (ft['name'], ft['instances'][0]['instance_name']) == (cell['table'], cell['instance_name'])
+    assert [fr[0][names.index(k)] for k in ('UNID', 'MTID', 'STIM')] == ['TEACH-GROUP', 'Total over all Missions', 8]
+    assert cell['row_key'] == {'UNID': 'TEACH-GROUP', 'MTID': 'Total over all Missions'}
+    idx = names.index('STOTD')
+    assert ft['columns'][idx]['datatype'] == cell['declared_datatype'] == 'double'
+    assert type(fr[0][idx]) in (int, float) and fr[0][idx] == cell['control_value'] == 0
+    assert cell['predicted_value'] == 1 and report['all_other_4965_cells'] == 'typed_equal_to_accepted_A17_group_control'
+    assert c['acceptance_decision']['no_post_observation_oracle_broadening'] is True
+    print('PASS_A17_VAR06_PROSPECTIVE_ONLY pairs59 originals66 log60/52 report4966 soleSTOTD control0 predicted1 native0')
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,43 @@
+"""Record existing RO child sources after independently audited canonical promotions."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0'
+O=R/'tmp/a17-var06-root-static-freeze-v100-20261009.json'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert not O.exists()
+author=R/'tmp/a17-var06-author-freeze-v100-20261009.json'
+assert pin(author)=={'bytes':8429,'sha256':'8d8a75b0b5b51d20c6ab0c85c311177699af60e2e4cef1dd5e14cd30b6aaffd9'}
+body=json.loads(author.read_bytes())
+expected={row['path']:{k:row[k] for k in ('bytes','sha256')} for row in body['source_files']}
+promotions={}
+for mode in ('review','inventory','manifest'):
+ p=R/('tmp/a17-var06-root-'+mode+'-promotion-v100-20261009.json')
+ assert p.stat().st_file_attributes&1
+ promotion=json.loads(p.read_bytes());assert promotion['mode']==mode and promotion['native_dispatch'] is False
+ promotions[mode]={'path':str(p),**pin(p)}
+ for row in promotion['promoted']:
+  target=Path(row['target']);assert target.is_relative_to(C)
+  rel=target.relative_to(C).as_posix();assert rel not in expected
+  expected[rel]={k:row[k] for k in ('bytes','sha256')}
+assert len(expected)==51
+observed={}
+for p in sorted(C.rglob('*')):
+ assert not p.stat().st_file_attributes&1024,str(p)
+ if not p.is_file():continue
+ rel=p.relative_to(C).as_posix()
+ assert p.stat().st_file_attributes&1 and p.resolve().is_relative_to(C.resolve()),rel
+ observed[rel]=pin(p)
+assert observed==expected
+assert not (C/'runs').exists() and not (C/'test-output').exists() and not (C/'transport-evidence').exists()
+rows=json.loads((C/'source-maps/prospective-source-pins.json').read_bytes())['mandatory_originals']
+assert len(rows)==66
+for row in rows:
+ p=Path(row['path']);s=p.stat()
+ assert pin(p)=={k:row[k] for k in ('bytes','sha256')}
+ assert s.st_mode==row['original_mode'] and s.st_file_attributes==row['original_attributes']
+record={'schema':'a17-var06-root-static-freeze/v100','native_dispatch':False,'created_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'case_sources':observed,'mandatory_original_count':66,'author_freeze':pin(author),'promotion_receipts':promotions,'method':pin(Path(__file__))}
+with O.open('xb') as f:f.write((json.dumps(record,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O),**pin(O),'case_sources':51,'mandatory_originals':66,'native_dispatch':False}))
