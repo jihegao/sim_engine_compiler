@@ -1,0 +1,5 @@
+# Development custody relocation correction
+
+The second additive copier draft stopped requiring absent tmp originals, but `development(False)` rebuilt absolute `original_path` values from the checkout path and compared the resulting map bytes against the first host's map. A relocated published checkout would fail from path text alone. Independent static review found this before any executed failing command, so there is no original binary failure capture. The draft source is preserved as `tmp/i04-var03-v101-copy-postrun-relocation-gap.py.bytes`; its six-record map is preserved locally in ignored `test-output/postrun-development-custody-v2-relocation.json`.
+
+The corrected read path treats the frozen map's stored original path as an optional location, verifies exact ordered role and copy names, always hashes every owned copy, and checks stored original bytes when present. Write mode alone derives an original path from the current checkout.

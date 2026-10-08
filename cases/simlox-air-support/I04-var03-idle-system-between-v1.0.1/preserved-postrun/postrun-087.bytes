@@ -1,0 +1,60 @@
+"""Curate case-only root originals for additive postrun custody; no execution."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+T=R/'tmp'
+dirs=[
+ 'i04-var03-root-phases-v101-20261008',
+ 'i04-var03-root-guards-v101-20261008',
+ 'i04-var03-root-wts-state-v101-20261008',
+ 'i04-var03-root-wts-diagnostic-v101-20261008',
+ 'i04-var03-root-reconnect-source-audit-v101-20261008',
+ 'i04-var03-root-no-dispatch-closure-v101-20261008',
+ 'i04-var03-root-native-transport-seal-v101-20261008',
+ 'i04-var03-root-sealed-replay-v101-20261008',
+ 'i04-var03-root-preflight-seal-v101-20261008',
+ 'i04-var03-root-owned-freeze-v101-20261008',
+ 'i04-var03-root-policy-proofs-v101-20261008',
+ 'i04-var03-root-author-pure-check-v101-20261008',
+]
+methods=[
+ 'i04-var03-root-phase-capture-v101-20261008.py',
+ 'i04-var03-root-guard-capture-v101-20261008.py',
+ 'i04-var03-root-wts-state-v101-20261008.ps1',
+ 'i04-var03-root-wts-state-capture-v101-20261008.py',
+ 'i04-var03-root-wts-diagnostic-v101-20261008.ps1',
+ 'i04-var03-root-wts-diagnostic-capture-v101-20261008.py',
+ 'i04-var03-root-reconnect-source-audit-v101-20261008.py',
+ 'i04-var03-root-seal-native-transport-v101-20261008.py',
+ 'i04-var03-root-sealed-replay-capture-v101-20261008.py',
+ 'i04-var03-root-seal-ssh-preflight-v101-20261008.py',
+ 'i04-var03-root-freeze-owned-v101-20261008.py',
+ 'i04-var03-root-policy-proofs-capture-v101-20261008.py',
+ 'i04-var03-v101-future-source-policy-pure-20261008.py',
+ 'i04-var03-v101-catalog-prefix-pure-20261008.py',
+ 'i04-var03-root-author-pure-verify-v101-20261008.py',
+ 'i04-var03-root-final-author-pure-verify-v101-20261008.py',
+ 'i04-var03-root-resume144-filtered-live-context-v101-20261008.json',
+]
+files=[]
+for name in dirs:
+ p=T/name;assert p.is_dir(),p
+ for f in sorted(p.rglob('*')):
+  if f.is_file() and 'recovered-evidence' not in f.relative_to(p).parts:
+   assert f.name in ('receipt.json','closure.json','stdout.bin','stderr.bin','guard-receipt.json','guard-stdout.bin','guard-stderr.bin','0-stdout.bin','0-stderr.bin','1-stdout.bin','1-stderr.bin'),f
+   files.append(f)
+for name in methods:
+ p=T/name;assert p.is_file(),p;files.append(p)
+assert len(files)==len(set(files))
+records=[]
+for p in files:
+ assert not p.is_symlink()
+ b=p.read_bytes();p.chmod(stat.S_IREAD)
+ records.append({'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+d={'schema':'issue18-i04-var03-root-curated-postrun-context/v1','records':records,
+ 'limits':'Original binary streams are preserved where captured; outer decoded-only failures are not relabeled as binary captures. Private unfiltered app snapshots excluded; no accepted/native rerun.',
+ 'original_count':len(records),'native_calls':0}
+o=T/'i04-var03-root-postrun-context-list-20261008.json'
+with o.open('xb') as f:f.write((json.dumps(d,indent=2)+'\n').encode())
+o.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'path':str(o),'records':len(records),'bytes':o.stat().st_size,'sha256':hashlib.sha256(o.read_bytes()).hexdigest()}))

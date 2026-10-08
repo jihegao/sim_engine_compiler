@@ -1,0 +1,61 @@
+"""Seal completed native-time PURE and SSH transport originals; no execution."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+RUN='i04-var03-idle-system-between-v101-ssh-20261008-01'
+def pin(p):
+ b=p.read_bytes(); return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p): return json.loads(p.read_bytes())
+N=C/'runs'/RUN
+assert N.is_dir() and not (N/'failure-seal.json').exists()
+go=load(C/'review/independent-prelaunch-go.json')
+assert go['decision']=='GO_PRELAUNCH' and go['run_id']==RUN
+assert go['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+closure=load(N/'closure.json'); invocation=load(N/'invocation.json')
+assert closure['run_id']==invocation['run_id']==RUN
+assert closure['error'] in (None,'') and closure['step_error'] in (None,'')
+assert pin(N/'invocation.json')['sha256']==closure['invocation_sha256']
+assert invocation['manifest_sha256']==go['manifest_sha256']
+assert invocation['approval_sha256']==pin(C/'review/independent-prelaunch-go.json')['sha256']
+proof=Path(invocation['pure_proof_path'])
+assert proof.resolve(strict=True).is_relative_to((C/'test-output').resolve())
+assert proof.name=='pure-proof.json' and proof.parent.name.startswith('native-pure-')
+assert pin(proof)['sha256']==invocation['pure_proof_sha256']
+d=load(proof)
+assert d['mode']=='native' and d['run_id']==RUN and d['status']=='passed' and d['error'] is None
+assert d['manifest_sha256']==go['manifest_sha256'] and d['checks']==invocation['pure_checks']
+assert d['source_hashes_after']==invocation['source_hashes_after_pure']==invocation['source_hashes_before']
+assert len(d['checks'])==5
+files=[proof]
+for step in d['checks']:
+ assert type(step['exit_code']) is int and step['exit_code']==0
+ assert type(step['child_session_id']) is int and step['child_session_id']==0
+ assert step['status']=='completed' and step['error'] is None and step['capture_error'] is None
+ for stream in ['stdout','stderr']:
+  p=Path(step[stream+'_path']); assert p.parent==proof.parent
+  assert pin(p)=={'bytes':step[stream+'_bytes'],'sha256':step[stream+'_sha256']}
+  files.append(p)
+ assert step['stderr_bytes']==0
+transports=list((C/'transport-evidence').glob('ssh-native-*/transport-receipt.json'))
+assert len(transports)==1
+T=transports[0]; transport=load(T)
+assert transport['mode']=='native' and transport['run_id']==RUN and transport['native_approved'] is True
+assert type(transport['exit_code']) is int and transport['exit_code']==0 and transport['error'] is None
+assert transport['manifest_sha256']==go['manifest_sha256']
+files.append(T)
+assert set(transport['streams'])=={'ssh-stdout.bin','ssh-stderr.bin'}
+for name,record in transport['streams'].items():
+ p=T.parent/name; assert pin(p)==record; files.append(p)
+assert len(files)==len(set(files))==14
+for p in files:
+ assert p.resolve(strict=True).is_relative_to(C.resolve()) and not p.is_symlink()
+ p.chmod(stat.S_IREAD)
+records=[{'path':str(p),**pin(p),'read_only':not bool(p.stat().st_mode&0o200)} for p in files]
+assert all(r['read_only'] for r in records)
+O=R/'tmp/i04-var03-root-native-transport-seal-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False); q=O/'receipt.json'
+with q.open('xb') as f:
+ f.write((json.dumps({'schema':'issue18-i04-var03-root-native-transport-seal/v1','run_id':RUN,'root_method':pin(Path(__file__)),'original_files':records,'original_count':14,'native_calls':0,'historical_attributes_changed':False},indent=2)+'\n').encode())
+q.chmod(stat.S_IREAD); Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(q),**pin(q),'original_files':14,'native_calls':0}))

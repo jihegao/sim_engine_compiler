@@ -1,0 +1,94 @@
+"""Pure source, oracle and semantic mutation checks; never writes a run."""
+from __future__ import annotations
+
+import copy
+import json
+
+import build
+import check_roundtrip
+import event_ledger
+import report_oracle
+import source_gate
+from model_common import read
+
+
+def reject(call):
+    try:
+        call()
+    except (AssertionError, ValueError, KeyError, TypeError, UnicodeError):
+        return 1
+    raise AssertionError("semantic mutation escaped")
+
+
+def run():
+    assert build.run(False)["native_calls"] == 0
+    source = source_gate.verify("live")
+    assert source["mandatory_accepted_original_raw"] == 114
+    export = check_roundtrip.validate(check_roundtrip.ORACLE)
+    assert export["exported_cells"] == 407
+    parent = report_oracle.validate(report_oracle.PARENT_RAW.read_bytes(), False)
+    assert parent["cells_checked"] == 4044
+    child = read(report_oracle.CHILD_ORACLE)
+    assert report_oracle.validate_oracle(child, True) == 4044
+    contract = read(event_ledger.CONTRACT)
+    parent_run = event_ledger.HERE.parent / "I04-var01-system-between-v1.0.0" / "runs" / "i04-var01-system-between-v100-ssh-20261005-01"
+    control_lines = (parent_run / "control.log").read_text(encoding="utf-8-sig").splitlines()
+    between_lines = (parent_run / "between.log").read_text(encoding="utf-8-sig").splitlines()
+    assert contract["full_log"]["fixed_prefix"] == control_lines[:59]
+    assert contract["full_log"]["fixed_tail"] == between_lines[66:]
+    assert contract["full_log"]["departure"] == [line.replace("Time: 10 ", "Time: 10.5 ", 1)
+                                                   for line in between_lines[46:48]]
+    assert contract["full_log"]["arrival"] == [line.replace("Time: 10.5 ", "Time: 11 ", 1)
+                                                 for line in between_lines[60:66]]
+    count = 0
+    for _, lines in event_ledger.forms(contract["full_log"]):
+        result = event_ledger.validate(("\n".join(lines) + "\n").encode())
+        assert result["physical"]["terminal_target_ready"] == 2
+        count += 1
+    assert count == 4
+    negatives = 0
+    base = next(event_ledger.forms(contract["full_log"]))[1]
+    def transcript(lines):
+        return event_ledger.validate(("\n".join(lines) + "\n").encode())
+    for before, after in (
+        ("Time: 10.5 <TEACH-AIR-01,0> nbr ready decreased", "Time: 10 <TEACH-AIR-01,0> nbr ready decreased"),
+        ("Time: 11 <TEACH-UNIT-2", "Time: 11.5 <TEACH-UNIT-2"),
+        ("system transfered out: <TEACH-AIR-01,0>", "system transfered out: <TEACH-AIR-01,1>"),
+        ("<BASE-01,0>> system transfered out", "<BASE-02,0>> system transfered out"),
+        (" no failures ", " no failure "),
+        ("Time: 19 <TEACH-AIR-01,0> nbr ready decreased at unit: <TEACH-UNIT-2", "Time: 19 <TEACH-AIR-01,0> nbr ready decreased at unit: <TEACH-UNIT"),
+    ):
+        changed = [line.replace(before, after, 1) for line in base]
+        assert changed != base
+        negatives += reject(lambda lines=changed: transcript(lines))
+    for changed in (
+        base[:47] + base[46:47] + base[47:],
+        base[:61] + ["Time: 10.5 <TEACH-AIR-01,BASE-01,0> unknown diagnostic"] + base[61:],
+        base[:61] + [contract["full_log"]["optional_departure_diagnostics"][0]["lines"][0]] * 2 + base[61:],
+        base[:61] + contract["full_log"]["optional_departure_diagnostics"][1]["lines"] * 2 + base[61:],
+    ):
+        negatives += reject(lambda lines=changed: transcript(lines))
+    mutated = copy.deepcopy(child)
+    mutated["report"]["tables"][2]["instances"][0]["rows"][20][4] = 9
+    negatives += reject(lambda: report_oracle.compare(mutated, child))
+    negatives += reject(lambda: report_oracle.validate_oracle(mutated, True))
+    mutated = copy.deepcopy(child)
+    mutated["report"]["tables"][1]["instances"][0]["rows"][0][0] = 1.0
+    negatives += reject(lambda: report_oracle.compare(mutated, child))
+    mutated = copy.deepcopy(child)
+    mutated["report"]["tables"][0]["columns"][0]["key"] = True
+    negatives += reject(lambda: report_oracle.compare(mutated, child))
+    mutated = read(check_roundtrip.ORACLE)
+    mutated["model"]["tables"][17]["instances"][0]["rows"][0][3] = 10.0
+    negatives += reject(lambda: check_roundtrip.compare(mutated, read(check_roundtrip.ORACLE)))
+    negatives += reject(lambda: read.__globals__["parse"](b'{"x":1,"x":1}'))
+    negatives += reject(lambda: read.__globals__["parse"](b'{"x":1e999}'))
+    assert negatives == 17
+    return {"schema": "i04-var03-pure-self-check/v1", "source": source["accepted_disk_git_pairs"],
+            "accepted_raw": source["mandatory_accepted_original_raw"], "export_cells": 407,
+            "accepted_parent_cells": 4044, "prospective_child_cells": 4044,
+            "positive_log_forms": 4, "semantic_mutations_rejected": negatives, "native_calls": 0}
+
+
+if __name__ == "__main__":
+    print(json.dumps(run(), sort_keys=True))

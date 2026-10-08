@@ -1,0 +1,3 @@
+The first v101 context-copy script draft is preserved as `context-v101-duplicate-assumption.py.bytes` (4,261 bytes, SHA-256 `651e64b1442d95c0aab48d6f82ca050e143b358623dd75c021e811bdb7b072bf`).
+
+Its first `--write` invocation exited 1 before copying files because it counted the already included v100 routing NO_GO memo a second time among 16 v101 extras. That failed command's traceback is available only in the decoded tool transcript; no original stdout/stderr bytes were captured, so no binary-stream claim is made. The corrected script removes the duplicate and seals 166 v100 records plus 15 v101 context records in `context-custody.json`. No native or SSH call occurred.

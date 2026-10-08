@@ -1,0 +1,7 @@
+$ErrorActionPreference = 'Stop'
+$sessions = @(qwinsta.exe 2>&1 | ForEach-Object { [string]$_ })
+$sessionCode = $LASTEXITCODE
+$native = @(Get-Process Simlox -ErrorAction SilentlyContinue | ForEach-Object {
+  [ordered]@{pid=$_.Id;session=$_.SessionId;responding=$_.Responding;start_ms=([DateTimeOffset]$_.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()}
+})
+[ordered]@{schema='issue18-i04-var03-readonly-wts-diagnostic/v1';utc=(Get-Date).ToUniversalTime().ToString('o');self_session=(Get-Process -Id $PID).SessionId;ps_major=$PSVersionTable.PSVersion.Major;ssh_present=[bool]$env:SSH_CONNECTION;session_query_exit=$sessionCode;sessions=$sessions;native=$native;native_commands=0;session_changes=0} | ConvertTo-Json -Depth 6

@@ -1,0 +1,195 @@
+"""Read-only independent audit of the I04.var03 v1.0.1 prospective contract."""
+
+import hashlib
+import json
+import math
+import pathlib
+import subprocess
+
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+OLD = ROOT / "tmp/i04-var03-prospective-design-20261008-02/contract.json"
+NEW_DIR = ROOT / "tmp/i04-var03-prospective-v101-20261008-01"
+CASE = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+RUN_ID = "i04-var03-idle-system-between-v101-ssh-20261008-01"
+checks = 0
+
+
+def require(condition, label):
+    global checks
+    checks += 1
+    if not condition:
+        raise AssertionError(label)
+
+
+def duplicate_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON key: " + key)
+        result[key] = value
+    return result
+
+
+def nonfinite_constant(value):
+    raise ValueError("nonfinite JSON constant: " + value)
+
+
+def strict_json(path):
+    obj = json.loads(path.read_bytes(), object_pairs_hook=duplicate_pairs,
+                     parse_constant=nonfinite_constant)
+
+    def walk(value):
+        if isinstance(value, float):
+            require(math.isfinite(value), "nonfinite number")
+        elif isinstance(value, dict):
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(obj)
+    return obj
+
+
+def typed_equal(a, b):
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(typed_equal(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed_equal(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def pin(path, record):
+    data = path.read_bytes()
+    require(len(data) == record["bytes"], "length: " + str(path))
+    require(hashlib.sha256(data).hexdigest() == record["sha256"], "SHA: " + str(path))
+    return data
+
+
+def git(*args):
+    out = subprocess.run(["git", *args], cwd=ROOT, check=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return out.stdout
+
+
+def audit():
+    old = strict_json(OLD)
+    new = strict_json(NEW_DIR / "contract.json")
+    selection = strict_json(NEW_DIR / "selection.json")
+    history = strict_json(NEW_DIR / "v100-excluded-history.json")
+    proof = strict_json(NEW_DIR / "identity-only-proof.json")
+    require(len((NEW_DIR / "contract.json").read_bytes()) == 27086, "new contract length")
+    require(hashlib.sha256((NEW_DIR / "contract.json").read_bytes()).hexdigest() ==
+            "7c0fd3dd20ab1f52eca3a47e5517f146469a1cec648d64b3ba4e5fbc3dbd1572", "new contract SHA")
+    require(new["package"] == CASE.name and new["version"] == "1.0.1", "new version")
+    require(new["run_id"] == RUN_ID, "new unique run ID")
+    require(not CASE.exists(), "new package already exists")
+    require(new["design_revision"] == 3, "design revision")
+    mutable = {"package", "version", "run_id", "design_revision", "selection",
+               "excluded_prelaunch_version", "publication_policy"}
+    require(set(new) - set(old) == {"excluded_prelaunch_version", "publication_policy"}, "added top keys")
+    for key in set(old) - mutable:
+        require(typed_equal(old[key], new[key]), "changed physical/source field " + key)
+    require(typed_equal(selection["accepted_source_refs"],
+                        strict_json(ROOT / "tmp/i04-var03-root-selection-20261008-01/selection.json")["accepted_source_refs"]),
+            "accepted source identities changed")
+    require(selection["catalog_entries"] == 496, "historical catalog count")
+    require(len(selection["accepted_source_refs"]) == 76, "source count")
+    require(len(selection["mandatory_original_raw"]) == 114, "raw count")
+    require(len(selection["required_docs"]) == 8 and len(selection["installed_refs"]) == 3,
+            "docs and installed count")
+    require(selection["proposed_package"] == CASE.relative_to(ROOT).as_posix(), "selection package")
+    require(selection["proposed_run_id"] == RUN_ID, "selection run ID")
+    pin(NEW_DIR / "selection.json", new["selection"])
+    pin(NEW_DIR / "v100-excluded-history.json", new["excluded_prelaunch_version"])
+    require(history["decision"] == "NO_GO_PUBLICATION_ROUTING_BEFORE_NATIVE", "old exclusion")
+    require(history["native_calls"] == 0 and history["actual_case_ssh_preflight_calls"] == 0,
+            "old actual invocation")
+    require(history["go_prelaunch_ever_issued"] is False, "old native approval")
+    require(len(history["records"]) == 166, "old history record count")
+    seen = set()
+    for record in history["records"]:
+        path = pathlib.Path(record["path"])
+        require(str(path).casefold() not in seen, "duplicate history path")
+        seen.add(str(path).casefold())
+        pin(path, record)
+    require(proof["native_calls"] == 0 and proof["actual_case_preflight_calls"] == 0,
+            "proof invocation count")
+    require(proof["same_contract_fields"] == sorted(set(old) - mutable) or
+            set(proof["same_contract_fields"]) == set(old) - mutable,
+            "proof unchanged field set")
+    for key in ("new_contract", "selection", "excluded_history"):
+        record = proof[key]
+        pin(ROOT / record["path"], record)
+    raw_paths = set()
+    for record in selection["mandatory_original_raw"]:
+        path = pathlib.Path(record["path"])
+        require(str(path).casefold() not in raw_paths, "duplicate original raw")
+        raw_paths.add(str(path).casefold())
+        pin(path, record)
+    for path, record in selection["required_docs"].items():
+        pin(ROOT / path, record)
+    for record in selection["installed_refs"].values():
+        pin(pathlib.Path(record["path"]), record)
+    tree = git("ls-tree", "-rz", selection["base"])
+    tree_map = {}
+    for item in tree.split(b"\0"):
+        if item:
+            left, path = item.split(b"\t", 1)
+            oid = left.split()[2].decode("ascii")
+            tree_map[path.decode("utf-8").casefold()] = oid
+    seen = set()
+    for record in selection["accepted_source_refs"]:
+        path = record["path"]
+        require(path.casefold() not in seen, "duplicate accepted source path")
+        seen.add(path.casefold())
+        require(tree_map[path.casefold()] == record["oid"], "base Git identity: " + path)
+        disk = pin(ROOT / path, record["disk"])
+        blob = git("cat-file", "blob", record["oid"])
+        require(len(blob) == record["git"]["bytes"], "Git blob length: " + path)
+        require(hashlib.sha256(blob).hexdigest() == record["git"]["sha256"],
+                "Git blob SHA: " + path)
+        require((disk == blob) is record["byte_equal"], "disk/Git byte relation: " + path)
+    live_catalog = ROOT / "cases/simlox-air-support/publication-index-v1.json"
+    local = pin(live_catalog, selection["catalog_local"])
+    git_catalog = git("cat-file", "blob", selection["catalog_git"]["oid"])
+    require(len(git_catalog) == selection["catalog_git"]["bytes"], "Git catalog length")
+    require(hashlib.sha256(git_catalog).hexdigest() == selection["catalog_git"]["sha256"],
+            "Git catalog SHA")
+    require(local != git_catalog and selection["catalog_byte_equal"] is False,
+            "distinct catalog byte identities")
+    require(typed_equal(strict_json(live_catalog),
+                        json.loads(git_catalog, object_pairs_hook=duplicate_pairs,
+                                   parse_constant=nonfinite_constant)), "catalog parsed identity")
+    policy = new["publication_policy"]
+    allowed = set(policy["future_author_files"])
+    require(len(allowed) == len(policy["future_author_files"]), "duplicate future author path")
+    require("evidence-index.json" in allowed and "make_evidence_index.py" in allowed and
+            "README-publication.md" in allowed and "REPRODUCTION-postrun.md" in allowed,
+            "future publication files")
+    require(set(policy["future_generated_namespaces"]) == {
+        "preserved-postrun/", "preserved-postrun-development/",
+        "preserved-raw/", "preserved-preflight/"}, "inert future namespaces")
+    require("full actual publication path set" in policy["final_publication_closure"],
+            "final path closure")
+    require("byte-identical after authorized catalog append" in policy["rebuild"],
+            "postappend deterministic rebuild")
+    require("no native or accepted checker rerun" in policy["rebuild"],
+            "no rerun in index builder")
+    require("Actual SSH session0 PowerShell5 -File pure preflight" in new["gates"][3],
+            "new actual zero-native preflight gate")
+    return {"decision": "GO_CONTRACT_ONLY", "checks": checks,
+            "contract_sha256": hashlib.sha256((NEW_DIR / "contract.json").read_bytes()).hexdigest(),
+            "selection_sha256": hashlib.sha256((NEW_DIR / "selection.json").read_bytes()).hexdigest(),
+            "history_sha256": hashlib.sha256((NEW_DIR / "v100-excluded-history.json").read_bytes()).hexdigest(),
+            "source_refs": len(selection["accepted_source_refs"]),
+            "original_raw": len(selection["mandatory_original_raw"]),
+            "history_records": len(history["records"]), "native_calls": 0}
+
+
+if __name__ == "__main__":
+    print(json.dumps(audit(), sort_keys=True))

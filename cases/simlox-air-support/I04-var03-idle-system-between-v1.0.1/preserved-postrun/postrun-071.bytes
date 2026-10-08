@@ -1,0 +1,23 @@
+$ErrorActionPreference = 'Stop'
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class Issue18WtsReadOnly {
+ [DllImport("wtsapi32.dll", SetLastError=true)]
+ public static extern bool WTSQuerySessionInformationW(IntPtr server, int session, int info, out IntPtr buffer, out int bytes);
+ [DllImport("wtsapi32.dll")]
+ public static extern void WTSFreeMemory(IntPtr buffer);
+}
+'@
+$buffer = [IntPtr]::Zero
+$bytes = 0
+$ok = [Issue18WtsReadOnly]::WTSQuerySessionInformationW([IntPtr]::Zero,1,8,[ref]$buffer,[ref]$bytes)
+if (-not $ok) { throw ('WTS state query failed: ' + [Runtime.InteropServices.Marshal]::GetLastWin32Error()) }
+try {
+ if ($bytes -ne 4) { throw 'unexpected WTSConnectState width' }
+ $state = [Runtime.InteropServices.Marshal]::ReadInt32($buffer)
+} finally { [Issue18WtsReadOnly]::WTSFreeMemory($buffer) }
+$labels = @('WTSActive','WTSConnected','WTSConnectQuery','WTSShadow','WTSDisconnected','WTSIdle','WTSListen','WTSReset','WTSDown','WTSInit')
+if ($state -lt 0 -or $state -ge $labels.Count) { throw 'unknown WTS state' }
+$gui = Get-Process -Id 13340
+[ordered]@{schema='issue18-i04-var03-wts-state-readonly/v1';utc=(Get-Date).ToUniversalTime().ToString('o');self_session=(Get-Process -Id $PID).SessionId;ps_major=$PSVersionTable.PSVersion.Major;ssh_present=[bool]$env:SSH_CONNECTION;queried_session=1;connect_state=$state;connect_state_name=$labels[$state];gui=[ordered]@{pid=$gui.Id;session=$gui.SessionId;responding=$gui.Responding;start_ms=([DateTimeOffset]$gui.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()};simlox_calls=0;session_changes=0} | ConvertTo-Json -Depth 6

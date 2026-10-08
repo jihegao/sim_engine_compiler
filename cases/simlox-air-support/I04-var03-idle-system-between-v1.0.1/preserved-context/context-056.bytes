@@ -1,0 +1,30 @@
+"""Seal root-only prospective context; never changes downloaded originals or repo docs."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat
+R=Path(__file__).resolve().parents[1];T=R/'tmp';O=T/'i04-var03-root-context-freeze-20261008-01'
+assert not O.exists()
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+selection=T/'i04-var03-root-selection-20261008-01/selection.json'
+s=json.loads(selection.read_bytes())
+for n,wanted in s['required_docs'].items():assert pin(R/n)==wanted,n
+names=['i04-var03-authenticated-context-20261008.json','i04-var03-root-app-ownership-20261008.json','i04-var03-root-selection-20261008.py','i04-var03-root-material-inspection-20261008.py','i04-var03-root-report-fields-20261008.py','i04-var03-prospective-design-20261008.py','i04-var03-prospective-design-v2-20261008.py','i04-var03-design-capture-20261008.py','i04-var03-design-v2-builder-20261008.py','i04-var03-design-v2-capture-20261008.py','issue18-next-owner-guard-20261008.ps1','i04-var03-root-context-freeze-20261008.py']
+files=[T/n for n in names]
+for name in ['i04-var03-root-selection-20261008-01','i04-var03-design-transport-20261008-01','i04-var03-design-transport-20261008-02','i04-var03-prospective-design-20261008-02']:
+ files.extend(sorted((T/name).iterdir()))
+assert all(p.is_file() for p in files)
+records=[]
+for p in files:
+ records.append({'path':str(p),'role':'root prospective context (zero new native)','pin':pin(p)})
+ p.chmod(stat.S_IREAD)
+downloaded=[]
+for name in ['monitor144-20261006t222848z.md','simlox-issue18-goal-20260929.md']:
+ p=Path('C:/Users/user/Downloads')/name
+ downloaded.append({'path':str(p),'pin':pin(p),'original_attributes_unchanged':True})
+memo=T/'i04-var03-independent-contract-review-20261008.md'
+assert pin(memo)=={'bytes':4760,'sha256':'791b1d023174eb4bc82f1646660ea4adf110ce612febacf09b47c71bf3f71cbf'}
+d={'schema':'issue18-i04-var03-root-prospective-context/v1','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'base':s['base'],'branch':'codex/simlox-i04-var03-idle-system-between-20261008','records':records,'required_doc_pins_rechecked':s['required_docs'],'downloaded_instructions':downloaded,'independent_contract_go':{'path':str(memo),**pin(memo)},'new_native_calls':0,'accepted_native_or_checker_reruns':0,'scope':'Root context only. Author construction authorized by independent contract GO; method freeze, actual SSH pure preflight and fresh prelaunch GO remain pending. Goal remains ACTIVE/unfinished.'}
+O.mkdir();p=O/'context.json'
+with p.open('xb') as f:f.write((json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode())
+p.chmod(stat.S_IREAD)
+print(json.dumps({'context':str(p),**pin(p),'root_context_records':len(records)}))

@@ -1,0 +1,26 @@
+"""Write a noncanonical reviewer-only manifest preview with current source pins."""
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+PKG = REPO / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+OUT = REPO / "tmp/i04-var03-v101-provisional-manifest-with-private-pins-20261008.json"
+sys.path.insert(0, str(PKG))
+from make_prelaunch_manifest import body, candidate
+
+assert not OUT.exists()
+data = body(candidate(True, "live"))
+document = json.loads(data)
+keys = {row["key"] for row in document["source_files"]}
+assert {"local_only_context_original:147", "local_only_context_original:148"} <= keys
+assert document["local_only_context_originals"] == 2
+with OUT.open("xb") as stream:
+    stream.write(data)
+print(json.dumps({"schema": "i04-var03-v101-provisional-manifest-capture/v1",
+                  "path": str(OUT), "bytes": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest(),
+                  "source_count": document["source_count"], "native_calls": 0}, sort_keys=True))

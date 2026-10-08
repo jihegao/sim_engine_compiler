@@ -1,0 +1,13 @@
+"""Read original report rows and column values for prospective contract research."""
+from pathlib import Path
+import json
+P=Path(__file__).resolve().parents[1]/'cases/simlox-air-support/I04-var01-system-between-v1.0.0/runs/i04-var01-system-between-v100-ssh-20261005-01/between-report-raw.json'
+s=P.read_text(encoding='utf-8-sig');m=',\n      ]';assert s.count(m)==1
+d=json.loads(s.replace(m,'\n      ]'))
+for t in d['report']['tables']:
+ if t['name'] not in ('SystemResults','StockTotalResults'):continue
+ cols=[c['name'] for c in t['columns']]
+ for ins in t['instances']:
+  for r in ins['rows']:
+   x=dict(zip(cols,r))
+   if x['STINT'] in (0,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,18.5,19,19.5,20,20.5,21.5,22,35.5):print(json.dumps({'table':t['name'],'row':x},sort_keys=True))

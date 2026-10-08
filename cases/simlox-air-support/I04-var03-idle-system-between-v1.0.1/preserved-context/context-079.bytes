@@ -1,0 +1,22 @@
+import json
+from pathlib import Path
+root=Path(__file__).resolve().parent.parent
+d=root/'tmp/i04-var03-prospective-design-20261008-02'
+run=root/'cases/simlox-air-support/I04-var01-system-between-v1.0.0/runs/i04-var01-system-between-v100-ssh-20261005-01'
+raw=(run/'between-report-raw.json').read_text(encoding='utf-8-sig').replace('\r\n','\n')
+raw=raw.replace('         },\n      ]','         }\n      ]')
+a=json.loads(raw);b=json.loads((d/'parent-report-oracle.json').read_bytes())
+def first(a,b,path=''):
+    if type(a)!=type(b):return (path,type(a).__name__,type(b).__name__,repr(a)[:100],repr(b)[:100])
+    if isinstance(a,dict):
+        if a.keys()!=b.keys():return (path,'keys',list(a),list(b))
+        for k in a:
+            x=first(a[k],b[k],path+'/'+str(k))
+            if x:return x
+    elif isinstance(a,list):
+        if len(a)!=len(b):return (path,'length',len(a),len(b))
+        for i,(x,y) in enumerate(zip(a,b)):
+            z=first(x,y,path+'/'+str(i))
+            if z:return z
+    elif a!=b:return (path,'value',repr(a),repr(b))
+print(first(a,b))

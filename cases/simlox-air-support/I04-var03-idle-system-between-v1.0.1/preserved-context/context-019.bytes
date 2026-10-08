@@ -1,0 +1,77 @@
+"""Exact inert copies of contract-selection history; default is read-only."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from model_common import encode, pin, read, verify_expected
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+ROOT_CONTEXT = REPO / "tmp/i04-var03-root-context-freeze-20261008-01/context.json"
+OWNED = HERE / "preserved-context"
+MAP = HERE / "context-custody.json"
+EXTRA = [
+    "tmp/i04-var03-independent-contract-audit.py",
+    "tmp/i04-var03-independent-contract-audit-v2.py",
+    "tmp/i04-var03-independent-contract-audit-v3.py",
+    "tmp/i04-var03-independent-contract-audit-v4.py",
+    "tmp/i04-var03-independent-contract-audit-v5.py",
+    "tmp/i04-var03-independent-contract-capture.py",
+    "tmp/i04-var03-independent-contract-capture-v2.py",
+    "tmp/i04-var03-independent-report-type-diagnostic.py",
+    "tmp/i04-var03-independent-contract-review-20261008.md",
+    "tmp/i04-var03-independent-contract-proof-20261008-01/receipt.json",
+    "tmp/i04-var03-independent-contract-proof-20261008-01/stdout.bin",
+    "tmp/i04-var03-independent-contract-proof-20261008-01/stderr.bin",
+    "tmp/i04-var03-independent-contract-proof-20261008-02/receipt.json",
+    "tmp/i04-var03-independent-contract-proof-20261008-02/stdout.bin",
+    "tmp/i04-var03-independent-contract-proof-20261008-02/stderr.bin",
+]
+
+
+def candidate(write=False):
+    context = read(ROOT_CONTEXT)
+    assert context["schema"] == "issue18-i04-var03-root-prospective-context/v1"
+    assert len(context["records"]) == 27
+    sources = [ROOT_CONTEXT] + [Path(row["path"]) for row in context["records"]]
+    for row, source in zip(context["records"], sources[1:]):
+        assert pin(source) == row["pin"], source
+    sources += [REPO / path for path in EXTRA]
+    assert len(sources) == len({str(p) for p in sources})
+    records = []
+    for number, source in enumerate(sources):
+        original = source.resolve(strict=True)
+        data = original.read_bytes()
+        target = OWNED / f"context-{number:03d}.bytes"
+        verify_expected(target, data, write)
+        records.append({"original_path": str(original),
+                        "owned_copy": str(target.relative_to(HERE)).replace("\\", "/"),
+                        "bytes": len(data), "sha256": pin(original)["sha256"],
+                        "original_if_present_must_match": True})
+    body = encode({"schema": "i04-var03-context-custody/v1", "records": records,
+                   "root_frozen_context_count": 28, "independent_contract_history_count": len(EXTRA),
+                   "originals_optional_after_publication": True})
+    result = verify_expected(MAP, body, write)
+    return {"schema": "i04-var03-context-copy/v1", "records": len(records),
+            "map": result, "native_calls": 0}
+
+
+def verify():
+    mapping = read(MAP)
+    assert mapping["schema"] == "i04-var03-context-custody/v1"
+    assert len(mapping["records"]) == 28 + len(EXTRA)
+    for row in mapping["records"]:
+        owned = HERE / row["owned_copy"]
+        assert pin(owned) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        original = Path(row["original_path"])
+        if original.exists():
+            assert pin(original) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+    return len(mapping["records"])
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    print(json.dumps(candidate(parser.parse_args().write), sort_keys=True))

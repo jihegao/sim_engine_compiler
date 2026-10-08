@@ -1,0 +1,32 @@
+"""Capture two fixed isolated publication-policy probes; no native command."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, subprocess, sys, uuid
+R=Path(__file__).resolve().parents[1]; C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+def pin(p):
+ b=p.read_bytes(); return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert not (C/'runs/i04-var03-idle-system-between-v101-ssh-20261008-01').exists()
+assert not (C/'source-inventory.json').exists() and not (C/'prelaunch-manifest.json').exists()
+methods=[R/'tmp/i04-var03-v101-future-source-policy-pure-20261008.py',R/'tmp/i04-var03-v101-catalog-prefix-pure-20261008.py']
+guarded=[Path(__file__),*methods,C/'make_source_inventory.py',C/'make_prelaunch_manifest.py',C/'source_gate.py',C/'copy_context.py',C/'context-custody.json']
+before={str(p):pin(p) for p in guarded}
+O=R/'tmp/i04-var03-root-policy-proofs-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]); O.mkdir(parents=True,exist_ok=False)
+checks=[]
+for i,method in enumerate(methods):
+ argv=[sys.executable,'-X','utf8','-B',str(method)]
+ with (O/f'{i}-stdout.bin').open('xb') as out,(O/f'{i}-stderr.bin').open('xb') as err:
+  code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+ checks.append({'argv':argv,'actual_exit':code,'stdout':pin(O/f'{i}-stdout.bin'),'stderr':pin(O/f'{i}-stderr.bin')})
+ if code!=0 or (O/f'{i}-stderr.bin').stat().st_size: break
+after={str(p):pin(p) for p in guarded}
+d={'schema':'issue18-i04-var03-root-policy-proofs/v1','checks':checks,'before':before,'after':after,'native_calls':0,'methods_unchanged':before==after}
+q=O/'receipt.json'
+with q.open('xb') as f:f.write((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(q),**pin(q),'checks':checks,'methods_unchanged':before==after}))
+for i in range(len(checks)):
+ for stream in ['stdout','stderr']:
+  p=O/f'{i}-{stream}.bin'
+  if p.stat().st_size: print(p.read_bytes().decode('utf-8-sig',errors='replace')[:5000])
+assert len(checks)==2 and before==after
+assert all(type(c['actual_exit']) is int and c['actual_exit']==0 and c['stderr']['bytes']==0 for c in checks)

@@ -1,0 +1,132 @@
+"""Read-only exact accepted custody and append-stable 496-entry catalog gate."""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+from pathlib import Path
+
+from build import make
+from copy_context import verify as verify_context
+from copy_pure_proof import verify as verify_pure_proof
+from model_common import parse, pin, read, typed_equal
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+SELECTION = HERE / "preserved-context" / "root-selection.json"
+CAT_LOCAL = HERE / "preserved-context" / "publication-index-local-496.json.bytes"
+CAT_GIT = HERE / "preserved-context" / "publication-index-git-496.json.bytes"
+CAT_LIVE = REPO / "cases/simlox-air-support/publication-index-v1.json"
+CAT_REL = "cases/simlox-air-support/publication-index-v1.json"
+BASE = "33193ce8ce5763d9dd892eda9c68ab9d729c8a3a"
+RUN_ID = "i04-var03-idle-system-between-v100-ssh-20261008-01"
+GIT = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe")
+SELECTION_PIN = {"bytes": 85887, "sha256": "5f1a0b992af580b0dbef16c5d3c67c9efcfac8b886bb67919b1c843cc6685043"}
+
+
+def exact(path: Path, expected):
+    assert path.is_file(), ("missing mandatory original", str(path))
+    got = pin(path)
+    assert got == {key: expected[key] for key in ("bytes", "sha256")}, (str(path), got, expected)
+    return got
+
+
+def git_tree(base):
+    result = subprocess.run([str(GIT), "ls-tree", "-r", "-z", base], cwd=REPO, capture_output=True)
+    assert result.returncode == 0, result.stderr.decode(errors="replace")
+    tree = {}
+    for item in result.stdout.split(b"\0"):
+        if item:
+            meta, name = item.split(b"\t", 1)
+            _, kind, oid = meta.split(b" ")
+            assert kind == b"blob"
+            path = name.decode("utf-8")
+            assert path not in tree
+            tree[path] = oid.decode("ascii")
+    return tree
+
+
+def blob(oid):
+    result = subprocess.run([str(GIT), "cat-file", "blob", oid], cwd=REPO, capture_output=True)
+    assert result.returncode == 0, result.stderr.decode(errors="replace")
+    return result.stdout
+
+
+def catalog(selection, tree, mode):
+    exact(CAT_LOCAL, selection["catalog_local"])
+    exact(CAT_GIT, selection["catalog_git"])
+    assert tree[CAT_REL] == selection["catalog_git"]["oid"]
+    assert blob(tree[CAT_REL]) == CAT_GIT.read_bytes()
+    live_bytes = CAT_LIVE.read_bytes()
+    if mode == "live":
+        assert pin(CAT_LIVE) == selection["catalog_local"], "prelaunch live catalog drift"
+    archived = read(CAT_LOCAL)
+    live = parse(live_bytes)
+    assert isinstance(archived, dict) and isinstance(live, dict)
+    assert list(archived) == list(live) and "entries" in archived
+    assert len(archived["entries"]) == 496 and len(live["entries"]) >= 496
+    assert typed_equal({k: v for k, v in archived.items() if k != "entries"},
+                       {k: v for k, v in live.items() if k != "entries"})
+    assert typed_equal(archived["entries"], live["entries"][:496])
+    ids = [e["publication_id"] for e in live["entries"]]
+    assert all(type(x) is str and x for x in ids) and len(ids) == len(set(ids))
+    return {"historical_prefix_checked": 496, "live_entries_observed": len(ids),
+            "local_archive": pin(CAT_LOCAL), "base_git_archive": pin(CAT_GIT)}
+
+
+def verify(mode="live"):
+    assert mode in ("live", "sealed")
+    exact(SELECTION, SELECTION_PIN)
+    selection = read(SELECTION)
+    assert selection["base"] == BASE and selection["proposed_run_id"] == RUN_ID
+    tree = git_tree(BASE)
+    refs = selection["accepted_source_refs"]
+    assert len(refs) == len({r["path"] for r in refs}) == 76
+    for row in refs:
+        exact(REPO / row["path"], row["disk"])
+        assert tree[row["path"]] == row["oid"], row["path"]
+        data = blob(row["oid"])
+        from hashlib import sha256
+        assert {"bytes": len(data), "sha256": sha256(data).hexdigest()} == row["git"]
+    raw = selection["mandatory_original_raw"]
+    assert len(raw) == len({r["path"] for r in raw}) == 114
+    for row in raw:
+        exact(Path(row["path"]), row)
+    docs = selection["required_docs"]
+    assert len(docs) == 8
+    for relative, expected in docs.items():
+        exact(REPO / relative, expected)
+    installed = selection["installed_refs"]
+    assert len(installed) == 3
+    for expected in installed.values():
+        exact(Path(expected["path"]), expected)
+    helper_rel = "cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0/captured_process.ps1"
+    helper_pin = {"bytes": 0, "sha256": "17285b90093c2d80c6241e1345b9926a2e4dd0f0b2b24f831c84c1cfa885b794"}
+    helper_pin["bytes"] = (HERE / "captured_process.ps1").stat().st_size
+    exact(HERE / "captured_process.ps1", helper_pin)
+    exact(REPO / helper_rel, helper_pin)
+    from hashlib import sha256
+    helper_blob = blob(tree[helper_rel])
+    assert {"bytes": len(helper_blob), "sha256": sha256(helper_blob).hexdigest()} == helper_pin
+    exact(HERE / "prospective-contract.json", {"bytes": 24635, "sha256": "8a4d23dced3b4a9049a657fb94b63bdad116d93a35db87409a09ac8f0deff583"})
+    assert verify_context() == 43
+    assert verify_pure_proof() == 26
+    cat = catalog(selection, tree, mode)
+    expected_input, _ = make()
+    assert (HERE / "native-input.json").read_bytes() == expected_input
+    run = HERE / "runs" / RUN_ID
+    if mode == "live":
+        assert not run.exists(), "unique native run already exists"
+    return {"schema": "i04-var03-source-gate/v1", "mode": mode,
+            "accepted_disk_git_pairs": 76, "mandatory_accepted_original_raw": 114,
+            "required_docs": 8, "installed": 3, "catalog": cat,
+            "capture_helper_ancestry_checked": 1,
+            "owned_historical_context_copies": 43,
+            "owned_local_pure_proof_copies": 26,
+            "run_absent_observed": not run.exists(), "child_input": pin(HERE / "native-input.json")}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=("live", "sealed"), default="live")
+    print(json.dumps(verify(parser.parse_args().mode), sort_keys=True))

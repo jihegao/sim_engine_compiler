@@ -1,0 +1,31 @@
+"""Read original local PURE proof; no checker or native rerun."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, uuid
+R=Path(__file__).resolve().parents[1]; C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+P=C/'test-output/local-pure-20261008T052937316669Z-8dc75429/receipt.json'
+def pin(p):
+ b=p.read_bytes(); return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(P)=={'bytes':12715,'sha256':'b77a8874ec62b93bee44bc1f5fd5b37f9e9369f027a194729ba6ef068dbb69e4'}
+d=json.loads(P.read_bytes()); assert d['schema']=='i04-var03-local-pure-proof/v101'
+assert d['native_calls']==0 and type(d['native_calls']) is int
+assert d['passed'] is True and d['run_absent_before_and_after'] is True
+assert d['source_before']==d['source_after']
+assert not (C/'runs/i04-var03-idle-system-between-v101-ssh-20261008-01').exists()
+names=['build','context','source','selfcheck','converter','inventory','manifest']
+assert [s['name'] for s in d['checks']]==names
+files=[P]
+for s in d['checks']:
+ assert type(s['actual_exit']) is int and s['actual_exit']==0
+ assert s['stderr']['bytes']==0
+ for k in ['stdout','stderr']:
+  p=Path(s[k+'_path']); assert p.parent==P.parent and not p.is_symlink()
+  assert pin(p)==s[k] and not bool(p.stat().st_mode&0o200); files.append(p)
+assert len(files)==len(set(files))==15
+current={n:pin(C/n) for n in d['source_after']}
+assert current==d['source_after'], 'the 13 recorded methods changed since author PURE'
+O=R/'tmp/i04-var03-root-author-pure-check-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]); O.mkdir(parents=True,exist_ok=False)
+q=O/'receipt.json'
+with q.open('xb') as f:
+ f.write((json.dumps({'schema':'issue18-i04-var03-root-author-pure-check/v1','proof':str(P),'proof_pin':pin(P),'originals':[{'path':str(p),**pin(p)} for p in files],'checks':7,'recorded_source_count':len(current),'recorded_source_unchanged':True,'native_calls':0,'limits':'Checks original recorded 13 source pins and all15 original files; later inventory/custody/independent methods require separate final static binding.'},indent=2)+'\n').encode())
+q.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(q),**pin(q),'originals':15,'recorded_sources':len(current),'native_calls':0}))

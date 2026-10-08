@@ -1,0 +1,159 @@
+"""Tech-lead prospective contract only. Never builds case or invokes native/checkers."""
+from pathlib import Path
+import copy,datetime as dt,hashlib,json,re,stat,subprocess
+R=Path(__file__).resolve().parents[1]; C=R/'cases/simlox-air-support'
+P=C/'I04-var01-system-between-v1.0.0'; RUN=P/'runs/i04-var01-system-between-v100-ssh-20261005-01'
+O=R/'tmp/i04-var03-prospective-design-20261008-02'
+PD='I04.var03 idle BETWEEN: ready system requested at hour10.5'
+BASE='33193ce8ce5763d9dd892eda9c68ab9d729c8a3a'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def unique(pairs):
+ d={}
+ for k,v in pairs:
+  assert k not in d,('duplicate key',k)
+  d[k]=v
+ return d
+def parse(b):return json.loads(b.decode('utf-8-sig'),object_pairs_hook=unique,parse_constant=lambda s:(_ for _ in ()).throw(ValueError(s)))
+def report(b):
+ assert b.count(b'\n')==b.count(b'\r\n')
+ marker=b',\r\n      ]';assert b.count(marker)==1
+ return parse(b.replace(marker,b'\r\n      ]'))
+def dump(d):return (json.dumps(d,ensure_ascii=False,indent=2,allow_nan=False)+'\n').encode()
+def save(n,b):
+ p=O/n
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+def rows(t):
+ assert len(t['instances'])==1
+ return t['instances'][0]['rows']
+def exact(a,b):
+ if isinstance(a,(int,float)) and not isinstance(a,bool):return type(b) in (int,float) and a==b
+ if type(a)!=type(b):return False
+ if isinstance(a,dict):return a.keys()==b.keys() and all(exact(a[k],b[k]) for k in a)
+ if isinstance(a,list):return len(a)==len(b) and all(exact(x,y) for x,y in zip(a,b))
+ return a==b
+assert not O.exists() and not (C/'I04-var03-idle-system-between-v1.0.0').exists()
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=R).decode().strip()==BASE
+sel=R/'tmp/i04-var03-root-selection-20261008-01/selection.json'
+assert pin(sel.read_bytes())['sha256']=='5f1a0b992af580b0dbef16c5d3c67c9efcfac8b886bb67919b1c843cc6685043'
+selection=parse(sel.read_bytes())
+src=parse((P/'between-input.json').read_bytes())
+assert pin((P/'between-input.json').read_bytes())['sha256']=='50cc69df36afa0cecbbf8e6e7d699012f8987bb06bee11a1e347235d397da0ea'
+tables=src['model']['tables'];assert len(tables)==34
+assert all(t['instances'][0]['instance_name']=='' for t in tables)
+assert tables[0]['name']=='ProblemDescription' and tables[10]['name']=='SystemTransfer'
+assert rows(tables[10])==[['TEACH-UNIT','TEACH-UNIT-2','TEACH-AIR-01',8.5,1,0.5,None,None]]
+child=copy.deepcopy(src);rows(child['model']['tables'][0])[0][0]=PD;rows(child['model']['tables'][10])[0][3]=10.5
+source_changes=[]
+for ti,(a,b) in enumerate(zip(tables,child['model']['tables'])):
+ for ri,(ra,rb) in enumerate(zip(rows(a),rows(b))):
+  for ci,(x,y) in enumerate(zip(ra,rb)):
+   if not exact(x,y):source_changes.append({'table':a['name'],'table_index':ti,'row':ri,'column':a['columns'][ci]['name'],'column_index':ci,'parent':x,'child':y})
+assert len(source_changes)==2
+raw=(RUN/'between-report-raw.json').read_bytes();assert pin(raw)['sha256']=='f1cd6496d7fbdeda3f6deb7d57ee16f762db27984e0aa27e13b16bc9715375b3'
+observed=report(raw)
+SYSCOLS='UNID SID STINT ETINT NSYRY NSYMA NSYMO NSYMC NSYMP NSYMT NSYMS NSYMR NSYUA NSYA NSYAL FTMO NSYRP NSYPM NSYTP NSYWR NSYWI NSYLA NSYUH NREPT NPMT NFAIL NDAM NPMS NROBT NRCFG STREQ STACC STF STLOW SYDT SYDTU NSYDT NSYSW NPSTA NPSUC'.split()
+STOCKCOLS='STINT ETINT NBO NBOU ROS ROST WT WTT WTS PNB NDF NDD NDR NDP NLD NWT'.split()
+SUMCOLS='NREP RTILW RTIUP MTMF RSMTMF MSTF RSMSTF MSUF RSMSUF STMF RSSTMF'.split()
+assert [t['name'] for t in observed['report']['tables']]==['ProblemDescription','ResultSummary','SystemResults','StockTotalResults']
+assert [t['instances'][0]['instance_name'] for t in observed['report']['tables']]==['','','Total over all Units;Total over all Systems;0.00;36.00','0.00;36.00;']
+for t,cs,n in zip(observed['report']['tables'],[['PDESC'],SUMCOLS,SYSCOLS,STOCKCOLS],[1,1,72,72]):
+ assert [c['name'] for c in t['columns']]==cs and len(rows(t))==n
+ assert all(len(r)==len(cs) for r in rows(t))
+def overlap(a,b,c,d):return max(0,min(b,d)-max(a,c))
+def avg(a,b,intervals,q):return sum(q*overlap(a,b,c,d) for c,d in intervals)/(b-a)
+def oracle(pdesc,depart):
+ out=copy.deepcopy(observed) # accepted presentation schema only; every cell replaced below
+ rows(out['report']['tables'][0])[:]=[[pdesc]]
+ rows(out['report']['tables'][1])[:]=[[1,0,36,1,0,1,0,1,0,1,0]]
+ sr=[];st=[]
+ for i in range(72):
+  a=i/2;b=(i+1)/2
+  assigned=avg(a,b,[(7,10),(19,22)],2)
+  flying=avg(a,b,[(8,10),(20,22)],2)
+  reserved=avg(a,b,[(7,8),(19,20)],2)
+  inunit=2-avg(a,b,[(depart,depart+0.5)],1)
+  d=dict.fromkeys(SYSCOLS,0)
+  d.update(UNID='Total over all Units',SID='Total over all Systems',STINT=a,ETINT=b,NSYRY=inunit-assigned,NSYMA=assigned,NSYMO=flying,NSYMR=reserved,NSYA=inunit,FTMO=flying/2,STACC=flying,SYDT=None)
+  sr.append([d[k] for k in SYSCOLS])
+  v=dict.fromkeys(STOCKCOLS,0);v.update(STINT=a,ETINT=b,PNB=1)
+  for k in ['NBOU','ROS','ROST','WT','WTT','WTS']:v[k]=None
+  st.append([v[k] for k in STOCKCOLS])
+ rows(out['report']['tables'][2])[:]=sr;rows(out['report']['tables'][3])[:]=st
+ return out
+parent_oracle=oracle(rows(tables[0])[0][0],10)
+assert exact(observed,parent_oracle),'full parent report mismatch'
+child_oracle=oracle(PD,10.5)
+diff=[];cells=0
+for ti,(pt,ct) in enumerate(zip(parent_oracle['report']['tables'],child_oracle['report']['tables'])):
+ for ri,(pr,cr) in enumerate(zip(rows(pt),rows(ct))):
+  for ci,(pv,cv) in enumerate(zip(pr,cr)):
+   cells+=1
+   if not exact(pv,cv):diff.append({'table':pt['name'],'row':ri,'column':pt['columns'][ci]['name'],'parent':pv,'child':cv})
+assert cells==4044 and len(diff)==5
+integrals={}
+for label,rep in [('parent',parent_oracle),('child',child_oracle)]:
+ rs=rows(rep['report']['tables'][2]);integrals[label]={k:sum(r[SYSCOLS.index(k)]*.5 for r in rs) for k in ['NSYRY','NSYA','NSYMA','NSYMO','NSYMR','FTMO','STACC']}
+assert integrals['parent']==integrals['child']=={'NSYRY':59.5,'NSYA':71.5,'NSYMA':12,'NSYMO':8,'NSYMR':4,'FTMO':4,'STACC':8}
+# Export topology is prospectively frozen to accepted schema/defaults, with the same two deltas.
+exraw=(RUN/'between-roundtrip-raw.json').read_bytes();assert pin(exraw)['sha256']=='964c52cab2988c3d08ef40782d16083413ea956ddd7ca8b6bbaacb8eaba8ba30'
+export=parse(exraw);assert len(export['model']['tables'])==34
+assert all(t['instances'][0]['instance_name']=='' for t in export['model']['tables'])
+for t in export['model']['tables']:
+ if t['name']=='ProblemDescription':rows(t)[0][0]=PD
+ if t['name']=='SystemTransfer':rows(t)[0][3]=10.5
+export_rows=sum(len(rows(t)) for t in export['model']['tables']);export_cells=sum(sum(map(len,rows(t))) for t in export['model']['tables'])
+assert (export_rows,export_cells)==(40,407)
+parentlines=(RUN/'between.log').read_text(encoding='utf-8-sig').splitlines()
+controllines=(RUN/'control.log').read_text(encoding='utf-8-sig').splitlines()
+assert len(parentlines)==117 and len(controllines)==110
+assert parentlines[:39]==controllines[:39]
+assert controllines[58]=='   ' and parentlines[65].startswith('Time: 10.5 ') and parentlines[66].startswith('Time: 19 ')
+prefix=controllines[:59]
+departure=['Time: 10.5 <TEACH-AIR-01,0> nbr ready decreased at unit: <TEACH-UNIT at <BASE-01,0>>','Time: 10.5 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>.']
+arrival=[line.replace('Time: 10.5 ','Time: 11 ',1) for line in parentlines[60:66]]
+tail=parentlines[66:]
+optional=[{'id':'departure_empty_ready_list','lines':['Time: 10.5 <TEACH-UNIT at <BASE-01,0>> systems ready: 0 :'],'min':0,'max':1,'location':'after departure, before arrival; if present before optional priority block'}, {'id':'departure_empty_priority_list','lines':['Time: 10.5 <TEACH-AIR-01,BASE-01,0> Repair task priority list: ','   '],'min':0,'max':1,'location':'after departure and any empty-ready-list, before arrival'}]
+# Core family counts remain fixed; optional diagnostics do not authorize extra business effects.
+fixed=prefix+departure+arrival+tail
+timed=[s for s in fixed if s.startswith('Time: ')]
+assert len([s for s in fixed if 'system transfered out:' in s])==len([s for s in fixed if 'system transfered in:' in s])==1
+ready=[]
+locations={0:('TEACH-UNIT','BASE-01'),1:('TEACH-UNIT-2','BASE-02')};counts={'TEACH-UNIT':0,'TEACH-UNIT-2':0};active=set();transit=set()
+for line in timed:
+ m=re.fullmatch(r'Time: ([\d.]+) <TEACH-AIR-01,([01])> nbr ready (increased|decreased) at unit: <(TEACH-UNIT(?:-2)?) at <(BASE-0[12]),0>>',line)
+ if m:
+  tm,sid,direction,unit,base=m.groups();sid=int(sid);tm=float(tm)
+  if direction=='increased':
+   assert sid not in active
+   if tm==11:assert sid==0 and sid in transit;transit.remove(sid);locations[sid]=(unit,base)
+   assert locations[sid]==(unit,base);active.add(sid);counts[unit]+=1
+  else:
+   assert sid in active and locations[sid]==(unit,base);active.remove(sid);counts[unit]-=1
+   if tm==10.5:assert sid==0;transit.add(sid)
+  assert all(0<=q<=2 for q in counts.values()) and sum(counts.values())==len(active)
+  ready.append({'time':tm,'system':sid,'unit':unit,'base':base,'direction':direction,'unit_ready_after':dict(counts),'ready_systems_after':sorted(active),'transit_after':sorted(transit)})
+assert counts=={'TEACH-UNIT':0,'TEACH-UNIT-2':2} and active=={0,1} and not transit
+source_rows=sum(len(rows(t)) for t in tables);source_cells=sum(sum(map(len,rows(t))) for t in tables)
+assert (source_rows,source_cells)==(22,223)
+contract={
+ 'design_revision':2,'excluded_design_failure':{'source':pin(old.read_bytes()) if False else {'bytes':16564,'sha256':'ec2cfe7e6fe98dcd39e0db3fb171d48851ee03a7b41129c39cb027b16cd3e7e7'},'original_stderr':{'bytes':626,'sha256':'ecbcb59655df9e090fdf5758522abbb2b9202b9d49f480828aff3bb452945826'},'reason':'Pure design v1 incorrectly assumed report instance labels empty; original exit1 retained, no native/case construction.'},'schema':'issue18-i04-var03-prospective-contract/v1','version':'1.0.0','state':'DRAFT_REQUIRES_INDEPENDENT_GO_NO_CASE_CONSTRUCTION_NO_NATIVE','case':'I04','variant':'I04.var03','package':'I04-var03-idle-system-between-v1.0.0','run_id':'i04-var03-idle-system-between-v100-ssh-20261008-01','base':BASE,
+ 'selection':{'path':str(sel.relative_to(R)).replace('\\','/'),**pin(sel.read_bytes())},'parent':{'publication_id':'I04.var01.system_between_explicit_units.1.0.0','package':P.name,'run_id':RUN.name,'selected_check_count':439,'all4044_cells_independently_derived_here':True,'accepted_native_or_legacy_checker_reruns':0},
+ 'custody':'All76 accepted disk/Git references and114 mandatory originals are retained by exact selection pins; CRLF/LF identities remain separate; normalization never implies byte equality.',
+ 'manual':{'physical_pages':[225,480,481],'dictionary_lines':[828,829,830,831,832,833,834,835],'installed_pins':selection['installed_refs'],'rule':'Take only ready systems; TFTIME is authored request time, TFDT is departure-to-arrival; not a general timing or priority law.'},
+ 'source':{'tables':34,'rows':22,'cells':223,'changes':source_changes,'database_version':20160627,'numeric_rule':'Input types recursively exact; key flags and all remaining metadata/cells identical to accepted parent.'},
+ 'roundtrip':{'tables':34,'rows':40,'cells':407,'all_null_default_placeholder_rows':18,'rule':'Every key/schema/instance/row/cell equals prospective export oracle; JSON integer/double numeric equality only where declared datatype permits; bool never numeric.'},
+ 'behavior':{'request_source_only':10.5,'ready_since':10,'departure':10.5,'arrival':11,'TFDT':0.5,'TFQTY':1,'system_id':0,'source_unit':'TEACH-UNIT','source_base':'BASE-01','target_unit':'TEACH-UNIT-2','target_base':'BASE-02','other_system_id':1,'first_mission':[8,10],'first_task':[8.5,9.5],'second_allocation':19,'second_mission':[20,22],'second_task':[20.5,21.5],'mission_system_order':[[0,1],[1,0]],'terminal':{'physical_roster':2,'source_ready':0,'target_ready':2,'in_transit':0,'assigned':0,'failed':0,'repair':0,'PM':0},'source_request_not_logged':True,'ready_ledger':ready,'conservation':'Physical roster2 always; in-unit1 only during transit; ready+assigned+transit2. No nominal stock inferred.'},
+ 'full_log':{'header':['SIMLOX LOG FILE','36'],'fixed_prefix':prefix,'departure':departure,'optional_departure_diagnostics':optional,'arrival':arrival,'fixed_tail':tail,'fixed_lines':len(fixed),'fixed_timed':len(timed),'total_lines_allowed':[len(fixed),len(fixed)+1,len(fixed)+2,len(fixed)+3],'timed_lines_allowed':[len(timed),len(timed)+1,len(timed)+2],'strict_rule':'Match entire sequence including continuations. Enumerate exactly four combinations of optional blocks in declared order. No other lines, repeats, objects, times, counters or metadata allowed. Each optional block is diagnostic-only; semantic/cardinality ledger unchanged.','epistemic_limit':'No accepted idle departure trace establishes diagnostic placement/count. Optional zero-ready and empty-priority blocks are a prospective bounded grammar hypothesis, not established accepted behavior. Any other transcript is NO_GO and preserved; never broaden grammar after observing it in this version.','negative_requirements':['early h10 departure','late arrival','wrong system/unit/base','extra out/in/readiness increment','duplicate lifecycle or mission task','same ID assigned/transit/ready simultaneously','unknown continuation','extra optional block','optional ownership/time/count/order mismatch','missing/added failures or PM','missing terminal ready pool','out-of-order timestamp']},
+ 'report':{'tables':4,'cells_per_arm':4044,'topology':['ProblemDescription1x1','ResultSummary1x11','SystemResults72x40','StockTotalResults72x16'],'schema':'Accepted parent report metadata frozen; all cells regenerated from declared source and interval integration, never copied as values.','numbers':'Exact numeric equality, bool forbidden; null/string exact. No global tolerance.','parse':'Original CRLF bytes retained and hashed. Reject duplicate keys/nonfinite. Remove exactly one literal final-table comma CRLF marker in memory only. Width/key/schema/instance/order exact.','intervals':'Half-hour bins [i/2,(i+1)/2), i0..71; interval overlap integration. Assigned2 on[7,10),[19,22); flying2 on[8,10),[20,22); reserved2 on[7,8),[19,20); in-unit2 minus transit1; ready=in-unit-assigned.','system_nonzero':'NSYRY ready, NSYMA assigned, NSYMO flying, NSYMR reserved, NSYA in-unit, FTMO=flying/2, STACC=flying; labels/times exact; SYDT null, all other System fields0. STACC is per-bin accepted presentation, not mission-start count.','stock':'Times exact; PNB1 (no stocked items; presentation only), NBO/NDF/NDD/NDR/NDP/NLD/NWT0; NBOU/ROS/ROST/WT/WTT/WTS null.','summary':[1,0,36,1,0,1,0,1,0,1,0],'integrals':integrals,'paired_differences':diff,'unchanged_cells':4039},
+ 'gates':['Independent exact prospective contract GO before author construction','Author pure generator/validator/runner plus independent implementation and meaningful negative tests','Freeze source, execution manifest and original-custody inventory; no overwrite','Actual SSH session0 PowerShell5 -File pure preflight, no SIMLOX child; preserve original exit/stdout/stderr and hashes','Fresh independent GO bound to exact changed files/preflight, fresh ownership/refs/GUI PID13340 session1 start1790590196826, unique absent directory','One root-owned native run, existing Global\\SimloxIssue18NativeQueue held nonblocking throughout; recheck GUI/process/session before/after each native step; no timeout/termination/retry','Import/export/calculation/report complete naturally; all logs/exit/raw files/source closure preserved even failure','Independent sealed full source/export/log/ledger/all4044 cells/pair replay and content GO','Explicit paths only; exact staged and remote review before authorized simlox/main PR/merge; product main unchanged'],
+ 'scope_exclusions':['General idle-transfer or priority law','person identity','fault/PM retention','GUI observation','cross-engine equivalence','performance','K01/K08 remain blocked without retries','I07 opening-stock-three remains excluded','overall Issue18 remains unfinished'],
+ 'created_utc':dt.datetime.now(dt.timezone.utc).isoformat()
+}
+O.mkdir()
+save('parent-report-oracle.json',dump(parent_oracle));save('child-report-oracle.json',dump(child_oracle));save('child-roundtrip-oracle.json',dump(export))
+contract['oracle_files']={n:pin((O/n).read_bytes()) for n in ['parent-report-oracle.json','child-report-oracle.json','child-roundtrip-oracle.json']}
+save('contract.json',dump(contract))
+save('design-proof.json',dump({'decision':'FULL_PARENT4044_EXACT_NUMERIC_AND_SCHEMA_MATCH_PROSPECTIVE_CHILD_ONLY','parent_report_raw':pin(raw),'source_changes':source_changes,'report_differences':diff,'cells':cells,'source_rows':source_rows,'source_cells':source_cells,'export_rows':export_rows,'export_cells':export_cells,'fixed_log_lines':len(fixed),'fixed_timed':len(timed),'integrals':integrals,'contract':pin((O/'contract.json').read_bytes()),'design_source':pin(Path(__file__).read_bytes()),'native_calls':0,'legacy_checker_calls':0}))
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'directory':str(O),'contract':pin((O/'contract.json').read_bytes()),'proof':pin((O/'design-proof.json').read_bytes()),'cells':cells,'report_differences':diff,'fixed_log_lines':len(fixed),'fixed_timed':len(timed)}))

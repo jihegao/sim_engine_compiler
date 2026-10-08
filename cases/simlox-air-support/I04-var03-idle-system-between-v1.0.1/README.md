@@ -1,0 +1,9 @@
+# I04.var03 prospective idle BETWEEN transfer
+
+This package tests one fixed source change from the accepted I04.var01 `between` arm: `SystemTransfer.TFTIME` moves from 8.5 to 10.5 hours and `ProblemDescription.PDESC` identifies the new case. The source system is ready from hour 10. The predeclared child trace requires departure at 10.5, arrival after `TFDT=0.5` at hour 11, and the same two-aircraft group mission at hours 20–22.
+
+The [prospective contract](prospective-contract.json) and [execution binding](execution-contract.json) predate any child native run. Four exact transcript forms accommodate only two bounded, unobserved diagnostic blocks at departure. The report oracle checks every one of 4,044 cells per arm and exactly five paired differences. The accepted parent remains byte-pinned and is never rerun for this case.
+
+Source checks and pure fixtures are read-only by default. The unique native run is reserved for root after frozen methods, actual SSH session 0 preflight and fresh independent launch approval. No current construction or pure test result is a native acceptance claim. See [reproduction steps](REPRODUCTION.md).
+
+The earlier v1.0.0 package is preserved as an excluded, zero-native prelaunch history. This v1.0.1 package has a separate run ID and an explicit route for later package-root publication files; a final evidence index must pin every file actually published. Two original app-context snapshots that contain unrelated chats remain mandatory local evidence. Only their case-specific filtered derivatives enter this package, with separate original and derivative hashes.

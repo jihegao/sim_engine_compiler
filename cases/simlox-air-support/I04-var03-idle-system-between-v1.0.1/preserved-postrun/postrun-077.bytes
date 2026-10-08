@@ -1,0 +1,65 @@
+"""Root natural-completion seal, exact recovered copy and independent replay capture."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,sys,uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+RUN='i04-var03-idle-system-between-v101-ssh-20261008-01';N=C/'runs'/RUN
+G=R/'tmp/issue18-next-owner-guard-20261008.ps1';READER=C/'review/independent_replay.py'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+assert len(sys.argv)==1 and N.is_dir() and not (N/'failure-seal.json').exists()
+manifest=load(C/'prelaunch-manifest.json');approval=load(C/'review/independent-prelaunch-go.json')
+assert approval['decision']=='GO_PRELAUNCH' and approval['run_id']==RUN
+assert approval['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+sources={r['key']:pin(Path(r['path'])) for r in manifest['source_files']}
+assert all(sources[r['key']]=={k:r[k] for k in ['bytes','sha256']} for r in manifest['source_files'])
+assert approval['independent_replay_sha256']==pin(READER)['sha256']
+closure=load(N/'closure.json')
+assert closure['run_id']==RUN and closure['error'] in (None,'') and closure['step_error'] in (None,'')
+assert len(closure['raw'])==23
+assert {p.name for p in N.iterdir()}==set(closure['raw'])|{'invocation.json','closure.json'}
+assert all(p.is_file() and not p.is_symlink() for p in N.iterdir())
+assert pin(N/'invocation.json')['sha256']==closure['invocation_sha256']
+assert all(pin(N/name)==record for name,record in closure['raw'].items())
+O=R/'tmp/i04-var03-root-sealed-replay-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False)
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',G.as_posix()]
+assert pin(G)['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+with (O/'guard-stdout.bin').open('xb') as out,(O/'guard-stderr.bin').open('xb') as err:
+ gcode=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+guard_receipt={'argv':argv,'actual_exit':gcode,'guard':pin(G),'streams':{n:pin(O/n) for n in ['guard-stdout.bin','guard-stderr.bin']}}
+(O/'guard-receipt.json').write_bytes((json.dumps(guard_receipt,indent=2)+'\n').encode())
+assert type(gcode) is int and gcode==0 and (O/'guard-stderr.bin').stat().st_size==0
+g=json.loads((O/'guard-stdout.bin').read_bytes().decode('utf-8-sig'))
+assert g['ssh_present'] is True and g['sshd_ancestor'] is True and g['self_session']==0 and g['powershell_major']==5
+assert g['mutex_free'] is True and g['runner_candidates']==[] and g['session_query_exit']==0 and g['active_gui_session1_count']==1
+assert len(g['native'])==1
+p=g['native'][0];assert p['pid']==13340 and p['session']==1 and p['start_ms']==1790590196826 and p['responding'] is True
+originals={p.name:pin(p) for p in N.iterdir()}
+recovered=O/'recovered-evidence';recovered.mkdir(exist_ok=False)
+for p in sorted(N.iterdir()):
+ p.chmod(stat.S_IREAD)
+ with (recovered/p.name).open('xb') as f:f.write(p.read_bytes())
+ (recovered/p.name).chmod(stat.S_IREAD)
+assert {p.name:pin(p) for p in recovered.iterdir()}==originals
+cmd=[sys.executable,'-X','utf8','-B',str(READER),'--evidence-dir',str(recovered)]
+before={'root':pin(Path(__file__)),'reader':pin(READER),'manifest':pin(C/'prelaunch-manifest.json')}
+started=utc()
+with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+ code=subprocess.run(cmd,cwd=R,stdout=out,stderr=err).returncode
+after={'root':pin(Path(__file__)),'reader':pin(READER),'manifest':pin(C/'prelaunch-manifest.json')}
+sources_after={r['key']:pin(Path(r['path'])) for r in manifest['source_files']}
+originals_after={p.name:pin(p) for p in N.iterdir()}
+d={'schema':'issue18-i04-var03-root-sealed-independent-replay/v1','run_id':RUN,'argv':cmd,'actual_exit':code,'started_utc':started,'completed_utc':utc(),'guard_receipt':pin(O/'guard-receipt.json'),'method_before':before,'method_after':after,'source_map_unchanged':sources==sources_after,'originals_before':originals,'originals_after':originals_after,'copy':str(recovered),'streams':{n:pin(O/n) for n in ['stdout.bin','stderr.bin']},'native_dispatch':False}
+(O/'receipt.json').write_bytes((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():
+ if p.is_file():p.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'actual_exit':code,'sources_unchanged':sources==sources_after,'originals_unchanged':originals==originals_after,'methods_unchanged':before==after}))
+for name in ['stdout.bin','stderr.bin']:
+ if (O/name).stat().st_size:print((O/name).read_bytes().decode('utf-8-sig',errors='replace')[:12000])
+assert before==after and sources==sources_after and originals==originals_after
+assert type(code) is int and code==0 and (O/'stderr.bin').stat().st_size==0
+assert load(O/'stdout.bin')['decision']=='GO_BOUNDED'

@@ -1,0 +1,10 @@
+# Independent canonical audit capture correction
+
+The earlier `tmp/i04-var03-v101-independent-canonical-audit-v1-limit-20261008.md` says the syntax-failed auditor had only decoded tool output. That statement is superseded for the captured invocation below. Keep the earlier note as history; do not treat it as the custody decision.
+
+- Failed auditor source: `tmp/i04-var03-v101-independent-canonical-audit-v1-syntax-failure-20261008.py`, 3,582 bytes, SHA-256 `267cae2bc4d094d4dafb3dedbad7d595ec2e881d5e9a3570378145b4ff626a27`.
+- Original capture: `tmp/i04-var03-v101-independent-local-canonical-20261008T054349832044Z-45cae792/receipt.json`, 640 bytes, SHA-256 `f97665ea1eb1491ff06bf7f41cda96f0feed984f7beb3029293d4ddff36965be`. It records actual exit 1, unchanged source, empty original stdout, and original stderr 395 bytes/SHA-256 `68f5fa2b7675984610e9255007999f7a0d52270fade2a7fa60bf3537ebc30d1e`. The syntax error occurred before audit assertions. This was an audit-source failure, not a SIMLOX native failure.
+- Corrected auditor source: `tmp/i04-var03-v101-independent-canonical-audit-20261008.py`, 3,583 bytes, SHA-256 `c6d8743be19c88e78c1686b8d4341a56a335337bfd804a672ff86823911aa443`.
+- Corrected original capture: `tmp/i04-var03-v101-independent-local-canonical-20261008T054406763932Z-5dbcb8c8/receipt.json`, actual exit 0, unchanged source, original stdout 365 bytes/SHA-256 `a6410fd961247f7f631380f99bc0bf2a090f9294741f489f4107b225ea17eee7`, empty original stderr.
+
+These are separate local read-only audit invocations. Neither called native SIMLOX or changed accepted or new run evidence. Any earlier uncaptured tool display remains decoded-only; it does not negate the later original captured failure and correction.

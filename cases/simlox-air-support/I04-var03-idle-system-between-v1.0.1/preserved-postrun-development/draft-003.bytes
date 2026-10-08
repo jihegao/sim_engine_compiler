@@ -1,0 +1,159 @@
+"""Own small original phase and audit proofs, excluding private app snapshots."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from model_common import encode, pin, read, verify_expected
+from source_gate import HERE, REPO
+
+ROOT_LIST = REPO / "tmp/i04-var03-root-postrun-context-list-20261008.json"
+ROOT_LIST_PIN = {"bytes": 25616, "sha256": "af58dcd0f1402c11e7f79ef971cc1007d56ec3a7c374470b307e1d2c9a1d5c29"}
+ORIGINALS = HERE / "postrun-context-originals.json"
+DEST = HERE / "preserved-postrun"
+MAP = DEST / "custody.json"
+SUMMARY = HERE / "postrun-context-custody.json"
+DEV_DEST = HERE / "preserved-postrun-development"
+DEV_MAP = DEV_DEST / "custody.json"
+DEVELOPMENT = (
+    "tmp/i04-var03-v101-independent-canonical-audit-v1-syntax-failure-20261008.py",
+    "tmp/i04-var03-v101-independent-canonical-audit-20261008.py",
+    "tmp/i04-var03-v101-independent-canonical-audit-v1-limit-20261008.md",
+)
+EXTRA = (
+    "tmp/i04-var03-root-postrun-context-list-20261008.json",
+    "tmp/i04-var03-root-postrun-context-list-20261008.py",
+    "tmp/i04-var03-v101-save-provisional-manifest-20261008.py",
+    "tmp/i04-var03-v101-provisional-manifest-with-private-pins-20261008.json",
+    "tmp/i04-var03-v101-build-pure-originals-20261008.py",
+    "tmp/i04-var03-v101-pure-originals-20261008.json",
+    "tmp/i04-var03-v101-author-freeze-ready-20261008.py",
+    "tmp/i04-var03-v101-author-freeze-handoff-race-20261008.md",
+    "tmp/i04-var03-v101-owned-inventory-preview-20261008.json",
+    "tmp/i04-var03-v101-independent-postrun-audit-20261008.py",
+    "tmp/i04-var03-v101-independent-local-postrun-20261008T065554641537Z-66c6bd88/receipt.json",
+    "tmp/i04-var03-v101-independent-local-postrun-20261008T065554641537Z-66c6bd88/stdout.bin",
+    "tmp/i04-var03-v101-independent-local-postrun-20261008T065554641537Z-66c6bd88/stderr.bin",
+)
+FORBIDDEN_NAMES = ("i04-var03-resume144-live-context-20261008.json",
+                   "i04-var03-preflight-live-context-20261008.json")
+
+
+def record(path, role):
+    absolute = path.resolve(strict=True)
+    assert absolute.is_file() and absolute.name not in FORBIDDEN_NAMES
+    return {"path": str(absolute), **pin(absolute), "role": role}
+
+
+def prepare():
+    assert pin(ROOT_LIST) == ROOT_LIST_PIN
+    curated = read(ROOT_LIST)
+    assert curated["original_count"] == len(curated["records"]) == 86
+    rows = []
+    for row in curated["records"]:
+        got = record(Path(row["path"]), "curated_root_phase")
+        assert {key: got[key] for key in ("path", "bytes", "sha256")} == {
+            key: row[key] for key in ("path", "bytes", "sha256")}
+        rows.append(got)
+    seen = {row["path"].lower() for row in rows}
+    for relative in EXTRA:
+        got = record(REPO / relative, "additive_author_independent_context")
+        if got["path"].lower() not in seen:
+            rows.append(got)
+            seen.add(got["path"].lower())
+    assert len(rows) == len(seen)
+    assert all(Path(row["path"]).name not in FORBIDDEN_NAMES for row in rows)
+    value = {"schema": "i04-var03-v101-postrun-context-originals/v1",
+             "curated_root_records": 86, "original_count": len(rows),
+             "private_full_app_snapshots_excluded": True, "records": rows}
+    return verify_expected(ORIGINALS, encode(value), True)
+
+
+def candidate(write=False):
+    source = read(ORIGINALS)
+    assert source["schema"] == "i04-var03-v101-postrun-context-originals/v1"
+    assert source["curated_root_records"] == 86
+    assert source["original_count"] == len(source["records"])
+    assert source["private_full_app_snapshots_excluded"] is True
+    if write:
+        DEST.mkdir(exist_ok=True)
+    records = []
+    for number, row in enumerate(source["records"]):
+        original = Path(row["path"])
+        expected = {key: row[key] for key in ("bytes", "sha256")}
+        assert original.name not in FORBIDDEN_NAMES
+        if original.exists():
+            assert pin(original) == expected
+        owned = DEST / f"postrun-{number:03d}.bytes"
+        if write:
+            assert original.exists()
+            verify_expected(owned, original.read_bytes(), True)
+        else:
+            assert pin(owned) == expected
+        records.append({"original_path": row["path"],
+                        "owned_copy": owned.relative_to(HERE).as_posix(),
+                        **expected, "role": row["role"],
+                        "original_if_present_must_match": True})
+    assert len({row["owned_copy"] for row in records}) == len(records)
+    mapping = {"schema": "i04-var03-v101-preserved-postrun-custody/v1",
+               "records": records, "originals_optional_after_publication": True,
+               "private_full_app_snapshots_excluded": True}
+    map_pin = verify_expected(MAP, encode(mapping), write)
+    summary = {"schema": "i04-var03-v101-postrun-context-custody/v1",
+               "original_count": len(records), "owned_copy_count": len(records),
+               "originals_manifest": {"path": ORIGINALS.name, **pin(ORIGINALS)},
+               "owned_map": {"path": MAP.relative_to(HERE).as_posix(),
+                             "bytes": map_pin["bytes"], "sha256": map_pin["sha256"]},
+               "private_full_app_snapshots_excluded": True}
+    result = verify_expected(SUMMARY, encode(summary), write)
+    assert result["exists"]
+    return {"schema": summary["schema"], "records": len(records),
+            "map_sha256": map_pin["sha256"], "summary_sha256": result["sha256"],
+            "native_calls": 0}
+
+
+def development(write=False):
+    if write:
+        DEV_DEST.mkdir(exist_ok=True)
+    records = []
+    for number, relative in enumerate(DEVELOPMENT):
+        original = (REPO / relative).resolve(strict=True)
+        expected = pin(original)
+        owned = DEV_DEST / f"draft-{number:03d}.bytes"
+        if write:
+            verify_expected(owned, original.read_bytes(), True)
+        else:
+            assert pin(owned) == expected
+        records.append({"original_path": str(original),
+                        "owned_copy": owned.relative_to(HERE).as_posix(),
+                        **expected, "original_if_present_must_match": True,
+                        "capture_limit": ("decoded_tool_error_only" if number == 0 else
+                                          "source_or_explanatory_note")})
+    value = {"schema": "i04-var03-v101-postrun-development-custody/v1",
+             "records": records, "first_draft_executed_and_failed_before_assertions": True,
+             "first_draft_original_binary_streams_captured": False,
+             "originals_optional_after_publication": True}
+    result = verify_expected(DEV_MAP, encode(value), write)
+    assert result["exists"]
+    return {"schema": value["schema"], "records": len(records),
+            "sha256": result["sha256"], "native_calls": 0}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--prepare", action="store_true")
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--write-development", action="store_true")
+    args = parser.parse_args()
+    assert sum((args.prepare, args.write, args.write_development)) <= 1
+    if args.prepare:
+        print(json.dumps({"schema": "i04-var03-v101-postrun-context-originals/v1",
+                          "manifest": prepare(), "native_calls": 0}, sort_keys=True))
+    elif args.write_development:
+        print(json.dumps(development(True), sort_keys=True))
+    else:
+        result = candidate(args.write)
+        if DEV_MAP.exists():
+            result["development"] = development(False)
+        print(json.dumps(result, sort_keys=True))

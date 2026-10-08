@@ -1,0 +1,73 @@
+"""Exact small copies of one failed and one passed local PURE proof."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from model_common import encode, pin, read, verify_expected
+
+HERE = Path(__file__).resolve().parent
+DEST = HERE / "preserved-pure-proof"
+MAP = HERE / "pure-proof-custody.json"
+DIRECTORIES = (
+    "local-pure-20261008T044504331488Z-a87539e5",
+    "local-pure-20261008T044653576126Z-31887721",
+)
+NAMES = (
+    ("build-stdout.bin", "build-stderr.bin", "context-stdout.bin", "context-stderr.bin",
+     "source-stdout.bin", "source-stderr.bin", "selfcheck-stdout.bin", "selfcheck-stderr.bin",
+     "converter-stdout.bin", "converter-stderr.bin", "receipt.json"),
+    ("build-stdout.bin", "build-stderr.bin", "context-stdout.bin", "context-stderr.bin",
+     "source-stdout.bin", "source-stderr.bin", "selfcheck-stdout.bin", "selfcheck-stderr.bin",
+     "converter-stdout.bin", "converter-stderr.bin", "inventory-stdout.bin", "inventory-stderr.bin",
+     "manifest-stdout.bin", "manifest-stderr.bin", "receipt.json"),
+)
+
+
+def candidate(write=False):
+    records = []
+    number = 0
+    for directory, names in zip(DIRECTORIES, NAMES):
+        for name in names:
+            original = HERE / "test-output" / directory / name
+            body = original.read_bytes()
+            owned = DEST / f"pure-{number:02d}.bytes"
+            if write:
+                DEST.mkdir(exist_ok=True)
+            verify_expected(owned, body, write)
+            records.append({"original_path": str(original.resolve(strict=True)),
+                            "owned_copy": str(owned.relative_to(HERE)).replace("\\", "/"),
+                            "bytes": len(body), "sha256": pin(original)["sha256"],
+                            "original_if_present_must_match": True})
+            number += 1
+    assert number == 26
+    body = encode({"schema": "i04-var03-pure-proof-custody/v1", "records": records,
+                   "first_proof_decision": "FAILED_SYNTHETIC_GET_FILEHASH_AUTOLOAD",
+                   "second_proof_decision": "PASSED_PURE_NO_NATIVE",
+                   "originals_optional_after_publication": True})
+    result = verify_expected(MAP, body, write)
+    return {"schema": "i04-var03-pure-proof-copy/v1", "copies": number, "map": result}
+
+
+def verify():
+    mapping = read(MAP)
+    assert mapping["schema"] == "i04-var03-pure-proof-custody/v1"
+    assert len(mapping["records"]) == 26
+    for row in mapping["records"]:
+        expected = {"bytes": row["bytes"], "sha256": row["sha256"]}
+        assert pin(HERE / row["owned_copy"]) == expected
+        original = Path(row["original_path"])
+        if original.exists():
+            assert pin(original) == expected
+    return len(mapping["records"])
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    args = parser.parse_args()
+    if args.write:
+        print(json.dumps(candidate(True), sort_keys=True))
+    else:
+        print(json.dumps({"schema": "i04-var03-pure-proof-check/v1", "copies": verify()}, sort_keys=True))

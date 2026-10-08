@@ -1,0 +1,7 @@
+# Independent WTS state interpretation
+
+The native dispatch hold in `independent-prelaunch-guard-hold-2026-10-08.md` remains in force. Root's later read-only structured WTS query confirms why the guard counted zero active GUI sessions: session 1 had `connect_state:4`, `connect_state_name:"WTSDisconnected"` at 05:50:52 UTC. The SIMLOX GUI was still responsive with PID 13340, session 1 and start 1790590196826; process responsiveness does not establish an active interactive session.
+
+Original WTS capture receipt `tmp/i04-var03-root-wts-state-v101-20261008/20261008T055051203226Z-8beabd9d/receipt.json` is 1,021 bytes, SHA-256 `af45bc48de81602ac9b444e0088d0f254e19f5fa42ca5d6782f4fe6429f441ad`; stdout is 513 bytes, SHA-256 `4e77ecdae20a2862f93127c2b2008472e81e717de25cb4804b9dadcf152d330f`; stderr is empty and actual exit is integer 0. It records `session_changes:0` and `simlox_calls:0`. A separate `qwinsta` text diagnostic had encoding ambiguity, so the structured WTS state supplies the exact state value.
+
+Recovery is a real reconnection of the same protected session 1, followed by a fresh structured WTS observation and the original strict SSH guard reporting one active GUI session 1, the same SIMLOX PID/start identity, free mutex and no runner immediately before dispatch. No reviewer method, approval, manifest, source or guard rule changes are justified by this environment state. No native call has occurred for this case.

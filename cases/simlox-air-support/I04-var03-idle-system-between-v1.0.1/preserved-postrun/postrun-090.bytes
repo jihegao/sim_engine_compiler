@@ -1,0 +1,37 @@
+"""Pin 21 already captured original PURE files, without executing methods."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+PKG = REPO / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+OUT = REPO / "tmp/i04-var03-v101-pure-originals-20261008.json"
+AUTHOR = PKG / "test-output/local-pure-20261008T053755208938Z-8bb28564"
+ROOT_PROOF = REPO / "tmp/i04-var03-root-phases-v101-20261008"
+FIXTURE = ROOT_PROOF / "independent-fixture-20261008T053826103613Z-a398e41f"
+SELFCHECK = ROOT_PROOF / "independent-pure-20261008T053836231153Z-71545ad7"
+names = [f"{label}-{stream}.bin" for label in
+         ("build", "context", "source", "selfcheck", "converter", "inventory", "manifest")
+         for stream in ("stdout", "stderr")]
+names.append("receipt.json")
+paths = [*(AUTHOR / name for name in names),
+         *(FIXTURE / name for name in ("receipt.json", "stdout.bin", "stderr.bin")),
+         *(SELFCHECK / name for name in ("receipt.json", "stdout.bin", "stderr.bin"))]
+assert len(paths) == 21 and not OUT.exists()
+records = []
+for path in paths:
+    data = path.read_bytes()
+    records.append({"path": str(path.resolve(strict=True)), "bytes": len(data),
+                    "sha256": hashlib.sha256(data).hexdigest()})
+assert records[14]["sha256"] == "fc8114fbee654d72efe4d3e03bfea074933651697d4cb0cdc146d48e5de66f56"
+assert records[15]["sha256"] == "6cb3e682f41f46bb51a7e991bad57b7ec92c2818499a563551c5da0c3336947e"
+assert records[18]["sha256"] == "ad2cdfd41d7a4e02cc0aa31e22dd87e8bba28ae734ac5b288f7e08c92b5dbe10"
+doc = {"schema": "i04-var03-v101-pure-proof-originals/v1", "records": records}
+body = (json.dumps(doc, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+with OUT.open("xb") as stream:
+    stream.write(body)
+print(json.dumps({"schema": doc["schema"], "records": len(records), "path": str(OUT),
+                  "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(),
+                  "native_calls": 0}, sort_keys=True))

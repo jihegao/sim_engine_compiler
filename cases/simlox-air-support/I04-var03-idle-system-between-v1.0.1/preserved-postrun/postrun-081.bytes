@@ -1,0 +1,67 @@
+"""Isolated source-inventory routing fixture. No native or case run files."""
+from __future__ import annotations
+
+import importlib.util
+import json
+import shutil
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+PKG = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+spec = importlib.util.spec_from_file_location("v101_inventory", PKG / "make_source_inventory.py")
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+original = module.candidate(provisional=True)
+assert original["source_count"] == len(module.paths(provisional=True))
+
+with tempfile.TemporaryDirectory(prefix="i04-var03-v101-policy-", dir=ROOT / "tmp") as work:
+    fixture = Path(work)
+    for relative in module.paths(provisional=True):
+        target = fixture / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(PKG / relative, target)
+    module.HERE = fixture
+    stable = module.candidate(provisional=True)
+    assert stable["source_count"] == original["source_count"]
+    future = [*module.FUTURE_AUTHOR, *module.FUTURE_CUSTODY,
+              "preserved-postrun/postrun-000.bytes",
+              "preserved-postrun-development/draft-000.bytes",
+              "preserved-raw/raw-000.bytes",
+              "preserved-preflight/preflight-000.bytes",
+              *(prefix + "fixture.json" for prefix in module.FUTURE_REVIEW_PREFIXES)]
+    for relative in future:
+        target = fixture / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(b"pure publication routing fixture\n")
+    after = module.candidate(provisional=True)
+    assert [(x["relative_path"], x["bytes"], x["sha256"]) for x in after["source_files"]] == [
+        (x["relative_path"], x["bytes"], x["sha256"]) for x in stable["source_files"]]
+    unknown = fixture / "unreviewed-sibling.py"
+    unknown.write_bytes(b"must reject\n")
+    rejected = False
+    try:
+        module.candidate(provisional=True)
+    except AssertionError as exc:
+        rejected = "unlisted publishable source: unreviewed-sibling.py" in str(exc)
+    assert rejected
+    unknown.unlink()
+    nested = fixture / "preserved-context/runs/unreviewed.bytes"
+    nested.parent.mkdir(parents=True, exist_ok=True)
+    nested.write_bytes(b"must reject nested runtime alias\n")
+    rejected_nested = False
+    try:
+        module.candidate(provisional=True)
+    except AssertionError as exc:
+        rejected_nested = "unlisted publishable source: preserved-context/runs/unreviewed.bytes" in str(exc)
+    assert rejected_nested
+    assert not module.allowed_future("review/independent-content-x/anything")
+    assert not module.allowed_future("review/test-output/anything")
+
+print(json.dumps({"schema": "i04-var03-v101-future-source-policy-pure/v1",
+                  "source_count": original["source_count"],
+                  "intended_future_paths_accepted": len(future),
+                  "unknown_sibling_rejected": True,
+                  "nested_runtime_alias_rejected": True,
+                  "nested_review_alias_rejected": True,
+                  "native_calls": 0}, sort_keys=True))

@@ -1,0 +1,108 @@
+"""Four predeclared complete log forms and system-owner conservation."""
+from __future__ import annotations
+
+import argparse
+import itertools
+import json
+import re
+from pathlib import Path
+
+from model_common import read
+
+HERE = Path(__file__).resolve().parent
+CONTRACT = HERE / "prospective-contract.json"
+TIMED = re.compile(r"^Time: ([0-9]+(?:\.[0-9]+)?) ")
+
+
+def forms(spec):
+    blocks = spec["optional_departure_diagnostics"]
+    assert len(blocks) == 2 and all(b["min"] == 0 and b["max"] == 1 for b in blocks)
+    for yes_ready, yes_priority in itertools.product((False, True), repeat=2):
+        lines = list(spec["fixed_prefix"]) + list(spec["departure"])
+        if yes_ready:
+            lines += blocks[0]["lines"]
+        if yes_priority:
+            lines += blocks[1]["lines"]
+        lines += spec["arrival"] + spec["fixed_tail"]
+        yield (yes_ready, yes_priority), lines
+
+
+def ledger(lines, contract):
+    events = contract["behavior"]["ready_ledger"]
+    ready = {"TEACH-UNIT": set(), "TEACH-UNIT-2": set()}
+    assigned: set[int] = set()
+    transit: set[int] = set()
+    location = {0: ("TEACH-UNIT", "BASE-01"), 1: ("TEACH-UNIT-2", "BASE-02")}
+    intended_destination = {0: ("TEACH-UNIT-2", "BASE-02")}
+    observed = []
+    for index, line in enumerate(lines):
+        match = re.fullmatch(r"Time: ([0-9]+(?:\.[0-9]+)?) <TEACH-AIR-01,([01])> nbr ready (increased|decreased) at unit: <(TEACH-UNIT(?:-2)?) at <(BASE-0[12]),0>>", line)
+        if not match:
+            continue
+        time, id_text, direction, unit, base = match.groups()
+        sid = int(id_text)
+        hour = float(time)
+        if hour == 11 and direction == "increased" and sid == 0:
+            assert location[0] is None and 0 in transit
+            location[0] = intended_destination[0]
+        assert location[sid] == (unit, base), (index, "wrong unit/base")
+        if direction == "increased":
+            assert sid not in ready[unit]
+            if sid in transit:
+                assert hour == 11 and sid == 0
+                transit.remove(sid)
+            elif sid in assigned:
+                assigned.remove(sid)
+            else:
+                assert hour == 0
+            ready[unit].add(sid)
+        else:
+            assert sid in ready[unit]
+            ready[unit].remove(sid)
+            if hour == 10.5:
+                assert sid == 0 and not transit
+                transit.add(sid)
+            else:
+                assert hour in (7, 19) and sid not in assigned
+                assigned.add(sid)
+        observed.append({"time": hour, "system": sid, "unit": unit, "base": base,
+                         "direction": direction,
+                         "unit_ready_after": {u: len(s) for u, s in ready.items()},
+                         "ready_systems_after": sorted(set.union(*ready.values())),
+                         "transit_after": sorted(transit)})
+        if hour > 0:
+            assert sum(map(len, ready.values())) + len(assigned) + len(transit) == 2
+        if hour == 10.5:
+            location[0] = None
+    assert observed == events
+    terminal = contract["behavior"]["terminal"]
+    assert len(ready["TEACH-UNIT"]) == terminal["source_ready"] == 0
+    assert len(ready["TEACH-UNIT-2"]) == terminal["target_ready"] == 2
+    assert not assigned and not transit
+    assert location == {0: ("TEACH-UNIT-2", "BASE-02"), 1: ("TEACH-UNIT-2", "BASE-02")}
+    return {"ready_edges": len(observed), "terminal_source_ready": 0,
+            "terminal_target_ready": 2, "terminal_transit": 0, "terminal_assigned": 0}
+
+
+def validate(data: bytes):
+    contract = read(CONTRACT)
+    text = data.decode("utf-8-sig")
+    assert "\x00" not in text and "\r" not in text.replace("\r\n", ""), "unexpected control byte"
+    lines = text.splitlines()
+    assert text.endswith("\n"), "unterminated log"
+    choices = [(selection, expected) for selection, expected in forms(contract["full_log"]) if lines == expected]
+    assert len(choices) == 1, "full transcript outside four frozen forms"
+    selection, _ = choices[0]
+    hours = [float(m.group(1)) for line in lines if (m := TIMED.match(line))]
+    assert hours == sorted(hours) and len(hours) in contract["full_log"]["timed_lines_allowed"]
+    assert len(lines) in contract["full_log"]["total_lines_allowed"]
+    physical = ledger(lines, contract)
+    return {"schema": "i04-var03-event-ledger/v1", "lines": len(lines),
+            "timed_lines": len(hours), "optional_ready_zero": selection[0],
+            "optional_priority": selection[1], "physical": physical}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("log", type=Path)
+    print(json.dumps(validate(parser.parse_args().log.read_bytes()), sort_keys=True))

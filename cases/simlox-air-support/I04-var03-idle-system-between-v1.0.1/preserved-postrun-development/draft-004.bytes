@@ -1,0 +1,5 @@
+# Optional original path correction
+
+The first additive copy_postrun_context.py draft unconditionally resolved all three development originals with `strict=True` in its read-only `development(False)` path, despite declaring originals optional after publication. A fresh checkout without ignored tmp files would fail before verifying owned copies. This was found by static independent review; no failing command or original stdout/stderr byte capture is claimed. The exact draft bytes are preserved in `tmp/i04-var03-v101-copy-postrun-optional-original-gap.py.bytes`. The first three-record development custody map is preserved locally in `test-output/postrun-development-custody-v1-first.json` as construction history.
+
+The revised default uses the fixed literal path, checks an original only if present, and always hashes every owned copy and the custody map. This change does not alter mandatory accepted, native, preflight, or local-only private original categories.

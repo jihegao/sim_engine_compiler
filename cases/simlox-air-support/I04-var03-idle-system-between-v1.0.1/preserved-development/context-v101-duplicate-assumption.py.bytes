@@ -1,0 +1,92 @@
+"""Own the excluded v100 prelaunch history and exact v101 contract context."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from model_common import encode, pin, read, verify_expected
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+DEST = HERE / "preserved-context"
+MAP = HERE / "context-custody.json"
+V100 = REPO / "tmp/i04-var03-prospective-v101-20261008-01/v100-excluded-history.json"
+V100_PIN = {"bytes": 51665, "sha256": "f640cba6258b5a3d252f1c28353ffbc53c0eb3e6394707ea35c346c890d9eb3d"}
+EXTRA = (
+    "tmp/i04-var03-prospective-v101-20261008-01/v100-excluded-history.json",
+    "tmp/i04-var03-prospective-v101-20261008-01/contract.json",
+    "tmp/i04-var03-prospective-v101-20261008-01/selection.json",
+    "tmp/i04-var03-prospective-v101-20261008-01/identity-only-proof.json",
+    "tmp/i04-var03-prospective-v101-20261008.py",
+    "tmp/i04-var03-independent-publication-routing-no-go-20261008.md",
+    "tmp/i04-var03-independent-publication-routing-addendum-20261008.md",
+    "tmp/i04-var03-independent-v101-contract-audit-20261008.py",
+    "tmp/i04-var03-independent-v101-contract-audit-proof-20261008-01/receipt.json",
+    "tmp/i04-var03-independent-v101-contract-audit-proof-20261008-01/stdout.bin",
+    "tmp/i04-var03-independent-v101-contract-audit-proof-20261008-01/stderr.bin",
+    "tmp/i04-var03-independent-v101-contract-go-20261008.md",
+    "tmp/i04-var03-root-v101-method-preparation-20261008.py",
+    "tmp/i04-var03-root-v101-method-preparation-20261008.json",
+    "tmp/i04-var03-v101-copy-reviewed-template-v1-review-dir-assumption.py.bytes",
+    "tmp/i04-var03-v101-copy-reviewed-template-20261008.py",
+)
+
+
+def originals():
+    assert pin(V100) == V100_PIN
+    history = read(V100)
+    assert history["schema"] == "issue18-i04-var03-excluded-prelaunch-history/v1"
+    assert len(history["records"]) == 166
+    assert history["native_calls"] == 0 and history["actual_case_ssh_preflight_calls"] == 0
+    rows = [(Path(row["path"]), {"bytes": row["bytes"], "sha256": row["sha256"]}, "excluded_v100")
+            for row in history["records"]]
+    for relative in EXTRA:
+        path = REPO / relative
+        rows.append((path, pin(path), "v101_contract_context"))
+    assert len(rows) == 182 and len({str(path.resolve(strict=True)).lower() for path, _, _ in rows}) == 182
+    for path, expected, _ in rows:
+        assert pin(path) == expected, path
+    return rows
+
+
+def candidate(write=False):
+    records = []
+    if write:
+        DEST.mkdir(exist_ok=True)
+    for number, (source, expected, role) in enumerate(originals()):
+        target = DEST / f"context-{number:03d}.bytes"
+        body = source.read_bytes()
+        verify_expected(target, body, write)
+        records.append({"original_path": str(source.resolve(strict=True)),
+                        "owned_copy": target.relative_to(HERE).as_posix(),
+                        **expected, "role": role,
+                        "original_if_present_must_match": True})
+    mapping = {"schema": "i04-var03-v101-context-custody/v1",
+               "excluded_v100_records": 166, "additional_context_records": len(EXTRA),
+               "originals_optional_after_publication": True, "records": records}
+    result = verify_expected(MAP, encode(mapping), write)
+    return {"schema": "i04-var03-v101-context-copy/v1", "records": len(records),
+            "map": result, "native_calls": 0}
+
+
+def verify():
+    mapping = read(MAP)
+    assert mapping["schema"] == "i04-var03-v101-context-custody/v1"
+    assert mapping["excluded_v100_records"] == 166
+    assert mapping["additional_context_records"] == len(EXTRA)
+    assert len(mapping["records"]) == 182
+    assert sum(row["role"] == "excluded_v100" for row in mapping["records"]) == 166
+    for row in mapping["records"]:
+        expected = {"bytes": row["bytes"], "sha256": row["sha256"]}
+        assert pin(HERE / row["owned_copy"]) == expected
+        source = Path(row["original_path"])
+        if source.exists():
+            assert pin(source) == expected
+    return 182
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    print(json.dumps(candidate(parser.parse_args().write), sort_keys=True))

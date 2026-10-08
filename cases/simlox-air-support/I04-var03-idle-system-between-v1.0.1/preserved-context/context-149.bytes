@@ -1,0 +1,14 @@
+# Root read-only resume diagnostics
+
+On 2026-10-08, a root inspection command used `Get-Item .../review/* -File`.
+PowerShell reported `A parameter cannot be found that matches parameter name 'File'.`
+The next independent statement successfully reported the preserved live-context pin;
+the tool returned exit 0 overall. This is decoded tool output only: no original
+stdout/stderr streams were captured, so no original-stream byte hash is claimed.
+No case source, native process or run directory was changed by this inspection.
+Recovery is to inspect directories using `Get-ChildItem -File`.
+
+The previous formatted table also truncated the displayed context pin. The subsequent
+JSON observation is exact: 148636 bytes, SHA256
+713fec2917a2702a109c38f4c240e5d491f5cbeac4794fa09febfbe8d43218d7,
+read-only, at `tmp/i04-var03-resume144-live-context-20261008.json`.

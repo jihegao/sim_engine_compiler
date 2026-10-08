@@ -1,0 +1,41 @@
+"""Root-only one-shot phase capture. Invocation requires the phase's reviewed gate."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,sys,uuid
+R=Path(__file__).resolve().parents[1];C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+ACTIONS={'pure':['pure_proof.py','--capture'],'independent-pure':['review/independent_self_check.py'],'independent-fixture':['review/independent_replay.py','--pure-fixture'],'independent-preflight':['review/independent_replay.py','--pure-preflight'],'inventory':['make_source_inventory.py','--write'],'manifest':['make_prelaunch_manifest.py','--write'],'preflight':['ssh_transport.py','preflight'],'native':['ssh_transport.py','native']}
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+def load(p):return json.loads(p.read_bytes())
+assert len(sys.argv)==2 and sys.argv[1] in ACTIONS
+action=sys.argv[1];tool,*args=ACTIONS[action];path=C/tool;assert path.is_file()
+run=C/'runs/i04-var03-idle-system-between-v101-ssh-20261008-01'
+assert not run.exists(),'unique native run path already exists; no repeated run'
+if action=='inventory':assert not (C/'source-inventory.json').exists()
+if action=='manifest':assert (C/'source-inventory.json').is_file() and not (C/'prelaunch-manifest.json').exists()
+if action in ('independent-preflight','preflight','native'):assert (C/'prelaunch-manifest.json').is_file()
+if action=='native':
+ go=load(C/'review/independent-prelaunch-go.json')
+ assert go['decision']=='GO_PRELAUNCH' and go['run_id']==run.name
+ assert go['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+ assert go['runner_sha256']==pin(C/'run_native_ssh.ps1')['sha256']
+started=utc();stamp=dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
+O=R/'tmp/i04-var03-root-phases-v101-20261008'/f'{action}-{stamp}-{uuid.uuid4().hex[:8]}'
+O.mkdir(parents=True,exist_ok=False)
+argv=[sys.executable,'-X','utf8','-B',str(path),*args]
+before={'root_capture':pin(Path(__file__)),'invoked_method':pin(path)}
+code=None;error=None
+try:
+ with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+  code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+except Exception as exc:error=f'{type(exc).__name__}: {exc}'
+after={'root_capture':pin(Path(__file__)),'invoked_method':pin(path)}
+d={'schema':'issue18-i04-var03-root-phase-transport/v1','action':action,'argv':argv,'started_utc':started,'completed_utc':utc(),'actual_exit':code,'error':error,'method_before':before,'method_after':after,'streams':{n:pin(O/n) if (O/n).is_file() else None for n in ['stdout.bin','stderr.bin']},'native_dispatch':action=='native','expected_run_id':run.name,'run_exists_after':run.exists()}
+with (O/'receipt.json').open('xb') as f:f.write((json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'action':action,'actual_exit':code,'error':error,'streams':d['streams'],'method_unchanged':before==after,'run_exists_after':run.exists()}))
+for name in ['stdout.bin','stderr.bin']:
+ p=O/name
+ if p.is_file() and p.stat().st_size:print(p.read_bytes().decode('utf-8-sig',errors='replace')[:12000])
+raise SystemExit(code if type(code) is int else 1)
