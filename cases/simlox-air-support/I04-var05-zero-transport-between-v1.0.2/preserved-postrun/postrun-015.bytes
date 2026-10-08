@@ -1,0 +1,21 @@
+"""Preserve unreviewed draft1 and correct two descriptive identity strings."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+P=R/'tmp/i04-var05-prospective-recovery-v102-20261008.json'
+O=R/'tmp/i04-var05-prospective-recovery-v102-revision2-20261008.json'
+def pin(p):
+ b=p.read_bytes();return {'path':str(p.resolve(strict=True)),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+p=pin(P);assert p['sha256']=='7277ad06355d45d729fe867800a571612c765ca4ff0d47cc91a68e4da33af491'
+d=json.loads(P.read_bytes());old=json.loads((R/'tmp/i04-var05-prospective-recovery-v101-revision2-20261008.json').read_bytes())
+assert not O.exists() and not (R/d['proposed_package']).exists() and not Path(d['native_run_directory']).exists()
+assert d['selection_v102']['accepted_parent_unchanged']=='I04.var03.idle_between.1.0.1'
+d['selection_v102']['accepted_parent_unchanged']=d['parent']['publication_id']
+d['native_protocol']['native_run_directory_field']=old['native_protocol']['native_run_directory_field'].replace('v1.0.1','v1.0.2')
+d['design_revision']['preserved_unreviewed_v102_draft1']=p
+d['design_revision']['draft1_no_go_reason']='Redundant descriptive parent publication label omitted system; native_run_directory prose retained v1.0.1. Root caught both before independent contract review, construction, SSH or native. Authoritative parent/source/oracle bytes unchanged.'
+d['design_revision']['preserved_draft1_original_generator_proof']=pin(R/'tmp/i04-var05-recovery-design-proof-v102-20261008-01/receipt.json')
+for k in ('physical','source','roundtrip','full_log','report','manual','scope_exclusions'):assert d[k]==old[k]
+with O.open('xb') as f:f.write((json.dumps(d,ensure_ascii=False,sort_keys=True,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'decision':'RECOVERY_V102_REVISION2_CONTRACT_DESIGN_ONLY','contract':pin(O),'unchanged_sections':7,'native_calls':0}))

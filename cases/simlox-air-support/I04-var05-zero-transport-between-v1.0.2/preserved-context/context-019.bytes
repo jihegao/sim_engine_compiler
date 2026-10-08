@@ -1,0 +1,69 @@
+import hashlib
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent.parent
+OLD = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0/prospective-contract.json"
+NEW = ROOT / "tmp/i04-var05-prospective-recovery-v101-20261008.json"
+SEAL = ROOT / "tmp/i04-var05-root-failure-seal-v100-20261008-01/receipt.json"
+
+
+def read(path):
+    raw = path.read_bytes()
+    return json.loads(raw), len(raw), hashlib.sha256(raw).hexdigest()
+
+
+def differences(a, b, path=""):
+    if type(a) is not type(b):
+        return [path + " <type>"]
+    if isinstance(a, dict):
+        changes = [path + "/" + k + " <key>" for k in sorted(a.keys() ^ b.keys())]
+        for key in sorted(a.keys() & b.keys()):
+            changes.extend(differences(a[key], b[key], path + "/" + key))
+        return changes
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return [path + " <length>"]
+        changes = []
+        for n, (x, y) in enumerate(zip(a, b)):
+            changes.extend(differences(x, y, path + f"/{n}"))
+        return changes
+    return [] if a == b else [path]
+
+
+old, old_size, old_sha = read(OLD)
+new, new_size, new_sha = read(NEW)
+seal, _, seal_sha = read(SEAL)
+assert (old_size, old_sha) == (27398, "43f07d09395b0222b7903906dd6f01ad262dd05849f0878d67e9cd6bd3c29304")
+assert (new_size, new_sha) == (85505, "f21fa274af1eba21986ba4072c9a5dce2a7a6ca53c2ca769d55f0efc32ed6547")
+assert seal_sha == "c8514068cd89a88e217bc61b656ea7254fbb0a8de6ce50a7fbe0489ded7bb51f"
+
+all_diffs = differences(old, new)
+unchanged = ["physical", "source", "roundtrip", "full_log", "report", "manual", "decision_rule", "scope_exclusions"]
+for key in unchanged:
+    assert not differences(old[key], new[key]), key
+
+assert new["phase"] == "RECOVERY_CONTRACT_DESIGN_ONLY_NO_NATIVE_AUTHORIZATION"
+assert new["version"] == "1.0.1"
+assert new["proposed_package"].endswith("I04-var05-zero-transport-between-v1.0.1")
+assert new["proposed_run_id"] == "i04-var05-zero-transport-between-v101-ssh-20261008-01"
+run = Path(new["proposed_native_run_directory"])
+assert not run.exists()
+assert run == ROOT / "tmp/native-runs/i04v05-v101-20261008-01"
+line = ("File: " + str(run / "model.sxi").replace("\\", "/")).encode("ascii")
+assert len(line) == 121
+assert new["recovery"]["proposed_v101_converter_file_line"]["line_exact"].encode("ascii") == line
+assert new["recovery"]["proposed_v101_converter_file_line"]["ascii_bytes"] == 121
+assert new["recovery"]["proposed_v101_converter_file_line"]["max_ascii_bytes"] == 199
+
+originals = new["recovery"]["frozen_v100_failure_originals"]
+assert len(originals) == 34
+assert originals == seal["originals"]
+assert new["recovery"]["failed_v100_converter_file_line"]["observed_corrupt_tail_hex"] == "fa5827d9a210"
+assert new["recovery"]["v100_native_attempts"] == 1
+assert new["recovery"]["v100_native_retries"] == 0
+assert new["recovery"]["v100_behavior_acceptance"] is False
+assert new["recovery"]["v100_report_export_called"] is False
+
+print(json.dumps({"decision": "CONTRACT_AUDIT_PASS", "old_contract_sha256": old_sha, "new_contract_sha256": new_sha, "unchanged_sections": unchanged, "diff_count": len(all_diffs), "diff_paths": all_diffs[:120], "line_bytes": len(line), "run_absent": True, "failure_originals": len(originals)}, sort_keys=True))

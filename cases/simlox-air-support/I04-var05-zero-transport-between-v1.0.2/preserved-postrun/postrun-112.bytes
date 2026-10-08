@@ -1,0 +1,103 @@
+"""Read-only audit of the single sealed I04.var05 v102 SSH preflight."""
+
+import hashlib
+import importlib.util
+import json
+import pathlib
+import stat
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+PACKAGE = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+PHASE = ROOT / "tmp/i04-var05-root-phases-v102-20261008/preflight-20261008T102515566898Z-bce5a729"
+TRANSPORT = PACKAGE / "transport-evidence/ssh-preflight-20261008T102515657916Z-43115fa4"
+PREFLIGHT = PACKAGE / "review/preflight-ssh0-20261008T102550066Z.json"
+SEAL = ROOT / "tmp/i04-var05-root-preflight-seal-v102-20261008/20261008T102656688149Z-0568f260/receipt.json"
+READER = PACKAGE / "review/independent_replay.py"
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def record(path):
+    return {"bytes": path.stat().st_size, "sha256": sha(path)}
+
+
+def saved(path):
+    return json.loads(path.read_bytes())
+
+
+def read_only(path):
+    assert path.is_file() and not path.is_symlink()
+    assert not (path.stat().st_mode & stat.S_IWRITE), path
+
+
+def main():
+    assert record(READER) == {"bytes": 88398, "sha256": "1011bb6e21719cf767cc416610ffb11d02c1f819e56a0ae03d0a081fed5b14b2"}
+    assert record(PACKAGE / "source-inventory.json") == {"bytes": 74886, "sha256": "b7a106a15be1c19e62e0ca2a952afcfe02e71a3fa110d26de9db38c75fe78cf8"}
+    assert record(PACKAGE / "prelaunch-manifest.json") == {"bytes": 1489689, "sha256": "4929d0003ab466460cba8e23192f3cbcac46cedc8b3a3e70da010267048f378c"}
+    assert record(PREFLIGHT) == {"bytes": 1102839, "sha256": "87f33a4e51d537345af97c760ca4948e9c2cac1cd76af0660c0075f648adbf7b"}
+    assert record(SEAL) == {"bytes": 6107, "sha256": "eeeb8646d4493b514a931df2e53cac55cde04ca9d3930a0dad0f803af18ff770"}
+
+    spec = importlib.util.spec_from_file_location("frozen_independent_replay", READER)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    contract = reader.load_contract()
+    manifest = reader.strict_json((PACKAGE / "prelaunch-manifest.json").read_bytes())
+    counts = reader.manifest_document(contract, manifest, live_exact=True)
+    assert counts == {"source_roles": 4203, "unique_physical_paths": 1257}
+    source_map, source_sha = reader.manifest_source_map(manifest)
+    receipt = reader.verify_preflight(PREFLIGHT, sha(PREFLIGHT), manifest, source_map, source_sha)
+    assert receipt["native_process_started"] is False
+    assert receipt["run_dirs_absent"] is True
+
+    phase = saved(PHASE / "receipt.json")
+    assert phase["schema"] == "issue18-i04-var05-root-phase-transport/v102"
+    assert phase["action"] == "preflight" and type(phase["actual_exit"]) is int and phase["actual_exit"] == 0
+    assert phase["error"] is None and phase["native_dispatch"] is False and phase["run_exists_after"] is False
+    assert phase["method_before"] == phase["method_after"]
+    assert phase["method_before"]["invoked_method"] == record(PACKAGE / "ssh_transport.py")
+    for name in ("stdout.bin", "stderr.bin"):
+        assert phase["streams"][name] == record(PHASE / name)
+    assert phase["streams"]["stderr.bin"]["bytes"] == 0
+
+    transport_path = TRANSPORT / "transport-receipt.json"
+    transport = saved(transport_path)
+    assert transport["schema"] == "i04-var05-zero-between-ssh-transport/v102"
+    assert transport["mode"] == "preflight" and transport["run_id"] == reader.RUN_ID
+    assert transport["native_approved"] is False and transport["native_run_directory"] == str(reader.RUN)
+    assert transport["transport_sha256"] == sha(PACKAGE / "ssh_transport.py")
+    assert transport["runner_sha256"] == sha(PACKAGE / "run_native_ssh.ps1")
+    assert transport["manifest_sha256"] == sha(PACKAGE / "prelaunch-manifest.json")
+    assert type(transport["exit_code"]) is int and transport["exit_code"] == 0 and transport["error"] is None
+    assert transport["command"][-2:] == [str((PACKAGE / "run_native_ssh.ps1").as_posix()), "-PreflightOnly"]
+    for name in ("ssh-stdout.bin", "ssh-stderr.bin"):
+        path = TRANSPORT / name
+        assert transport["streams"][name] == record(path)
+    assert transport["streams"]["ssh-stderr.bin"]["bytes"] == 0
+
+    seal = saved(SEAL)
+    assert seal["schema"] == "issue18-i04-var05-root-preflight-seal/v102"
+    assert seal["run_id"] == reader.RUN_ID and seal["native_calls"] == 0
+    assert seal["historical_attributes_changed"] is False
+    assert type(seal["original_count"]) is int and seal["original_count"] == 15
+    paths = [PREFLIGHT, pathlib.Path(receipt["pure_proof_path"])]
+    for tool in reader.PURE_TOOLS:
+        for stream in ("stdout", "stderr"):
+            paths.append(pathlib.Path(receipt["pure_proof_directory"]) / f"{pathlib.Path(tool).stem}-{stream}.bin")
+    paths += [transport_path, TRANSPORT / "ssh-stdout.bin", TRANSPORT / "ssh-stderr.bin"]
+    assert len(paths) == len(set(paths)) == 15
+    assert [pathlib.Path(row["path"]) for row in seal["original_files"]] == paths
+    for row, path in zip(seal["original_files"], paths):
+        assert row == {"path": str(path), **record(path), "read_only": True}
+        read_only(path)
+    assert not reader.RUN.exists()
+    print(json.dumps({"decision": "PASS_ACTUAL_ZERO_NATIVE_PREFLIGHT", "run_id": reader.RUN_ID,
+                      "preflight_sha256": sha(PREFLIGHT), "source_map_sha256": source_sha,
+                      "source_roles": 4203, "sealed_originals": 15,
+                      "transport_sha256": sha(transport_path), "native_process_started": False},
+                     sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

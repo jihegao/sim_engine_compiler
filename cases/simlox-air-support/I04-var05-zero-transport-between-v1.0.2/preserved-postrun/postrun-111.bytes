@@ -1,0 +1,53 @@
+"""Construct exactly the prospectively approved supplemental reader byte diff."""
+
+from pathlib import Path
+import difflib
+import hashlib
+import json
+import stat
+
+root = Path(__file__).resolve().parent.parent
+case = root / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+original = case / "review/independent_replay.py"
+supplement = case / "review/independent-postrun-receipt-reader-v1.py"
+proof = root / "tmp/i04-var05-v102-supplemental-reader-byte-diff-20261008.json"
+
+before = original.read_bytes()
+assert len(before) == 88398
+assert hashlib.sha256(before).hexdigest() == "1011bb6e21719cf767cc416610ffb11d02c1f819e56a0ae03d0a081fed5b14b2"
+assert b"\r\n" not in before and before.count(b"\n") == 1635
+assert not supplement.exists() and not proof.exists()
+
+old_keys = b'                               "log_lines", "optional_diagnostics", "terminal", "issues", "native_calls"}\n'
+new_keys = b'                               "log_lines", "optional_diagnostics", "terminal", "issues", "native_calls",\n                               "native_run_directory"}\n'
+old_pass = b'    assert type(behavior["passed"]) is bool and behavior["passed"]\n'
+new_pass = old_pass + b'    assert type(behavior["native_run_directory"]) is str and behavior["native_run_directory"] == str(RUN)\n'
+assert before.count(old_keys) == before.count(old_pass) == 1
+after = before.replace(old_keys, new_keys, 1).replace(old_pass, new_pass, 1)
+assert after.replace(new_pass, old_pass, 1).replace(new_keys, old_keys, 1) == before
+assert after.count(b"\r\n") == 0
+
+with supplement.open("xb") as output:
+    output.write(after)
+supplement.chmod(stat.S_IREAD)
+diff = "".join(difflib.unified_diff(before.decode().splitlines(keepends=True),
+                                    after.decode().splitlines(keepends=True),
+                                    fromfile="frozen/independent_replay.py",
+                                    tofile="supplemental/independent-postrun-receipt-reader-v1.py"))
+record = {
+    "schema": "i04-var05-v102-supplemental-reader-exact-byte-diff/v1",
+    "original": {"path": str(original), "bytes": len(before), "sha256": hashlib.sha256(before).hexdigest()},
+    "supplemental": {"path": str(supplement), "bytes": len(after), "sha256": hashlib.sha256(after).hexdigest()},
+    "old_keys_occurrences": 1,
+    "old_pass_occurrences": 1,
+    "reverse_two_replacements_recovers_original": True,
+    "line_ending": "LF exactly as frozen original",
+    "unified_diff": diff,
+}
+with proof.open("xb") as output:
+    output.write((json.dumps(record, indent=2, ensure_ascii=False) + "\n").encode())
+proof.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({"supplemental_bytes": len(after), "supplemental_sha256": record["supplemental"]["sha256"],
+                  "diff_proof_path": str(proof), "diff_proof_sha256": hashlib.sha256(proof.read_bytes()).hexdigest()},
+                 sort_keys=True))

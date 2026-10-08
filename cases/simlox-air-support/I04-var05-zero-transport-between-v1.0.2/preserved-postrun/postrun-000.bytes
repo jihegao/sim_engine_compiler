@@ -1,0 +1,125 @@
+"""Read-only independent identity and frozen-behavior review of I04.var05 v102."""
+from __future__ import annotations
+
+import hashlib
+import json
+import pathlib
+import re
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+OLD = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.1"
+NEW = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+CONTRACT = ROOT / "tmp/i04-var05-prospective-recovery-v102-revision2-20261008.json"
+PREVIOUS = ROOT / "tmp/i04-var05-prospective-recovery-v101-revision2-20261008.json"
+SHORT = ROOT / "tmp/native-runs/i04v05-v102-20261008-01"
+HASH = "2353d18f907803c9023089e70202e7381cad266a0b8c7795bf98586ee067f292"
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def strict_json(data: bytes):
+    def pairs(rows):
+        result = {}
+        for key, value in rows:
+            assert key not in result, key
+            result[key] = value
+        return result
+
+    def finite(value):
+        assert value == value and value not in (float("inf"), float("-inf"))
+        return value
+
+    return json.loads(data, object_pairs_hook=pairs,
+                      parse_constant=lambda x: (_ for _ in ()).throw(AssertionError(x)),
+                      parse_float=lambda x: finite(float(x)))
+
+
+def typed_equal(a, b):
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(typed_equal(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed_equal(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def pin(row):
+    assert set(row) >= {"path", "bytes", "sha256"}
+    p = pathlib.Path(row["path"])
+    assert p.is_absolute() and p.is_file(), row["path"]
+    data = p.read_bytes()
+    assert type(row["bytes"]) is int and len(data) == row["bytes"]
+    assert type(row["sha256"]) is str and digest(data) == row["sha256"]
+    return data
+
+
+def main():
+    data = CONTRACT.read_bytes()
+    assert len(data) == 922508 and digest(data) == HASH
+    new, prior = strict_json(data), strict_json(PREVIOUS.read_bytes())
+    for field in ("physical", "source", "roundtrip", "full_log", "report", "manual",
+                  "scope_exclusions", "parent"):
+        assert typed_equal(new[field], prior[field]), field
+    assert new["proposed_package"] == "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+    assert new["proposed_run_id"] == "i04-var05-zero-transport-between-v102-ssh-20261008-01"
+    assert new["native_run_directory"] == str(SHORT)
+    assert new["proposed_native_run_directory"] == str(SHORT)
+    assert not NEW.exists() and not SHORT.exists()
+    line = ("File: " + (SHORT / "model.sxi").as_posix()).encode("ascii")
+    assert len(line) == 121 and len(line) <= 199
+    for ancestor in (SHORT, *SHORT.parents):
+        if ancestor.exists():
+            assert not ancestor.is_symlink() and not ancestor.is_junction(), ancestor
+
+    x = new["recovery_v101_method_order"]
+    assert x["classification"] == "NO_GO_PURE_PREFLIGHT_ZERO_NATIVE_EXCLUDED"
+    assert x["native_attempts"] == 0 and x["ssh_preflight_attempts"] == 0
+    assert x["mandatory_originals_before_preflight_and_sealed_replay"] is True
+    assert x["originals_must_not_be_overwritten_or_reclassified_as_accepted"] is True
+    old_inventory = strict_json(pin(x["inventory"]))
+    old_manifest = strict_json(pin(x["manifest"]))
+    assert x["owned_source_count"] == 172 and old_inventory["source_count"] == 172
+    assert x["manifest_role_count"] == 1980 and old_manifest["source_count"] == 1980
+    assert typed_equal(x["owned_sources"], old_inventory["source_files"])
+    assert typed_equal(x["manifest_roles"], old_manifest["source_files"])
+    assert len(x["owned_sources"]) == 172 and len(x["manifest_roles"]) == 1980
+    # The old frozen sequence is retained as failure evidence. The new declared
+    # order is checked separately and must put the static memo third.
+    agreed = new["canonical_freeze_protocol"]["agreed_ordered_review_files"]
+    assert len(agreed) == 7 and agreed[:3] == [
+        "review/independent_replay.py", "review/independent_self_check.py",
+        "review/independent-method-static-go-2026-10-08.md"]
+    assert len({name.casefold() for name in agreed}) == 7
+    assert new["canonical_freeze_protocol"]["inventory_candidate_must_be_saved_before_canonical_write"] is True
+    assert new["canonical_freeze_protocol"]["manifest_candidate_must_be_generated_from_exact_approved_inventory_and_independently_approved_before_write"] is True
+    assert new["canonical_freeze_protocol"]["changed_frozen_source_requires_distinct_recovery_identity"] is True
+    for row in x["owned_sources"]:
+        pin(row)
+    for row in x["manifest_roles"]:
+        pin(row)
+    for field, wanted in (("failed_independent_preflight_originals", 3),
+                          ("pure_originals", 21), ("root_and_copier_originals", 18)):
+        rows = x[field]
+        assert len(rows) == wanted
+        for row in rows:
+            pin(row)
+    pin(x["independent_no_go"])
+    assert x["independent_no_go"]["sha256"] == "377f5e44fc56bf477cced74c97c9f4d93e4ce159191b9a658da55ea7e98e4278"
+    assert new["selection_v102"]["new_package_absent"] is True
+    assert new["selection_v102"]["new_run_absent"] is True
+    assert "WTSDisconnected" in new["selection_v102"]["current_GUI_session_state"]
+    assert new["native_protocol"]["fresh_v102_go_sequence"] is True
+    assert new["native_protocol"]["root_only_actual_SSH_session0_PS5_File_sshd"] is True
+    assert new["native_protocol"]["accepted_parent_native_checker_reruns"] == 0
+    print(json.dumps({"decision": "PASS_CONTRACT_DESIGN_ONLY",
+                      "contract_sha256": HASH, "old_owned_sources": 172,
+                      "old_manifest_roles": 1980, "failed_preflight_originals": 3,
+                      "pure_originals": 21, "root_copier_originals": 18,
+                      "file_line_ascii_bytes": 121, "behavior_sections_unchanged": 8}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

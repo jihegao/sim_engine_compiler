@@ -1,0 +1,67 @@
+"""One-time original binary capture of the v102 PURE custody copy."""
+from __future__ import annotations
+
+import datetime as dt
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+CASE = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+METHOD = CASE / "copy_pure_proof.py"
+ORIGINALS = ROOT / "tmp/i04-var05-v102-pure-originals-20261008.json"
+OUT = ROOT / "tmp/i04-var05-v102-pure-copy-capture-20261008-01"
+PY = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+
+
+def pin(path: Path) -> dict:
+    raw = path.read_bytes()
+    return {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def utc() -> str:
+    return dt.datetime.now(dt.timezone.utc).isoformat()
+
+
+assert sys.argv[1:] == []
+assert not OUT.exists()
+assert not (CASE / "pure-proof-custody.json").exists()
+assert not (CASE / "source-inventory.json").exists()
+assert not (CASE / "prelaunch-manifest.json").exists()
+assert not (ROOT / "tmp/native-runs/i04v05-v102-20261008-01").exists()
+before = {name: pin(path) for name, path in (("method", METHOD), ("originals", ORIGINALS))}
+OUT.mkdir()
+stdout = OUT / "stdout.bin"
+stderr = OUT / "stderr.bin"
+command = [str(PY), "-X", "utf8", "-B", str(METHOD), "--write", "--originals", str(ORIGINALS)]
+started = utc()
+with stdout.open("xb") as out_stream, stderr.open("xb") as err_stream:
+    process = subprocess.run(command, cwd=CASE, stdout=out_stream, stderr=err_stream)
+after = {name: pin(path) for name, path in (("method", METHOD), ("originals", ORIGINALS))}
+map_path = CASE / "pure-proof-custody.json"
+copies = [CASE / "preserved-pure-proof" / f"pure-{i:02d}.bytes" for i in range(21)]
+result = {
+    "schema": "i04-var05-v102-author-pure-copier-capture/v1",
+    "command": command,
+    "started_utc": started,
+    "completed_utc": utc(),
+    "actual_exit": process.returncode,
+    "stdout": pin(stdout),
+    "stderr": pin(stderr),
+    "source_before": before,
+    "source_after": after,
+    "map": pin(map_path) if map_path.is_file() else None,
+    "owned_copies": [pin(path) for path in copies] if all(path.is_file() for path in copies) else None,
+    "run_absent": not (ROOT / "tmp/native-runs/i04v05-v102-20261008-01").exists(),
+}
+receipt = OUT / "receipt.json"
+with receipt.open("xb") as stream:
+    stream.write((json.dumps(result, indent=2) + "\n").encode("utf-8"))
+for path in OUT.iterdir():
+    path.chmod(0o444)
+assert type(process.returncode) is int and process.returncode == 0
+assert result["stderr"]["bytes"] == 0 and before == after
+assert result["map"] is not None and result["owned_copies"] is not None and result["run_absent"]
+print(json.dumps({"receipt": str(receipt), **pin(receipt)}, sort_keys=True))

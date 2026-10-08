@@ -1,0 +1,48 @@
+"""Capture an additive, local Python publication helper's original streams."""
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+ALLOWED = {"copy_postrun_context.py", "make_raw_custody.py",
+           "make_preflight_custody.py", "make_evidence_index.py"}
+PYTHON = Path(sys.executable)
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def main() -> None:
+    name, *args = sys.argv[1:]
+    assert name in ALLOWED and all(arg in ("--prepare", "--write", "--dry") for arg in args)
+    method = CASE / name
+    before = pin(method)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    out = REPO / "tmp/i04-var05-v102-author-publication-proofs" / f"{name[:-3]}-{stamp}"
+    out.mkdir(parents=True, exist_ok=False)
+    argv = [str(PYTHON), "-B", str(method), *args]
+    start = datetime.now(timezone.utc).isoformat()
+    with (out / "stdout.bin").open("wb") as stdout, (out / "stderr.bin").open("wb") as stderr:
+        completed = subprocess.run(argv, cwd=REPO, stdout=stdout, stderr=stderr, check=False)
+    end = datetime.now(timezone.utc).isoformat()
+    receipt = {"schema": "i04-var05-v102-author-publication-capture/v1",
+               "argv": argv, "cwd": str(REPO), "start_utc": start, "end_utc": end,
+               "actual_exit": completed.returncode, "method_before": before,
+               "method_after": pin(method),
+               "stdout": pin(out / "stdout.bin"), "stderr": pin(out / "stderr.bin")}
+    (out / "receipt.json").write_text(json.dumps(receipt, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"directory": str(out), "receipt": pin(out / "receipt.json"),
+                      "actual_exit": completed.returncode}, sort_keys=True))
+    raise SystemExit(completed.returncode)
+
+
+if __name__ == "__main__":
+    main()

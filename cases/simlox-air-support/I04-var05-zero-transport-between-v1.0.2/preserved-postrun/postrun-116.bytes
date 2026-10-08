@@ -1,0 +1,170 @@
+"""Direct byte custody audit after the one supplemental recovered replay; no processes."""
+
+from pathlib import Path
+import hashlib
+import json
+import stat
+
+ROOT = Path(__file__).resolve().parent.parent
+PACKAGE = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+RUN = ROOT / "tmp/native-runs/i04v05-v102-20261008-01"
+FIRST = ROOT / "tmp/i04-var05-root-sealed-replay-v102-20261008/20261008T103341946032Z-fb4f3039"
+SECOND = ROOT / "tmp/i04-var05-root-supplemental-replay-v102-20261008/20261008T104257687711Z-edc7361d"
+NEGATIVE = ROOT / "tmp/i04-var05-root-review-proofs-v102-20261008/supplemental-negatives-20261008T104127750871Z-bd09d9a6"
+DIFF = ROOT / "tmp/i04-var05-v102-supplemental-reader-byte-diff-20261008.json"
+OLD = PACKAGE / "review/independent_replay.py"
+NEW = PACKAGE / "review/independent-postrun-receipt-reader-v1.py"
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def record(path):
+    return {"bytes": path.stat().st_size, "sha256": digest(path)}
+
+
+def parse(path):
+    def pairs(rows):
+        result = {}
+        for key, value in rows:
+            assert key not in result, (path, "duplicate key", key)
+            result[key] = value
+        return result
+    return json.loads(path.read_bytes(), object_pairs_hook=pairs,
+                      parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)))
+
+
+def readonly(path):
+    assert path.is_file() and not path.is_symlink() and not path.stat().st_mode & stat.S_IWRITE, path
+
+
+def exact(path, size, sha):
+    assert record(path) == {"bytes": size, "sha256": sha}, path
+
+
+def main():
+    exact(OLD, 88398, "1011bb6e21719cf767cc416610ffb11d02c1f819e56a0ae03d0a081fed5b14b2")
+    exact(NEW, 88559, "7c8a30b3ca51b9db17614ba24617f84b1000845a86d6c73485bbf6402ca917b0")
+    exact(DIFF, 2095, "1c27f0f0c149a2880cd05e98ed751b08535b8273316b8cbb9cef953c05fd0d6f")
+    old, new = OLD.read_bytes(), NEW.read_bytes()
+    old_keys = b'                               "log_lines", "optional_diagnostics", "terminal", "issues", "native_calls"}\n'
+    new_keys = b'                               "log_lines", "optional_diagnostics", "terminal", "issues", "native_calls",\n                               "native_run_directory"}\n'
+    old_pass = b'    assert type(behavior["passed"]) is bool and behavior["passed"]\n'
+    new_pass = old_pass + b'    assert type(behavior["native_run_directory"]) is str and behavior["native_run_directory"] == str(RUN)\n'
+    assert new.replace(new_pass, old_pass, 1).replace(new_keys, old_keys, 1) == old
+    assert old.count(b"\r\n") == new.count(b"\r\n") == 0
+    readonly(OLD)
+    readonly(NEW)
+    diff = parse(DIFF)
+    assert diff["reverse_two_replacements_recovers_original"] is True
+    assert diff["original"] == {"path": str(OLD), **record(OLD)}
+    assert diff["supplemental"] == {"path": str(NEW), **record(NEW)}
+
+    exact(NEGATIVE / "receipt.json", 1371, "2c3e29153f12db089d778dca73e12eba62b506686749dbc95147e2146bb5b741")
+    neg = parse(NEGATIVE / "receipt.json")
+    assert type(neg["actual_exit"]) is int and neg["actual_exit"] == 0
+    assert neg["method_before"] == neg["method_after"] and neg["native_dispatch"] is False
+    assert neg["streams"]["stderr.bin"] == record(NEGATIVE / "stderr.bin")
+    assert neg["streams"]["stderr.bin"]["bytes"] == 0
+    assert neg["streams"]["stdout.bin"] == record(NEGATIVE / "stdout.bin")
+    nout = parse(NEGATIVE / "stdout.bin")
+    assert nout["decision"] == "PASS_SUPPLEMENTAL_RECEIPT_FIELD_PROBES_ONLY"
+    assert nout["reverse_diff_exact"] is True and nout["positive_cloned_receipt"] is True
+    assert nout["original_author_receipt_unchanged"] is True
+    assert set(nout["negative_probes"]) == {"missing_field", "wrong_path", "non_string_bool", "non_string_number", "unknown_extra_key"}
+    assert all(value is True for value in nout["negative_probes"].values())
+
+    exact(FIRST / "receipt.json", 9133, "910a3e062b7eae6bc28ba4d9f1b7ad10c12eecfe9db047fdc61d39993bc3e417")
+    first = parse(FIRST / "receipt.json")
+    assert type(first["actual_exit"]) is int and first["actual_exit"] == 1
+    assert first["streams"]["stderr.bin"] == record(FIRST / "stderr.bin")
+    assert first["streams"]["stderr.bin"]["bytes"] == 1210
+    assert b"verify_checker_receipts" in (FIRST / "stderr.bin").read_bytes()
+    assert first["method_before"] == first["method_after"]
+    assert first["method_before"]["reader"] == record(OLD)
+    assert first["source_map_unchanged"] is True and first["originals_before"] == first["originals_after"]
+
+    exact(SECOND / "receipt.json", 9169, "4cef9905050cb3b0418bfd40bdb63e0ee8537b96d21b904fabc25a12d61b4348")
+    second = parse(SECOND / "receipt.json")
+    assert second["schema"] == "issue18-i04-var05-root-supplemental-independent-replay/v102"
+    assert type(second["actual_exit"]) is int and second["actual_exit"] == 0
+    assert second["native_dispatch"] is False and second["method_before"] == second["method_after"]
+    assert second["method_before"]["reader"] == record(NEW)
+    assert second["source_map_unchanged"] is True and second["originals_before"] == second["originals_after"]
+    assert second["streams"]["stderr.bin"] == record(SECOND / "stderr.bin")
+    assert second["streams"]["stderr.bin"]["bytes"] == 0
+    assert second["streams"]["stdout.bin"] == record(SECOND / "stdout.bin")
+    output = parse(SECOND / "stdout.bin")
+    assert output == {"converter_lines": 17, "decision": "GO_BOUNDED",
+                      "historical_catalog_prefix_entries": 497, "log_lines": 118,
+                      "original_raw_files": 25, "paired_differences": 3,
+                      "report_cells_checked": 4044,
+                      "run_id": "i04-var05-zero-transport-between-v102-ssh-20261008-01",
+                      "source_roles": 4203, "timed_event_records": 104,
+                      "unique_physical_paths": 1257}
+    guard = SECOND / "guard-receipt.json"
+    assert second["guard_receipt"] == record(guard)
+    g = parse(guard)
+    assert type(g["actual_exit"]) is int and g["actual_exit"] == 0
+    assert g["streams"]["guard-stderr.bin"] == record(SECOND / "guard-stderr.bin")
+    assert g["streams"]["guard-stderr.bin"]["bytes"] == 0
+    state = parse(SECOND / "guard-stdout.bin")
+    assert state["active_gui_session1_count"] == 1 and state["mutex_free"] is True
+    assert state["runner_candidates"] == [] and len(state["native"]) == 1
+    assert state["native"][0]["pid"] == 13340 and state["native"][0]["start_ms"] == 1790590196826
+
+    manifest = parse(PACKAGE / "prelaunch-manifest.json")
+    approval = parse(PACKAGE / "review/independent-prelaunch-go.json")
+    invocation = parse(RUN / "invocation.json")
+    closure = parse(RUN / "closure.json")
+    assert approval["manifest_sha256"] == digest(PACKAGE / "prelaunch-manifest.json")
+    assert approval["independent_replay_sha256"] == digest(OLD)
+    assert invocation["independent_replay_sha256"] == digest(OLD)
+    assert invocation["approval_sha256"] == digest(PACKAGE / "review/independent-prelaunch-go.json")
+    assert closure["approval_sha256"] == invocation["approval_sha256"]
+    assert closure["manifest_sha256"] == approval["manifest_sha256"]
+    assert closure["invocation_sha256"] == digest(RUN / "invocation.json")
+    assert closure["error"] in (None, "") and closure["step_error"] in (None, "")
+    assert len(closure["raw"]) == 23
+    assert set(closure["raw"]) | {"invocation.json", "closure.json"} == {p.name for p in RUN.iterdir()}
+    assert len(second["originals_before"]) == 25
+    recovered = Path(second["copy"])
+    assert recovered == SECOND / "recovered-evidence"
+    assert {p.name for p in recovered.iterdir()} == {p.name for p in RUN.iterdir()}
+    for name in second["originals_before"]:
+        original, copy = RUN / name, recovered / name
+        readonly(original)
+        readonly(copy)
+        assert record(original) == record(copy) == second["originals_before"][name]
+        if name in closure["raw"]:
+            assert record(original) == closure["raw"][name]
+    assert record(RUN / "author-validation.json") == {"bytes": 885, "sha256": "1f2a25c61fd572dc60bd2c09ea8b29f88cb048214643ccfb96b281034c6dd412"}
+    behavior = parse(RUN / "author-validation.json")
+    assert type(behavior["native_run_directory"]) is str and behavior["native_run_directory"] == str(RUN)
+    assert behavior["report_cell_checks"] == 4044 and behavior["paired_differences"] == 3
+
+    steps = parse(RUN / "steps.json")
+    assert type(steps) is list and [s["sequence"] for s in steps] == list(range(6))
+    assert [s["name"] for s in steps] == ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"]
+    for step in steps:
+        assert type(step["exit_code"]) is int and step["exit_code"] == 0
+        assert type(step["child_session_id"]) is int and step["child_session_id"] == 0
+        assert step["status"] == "completed" and step["error"] is None and step["capture_error"] is None
+        assert step["stderr_bytes"] == 0
+    calc = steps[3]
+    assert calc["converter_log_validated"] is True
+    assert {"bytes": calc["converter_log_bytes"], "sha256": calc["converter_log_sha256"]} == closure["raw"]["model-run.log"] == record(RUN / "model-run.log")
+    assert steps[3]["completed_utc"] <= steps[4]["started_utc"]
+    assert manifest["source_count"] == 4203
+    for role in manifest["source_files"]:
+        assert record(Path(role["path"])) == {"bytes": role["bytes"], "sha256": role["sha256"]}
+    print(json.dumps({"decision": "PASS_SUPPLEMENTAL_DIRECT_BYTE_AUDIT",
+                      "old_reader_no_go_preserved": True, "supplemental_go_bounded_proof": digest(SECOND / "receipt.json"),
+                      "exact_two_addition_method_diff": True, "negative_probes": 5,
+                      "run_originals_and_copies": 25, "source_roles": 4203,
+                      "converter_triple_seal": True, "native_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

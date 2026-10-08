@@ -1,0 +1,34 @@
+"""Root original binary capture for reviewed I04.var05 pure audits only."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,sys,uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0'
+RUN=C/'runs/i04-var05-zero-transport-between-v100-ssh-20261008-01'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert len(sys.argv)>=4
+label,rel,sha,*args=sys.argv[1:]
+assert label.replace('-','').replace('_','').isalnum()
+method=(R/rel).resolve(strict=True)
+assert method.suffix=='.py'
+assert (method.parent==R/'tmp' and method.name.startswith('i04-var05-')) or (method.is_relative_to(C) and method.name in ('pure_proof.py','independent_self_check.py','independent_replay.py','make_source_inventory.py','make_prelaunch_manifest.py'))
+assert not RUN.exists(),'no pure gate replay on accepted native run'
+assert pin(method)['sha256']==sha
+O=R/'tmp/i04-var05-root-pure-captures-v100-20261008'/(label+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False)
+Path(__file__).chmod(stat.S_IREAD)
+before={'root':pin(Path(__file__)),'method':pin(method)}
+argv=[sys.executable,'-X','utf8','-B',str(method),*args]
+started=dt.datetime.now(dt.timezone.utc).isoformat();actual=None;error=None
+try:
+ with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+  actual=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+except BaseException as exc:error=f'{type(exc).__name__}: {exc}'
+after={'root':pin(Path(__file__)),'method':pin(method)}
+d={'schema':'issue18-i04-var05-root-pure-original-capture/v100','label':label,'argv':argv,'actual_exit':actual,'error':error,'method_before':before,'method_after':after,'started_utc':started,'completed_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'streams':{n:pin(O/n) if (O/n).exists() else None for n in ('stdout.bin','stderr.bin')},'native_dispatch':False,'run_exists_after':RUN.exists()}
+with (O/'receipt.json').open('xb') as f:f.write((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'actual_exit':actual,'error':error,'method_unchanged':before==after,'streams':d['streams']}))
+for n in ('stdout.bin','stderr.bin'):
+ if (O/n).is_file() and (O/n).stat().st_size:print((O/n).read_bytes().decode('utf-8-sig','replace')[:9000])
+assert before==after and error is None and type(actual) is int and actual==0 and not RUN.exists()

@@ -1,0 +1,139 @@
+"""Four-table, 4,044-cell source/event report oracle for either arm."""
+from __future__ import annotations
+
+import argparse
+import json
+import math
+from pathlib import Path
+
+from model_common import pairs, constant, finite, read, typed_equal
+
+HERE = Path(__file__).resolve().parent
+CONTRACT = HERE / "prospective-contract.json"
+PARENT_ORACLE = HERE.parent / "I04-var03-idle-system-between-v1.0.1" / "child-report-oracle.json"
+CHILD_ORACLE = HERE / "child-report-oracle.json"
+PARENT_RAW = HERE.parent / "I04-var03-idle-system-between-v1.0.1" / "runs" / "i04-var03-idle-system-between-v101-ssh-20261008-01" / "report-raw.json"
+PARENT_SHA = "72a5bd7270f5b3b27736df43c146a56f850990abf6a8e964aa7bae430ffc93b5"
+MARKER = b",\r\n      ]"
+
+
+def parse_native(data: bytes):
+    assert data.count(MARKER) == 1, "native final-array punctuation differs"
+    assert data.endswith(b'         },\r\n      ]\r\n   }\r\n}\r\n')
+    fixed = data.replace(MARKER, b"\r\n      ]", 1)
+    obj = json.loads(fixed.decode("utf-8-sig"), object_pairs_hook=pairs, parse_constant=constant)
+    finite(obj)
+    return obj
+
+
+def overlap(a, b, c, d):
+    return max(0.0, min(b, d) - max(a, c))
+
+
+def derived(field, row, child):
+    a, b = row / 2, (row + 1) / 2
+    assigned = sum(2 * overlap(a, b, x, y) for x, y in ((7, 10), (19, 22))) / .5
+    flying = sum(2 * overlap(a, b, x, y) for x, y in ((8, 10), (20, 22))) / .5
+    reserved = sum(2 * overlap(a, b, x, y) for x, y in ((7, 8), (19, 20))) / .5
+    transit = overlap(a, b, 10.5, 10.5 if child else 11) / .5
+    in_unit = 2 - transit
+    values = {"NSYRY": in_unit - assigned, "NSYMA": assigned,
+              "NSYMO": flying, "NSYMR": reserved, "NSYA": in_unit,
+              "FTMO": flying / 2, "STACC": flying}
+    assert field in values
+    return values[field]
+
+
+def validate_oracle(oracle, child):
+    contract = read(CONTRACT)
+    report = contract["report"]
+    assert list(oracle) == ["report"] and list(oracle["report"]) == ["tables"]
+    tables = oracle["report"]["tables"]
+    assert [t["name"] for t in tables] == ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"]
+    assert [len(t["columns"]) for t in tables] == [1, 11, 40, 16]
+    assert [len(t["instances"][0]["rows"]) for t in tables] == [1, 1, 72, 72]
+    assert tables[0]["instances"][0]["rows"][0][0] == contract["source"]["differences"][0]["child" if child else "parent"]
+    assert tables[1]["instances"][0]["rows"][0] == report["summary"]
+    system = tables[2]
+    totals = {key: 0.0 for key in report["integrals_child" if child else "integrals_parent"]}
+    for row_index, row in enumerate(system["instances"][0]["rows"]):
+        assert len(row) == 40
+        fields = {c["name"]: value for c, value in zip(system["columns"], row)}
+        assert fields["UNID"] == "Total over all Units" and fields["SID"] == "Total over all Systems"
+        assert fields["STINT"] == row_index / 2 and fields["ETINT"] == (row_index + 1) / 2
+        for key in ("NSYRY", "NSYMA", "NSYMO", "NSYMR", "NSYA", "FTMO", "STACC"):
+            assert fields[key] == derived(key, row_index, child), (row_index, key)
+            totals[key] += fields[key] * .5
+        assert fields["SYDT"] is None
+        assert all(value == 0 for name, value in fields.items()
+                   if name not in {"UNID", "SID", "STINT", "ETINT", "SYDT", *totals})
+    assert totals == report["integrals_child" if child else "integrals_parent"]
+    stock = tables[3]
+    for row_index, row in enumerate(stock["instances"][0]["rows"]):
+        assert len(row) == 16
+        values = {c["name"]: value for c, value in zip(stock["columns"], row)}
+        assert values["STINT"] == row_index / 2 and values["ETINT"] == (row_index + 1) / 2
+        assert values["PNB"] == 1
+        assert all(values[key] is None for key in ("NBOU", "ROS", "ROST", "WT", "WTT", "WTS"))
+        assert all(value == 0 for key, value in values.items()
+                   if key not in {"STINT", "ETINT", "PNB", "NBOU", "ROS", "ROST", "WT", "WTT", "WTS"})
+    cells = sum(len(t["columns"]) * len(t["instances"][0]["rows"]) for t in tables)
+    assert cells == 4044
+    return cells
+
+
+def compare(actual, expected):
+    assert isinstance(actual, dict) and list(actual) == list(expected)
+    assert list(actual["report"]) == list(expected["report"])
+    at, et = actual["report"]["tables"], expected["report"]["tables"]
+    assert len(at) == len(et) == 4
+    cells = 0
+    for a, e in zip(at, et):
+        assert list(a) == list(e) and a["name"] == e["name"]
+        assert typed_equal(a["columns"], e["columns"])
+        assert len(a["instances"]) == len(e["instances"]) == 1
+        ai, ei = a["instances"][0], e["instances"][0]
+        assert list(ai) == list(ei) and ai["instance_name"] == ei["instance_name"]
+        assert len(ai["rows"]) == len(ei["rows"])
+        for ar, er in zip(ai["rows"], ei["rows"]):
+            assert len(ar) == len(er) == len(a["columns"])
+            for av, ev, column in zip(ar, er, a["columns"]):
+                if ev is None:
+                    assert av is None
+                elif column["datatype"] == "integer":
+                    assert type(av) is type(ev) is int and av == ev
+                elif column["datatype"] == "double":
+                    assert type(av) in (int, float) and type(ev) in (int, float)
+                    assert math.isfinite(float(av)) and av == ev
+                else:
+                    assert type(av) is type(ev) is str and av == ev
+                cells += 1
+    assert cells == 4044
+    return cells
+
+
+def validate(data: bytes, child=True):
+    oracle = read(CHILD_ORACLE if child else PARENT_ORACLE)
+    validate_oracle(oracle, child)
+    actual = parse_native(data)
+    cells = compare(actual, oracle)
+    if child:
+        parent = read(PARENT_ORACLE)
+        validate_oracle(parent, False)
+        differences = sum(x != y for at, pt in zip(oracle["report"]["tables"], parent["report"]["tables"])
+                          for ai, pi in zip(at["instances"], pt["instances"])
+                          for ar, pr in zip(ai["rows"], pi["rows"])
+                          for x, y in zip(ar, pr))
+        assert differences == 3 and differences == len(read(CONTRACT)["report"]["differences"])
+    else:
+        differences = 0
+    return {"schema": "i04-var05-full-report-oracle/v102", "arm": "child" if child else "accepted_parent",
+            "cells_checked": cells, "paired_differences": differences}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("report", type=Path)
+    parser.add_argument("--parent", action="store_true")
+    args = parser.parse_args()
+    print(json.dumps(validate(args.report.read_bytes(), not args.parent), sort_keys=True))

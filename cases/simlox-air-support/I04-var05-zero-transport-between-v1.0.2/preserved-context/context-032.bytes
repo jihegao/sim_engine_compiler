@@ -1,0 +1,46 @@
+"""Read-only root SSH0 guard plus frozen source/run-absence check; no native."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,traceback,uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0'
+RUN=C/'runs/i04-var05-zero-transport-between-v100-ssh-20261008-01'
+G=R/'tmp/issue18-next-owner-guard-20261008.ps1'
+O=R/'tmp/i04-var05-root-guards-v100-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False)
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def save(n,b):
+ with (O/n).open('xb') as f:f.write(b)
+ (O/n).chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+d={'schema':'issue18-i04-var05-fresh-root-guard/v100','native_calls':0,'started_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'method':pin(Path(__file__))}
+error=None
+try:
+ assert not RUN.exists(),'run path already exists'
+ assert pin(G)['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+ M=C/'prelaunch-manifest.json';mp=pin(M);m=json.loads(M.read_bytes())
+ assert m['run_id']==RUN.name
+ source_pins={}
+ for e in m['source_files']:
+  p=Path(e['path']).resolve(strict=True);s=pin(p)
+  assert s=={k:e[k] for k in ('bytes','sha256')},e['key']
+  source_pins[e['key']]=s
+ assert len(source_pins)==len(m['source_files'])
+ argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',G.as_posix()]
+ r=subprocess.run(argv,cwd=R,capture_output=True)
+ save('stdout.bin',r.stdout);save('stderr.bin',r.stderr)
+ d.update(argv=argv,actual_exit=r.returncode,stdout=pin(O/'stdout.bin'),stderr=pin(O/'stderr.bin'),guard_method=pin(G),manifest=mp,source_roles=len(source_pins),unique_physical_paths=len({str(Path(e['path']).resolve()).casefold() for e in m['source_files']}))
+ assert type(r.returncode) is int and r.returncode==0 and not r.stderr
+ g=json.loads(r.stdout.decode('utf-8-sig'));d['observed']=g
+ assert g['ssh_present'] is True and g['sshd_ancestor'] is True and g['self_session']==0 and g['powershell_major']==5 and g['mutex_free'] is True and g['runner_candidates']==[] and g['session_query_exit']==0 and g['active_gui_session1_count']==1
+ assert len(g['native'])==1
+ p=g['native'][0];assert p['pid']==13340 and p['session']==1 and p['start_ms']==1790590196826 and p['responding'] is True
+ assert not RUN.exists() and pin(M)==mp
+ for e in m['source_files']:assert pin(Path(e['path']))==source_pins[e['key']],e['key']
+ d['decision']='FRESH_SOURCE_GUI_MUTEX_RUN_ABSENCE_PASS'
+except BaseException:
+ error=traceback.format_exc();save('failure.txt',error.encode());d['decision']='NO_GO_PRESERVED';d['error']=error
+d['completed_utc']=dt.datetime.now(dt.timezone.utc).isoformat()
+save('receipt.json',(json.dumps(d,indent=2)+'\n').encode())
+print(json.dumps({'decision':d['decision'],'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'error':error}))
+assert error is None

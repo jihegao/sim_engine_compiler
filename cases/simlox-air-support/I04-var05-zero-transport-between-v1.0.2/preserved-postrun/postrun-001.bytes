@@ -1,0 +1,18 @@
+"""Capture original contract generator streams and integer exit, no native."""
+from pathlib import Path
+import hashlib,json,stat,subprocess,sys
+R=Path(__file__).resolve().parents[1];M=R/'tmp/i04-var05-independent-recovery-contract-audit-v102-revision2-20261008.py'
+O=R/'tmp/i04-var05-independent-recovery-contract-proof-v102-revision2-20261008-01';O.mkdir(exist_ok=False)
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+before=pin(M);argv=[sys.executable,'-X','utf8','-B',str(M)]
+with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+ code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+d={'schema':'issue18-i04-var05-contract-design-original/v102','argv':argv,'actual_exit':code,'method_before':before,'method_after':pin(M),'streams':{n:pin(O/n) for n in ('stdout.bin','stderr.bin')},'native_calls':0}
+(O/'receipt.json').write_bytes((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'actual_exit':code}))
+for n in ('stdout.bin','stderr.bin'):
+ if (O/n).stat().st_size:print((O/n).read_bytes().decode('utf-8-sig','replace'))
+assert type(code) is int and code==0 and before==pin(M) and (O/'stderr.bin').stat().st_size==0

@@ -1,0 +1,109 @@
+import hashlib
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent.parent
+CASE = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0"
+RUN_ID = "i04-var05-zero-transport-between-v100-ssh-20261008-01"
+RUN = CASE / "runs" / RUN_ID
+SEAL = ROOT / "tmp/i04-var05-root-failure-seal-v100-20261008-01/receipt.json"
+PHASE = ROOT / "tmp/i04-var05-root-phases-v100-20261008/native-20261008T082418421599Z-261cd6f0/receipt.json"
+PARENT = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1/runs/i04-var03-idle-system-between-v101-ssh-20261008-01"
+
+
+def raw(path):
+    return path.read_bytes()
+
+
+def obj(path):
+    return json.loads(raw(path))
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def verify_pin(path, pin):
+    data = raw(path)
+    assert len(data) == pin["bytes"] and sha(data) == pin["sha256"], str(path)
+    assert not (path.stat().st_file_attributes & 1) == 0, f"writable {path}"
+
+
+seal = obj(SEAL)
+phase = obj(PHASE)
+assert seal["decision"] == "EXCLUDED_FAILURE_PRESERVED"
+assert seal["native_recovery_calls"] == seal["native_retries"] == 0
+assert phase["actual_exit"] == 1
+assert seal["source_roles_verified"] == 1172
+assert len(seal["originals"]) == 34
+assert [seal["native_originals"], seal["native_pure_originals"], seal["native_transport_originals"]] == [20, 11, 3]
+assert seal["error"] == "converter File path differs"
+
+names = set()
+for rec in seal["originals"]:
+    path = Path(rec["path"])
+    verify_pin(path, rec)
+    assert path not in names
+    names.add(path)
+    if rec["role"] == "excluded_native":
+        recovered = Path(seal["recovered_directory"]) / path.name
+        verify_pin(recovered, rec)
+        assert raw(recovered) == raw(path)
+
+assert len(list(RUN.iterdir())) == 20
+assert names.issuperset(set(RUN.iterdir()))
+failure = obj(RUN / "failure-seal.json")
+inv = obj(RUN / "invocation.json")
+closure = obj(RUN / "closure.json")
+steps = obj(RUN / "steps.json")
+assert failure["publication_state"] == "excluded"
+assert failure["error"] == closure["error"] == closure["step_error"] == seal["error"]
+assert inv["publication_state"] == "not_published" and closure["publication_state"] == "not_published"
+assert len(steps) == 4
+assert [s["name"] for s in steps] == seal["completed_steps"] == ["import", "export", "check_import_export", "calc"]
+assert all(type(s["exit_code"]) is int and s["exit_code"] == 0 for s in steps)
+assert all(s["capture_error"] is None and s["child_session_id"] == 0 for s in steps)
+assert all(s["stderr_bytes"] == 0 for s in steps)
+assert steps[3]["converter_log_validated"] is False
+assert steps[3]["converter_log_bytes"] == 1122
+assert steps[3]["converter_log_sha256"] == sha(raw(RUN / "model-run.log"))
+assert seal["report_export_called"] is False
+assert set(closure["raw"]) == {p.name for p in RUN.iterdir()} - {"invocation.json", "closure.json", "failure-seal.json"}
+for name, pin in closure["raw"].items():
+    verify_pin(RUN / name, pin)
+assert closure["source_hashes_before"] == closure["source_hashes_after"]
+assert inv["source_hashes_before"] == closure["source_hashes_before"]
+
+log = raw(RUN / "model-run.log")
+lines = log.split(b"\n")
+file_lines = [x.rstrip(b"\r") for x in lines if x.startswith(b"File: ")]
+assert len(file_lines) == 1
+line = file_lines[0]
+expected = ("File: " + str(RUN / "model.sxi").replace("\\", "/")).encode("ascii")
+assert line != expected
+assert expected[:200] == line[:200]
+assert line[200:] != expected[200:]
+assert any(c > 127 for c in line[200:])
+parent_line = ("File: " + str(PARENT / "model.sxi").replace("\\", "/")).encode("ascii")
+parent_log = raw(PARENT / "model-run.log")
+assert parent_line in parent_log
+
+out = {
+    "decision": "NO_GO_EXCLUDED",
+    "originals_verified": 34,
+    "native_files": 20,
+    "recovered_copies_byte_equal": 20,
+    "completed_steps": len(steps),
+    "report_export_called": False,
+    "manifest_roles_unchanged": len(closure["source_hashes_before"]),
+    "converter_file_expected_line_bytes": len(expected),
+    "converter_file_observed_line_bytes": len(line),
+    "converter_prefix_matching_bytes": 200,
+    "parent_converter_file_line_bytes": len(parent_line),
+    "converter_file_tail_hex": line[200:].hex(),
+    "failure_seal_sha256": sha(raw(SEAL)),
+    "phase_receipt_sha256": sha(raw(PHASE)),
+    "model_run_log_sha256": sha(log),
+}
+print(json.dumps(out, sort_keys=True))

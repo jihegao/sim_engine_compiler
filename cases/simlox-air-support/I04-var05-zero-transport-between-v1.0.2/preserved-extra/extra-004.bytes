@@ -1,0 +1,133 @@
+import hashlib
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent.parent
+OLD_CASE = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0"
+OLD = OLD_CASE / "prospective-contract.json"
+NEW = ROOT / "tmp/i04-var05-prospective-recovery-v101-revision2-20261008.json"
+SEAL = ROOT / "tmp/i04-var05-root-failure-seal-v100-20261008-01/receipt.json"
+
+
+def read(path):
+    data = path.read_bytes()
+    return json.loads(data), len(data), hashlib.sha256(data).hexdigest()
+
+
+def verify_pin(pin):
+    path = Path(pin["path"])
+    data = path.read_bytes()
+    assert len(data) == pin["bytes"] and hashlib.sha256(data).hexdigest() == pin["sha256"], str(path)
+    return path
+
+
+def differences(a, b, path=""):
+    if type(a) is not type(b):
+        return [path + " <type>"]
+    if isinstance(a, dict):
+        changes = [path + "/" + k + " <key>" for k in sorted(a.keys() ^ b.keys())]
+        for key in sorted(a.keys() & b.keys()):
+            changes.extend(differences(a[key], b[key], path + "/" + key))
+        return changes
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return [path + " <length>"]
+        changes = []
+        for n, (x, y) in enumerate(zip(a, b)):
+            changes.extend(differences(x, y, path + f"/{n}"))
+        return changes
+    return [] if a == b else [path]
+
+
+old, old_size, old_sha = read(OLD)
+new, new_size, new_sha = read(NEW)
+seal, _, seal_sha = read(SEAL)
+assert (old_size, old_sha) == (27398, "43f07d09395b0222b7903906dd6f01ad262dd05849f0878d67e9cd6bd3c29304")
+assert (new_size, new_sha) == (111662, "f6c3c630997790a8b70821b9adf060a437747fef89dc338de281bc8b45d64277")
+assert seal_sha == "c8514068cd89a88e217bc61b656ea7254fbb0a8de6ce50a7fbe0489ded7bb51f"
+
+unchanged = ["physical", "source", "roundtrip", "full_log", "report", "manual", "scope_exclusions"]
+for key in unchanged:
+    assert not differences(old[key], new[key]), key
+assert new["phase"] == "RECOVERY_CONTRACT_DESIGN_ONLY_NO_NATIVE_AUTHORIZATION"
+assert new["version"] == "1.0.1"
+assert new["proposed_package"].endswith("I04-var05-zero-transport-between-v1.0.1")
+assert new["proposed_run_id"] == "i04-var05-zero-transport-between-v101-ssh-20261008-01"
+run = Path(new["proposed_native_run_directory"])
+assert not run.exists()
+assert run == ROOT / "tmp/native-runs/i04v05-v101-20261008-01"
+assert new["native_run_directory"] == str(run)
+line = ("File: " + str(run / "model.sxi").replace("\\", "/")).encode("ascii")
+assert len(line) == 121
+assert new["recovery"]["proposed_v101_converter_file_line"]["line_exact"].encode("ascii") == line
+assert new["recovery"]["proposed_v101_converter_file_line"]["ascii_bytes"] == 121
+assert new["recovery"]["proposed_v101_converter_file_line"]["max_ascii_bytes"] == 199
+assert new["native_protocol"]["native_log_file_path_line_max_ascii_bytes"] == 199
+
+recovery = new["recovery"]
+assert recovery["frozen_v100_failure_originals"] == seal["originals"]
+assert len(recovery["frozen_v100_failure_originals"]) == 34
+assert recovery["failed_v100_converter_file_line"]["observed_corrupt_tail_hex"] == "fa5827d9a210"
+assert (recovery["v100_native_attempts"], recovery["v100_native_retries"]) == (1, 0)
+assert recovery["v100_behavior_acceptance"] is False
+assert recovery["v100_report_export_called"] is False
+
+categories = {
+    "failure": recovery["frozen_v100_failure_originals"],
+    "preflight": recovery["frozen_v100_preflight_originals"],
+    "support": recovery["frozen_v100_supporting_originals"],
+}
+assert [len(categories[x]) for x in ("failure", "preflight", "support")] == [34, 18, 131]
+for records in categories.values():
+    for pin in records:
+        verify_pin(pin)
+
+for name, expected in [
+    ("frozen_v100_actual_ssh_preflight_transport_originals", 3),
+    ("frozen_v100_root_failure_guard_originals", 2),
+    ("frozen_v100_author_pure_copier_original_streams", 2),
+]:
+    subset = recovery[name]
+    assert len(subset) == expected
+    for pin in subset:
+        verify_pin(pin)
+        assert pin in (categories["preflight"] + categories["support"])
+
+assert len(recovery["independent_v101_draft1_auditor_and_limit"]) > 0
+for name in ["frozen_v100_full_log_oracle", "frozen_v100_full_report_oracle", "frozen_v100_source_input"]:
+    verify_pin(recovery[name])
+
+freeze = new["provenance"]["excluded_v100_source_freeze"]
+inv_path = verify_pin(freeze["source_inventory"])
+manifest_path = verify_pin(freeze["prelaunch_manifest"])
+inventory, _, _ = read(inv_path)
+manifest, _, _ = read(manifest_path)
+assert inventory["source_count"] == freeze["owned_source_count"] == 130
+assert manifest["source_count"] == freeze["source_role_count"] == 1172
+assert len(inventory["source_files"]) == 130
+assert len(manifest["source_files"]) == 1172
+for pin in inventory["source_files"]:
+    verify_pin(pin)
+for pin in manifest["source_files"]:
+    verify_pin(pin)
+assert all(Path(x["path"]).exists() for x in manifest["source_files"])
+
+assert new["selection"]["new_native_run_directory_absent_at_design"] is True
+assert new["selection"]["new_package_absent_at_design"] is True
+assert "native_run_directory" in new["native_protocol"]["native_run_directory_field"]
+assert new["native_protocol"]["fresh_independent_GO_PURE_then_actual_zero_native_preflight_then_GO_PRELAUNCH"] is True
+
+print(json.dumps({
+    "decision": "GO_CONTRACT_DESIGN_ONLY_AUDIT",
+    "old_contract_sha256": old_sha,
+    "new_contract_sha256": new_sha,
+    "unchanged_sections": unchanged,
+    "failure_originals": 34,
+    "preflight_originals": 18,
+    "supporting_originals": 131,
+    "old_inventory_files_rehashed": 130,
+    "old_manifest_roles_rehashed": 1172,
+    "short_file_line_ascii_bytes": len(line),
+    "run_absent": True,
+}, sort_keys=True))

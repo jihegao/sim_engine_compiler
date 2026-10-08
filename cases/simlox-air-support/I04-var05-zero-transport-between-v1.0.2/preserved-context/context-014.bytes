@@ -1,0 +1,34 @@
+import hashlib
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+root = Path(__file__).resolve().parent.parent
+method = root / "tmp/i04-var05-independent-excluded-audit-v100-20261008.py"
+out = root / "tmp/i04-var05-independent-excluded-proof-v100-20261008-01"
+assert not out.exists(), "unique capture directory exists"
+out.mkdir()
+before = hashlib.sha256(method.read_bytes()).hexdigest()
+started = datetime.now(timezone.utc).isoformat()
+proc = subprocess.run([sys.executable, "-X", "utf8", "-B", str(method)], cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+completed = datetime.now(timezone.utc).isoformat()
+after = hashlib.sha256(method.read_bytes()).hexdigest()
+(out / "stdout.bin").write_bytes(proc.stdout)
+(out / "stderr.bin").write_bytes(proc.stderr)
+receipt = {
+    "schema": "i04-var05-independent-excluded-audit-capture/v100",
+    "started_utc": started,
+    "completed_utc": completed,
+    "argv": [sys.executable, "-X", "utf8", "-B", str(method)],
+    "actual_exit": proc.returncode,
+    "method_sha256_before": before,
+    "method_sha256_after": after,
+    "stdout": {"bytes": len(proc.stdout), "sha256": hashlib.sha256(proc.stdout).hexdigest()},
+    "stderr": {"bytes": len(proc.stderr), "sha256": hashlib.sha256(proc.stderr).hexdigest()},
+}
+(out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+assert proc.returncode == 0 and not proc.stderr and before == after
+print(json.dumps({"receipt": str(out / "receipt.json"), "receipt_sha256": hashlib.sha256((out / "receipt.json").read_bytes()).hexdigest(), **receipt}, sort_keys=True))
