@@ -1,0 +1,7 @@
+# A17.var01 raw custody promoter static NO_GO
+
+The unexecuted external `tmp/a17-var01-postrun-draft-v100-20261009-01/promote_small_raw_custody.py`, 5,790 bytes/SHA-256 `5589ea0ae4464670950ca8d9269abf82b83b2257c70a79dfdce2e9b12a2905d2`, is **NO_GO** for candidate capture or case promotion.
+
+Its pinned first raw custody map has 39 records: 25 run originals include `recovered_copy`; 11 native PURE and three native SSH transport originals omit that optional key. The candidate path indexes `r["recovered_copy"]` across all 39 records in both the recovered-copy count and row verification loop. It would raise `KeyError` on a non-run row before writing any candidate.
+
+Preserve these exact source bytes as an inert static draft. A distinct corrected source should use `r.get("recovered_copy")` for both checks while retaining the exact expected count of 25 and per-copy byte equality. Root must review the diff before the first original candidate capture. This is a static finding only: the old method was not executed, no case custody map or small log copy was written, and no native or checker run occurred.

@@ -1,0 +1,86 @@
+"""Independent byte-only audit of the first A17.var01 inventory candidate."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import os
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/A17-var01-same-station-units-v1.0.0"
+CANDIDATE = REPO / "tmp/a17-var01-root-source-candidates-v100-20261008/inventory-20261008T170850037003Z-9408efa5/source-inventory.json"
+RECEIPT = CANDIDATE.parent / "receipt.json"
+OUTER = REPO / "tmp/i04-var06-root-publication-proofs-v100-20261008/a17-var01-inventory-candidate-20261008T170849914998Z-f03a24b9/receipt.json"
+EXPECTED_CANDIDATE = {"bytes":9141,"sha256":"986e93597d1854488174fbc5a7608fa087950ac93de8def8f0d1fd23945b0974"}
+EXPECTED_RECEIPT = {"bytes":61708,"sha256":"23639365ff8fbc2b0628b52fe4fa8a042756a6dcd9466424a18e24684f742e9e"}
+EXPECTED_OUTER = {"bytes":1435,"sha256":"6bba53eab7e69e3a334b66f98ccd47d2ccef41e46696c323ae592f5b7e50b7ff"}
+
+def pin(path):
+    data = path.read_bytes()
+    return {"bytes":len(data),"sha256":hashlib.sha256(data).hexdigest()}
+
+def no_duplicate_json(data):
+    def pairs(items):
+        result = {}
+        for key,value in items:
+            assert key not in result
+            result[key] = value
+        return result
+    return json.loads(data,object_pairs_hook=pairs)
+
+def owned_from_ast(path):
+    tree = ast.parse(path.read_bytes(),filename=str(path))
+    for node in tree.body:
+        if isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id == "OWNED" for t in node.targets):
+            return ast.literal_eval(node.value)
+    raise AssertionError("OWNED tuple absent")
+
+assert not (CASE/"source-inventory.json").exists()
+assert not (CASE/"prelaunch-manifest.json").exists()
+for path,expected in ((CANDIDATE,EXPECTED_CANDIDATE),(RECEIPT,EXPECTED_RECEIPT),(OUTER,EXPECTED_OUTER)):
+    assert pin(path) == expected and path.stat().st_file_attributes & 1
+
+reader = CASE/"review/independent_reader.py"
+builder = CASE/"make_source_inventory.py"
+owned = owned_from_ast(reader)
+assert owned == owned_from_ast(builder)
+assert len(owned) == len(set(owned)) == 53
+doc = no_duplicate_json(CANDIDATE.read_bytes())
+assert set(doc) == {"schema","source_count","source_files"}
+assert doc["schema"] == "a17-var01-source-inventory/v1"
+assert type(doc["source_count"]) is int and doc["source_count"] == 53
+assert type(doc["source_files"]) is list and len(doc["source_files"]) == 53
+for rel,row in zip(owned,doc["source_files"],strict=True):
+    assert set(row) == {"path","bytes","sha256"} and row["path"] == rel
+    path = CASE/rel
+    assert path.is_file() and not path.is_symlink()
+    assert path.stat().st_file_attributes & 1
+    assert pin(path) == {"bytes":row["bytes"],"sha256":row["sha256"]}
+
+observed = set()
+for root,dirs,files in os.walk(CASE,topdown=True,followlinks=False):
+    base = Path(root)
+    if base == CASE:
+        dirs[:] = [d for d in dirs if d not in {"runs","test-output","transport-evidence","__pycache__"}]
+    for name in files:
+        rel = (base/name).relative_to(CASE).as_posix()
+        assert not rel.startswith("review/preflight-ssh0-")
+        assert not rel.startswith("review/independent-prelaunch-")
+        observed.add(rel)
+assert observed == set(owned),{"unknown":sorted(observed-set(owned)),"missing":sorted(set(owned)-observed)}
+
+receipt = no_duplicate_json(RECEIPT.read_bytes())
+outer = no_duplicate_json(OUTER.read_bytes())
+assert receipt["decision"] == "PASS_EXTERNAL_CANDIDATE_ONLY"
+assert receipt["native_dispatch"] is False
+assert receipt["ssh_dispatch"] is False and receipt["canonical_mutation"] is False
+assert receipt["actual_exit"] == 0
+assert receipt["case_sources_before"] == receipt["case_sources_after"]
+assert receipt["case_sources_before"] == {r["path"]:{"bytes":r["bytes"],"sha256":r["sha256"]} for r in doc["source_files"]}
+assert receipt["candidate"] == {"path":str(CANDIDATE),**EXPECTED_CANDIDATE}
+assert receipt["canonical_before"] == receipt["canonical_after"]
+assert receipt["mandatory_originals_before"] == receipt["mandatory_originals_after"]
+assert receipt["failure"] is None
+assert outer["actual_exit"] == 0 and outer["native_dispatch"] is False
+assert outer["method_before"] == outer["method_after"]
+assert outer["streams"]["stderr.bin"]["bytes"] == 0
+print("PASS_A17_VAR01_EXACT_INVENTORY_CANDIDATE 53 canonical_absent native0")

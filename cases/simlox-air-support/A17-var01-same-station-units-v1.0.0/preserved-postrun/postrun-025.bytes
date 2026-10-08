@@ -1,0 +1,63 @@
+"""Promote exactly reviewed external bytes into one absent canonical file."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, sys, uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/A17-var01-same-station-units-v1.0.0'
+assert len(sys.argv)==7
+name,source_arg,length_arg,sha,approval_arg,approval_sha=sys.argv[1:]
+assert name in ('source-inventory.json','prelaunch-manifest.json')
+source=Path(source_arg).resolve(strict=True)
+approval=Path(approval_arg).resolve(strict=True)
+assert source.is_relative_to(R/'tmp/a17-var01-root-source-candidates-v100-20261008')
+assert source.name==name and approval.is_relative_to(R/'tmp')
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(source)=={'bytes':int(length_arg),'sha256':sha}
+assert pin(approval)['sha256']==approval_sha
+assert not source.stat().st_mode&stat.S_IWRITE and not approval.stat().st_mode&stat.S_IWRITE
+go=json.loads(approval.read_bytes())
+assert type(go) is dict and set(go)=={'decision','canonical_name','candidate_path','candidate_bytes','candidate_sha256','audit_receipt_path','audit_receipt_sha256','run_id','native_run_directory','independent_reader_sha256'}
+for key in set(go)-{'candidate_bytes'}:assert type(go[key]) is str,key
+assert type(go['candidate_bytes']) is int and go['candidate_bytes']==int(length_arg)
+assert go['decision']==('GO_INVENTORY_WRITE' if name=='source-inventory.json' else 'GO_MANIFEST_WRITE')
+assert go['canonical_name']==name and go['candidate_path']==str(source)
+assert go['candidate_sha256']==sha
+assert go['run_id']=='a17-var01-same-station-v100-ssh-20261008-01'
+assert go['native_run_directory']==str(C/'runs'/go['run_id'])
+assert go['independent_reader_sha256']==pin(C/'review/independent_reader.py')['sha256']=='8b485cc60130292d02ce4752f9970bb4754dee13b71ebf289eb837005e133e38'
+audit=Path(go['audit_receipt_path']).resolve(strict=True)
+assert audit.is_relative_to(R/'tmp') and not audit.stat().st_mode&stat.S_IWRITE
+assert pin(audit)['sha256']==go['audit_receipt_sha256']
+audit_data=json.loads(audit.read_bytes())
+assert type(audit_data['actual_exit']) is int and audit_data['actual_exit']==0
+assert audit_data['native_dispatch'] is False and audit_data['method_before']==audit_data['method_after']
+assert audit_data['streams']['stderr.bin']['bytes']==0
+for stream in ('stdout.bin','stderr.bin'):
+ assert pin(audit.parent/stream)==audit_data['streams'][stream]
+f=json.loads((R/'tmp/a17-var01-root-static-freeze-v101-20261008.json').read_bytes())
+def snapshot():
+ result={}
+ for rel,expected in f['case_sources'].items():
+  p=C/rel;assert not p.stat().st_mode&stat.S_IWRITE
+  result[rel]=pin(p);assert result[rel]==expected,rel
+ return result
+before=snapshot();target=C/name
+assert not target.exists()
+assert not (C/'runs/a17-var01-same-station-v100-ssh-20261008-01').exists()
+O=R/'tmp/a17-var01-root-source-promotions-v101-20261008'/(name+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False)
+failure=None;after=None
+try:
+ with target.open('xb') as file:file.write(source.read_bytes())
+ target.chmod(stat.S_IREAD)
+ assert pin(target)==pin(source)=={'bytes':int(length_arg),'sha256':sha}
+ assert pin(approval)['sha256']==approval_sha
+ after=snapshot();assert after==before
+except BaseException as e:failure=type(e).__name__+': '+str(e)
+finally:
+ if target.is_file():target.chmod(stat.S_IREAD)
+record={'schema':'a17-var01-root-source-promote/v101','native_dispatch':False,'ssh_dispatch':False,'source':{'path':str(source),**pin(source)},'approval':{'path':str(approval),**pin(approval)},'target':{'path':str(target),**pin(target)} if target.is_file() else None,'case_sources_before':before,'case_sources_after':after,'decision':'PASS_REVIEWED_ABSENT_ONLY_PROMOTION' if failure is None else 'NO_GO_PRESERVED','failure':failure}
+with (O/'receipt.json').open('xb') as file:file.write((json.dumps(record,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'target':record['target'],'decision':record['decision'],'failure':failure}))
+assert failure is None

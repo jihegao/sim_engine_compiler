@@ -1,0 +1,91 @@
+"""Capture one frozen local PS5 converter fixture, with original byte streams.
+
+No SSH, native SIMLOX process, or accepted parent checker is invoked.
+"""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import subprocess
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/A17-var01-same-station-units-v1.0.0'
+F = R / 'tmp/a17-var01-root-static-freeze-v100-20261008.json'
+
+def pin(p):
+    b = p.read_bytes()
+    return {'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest()}
+
+def snapshot(f):
+    out = {}
+    for rel, expected in f['case_sources'].items():
+        p = C / rel
+        assert p.is_file() and not p.stat().st_mode & stat.S_IWRITE, rel
+        assert p.resolve().is_relative_to(C.resolve()), rel
+        assert not p.stat().st_file_attributes & 1024, rel
+        out[rel] = pin(p)
+        assert out[rel] == expected, rel
+    return out
+
+assert F.is_file() and not F.stat().st_mode & stat.S_IWRITE
+f = json.loads(F.read_bytes())
+assert f['schema'] == 'a17-var01-root-static-freeze/v100'
+assert f['native_dispatch'] is False
+before = snapshot(f)
+assert 'test_converter_gate.ps1' in before
+negative = R / 'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0/runs/i04-var05-zero-transport-between-v100-ssh-20261008-01/model-run.log'
+negative_before = {'pin': pin(negative), 'mode': negative.stat().st_mode,
+                   'attributes': negative.stat().st_file_attributes}
+assert negative_before['pin'] == {'bytes':1122,'sha256':'ca209899bce7e299b49d9a482469efd8c0fee0d9f56673ffb99783cbf689457a'}
+native_run = C / 'runs/a17-var01-same-station-v100-ssh-20261008-01'
+assert not native_run.exists()
+O = R / 'tmp/a17-var01-root-converter-proofs-v100-20261008' / (dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+O.mkdir(parents=True, exist_ok=False)
+argv = ['powershell.exe','-NoProfile','-NonInteractive','-File',str(C/'test_converter_gate.ps1')]
+started = dt.datetime.now(dt.timezone.utc).isoformat()
+with (O/'stdout.bin').open('xb') as so, (O/'stderr.bin').open('xb') as se:
+    code = subprocess.run(argv,cwd=R,stdout=so,stderr=se).returncode
+failure = None
+observed = None
+after = None
+fixture_files = {}
+negative_after = None
+try:
+    after = snapshot(f)
+    negative_after = {'pin': pin(negative), 'mode': negative.stat().st_mode,
+                      'attributes': negative.stat().st_file_attributes}
+    assert negative_after == negative_before
+    assert not native_run.exists()
+    assert type(code) is int and code == 0
+    assert (O/'stderr.bin').read_bytes() == b''
+    observed = json.loads((O/'stdout.bin').read_bytes().decode('utf-8-sig'))
+    assert observed['schema'] == 'a17-var01-converter-pure-test/v1'
+    assert observed['positive'] is True and observed['native_calls'] == 0
+    assert observed['file_line_ascii_bytes'] == 191
+    proof = Path(observed['proof_directory'])
+    assert proof.is_relative_to(C/'test-output') and proof.is_dir()
+    for p in sorted(proof.rglob('*')):
+        if p.is_file():
+            assert not p.stat().st_file_attributes & 1024
+            fixture_files[p.relative_to(proof).as_posix()] = pin(p)
+            p.chmod(stat.S_IREAD)
+except BaseException as e:
+    failure = type(e).__name__ + ': ' + str(e)
+record = {'schema':'a17-var01-root-converter-proof/v100','native_dispatch':False,
+          'accepted_parent_checker_calls':0,'argv':argv,'started_utc':started,
+          'completed_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
+          'actual_exit':code,'freeze_record':pin(F),'case_sources_before':before,
+          'case_sources_after':after,'negative_original_before':negative_before,
+          'negative_original_after':negative_after,'observed':observed,
+          'fixture_files':fixture_files,'streams':{n:pin(O/n) for n in ('stdout.bin','stderr.bin')},
+          'decision':'PASS_CONVERTER_FIXTURE_ONLY' if failure is None else 'NO_GO_PRESERVED',
+          'failure':failure}
+with (O/'receipt.json').open('xb') as file:
+    file.write((json.dumps(record,indent=2)+'\n').encode())
+for p in O.iterdir():
+    p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),
+                  'actual_exit':code,'decision':record['decision'],'failure':failure}))
+assert failure is None

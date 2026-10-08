@@ -1,0 +1,130 @@
+"""Add exactly two small raw byte copies and promote reviewed custody maps.
+
+Candidate mode writes only an external tmp JSON. Write mode needs the exact
+candidate SHA and creates absent-only case paths; it never invokes SIMLOX or a
+checker and never changes an original or frozen prelaunch source.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+CASE = REPO / "cases/simlox-air-support/A17-var01-same-station-units-v1.0.0"
+HERE = Path(__file__).resolve().parent
+RAW_FIRST = HERE / "raw-custody-candidate.json"
+RAW_FIRST_SHA = "665de94b5d33c1d501b6d55507891041dfb6e05d62c42083f637d47fd182ae5c"
+PREFLIGHT = HERE / "preflight-custody-candidate.json"
+PREFLIGHT_SHA = "75a4bcca1316aeee15e6a01970366edbedb46cfe8fd0da49d8f5066d75bc8d01"
+GO = CASE / "review/independent-postrun-go.json"
+GO_SHA = "006e6cce0df04483bc6423707cb98a71aa6a23110d1e2c3918805c415461d70c"
+RUN = CASE / "runs/a17-var01-same-station-v100-ssh-20261008-01"
+SMALL = (
+    ("model-run.log", 1079, "91f24e7779bef8a931ad656ddb8fe4341298090fe6e2251a6770fb2a0b6aaa4c",
+     "preserved-raw/raw-000.bytes"),
+    ("model.log", 4039, "5a759e7a69521945275cfb5af67f58e822364187ce66c9941a1fe7b4ca5c76f0",
+     "preserved-raw/raw-001.bytes"),
+)
+
+
+def seal(path: Path) -> dict:
+    assert path.is_file() and bool(path.stat().st_file_attributes & 1), str(path)
+    raw = path.read_bytes()
+    return {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def pinned(path: Path, sha: str) -> bytes:
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == sha and bool(path.stat().st_file_attributes & 1), str(path)
+    return raw
+
+
+def candidate() -> dict:
+    assert json.loads(pinned(GO, GO_SHA))["decision"] == "GO_BOUNDED_POSTRUN"
+    raw = json.loads(pinned(RAW_FIRST, RAW_FIRST_SHA))
+    preflight = json.loads(pinned(PREFLIGHT, PREFLIGHT_SHA))
+    assert raw["schema"] == "a17-var01-postrun-raw-custody/v1"
+    assert raw["mandatory_original_count"] == 39 and raw["recovered_run_copy_count"] == 25
+    assert preflight["schema"] == "a17-var01-postrun-preflight-custody/v1"
+    assert preflight["mandatory_original_count"] == 15
+    rows = raw["records"]
+    assert len(rows) == 39
+    assert len({r["original_path"] for r in rows}) == 39
+    assert sum(r["recovered_copy"] is not None for r in rows) == 25
+    for row in rows:
+        assert seal(Path(row["original_path"])) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        if row["recovered_copy"] is not None:
+            assert seal(Path(row["recovered_copy"])) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+    for name, length, sha, rel in SMALL:
+        source = RUN / name
+        assert seal(source) == {"bytes": length, "sha256": sha}
+        matching = [r for r in rows if r["original_path"] == str(source)]
+        assert len(matching) == 1 and matching[0]["role"] == "native_run_original"
+        assert matching[0]["bytes"] == length and matching[0]["sha256"] == sha
+        assert "owned_copy" not in matching[0]
+        matching[0]["owned_copy"] = rel
+    raw["schema"] = "a17-var01-postrun-raw-custody-with-small-copies/v1"
+    raw["small_owned_raw_copy_count"] = 2
+    raw["original_raw_candidate"] = {"path": str(RAW_FIRST), "bytes": RAW_FIRST.stat().st_size,
+                                      "sha256": RAW_FIRST_SHA}
+    return raw
+
+
+def encode(doc: dict) -> bytes:
+    return (json.dumps(doc, sort_keys=True, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+
+
+def write_candidate(path: Path, body: bytes) -> None:
+    assert path.is_absolute() and path.parent == HERE
+    with path.open("xb") as stream:
+        stream.write(body)
+    path.chmod(path.stat().st_mode & ~0o222)
+
+
+def promote(doc: dict, body: bytes, approved_sha: str) -> None:
+    assert hashlib.sha256(body).hexdigest() == approved_sha
+    assert json.loads(pinned(PREFLIGHT, PREFLIGHT_SHA))["mandatory_original_count"] == 15
+    raw_dir = CASE / "preserved-raw"
+    preflight_dir = CASE / "preserved-preflight"
+    assert not raw_dir.exists() and not preflight_dir.exists()
+    assert not raw_dir.is_symlink() and not preflight_dir.is_symlink()
+    for row in doc["records"]:
+        path = Path(row["original_path"])
+        assert seal(path) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        if row["recovered_copy"] is not None:
+            assert seal(Path(row["recovered_copy"])) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+    preflight_doc = json.loads(PREFLIGHT.read_bytes())
+    for row in preflight_doc["records"]:
+        path = Path(row["original_path"])
+        assert seal(path) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+    raw_dir.mkdir()
+    preflight_dir.mkdir()
+    for name, length, sha, rel in SMALL:
+        source = RUN / name
+        target = CASE / rel
+        with target.open("xb") as stream:
+            stream.write(source.read_bytes())
+        target.chmod(target.stat().st_mode & ~0o222)
+        assert seal(target) == {"bytes": length, "sha256": sha}
+    for path, contents in ((raw_dir / "custody.json", body),
+                           (preflight_dir / "custody.json", pinned(PREFLIGHT, PREFLIGHT_SHA))):
+        with path.open("xb") as stream:
+            stream.write(contents)
+        path.chmod(path.stat().st_mode & ~0o222)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--candidate", type=Path)
+    mode.add_argument("--write-approved-sha256")
+    args = parser.parse_args()
+    doc = candidate()
+    body = encode(doc)
+    if args.candidate is not None:
+        write_candidate(args.candidate, body)
+    else:
+        promote(doc, body, args.write_approved_sha256)

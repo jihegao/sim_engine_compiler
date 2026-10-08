@@ -1,0 +1,101 @@
+"""Strict pure JSON and schema comparisons for the A17.var01 child."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import re
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+RUN_ID = "a17-var01-same-station-v100-ssh-20261008-01"
+RUN_DIR = HERE / "runs" / RUN_ID
+NATIVE_DIR = str(RUN_DIR)
+INPUT_SHA = "1a31cf6c10ed6b6bdaf2403a18e983c0ee286eba17a7b4dd513dc33ecdb2f795"
+EXPORT_SHA = "8d13ea4a91ce95dc4a85b836da67c50720b3dfb200e0d259904c21e70e2a4f2b"
+REPORT_SHA = "3ae5e69163f8d211afc23de49346c2cd2ca87a7ca80fb825831ed0cedd291c7b"
+FORMS_SHA = "71eeec318ba6b7bd5b19a527891b5fd3125b7d66e7d59c9a30f41314ecad8c32"
+
+
+def seal(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def read_pinned_json(path: Path, sha: str) -> dict:
+    data = path.read_bytes()
+    assert hashlib.sha256(data).hexdigest() == sha, str(path)
+    return json.loads(data.decode("utf-8-sig"))
+
+
+def strict_json(raw: bytes) -> dict:
+    assert not raw.startswith(b"\xef\xbb\xbf")
+    def unique_pairs(pairs: list[tuple[str, object]]) -> dict:
+        result = {}
+        for key, value in pairs:
+            assert key not in result, f"duplicate JSON key: {key}"
+            result[key] = value
+        return result
+    def reject_constant(value: str) -> None:
+        raise AssertionError(f"nonfinite JSON constant: {value}")
+    return json.loads(raw.decode("utf-8"), object_pairs_hook=unique_pairs,
+                      parse_constant=reject_constant)
+
+
+def read_native_report(raw: bytes) -> dict:
+    marker = b",\r\n      ]"
+    assert raw.count(marker) == 1, "exact native trailing comma marker absent or repeated"
+    assert raw.count(b"\n") == raw.count(b"\r\n") and not raw.startswith(b"\xef\xbb\xbf")
+    text = raw.decode("utf-8")
+    assert len(re.findall(r",(?=\s*[}\]])", text)) == 1, "extra native trailing comma"
+    return strict_json(text.replace(",\r\n      ]", "\r\n      ]", 1).encode("utf-8"))
+
+
+def count_model(model: dict) -> dict:
+    assert type(model) is dict and list(model) == ["model"]
+    assert list(model["model"]) == ["database_version", "tables"]
+    tables = model["model"]["tables"]
+    rows = [r for t in tables for ins in t["instances"] for r in ins["rows"]]
+    return {"tables": len(tables), "rows": len(rows), "cells": sum(len(r) for r in rows)}
+
+
+def compare_typed(expected: object, actual: object, datatype: str | None = None) -> bool:
+    if expected is None or actual is None:
+        return expected is None and actual is None
+    if datatype == "double":
+        return (
+            type(expected) in (int, float) and type(actual) in (int, float)
+            and math.isfinite(expected) and math.isfinite(actual) and expected == actual
+        )
+    if datatype == "integer":
+        return type(expected) is int and type(actual) is int and expected == actual
+    if datatype == "string":
+        return type(expected) is str and type(actual) is str and expected == actual
+    if type(expected) is not type(actual):
+        return False
+    if isinstance(expected, dict):
+        return list(expected) == list(actual) and all(compare_typed(expected[k], actual[k]) for k in expected)
+    if isinstance(expected, list):
+        return len(expected) == len(actual) and all(compare_typed(x, y) for x, y in zip(expected, actual, strict=True))
+    return expected == actual
+
+
+def compare_tables(expected: list[dict], actual: list[dict]) -> int:
+    assert type(expected) is type(actual) is list and len(expected) == len(actual)
+    cells = 0
+    for e, a in zip(expected, actual, strict=True):
+        assert type(a) is dict and list(e) == list(a) == ["name", "columns", "instances"]
+        assert e["name"] == a["name"]
+        assert compare_typed(e["columns"], a["columns"]), e["name"]
+        assert len(e["instances"]) == len(a["instances"])
+        for ei, ai in zip(e["instances"], a["instances"], strict=True):
+            assert type(ai) is dict and list(ei) == list(ai) == ["instance_name", "rows"]
+            assert ei["instance_name"] == ai["instance_name"]
+            assert len(ei["rows"]) == len(ai["rows"])
+            for er, ar in zip(ei["rows"], ai["rows"], strict=True):
+                assert len(er) == len(ar) == len(e["columns"])
+                for col, expected_value, actual_value in zip(e["columns"], er, ar, strict=True):
+                    assert compare_typed(expected_value, actual_value, col["datatype"]), (e["name"], col["name"], expected_value, actual_value)
+                    cells += 1
+    return cells

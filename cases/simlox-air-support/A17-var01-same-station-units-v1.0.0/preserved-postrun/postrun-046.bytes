@@ -1,0 +1,87 @@
+"""Audit one original zero-native SSH preflight and its frozen independent reader."""
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CASE = REPO / "cases/simlox-air-support/A17-var01-same-station-units-v1.0.0"
+READER = CASE / "review/independent_reader.py"
+PREFLIGHT = CASE / "review/preflight-ssh0-20261008T172206568Z.json"
+PURE = CASE / "test-output/preflight-pure-20261008T1722022731714Z-96db9525/pure-proof.json"
+TRANSPORT_DIR = CASE / "transport-evidence/ssh-preflight-20261008T172159534898Z-71b44326"
+TRANSPORT = TRANSPORT_DIR / "transport-receipt.json"
+MANIFEST = CASE / "prelaunch-manifest.json"
+INVENTORY = CASE / "source-inventory.json"
+RUN = CASE / "runs/a17-var01-same-station-v100-ssh-20261008-01"
+APPROVAL = CASE / "review/independent-prelaunch-go.json"
+PIN = {
+    READER: (49878, "8b485cc60130292d02ce4752f9970bb4754dee13b71ebf289eb837005e133e38"),
+    PREFLIGHT: (61390, "655d68c5d0912155c4f139e6975c6efe0a6716f6d9aede558bc4f59cb61e4891"),
+    PURE: (34466, "6e1953baf5098999d34eedd52ebc3c8a68666865552f9e08688508cb2e32f16f"),
+    TRANSPORT: (1488, "61ae24c9b9d60915f425c90fa374feac360a7b15081e77a077c17b232d496616"),
+    MANIFEST: (64092, "2dd0d83be96bd371405b502cb106422a795cab34500d49a30b20d36fd7b411a7"),
+    INVENTORY: (9141, "986e93597d1854488174fbc5a7608fa087950ac93de8def8f0d1fd23945b0974"),
+}
+SHA_EMPTY = hashlib.sha256(b"").hexdigest()
+def pin(path: Path, size: int, sha: str) -> bytes:
+    assert path.is_file() and path.stat().st_file_attributes & 1, path
+    data = path.read_bytes()
+    assert len(data) == size and hashlib.sha256(data).hexdigest() == sha, path
+    return data
+
+def main() -> None:
+    assert not RUN.exists() and not APPROVAL.exists()
+    for path, (size, sha) in PIN.items():
+        pin(path, size, sha)
+    assert len(list(CASE.glob("review/preflight-ssh0-*.json"))) == 1
+    assert len(list((CASE / "transport-evidence").glob("ssh-preflight-*/transport-receipt.json"))) == 1
+    spec = importlib.util.spec_from_file_location("a17_independent_reader", READER)
+    assert spec and spec.loader
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    receipt, source_map = reader.preflight_receipt(PREFLIGHT)
+    assert len(source_map) == 173
+    assert reader.map_digest(source_map) == "a5482a09e4a7779c8bf21b7637cc2d1ac608401778a8d7497beda522edc4c0dc"
+    proof = reader.unique_pairs(PURE.read_bytes())
+    assert len(proof["checks"]) == 5
+    assert PURE.parent == Path(receipt["pure_proof_directory"])
+    for step in proof["checks"]:
+        for stream in ("stdout", "stderr"):
+            path = Path(step[stream + "_path"])
+            pin(path, step[stream + "_bytes"], step[stream + "_sha256"])
+    transport = reader.unique_pairs(TRANSPORT.read_bytes())
+    assert set(transport) == {"schema", "mode", "run_id", "native_approved", "native_run_directory",
+                              "transport_sha256", "runner_sha256", "manifest_sha256", "started_utc",
+                              "completed_utc", "command", "exit_code", "error", "streams"}
+    assert transport["schema"] == "a17-var01-ssh-transport/v1"
+    assert transport["mode"] == "preflight" and transport["run_id"] == reader.RUN_ID
+    assert type(transport["native_approved"]) is bool and transport["native_approved"] is False
+    assert type(transport["native_run_directory"]) is str and transport["native_run_directory"] == str(RUN)
+    assert transport["transport_sha256"] == "4ec26670d510fffdc1d5497fe38b41e0b7f3b33f814287863567b865c078af11"
+    assert transport["runner_sha256"] == "07e1f9701f95c5676b1656a2813e86ef9f67fee7e33a81f12d6c3c772db282a9"
+    assert transport["manifest_sha256"] == PIN[MANIFEST][1]
+    assert type(transport["exit_code"]) is int and transport["exit_code"] == 0
+    assert transport["error"] is None
+    assert reader.utc(transport["started_utc"]) <= reader.utc(proof["started_utc"])
+    assert reader.utc(proof["completed_utc"]) <= reader.utc(transport["completed_utc"])
+    expected_command = ["ssh", "-n", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+                        "-i", "C:/Users/user/.ssh/id_rsa", "user@127.0.0.1",
+                        "powershell.exe", "-NoProfile", "-NonInteractive", "-File",
+                        str(CASE / "run_native_ssh.ps1").replace("\\", "/"), "-PreflightOnly"]
+    assert transport["command"] == expected_command
+    assert set(transport["streams"]) == {"ssh-stdout.bin", "ssh-stderr.bin"}
+    stdout = pin(TRANSPORT_DIR / "ssh-stdout.bin", 175, "9bc16e1b964b65322fd07cc33f3307b583146d999bb4e90addef2b727cd3f555")
+    pin(TRANSPORT_DIR / "ssh-stderr.bin", 0, SHA_EMPTY)
+    assert transport["streams"]["ssh-stdout.bin"] == {"bytes": 175, "sha256": hashlib.sha256(stdout).hexdigest()}
+    assert transport["streams"]["ssh-stderr.bin"] == {"bytes": 0, "sha256": SHA_EMPTY}
+    assert stdout == (str(PREFLIGHT) + "\r\n").encode("ascii")
+    for path, (size, sha) in PIN.items():
+        pin(path, size, sha)
+    assert not RUN.exists() and not APPROVAL.exists()
+    print("PASS_ACTUAL_ZERO_NATIVE_PREFLIGHT 173 roles 5 pure helpers 12 streams native0")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,140 @@
+{
+  "schema": "a17-var01-prospective-log-graph/v1",
+  "status": "strict_predeclared_hypothesis_not_native_observation",
+  "parent_lines": 60,
+  "parent_timed_lines": 52,
+  "accepted_arm_counts": {
+    "full_lines": 60,
+    "timed_lines": 52,
+    "untimed_continuations": 6
+  },
+  "bounded_render_arms": {
+    "second_unit_base_instance_index": [
+      0,
+      1
+    ],
+    "second_aircraft_base_controller_index": [
+      0,
+      1
+    ],
+    "h10_return_block_order": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "cardinality": 8,
+    "constraints": [
+      "Each selected index is stable across every descriptor for that unit or aircraft.",
+      "The two index choices are independent diagnostic axes, not a claim that either is a general rule.",
+      "Exactly two complete return blocks and two priority-list lines with one blank continuation each are required; no coalesced or extra diagnostics."
+    ]
+  },
+  "event_phases": [
+    {
+      "hour": 0,
+      "events": [
+        "ID0 failure marker",
+        "ID0 ready+ in TEACH-UNIT at BASE-01",
+        "TEACH-UNIT ready count1",
+        "ID1 failure marker",
+        "ID1 ready+ in TEACH-UNIT-2 at BASE-01",
+        "TEACH-UNIT-2 ready count1",
+        "start day0"
+      ]
+    },
+    {
+      "hour": 7,
+      "events": [
+        "one TEACH-GROUP mission ordered/created/activated for2",
+        "ID0 allocated from TEACH-UNIT then ready-",
+        "ID1 allocated from TEACH-UNIT-2 then ready-",
+        "preparation start/end for each ID with no resource wait"
+      ]
+    },
+    {
+      "hour": 8,
+      "events": [
+        "joint mission start with IDs0,1 and duration2"
+      ]
+    },
+    {
+      "hour": 8.5,
+      "events": [
+        "joint task start"
+      ]
+    },
+    {
+      "hour": 9.5,
+      "events": [
+        "joint task completion"
+      ]
+    },
+    {
+      "hour": 10,
+      "events": [
+        "mission success before completion",
+        "both turnround starts after completion",
+        "two return blocks, either whole-block order"
+      ]
+    },
+    {
+      "hour": 24,
+      "events": [
+        "start day1"
+      ]
+    }
+  ],
+  "h10_return_block_per_id": [
+    "turnround ended",
+    "System arrives with mission success",
+    "no failures continuation",
+    "no PMTasks continuation",
+    "ready+ at original unit",
+    "System ready",
+    "duplicate System ready",
+    "original unit systems ready:1",
+    "Repair task priority list",
+    "blank continuation"
+  ],
+  "partial_order": [
+    "h0 ready before h7 allocation; exactly one aircraft remains tied to each explicit unit.",
+    "h7 allocation precedes preparation; preparation precedes h8 joint start; h8.5 task start precedes h9.5 task completion.",
+    "h10 mission success precedes completion; each ID's turnround start precedes its own complete return block.",
+    "Return blocks may commute as units are distinct; lines within each block may not reorder or interleave."
+  ],
+  "reject": [
+    "other line count",
+    "other timed count",
+    "other physical ID or unit",
+    "grouped ready counts replacing one per unit",
+    "missing or extra mission/return/priority/continuation",
+    "partial return block interleaving",
+    "different task times",
+    "failure or maintenance",
+    "unexpected station/controller index",
+    "unlisted converter diagnostics"
+  ],
+  "interpretation_limit": "This finite eight-arm parser can support only the bounded two-unit shared-base mission behavior. It does not establish general station-controller indexing or return ordering.",
+  "decision_arms": {
+    "primary_expected": {
+      "second_unit_base_instance_index": 0,
+      "second_aircraft_base_controller_index": 0,
+      "h10_return_block_order": [
+        0,
+        1
+      ],
+      "status_if_all_other_gates_pass": "bounded_acceptance_candidate",
+      "basis": "Accepted A03 one-unit same-base and A17 distinct-base logs both render station/controller index0 and ID0 then ID1; this is a predeclared hypothesis, not an established two-unit/shared-base law."
+    },
+    "other_seven_finite_forms": {
+      "status": "diagnostic_NO_GO_for_primary_contract",
+      "purpose": "Preserve and classify a controller/index/order surprise without changing the oracle after observation. A separate contract would be required to accept any such branch."
+    },
+    "outside_eight_forms": "NO_GO_unmodeled_trace"
+  }
+}
