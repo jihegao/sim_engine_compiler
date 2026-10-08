@@ -1,0 +1,120 @@
+"""Closed publication/source/raw/Git byte audit without native or semantic reruns."""
+from pathlib import Path
+import hashlib,json,stat,subprocess,sys
+R=Path(__file__).resolve().parents[1];C=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2'
+P=C.relative_to(R).as_posix()+'/'
+CAT='cases/simlox-air-support/publication-index-v1.json'
+BASE='d2f6a8604c5e508bc5fec379b9a53dc701c15e5c'
+RUN=R/'tmp/native-runs/i04v05-v102-20261008-01'
+assert len(sys.argv)==5
+PHASE,REF,INDEX_SHA,COUNT=sys.argv[1:];COUNT=int(COUNT)
+assert PHASE in ('disk','staged','head','merged')
+O=R/f'tmp/i04-var05-root-{PHASE}-publication-audit-v102-20261008.json';assert not O.exists()
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):
+ def pairs(items):
+  d={}
+  for k,v in items:assert k not in d,k;d[k]=v
+  return d
+ return json.loads(p.read_bytes(),object_pairs_hook=pairs,parse_constant=lambda v:(_ for _ in ()).throw(ValueError(v)))
+def typed(a,b):
+ if type(a) is not type(b):return False
+ if isinstance(a,dict):return a.keys()==b.keys() and all(typed(a[k],b[k]) for k in a)
+ if isinstance(a,list):return len(a)==len(b) and all(typed(x,y) for x,y in zip(a,b))
+ return a==b
+def check(p,row):
+ assert p.is_file() and not p.is_symlink(),str(p)
+ assert type(row['bytes']) is int and row['bytes']>=0
+ assert pin(p.read_bytes())=={k:row[k] for k in ('bytes','sha256')},str(p)
+def ro(p):assert not p.stat().st_mode&stat.S_IWRITE,str(p)
+def git(*a):return subprocess.check_output(['git','-c','core.longpaths=true',*a],cwd=R)
+def blobs(ref,paths):
+ tree=git('ls-files','--stage','-z') if ref=='INDEX' else git('ls-tree','-r','-z',ref)
+ ids={}
+ for row in tree.split(b'\0'):
+  if not row:continue
+  meta,name=row.split(b'\t',1);a=meta.split()
+  if ref=='INDEX':assert a[2]==b'0';oid=a[1]
+  else:
+   if a[1]!=b'blob':continue
+   oid=a[2]
+  ids[name.decode()]=oid.decode()
+ assert set(paths)<=ids.keys(),set(paths)-ids.keys()
+ wanted=list(dict.fromkeys(ids[p] for p in sorted(paths)))
+ result=subprocess.run(['git','cat-file','--batch'],cwd=R,input=('\n'.join(wanted)+'\n').encode(),capture_output=True)
+ assert result.returncode==0 and not result.stderr
+ payloads={};pos=0
+ for oid in wanted:
+  end=result.stdout.index(b'\n',pos);head=result.stdout[pos:end].split()
+  assert head[0].decode()==oid and head[1]==b'blob'
+  size=int(head[2]);start=end+1;payloads[oid]=result.stdout[start:start+size]
+  assert result.stdout[start+size:start+size+1]==b'\n';pos=start+size+1
+ assert pos==len(result.stdout)
+ return {p:payloads[ids[p]] for p in paths}
+I=C/'evidence-index.json';ib=I.read_bytes();assert pin(ib)['sha256']==INDEX_SHA
+d=load(I);rows=d['source_files'];assert len(rows)==d['source_count']==COUNT
+assert len({r['path'] for r in rows})==COUNT
+for row in rows:
+ rel=Path(row['path']);assert not rel.is_absolute() and '..' not in rel.parts
+ assert not any(x in ('runs','test-output','transport-evidence','__pycache__') for x in rel.parts)
+ path=(C/rel).resolve(strict=True);assert path.is_relative_to(C.resolve());check(path,row);ro(path)
+ro(I)
+expected_case={r['path'] for r in rows}|{'evidence-index.json'}
+actual_case={p.relative_to(C).as_posix() for p in C.rglob('*') if p.is_file() and p.relative_to(C).parts[0] not in ('runs','test-output','transport-evidence') and '__pycache__' not in p.relative_to(C).parts}
+assert actual_case==expected_case,actual_case^expected_case
+selection=load(C/'preserved-context/selection.json.bytes');refs=selection['parent_sources_and_catalog'][:-1]
+assert len(refs)==403 and len(selection['parent_mandatory_originals'])==168
+base=blobs(BASE,{row['path'] for row in refs}|{CAT})
+for row in refs:
+ check(R/row['path'],row);assert pin(base[row['path']])==row['git']
+raw=load(C/'raw-custody-map.json')['records'];pre=load(C/'preflight-custody-map.json')['records']
+seal14=load(R/'tmp/i04-var05-root-native-transport-seal-v102-20261008/20261008T103340948911Z-e6667db8/receipt.json')
+seal15=load(R/'tmp/i04-var05-root-preflight-seal-v102-20261008/20261008T102656688149Z-0568f260/receipt.json')
+normalize=lambda p:str(Path(p).resolve(strict=True)).casefold()
+closure=load(RUN/'closure.json')
+assert closure['error'] in (None,'') and closure['step_error'] in (None,'')
+assert len(closure['raw'])==23 and {p.name for p in RUN.iterdir()}==set(closure['raw'])|{'invocation.json','closure.json'}
+assert pin((RUN/'invocation.json').read_bytes())['sha256']==closure['invocation_sha256']
+for name,row in closure['raw'].items():check(RUN/name,row)
+for p in RUN.iterdir():ro(p)
+expected_raw={normalize(row['path']) for row in selection['parent_mandatory_originals']}|{normalize(p) for p in RUN.iterdir()}|{normalize(row['path']) for row in seal14['original_files']}
+assert len(raw)==len(expected_raw)==207 and {normalize(row['path']) for row in raw}==expected_raw
+assert len(pre)==15 and {normalize(row['path']) for row in pre}=={normalize(row['path']) for row in seal15['original_files']}
+for row in raw+pre:
+ path=Path(row['path']);check(path,row)
+ if path.resolve().is_relative_to(C.resolve()):ro(path)
+inventory=C/'source-inventory.json';manifest=C/'prelaunch-manifest.json'
+assert pin(inventory.read_bytes())=={'bytes':74886,'sha256':'b7a106a15be1c19e62e0ca2a952afcfe02e71a3fa110d26de9db38c75fe78cf8'}
+assert pin(manifest.read_bytes())=={'bytes':1489689,'sha256':'4929d0003ab466460cba8e23192f3cbcac46cedc8b3a3e70da010267048f378c'}
+owned=load(inventory)['source_files'];sources=load(manifest)['source_files']
+assert len(owned)==198 and len(sources)==4203
+for row in owned:check(Path(row['path']),row);ro(Path(row['path']))
+for row in sources:check(Path(row['path']),row)
+required_source={'source-inventory.json','prelaunch-manifest.json','raw-custody-map.json','preflight-custody-map.json','publication-entry.json','review/independent-postrun-go.json','review/independent-postrun-go-2026-10-08.md','review/independent-postrun-receipt-reader-v1.py'}
+assert {row['relative_path'] for row in owned}|required_source<={row['path'] for row in rows}
+old=json.loads(base[CAT]);new=load(R/CAT)
+assert len(old['entries'])==497 and len(new['entries'])==498
+assert typed(old['entries'],new['entries'][:497]) and typed({k:v for k,v in old.items() if k!='entries'},{k:v for k,v in new.items() if k!='entries'})
+assert len({e['publication_id'] for e in new['entries']})==498
+assert typed(new['entries'][-1],load(C/'publication-entry.json'))
+archive=(C/'preserved-context/catalog-local-497.json.bytes').read_bytes()
+archive_git=(C/'preserved-context/catalog-git-497.json.bytes').read_bytes()
+assert archive!=archive_git and archive.replace(b'\r\n',b'\n')==archive_git==base[CAT]
+assert typed(json.loads(archive),old)
+required={P+name for name in expected_case}|{CAT};records=[]
+if REF!='DISK':
+ names=(git('diff','--cached','--name-only','-z') if REF=='INDEX' else git('diff','--name-only','-z',BASE,REF)).decode().split('\0')[:-1]
+ assert len(names)==len(set(names))==COUNT+2 and set(names)==required
+ published=blobs(REF,set(names)|{row['path'] for row in refs})
+ for row in refs:assert published[row['path']]==base[row['path']]
+ for name in names:
+  disk=(R/name).read_bytes();blob=published[name]
+  if name==CAT:assert disk.replace(b'\r\n',b'\n')==blob and typed(json.loads(disk),json.loads(blob))
+  else:assert disk==blob,name
+  records.append({'path':name,'disk':pin(disk),'git':pin(blob),'byte_equal':disk==blob})
+else:
+ names=sorted(required);records=[{'path':name,'disk':pin((R/name).read_bytes())} for name in names]
+out={'schema':'issue18-i04-var05-root-publication-byte-audit/v102','decision':'EXACT_SOURCE_RAW_GIT_CATALOG_PASS','phase':PHASE,'ref':REF,'base':BASE,'index':pin(ib),'source_files':COUNT,'paths':len(names),'accepted_disk_git_pairs':403,'mandatory_accepted_raw':168,'mandatory_raw':207,'separate_actual_preflight_originals':15,'total_mandatory_originals':222,'frozen_owned_source_records':198,'prelaunch_records':4203,'catalog_entries':498,'prior497_and_metadata_type_exact':True,'case_ids':len({entry['case_id'] for entry in new['entries']}),'new_native_calls':0,'overall_goal':'unfinished','records':records}
+with O.open('xb') as f:f.write((json.dumps(out,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'decision':out['decision'],'paths':len(names),'receipt_path':str(O),'receipt':pin(O.read_bytes())}))

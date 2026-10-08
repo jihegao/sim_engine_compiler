@@ -1,0 +1,18 @@
+{
+  "schema": "i04-var05-v102-supplemental-reader-exact-byte-diff/v1",
+  "original": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I04-var05-zero-transport-between-v1.0.2\\review\\independent_replay.py",
+    "bytes": 88398,
+    "sha256": "1011bb6e21719cf767cc416610ffb11d02c1f819e56a0ae03d0a081fed5b14b2"
+  },
+  "supplemental": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I04-var05-zero-transport-between-v1.0.2\\review\\independent-postrun-receipt-reader-v1.py",
+    "bytes": 88559,
+    "sha256": "7c8a30b3ca51b9db17614ba24617f84b1000845a86d6c73485bbf6402ca917b0"
+  },
+  "old_keys_occurrences": 1,
+  "old_pass_occurrences": 1,
+  "reverse_two_replacements_recovers_original": true,
+  "line_ending": "LF exactly as frozen original",
+  "unified_diff": "--- frozen/independent_replay.py\n+++ supplemental/independent-postrun-receipt-reader-v1.py\n@@ -1486,9 +1486,11 @@\n     behavior = strict_json((run / \"author-validation.json\").read_bytes())\n     assert behavior.keys() == {\"schema\", \"passed\", \"run_id\", \"input_sha256\", \"export_sha256\",\n                                \"report_cell_checks\", \"paired_differences\", \"timed_event_records\",\n-                               \"log_lines\", \"optional_diagnostics\", \"terminal\", \"issues\", \"native_calls\"}\n+                               \"log_lines\", \"optional_diagnostics\", \"terminal\", \"issues\", \"native_calls\",\n+                               \"native_run_directory\"}\n     assert behavior[\"schema\"] == \"i04-var05-zero-between-behavior/v102\"\n     assert type(behavior[\"passed\"]) is bool and behavior[\"passed\"]\n+    assert type(behavior[\"native_run_directory\"]) is str and behavior[\"native_run_directory\"] == str(RUN)\n     assert behavior[\"run_id\"] == RUN_ID and behavior[\"input_sha256\"] == source_map[\"child_input\"]\n     assert behavior[\"export_sha256\"] == roundtrip[\"export_sha256\"]\n     integer(behavior[\"report_cell_checks\"], 4044)\n"
+}

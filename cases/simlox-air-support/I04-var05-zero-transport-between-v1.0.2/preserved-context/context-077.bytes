@@ -1,0 +1,100 @@
+"""Root eligibility/custody gate only; zero native/checker reruns."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,traceback
+R=Path(__file__).resolve().parents[1]; C=R/'cases/simlox-air-support'
+P=C/'I04-var03-idle-system-between-v1.0.1'
+BASE='d2f6a8604c5e508bc5fec379b9a53dc701c15e5c'
+CHILD=C/'I04-var05-zero-transport-between-v1.0.1'
+SHORT_RUN=R/'tmp/native-runs/i04v05-v101-20261008-01'
+FAILED=C/'I04-var05-zero-transport-between-v1.0.0'
+RUN='i04-var05-zero-transport-between-v101-ssh-20261008-01'
+O=R/'tmp/i04-var05-root-selection-v101-20261008-01'
+assert not O.exists();O.mkdir()
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def save(n,b):
+ p=O/n
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+commands=[]
+def command(tag,argv):
+ a=subprocess.run(argv,cwd=R,capture_output=True)
+ save(tag+'-stdout.bin',a.stdout);save(tag+'-stderr.bin',a.stderr)
+ commands.append({'tag':tag,'argv':argv,'actual_exit':a.returncode,'stdout':pin(a.stdout),'stderr':pin(a.stderr)})
+ assert type(a.returncode) is int and a.returncode==0 and not a.stderr,(tag,a.returncode)
+ return a.stdout
+def git(tag,*args):return command(tag,['git','-c','core.longpaths=true',*args])
+error=None;d={}
+try:
+ assert not CHILD.exists() and not SHORT_RUN.exists()
+ assert {p.name for p in C.glob('I04-var05*')}=={'I04-var05-zero-transport-between-v1.0.0'}
+ assert len(('File: '+(SHORT_RUN/'model.sxi').as_posix()).encode('ascii'))==121
+ failure_seal_path=R/'tmp/i04-var05-root-failure-seal-v100-20261008-01/receipt.json'
+ failure_seal=load(failure_seal_path)
+ assert pin(failure_seal_path.read_bytes())['sha256']=='c8514068cd89a88e217bc61b656ea7254fbb0a8de6ce50a7fbe0489ded7bb51f'
+ assert failure_seal['decision']=='EXCLUDED_FAILURE_PRESERVED'
+ for e in failure_seal['originals']:
+  p=Path(e['path']);assert pin(p.read_bytes())=={k:e[k] for k in ('bytes','sha256')} and not(p.stat().st_mode & stat.S_IWRITE)
+ old_manifest=load(FAILED/'prelaunch-manifest.json')
+ for e in old_manifest['source_files']:assert pin(Path(e['path']).read_bytes())=={k:e[k] for k in ('bytes','sha256')}
+ assert pin((FAILED/'prelaunch-manifest.json').read_bytes())['sha256']=='e09ecd7de30d2e66ae3df3a25d0b27b85d4764af1a6d503ff38629896265840d'
+ assert git('head','rev-parse','HEAD').decode().strip()==BASE
+ assert git('local-base','rev-parse','origin/simlox/main').decode().strip()==BASE
+ assert not git('tracked-status','status','--porcelain','--untracked-files=no')
+ refs=git('refs','ls-remote','origin','refs/heads/main','refs/heads/simlox/main')
+ assert {l.split()[1]:l.split()[0] for l in refs.decode().splitlines()}=={'refs/heads/main':'a1a44c72f64d754b711abe4095f1111f8a5ba896','refs/heads/simlox/main':BASE}
+ ownerpath=R/'tmp/i04-var05-root-filtered-ownership-v101-20261008-01.json';owner=load(ownerpath)
+ assert not owner['unavailableHosts'] and not owner['unavailableSources'] and owner['open_pr']['issues']==[]
+ assert [t['id'] for t in owner['threads'] if t['status']=='active']==['01a0ed5b-dc75-74f3-a26c-23674dd997d6']
+ pub=load(C/'publication-index-v1.json');entries=pub['entries'];assert len(entries)==497
+ # Search the entire entry, including joint variant lists, before absence claim.
+ assert not any('I04.var05' in json.dumps(e,ensure_ascii=False) for e in entries)
+ ids=['I04.var03.idle_system_between.1.0.1','I04.var01.system_between_explicit_units.1.0.0','A17.two_units.1.0.0','A02.repeated.1.0.0','D03.calendar_pm.1.0.0','D09.var01.calendar_vs_operational_ncftl_pending_repair.1.0.0']
+ accepted=[next(e for e in entries if e['publication_id']==i) for i in ids]
+ plan=next(c for c in load(C/'catalog-v2.json')['cases'] if c['case_id']=='I04')
+ assert plan['instructional_prerequisites']==plan['requires']==['A02','A17','D03','D09']
+ assert next(v for v in plan['boundary_variants'] if v['variant_id']=='I04.var05')['planned_delta']=='零/正运输时间'
+ tree={}
+ for row in git('tree','ls-tree','-r','-z',BASE).split(b'\0'):
+  if row:
+   meta,name=row.split(b'\t',1);a=meta.split()
+   if a[1]==b'blob':tree[name.decode()]=a[2].decode()
+ audit=load(R/'tmp/i04-var03-root-merged-publication-audit-v101-20261008.json')
+ assert audit['decision']=='EXACT_SOURCE_RAW_GIT_CATALOG_PASS' and audit['paths']==404
+ sources=[]
+ for e in audit['records']:
+  p=R/e['path'];b=p.read_bytes();assert pin(b)==e['disk'],str(p)
+  sources.append({'path':e['path'],'oid':tree[e['path']],**pin(b),'git':e['git'],'byte_equal':e['byte_equal']})
+ # Commit-addressed blobs were audited after merge; current immutable HEAD matches.
+ assert len(sources)==404 and all(e['byte_equal'] for e in sources if e['path'].startswith(P.relative_to(R).as_posix()+'/'))
+ raw=[]
+ for name in ('raw-custody-map.json','preflight-custody-map.json'):
+  m=load(P/name)
+  for e in m['records']:
+   p=Path(e['path']);s=pin(p.read_bytes());assert s=={k:e[k] for k in ('bytes','sha256')},str(p)
+   readonly=not bool(p.stat().st_mode & stat.S_IWRITE)
+   if e.get('role')!='accepted_context':assert readonly,str(p)
+   raw.append({'map':name,'readonly_observed':readonly,**e})
+ assert len(raw)==168
+ installed={}
+ for role,e in load(P/'prospective-contract.json')['manual']['installed_pins'].items():
+  assert pin(Path(e['path']).read_bytes())=={k:e[k] for k in ('bytes','sha256')}
+  installed[role]=e
+ assert pin((P/'native-input.json').read_bytes())['sha256']=='48c346d27d9cd08be09a771292d198e00db72a19d488da5b184689504ace177b'
+ assert pin((P/'evidence-index.json').read_bytes())['sha256']=='09e0fe50532797f97d13b3a17fdd886adfc9a18c925038b15058b3850b2273ff'
+ guard=R/'tmp/issue18-next-owner-guard-20261008.ps1'
+ assert pin(guard.read_bytes())['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+ argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',guard.as_posix()]
+ g=json.loads(command('ssh-guard',argv).decode('utf-8-sig'))
+ assert g['ssh_present'] is True and g['sshd_ancestor'] is True and g['self_session']==0 and g['powershell_major']==5 and g['mutex_free'] is True and g['runner_candidates']==[] and g['session_query_exit']==0 and g['active_gui_session1_count']==1
+ assert len(g['native'])==1
+ n=g['native'][0];assert n['pid']==13340 and n['session']==1 and n['start_ms']==1790590196826 and n['responding'] is True
+ docs=['AGENTS.md','README.md','docs/architecture.md','docs/semantic-baseline.md','docs/roadmap.md','cases/simlox-air-support/execution-plan-v2.md','cases/simlox-air-support/ssh-cli-acceptance-policy-v1.md','cases/simlox-air-support/catalog-v2.json']
+ d={'schema':'issue18-i04-var05-recovery-selection/v101','decision':'ELIGIBLE_FOR_CONTRACT_REVIEW_ONLY','base':BASE,'utc':dt.datetime.now(dt.timezone.utc).isoformat(),'proposed_package':CHILD.relative_to(R).as_posix(),'proposed_run_id':RUN,'package_and_run_absent':not CHILD.exists() and not SHORT_RUN.exists(),'proposed_native_run_directory':str(SHORT_RUN),'excluded_failure_seal':{'path':str(failure_seal_path),**pin(failure_seal_path.read_bytes())},'excluded_v100_source_roles_rehashed':len(old_manifest['source_files']),'excluded_originals_rehashed':len(failure_seal['originals']),'accepted_publications':accepted,'required_docs':{n:pin((R/n).read_bytes()) for n in docs},'parent_sources_and_catalog':sources,'parent_mandatory_originals':raw,'parent_scope':'I04.var03 fixed idle BETWEEN departure10.5 arrival11; all4044 cells/118 lines independently accepted; no parent native or checker rerun','installed_pins':installed,'ownership':{'path':str(ownerpath),**pin(ownerpath.read_bytes())},'guard':g,'proposal':'Distinct v101 recovery at shorter native path; TFDT0.5 to0 plusPDESC and all v100 prospective behavior unchanged; exact full converter paths and ASCII Fileline<=199 required; independent contract/method/preflight/native gates','parent_merge_closure':pin((R/'tmp/i04-pr527-publication-closure-v101-20261008.json').read_bytes()),'catalog_entries':497,'catalog_byte_identity':'Local CRLF and Git LF distinct; normalization and typed JSON match in merged audit; no byte equality claim','native_calls':0,'accepted_checker_reruns':0,'goal':'active/unfinished','K01_K08':'blocked/no capture retries','I07_opening_three':'excluded'}
+except BaseException:
+ error=traceback.format_exc();save('failure.txt',error.encode())
+ d={'schema':'issue18-i04-var05-recovery-selection/v101','decision':'NO_GO_PRESERVED','native_calls':0,'error':error}
+d['commands']=commands;d['method']=pin(Path(__file__).read_bytes())
+save('selection.json',(json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode());Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'decision':d['decision'],'receipt':str(O/'selection.json'),**pin((O/'selection.json').read_bytes()),'error':error}))
+assert error is None

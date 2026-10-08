@@ -1,0 +1,229 @@
+"""Build a distinct prospective recovery contract without touching the failed run."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+
+REPO = Path(__file__).resolve().parent.parent
+CASE = REPO / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0"
+RUN = CASE / "runs/i04-var05-zero-transport-between-v100-ssh-20261008-01"
+DEST = REPO / "tmp/i04-var05-prospective-recovery-v101-20261008.json"
+BASE_CONTRACT_SHA = "43f07d09395b0222b7903906dd6f01ad262dd05849f0878d67e9cd6bd3c29304"
+ROOT_SEAL_SHA = "c8514068cd89a88e217bc61b656ea7254fbb0a8de6ce50a7fbe0489ded7bb51f"
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"path": str(path.resolve(strict=True)), "bytes": len(data),
+            "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def pinned(path: Path, sha: str) -> dict:
+    result = pin(path)
+    assert result["sha256"] == sha, path
+    return result
+
+
+def phase_triplet(name: str) -> list[dict]:
+    directory = REPO / "tmp/i04-var05-root-phases-v100-20261008" / name
+    return [pin(directory / filename) for filename in ("receipt.json", "stdout.bin", "stderr.bin")]
+
+
+def main() -> None:
+    assert not DEST.exists()
+    old_contract = pinned(CASE / "prospective-contract.json", BASE_CONTRACT_SHA)
+    old = json.loads(Path(old_contract["path"]).read_text(encoding="utf-8"))
+    assert old["schema"] == "i04-var05-prospective-contract-design/v2"
+    assert old["version"] == "1.0.0"
+    assert old["report"]["cells"] == 4044
+    assert old["report"]["difference_count"] == 3
+    assert old["full_log"]["forms"] == 4
+
+    parent_log = REPO / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1/runs/i04-var03-idle-system-between-v101-ssh-20261008-01/model-run.log"
+    failed_log = RUN / "model-run.log"
+    parent_file = next(line for line in parent_log.read_bytes().splitlines() if line.startswith(b"File: "))
+    failed_file = next(line for line in failed_log.read_bytes().splitlines() if line.startswith(b"File: "))
+    failed_input = next(line for line in failed_log.read_bytes().splitlines() if line.startswith(b"Input file: "))
+    expected_file = b"File: " + failed_input[len(b"Input file: "):].replace(b"\\", b"/")
+    assert len(parent_file) == 199 and parent_file.decode("ascii")
+    assert len(expected_file) == 205 and len(failed_file) == 206
+    assert failed_file[:200] == expected_file[:200]
+    assert failed_file[200:] == bytes.fromhex("fa5827d9a210")
+    assert expected_file[200:] == b"l.sxi"
+    try:
+        failed_file.decode("utf-8")
+    except UnicodeDecodeError:
+        pass
+    else:
+        raise AssertionError("failed original File line unexpectedly decodes as UTF-8")
+
+    new_run_id = "i04-var05-zero-transport-between-v101-ssh-20261008-01"
+    short_directory = REPO / "tmp/native-runs/i04v05-v101-20261008-01"
+    new_file_line = "File: " + (short_directory / "model.sxi").as_posix()
+    assert not short_directory.exists()
+    assert new_file_line.isascii() and len(new_file_line.encode("ascii")) == 121
+    assert len(new_file_line.encode("ascii")) <= 199
+    assert not (REPO / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.1").exists()
+
+    seal = pinned(REPO / "tmp/i04-var05-root-failure-seal-v100-20261008-01/receipt.json", ROOT_SEAL_SHA)
+    seal_data = json.loads(Path(seal["path"]).read_text(encoding="utf-8-sig"))
+    assert seal_data["decision"] == "EXCLUDED_FAILURE_PRESERVED"
+    assert seal_data["native_recovery_calls"] == seal_data["native_retries"] == 0
+    assert (seal_data["native_originals"], seal_data["native_pure_originals"],
+            seal_data["native_transport_originals"]) == (20, 11, 3)
+    assert len(seal_data["originals"]) == 34
+    for row in seal_data["originals"]:
+        assert pin(Path(row["path"])) == {k: row[k] for k in ("path", "bytes", "sha256")}
+
+    pref_path = CASE / "review/preflight-ssh0-20261008T082112518Z.json"
+    pref = json.loads(pref_path.read_text(encoding="utf-8-sig"))
+    assert len(pref["pure_checks"]) == 5 and pref["native_process_started"] is False
+    preflight_raw = [pref_path, Path(pref["pure_proof_path"])]
+    for row in pref["pure_checks"]:
+        preflight_raw.extend((Path(row["stdout_path"]), Path(row["stderr_path"])))
+    pref_phase = "preflight-20261008T082059010769Z-5fb8ab01"
+    preflight_raw.extend(REPO / "tmp/i04-var05-root-phases-v100-20261008" / pref_phase / name
+                         for name in ("receipt.json", "stdout.bin", "stderr.bin"))
+    assert len(preflight_raw) == 15 and len(set(preflight_raw)) == 15
+
+    phase_names = (
+        "pure-20261008T081730343333Z-98c3190a",
+        "independent-fixture-20261008T081739205692Z-67f7c30d",
+        "independent-pure-20261008T081744232119Z-410903ed",
+        "inventory-20261008T081905971854Z-8dbec3fb",
+        "manifest-20261008T081910688362Z-6486335b",
+        "independent-preflight-20261008T081927390064Z-e311472b",
+        pref_phase,
+        "native-20261008T082418421599Z-261cd6f0",
+    )
+    guards = (
+        "20261008T082050992569Z-c85b660a",
+        "20261008T082408725143Z-168105db",
+    )
+    supporting = [
+        CASE / "source-inventory.json", CASE / "prelaunch-manifest.json",
+        CASE / "review/independent-method-static-go-2026-10-08.md",
+        CASE / "review/independent-prelaunch-pure-go-2026-10-08.md",
+        CASE / "review/independent-prelaunch-go.json",
+        CASE / "review/independent-prelaunch-go-2026-10-08.md",
+        CASE / "runs/i04-var05-zero-transport-between-v100-ssh-20261008-01/failure-seal.json",
+        CASE / "runs/i04-var05-zero-transport-between-v100-ssh-20261008-01/closure.json",
+        CASE / "runs/i04-var05-zero-transport-between-v100-ssh-20261008-01/invocation.json",
+        failed_log, parent_log,
+        REPO / "tmp/i04-var05-author-freeze-ready-20261008-01/handoff.json",
+        REPO / "tmp/i04-var05-author-pure-custody-20261008-01/receipt.json",
+        REPO / "tmp/i04-var05-root-phase-capture-v100-20261008.py",
+        REPO / "tmp/i04-var05-root-pure-capture-v100-20261008.py",
+        REPO / "tmp/i04-var05-root-fresh-guard-v100-20261008.py",
+        REPO / "tmp/i04-var05-root-seal-failure-v100-20261008.py",
+        REPO / "tmp/i04-var05-root-filtered-ownership-20261008.json",
+        REPO / "tmp/i04-var05-independent-excluded-audit-v100-20261008.py",
+        REPO / "tmp/i04-var05-independent-excluded-capture-v100-20261008.py",
+        CASE / "review/independent-postrun-no-go-2026-10-08.md",
+        REPO / "tmp/i04-var05-independent-excluded-proof-v100-20261008-01/receipt.json",
+        REPO / "tmp/i04-var05-independent-excluded-proof-v100-20261008-01/stdout.bin",
+        REPO / "tmp/i04-var05-independent-excluded-proof-v100-20261008-01/stderr.bin",
+    ]
+    supporting.extend(REPO / "tmp/i04-var05-root-guards-v100-20261008" / guard / name
+                      for guard in guards for name in ("receipt.json", "stdout.bin", "stderr.bin"))
+    supporting.extend(Path(row["path"]) for row in seal_data["originals"])
+    supporting.extend(preflight_raw)
+    supporting.extend(Path(row["path"]) for name in phase_names for row in phase_triplet(name))
+    unique: dict[str, dict] = {}
+    for path in supporting:
+        record = pin(path)
+        unique.setdefault(record["path"].casefold(), record)
+        assert unique[record["path"].casefold()] == record
+
+    design = json.loads(json.dumps(old))
+    design["schema"] = "i04-var05-prospective-recovery-contract/v101"
+    design["phase"] = "RECOVERY_CONTRACT_DESIGN_ONLY_NO_NATIVE_AUTHORIZATION"
+    design["version"] = "1.0.1"
+    design["proposed_package"] = "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.1"
+    design["proposed_run_id"] = new_run_id
+    design["proposed_native_run_directory"] = str(short_directory)
+    design["publication_id"] = "I04.var05.zero_transport_between.1.0.1"
+    design["selection"] = {"historical_v100_selection": old["selection"],
+                           "fresh_v101_selection_required_before_construction": True,
+                           "new_package_absent_at_design": True,
+                           "new_native_run_directory_absent_at_design": True,
+                           "v100_failed_run_occupied_and_excluded": True}
+    design["native_protocol"]["unique_short_run_directory"] = str(short_directory)
+    design["native_protocol"]["native_log_file_path_line_max_ascii_bytes"] = 199
+    design["native_protocol"]["native_log_file_path_line_current_design_ascii_bytes"] = 121
+    design["native_protocol"]["native_log_file_path_line_gate"] = (
+        "Before actual preflight and again before native dispatch, resolve the exact approved absolute "
+        "short run directory without junction, symlink, or alias; require it absent and verify the full "
+        "prospective File: model.sxi line is ASCII and at most 199 bytes. After calc require exact full "
+        "Input file:, Output file:, and File: paths and 0/2/0 diagnostics before report export. "
+        "The corrupt v100 File line is a negative witness and must reject; never accept a prefix or "
+        "allow replacement bytes."
+    )
+    design["native_protocol"]["fresh_v101_go_sequence"] = (
+        "Fresh v101 contract GO, construction GO, source/method PURE GO, one-time canonical inventory/"
+        "manifest freeze, actual SSH session0 PowerShell5 -File zero-native preflight, fresh independent "
+        "GO_PRELAUNCH, sole root native dispatch. V100 preflight and approval are historical, not reusable."
+    )
+    design["provenance"]["excluded_v100_source_freeze"] = {
+        "source_inventory": pin(CASE / "source-inventory.json"),
+        "prelaunch_manifest": pin(CASE / "prelaunch-manifest.json"),
+        "owned_source_count": 130, "source_role_count": 1172,
+        "v100_original_source_files_mandatory": True,
+        "v100_no_reuse_or_retry": True,
+    }
+    design["recovery"] = {
+        "reason": "Strict converter File path gate stopped the sole v100 run after calc; no report export or behavior acceptance.",
+        "inference_limit": "The 200-byte exact prefix and corruption at byte 201 are consistent with a diagnostic path buffer limit; no claim about the engine's internal implementation is made.",
+        "accepted_parent_converter_file_line": {"ascii_bytes": 199, "line_exact": parent_file.decode("ascii")},
+        "failed_v100_converter_file_line": {"expected_ascii_bytes": 205, "observed_bytes": 206,
+                                            "exact_prefix_bytes": 200,
+                                            "observed_corrupt_tail_hex": failed_file[200:].hex(),
+                                            "expected_tail_ascii": expected_file[200:].decode("ascii"),
+                                            "negative_must_reject": True},
+        "proposed_v101_converter_file_line": {"ascii_bytes": 121, "max_ascii_bytes": 199,
+                                              "line_exact": new_file_line},
+        "physical_source_export_log_report_oracles": "Byte-identical prospective v100 source/export/full-log/full-report hypotheses; no changes to four log forms, 4,044 report cells, three declared paired differences, source input, manual basis, or null/presentation rules.",
+        "frozen_v100_contract": old_contract,
+        "frozen_v100_full_log_oracle": pin(CASE / "prospective-log-oracle.json"),
+        "frozen_v100_full_report_oracle": pin(CASE / "prospective-report-oracle.json"),
+        "frozen_v100_source_input": pin(CASE / "native-input.json"),
+        "frozen_v100_roundtrip_oracle": pin(CASE / "child-roundtrip-oracle.json"),
+        "frozen_v100_report_oracle": pin(CASE / "child-report-oracle.json"),
+        "frozen_v100_failure_seal": seal,
+        "frozen_v100_failure_originals": seal_data["originals"],
+        "frozen_v100_preflight_originals": [pin(path) for path in preflight_raw],
+        "frozen_v100_supporting_originals": sorted(unique.values(), key=lambda row: row["path"].casefold()),
+        "preserve_v100_frozen_sources_preflight_approval_raw_failure_and_proofs": True,
+        "v100_native_attempts": 1, "v100_native_retries": 0,
+        "v100_report_export_called": False, "v100_behavior_acceptance": False,
+    }
+    design["design_revision"] = {
+        "supersedes": old_contract,
+        "changes": ["new v1.0.1 package and run identity", "short approved external native run directory",
+                    "conservative full File line ASCII byte bound and exact path preflight gate",
+                    "full preserved excluded-v100 failure lineage"],
+        "unchanged": ["parent accepted original", "authored two-cell delta", "export topology",
+                      "four full-log forms", "4,044-cell report oracle", "three paired differences",
+                      "physical and manual scope"],
+        "new_native_calls_at_design": 0,
+    }
+    design["decision_rule"] = (
+        "Only a fresh v1.0.1 construction and independently approved preflight/native attempt may test "
+        "the unchanged predeclared source, four full-log forms, microstep conservation, and all 4,044 "
+        "child report cells. The converter File path must be exact, full, ASCII, and within the 199-byte "
+        "design bound; no prefix/corrupt-tail acceptance. Any mismatch is NO_GO and sealed as a distinct "
+        "failure. No accepted parent rerun and no v100 retry."
+    )
+    DEST.write_bytes((json.dumps(design, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8"))
+    print(json.dumps({"path": str(DEST), "bytes": DEST.stat().st_size,
+                      "sha256": pin(DEST)["sha256"],
+                      "v100_failure_originals": len(seal_data["originals"]),
+                      "v100_preflight_originals": len(preflight_raw),
+                      "v100_supporting_originals": len(unique),
+                      "new_native_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

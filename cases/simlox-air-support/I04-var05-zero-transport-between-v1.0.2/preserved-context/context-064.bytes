@@ -1,0 +1,63 @@
+"""Seal the sole excluded attempt without native recovery or retry."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, subprocess
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0'
+RUN=C/'runs/i04-var05-zero-transport-between-v100-ssh-20261008-01'
+O=R/'tmp/i04-var05-root-failure-seal-v100-20261008-01'
+O.mkdir(exist_ok=False)
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def save(n,b):
+ p=O/n
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+started=dt.datetime.now(dt.timezone.utc).isoformat()
+manifest=load(C/'prelaunch-manifest.json')
+for e in manifest['source_files']:assert pin(Path(e['path']))=={k:e[k] for k in ('bytes','sha256')},e['key']
+failure=load(RUN/'failure-seal.json')
+assert failure['error']=='converter File path differs' and failure['publication_state']=='excluded'
+assert {p.name for p in RUN.iterdir()}==set(failure['files'])|{'failure-seal.json'}
+assert len(failure['files'])==19
+for name,e in failure['files'].items():assert pin(RUN/name)==e,name
+steps=load(RUN/'steps.json')
+assert [s['name'] for s in steps]==['import','export','check_import_export','calc']
+assert all(type(s['exit_code']) is int and s['exit_code']==0 for s in steps)
+assert not (RUN/'report-raw.json').exists()
+transport=C/'transport-evidence/ssh-native-20261008T082418503240Z-17447000'
+receipt=load(transport/'transport-receipt.json')
+assert type(receipt['exit_code']) is int and receipt['exit_code']==1
+for n,e in receipt['streams'].items():assert pin(transport/n)==e
+invocation=load(RUN/'invocation.json')
+pure=Path(invocation['pure_proof_path']).parent
+assert len(list(pure.iterdir()))==11
+sealed=[]
+for role,directory in [('excluded_native',RUN),('native_pure',pure),('native_transport',transport)]:
+ for p in sorted(directory.iterdir()):
+  assert p.is_file()
+  p.chmod(stat.S_IREAD)
+  sealed.append({'role':role,'path':str(p),**pin(p)})
+copy=O/'recovered-evidence'
+copy.mkdir(exist_ok=False)
+for p in sorted(RUN.iterdir()):
+ q=copy/p.name
+ with q.open('xb') as f:f.write(p.read_bytes())
+ q.chmod(stat.S_IREAD)
+ assert pin(q)==pin(p)
+G=R/'tmp/issue18-next-owner-guard-20261008.ps1'
+assert pin(G)['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',G.as_posix()]
+r=subprocess.run(argv,cwd=R,capture_output=True)
+save('guard-stdout.bin',r.stdout);save('guard-stderr.bin',r.stderr)
+assert type(r.returncode) is int and r.returncode==0 and not r.stderr
+g=json.loads(r.stdout.decode('utf-8-sig'))
+assert g['self_session']==0 and g['powershell_major']==5 and g['ssh_present'] and g['sshd_ancestor'] and g['mutex_free'] and g['runner_candidates']==[] and g['active_gui_session1_count']==1
+assert len(g['native'])==1
+p=g['native'][0]
+assert (p['pid'],p['session'],p['start_ms'],p['responding'])==(13340,1,1790590196826,True)
+for e in manifest['source_files']:assert pin(Path(e['path']))=={k:e[k] for k in ('bytes','sha256')},e['key']
+d={'schema':'i04-var05-root-excluded-failure-seal/v100','decision':'EXCLUDED_FAILURE_PRESERVED','native_recovery_calls':0,'native_retries':0,'started_utc':started,'completed_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'method':pin(Path(__file__)),'manifest':pin(C/'prelaunch-manifest.json'),'source_roles_verified':len(manifest['source_files']),'originals':sealed,'native_originals':20,'native_pure_originals':11,'native_transport_originals':3,'recovered_directory':str(copy),'error':failure['error'],'completed_steps':[s['name'] for s in steps],'report_export_called':False,'postrun_guard':{'argv':argv,'actual_exit':r.returncode,'stdout':pin(O/'guard-stdout.bin'),'stderr':pin(O/'guard-stderr.bin'),'observed':g}}
+save('receipt.json',(json.dumps(d,indent=2)+'\n').encode())
+print(json.dumps({'decision':d['decision'],'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'recovered_directory':str(copy),'originals':len(sealed)}))

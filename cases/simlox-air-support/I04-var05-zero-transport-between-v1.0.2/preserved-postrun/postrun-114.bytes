@@ -1,0 +1,9 @@
+# I04.var05 v1.0.2 runtime hold at 10:08 UTC
+
+Decision: **HOLD_ACTUAL_PREFLIGHT**. The frozen GO_PURE_PREFLIGHT remains unconsumed. No case SSH `-PreflightOnly` or native invocation occurred.
+
+The fresh root guard original receipt `tmp/i04-var05-root-guards-v102-20261008/20261008T100805362763Z-32b0592f/receipt.json` is 2,642 bytes/SHA-256 `b73972e08cd53da54fc164c216624e95dbaf2d98a79f09835e8865a5da112dc2`. Its SSH guard command exited 0 with empty original stderr, observed SSH5/session 0 and a free mutex, no runner candidates, the same responding GUI PID 13340/session 1/start 1790590196826, and `active_gui_session1_count: 0`. The wrapper correctly recorded `NO_GO_PRESERVED` at its active-session assertion; its `native_calls` is 0. Canonical manifest remained 1,489,689/SHA-256 `4929d0003ab466460cba8e23192f3cbcac46cedc8b3a3e70da010267048f378c`, with 4,203 roles/1,257 distinct physical paths.
+
+The separate read-only WTS receipt `tmp/i04-var05-root-wts-diagnostics-20261008/20261008T100834305473Z-5863b095/receipt.json` is 2,409 bytes/SHA-256 `268c83d86acd55c112aae85481b2f1053eeee85d069e11b652c000ac87414a81`. Both diagnostic commands exited 0 with empty original stderr and unchanged source pins. Original `state-stdout.bin` is 513/SHA-256 `cda3041a0478277bd2c91ea4f4e0a14dd45af2f858c28a099ce6805b3edb41d3`; structured WTS reports session 1 `connect_state: 4`, `WTSDisconnected` at 2026-10-08T10:08:36Z, with the same GUI identity and zero SIMLOX calls/session changes.
+
+Recovery condition: after the human reconnects the protected session, root must freshly confirm WTSActive/session 1 plus the full sole-owner, exact-source, SSH5, GUI identity/responding, mutex, no competing runner, absent short run path and no reparse checks before using the already granted narrow zero-native preflight GO. The actual preflight receipt then needs a separate independent GO_PRELAUNCH. This note makes no source or runtime state change.

@@ -1,0 +1,50 @@
+"""Root-only phase transport, one native attempt under exact independent GO."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,sys,uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0'
+RUN_ID='i04-var05-zero-transport-between-v100-ssh-20261008-01'
+RUN=C/'runs'/RUN_ID
+CAPTURES=R/'tmp/i04-var05-root-phases-v100-20261008'
+ACTIONS={'pure':['pure_proof.py','--capture'],'independent-pure':['review/independent_self_check.py'],'independent-fixture':['review/independent_replay.py','--pure-fixture'],'independent-preflight':['review/independent_replay.py','--pure-preflight'],'inventory':['make_source_inventory.py','--write'],'manifest':['make_prelaunch_manifest.py','--write'],'preflight':['ssh_transport.py','preflight'],'native':['ssh_transport.py','native']}
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+assert len(sys.argv)>=2 and sys.argv[1] in ACTIONS
+action=sys.argv[1];extra=sys.argv[2:]
+assert len(extra)==(1 if action=='native' else 0)
+tool,*args=ACTIONS[action];method=C/tool
+assert method.is_file() and not RUN.exists(),'unique native run path already exists or method absent'
+if action=='inventory':assert not (C/'source-inventory.json').exists()
+if action=='manifest':assert (C/'source-inventory.json').is_file() and not (C/'prelaunch-manifest.json').exists()
+if action in ('independent-preflight','preflight','native'):assert (C/'prelaunch-manifest.json').is_file()
+approval_pin=None
+if action=='native':
+ assert not list(CAPTURES.glob('native-*')),'native transport already attempted; no same-path retry'
+ approval=C/'review/independent-prelaunch-go.json';approval_pin=pin(approval)
+ assert approval_pin['sha256']==extra[0]
+ assert not (approval.stat().st_mode & stat.S_IWRITE)
+ go=load(approval)
+ assert go['decision']=='GO_PRELAUNCH' and go['run_id']==RUN_ID
+ assert go['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+ assert go['runner_sha256']==pin(C/'run_native_ssh.ps1')['sha256']
+ assert go['independent_replay_sha256']==pin(C/'review/independent_replay.py')['sha256']
+started=utc();O=CAPTURES/(action+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False);Path(__file__).chmod(stat.S_IREAD)
+argv=[sys.executable,'-X','utf8','-B',str(method),*args]
+before={'root_capture':pin(Path(__file__)),'invoked_method':pin(method)}
+code=None;error=None
+try:
+ with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+  code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+except Exception as exc:error=f'{type(exc).__name__}: {exc}'
+after={'root_capture':pin(Path(__file__)),'invoked_method':pin(method)}
+d={'schema':'issue18-i04-var05-root-phase-transport/v100','action':action,'argv':argv,'started_utc':started,'completed_utc':utc(),'actual_exit':code,'error':error,'method_before':before,'method_after':after,'streams':{n:pin(O/n) if (O/n).is_file() else None for n in ('stdout.bin','stderr.bin')},'native_dispatch':action=='native','expected_run_id':RUN_ID,'run_exists_after':RUN.exists(),'reviewed_approval':approval_pin}
+with (O/'receipt.json').open('xb') as f:f.write((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'action':action,'actual_exit':code,'error':error,'method_unchanged':before==after,'run_exists_after':RUN.exists(),'streams':d['streams']}))
+for n in ('stdout.bin','stderr.bin'):
+ if (O/n).is_file() and (O/n).stat().st_size:print((O/n).read_bytes().decode('utf-8-sig','replace')[:10000])
+assert before==after and error is None and type(code) is int
+raise SystemExit(code)

@@ -1,0 +1,66 @@
+"""Prospective v102 method-order repair; preserve all v101 frozen bytes."""
+from pathlib import Path
+import copy,hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.1'
+DEST=R/'tmp/i04-var05-prospective-recovery-v102-20261008.json'
+NEW=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2'
+RUN=R/'tmp/native-runs/i04v05-v102-20261008-01'
+def pin(p):
+ p=p.resolve(strict=True);b=p.read_bytes()
+ return {'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def fixed(p,h):
+ s=pin(p);assert s['sha256']==h,str(p);return s
+def verify_rows(rows):
+ for row in rows:
+  p=Path(row['path']);got=pin(p)
+  assert (got['bytes'],got['sha256'])==(row['bytes'],row['sha256']),str(p)
+def triplet(p):return [pin(p/n) for n in ('receipt.json','stdout.bin','stderr.bin')]
+def main():
+ assert not DEST.exists() and not NEW.exists() and not RUN.exists()
+ for p in (RUN,*RUN.parents):
+  if p.exists():assert not p.is_symlink() and not p.is_junction()
+ assert len(('File: '+(RUN/'model.sxi').as_posix()).encode('ascii'))==121
+ oldpin=fixed(R/'tmp/i04-var05-prospective-recovery-v101-revision2-20261008.json','f6c3c630997790a8b70821b9adf060a437747fef89dc338de281bc8b45d64277')
+ old=json.loads(Path(oldpin['path']).read_bytes());d=copy.deepcopy(old)
+ ip=fixed(C/'source-inventory.json','1e36ea3bd817b2f839dcc4b9ada391862a2b87f4ba4d1b1313ef7d395b0daa74')
+ mp=fixed(C/'prelaunch-manifest.json','bef9478dfb10b624fd68528c82867d2940e2f4ded8fa2754a6e87495efe90f62')
+ inv=json.loads(Path(ip['path']).read_bytes());man=json.loads(Path(mp['path']).read_bytes())
+ assert inv['source_count']==len(inv['source_files'])==172
+ assert man['source_count']==len(man['source_files'])==1980
+ verify_rows(inv['source_files']);verify_rows(man['source_files'])
+ assert all(not Path(e['path']).stat().st_mode & stat.S_IWRITE for e in inv['source_files'])
+ assert not (Path(ip['path']).stat().st_mode & stat.S_IWRITE or Path(mp['path']).stat().st_mode & stat.S_IWRITE)
+ F=R/'tmp/i04-var05-root-phases-v101-20261008/independent-preflight-20261008T093104114959Z-6ac195d1'
+ failure=triplet(F);receipt=json.loads((F/'receipt.json').read_bytes())
+ assert receipt['actual_exit']==1 and receipt['native_dispatch'] is False and receipt['run_exists_after'] is False
+ assert receipt['method_before']==receipt['method_after']
+ fixed(F/'receipt.json','fd8ab5f7781bd52f0c4e13ff6aeb15d085dc1adf69046cca9b2a1236fcd11799')
+ fixed(F/'stderr.bin','02262d557fd7d3b15b33b3a306ca6545fb1020ba2df838eb361ca3eff1f3a698')
+ no_go=fixed(R/'tmp/i04-var05-v101-independent-pure-preflight-no-go-20261008.md','377f5e44fc56bf477cced74c97c9f4d93e4ce159191b9a658da55ea7e98e4278')
+ pure=json.loads((C/'pure-proof-custody.json').read_bytes())
+ originals=[]
+ for row in pure['records']:
+  got=pin(Path(row['original_path']));assert (got['bytes'],got['sha256'])==(row['bytes'],row['sha256']);originals.append(got)
+ assert len(originals)==21
+ stages=[]
+ for name in ('pure-20261008T092748149534Z-658cc238','independent-fixture-20261008T092800065648Z-6739f034','independent-pure-20261008T092808436223Z-346ba8d3','inventory-20261008T093040907560Z-8fb963da','manifest-20261008T093053556831Z-4a952d24'):
+  stages.extend(triplet(R/'tmp/i04-var05-root-phases-v101-20261008'/name))
+ stages.extend(triplet(R/'tmp/i04-var05-v101-pure-copy-capture-20261008-01'))
+ d.update(schema='i04-var05-prospective-recovery-contract/v102',version='1.0.2',publication_id='I04.var05.zero_transport_between.1.0.2',proposed_package=NEW.relative_to(R).as_posix(),proposed_run_id='i04-var05-zero-transport-between-v102-ssh-20261008-01',native_run_directory=str(RUN),proposed_native_run_directory=str(RUN))
+ d['decision_rule']='Only fresh v1.0.2 sources with an independently approved exact ordered inventory candidate, manifest candidate, actual zero-native SSH preflight and GO_PRELAUNCH may test the unchanged behavior oracles. Preserve v100 native failure and v101 zero-native method-order failure without overwrite or retry. WTS session1 must be freshly Active; no gate bypass.'
+ d['design_revision']={'supersedes':oldpin,'new_native_calls_at_design':0,'changes':['fresh version/package/run/schema and exact source bindings','reviewer literal order agrees prospectively with author order','independent full ordered inventory candidate gate before canonical write','independent manifest candidate gate before canonical write','mandatory exact v101 frozen source/history originals'],'unchanged_sections':['physical','source','roundtrip','full_log','report','manual','scope_exclusions']}
+ d['native_protocol'].pop('fresh_v101_go_sequence',None)
+ d['native_protocol']['fresh_v102_go_sequence']=True
+ d['native_protocol']['unique_short_run_directory']=str(RUN)
+ d['recovery_v101_method_order']={'classification':'NO_GO_PURE_PREFLIGHT_ZERO_NATIVE_EXCLUDED','native_attempts':0,'ssh_preflight_attempts':0,'inventory':ip,'manifest':mp,'owned_source_count':172,'manifest_role_count':1980,'owned_sources':inv['source_files'],'manifest_roles':man['source_files'],'failed_independent_preflight_originals':failure,'independent_no_go':no_go,'pure_originals':originals,'root_and_copier_originals':stages,'mandatory_originals_before_preflight_and_sealed_replay':True,'mismatch':{'index':167,'same_membership_and_pins':True,'author_memo_position':'third within REVIEW','old_reader_memo_position':'last within OWNED_REVIEW'},'originals_must_not_be_overwritten_or_reclassified_as_accepted':True}
+ review=['review/independent_replay.py','review/independent_self_check.py','review/independent-method-static-go-2026-10-08.md','review/preserved-independent-v1-v100-template.py.bytes','review/preserved-independent-v2-before-recovery-custody.py.bytes','review/preserved-independent-v3-before-manifest-counters.py.bytes','review/preserved-self-check-v1-v100-template.py.bytes']
+ d['canonical_freeze_protocol']={'agreed_ordered_review_files':review,'additional_history_names_must_be_closed_before_method_GO':True,'inventory_candidate_must_be_saved_before_canonical_write':True,'independent_candidate_check':'Compare the entire ordered source_files sequence, names, exact bytes/SHA and future namespace against the frozen standalone reader predicate; set equality is insufficient. Review every named file including memo before candidate GO.','root_inventory_write_once_only_after_exact_candidate_GO':True,'manifest_candidate_must_be_generated_from_exact_approved_inventory_and_independently_approved_before_write':True,'root_manifest_write_once_only_after_exact_candidate_GO':True,'changed_frozen_source_requires_distinct_recovery_identity':True}
+ d['selection_v102']={'contract_repair_only':True,'new_package_absent':True,'new_run_absent':True,'accepted_parent_unchanged':'I04.var03.idle_between.1.0.1','live_refs_and_ownership_must_be_rechecked_before_runtime':True,'current_GUI_session_state':'WTSDisconnected at2026-10-08T09:27:07Z; runtime held until fresh Active','session_hold_note':pin(R/'tmp/i04-var05-v101-session-hold-20261008.md')}
+ for k in d['design_revision']['unchanged_sections']:assert d[k]==old[k],k
+ verify_rows(inv['source_files']);verify_rows(man['source_files'])
+ assert not NEW.exists() and not RUN.exists()
+ with DEST.open('xb') as f:f.write((json.dumps(d,ensure_ascii=False,sort_keys=True,indent=2)+'\n').encode())
+ DEST.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+ print(json.dumps({'decision':'RECOVERY_V102_CONTRACT_DESIGN_ONLY_NO_NATIVE','contract':pin(DEST),'unchanged_sections':7,'excluded_v101_owned':172,'excluded_v101_roles':1980,'failed_originals':3,'pure_originals':21,'root_and_copier_originals':18,'native_calls':0}))
+if __name__=='__main__':main()

@@ -1,0 +1,78 @@
+"""Root-only original phase capture; separate exact candidate and native GO gates."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,sys,uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2'
+RUN_ID='i04-var05-zero-transport-between-v102-ssh-20261008-01'
+RUN=R/'tmp/native-runs/i04v05-v102-20261008-01'
+CAPTURES=R/'tmp/i04-var05-root-phases-v102-20261008'
+ACTIONS={'pure':['pure_proof.py','--capture'],'independent-pure':['review/independent_self_check.py'],'independent-fixture':['review/independent_replay.py','--pure-fixture'],'independent-inventory-candidate':['review/independent_replay.py','--pure-inventory-candidate'],'independent-manifest-candidate':['review/independent_replay.py','--pure-manifest-candidate'],'independent-preflight':['review/independent_replay.py','--pure-preflight'],'inventory':['make_source_inventory.py','--write'],'manifest':['make_prelaunch_manifest.py','--write'],'preflight':['ssh_transport.py','preflight'],'native':['ssh_transport.py','native']}
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+assert len(sys.argv)>=2 and sys.argv[1] in ACTIONS
+action=sys.argv[1];extra=sys.argv[2:]
+assert len(extra)==(1 if action in ('native','inventory','manifest','independent-inventory-candidate','independent-manifest-candidate') else 0)
+tool,*args=ACTIONS[action];method=C/tool
+assert method.is_file() and not RUN.exists(),'unique native run path exists or method absent'
+assert ('File: '+(RUN/'model.sxi').as_posix()).isascii()
+assert len(('File: '+(RUN/'model.sxi').as_posix()).encode('ascii'))==121
+for parent in (RUN,*RUN.parents):
+ if parent.exists():assert not parent.is_symlink() and not parent.is_junction(),str(parent)
+approval_pin=None;candidate_pin=None;candidate_path=None;canonical_path=None
+if action in ('independent-inventory-candidate','independent-manifest-candidate'):
+ candidate_path=Path(extra[0]).resolve(strict=True)
+ assert candidate_path.is_file() and not candidate_path.stat().st_mode & stat.S_IWRITE
+ candidate_pin=pin(candidate_path);args.append(str(candidate_path))
+if action in ('inventory','manifest'):
+ canonical_path=C/('source-inventory.json' if action=='inventory' else 'prelaunch-manifest.json')
+ assert not canonical_path.exists(),'canonical file already exists; no rewrite'
+ if action=='manifest':assert (C/'source-inventory.json').is_file()
+ approval=C/('review/independent-prelaunch-'+action+'-candidate-go.json')
+ approval_pin=pin(approval);assert approval_pin['sha256']==extra[0]
+ assert not approval.stat().st_mode & stat.S_IWRITE
+ go=load(approval)
+ assert go['decision']==('GO_INVENTORY_CANDIDATE' if action=='inventory' else 'GO_MANIFEST_CANDIDATE')
+ assert go['run_id']==RUN_ID and go['native_run_directory']==str(RUN)
+ assert go['builder_sha256']==pin(method)['sha256']
+ assert go['independent_replay_sha256']==pin(C/'review/independent_replay.py')['sha256']
+ candidate_path=Path(go['candidate_path']).resolve(strict=True)
+ assert candidate_path!=canonical_path.resolve() and not candidate_path.stat().st_mode & stat.S_IWRITE
+ candidate_pin=pin(candidate_path)
+ assert candidate_pin=={'bytes':go['candidate_bytes'],'sha256':go['candidate_sha256']}
+ if action=='manifest':assert go['source_inventory_sha256']==pin(C/'source-inventory.json')['sha256']
+if action in ('independent-preflight','preflight','native'):
+ assert (C/'prelaunch-manifest.json').is_file()
+ assert load(C/'prelaunch-manifest.json')['native_run_directory']==str(RUN)
+if action=='native':
+ assert not list(CAPTURES.glob('native-*')),'native already attempted; no same-path retry'
+ approval=C/'review/independent-prelaunch-go.json';approval_pin=pin(approval)
+ assert approval_pin['sha256']==extra[0] and not approval.stat().st_mode & stat.S_IWRITE
+ go=load(approval)
+ assert go['decision']=='GO_PRELAUNCH' and go['run_id']==RUN_ID and go['native_run_directory']==str(RUN)
+ assert go['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+ assert go['runner_sha256']==pin(C/'run_native_ssh.ps1')['sha256']
+ assert go['independent_replay_sha256']==pin(C/'review/independent_replay.py')['sha256']
+started=utc();O=CAPTURES/(action+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False);Path(__file__).chmod(stat.S_IREAD)
+argv=[sys.executable,'-X','utf8','-B',str(method),*args]
+before={'root_capture':pin(Path(__file__)),'invoked_method':pin(method)}
+code=None;error=None;canonical_matches_candidate=None
+try:
+ with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+  code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+ if candidate_path is not None:assert pin(candidate_path)==candidate_pin,'candidate changed'
+ if canonical_path is not None and code==0:
+  canonical_matches_candidate=canonical_path.read_bytes()==candidate_path.read_bytes()
+  assert canonical_matches_candidate,'canonical differs from approved candidate'
+except Exception as exc:error=f'{type(exc).__name__}: {exc}'
+after={'root_capture':pin(Path(__file__)),'invoked_method':pin(method)}
+d={'schema':'issue18-i04-var05-root-phase-transport/v102','action':action,'argv':argv,'started_utc':started,'completed_utc':utc(),'actual_exit':code,'error':error,'method_before':before,'method_after':after,'streams':{n:pin(O/n) if (O/n).is_file() else None for n in ('stdout.bin','stderr.bin')},'native_dispatch':action=='native','expected_run_id':RUN_ID,'expected_native_run_directory':str(RUN),'run_exists_after':RUN.exists(),'reviewed_approval':approval_pin,'reviewed_candidate':candidate_pin,'candidate_path':str(candidate_path) if candidate_path else None,'canonical_matches_candidate':canonical_matches_candidate}
+with (O/'receipt.json').open('xb') as f:f.write((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'action':action,'actual_exit':code,'error':error,'method_unchanged':before==after,'run_exists_after':RUN.exists(),'streams':d['streams'],'canonical_matches_candidate':canonical_matches_candidate}))
+for n in ('stdout.bin','stderr.bin'):
+ if (O/n).is_file() and (O/n).stat().st_size:print((O/n).read_bytes().decode('utf-8-sig','replace')[:10000])
+assert before==after and error is None and type(code) is int
+raise SystemExit(code)

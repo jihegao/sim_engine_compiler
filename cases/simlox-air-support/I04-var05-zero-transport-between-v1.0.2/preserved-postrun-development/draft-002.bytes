@@ -1,0 +1,16 @@
+# I04.var05 v1.0.2 sealed reproduction
+
+Run these commands from the repository root with Python 3.12. They read existing evidence and do not launch SIMLOX:
+
+```powershell
+python -B cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2/source_gate.py --mode sealed
+python -B cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2/review/independent-postrun-receipt-reader-v1.py
+python -B cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2/make_evidence_index.py
+python -B cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2/make_evidence_index.py --dry
+```
+
+The supplemental reader is the postrun verification method. The prelaunch-pinned `review/independent_replay.py` is preserved byte-for-byte and intentionally remains NO_GO on the original author receipt's extra `native_run_directory` key. Its original failed exit and stderr are indexed. The supplemental source has exactly two additions: require that key, then require an actual string equal to the approved short run path. It does not change the physical, full-log, report, converter, source, or closure predicates. Its five negative probes, one complete sealed replay and separate direct byte audit are preserved. The source gate's `--mode sealed` is necessary after the catalog append; its default live mode is a prelaunch point-time check.
+
+The replay requires the original run directory `tmp/native-runs/i04v05-v102-20261008-01`, all mandatory accepted/raw/preflight originals, the original parent and v100/v101 exclusions, historical Git blobs, two local-only private context originals, and the installed engine/manual/dictionary identities. A checkout without those host originals can verify published source hashes but cannot claim the complete sealed replay. The evidence index verifies original paths and hashes without uploading bulky run files.
+
+For a *new* derived test, choose a new version, package and unique short physical run directory. Freeze its typed source delta, complete event/report oracle, source inventory, manifest and independent methods before any launch. Obtain a fresh zero-native SSH session-0 PowerShell 5 `-File` preflight and separate independent GO_PRELAUNCH. Use the existing serial mutex and fresh active GUI identity, then seal original streams and run files before independent postrun review. Do not relaunch this accepted run or its parent. The original `REPRODUCTION.md` records prospective prelaunch instructions and its fixed IDs are historical.

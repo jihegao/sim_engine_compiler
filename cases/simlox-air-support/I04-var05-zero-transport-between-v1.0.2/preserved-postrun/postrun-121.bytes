@@ -1,0 +1,96 @@
+"""Read-only original evidence plus scratch cloned behavior-receipt schema probes."""
+
+from pathlib import Path
+import copy
+import hashlib
+import importlib.util
+import json
+import shutil
+import tempfile
+
+ROOT = Path(__file__).resolve().parent.parent
+PACKAGE = ROOT / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2"
+ORIGINAL = PACKAGE / "review/independent_replay.py"
+SUPPLEMENT = PACKAGE / "review/independent-postrun-receipt-reader-v1.py"
+DIFF = ROOT / "tmp/i04-var05-v102-supplemental-reader-byte-diff-20261008.json"
+RUN = ROOT / "tmp/native-runs/i04v05-v102-20261008-01"
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def strict_reject(call):
+    try:
+        call()
+    except (AssertionError, KeyError, TypeError, ValueError):
+        return True
+    raise AssertionError("receipt clone unexpectedly accepted")
+
+
+def main():
+    old = ORIGINAL.read_bytes()
+    new = SUPPLEMENT.read_bytes()
+    assert len(old) == 88398 and sha(ORIGINAL) == "1011bb6e21719cf767cc416610ffb11d02c1f819e56a0ae03d0a081fed5b14b2"
+    assert len(new) == 88559 and sha(SUPPLEMENT) == "7c8a30b3ca51b9db17614ba24617f84b1000845a86d6c73485bbf6402ca917b0"
+    assert sha(DIFF) == "1c27f0f0c149a2880cd05e98ed751b08535b8273316b8cbb9cef953c05fd0d6f"
+    old_keys = b'                               "log_lines", "optional_diagnostics", "terminal", "issues", "native_calls"}\n'
+    new_keys = b'                               "log_lines", "optional_diagnostics", "terminal", "issues", "native_calls",\n                               "native_run_directory"}\n'
+    old_pass = b'    assert type(behavior["passed"]) is bool and behavior["passed"]\n'
+    new_pass = old_pass + b'    assert type(behavior["native_run_directory"]) is str and behavior["native_run_directory"] == str(RUN)\n'
+    assert old.count(old_keys) == old.count(old_pass) == 1
+    assert new.replace(new_pass, old_pass, 1).replace(new_keys, old_keys, 1) == old
+
+    spec = importlib.util.spec_from_file_location("supplemental_receipt_reader", SUPPLEMENT)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    assert reader.RUN == RUN
+    contract = reader.load_contract()
+    log_oracle, _ = reader.load_oracles(contract)
+    manifest = reader.strict_json((PACKAGE / "prelaunch-manifest.json").read_bytes())
+    source_map, _ = reader.manifest_source_map(manifest)
+    sealed = reader.strict_json((RUN / "author-validation.json").read_bytes())
+    assert type(sealed["native_run_directory"]) is str and sealed["native_run_directory"] == str(RUN)
+    trace = {"variant": 0, "timed_event_count": 104, "line_count": 118, "transit_microsteps": 2}
+    assert log_oracle["variants"][0]["ready_zero_optional"] is False
+    assert log_oracle["variants"][0]["empty_priority_optional"] is False
+
+    with tempfile.TemporaryDirectory(prefix="i04v05-v102-receipt-probes-", dir=ROOT / "tmp") as directory:
+        scratch = Path(directory)
+        for name in ("roundtrip-validation.json", "roundtrip-raw.json"):
+            shutil.copyfile(RUN / name, scratch / name)
+
+        def check(behavior):
+            (scratch / "author-validation.json").write_bytes((json.dumps(behavior, sort_keys=True) + "\n").encode())
+            return reader.verify_checker_receipts(scratch, {}, trace, source_map, log_oracle)
+
+        baseline = check(copy.deepcopy(sealed))
+        assert baseline[1]["native_run_directory"] == str(RUN)
+        probes = {}
+
+        missing = copy.deepcopy(sealed)
+        del missing["native_run_directory"]
+        probes["missing_field"] = strict_reject(lambda: check(missing))
+
+        wrong = copy.deepcopy(sealed)
+        wrong["native_run_directory"] = str(RUN) + "-wrong"
+        probes["wrong_path"] = strict_reject(lambda: check(wrong))
+
+        for label, value in (("non_string_bool", True), ("non_string_number", 1)):
+            mutation = copy.deepcopy(sealed)
+            mutation["native_run_directory"] = value
+            probes[label] = strict_reject(lambda mutation=mutation: check(mutation))
+
+        extra = copy.deepcopy(sealed)
+        extra["unexpected_extra_field"] = "x"
+        probes["unknown_extra_key"] = strict_reject(lambda: check(extra))
+    assert len(probes) == 5 and all(probes.values())
+    assert sha(RUN / "author-validation.json") == "1f2a25c61fd572dc60bd2c09ea8b29f88cb048214643ccfb96b281034c6dd412"
+    print(json.dumps({"decision": "PASS_SUPPLEMENTAL_RECEIPT_FIELD_PROBES_ONLY",
+                      "frozen_reader_sha256": sha(ORIGINAL), "supplemental_reader_sha256": sha(SUPPLEMENT),
+                      "reverse_diff_exact": True, "positive_cloned_receipt": True,
+                      "negative_probes": probes, "original_author_receipt_unchanged": True}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
