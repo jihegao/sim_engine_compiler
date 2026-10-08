@@ -1,0 +1,3 @@
+# First custody builder draft
+
+`make-custody-v1-preappend.py.bytes` is the exact source that wrote the initial fourteen owned custody files. Its `--write` call exited 0, but only decoded tool output was retained; no original stdout/stderr binary capture is claimed. The draft reconstructed the owned 498 catalog archives from the then-live catalog on every default call and required external tmp originals, so it was superseded before source freeze to make read-only verification portable after an authorized catalog append. The already written owned files retain their original exact bytes and are independently reverified by the corrected builder.

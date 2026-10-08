@@ -1,0 +1,31 @@
+"""One no-argument independent pure check for root's binary capture."""
+from pathlib import Path
+import hashlib
+import runpy
+import stat
+import sys
+
+ROOT = Path(__file__).resolve().parent.parent
+REVIEW = ROOT / "cases/simlox-air-support/I04-var09-arrived-system-next-mission-v1.0.0/review"
+PINS = {
+    "independent_classifier.py": (38712, "fe2854e70d26d9680216c7f43a2dc4d679de9af5aa70875201369333da369fe4"),
+    "independent_self_check.py": (8704, "a1906e9e204e3f964853f25bc0ffdf95b7c83257babf2cf914daa27b19941ab9"),
+    "independent-method-static-go-2026-10-08.md": (5565, "64f7acdcb571782a97d746d91c0c3af678afafc5bd65975efc0ef0576c17517f"),
+}
+
+def verify() -> None:
+    for name, (size, digest) in PINS.items():
+        path = REVIEW / name
+        data = path.read_bytes()
+        assert len(data) == size and hashlib.sha256(data).hexdigest() == digest
+        assert path.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+
+if __name__ == "__main__":
+    assert len(sys.argv) == 1
+    verify()
+    sys.path.insert(0, str(REVIEW))
+    sys.argv = [str(REVIEW / "independent_self_check.py")]
+    try:
+        runpy.run_path(sys.argv[0], run_name="__main__")
+    finally:
+        verify()

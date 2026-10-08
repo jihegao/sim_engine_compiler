@@ -1,0 +1,73 @@
+"""Root original publication command capture; never starts native SIMLOX."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,sys,uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var09-arrived-system-next-mission-v1.0.0'
+BASE='223c32e36722587bad5d1d5e8564faee84b91206'
+BRANCH='codex/simlox-i04-var09-arrived-system-mission-20261008'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def git(*a):return subprocess.check_output(['git','-c','core.longpaths=true',*a],cwd=R)
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+assert len(sys.argv)>=2
+tag=sys.argv[1];extra=sys.argv[2:]
+I=C/'evidence-index.json';index=pin(I)
+source_count=json.loads(I.read_bytes())['source_count']
+prefix=[sys.executable,'-X','utf8','-B']
+if tag=='stage':
+ assert len(extra)==1
+ argv=prefix+[str(R/'tmp/i04-var09-root-catalog-stage-v101-20261008.py'),extra[0],index['sha256'],str(source_count)]
+elif tag in ('disk','staged','head','merged'):
+ assert len(extra)==(1 if tag=='merged' else 0)
+ ref={'disk':'DISK','staged':'INDEX','head':'HEAD','merged':extra[0] if extra else ''}[tag]
+ argv=prefix+[str(R/'tmp/i04-var09-root-publication-byte-audit-v101-20261008.py'),tag,ref,index['sha256'],str(source_count)]
+elif tag=='rebuild-after-append':
+ assert not extra
+ argv=prefix+[str(C/'make_evidence_index.py')]
+elif tag=='style':
+ assert not extra
+ argv=['git','-c','core.longpaths=true','-c','core.whitespace=cr-at-eol','diff','--cached','--check']
+elif tag=='boundary':
+ assert not extra
+ G=R/'tmp/issue18-next-owner-guard-20261008.ps1'
+ assert pin(G)['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+ argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',G.as_posix()]
+elif tag=='commit':
+ assert len(extra)==1 and git('rev-parse','HEAD').decode().strip()==BASE
+ GO=R/'tmp/i04-var09-independent-staged-go-v100-20261008.md'
+ assert pin(GO)['sha256']==extra[0] and 'GO_STAGED' in GO.read_text(encoding='utf-8-sig')
+ assert git('branch','--show-current').decode().strip()==BRANCH
+ argv=['git','-c','core.longpaths=true','commit','-m','cases(simlox): classify arrived system later mission from sealed evidence']
+elif tag=='push':
+ assert len(extra)==1 and git('rev-parse','HEAD').decode().strip()==extra[0]
+ assert not git('status','--porcelain','--untracked-files=no')
+ argv=['git','-c','core.longpaths=true','push','-u','origin',BRANCH]
+elif tag=='reconcile':
+ assert len(extra)==1 and not git('status','--porcelain','--untracked-files=no')
+ argv=['git','-c','core.longpaths=true','fetch','origin','simlox/main']
+else:raise AssertionError(tag)
+O=R/'tmp/i04-var09-root-publication-captures-v100-20261008'/(tag+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+Path(__file__).chmod(stat.S_IREAD)
+d={'schema':'issue18-i04-var09-root-publication-command-capture/v101','tag':tag,'argv':argv,'started_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'method_before':pin(Path(__file__)),'index_before':index,'native_calls':0}
+r=subprocess.run(argv,cwd=R,capture_output=True)
+save(O/'stdout.bin',r.stdout);save(O/'stderr.bin',r.stderr)
+d.update(actual_exit=r.returncode,stdout=pin(O/'stdout.bin'),stderr=pin(O/'stderr.bin'),completed_utc=dt.datetime.now(dt.timezone.utc).isoformat(),method_after=pin(Path(__file__)),index_after=pin(I))
+good=type(r.returncode) is int and r.returncode in ((0,2) if tag=='style' else (0,)) and d['method_before']==d['method_after'] and d['index_before']==d['index_after']
+if tag=='style':d['whitespace_passed']=r.returncode==0
+if tag=='boundary' and good:
+ g=json.loads(r.stdout.decode('utf-8-sig'));d['observed']=g
+ good=g['ssh_present'] is True and g['sshd_ancestor'] is True and g['self_session']==0 and g['powershell_major']==5 and g['mutex_free'] is True and g['runner_candidates']==[] and g['session_query_exit']==0 and g['active_gui_session1_count']==1 and len(g['native'])==1
+ if good:
+  p=g['native'][0];good=p['pid']==13340 and p['session']==1 and p['start_ms']==1790590196826 and p['responding'] is True
+if tag=='reconcile' and good:
+ assert git('rev-parse','FETCH_HEAD').decode().strip()==extra[0]
+ a=['git','-c','core.longpaths=true','merge','--ff-only','FETCH_HEAD'];rr=subprocess.run(a,cwd=R,capture_output=True)
+ save(O/'ff-stdout.bin',rr.stdout);save(O/'ff-stderr.bin',rr.stderr)
+ d['fast_forward']={'argv':a,'actual_exit':rr.returncode,'stdout':pin(O/'ff-stdout.bin'),'stderr':pin(O/'ff-stderr.bin')}
+ good=rr.returncode==0 and git('rev-parse','HEAD').decode().strip()==extra[0] and pin(I)==index
+d['decision']='CAPTURE_PASS' if good else 'NO_GO_PRESERVED'
+save(O/'receipt.json',(json.dumps(d,indent=2)+'\n').encode())
+print(json.dumps({'decision':d['decision'],'receipt_path':str(O/'receipt.json'),'receipt':pin(O/'receipt.json'),'actual_exit':r.returncode,'stdout_text':r.stdout.decode('utf-8','replace')[:3500],'stderr_text':r.stderr.decode('utf-8','replace')[:2500]}))
+assert good

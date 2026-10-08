@@ -1,0 +1,5 @@
+# I04.var09 bounded classification signoff
+
+The independent decision is `GO_BOUNDED_CLASSIFICATION` for the accepted I04.var03 v1.0.1 original. This package performs zero new SIMLOX dispatches and zero accepted parent or checker reruns. The original 118-line, 104-timed-record log supports the numeric ID 0 source-to-target transfer and its later assignment, task, success, and ready return. New selected report checks cover 10 behavior values, 10 time values, and 10 row identities. The parent's earlier 4,044-cell independent verdict is retained as prior provenance, not claimed as a fresh replay.
+
+This signs off only the “arrived system later executes a mission” subclaim. The separate I04.var07 same-hour transfer proposal remains NO_GO. A repeated transfer, all of I04.var09, hidden identity behavior, GUI behavior, and a general transfer rule are outside this decision. Full sealed replay requires the mandatory accepted original raw and preflight files, including two private local-only app context originals. Publication remains pending until content, catalog, and Git review complete.

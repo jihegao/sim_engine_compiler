@@ -1,0 +1,17 @@
+"""Dispatch only the reviewed frozen author PURE proof method once."""
+from pathlib import Path
+import hashlib,json,stat,subprocess,sys
+R=Path(__file__).resolve().parents[1]
+P=R/'tmp/i04-var09-author-method-proof-v100-20261008.py'
+O=R/'tmp/i04-var09-author-original-proof-v100-20261008-01'
+def pin():
+ b=P.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+before=pin()
+assert before=={'bytes':4351,'sha256':'60b148ce31e63cd8b37e3e7ecc059c8b8569efd77510c8dfe4caa69c77ef1bf0'}
+assert not P.stat().st_mode&stat.S_IWRITE and not O.exists()
+argv=[sys.executable,'-X','utf8','-B',str(P),'--output-dir',str(O)]
+r=subprocess.run(argv,cwd=R)
+after=pin()
+print(json.dumps({'author_method_before':before,'author_method_after':after,'argv':argv,'actual_exit':r.returncode,'native_dispatch':False}))
+assert before==after and not P.stat().st_mode&stat.S_IWRITE and type(r.returncode) is int
+raise SystemExit(r.returncode)

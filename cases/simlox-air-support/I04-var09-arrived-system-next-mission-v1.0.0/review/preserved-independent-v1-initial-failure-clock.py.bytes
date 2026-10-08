@@ -1,0 +1,445 @@
+"""Independent, read-only I04.var09 classification of one accepted original run.
+
+This module does not import or invoke an accepted SIMLOX checker. The sealed
+entry point verifies original bytes separately from the semantic parser; pure
+mutations call the parser directly to test its causal predicates.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import re
+from pathlib import Path
+
+
+PACKAGE = Path(__file__).resolve().parent.parent
+ROOT = PACKAGE.parents[2]
+PARENT = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+RUN = PARENT / "runs/i04-var03-idle-system-between-v101-ssh-20261008-01"
+CONTRACT_SHA = "ec2dbe37601d0045185109fe7856ea4656a0b2e01dfe35ac25809de17aa60307"
+LOG_SHA = "ab19c3cbc0214b8e72b57d6139d94166beb99f1afa034e07de393693d1079901"
+REPORT_SHA = "72a5bd7270f5b3b27736df43c146a56f850990abf6a8e964aa7bae430ffc93b5"
+PARENT_INDEX_SHA = "09e0fe50532797f97d13b3a17fdd886adfc9a18c925038b15058b3850b2273ff"
+PARENT_MANIFEST_SHA = "d05541613248279a5620349ade72bcaf80b12f3be042b470694f45b6efa690f3"
+PARENT_GO_SHA = "d5b7ea964e65ddb57d248562dab82f53bce565f6d0ac7a161c4eccc5b8ebf7c7"
+SRC = "<TEACH-UNIT at <BASE-01,0>>"
+DST = "<TEACH-UNIT-2 at <BASE-02,0>>"
+AIR = r"<TEACH-AIR-01,([01])>"
+MISSION = r"<BASIC-MISSION,TEACH-GROUP,0,0,([01])>"
+UNIT = rf"({re.escape(SRC)}|{re.escape(DST)})"
+HEAD = r"<TEACH-AIR-01,BASE-(01|02),0>"
+AIR_LIST = rf"{AIR}(?:,{AIR})?"
+TIMED = re.compile(r"Time: ([0-9]+(?:\.[0-9]+)?) (.*)")
+
+
+def require(condition: object, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def pinned(path: Path, size: int, digest: str) -> bytes:
+    data = path.read_bytes()
+    require(len(data) == size and sha(data) == digest, f"byte pin: {path}")
+    return data
+
+
+def unique(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        require(key not in result, f"duplicate JSON key {key}")
+        result[key] = value
+    return result
+
+
+def reject_constant(value: str) -> None:
+    raise AssertionError(f"nonfinite JSON constant {value}")
+
+
+def strict_json(data: bytes) -> dict[str, object]:
+    obj = json.loads(data, object_pairs_hook=unique, parse_constant=reject_constant)
+
+    def finite(value: object) -> None:
+        if isinstance(value, float):
+            require(math.isfinite(value), "nonfinite JSON exponent")
+        elif isinstance(value, dict):
+            for child in value.values():
+                finite(child)
+        elif isinstance(value, list):
+            for child in value:
+                finite(child)
+
+    finite(obj)
+    require(type(obj) is dict, "top-level JSON object")
+    return obj
+
+
+def match(pattern: str, text: str) -> re.Match[str] | None:
+    return re.fullmatch(pattern, text)
+
+
+def ids(text: str) -> tuple[int, ...]:
+    tokens = re.findall(AIR, text)
+    require(tokens and len(tokens) <= 2, "aircraft list count")
+    require(",".join(f"<TEACH-AIR-01,{token}>" for token in tokens) == text, "aircraft list grammar")
+    values = tuple(int(token) for token in tokens)
+    require(len(values) == len(set(values)), "duplicate aircraft in list")
+    return values
+
+
+def unit(text: str) -> str:
+    require(text in (SRC, DST), "unit grammar")
+    return "source" if text == SRC else "target"
+
+
+def header(base: str) -> str:
+    require(base in ("01", "02"), "base grammar")
+    return "source" if base == "01" else "target"
+
+
+def decode_event(body: str) -> tuple[str, dict[str, object]]:
+    """Closed grammar for every timed line of this one accepted transcript."""
+    m = match(rf"{AIR} Next random failure will occur 1e\+010", body)
+    if m:
+        return "failure_clock", {"id": int(m[1])}
+    m = match(rf"{AIR} nbr ready (increased|decreased) at unit: {UNIT}", body)
+    if m:
+        return f"ready_{m[2]}", {"id": int(m[1]), "unit": unit(m[3])}
+    m = match(rf"{UNIT} systems ready: ([012]) :(.*)", body)
+    if m:
+        roster = () if not m[3] else ids(m[3])
+        return "ready_roster", {"unit": unit(m[1]), "count": int(m[2]), "ids": roster}
+    m = match(r" Start of day no ([01])", body)
+    if m:
+        return "day", {"day": int(m[1])}
+    if body == "<TEACH-GROUP> mission ordered: BASIC-MISSION":
+        return "mission_ordered", {}
+    m = match(rf"{MISSION} mission created: ", body)
+    if m:
+        return "mission_created", {"mission": int(m[1])}
+    m = match(rf"{MISSION} mission activated, systems requested: 2", body)
+    if m:
+        return "mission_activated", {"mission": int(m[1])}
+    m = match(rf"{MISSION} mission allocates system: {AIR}", body)
+    if m:
+        return "allocates", {"mission": int(m[1]), "id": int(m[2])}
+    m = match(rf"{AIR} releases excess resources \(if any\)", body)
+    if m:
+        return "release_excess", {"id": int(m[1])}
+    m = match(rf"{AIR} preparation (started|ended), mission: {MISSION}", body)
+    if m:
+        return f"prep_{m[2]}", {"id": int(m[1]), "mission": int(m[3])}
+    m = match(rf"{MISSION} mission starting, duration: 2 : (.*)", body)
+    if m:
+        return "mission_start", {"mission": int(m[1]), "ids": ids(m[2])}
+    m = match(rf"{MISSION} task (starting|completed): (.*)", body)
+    if m:
+        return f"task_{m[2]}", {"mission": int(m[1]), "ids": ids(m[3])}
+    m = match(rf"{MISSION} mission success: ", body)
+    if m:
+        return "mission_success", {"mission": int(m[1])}
+    m = match(rf"{MISSION} mission completed: (.*)", body)
+    if m:
+        return "mission_completed", {"mission": int(m[1]), "ids": ids(m[2])}
+    m = match(rf"{HEAD} System soon ready {AIR}, estimated remaining time: 0", body)
+    if m:
+        return "soon_ready", {"unit": header(m[1]), "id": int(m[2])}
+    m = match(rf"{AIR} turnround (started|ended), mission: {MISSION}(?: reduction factor: 1)?", body)
+    if m:
+        require((m[2] == "started") == body.endswith(" reduction factor: 1"), "turnround suffix")
+        return f"turn_{m[2]}", {"id": int(m[1]), "mission": int(m[3])}
+    m = match(rf"{HEAD} System arrives {AIR}, mission success, ", body)
+    if m:
+        return "system_arrives", {"unit": header(m[1]), "id": int(m[2])}
+    m = match(rf"{HEAD} System ready {AIR}", body)
+    if m:
+        return "system_ready", {"unit": header(m[1]), "id": int(m[2])}
+    m = match(rf"{HEAD} Repair task priority list: ", body)
+    if m:
+        return "repair_list", {"unit": header(m[1])}
+    m = match(rf"{UNIT} system transfered (out|in): {AIR}\.", body)
+    if m:
+        return f"transfer_{m[2]}", {"unit": unit(m[1]), "id": int(m[3])}
+    raise AssertionError(f"unknown timed log line: {body!r}")
+
+
+def parse_log(data: bytes, *, exact_original: bool) -> dict[str, object]:
+    if exact_original:
+        require(len(data) == 8223 and sha(data) == LOG_SHA, "original log byte pin")
+    require(data.startswith(b"SIMLOX LOG FILE\r\n36\r\n"), "log header/horizon")
+    lines = data.decode("utf-8").splitlines()
+    require(len(lines) == 118 and lines[:2] == ["SIMLOX LOG FILE", "36"], "full log shape")
+    owner: dict[int, str | None] = {0: None, 1: None}
+    ready = {0: False, 1: False}
+    assigned: dict[int, int | None] = {0: None, 1: None}
+    flight = {0: False, 1: False}
+    task = {0: False, 1: False}
+    turn = {0: False, 1: False}
+    prep = {0: "none", 1: "none"}
+    missions = {0: "none", 1: "none"}
+    task_done = {0: False, 1: False}
+    pending_dec: int | None = None
+    pending_out: int | None = None
+    ready_announcements: dict[tuple[int, float], int] = {}
+    transfer_out = transfer_in = timed_count = 0
+    last_hour = -1.0
+    index = 2
+    while index < len(lines):
+        line = lines[index]
+        m = TIMED.fullmatch(line)
+        require(m is not None, f"untimed/unknown physical line {index+1}")
+        hour = float(m[1])
+        require(math.isfinite(hour) and hour >= last_hour and hour <= 24, "time order")
+        last_hour = hour
+        kind, value = decode_event(m[2])
+        timed_count += 1
+        if pending_dec is not None:
+            require(kind == "ready_decreased" and value.get("id") == pending_dec, "allocation ready-decrease microstep")
+        if pending_out is not None:
+            require(kind == "transfer_out" and value.get("id") == pending_out, "transfer departure microstep")
+        ident = value.get("id")
+        if kind == "failure_clock":
+            require(owner[ident] is not None, "failure clock before deployment")
+        elif kind == "ready_increased":
+            u = value["unit"]
+            require(not ready[ident] and assigned[ident] is None and not flight[ident] and not task[ident], "ready increment state")
+            if owner[ident] is None:
+                require(hour == 0 and u == ("source" if ident == 0 else "target"), "initial roster")
+                owner[ident] = u
+            else:
+                require(owner[ident] == u, "ready increment owner")
+                require(hour in (10, 11, 22), "ready increment hour")
+            ready[ident] = True
+        elif kind == "ready_decreased":
+            require(ready[ident] and owner[ident] == value["unit"], "ready decrement state/owner")
+            ready[ident] = False
+            if pending_dec is not None:
+                require(assigned[ident] is not None, "decrement allocation")
+                pending_dec = None
+            else:
+                require((ident, hour, value["unit"], assigned[ident]) == (0, 10.5, "source", None), "decrement only for transfer")
+                pending_out = ident
+        elif kind == "ready_roster":
+            roster = {ident for ident in (0, 1) if ready[ident] and owner[ident] == value["unit"]}
+            require(value["count"] == len(roster) and set(value["ids"]) == roster, "ready roster conservation")
+        elif kind == "day":
+            require((hour, value["day"]) in ((0, 0), (24, 1)), "day marker")
+        elif kind == "mission_ordered":
+            require(hour in (7, 19), "mission order hour")
+        elif kind == "mission_created":
+            mi = value["mission"]
+            require((mi, hour, missions[mi]) in ((0, 7, "none"), (1, 19, "none")), "mission creation")
+            missions[mi] = "created"
+        elif kind == "mission_activated":
+            mi = value["mission"]
+            require(missions[mi] == "created" and hour == (7 if mi == 0 else 19), "mission activation")
+            missions[mi] = "active"
+        elif kind == "allocates":
+            mi = value["mission"]
+            require(missions[mi] == "active" and hour == (7 if mi == 0 else 19), "allocation mission/time")
+            require(ready[ident] and owner[ident] in ("source", "target") and assigned[ident] is None, "allocation requires prior ready at unit")
+            require(not flight[ident] and not task[ident] and not turn[ident], "allocation phase")
+            assigned[ident] = mi
+            pending_dec = ident
+        elif kind == "release_excess":
+            require(assigned[ident] is not None and not ready[ident], "resource release after allocation")
+        elif kind == "prep_started":
+            require(assigned[ident] == value["mission"] and not ready[ident] and prep[ident] == "none", "preparation start")
+            prep[ident] = "started"
+        elif kind == "prep_ended":
+            require(assigned[ident] == value["mission"] and prep[ident] == "started", "preparation end")
+            prep[ident] = "ended"
+        elif kind == "mission_start":
+            mi = value["mission"]
+            require(missions[mi] == "active" and hour == (8 if mi == 0 else 20), "flight mission/time")
+            require(set(value["ids"]) == {0, 1}, "flight members")
+            for member in value["ids"]:
+                require(assigned[member] == mi and prep[member] == "ended" and not ready[member], "flight prior assignment")
+                flight[member] = True
+            missions[mi] = "flight"
+        elif kind == "task_starting":
+            mi = value["mission"]
+            require(missions[mi] == "flight" and hour == (8.5 if mi == 0 else 20.5), "task start mission/time")
+            require(set(value["ids"]) == {0, 1}, "task members")
+            for member in value["ids"]:
+                require(flight[member] and assigned[member] == mi and not task[member], "task start assignment")
+                task[member] = True
+        elif kind == "task_completed":
+            mi = value["mission"]
+            require(missions[mi] == "flight" and hour == (9.5 if mi == 0 else 21.5), "task completion mission/time")
+            require(set(value["ids"]) == {0, 1}, "task completion members")
+            for member in value["ids"]:
+                require(task[member] and assigned[member] == mi, "task completion assignment")
+                task[member] = False
+            task_done[mi] = True
+        elif kind == "mission_success":
+            mi = value["mission"]
+            require(missions[mi] == "flight" and task_done[mi] and hour == (10 if mi == 0 else 22), "mission success")
+            missions[mi] = "success"
+        elif kind == "mission_completed":
+            mi = value["mission"]
+            require(missions[mi] == "success" and hour == (10 if mi == 0 else 22), "mission completion")
+            require(set(value["ids"]) == {0, 1}, "mission completion members")
+            for member in value["ids"]:
+                require(assigned[member] == mi and flight[member] and not task[member], "mission completion assignment")
+                assigned[member] = None
+                flight[member] = False
+                prep[member] = "none"
+            missions[mi] = "completed"
+        elif kind == "soon_ready":
+            require(missions[0 if hour == 10 else 1] == "completed" and owner[ident] == value["unit"] and not ready[ident], "soon ready location")
+        elif kind == "turn_started":
+            require(missions[value["mission"]] == "completed" and hour == (10 if value["mission"] == 0 else 22), "turnround start")
+            require(owner[ident] in ("source", "target") and not ready[ident] and not turn[ident], "turnround state")
+            turn[ident] = True
+        elif kind == "turn_ended":
+            require(turn[ident] and missions[value["mission"]] == "completed", "turnround end")
+            turn[ident] = False
+        elif kind == "system_arrives":
+            require(hour in (10, 22) and owner[ident] == value["unit"] and not ready[ident] and not turn[ident], "mission return location")
+            require(lines[index + 1 : index + 3] == [" no failures ", " no PMTasks"], "arrival continuation grammar")
+            index += 2
+        elif kind == "system_ready":
+            require(ready[ident] and owner[ident] == value["unit"], "ready message location")
+            key = (ident, hour)
+            ready_announcements[key] = ready_announcements.get(key, 0) + 1
+            require(ready_announcements[key] <= 2, "extra ready announcement")
+        elif kind == "repair_list":
+            require(lines[index + 1] == "   ", "repair-list continuation grammar")
+            index += 1
+        elif kind == "transfer_out":
+            require((ident, hour, value["unit"], owner[ident], ready[ident], assigned[ident]) == (0, 10.5, "source", "source", False, None), "departure identity/order")
+            require(pending_out == ident and transfer_out == 0, "departure count")
+            owner[ident] = "transit"
+            pending_out = None
+            transfer_out += 1
+        elif kind == "transfer_in":
+            require((ident, hour, value["unit"], owner[ident], ready[ident]) == (0, 11, "target", "transit", False), "arrival identity/order")
+            require(transfer_out == 1 and transfer_in == 0, "arrival count")
+            owner[ident] = "target"
+            transfer_in += 1
+        else:
+            raise AssertionError(f"unhandled event kind {kind}")
+        index += 1
+    require(timed_count == 104, "timed event count")
+    require(transfer_out == transfer_in == 1, "one balanced transfer")
+    require(missions == {0: "completed", 1: "completed"}, "both missions completed")
+    require(owner == {0: "target", 1: "target"} and ready == {0: True, 1: True}, "target terminal readiness")
+    require(assigned == {0: None, 1: None} and not any(flight.values()) and not any(task.values()) and not any(turn.values()), "terminal task/assignment")
+    require(pending_dec is None and pending_out is None, "terminal pending microstep")
+    return {"lines": len(lines), "timed": timed_count, "transfer_out": transfer_out, "transfer_in": transfer_in, "terminal_ready_target": 2}
+
+
+def report_repair(data: bytes) -> bytes:
+    positions = list(re.finditer(rb",\s*]", data))
+    require(len(positions) == 1, "exactly one declared native punctuation defect")
+    pos = positions[0].start()
+    require(pos > len(data) - 100 and data[pos : pos + 10] == b",\r\n      ]", "bounded native punctuation location")
+    return data[:pos] + data[pos + 1 :]
+
+
+def typed_equal(left: object, right: object) -> bool:
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        return set(left) == set(right) and all(typed_equal(left[key], right[key]) for key in left)
+    if isinstance(left, list):
+        return len(left) == len(right) and all(typed_equal(a, b) for a, b in zip(left, right))
+    return left == right
+
+
+def selected_report(data: bytes, reference: dict[str, object]) -> dict[str, object]:
+    obj = strict_json(report_repair(data))
+    require(set(obj) == {"report"} and set(obj["report"]) == {"tables"}, "report root shape")
+    tables = obj["report"]["tables"]
+    ref_tables = reference["report"]["tables"]
+    require(type(tables) is list and len(tables) == len(ref_tables) == 4, "report table count")
+    names = ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"]
+    count = 0
+    for table, ref, name in zip(tables, ref_tables, names):
+        require(set(table) == {"name", "columns", "instances"} and table["name"] == name, "report table identity")
+        require(typed_equal(table["columns"], ref["columns"]), "report column metadata")
+        require(type(table["instances"]) is list and len(table["instances"]) == len(ref["instances"]), "report instance count")
+        for inst, ref_inst in zip(table["instances"], ref["instances"]):
+            require(set(inst) == {"instance_name", "rows"} and typed_equal(inst["instance_name"], ref_inst["instance_name"]), "report instance metadata")
+            require(type(inst["rows"]) is list and len(inst["rows"]) == len(ref_inst["rows"]), "report row count")
+            for row in inst["rows"]:
+                require(type(row) is list and len(row) == len(table["columns"]), "report row width")
+            count += len(inst["rows"]) * len(table["columns"])
+    require(count == 4044, "report cell topology, prior verdict only")
+    system = tables[2]
+    cols = {c["name"]: idx for idx, c in enumerate(system["columns"])}
+    rows = system["instances"][0]["rows"]
+    require(len(rows) == 72, "half-hour result rows")
+    expected = {
+        21: (10.5, 11, {"NSYA": 1, "NSYRY": 1}),
+        22: (11, 11.5, {"NSYA": 2, "NSYRY": 2}),
+        38: (19, 19.5, {"NSYA": 2, "NSYMA": 2, "NSYMR": 2, "NSYRY": 0}),
+        40: (20, 20.5, {"NSYMO": 2}),
+        44: (22, 22.5, {"NSYRY": 2}),
+    }
+    checks = 0
+    for index, (start, end, fields) in expected.items():
+        row = rows[index]
+        require(type(row[cols["STINT"]]) in (int, float) and row[cols["STINT"]] == start, "projection start")
+        require(type(row[cols["ETINT"]]) in (int, float) and row[cols["ETINT"]] == end, "projection end")
+        for field, value in fields.items():
+            actual = row[cols[field]]
+            require(type(actual) is int and actual == value, f"selected report {index}/{field}")
+            checks += 1
+    return {"prior_report_topology_cells": count, "new_selected_cells": checks}
+
+
+def sealed_custody() -> tuple[bytes, bytes]:
+    index = strict_json(pinned(PARENT / "evidence-index.json", 176439, PARENT_INDEX_SHA))
+    require(index["source_count"] == len(index["source_files"]) == 401, "parent source count")
+    require(index["raw_count"] == len(index["raw_files"]) == 153, "parent raw count")
+    require(index["preflight_original_count"] == len(index["preflight_original_files"]) == 15, "parent preflight count")
+    for row in index["source_files"]:
+        pinned(PARENT / row["path"], row["bytes"], row["sha256"])
+    for row in [*index["raw_files"], *index["preflight_original_files"]]:
+        pinned(Path(row["path"]), row["bytes"], row["sha256"])
+    manifest = strict_json(pinned(PARENT / "prelaunch-manifest.json", 161922, PARENT_MANIFEST_SHA))
+    require(manifest["source_count"] == len(manifest["source_files"]) == 456, "parent role count")
+    per_path: dict[Path, tuple[int, str]] = {}
+    for row in manifest["source_files"]:
+        path = Path(row["path"]).resolve(strict=True)
+        seal = row["bytes"], row["sha256"]
+        require(path not in per_path or per_path[path] == seal, "role alias conflicting pin")
+        per_path[path] = seal
+        pinned(path, *seal)
+    require(manifest["live_catalog_prelaunch_pin"]["sha256"] == "a247e221e524b319f45f62b32a1668366e3e2caf5f066ca79b58ca0838fe59d6", "historical catalog alias")
+    pinned(PARENT / "preserved-context/publication-index-local-496.json.bytes", 532423, "a247e221e524b319f45f62b32a1668366e3e2caf5f066ca79b58ca0838fe59d6")
+    pinned(PARENT / "preserved-context/publication-index-git-496.json.bytes", 527796, "cecd78d6913a8e75638382f8b2a82c83c6f626394657f200150287df02e0851c")
+    pinned(PARENT / "review/independent-postrun-go-2026-10-08.md", 4369, PARENT_GO_SHA)
+    log = pinned(RUN / "model.log", 8223, LOG_SHA)
+    report = pinned(RUN / "report-raw.json", 103970, REPORT_SHA)
+    pinned(RUN / "closure.json", 130377, "ac5af12fb9e72ea91c342a39f7cbe4ec46689229cc996ef090090d0fbf92b616")
+    pinned(PARENT / "native-input.json", 44611, "48c346d27d9cd08be09a771292d198e00db72a19d488da5b184689504ace177b")
+    return log, report
+
+
+def classify_original() -> dict[str, object]:
+    pinned(PACKAGE / "prospective-contract.json", 13997, CONTRACT_SHA)
+    log, report = sealed_custody()
+    result = parse_log(log, exact_original=True)
+    report_result = selected_report(report, strict_json(report_repair(report)))
+    return {"decision": "GO_BOUNDED_CLASSIFICATION", "new_native_runs": 0, "accepted_parent_runs_repeated": 0, **result, **report_result}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sealed", action="store_true")
+    args = parser.parse_args()
+    require(args.sealed, "use --sealed; semantic clones import parse_log/selected_report directly")
+    print(json.dumps(classify_original(), sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

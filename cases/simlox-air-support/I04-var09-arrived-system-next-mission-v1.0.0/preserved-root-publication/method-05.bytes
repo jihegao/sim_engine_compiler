@@ -1,0 +1,125 @@
+"""Exact zero-native classification publication custody/Git/catalog audit."""
+from pathlib import Path
+import hashlib,json,stat,subprocess,sys
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I04-var09-arrived-system-next-mission-v1.0.0'
+P=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+PREFIX=C.relative_to(R).as_posix()+'/'
+CAT='cases/simlox-air-support/publication-index-v1.json'
+BASE='223c32e36722587bad5d1d5e8564faee84b91206'
+assert len(sys.argv)==5
+PHASE,REF,INDEX_SHA,COUNT=sys.argv[1:];COUNT=int(COUNT)
+assert PHASE in ('disk','staged','head','merged')
+O=R/f'tmp/i04-var09-root-{PHASE}-publication-audit-v100-20261008.json';assert not O.exists()
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):
+ def pairs(items):
+  d={}
+  for k,v in items:assert k not in d,k;d[k]=v
+  return d
+ return json.loads(p.read_bytes(),object_pairs_hook=pairs,parse_constant=lambda v:(_ for _ in ()).throw(ValueError(v)))
+def typed(a,b):
+ if type(a) is not type(b):return False
+ if isinstance(a,dict):return a.keys()==b.keys() and all(typed(a[k],b[k]) for k in a)
+ if isinstance(a,list):return len(a)==len(b) and all(typed(x,y) for x,y in zip(a,b))
+ return a==b
+def check(p,row):
+ assert p.is_file() and not p.is_symlink(),str(p)
+ assert type(row['bytes']) is int and row['bytes']>=0
+ assert pin(p.read_bytes())=={k:row[k] for k in ('bytes','sha256')},str(p)
+def ro(p):assert not p.stat().st_mode&stat.S_IWRITE,str(p)
+def git(*a):return subprocess.check_output(['git','-c','core.longpaths=true',*a],cwd=R)
+def blobs(ref,paths):
+ tree=git('ls-files','--stage','-z') if ref=='INDEX' else git('ls-tree','-r','-z',ref)
+ ids={}
+ for row in tree.split(b'\0'):
+  if not row:continue
+  meta,name=row.split(b'\t',1);a=meta.split()
+  if ref=='INDEX':assert a[2]==b'0';oid=a[1]
+  else:
+   if a[1]!=b'blob':continue
+   oid=a[2]
+  ids[name.decode()]=oid.decode()
+ assert set(paths)<=ids.keys(),set(paths)-ids.keys()
+ wanted=list(dict.fromkeys(ids[p] for p in sorted(paths)))
+ q=subprocess.run(['git','cat-file','--batch'],cwd=R,input=('\n'.join(wanted)+'\n').encode(),capture_output=True)
+ assert q.returncode==0 and not q.stderr
+ payloads={};pos=0
+ for oid in wanted:
+  end=q.stdout.index(b'\n',pos);head=q.stdout[pos:end].split()
+  assert head[0].decode()==oid and head[1]==b'blob'
+  size=int(head[2]);start=end+1;payloads[oid]=q.stdout[start:start+size]
+  assert q.stdout[start+size:start+size+1]==b'\n';pos=start+size+1
+ assert pos==len(q.stdout)
+ return {p:payloads[ids[p]] for p in paths}
+I=C/'evidence-index.json';ib=I.read_bytes();assert pin(ib)['sha256']==INDEX_SHA
+index=load(I);rows=index['source_files'];assert len(rows)==index['source_count']==COUNT
+assert len({r['path'] for r in rows})==COUNT
+for row in rows:
+ rel=Path(row['path']);assert not rel.is_absolute() and '..' not in rel.parts
+ assert not any(x in ('runs','test-output','transport-evidence','__pycache__') for x in rel.parts)
+ path=(C/rel).resolve(strict=True);assert path.is_relative_to(C.resolve());check(path,row);ro(path)
+ro(I)
+case_names={row['path'] for row in rows}|{'evidence-index.json'}
+actual={p.relative_to(C).as_posix() for p in C.rglob('*') if p.is_file() and p.relative_to(C).parts[0] not in ('runs','test-output','transport-evidence') and '__pycache__' not in p.relative_to(C).parts}
+assert actual==case_names,actual^case_names
+parent_refs=load(C/'parent-source-pairs.json')['records'];assert len(parent_refs)==403
+assert len({row['path'] for row in parent_refs})==403
+base=blobs(BASE,{row['path'] for row in parent_refs}|{CAT})
+for row in parent_refs:
+ check(R/row['path'],row);assert pin(base[row['path']])==row['git']
+pi=P/'evidence-index.json';assert pin(pi.read_bytes())=={'bytes':176439,'sha256':'09e0fe50532797f97d13b3a17fdd886adfc9a18c925038b15058b3850b2273ff'}
+parent_index=load(pi);assert parent_index['source_count']==len(parent_index['source_files'])==401
+parent_prefix=P.relative_to(R).as_posix()+'/'
+expected_parent_paths={parent_prefix+row['path'] for row in parent_index['source_files']}|{parent_prefix+'evidence-index.json',parent_prefix+'review/independent-content-go-2026-10-08.md'}
+assert len(expected_parent_paths)==403 and {row['path'] for row in parent_refs}==expected_parent_paths
+for row in parent_index['source_files']:check(P/row['path'],row)
+raw=load(C/'raw-custody-map.json')['records'];pre=load(C/'preflight-custody-map.json')['records']
+normalize=lambda p:str(Path(p).resolve(strict=True)).casefold()
+for own,parent,count in ((raw,parent_index['raw_files'],153),(pre,parent_index['preflight_original_files'],15)):
+ assert len(own)==len(parent)==count
+ assert {normalize(row['path']) for row in own}=={normalize(row['path']) for row in parent}
+ assert len({normalize(row['path']) for row in own})==count
+ for row in own:check(Path(row['path']),row)
+assert len({normalize(row['path']) for row in raw+pre})==168
+mf=P/'prelaunch-manifest.json';assert pin(mf.read_bytes())=={'bytes':161922,'sha256':'d05541613248279a5620349ade72bcaf80b12f3be042b470694f45b6efa690f3'}
+manifest=load(mf);assert manifest['source_count']==len(manifest['source_files'])==456
+per_path={}
+for row in manifest['source_files']:
+ path=Path(row['path']);identity={k:row[k] for k in ('bytes','sha256')};key=normalize(path)
+ if key in per_path:assert per_path[key]==identity
+ per_path[key]=identity;check(path,row)
+historic=(P/'preserved-context/publication-index-local-496.json.bytes').read_bytes()
+assert pin(historic)=={'bytes':532423,'sha256':'a247e221e524b319f45f62b32a1668366e3e2caf5f066ca79b58ca0838fe59d6'}
+assert manifest['live_catalog_prelaunch_pin']['sha256']==pin(historic)['sha256']
+prior_go=P/'review/independent-postrun-go-2026-10-08.md';assert pin(prior_go.read_bytes())=={'bytes':4369,'sha256':'d5b7ea964e65ddb57d248562dab82f53bce565f6d0ac7a161c4eccc5b8ebf7c7'}
+assert '4,044' in prior_go.read_text(encoding='utf-8-sig')
+entry=load(C/'publication-entry.json')
+assert entry['publication_id']=='I04.var09.arrived_system_next_mission.1.0.0'
+assert type(entry['new_native_runs']) is int and entry['new_native_runs']==0
+assert type(entry['accepted_parent_runs_repeated']) is int and entry['accepted_parent_runs_repeated']==0
+archive=(C/'preserved-context/owned-catalog-local-498.json.bytes').read_bytes();archive_git=(C/'preserved-context/owned-catalog-git-498.json.bytes').read_bytes()
+assert pin(archive)=={'bytes':536982,'sha256':'0674cef00db66d7d907fa4c55cc1249e237c4c60b340740ab81f832405d2de5c'}
+assert pin(archive_git)=={'bytes':532311,'sha256':'47a2615c633895de560db739e15e6fecc665786180cf8ef29f30443a2e666204'}
+assert archive!=archive_git and archive.replace(b'\r\n',b'\n')==archive_git==base[CAT]
+old=json.loads(archive_git);new=load(R/CAT)
+assert len(old['entries'])==498 and len(new['entries'])==499
+assert typed(old['entries'],new['entries'][:498]) and typed({k:v for k,v in old.items() if k!='entries'},{k:v for k,v in new.items() if k!='entries'})
+assert len({e['publication_id'] for e in new['entries']})==499 and typed(new['entries'][-1],entry)
+required={PREFIX+name for name in case_names}|{CAT};records=[]
+if REF!='DISK':
+ names=(git('diff','--cached','--name-only','-z') if REF=='INDEX' else git('diff','--name-only','-z',BASE,REF)).decode().split('\0')[:-1]
+ assert len(names)==len(set(names))==COUNT+2 and set(names)==required
+ published=blobs(REF,set(names)|{row['path'] for row in parent_refs})
+ for row in parent_refs:assert published[row['path']]==base[row['path']]
+ for name in names:
+  disk=(R/name).read_bytes();blob=published[name]
+  if name==CAT:assert disk.replace(b'\r\n',b'\n')==blob and typed(json.loads(disk),json.loads(blob))
+  else:assert disk==blob,name
+  records.append({'path':name,'disk':pin(disk),'git':pin(blob),'byte_equal':disk==blob})
+else:
+ names=sorted(required);records=[{'path':name,'disk':pin((R/name).read_bytes())} for name in names]
+out={'schema':'issue18-i04-var09-root-publication-byte-audit/v101','decision':'EXACT_ZERO_NATIVE_CLASSIFICATION_PUBLICATION_PASS','phase':PHASE,'ref':REF,'base':BASE,'index':pin(ib),'source_files':COUNT,'paths':len(names),'accepted_disk_git_pairs':403,'accepted_parent_indexed_sources':401,'mandatory_raw':153,'separate_preflight_originals':15,'total_mandatory_originals':168,'accepted_parent_manifest_roles':456,'prior_full_report_accepted_cells':4044,'fresh_full_report_replay':False,'catalog_entries':499,'prior498_and_metadata_type_exact':True,'case_ids':len({e['case_id'] for e in new['entries']}),'new_native_calls':0,'accepted_checker_reruns':0,'overall_goal':'unfinished','records':records}
+with O.open('xb') as f:f.write((json.dumps(out,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'decision':out['decision'],'paths':len(names),'receipt_path':str(O),'receipt':pin(O.read_bytes())}))

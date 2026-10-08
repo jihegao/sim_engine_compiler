@@ -1,0 +1,100 @@
+"""Capture original author classification streams once after method review."""
+from __future__ import annotations
+import argparse
+import hashlib
+import json
+import os
+import stat
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+REPO=Path(__file__).resolve().parent.parent
+CASE=REPO/'cases/simlox-air-support/I04-var09-arrived-system-next-mission-v1.0.0'
+SOURCES={
+    'make_custody.py':(9249,'ac068ebb1cdb64c22aa6a0957883c28da4da1fc8dfbb797ffa0d51051db6e249'),
+    'source_gate.py':(12999,'c770e7297d1a470adcf0671bd9842d9cd025ca5f767c042e251a433c644ed888'),
+    'classify.py':(22236,'9ca3ac1944600a5d17fe3a01b567d7b3943c8a82b3a5e53bd665b7bfdbba689e'),
+    'self_check.py':(5924,'53b11ded81fa33a63888240909eddffce3673582f76f9c18b8e6e91c91726097'),
+}
+
+
+def pin(data: bytes) -> dict:
+    return {'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+
+
+def observed_methods() -> tuple[dict, dict]:
+    observed={name:pin((CASE/name).read_bytes()) for name in SOURCES}
+    readonly={name:bool((CASE/name).stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY)
+              for name in SOURCES}
+    return observed, readonly
+
+
+def methods() -> dict:
+    observed, readonly=observed_methods()
+    assert observed=={name:{'bytes':size,'sha256':sha} for name,(size,sha) in SOURCES.items()}
+    assert all(readonly.values()), readonly
+    return observed
+
+
+def write_json(path: Path, value: dict) -> None:
+    path.write_bytes((json.dumps(value,sort_keys=True,indent=2)+'\n').encode())
+
+
+def capture(label: str, argv: list[str], out: Path) -> dict:
+    before=methods()
+    directory=out/label
+    directory.mkdir()
+    started=datetime.now(timezone.utc).isoformat()
+    process=subprocess.run(argv,cwd=REPO,stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=False)
+    (directory/'stdout.bin').write_bytes(process.stdout)
+    (directory/'stderr.bin').write_bytes(process.stderr)
+    after, after_readonly=observed_methods()
+    receipt={'schema':'i04-var09-author-process-proof/v1','label':label,'argv':argv,
+             'started_utc':started,'completed_utc':datetime.now(timezone.utc).isoformat(),
+             'actual_exit':process.returncode,'method_before':before,'method_after':after,
+             'method_readonly_after':after_readonly,
+             'streams':{'stdout.bin':pin(process.stdout),'stderr.bin':pin(process.stderr)},
+             'native_dispatch':False,'accepted_checker_reruns':0}
+    try:
+        write_json(directory/'receipt.json',receipt)
+    finally:
+        for name in ('stdout.bin','stderr.bin','receipt.json'):
+            path=directory/name
+            if path.exists(): os.chmod(path,stat.S_IREAD)
+    assert before==after and all(after_readonly.values()) and type(process.returncode) is int
+    if process.returncode or process.stderr:
+        raise RuntimeError(f'{label} failed; original streams retained at {directory}')
+    result=json.loads(process.stdout)
+    if label=='self-check':
+        assert result['decision']=='PASS' and result['semantic_rejections']==30
+    else:
+        assert result['decision']=='PROSPECTIVE_CLASSIFIER_PASS'
+        assert result['ledger']['lines']==118 and result['ledger']['timed_records']==104
+        assert result['report']['new_selected_behavior_cells']==10
+    return {'label':label,'receipt_path':str(directory/'receipt.json'),
+            'receipt_pin':pin((directory/'receipt.json').read_bytes()),
+            'stdout_pin':pin(process.stdout),'stderr_pin':pin(process.stderr)}
+
+
+def main() -> None:
+    ap=argparse.ArgumentParser()
+    ap.add_argument('--output-dir',required=True)
+    args=ap.parse_args()
+    out=Path(args.output_dir)
+    assert out.is_absolute() and not out.exists()
+    assert out.parent.resolve(strict=True).is_relative_to((REPO/'tmp').resolve(strict=True))
+    methods()
+    out.mkdir()
+    commands=[('self-check',[sys.executable,'-X','utf8','-B',str(CASE/'self_check.py')]),
+              ('classification',[sys.executable,'-X','utf8','-B',str(CASE/'classify.py'),'--mode','sealed'])]
+    results=[]
+    for label,argv in commands:
+        results.append(capture(label,argv,out))
+    print(json.dumps({'schema':'i04-var09-author-proof-summary/v1','results':results,
+                      'native_dispatch':False,'accepted_checker_reruns':0},sort_keys=True))
+
+
+if __name__=='__main__':
+    main()

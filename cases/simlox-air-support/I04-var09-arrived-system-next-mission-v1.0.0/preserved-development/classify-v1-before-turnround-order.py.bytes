@@ -1,0 +1,418 @@
+"""Read-only classification of one previously accepted aircraft's later mission."""
+from __future__ import annotations
+import argparse
+from collections import Counter
+import hashlib
+import json
+import re
+from pathlib import Path
+
+import source_gate
+
+HERE = Path(__file__).resolve().parent
+PARENT = source_gate.PARENT
+RUN = PARENT / 'runs/i04-var03-idle-system-between-v101-ssh-20261008-01'
+LOG_PIN = (8223, 'ab19c3cbc0214b8e72b57d6139d94166beb99f1afa034e07de393693d1079901')
+REPORT_PIN = (103970, '72a5bd7270f5b3b27736df43c146a56f850990abf6a8e964aa7bae430ffc93b5')
+INPUT_PIN = (44611, '48c346d27d9cd08be09a771292d198e00db72a19d488da5b184689504ace177b')
+CLOSURE_PIN = (130377, 'ac5af12fb9e72ea91c342a39f7cbe4ec46689229cc996ef090090d0fbf92b616')
+GO_PIN = (4369, 'd5b7ea964e65ddb57d248562dab82f53bce565f6d0ac7a161c4eccc5b8ebf7c7')
+CONTRACT_PIN = (13997, 'ec2dbe37601d0045185109fe7856ea4656a0b2e01dfe35ac25809de17aa60307')
+AIR = r'<TEACH-AIR-01,([01])>'
+BASE_AIR = r'<TEACH-AIR-01,(BASE-0[12]),0>'
+UNIT = r'<(TEACH-UNIT(?:-2)?) at <(BASE-0[12]),0>>'
+MISSION = r'<BASIC-MISSION,TEACH-GROUP,0,0,([01])>'
+TIME = re.compile(r'^Time: ([0-9]+(?:\.[0-9]+)?) (.*)$')
+TIMED_COUNTS = {0.0:7, 7.0:15, 8.0:5, 8.5:1, 9.5:1, 10.0:22,
+                10.5:2, 11.0:6, 19.0:15, 20.0:5, 20.5:1,
+                21.5:1, 22.0:22, 24.0:1}
+EVENT_COUNTS = {'day':2,'mission_activate':2,'mission_allocate':4,'mission_create':2,
+                'mission_end':2,'mission_order':2,'mission_start':2,'mission_success':2,
+                'prep_end':4,'prep_start':4,'priority':4,'random_failure':19,
+                'ready_down':5,'ready_up':7,'release_resources':4,'soon_ready':4,
+                'system_arrives':4,'system_ready':10,'task_end':2,'task_start':2,
+                'transfer_in':1,'transfer_out':1,'turnround_end':4,
+                'turnround_start':4,'unit_ready':7}
+NON_TIME = {0:'SIMLOX LOG FILE', 1:'36', 41:' no failures ', 42:' no PMTasks', 48:'   ',
+            51:' no failures ', 52:' no PMTasks', 58:'   ', 99:' no failures ',
+            100:' no PMTasks', 106:'   ', 109:' no failures ', 110:' no PMTasks', 116:'   '}
+UNIT_BASE = {'TEACH-UNIT':'BASE-01', 'TEACH-UNIT-2':'BASE-02'}
+SELECTED = {
+    21: {'STINT':10.5,'ETINT':11.0,'NSYA':1,'NSYRY':1},
+    22: {'STINT':11.0,'ETINT':11.5,'NSYA':2,'NSYRY':2},
+    38: {'STINT':19.0,'ETINT':19.5,'NSYA':2,'NSYMA':2,'NSYMR':2,'NSYRY':0},
+    40: {'STINT':20.0,'ETINT':20.5,'NSYMO':2},
+    44: {'STINT':22.0,'ETINT':22.5,'NSYRY':2},
+}
+
+
+def full(pattern: str, payload: str):
+    return re.fullmatch(pattern, payload)
+
+
+def airline_id(value: str) -> int:
+    match = full(AIR, value)
+    assert match, value
+    return int(match[1])
+
+
+def mission_id(value: str) -> int:
+    match = full(MISSION, value)
+    assert match, value
+    return int(match[1])
+
+
+def aircraft_list(value: str) -> tuple[int, int]:
+    match = full(AIR + ',' + AIR, value)
+    assert match, value
+    ids = (int(match[1]), int(match[2]))
+    assert set(ids) == {0, 1}
+    return ids
+
+
+def parse_line(payload: str) -> tuple[str, dict]:
+    patterns = [
+        ('random_failure', AIR + r' Next random failure will occur 1e\+010'),
+        ('ready_up', AIR + r' nbr ready increased at unit: ' + UNIT),
+        ('ready_down', AIR + r' nbr ready decreased at unit: ' + UNIT),
+        ('unit_ready', UNIT + r' systems ready: ([12]) :(.*)'),
+        ('day', r' Start of day no ([01])'),
+        ('mission_order', r'<TEACH-GROUP> mission ordered: BASIC-MISSION'),
+        ('mission_create', MISSION + r' mission created: '),
+        ('mission_activate', MISSION + r' mission activated, systems requested: 2'),
+        ('mission_allocate', MISSION + r' mission allocates system: ' + AIR),
+        ('release_resources', AIR + r' releases excess resources \(if any\)'),
+        ('prep_start', AIR + r' preparation started, mission: ' + MISSION),
+        ('prep_end', AIR + r' preparation ended, mission: ' + MISSION),
+        ('mission_start', MISSION + r' mission starting, duration: 2 : (.*)'),
+        ('task_start', MISSION + r' task starting: (.*)'),
+        ('task_end', MISSION + r' task completed: (.*)'),
+        ('mission_success', MISSION + r' mission success: '),
+        ('mission_end', MISSION + r' mission completed: (.*)'),
+        ('soon_ready', BASE_AIR + r' System soon ready ' + AIR + r', estimated remaining time: 0'),
+        ('turnround_start', AIR + r' turnround started, mission: ' + MISSION + r' reduction factor: 1'),
+        ('turnround_end', AIR + r' turnround ended, mission: ' + MISSION),
+        ('system_arrives', BASE_AIR + r' System arrives ' + AIR + r', mission success, '),
+        ('system_ready', BASE_AIR + r' System ready ' + AIR),
+        ('priority', BASE_AIR + r' Repair task priority list: '),
+        ('transfer_out', UNIT + r' system transfered out: ' + AIR + r'\.'),
+        ('transfer_in', UNIT + r' system transfered in: ' + AIR + r'\.'),
+    ]
+    found = [(name, full(pattern, payload)) for name, pattern in patterns]
+    matched = [(name, m) for name, m in found if m]
+    assert len(matched) == 1, payload
+    name, m = matched[0]
+    groups = m.groups()
+    result = {}
+    if name in ('random_failure', 'release_resources', 'ready_up', 'ready_down', 'prep_start',
+                'prep_end', 'soon_ready', 'turnround_start', 'turnround_end',
+                'system_arrives', 'system_ready', 'priority'):
+        result['id'] = int(groups[0]) if name not in ('soon_ready','system_arrives','system_ready','priority') else int(groups[-1]) if name != 'priority' else None
+    if name in ('ready_up', 'ready_down'):
+        result.update(unit=groups[1], base=groups[2])
+    elif name in ('unit_ready', 'transfer_out', 'transfer_in'):
+        result.update(unit=groups[0], base=groups[1])
+        if name == 'unit_ready':
+            result.update(quantity=int(groups[2]), ids=tuple(int(x) for x in re.findall(AIR, groups[3])))
+            assert groups[3] == ','.join(f'<TEACH-AIR-01,{x}>' for x in result['ids'])
+        else:
+            result['id'] = int(groups[2])
+    elif name in ('soon_ready', 'system_arrives', 'system_ready'):
+        result['base'] = groups[0]
+        result['id'] = int(groups[1])
+    elif name == 'priority':
+        result['base'] = groups[0]
+    elif name == 'day':
+        result['day'] = int(groups[0])
+    elif name in ('mission_create','mission_activate','mission_success'):
+        result['mission'] = int(groups[0])
+    elif name == 'mission_allocate':
+        result.update(mission=int(groups[0]), id=int(groups[1]))
+    elif name in ('prep_start','prep_end','turnround_start','turnround_end'):
+        result['mission'] = int(groups[1])
+    elif name in ('mission_start','task_start','task_end','mission_end'):
+        result.update(mission=int(groups[0]), ids=aircraft_list(groups[1]))
+    return name, result
+
+
+def parse_log(data: bytes) -> dict:
+    text = data.decode('utf-8-sig')
+    assert '\r\n' in text and text.endswith('\r\n')
+    lines = text.splitlines()
+    assert len(lines) == 118
+    for position, expected in NON_TIME.items():
+        assert lines[position] == expected, (position, lines[position])
+    time_counts = Counter()
+    event_counts = Counter()
+    priority_stations = Counter()
+    mission = {0:{'ordered':False,'created':False,'activated':False,'success':False,'completed':False,'allocations':set()},
+               1:{'ordered':False,'created':False,'activated':False,'success':False,'completed':False,'allocations':set()}}
+    state = {0:dict(owner='TEACH-UNIT',ready=False,assigned=None,flight=False,task=False,
+                    turnround=False,pending_decrease=False,pending_departure=False,pending_arrival=False),
+             1:dict(owner='TEACH-UNIT-2',ready=False,assigned=None,flight=False,task=False,
+                    turnround=False,pending_decrease=False,pending_departure=False,pending_arrival=False)}
+    transfer_out_hour = None
+    transfer_in_hour = None
+    prior_hour = -1.0
+    signatures = []
+    for line_index, line in enumerate(lines):
+        if line_index in NON_TIME:
+            continue
+        match = TIME.fullmatch(line)
+        assert match, (line_index, line)
+        hour, payload = float(match[1]), match[2]
+        assert hour >= prior_hour
+        prior_hour = hour
+        time_counts[hour] += 1
+        kind, details = parse_line(payload)
+        event_counts[kind] += 1
+        signatures.append([hour, kind, details])
+        assert kind in ('random_failure','ready_up','ready_down','unit_ready','day','mission_order',
+                        'mission_create','mission_activate','mission_allocate','release_resources',
+                        'prep_start','prep_end','mission_start','task_start','task_end','mission_success',
+                        'mission_end','soon_ready','turnround_start','turnround_end','system_arrives',
+                        'system_ready','priority','transfer_out','transfer_in')
+        if 'unit' in details: assert UNIT_BASE[details['unit']] == details['base']
+        if kind == 'day':
+            assert (hour, details['day']) in ((0.0,0),(24.0,1))
+        elif kind == 'mission_order':
+            target = 0 if hour == 7.0 else 1 if hour == 19.0 else None
+            assert target is not None and not mission[target]['ordered']
+            mission[target]['ordered'] = True
+        elif kind in ('mission_create','mission_activate'):
+            m = details['mission']
+            assert hour == (7.0 if m == 0 else 19.0)
+            if kind == 'mission_create':
+                assert mission[m]['ordered'] and not mission[m]['created']
+                mission[m]['created'] = True
+            else:
+                assert mission[m]['created'] and not mission[m]['activated']
+                mission[m]['activated'] = True
+        elif kind == 'mission_allocate':
+            m, ident = details['mission'], details['id']
+            assert hour == (7.0 if m == 0 else 19.0)
+            s = state[ident]
+            assert mission[m]['activated'] and ident not in mission[m]['allocations']
+            assert s['ready'] and s['assigned'] is None and s['owner'] in UNIT_BASE
+            assert not s['flight'] and not s['turnround'] and not s['pending_departure']
+            assert m == 0 or (ident != 0 or (transfer_in_hour == 11.0 and s['owner'] == 'TEACH-UNIT-2'))
+            mission[m]['allocations'].add(ident)
+            s['ready'] = False
+            s['assigned'] = m
+            s['pending_decrease'] = True
+        elif kind == 'ready_down':
+            ident, unit = details['id'], details['unit']
+            s = state[ident]
+            assert s['owner'] == unit
+            if s['pending_decrease']:
+                assert s['assigned'] is not None and not s['ready']
+                s['pending_decrease'] = False
+            else:
+                assert hour == 10.5 and ident == 0 and s['ready'] and s['assigned'] is None
+                s['ready'] = False
+                s['pending_departure'] = True
+        elif kind == 'transfer_out':
+            ident, unit = details['id'], details['unit']
+            s = state[ident]
+            assert (hour, ident, unit) == (10.5, 0, 'TEACH-UNIT')
+            assert s['pending_departure'] and not s['ready'] and s['owner'] == unit
+            assert not s['flight'] and s['assigned'] is None
+            s['owner'] = None
+            s['pending_departure'] = False
+            transfer_out_hour = hour
+        elif kind == 'transfer_in':
+            ident, unit = details['id'], details['unit']
+            s = state[ident]
+            assert (hour, ident, unit) == (11.0, 0, 'TEACH-UNIT-2')
+            assert s['owner'] is None and transfer_out_hour == 10.5
+            s['owner'] = unit
+            s['pending_arrival'] = True
+            transfer_in_hour = hour
+        elif kind == 'ready_up':
+            ident, unit = details['id'], details['unit']
+            s = state[ident]
+            assert s['owner'] == unit and not s['ready'] and s['assigned'] is None
+            assert not s['pending_decrease'] and not s['pending_departure']
+            assert (hour,ident,unit) in ((0.0,0,'TEACH-UNIT'),(0.0,1,'TEACH-UNIT-2'),
+                                         (10.0,0,'TEACH-UNIT'),(10.0,1,'TEACH-UNIT-2'),
+                                         (11.0,0,'TEACH-UNIT-2'),(22.0,0,'TEACH-UNIT-2'),
+                                         (22.0,1,'TEACH-UNIT-2'))
+            if hour == 11.0:
+                assert s['pending_arrival']
+                s['pending_arrival'] = False
+            if hour in (10.0,22.0):
+                assert not s['turnround']
+            s['ready'] = True
+        elif kind == 'unit_ready':
+            unit, quantity, ids = details['unit'], details['quantity'], details['ids']
+            ready = tuple(i for i in (0,1) if state[i]['owner'] == unit and state[i]['ready'])
+            assert quantity == len(ids) == len(ready) and set(ids) == set(ready)
+        elif kind == 'mission_start':
+            m = details['mission']
+            assert hour == (8.0 if m == 0 else 20.0)
+            assert details['ids'] == ((0,1) if m == 0 else (1,0))
+            assert mission[m]['allocations'] == {0,1}
+            for ident in details['ids']:
+                s = state[ident]
+                assert s['assigned'] == m and not s['ready'] and not s['flight']
+                s['flight'] = True
+        elif kind == 'task_start':
+            m = details['mission']
+            assert hour == (8.5 if m == 0 else 20.5)
+            assert details['ids'] == ((0,1) if m == 0 else (1,0))
+            for ident in details['ids']:
+                s = state[ident]
+                assert s['assigned'] == m and s['flight'] and not s['task']
+                s['task'] = True
+        elif kind == 'task_end':
+            m = details['mission']
+            assert hour == (9.5 if m == 0 else 21.5)
+            assert details['ids'] == ((0,1) if m == 0 else (1,0))
+            for ident in details['ids']:
+                s = state[ident]
+                assert s['assigned'] == m and s['flight'] and s['task']
+                s['task'] = False
+        elif kind == 'mission_success':
+            m = details['mission']
+            assert hour == (10.0 if m == 0 else 22.0)
+            assert not mission[m]['success'] and mission[m]['allocations'] == {0,1}
+            mission[m]['success'] = True
+        elif kind == 'mission_end':
+            m = details['mission']
+            assert hour == (10.0 if m == 0 else 22.0)
+            assert details['ids'] == ((0,1) if m == 0 else (1,0))
+            assert mission[m]['success'] and not mission[m]['completed']
+            for ident in details['ids']:
+                s = state[ident]
+                assert s['assigned'] == m and s['flight'] and not s['task']
+                s['flight'] = False
+                s['assigned'] = None
+            mission[m]['completed'] = True
+        elif kind == 'turnround_start':
+            ident, m = details['id'], details['mission']
+            s = state[ident]
+            assert hour == (10.0 if m == 0 else 22.0)
+            assert mission[m]['completed'] and not s['ready'] and not s['turnround']
+            s['turnround'] = True
+        elif kind == 'turnround_end':
+            ident, m = details['id'], details['mission']
+            s = state[ident]
+            assert hour == (10.0 if m == 0 else 22.0)
+            assert s['turnround'] and mission[m]['completed']
+            s['turnround'] = False
+        elif kind == 'system_arrives':
+            ident = details['id']
+            s = state[ident]
+            assert hour in (10.0,22.0) and not s['ready'] and s['assigned'] is None
+            assert details['base'] == UNIT_BASE[s['owner']]
+        elif kind in ('soon_ready','system_ready','priority'):
+            ident = details.get('id')
+            if ident is not None:
+                s = state[ident]
+                assert details['base'] == UNIT_BASE[s['owner']]
+                if kind == 'system_ready': assert s['ready']
+            else:
+                priority_stations[(hour, details['base'])] += 1
+        elif kind == 'prep_start':
+            ident, m = details['id'], details['mission']
+            assert state[ident]['assigned'] == m and hour == (7.0 if m == 0 else 19.0)
+        elif kind == 'prep_end':
+            ident, m = details['id'], details['mission']
+            assert state[ident]['assigned'] == m and hour == (7.0 if m == 0 else 19.0)
+        elif kind == 'release_resources':
+            assert state[details['id']]['assigned'] is not None
+        # Random-failure marker and priority-list text are presentation-only events.
+        assert sum(s['owner'] == 'TEACH-UNIT' for s in state.values()) + sum(s['owner'] == 'TEACH-UNIT-2' for s in state.values()) + sum(s['owner'] is None for s in state.values()) == 2
+        assert all(not(s['owner'] is None and (s['ready'] or s['assigned'] is not None)) for s in state.values())
+        assert all(not(s['ready'] and s['assigned'] is not None) for s in state.values())
+    assert dict(time_counts) == TIMED_COUNTS
+    assert dict(event_counts) == EVENT_COUNTS
+    assert dict(priority_stations) == {(10.0,'BASE-01'):1,(10.0,'BASE-02'):1,
+                                       (22.0,'BASE-02'):2}
+    assert len(signatures) == 104
+    assert transfer_out_hour == 10.5 and transfer_in_hour == 11.0
+    assert all(m['success'] and m['completed'] and m['allocations'] == {0,1} for m in mission.values())
+    assert state[0]['owner'] == state[1]['owner'] == 'TEACH-UNIT-2'
+    assert all(s['ready'] and s['assigned'] is None and not s['flight'] and not s['task'] and not s['turnround'] for s in state.values())
+    return {'schema':'i04-var09-log-ledger/v1', 'lines':118, 'timed_records':104,
+            'transfer_out_hour':10.5, 'transfer_in_hour':11.0,
+            'later_mission_id':'<BASIC-MISSION,TEACH-GROUP,0,0,1>',
+            'arrived_subject_id':0, 'later_mission_start_hour':20.0,
+            'later_task_start_hour':20.5, 'later_task_end_hour':21.5,
+            'later_mission_completed_hour':22.0, 'terminal_ready_target_ids':[0,1],
+            'event_categories':dict(sorted(event_counts.items()))}
+
+
+def parse_native_report(data: bytes):
+    marker = b',\r\n      ]'
+    assert data.count(marker) == 1
+    assert data.endswith(b'         },\r\n      ]\r\n   }\r\n}\r\n')
+    fixed = data.replace(marker, b'\r\n      ]', 1)
+    return source_gate.decode(fixed)
+
+
+def validate_selected_report(report: dict) -> dict:
+    assert list(report) == ['report'] and list(report['report']) == ['tables']
+    tables = report['report']['tables']
+    assert [t['name'] for t in tables] == ['ProblemDescription','ResultSummary','SystemResults','StockTotalResults']
+    assert all(set(t) == {'name','columns','instances'} for t in tables)
+    assert all(len(t['instances']) == 1 and set(t['instances'][0]) == {'instance_name','rows'}
+               and type(t['instances'][0]['instance_name']) is str for t in tables)
+    assert all(set(c) in ({'datatype','name'}, {'datatype','key','name'})
+               and type(c['name']) is str and type(c['datatype']) is str
+               for t in tables for c in t['columns'])
+    assert all(len({c['name'] for c in t['columns']}) == len(t['columns']) for t in tables)
+    assert [len(t['columns']) for t in tables] == [1,11,40,16]
+    assert [len(t['instances'][0]['rows']) for t in tables] == [1,1,72,72]
+    assert sum(len(t['columns']) * len(t['instances'][0]['rows']) for t in tables) == 4044
+    system = tables[2]
+    names = [c['name'] for c in system['columns']]
+    for index, expected in SELECTED.items():
+        row = system['instances'][0]['rows'][index]
+        assert len(row) == 40
+        for field, value in expected.items():
+            column = system['columns'][names.index(field)]
+            actual = row[names.index(field)]
+            assert column['datatype'] == 'double'
+            assert type(actual) in (int,float) and actual == value
+        assert type(row[names.index('UNID')]) is str and row[names.index('UNID')] == 'Total over all Units'
+        assert type(row[names.index('SID')]) is str and row[names.index('SID')] == 'Total over all Systems'
+    assert sum(len(x) for x in SELECTED.values()) == 20
+    return {'schema':'i04-var09-selected-report/v1', 'prior_accepted_cells':4044,
+            'new_selected_behavior_cells':10, 'bin_time_cells':10,
+            'unit_system_identity_cells':10, 'total_selected_cells_checked':30,
+            'selected_bins':len(SELECTED), 'native_calls':0}
+
+
+def selected_report(data: bytes) -> dict:
+    return validate_selected_report(parse_native_report(data))
+
+
+def classify_original(mode: str = 'sealed') -> dict:
+    source_result = source_gate.verify(mode)
+    contract = source_gate.read(HERE / 'prospective-contract.json', CONTRACT_PIN)
+    assert contract['classification_id'] == 'i04-var09-arrived-system-next-mission-v100-20261008-01'
+    go_bytes = (PARENT / 'review/independent-postrun-go-2026-10-08.md').read_bytes()
+    source_gate.exact(go_bytes, GO_PIN)
+    log_bytes = (RUN / 'model.log').read_bytes()
+    source_gate.exact(log_bytes, LOG_PIN)
+    report_bytes = (RUN / 'report-raw.json').read_bytes()
+    source_gate.exact(report_bytes, REPORT_PIN)
+    source_gate.exact((RUN / 'input.json').read_bytes(), INPUT_PIN)
+    closure = source_gate.read(RUN / 'closure.json', CLOSURE_PIN)
+    assert closure['run_id'] == contract['native_execution']['accepted_original_run_id']
+    assert closure['error'] == '' and closure['publication_state'] == 'not_published'
+    log = parse_log(log_bytes)
+    report = selected_report(report_bytes)
+    return {'schema':'i04-var09-readonly-classification/v1', 'decision':'PROSPECTIVE_CLASSIFIER_PASS',
+            'classification_id':contract['classification_id'],
+            'accepted_native_run_id':contract['native_execution']['accepted_original_run_id'],
+            'source':source_result, 'ledger':log, 'report':report,
+            'new_native_runs':0, 'accepted_checker_reruns':0}
+
+
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--mode', choices=('live','sealed'), default='sealed')
+    args = ap.parse_args()
+    print(json.dumps(classify_original(args.mode), sort_keys=True, separators=(',', ':')))
