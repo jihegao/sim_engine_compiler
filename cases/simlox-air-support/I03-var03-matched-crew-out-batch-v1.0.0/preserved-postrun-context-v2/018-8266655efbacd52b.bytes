@@ -1,0 +1,62 @@
+"""Append one reviewed publication entry, preserving old catalog byte material."""
+import hashlib
+import json
+from pathlib import Path
+import stat
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / 'cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0'
+CAT = REPO / 'cases/simlox-air-support/publication-index-v1.json'
+OUT = REPO / 'tmp/i03-var03-root-catalog-append-20261008.json'
+assert len(sys.argv) == 2 and not OUT.exists()
+
+def pin(raw):
+    return {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+
+def typed(a, b):
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(typed(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed(x, y) for x, y in zip(a, b))
+    return a == b
+
+old_raw = CAT.read_bytes()
+assert pin(old_raw) == {'bytes': 525721, 'sha256': '958999368138f53bbf9fc3653de808422135d24c56acdc877c41b5af8decd32a'}
+archive = CASE / 'preserved-catalog/publication-index-at-design.json.bytes'
+assert archive.read_bytes() == old_raw
+old = json.loads(old_raw)
+assert len(old['entries']) == 493
+entry_path = CASE / 'publication-entry.json'
+entry_raw = entry_path.read_bytes()
+assert pin(entry_raw)['sha256'] == sys.argv[1]
+assert not entry_path.stat().st_mode & stat.S_IWRITE
+entry = json.loads(entry_raw)
+assert entry['case_id'] == 'I03' and entry['variant_id'] == 'I03.var03'
+assert entry['publication_state'] == 'reusable_published' and entry['new_native_runs'] == 2
+assert entry['accepted_parent_runs_repeated'] == 0
+go = json.loads((CASE / 'review/independent-postrun-paired-go.json').read_bytes())
+assert go['decision'] == 'GO_BOUNDED' and go['original_arm_report_cells'] == 10420
+assert entry['publication_id'] not in {r['publication_id'] for r in old['entries']}
+boundary = old_raw.rindex(b'\r\n  ]\r\n}')
+assert old_raw[:boundary].endswith(b'    }')
+block = '\r\n'.join('    ' + line for line in json.dumps(entry, indent=2, ensure_ascii=False).splitlines()).encode('utf-8')
+new_raw = old_raw[:boundary] + b',\r\n' + block + old_raw[boundary:]
+new = json.loads(new_raw)
+assert len(new['entries']) == len({r['publication_id'] for r in new['entries']}) == 494
+assert typed(new['entries'][:493], old['entries']) and typed(new['entries'][-1], entry)
+assert typed({k: v for k, v in old.items() if k != 'entries'}, {k: v for k, v in new.items() if k != 'entries'})
+assert len({r['case_id'] for r in new['entries']}) == 107
+CAT.write_bytes(new_raw)
+assert CAT.read_bytes() == new_raw
+result = {'schema': 'i03-var03-root-catalog-append/v1', 'decision': 'ONE_BOUNDED_APPEND',
+          'before': pin(old_raw), 'after': pin(new_raw), 'reviewed_entry': pin(entry_raw),
+          'entries': 494, 'prior493_and_metadata_type_exact': True, 'case_ids': 107,
+          'paired_go_sha256': pin((CASE / 'review/independent-postrun-paired-go.json').read_bytes())['sha256'],
+          'native_calls': 0, 'overall_goal': 'unfinished'}
+OUT.write_bytes((json.dumps(result, indent=2) + '\n').encode())
+OUT.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps(result))

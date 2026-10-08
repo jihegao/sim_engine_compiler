@@ -1,0 +1,91 @@
+"""Read-only independent gate for I03.var03's frozen control source bundle."""
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+HANDOFF = REPO / "tmp/i03-var03-author-freeze-ready-20261008.json"
+ROOT_PROOF = REPO / "tmp/i03-var03-root-freeze-20261008-01/receipt.json"
+READER = CASE / "review/independent_replay.py"
+INVENTORY = CASE / "source-inventory.json"
+MANIFEST = CASE / "prelaunch-manifest-control_out1.json"
+RUN_ID = "i03-var03-control-out1-v100-ssh-20261008-01"
+
+
+def pin(path):
+    raw = path.read_bytes()
+    return {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def parse(path):
+    return json.loads(path.read_bytes().decode("utf-8-sig"),
+                      object_pairs_hook=lambda pairs: no_duplicates(pairs))
+
+
+def no_duplicates(pairs):
+    out = {}
+    for key, value in pairs:
+        assert key not in out, ("duplicate JSON key", key)
+        out[key] = value
+    return out
+
+
+def audit():
+    handoff = parse(HANDOFF)
+    freeze = parse(ROOT_PROOF)
+    inventory = parse(INVENTORY)
+    manifest = parse(MANIFEST)
+    assert pin(HANDOFF) == {"bytes": 27355, "sha256": "797dd4ba25608553b837f55f129cb3cffd08d086e44d0ba80a476b3aae41fb31"}
+    assert pin(ROOT_PROOF) == {"bytes": 2897, "sha256": "9909f51ba6a0eb9fe9361d9f09cbe79036461c2fd2d15a508ea678c6a699cb45"}
+    assert pin(INVENTORY) == handoff["source_inventory_expected"] == freeze["inventory"]
+    assert pin(MANIFEST) == {"bytes": 144254, "sha256": "d5dad85a3f2b9f3aeba1c2f6e463a1fd7d504a7481d8c0ecfc8c0ac9a4e8fb06"}
+    assert pin(MANIFEST) == freeze["control_manifest"]
+    assert manifest["arm"] == "control_out1" and manifest["run_id"] == RUN_ID
+    assert handoff["source_count"] == freeze["source_count"] == len(inventory["source_files"]) == 135
+    assert manifest["source_count"] == freeze["manifest_source_records"] == len(manifest["source_files"]) == 349
+    assert freeze["new_native_runs"] == 0 and freeze["all_owned_sources_readonly"] is True
+    assert [x["exit_code"] for x in freeze["commands"]] == [0, 0]
+    for row in freeze["commands"]:
+        for stream in row["streams"].values():
+            assert pin(Path(stream["path"])) == {k: stream[k] for k in ("bytes", "sha256")}
+        assert row["streams"]["stderr"]["bytes"] == 0
+    for row in inventory["source_files"]:
+        assert pin(CASE / row["path"]) == {k: row[k] for k in ("bytes", "sha256")}, row["path"]
+    assert len({x["path"] for x in inventory["source_files"]}) == 135
+    assert len({x["key"] for x in manifest["source_files"]}) == 349
+    assert all(pin(Path(row["path"])) == {k: row[k] for k in ("bytes", "sha256")}
+               for row in manifest["source_files"])
+    assert manifest["prior_control"] is None and manifest["sealed_control_original_files"] == 0
+    assert not (CASE / "runs" / RUN_ID).exists()
+    assert not (CASE / "review/independent-prelaunch-go-control_out1.json").exists()
+    assert not list((CASE / "review").glob("preflight-ssh0-control_out1-*.json"))
+    spec = importlib.util.spec_from_file_location("independent_replay_frozen", READER)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    contract = reader.parse_json(reader.CONTRACT.read_bytes())
+    custody = reader.check_contract_source_custody(contract)
+    checked, source_map, source_map_sha = reader.check_manifest("control_out1", contract)
+    assert reader.same_type(checked, manifest)
+    assert len(source_map) == 349 and len(source_map_sha) == 64
+    assert manifest["live_catalog_prelaunch_pin"]["sha256"] == source_map["historical_catalog_archive"]
+    return {"decision": "GO_PURE_PREFLIGHT", "scope": "control_out1_zero_native_ssh5_file_preflight_only",
+            "case": str(CASE), "run_id": RUN_ID, "handoff": pin(HANDOFF), "root_freeze": pin(ROOT_PROOF),
+            "inventory": pin(INVENTORY), "manifest": pin(MANIFEST), "independent_replay": pin(READER),
+            "source_count": 349, "owned_source_count": 135, "source_map_sha256": source_map_sha,
+            "accepted_custody": custody, "new_native_calls": 0}
+
+
+if __name__ == "__main__":
+    args = argparse.ArgumentParser()
+    args.add_argument("--write-receipt", action="store_true")
+    option = args.parse_args()
+    result = audit()
+    raw = (json.dumps(result, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if option.write_receipt:
+        receipt = REPO / "tmp/i03-var03-independent-control-source-audit-20261008.json"
+        with receipt.open("xb") as f:
+            f.write(raw)
+    print(raw.decode("utf-8"), end="")

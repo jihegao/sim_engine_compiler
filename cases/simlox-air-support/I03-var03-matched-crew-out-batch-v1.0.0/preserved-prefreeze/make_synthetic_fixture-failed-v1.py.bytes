@@ -1,0 +1,73 @@
+"""Pure parser fixtures derived from sealed accepted traces; no native claim."""
+from __future__ import annotations
+
+import hashlib
+from pathlib import Path
+import sys
+
+HERE = Path(__file__).resolve().parent
+RUN = HERE.parent / "I03-var01-crew-out-in-v1.0.0/runs/i03-var01-crew-transfer-v100-ssh-20261005-01"
+SOURCES = {"out": ("out.log", "bc6f3b1fbda10fe0973282d206f505c4f0c6f146797e189d1ea8d7cf424062ee"),
+           "out_in": ("out_in.log", "673706cc043d4c5b1ce07c0692070b7931677257779fa3a67ebf190e2644f0c5")}
+
+
+def source(name: str) -> str:
+    filename, wanted = SOURCES[name]
+    raw = (RUN / filename).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == wanted
+    return raw.decode("utf-8-sig").replace("\r\n", "\n")
+
+
+def once(text: str, before: str, after: str) -> str:
+    assert text.count(before) == 1, (before, text.count(before))
+    return text.replace(before, after, 1)
+
+
+def construct(arm: str) -> str:
+    assert arm in ("control_out1", "child_out2")
+    text = source("out")
+    text = once(text, "Free resources at: <BASE-01,0> P-CREW 2", "Free resources at: <BASE-01,0> P-CREW 3")
+    text = once(text, "allocated to maintenance task: 1  available now: 1", "allocated to maintenance task: 1  available now: 2")
+    text = once(text, "allocated to maintenance task: 1  available now: 0", "allocated to maintenance task: 1  available now: 1")
+    # Second release at h8 is 2 rather than 1 after the newly available third crew departs.
+    old = "Time: 8  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 1"
+    assert text.count(old) == 2
+    head, sep, tail = text.rpartition(old)
+    assert sep
+    text = head + old.replace("available now: 1", "available now: 2") + tail
+    if arm == "control_out1":
+        original = ("Time: 7.75  resource transfer task 0 (OUT)  created: starting from  <P-CREW at <BASE-01,0>>\n"
+                    "Time: 7.75  <P-CREW at <BASE-01,0>> Resource transfer demand arrives from OUT-transfer \n"
+                    "Time: 7.75  <P-CREW at <BASE-01,0>> Resource transfer backorder added \n"
+                    "  Resource transfer backorders at:  <P-CREW at <BASE-01,0>> Nbr: 1 Backorders:<OUT,7.75>,\n"
+                    "Time: 7.75  resource transfer task 0 (OUT)  starts with 0 resources, transfer time: 0\n"
+                    "Time: 7.75  resource transfer task 0 (OUT)  arrives with 0 resources")
+        replacement = ("Time: 7.75  resource transfer task 0 (OUT)  created: starting from  <P-CREW at <BASE-01,0>>\n"
+                       "Time: 7.75  <P-CREW at <BASE-01,0>> Resource transfer demand arrives from OUT-transfer \n"
+                       "Time: 7.75  resource transfer task 0 (OUT)  starts with 1 resources, transfer time: 0\n"
+                       "Time: 7.75  resource transfer task 0 (OUT)  arrives with 1 resources")
+        text = once(text, original, replacement)
+        old_block = ("Time: 8  <P-CREW at <BASE-01,0>> Resource transfer backorder removed \n"
+                     "  Resource transfer backorders at:  <P-CREW at <BASE-01,0>> Nbr: 0\n"
+                     "Time: 8  resource transfer task 1 (OUT)  created: starting from  <P-CREW at <BASE-01,0>>\n")
+        text = once(text, old_block, "")
+        text = once(text, "Time: 8  resource transfer task 1 (OUT)  starts with 1 resources, transfer time: 0\nTime: 8  resource transfer task 1 (OUT)  arrives with 1 resources\n", "")
+        # The accepted out_in arm supplies the same two-crew parallel second wave; no IN event is copied.
+        tail_source = source("out_in")
+        marker = "Time: 19.5 <TEACH-UNIT> mission ordered: BASIC-MISSION"
+        assert text.count(marker) == tail_source.count(marker) == 1
+        text = text.split(marker)[0] + marker + tail_source.split(marker)[1]
+    else:
+        text = once(text, "resource transfer task 0 (OUT)  starts with 0 resources", "resource transfer task 0 (OUT)  starts with 1 resources")
+        text = once(text, "resource transfer task 0 (OUT)  arrives with 0 resources", "resource transfer task 0 (OUT)  arrives with 1 resources")
+    return text
+
+
+if __name__ == "__main__":
+    assert sys.argv[1:] == ["--write"]
+    for arm in ("control_out1", "child_out2"):
+        p = HERE / f"synthetic-{arm}.log"
+        body = construct(arm).encode("utf-8")
+        assert not p.exists(), p
+        p.write_bytes(body)
+        print(f"{p.name} {len(body)} {hashlib.sha256(body).hexdigest()} PURE_SYNTHETIC_ONLY")

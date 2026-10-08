@@ -1,0 +1,9 @@
+# I03.var03 matched crew OUT batch (prospective)
+
+This package holds a prospective, falsifiable two-arm CLI test. The control opens with three P-CREW and requests one OUT at h7.75; the child has the same opening quantity and requests two. The authored input differs from the accepted I03.var01 parent in the declared ProblemDescription, opening crew quantity, and OUT request quantity. Neither new arm has been launched or accepted.
+
+The frozen [contract.json](contract.json) defines the source delta, typed event and quantity ledgers, complete 5,210-cell report oracle for each arm, exact converter diagnostics, source custody, and serial approval gates. A positive first tranche and later second tranche are hypotheses. Unexpected task identifiers or optional zero-quantity diagnostic tasks must satisfy the contract's typed linkage; synthetic fixture lines are not native evidence.
+
+Construction status: both new inputs, read-only author validators, pure fixtures, six-stage per-arm runner, and dry manifest builder exist. The accepted I03.var01 run, C03/C08 prerequisites, original raw files, and frozen contract remain unchanged. Control requires its own actual zero-native SSH preflight and independent GO_PRELAUNCH. The child requires a sealed successful control run, independent control GO, a fresh child preflight, and a fresh independent child GO_PRELAUNCH. Root controls all SSH, native, Git, and catalog operations.
+
+The historical 493-entry catalog is preserved byte-exact under `preserved-catalog/`; postpublication replay must verify its typed prefix, metadata, and unique publication IDs in the live catalog. All accepted parent and prerequisite raw files remain mandatory at their original paths. The inert design copies preserve rejected drafts without promoting them to accepted evidence.

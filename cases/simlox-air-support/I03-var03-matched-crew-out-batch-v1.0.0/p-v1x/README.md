@@ -1,0 +1,3 @@
+# Excluded first custody draft
+
+The first postrun context copier (4,991 bytes, SHA256 `6918be58db6107eebf1377c55b12e84d32865aa50833f5f4979d8397db916728`) copied 72 small proof files, then stopped while trying to create a deep transport-evidence destination on Windows. It wrote no custody map and made no native or SSH call. Its failure stderr is available only in the tool transcript; no original stderr byte file was captured. The 72 partial files and exact failed copier bytes are retained here as development history. The separate v2 copier uses short inert names and is the authoritative custody method.

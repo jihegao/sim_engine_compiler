@@ -1,0 +1,40 @@
+param([switch]$WriteFixture)
+$ErrorActionPreference='Stop'
+$case=(Resolve-Path $PSScriptRoot).Path
+$runner=Join-Path $case 'run_native_ssh.ps1'
+$tokens=$null;$errors=$null
+$ast=[System.Management.Automation.Language.Parser]::ParseFile($runner,[ref]$tokens,[ref]$errors)
+if (@($errors).Count -ne 0) { throw 'runner PowerShell AST parse failed' }
+$functions=@($ast.FindAll({param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Assert-ConverterLog'},$true))
+if ($functions.Count -ne 1) { throw 'expected one production converter function' }
+Invoke-Expression $functions[0].Extent.Text
+$parent=Join-Path (Split-Path $case -Parent) 'I03-var01-crew-out-in-v1.0.0\runs\i03-var01-crew-transfer-v100-ssh-20261005-01\out-run.log'
+$body=Get-Content -LiteralPath $parent -Raw -Encoding UTF8
+$warning='rec 1: (warning #108) Enabling simulation log may generate extensive data in log file'
+if ($body.Split($warning).Count -ne 2) { throw 'sealed parent warning occurs other than once' }
+$cases=[ordered]@{
+  baseline=$body
+  changed_message=$body.Replace($warning,$warning+' altered')
+  wrong_owner=$body.Replace('Form: Control','Form: System')
+  duplicate_warning=$body.Replace($warning,$warning+[Environment]::NewLine+$warning)
+  extra_note=$body+[Environment]::NewLine+'rec 2: (note #17) extra'
+  extra_mixed_warning=$body+[Environment]::NewLine+'rec 2: (WARNING #17) extra'
+}
+$root=Join-Path $case 'test-output\converter-gate-local'
+if ($WriteFixture) {
+  if (Test-Path -LiteralPath $root) { throw 'converter test output already exists' }
+  New-Item -ItemType Directory -Path $root | Out-Null
+}
+$rejected=0
+foreach($name in $cases.Keys) {
+  if (-not $WriteFixture) { continue }
+  $dir=Join-Path $root $name
+  New-Item -ItemType Directory -Path $dir | Out-Null
+  [System.IO.File]::WriteAllText((Join-Path $dir 'run.log'),$cases[$name],[System.Text.UTF8Encoding]::new($false))
+  $passed=$true
+  try { Assert-ConverterLog $dir } catch { $passed=$false }
+  if ($name -eq 'baseline') { if (-not $passed) { throw 'production converter gate rejected accepted parent' } }
+  else { if ($passed) { throw "production converter gate accepted $name" }; $rejected++ }
+}
+[ordered]@{schema='i03-var03-converter-local-test/v1';pure=$true;native_calls=0;
+  executed=$WriteFixture.IsPresent;semantic_rejections=$rejected} | ConvertTo-Json -Compress

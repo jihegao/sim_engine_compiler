@@ -1,0 +1,141 @@
+"""Read-only contract-design pin and formula audit; never opens a native runner."""
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import re
+import struct
+import subprocess
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CONTRACT_REL = "tmp/i03-var03-prospective-contract-design-v6-20261008.json"
+CONTRACT_SHA = "17ab577282e2186040d93195500e9df7565db51922b75468ffe62cc60c7fb30d"
+PARENT = "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0"
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def check(item: dict, *, at: Path | None = None) -> bytes:
+    path = at or Path(item["path"])
+    if not path.is_absolute():
+        path = ROOT / path
+    data = path.read_bytes()
+    assert len(data) == item["bytes"] and sha(data) == item["sha256"], str(path)
+    return data
+
+
+def cmd(*args: str) -> bytes:
+    p = subprocess.run(args, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    assert p.returncode == 0 and p.stderr == b"", (args, p.returncode, p.stderr)
+    return p.stdout
+
+
+def f32(x: float) -> float:
+    return struct.unpack("<f", struct.pack("<f", x))[0]
+
+
+def source_rows(doc: dict, name: str):
+    table = next(t for t in doc["model"]["tables"] if t["name"] == name)
+    return table["instances"][0]["rows"]
+
+
+def main() -> None:
+    raw = (ROOT / CONTRACT_REL).read_bytes()
+    assert len(raw) == 50697 and sha(raw) == CONTRACT_SHA
+    c = json.loads(raw)
+    assert c["phase"] == "CONTRACT_DESIGN_ONLY_INDEPENDENT_GO_REQUIRED" and c["new_native_calls"] == 0
+    assert c["accepted_parent_reruns"] == 0
+    assert c["run_ids_proposed_absent"] == [
+        "i03-var03-control-out1-v100-ssh-20261008-01",
+        "i03-var03-child-out2-v100-ssh-20261008-01",
+    ]
+    assert not (ROOT / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0").exists()
+    lineage = c["source_lineage"]
+    assert len(lineage["accepted_parent_source_disk_git_at_base"]) == 17
+    assert len(lineage["accepted_parent_original_raw"]) == 34
+    assert len(lineage["required_docs"]) == 8 and len(lineage["installed"]) == 3
+    for group in (lineage["accepted_parent_original_raw"], lineage["required_docs"],
+                  lineage["installed"], lineage["draft_history"]):
+        for item in group:
+            check(item)
+    for key in ("root_selection_guard", "root_dependency_audit", "accepted_parent_evidence_index"):
+        check(lineage[key])
+    for item in lineage["accepted_prerequisite_indexes"]:
+        check(item)
+    base = lineage["base_commit"]
+    assert base == "8981e29847af744993aa6f7a66f689150ca124e5"
+    tree = cmd("git", "ls-tree", "-r", "-z", base).split(b"\0")
+    oidmap = {}
+    for row in tree:
+        if row:
+            left, path = row.split(b"\t", 1)
+            oidmap[path.decode()] = left.split()[-1].decode()
+    for item in lineage["accepted_parent_source_disk_git_at_base"]:
+        rel = item["path"]
+        data = (ROOT / rel).read_bytes()
+        assert {"bytes": len(data), "sha256": sha(data)} == item["disk"], rel
+        blob = cmd("git", "cat-file", "blob", oidmap[rel])
+        assert {"bytes": len(blob), "sha256": sha(blob)} == item["git"], rel
+        assert (data == blob) is item["byte_equal"], rel
+    catalog = lineage["catalog_at_design"]
+    disk = check({"path": catalog["path"], **catalog["local_disk"]})
+    git = cmd("git", "cat-file", "blob", catalog["published_git_at_base"]["oid"])
+    assert {"bytes": len(git), "sha256": sha(git)} == {k: catalog["published_git_at_base"][k] for k in ("bytes", "sha256")}
+    assert disk != git and json.loads(disk) == json.loads(git)
+    assert len(json.loads(disk)["entries"]) == 493
+    src = json.loads(check(c["source_delta"]["base"]))
+    assert src["model"]["database_version"] == 20160627
+    assert len(src["model"]["tables"]) == 32
+    assert source_rows(src, "ResourceAllocation")[0][3] == 2
+    transfer = source_rows(src, "ResourceTransfer")[0]
+    assert transfer[:6] == ["BASE-01", "<OUTSIDE>", "P-CREW", 7.75, 1, 0]
+    delta = c["source_delta"]
+    assert delta["shared_changes"][0]["column"] == "RQTY" and delta["shared_changes"][0]["to"] == 3
+    assert delta["per_arm_changes"]["child_out2"][1]["column"] == "TFQTY"
+    assert delta["per_arm_changes"]["child_out2"][1]["to"] == 2
+    gate = c["report_gate"]
+    assert [t["name"] for t in gate["topology"]] == gate["tables_in_order"]
+    assert sum(t["rows"] * len(t["columns"]) for t in gate["topology"]) == gate["cells_per_arm"] == 5210
+    system = next(t for t in gate["topology"] if t["name"] == "SystemResults")
+    sc = gate["system_field_classes"]
+    assert set(system["columns"]) == set().union(*[set(x) for x in sc.values()])
+    stock = next(t for t in gate["topology"] if t["name"] == "StockTotalResults")
+    assert set(stock["columns"]) == set().union(*[set(x) for x in gate["stock_fields"].values()])
+    resource = next(t for t in gate["topology"] if t["name"] == "ResourceResults")
+    rf = gate["resource_fields"]
+    assert set(resource["columns"]) == set().union(*[set(x) for x in rf.values() if isinstance(x, list)])
+    assert c["native_and_provenance_gate"]["stage_order_each_arm"] == [
+        "import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"]
+    conv = c["native_and_provenance_gate"]["converter"]
+    assert conv["each_arm_summary_exact"] == "Input conversion completed. Errors: 0, Warnings: 2, Notes: 0"
+    assert [(r["form"], r["record"], r["code"]) for r in conv["ordered_warning_records_exactly_once_each"]] == [("Control", 1, 108), ("System", 1, 126)]
+    assert "Before calc, require only exact source/input/export full32-table" in conv["stage_gate"]
+    assert "After calc exits actual integer0 and its original run.log is sealed" in conv["stage_gate"]
+    assert "BEFORE launching jsonreport" in conv["stage_gate"]
+    assert "separate independent GO_PRELAUNCH" in c["native_and_provenance_gate"]["both_runs"]
+    assert "7.75" in gate["numeric_comparison"]["exact"]
+    assert "NO_GO" in gate["numeric_comparison"]["unexpected_observed_edge"]
+    res = rf["total_expected_float32"]
+    expected = {
+        "control_out1": {"NR": f32(79.75 / 36), "NRA": f32(79.75 / 36), "NRN": f32(79.75 / 36),
+                         "NRUM": f32(2 / 36), "NRW": 0},
+        "child_out2": {"NR": f32(51.75 / 36), "NRA": f32(51.75 / 36), "NRN": f32(51.5 / 36),
+                       "NRUM": f32(2 / 36), "NRW": f32(.5 / 36)},
+    }
+    assert res == expected
+    si = gate["source_event_integrals_by_arm"]
+    assert si["control_out1"] == {"NSYRY": 66, "NSYMA": 6, "NSYMO": 4,
+                                  "NSYMP": 2, "NSYMR": 0, "NSYA": 72, "FTMO": 2, "STACC": 4}
+    assert si["child_out2"] == {"NSYRY": 65, "NSYMA": 7, "NSYMO": 4,
+                                "NSYMP": 2.5, "NSYMR": .5, "NSYA": 72, "FTMO": 2, "STACC": 4}
+    print(json.dumps({"decision": "GO_CONTRACT_DESIGN_ONLY", "contract_sha256": CONTRACT_SHA,
+                      "source_disk_git_pairs": 17, "parent_original_raw": 34, "report_cells_per_arm": 5210,
+                      "resource_total_means": 5, "new_native_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

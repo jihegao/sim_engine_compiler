@@ -1,0 +1,221 @@
+"""Deterministic paired postrun evidence index; default and --dry are read-only."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+from build import typed_equal
+from copy_catalog_regression import check as verify_catalog_regression
+from copy_postrun_context_v2 import verify as verify_context
+from make_failed_copier_relocation import candidate as failed_relocation
+from make_raw_custody import candidate as raw_candidate
+from source_gate import HERE, REPO, RUN_IDS, unique_json, verify as verify_source
+
+INDEX = HERE / "evidence-index.json"
+INVENTORY = HERE / "source-inventory.json"
+MANIFESTS = {arm: HERE / f"prelaunch-manifest-{arm}.json" for arm in RUN_IDS}
+PUBLICATION_ID = "I03.var03.matched_crew_out_partial_batch.1.0.0"
+CONTRACT_SHA = "17ab577282e2186040d93195500e9df7565db51922b75468ffe62cc60c7fb30d"
+CONTROL_MANIFEST_SHA = "d5dad85a3f2b9f3aeba1c2f6e463a1fd7d504a7481d8c0ecfc8c0ac9a4e8fb06"
+CHILD_MANIFEST_SHA = "6d20e232d4f80916ace58012e9f5553755384b02743b804c0cd108a7fce9d19c"
+INDEPENDENT_METHOD_SHA = "c45bcc2c696031ce04a687086fa266aa01446a2504a02f93aa053d8163ede037"
+INDEPENDENT_VERDICT_SHA = "f1e9e0fbc4f329499f865ff885800c26429b663ca04f4e97c2ace7f09d11e16a"
+CONTROL_GO_SHA = "c1b251f8dcb3f2f39f8ecc54cb313440e1308c3720f5feada46c127c3e6faa42"
+PAIR_GO_SHA = "0413640bc2e96c03dfa98372771c3567732c72cfaf28907fa9a0f258804cbb42"
+CATALOG_ARCHIVE_SHA = "958999368138f53bbf9fc3653de808422135d24c56acdc877c41b5af8decd32a"
+EXCLUDED_REVIEW_PREFIXES = ("review/independent-content", "review/independent-staged",
+                            "review/independent-remote", "review/independent-pr-")
+REVIEW_FILES = (
+    "review/independent-control-postrun-go-2026-10-08.md",
+    "review/independent-control-postrun-go.json",
+    "review/independent-control-postrun-verdict.json",
+    "review/independent-postrun-paired-go-2026-10-08.md",
+    "review/independent-postrun-paired-go.json",
+    "review/independent-postrun-paired-verdict.json",
+    "review/independent-prelaunch-child-go-2026-10-08.md",
+    "review/independent-prelaunch-child-pure-draft-wrong-map-sha-2026-10-08.md",
+    "review/independent-prelaunch-child-pure-go-2026-10-08.md",
+    "review/independent-prelaunch-control-go-2026-10-08.md",
+    "review/independent-prelaunch-go-child_out2.json",
+    "review/independent-prelaunch-go-control_out1.json",
+    "review/independent-prelaunch-pure-go-2026-10-08.md",
+    "review/preflight-ssh0-child_out2-20261007T233706349Z.json",
+    "review/preflight-ssh0-control_out1-20261007T232925526Z.json",
+)
+ADDITIONAL_FILES = (
+    "source-inventory.json",
+    "prelaunch-manifest-control_out1.json", "prelaunch-manifest-child_out2.json",
+    "copy_postrun_context_v2.py", "postrun-context-custody-v2.json",
+    "copy_catalog_regression.py", "catalog-regression-custody.json",
+    "make_raw_custody.py", "raw-custody-map.json",
+    "make_failed_copier_relocation.py", "failed-copier-relocation.json",
+    "make_evidence_index.py", "publication-entry.json",
+    "README-publication.md", "REPRODUCTION-postrun.md", "cli-scope-signoff-2026-10-08.md",
+    "preserved-postrun-development/README.md",
+    "preserved-postrun-development/make_evidence_index-first-dry-failed.py.bytes",
+    "preserved-postrun-development/make_evidence_index-second-dry-failed.py.bytes",
+    "preserved-postrun-development/REPRODUCTION-postrun-before-fresh-derived-run.md.bytes",
+) + REVIEW_FILES
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def context_rows(name: str) -> list[dict]:
+    return unique_json((HERE / name).read_bytes())["records"]
+
+
+def source_inventory() -> list[dict]:
+    frozen = unique_json(INVENTORY.read_bytes())
+    assert frozen["schema"] == "i03-var03-owned-prelaunch-source-inventory/v1"
+    old = [row["path"] for row in frozen["source_files"]]
+    assert len(old) == 135 and len(set(old)) == 135
+    for row in frozen["source_files"]:
+        assert pin(HERE / row["path"]) == {k: row[k] for k in ("bytes", "sha256")}
+    extra = list(ADDITIONAL_FILES)
+    extra += [row["owned_copy"] for row in context_rows("postrun-context-custody-v2.json")]
+    extra += [row["owned_copy"] for row in context_rows("catalog-regression-custody.json")]
+    extra += [row["current_relative_path"] for row in context_rows("failed-copier-relocation.json")]
+    assert len(extra) == len(set(extra)) and not set(extra).intersection(old)
+    names = set(old) | set(extra)
+    assert INDEX.name not in names
+    actual = {path.relative_to(HERE).as_posix() for path in HERE.rglob("*") if path.is_file()
+              and not any(part in {"runs", "transport-evidence", "test-output", "__pycache__"}
+                          for part in path.relative_to(HERE).parts)
+              and path.name != INDEX.name
+              and not any(path.relative_to(HERE).as_posix().startswith(prefix)
+                          for prefix in EXCLUDED_REVIEW_PREFIXES)}
+    assert names == actual, {"unindexed": sorted(actual - names), "missing": sorted(names - actual)}
+    return [{"path": name, **pin(HERE / name)} for name in sorted(names)]
+
+
+def independent_verdict() -> dict:
+    assert pin(HERE / "review/independent_replay.py")["sha256"] == INDEPENDENT_METHOD_SHA
+    path = HERE / "review/independent-postrun-paired-verdict.json"
+    assert pin(path)["sha256"] == INDEPENDENT_VERDICT_SHA
+    assert pin(HERE / "review/independent-control-postrun-go.json")["sha256"] == CONTROL_GO_SHA
+    assert pin(HERE / "review/independent-postrun-paired-go.json")["sha256"] == PAIR_GO_SHA
+    process = subprocess.run([sys.executable, "-X", "utf8", "-B",
+                              str(HERE / "review/independent_replay.py"), "--sealed-both"],
+                             cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    assert process.returncode == 0 and process.stderr == b""
+    assert process.stdout == path.read_bytes(), "frozen independent verdict differs byte-for-byte"
+    result = unique_json(process.stdout)
+    assert result["decision"] == "GO_BOUNDED" and result["original_arm_report_cells"] == 10420
+    assert [result["runs"][arm]["typed_events"] for arm in RUN_IDS] == [173, 180]
+    return result
+
+
+def author_verdicts() -> dict:
+    result = {}
+    for arm, run_id in RUN_IDS.items():
+        directory = HERE / "runs" / run_id
+        process = subprocess.run([sys.executable, "-X", "utf8", "-B",
+                                  str(HERE / "validate_native_cli.py"), str(directory), arm],
+                                 cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        assert process.returncode == 0 and process.stderr == b""
+        value = unique_json(process.stdout)
+        assert typed_equal(value, unique_json((directory / "author-validation.json").read_bytes()))
+        assert value["passed"] is True and value["report_cell_checks"] == 5210
+        result[arm] = value
+    return result
+
+
+def build() -> dict:
+    assert pin(HERE / "contract.json")["sha256"] == CONTRACT_SHA
+    assert pin(MANIFESTS["control_out1"])["sha256"] == CONTROL_MANIFEST_SHA
+    assert pin(MANIFESTS["child_out2"])["sha256"] == CHILD_MANIFEST_SHA
+    assert (HERE / ".gitattributes").read_bytes() == b"* -text"
+    for arm in RUN_IDS:
+        verify_source("sealed", arm)
+    context = verify_context()
+    assert context["records"] == 86
+    regression = verify_catalog_regression()
+    assert regression["records"] == 6
+    relocation = failed_relocation()
+    assert len(relocation["records"]) == 74 and relocation["decision"] == "NO_GO_DEVELOPMENT_DRAFT"
+    raws = raw_candidate()["records"]
+    assert len(raws) == 162
+    assert typed_equal(raws, context_rows("raw-custody-map.json"))
+    independent = independent_verdict()
+    authors = author_verdicts()
+    entry = unique_json((HERE / "publication-entry.json").read_bytes())
+    assert entry["publication_id"] == PUBLICATION_ID
+    assert entry["publication_state"] == "reusable_published"
+    assert type(entry["new_native_runs"]) is int and entry["new_native_runs"] == 2
+    assert type(entry["accepted_parent_runs_repeated"]) is int and entry["accepted_parent_runs_repeated"] == 0
+    assert entry["evidence_index"] == HERE.name + "/evidence-index.json"
+    contract = unique_json((HERE / "contract.json").read_bytes())
+    catalog = contract["source_lineage"]["catalog_at_design"]
+    live = unique_json((REPO / catalog["path"]).read_bytes())
+    matches = [row for row in live["entries"] if row["publication_id"] == PUBLICATION_ID]
+    assert len(matches) == 1 and typed_equal(matches[0], entry)
+    prereq = unique_json((HERE / "preserved-root-context/i03-var03-root-prerequisite-seals-v2-20261008.json.bytes").read_bytes())
+    accepted_refs = contract["source_lineage"]["accepted_parent_source_disk_git_at_base"]
+    source = source_inventory()
+    assert len(accepted_refs) == 17 and len(prereq["source_git_identities"]) == 63
+    return {
+        "schema": "i03-var03-matched-out-evidence-index/v1",
+        "publication_id": PUBLICATION_ID, "case_id": "I03", "variant_id": "I03.var03", "version": "1.0.0",
+        "publication_state": "reusable_published_after_reviewed_catalog_and_git_merge",
+        "bounded_decision": "GO_BOUNDED_ORIGINAL_MATCHED_PAIR",
+        "new_native_runs": 2, "accepted_parent_runs_repeated": 0,
+        "run_ids": RUN_IDS, "contract_sha256": CONTRACT_SHA,
+        "control_manifest_sha256": CONTROL_MANIFEST_SHA,
+        "child_manifest_sha256": CHILD_MANIFEST_SHA,
+        "independent_method_sha256": INDEPENDENT_METHOD_SHA,
+        "independent_paired_verdict_sha256": INDEPENDENT_VERDICT_SHA,
+        "independent_control_go_sha256": CONTROL_GO_SHA,
+        "independent_paired_go_sha256": PAIR_GO_SHA,
+        "independent_result": independent,
+        "author_report_cells": {arm: value["report_cell_checks"] for arm, value in authors.items()},
+        "author_typed_events": {arm: value["typed_event_records"] for arm, value in authors.items()},
+        "prelaunch_source_records": {"control_out1": 349, "child_out2": 375},
+        "source_base_commit": contract["source_lineage"]["base_commit"],
+        "source_count": len(source), "source": source, "source_files": source,
+        "accepted_source_refs": {"parent": accepted_refs, "prerequisites": prereq["source_git_identities"]},
+        "accepted_source_ref_count": 80,
+        "raw_record_count": len(raws), "raw_files": raws,
+        "small_proof_context": context_rows("postrun-context-custody-v2.json"),
+        "catalog_regression_context": context_rows("catalog-regression-custody.json"),
+        "excluded_failed_copier": relocation,
+        "catalog_history": {
+            "owned_archive_sha256": CATALOG_ARCHIVE_SHA,
+            "local_at_design": catalog["local_disk"],
+            "published_git_at_base": catalog["published_git_at_base"],
+            "required_prefix_entries": 493,
+            "sealed_policy": "always check exact owned archive and base Git blob, typed live metadata/first493 entries, unique appended IDs and this exact publication entry; do not pin mutable live count or hash",
+        },
+        "raw_location_policy": "112 accepted prior and 50 new original run files remain mandatory at original paths; small-proof copies cannot substitute",
+        "limits": [
+            "Bounded to two authored inputs with opening P-CREW3, fixed source, seed, h36 horizon and installed executable.",
+            "Selected System zero/null and empty-stock PNB cells are predeclared native presentation conventions.",
+            "The first postrun copier failed at a Windows long path; 74 relocated development files remain excluded and byte-addressed.",
+            "Known M-B03 OperationProfile.MTID local-source dictionary blocker remains; the catalog smoke test does not pass that broader mapping gate.",
+            "No general batch, priority, person identity, GUI, performance, cross-engine or whole-I03 claim.",
+        ],
+    }
+
+
+def main() -> None:
+    assert sys.argv[1:] in ([], ["--dry"], ["--write"])
+    doc = build()
+    data = (json.dumps(doc, indent=2, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
+    if sys.argv[1:] == ["--write"]:
+        assert not INDEX.exists(), "preserve an existing evidence index"
+        INDEX.write_bytes(data)
+    elif sys.argv[1:] == []:
+        assert INDEX.is_file() and INDEX.read_bytes() == data, "saved index differs from dry rebuild"
+    print(json.dumps({"schema": "i03-var03-evidence-index-check/v1", "source_count": len(doc["source_files"]),
+                      "raw_count": len(doc["raw_files"]), "bytes": len(data),
+                      "sha256": hashlib.sha256(data).hexdigest(), "written": sys.argv[1:] == ["--write"]},
+                     separators=(",", ":")))
+
+
+if __name__ == "__main__":
+    main()

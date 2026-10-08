@@ -1,0 +1,43 @@
+"""Capture narrow planning regression only; known local mapping blocker unchanged."""
+import hashlib
+import json
+from pathlib import Path
+import stat
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / 'tmp/i03-var03-root-catalog-regression-20261008-01'
+assert not OUT.exists()
+OUT.mkdir()
+
+def pin(path):
+    data = path.read_bytes()
+    return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+
+records = []
+for name, args in [
+    ('catalog', ['cases/simlox-air-support/tools/check_catalog_v2.py']),
+    ('tests', ['-m', 'unittest', 'discover', '-s', 'tests/conformance', '-p', 'test_simlox_manual_catalog_v2.py', '-v'])
+]:
+    argv = [sys.executable, '-X', 'utf8', '-B', *args]
+    result = subprocess.run(argv, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    streams = {}
+    for label, data in [('stdout', result.stdout), ('stderr', result.stderr)]:
+        path = OUT / f'{name}-{label}.bin'
+        path.write_bytes(data)
+        path.chmod(stat.S_IREAD)
+        streams[label] = {'path': str(path), **pin(path)}
+    records.append({'name': name, 'argv': argv, 'exit_code': result.returncode, 'streams': streams})
+receipt = {'schema': 'i03-var03-root-planning-regression/v1', 'commands': records,
+           'scope': 'planning consistency only; no native or physical acceptance',
+           'full_local_source_mapping': 'Known baseline M-B03 OperationProfile.MTID absence remains unresolved; --verify-local-sources was not retried',
+           'diagnostic_read_error': 'An earlier tool-only Get-Content guessed cases/simlox-air-support/check_catalog_v2.py; correct discovered path is tools/check_catalog_v2.py. No file or native process was changed. No original binary stderr claimed for that diagnostic.',
+           'new_native_calls': 0,
+           'decision': 'PASS_PLANNING_ONLY' if all(r['exit_code'] == 0 for r in records) else 'NO_GO_PRESERVED'}
+path = OUT / 'receipt.json'
+path.write_bytes((json.dumps(receipt, indent=2) + '\n').encode())
+path.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(path), **pin(path), 'decision': receipt['decision']}))
+assert receipt['decision'] == 'PASS_PLANNING_ONLY'

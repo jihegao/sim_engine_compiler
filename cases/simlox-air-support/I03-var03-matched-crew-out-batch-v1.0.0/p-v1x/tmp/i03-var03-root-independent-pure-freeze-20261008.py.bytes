@@ -1,0 +1,71 @@
+"""Capture new independent PURE method checks as original binary streams."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[1]
+CASE = ROOT / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+PYTHON = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+OUT = ROOT / "tmp/i03-var03-root-independent-pure-freeze-20261008-01"
+EXPECTED = {
+    "review/independent_replay.py": {"bytes": 63558, "sha256": "c45bcc2c696031ce04a687086fa266aa01446a2504a02f93aa053d8163ede037"},
+    "review/independent_self_check.py": {"bytes": 14853, "sha256": "6fc11bbcb837344aeb9423ee28f0c42004a239ae6e557fc3fd3b46bb1fbb5075"},
+    "contract.json": {"bytes": 50697, "sha256": "17ab577282e2186040d93195500e9df7565db51922b75468ffe62cc60c7fb30d"},
+}
+
+def pin(data):
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+def utc():
+    return dt.datetime.now(dt.timezone.utc).isoformat()
+
+def save(path, data):
+    with path.open("xb") as stream:
+        stream.write(data)
+    path.chmod(stat.S_IREAD)
+
+assert not OUT.exists()
+before = {name: pin((CASE / name).read_bytes()) for name in EXPECTED}
+assert before == EXPECTED
+assert all((CASE / name).stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY for name in EXPECTED)
+Path(__file__).chmod(stat.S_IREAD)
+OUT.mkdir()
+steps = []
+commands = [
+    ("source", [str(PYTHON), "-X", "utf8", "-B", str(CASE / "review/independent_replay.py"), "--pure-source"]),
+    ("fixture", [str(PYTHON), "-X", "utf8", "-B", str(CASE / "review/independent_replay.py"), "--pure-fixture"]),
+    ("negatives", [str(PYTHON), "-X", "utf8", "-B", str(CASE / "review/independent_self_check.py")]),
+]
+error = None
+for name, argv in commands:
+    started = utc()
+    try:
+        result = subprocess.run(argv, cwd=ROOT, capture_output=True)
+        save(OUT / (name + "-stdout.bin"), result.stdout)
+        save(OUT / (name + "-stderr.bin"), result.stderr)
+        row = {"name": name, "argv": argv, "started_utc": started, "completed_utc": utc(),
+               "actual_exit": result.returncode, "stdout": pin(result.stdout), "stderr": pin(result.stderr)}
+        steps.append(row)
+        if type(result.returncode) is not int or result.returncode != 0 or result.stderr:
+            error = "PURE step failed: " + name
+            break
+        row["decoded_json_derived"] = json.loads(result.stdout)
+    except Exception as exc:
+        error = f"{type(exc).__name__}: {exc}"
+        break
+after = {name: pin((CASE / name).read_bytes()) for name in EXPECTED}
+if before != after:
+    error = "Frozen independent method/contract changed"
+receipt = {"schema": "i03-var03-root-independent-pure-freeze/v1",
+           "decision": "GO_PURE_METHOD_BYTES_ONLY" if error is None and len(steps) == 3 else "NO_GO_PURE_METHOD",
+           "wrapper": {"path": str(Path(__file__)), **pin(Path(__file__).read_bytes())},
+           "source_before": before, "source_after": after, "steps": steps, "error": error,
+           "new_native_calls": 0, "ssh_calls": 0, "accepted_native_or_helper_reruns": 0,
+           "limits": "New independent PURE reader proof only; final manifest/source GO and actual per-arm SSH preflight/GO_PRELAUNCH are still required."}
+data = (json.dumps(receipt, indent=2) + "\n").encode()
+save(OUT / "receipt.json", data)
+print(json.dumps({"decision": receipt["decision"], "steps": len(steps), "error": error, "receipt": pin(data)}))
+assert receipt["decision"] == "GO_PURE_METHOD_BYTES_ONLY"

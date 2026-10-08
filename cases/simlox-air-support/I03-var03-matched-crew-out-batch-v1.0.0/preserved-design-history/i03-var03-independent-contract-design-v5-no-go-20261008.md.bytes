@@ -1,0 +1,9 @@
+# I03.var03 v5 independent design decision: NO_GO_CONTRACT_DESIGN_ONLY
+
+Frozen candidate: `tmp/i03-var03-prospective-contract-design-v5-20261008.json`, 49,195 bytes, SHA-256 `37b9ddcdd24f4f7e88261751545c678ddee645d48c160534fc089b794f7801f3`.
+
+The new converter clause correctly specifies the accepted warning messages, form ownership, order, and exact 0/2/0 summary. Its `stage_gate`, however, requires the converter result to pass **before `calc`**. The same contract orders `import → export → check_import_export → calc → jsonreport → check_behavior`. Accepted `out-run.log` (SHA-256 `2d69b9c6731df2dc21cd409b4595ed65e837014c2e49134385da0f445e55c795`) begins `Performing simulation`, then `Converting input data ...`, warning #108, warning #126, and `Input conversion completed. Errors: 0, Warnings: 2, Notes: 0`. Those converter lines are the output of the `calc` stage; no separately specified supported pre-calc converter command produces them. The prospective gate is impossible as written.
+
+A distinct corrected contract may require the type-sensitive full 32-table roundtrip and its valid checker receipt before `calc`, then check exact converter warnings and 0/2/0 summary after `calc` and before proceeding to `jsonreport` or accepting behavior. Preserve the six stages and all report/physical/provenance gates. This is a contract-design correction, not authorization for construction, SSH preflight, or native execution. The previous v4 NO_GO remains historical and unchanged.
+
+Read-only proof: `tmp/i03-var03-independent-contract-design-audit-v5-20261008.py`, 1,806 bytes, SHA-256 `3c2656b08fd0f96adde32689b4d1ec385ed004e61a106b7dc924beaa7476db85`; execution exit 0, output `NO_GO_CONTRACT_DESIGN_ONLY_V5`. The output was returned by the command tool, not captured as a separate binary stdout file.

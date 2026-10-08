@@ -1,0 +1,100 @@
+"""Read-only byte audit; no accepted checker or native program is executed."""
+from pathlib import Path
+import hashlib
+import json
+import stat
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[1]
+CASE = ROOT / "cases/simlox-air-support"
+OUT = ROOT / "tmp/i03-var03-root-prerequisite-seals-20261008.json"
+assert not OUT.exists()
+BASE = "8981e29847af744993aa6f7a66f689150ca124e5"
+records, failures = [], []
+
+def pin(data):
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+def check_file(path, expected, role):
+    row = {"path": str(path), "role": role, "expected": expected}
+    try:
+        data = path.read_bytes()
+        row["observed"] = pin(data)
+        row["pass"] = all(row["observed"][key] == value for key, value in expected.items())
+    except Exception as exc:
+        row.update({"pass": False, "error": f"{type(exc).__name__}: {exc}"})
+    records.append(row)
+    if not row["pass"]:
+        failures.append(row)
+
+def exact(row):
+    return {key: row[key] for key in ("bytes", "sha256")}
+
+def git(*args):
+    return subprocess.check_output(["git", *args], cwd=ROOT)
+
+assert git("rev-parse", "HEAD").decode().strip() == BASE
+assert not git("diff", "--name-only") and not git("diff", "--cached", "--name-only")
+packages = [
+    ("C03-var01-staffing-v0.1.1", "987519ac76f60fbdb8fb3e848c4619a67a82bb9f69c488bf6525da3caf443b01"),
+    ("C08-partial-pool-v1.0.0", "f0c1e3da56681bbc7f50742cf42792177795497706d1049004e50e7a3a2d28b2"),
+    ("C08-shift-maxut-v1.0.0", "e40eed162902fbe50055618f0cc1495895e77264c98fa5e876618e2567cd50bc"),
+]
+for name, index_sha in packages:
+    package = CASE / name
+    index = package / "evidence-index.json"
+    check_file(index, {"sha256": index_sha}, "prerequisite_index")
+    doc = json.loads(index.read_bytes())
+    if name.startswith("C03"):
+        for row in doc["source"]:
+            check_file(package / row["path"], exact(row), "indexed_source")
+        source = CASE / doc["accepted_source"]["package"]
+        for row in doc["accepted_source"]["files"]:
+            check_file(source / row["path"], row["local_disk"], "accepted_source_local_bytes")
+        for run in doc["runs"]:
+            directory = Path(run["local_run_dir"])
+            for filename, row in run["raw"].items():
+                check_file(directory / filename, exact(row), "mandatory_original_raw")
+            for role in ("invocation", "closure"):
+                check_file(directory / (role + ".json"), exact(run[role]), "mandatory_original_raw")
+        verdict = json.loads((package / "review/independent-verdict.json").read_bytes())
+        assert verdict["decision"] == "GO_BOUNDED" and verdict["checks"] == 18091 and verdict["failures"] == []
+    else:
+        for run in doc["runs"]:
+            directory = package / "runs" / run["run_id"]
+            for filename, row in run["raw"].items():
+                check_file(directory / filename, exact(row), "mandatory_original_raw")
+            check_file(directory / "closure.json", {"sha256": run["closure_sha256"]}, "mandatory_original_raw")
+        verdict = json.loads((package / "review/independent-readonly-2026-09-30.json").read_bytes())
+        assert verdict["passed"] is True and verdict["failures"] == [] and verdict["check_count"] == verdict["passed_count"]
+
+# OID reads avoid Windows Git revision:path length handling. Keep disk and Git identities distinct.
+paths = [r["path"] for r in records if r["role"] != "mandatory_original_raw"]
+tree = {}
+for entry in git("ls-tree", "-r", "-z", BASE).split(b"\0"):
+    if entry:
+        meta, path = entry.split(b"\t", 1)
+        if meta.split()[1] == b"blob":
+            tree[path.decode()] = meta.split()[2].decode()
+git_records = []
+for path in dict.fromkeys(paths):
+    p = Path(path)
+    relative = p.relative_to(ROOT).as_posix()
+    blob = git("cat-file", "blob", tree[relative])
+    disk = p.read_bytes()
+    git_records.append({"path": relative, "oid": tree[relative], "local_disk": pin(disk), "published_git": pin(blob), "byte_equal": disk == blob})
+    if disk != blob:
+        assert relative.endswith("C03-shared-crew-formation-v1.0.2/.gitignore")
+        assert pin(disk) == {"bytes": 8, "sha256": "8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f"}
+        assert pin(blob) == {"bytes": 7, "sha256": "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933"}
+        assert disk.replace(b"\r\n", b"\n") == blob
+
+result = {"schema": "i03-var03-root-prerequisite-seals/v1", "base": BASE,
+          "decision": "GO_BYTES_ONLY" if not failures else "NO_GO_BYTES", "records": records,
+          "source_git_identities": git_records, "failures": failures, "new_native_calls": 0,
+          "accepted_checker_reruns": 0, "limits": "Byte custody only. Existing accepted verdicts are read, not rerun; this does not approve the new matched pair or its runner."}
+OUT.write_bytes((json.dumps(result, indent=2) + "\n").encode())
+OUT.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({"decision": result["decision"], "files": len(records), "source_git_identities": len(git_records), "mandatory_original_raw": sum(r["role"] == "mandatory_original_raw" for r in records), "failures": len(failures), "audit": pin(OUT.read_bytes())}))
+assert not failures

@@ -1,0 +1,99 @@
+"""Read-only actual SSH5 control preflight audit; optional one-time GO output."""
+import argparse
+import hashlib
+import importlib.util
+import json
+from datetime import datetime
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+READER = CASE / "review/independent_replay.py"
+MANIFEST = CASE / "prelaunch-manifest-control_out1.json"
+PREF_REL = "review/preflight-ssh0-control_out1-20261007T232925526Z.json"
+PREF = CASE / PREF_REL
+TRANSPORT = CASE / "transport-evidence/ssh-preflight-control_out1-20261007T232912138480Z-1ce85126"
+SEAL = REPO / "tmp/i03-var03-root-seal-ssh-preflight-control_out1-20261007T232912138480Z-1ce85126.json"
+APPROVAL = CASE / "review/independent-prelaunch-go-control_out1.json"
+AUDIT = REPO / "tmp/i03-var03-independent-control-prelaunch-audit-20261008.json"
+ROLE = "control_out1"
+RUN_ID = "i03-var03-control-out1-v100-ssh-20261008-01"
+
+
+def pin(path):
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def stamp(text):
+    return datetime.fromisoformat(text.replace("Z", "+00:00"))
+
+
+def audit():
+    spec = importlib.util.spec_from_file_location("independent_replay_frozen", READER)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    contract = reader.parse_json(reader.CONTRACT.read_bytes())
+    custody = reader.check_contract_source_custody(contract)
+    manifest, source_map, source_map_sha = reader.check_manifest(ROLE, contract)
+    manifest_pin = pin(MANIFEST)
+    pref_pin = pin(PREF)
+    seal_pin = pin(SEAL)
+    assert manifest_pin == {"bytes": 144254, "sha256": "d5dad85a3f2b9f3aeba1c2f6e463a1fd7d504a7481d8c0ecfc8c0ac9a4e8fb06"}
+    assert pref_pin == {"bytes": 49322, "sha256": "f573c73b2000981a9e7fff617531a6f2f129b8796565c93073003e71c9d6e72e"}
+    assert seal_pin == {"bytes": 1231, "sha256": "44ab80c9b5155a21d0c539e84ea4e65312e8bf712a3ac8bb4c724ba9248ae1d8"}
+    seal = reader.parse_json(SEAL.read_bytes())
+    assert seal["schema"] == "i03-var03-root-completed-seal/v1" and seal["decision"] == "GO_ORIGINAL_BYTES_SEALED_ONLY"
+    assert seal["mode"] == "preflight" and seal["arm"] == ROLE and seal["run_id"] == RUN_ID
+    assert Path(seal["transport_dir"]).resolve() == TRANSPORT.resolve()
+    assert set(seal["transport_files"]) == {"ssh-stdout.bin", "ssh-stderr.bin", "transport-receipt.json"}
+    for name, expected in seal["transport_files"].items():
+        assert pin(TRANSPORT / name) == expected, name
+    assert seal["owned_files"] == {str(PREF): pref_pin}
+    tr = reader.parse_json((TRANSPORT / "transport-receipt.json").read_bytes())
+    assert tr["schema"] == "i03-var03-matched-out-ssh-transport/v1"
+    assert tr["mode"] == "preflight" and tr["arm"] == ROLE and tr["run_id"] == RUN_ID
+    assert tr["native_approved"] is False and type(tr["exit_code"]) is int and tr["exit_code"] == 0
+    assert tr["error"] is None and stamp(tr["started_utc"]) < stamp(tr["completed_utc"])
+    assert tr["transport_sha256"] == source_map["owned:ssh_transport.py"]
+    assert tr["runner_sha256"] == source_map["runner_script"]
+    assert tr["manifest_sha256"] == manifest_pin["sha256"]
+    expected_command = ["ssh", "-n", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-i",
+                        "C:/Users/user/.ssh/id_rsa", "user@127.0.0.1", "powershell.exe", "-NoProfile",
+                        "-NonInteractive", "-File", str(CASE / "run_native_ssh.ps1").replace("\\", "/"),
+                        "-Arm", ROLE, "-PreflightOnly"]
+    assert tr["command"] == expected_command
+    assert tr["streams"] == {name: pin(TRANSPORT / name) for name in ("ssh-stdout.bin", "ssh-stderr.bin")}
+    assert tr["streams"]["ssh-stderr.bin"]["bytes"] == 0
+    assert (TRANSPORT / "ssh-stdout.bin").read_bytes().decode("utf-8-sig").strip() == str(PREF)
+    wants = reader.expected_approval(ROLE, source_map, source_map_sha, manifest_pin["sha256"])
+    pre = reader.parse_json(PREF.read_bytes())
+    reader.validate_preflight_data(ROLE, pre, wants, source_map)
+    assert pre["source_map_sha256"] == "06fd01582131c6a74037905d6b90f0c91e06fc57cf968b5dad399baa2ee86428"
+    assert not (CASE / "runs" / RUN_ID).exists()
+    approval = {"schema": "i03-var03-matched-out-independent-prelaunch-go/v1",
+                "decision": "GO_PRELAUNCH", "arm": ROLE, "run_id": RUN_ID, **wants,
+                "preflight_relative_path": PREF_REL, "preflight_sha256": pref_pin["sha256"]}
+    reader.validate_approval_data(ROLE, approval, wants)
+    approval_bytes = (json.dumps(approval, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if APPROVAL.exists():
+        assert APPROVAL.read_bytes() == approval_bytes
+    return approval_bytes, {"decision": "GO_PRELAUNCH", "scope": "one_root_owned_control_native_run_only",
+                            "arm": ROLE, "run_id": RUN_ID, "manifest": manifest_pin, "preflight": pref_pin,
+                            "transport_receipt": pin(TRANSPORT / "transport-receipt.json"), "root_seal": seal_pin,
+                            "source_map_sha256": source_map_sha, "accepted_custody": custody,
+                            "approval": {"bytes": len(approval_bytes), "sha256": hashlib.sha256(approval_bytes).hexdigest()},
+                            "new_native_calls_by_reviewer": 0}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write-go", action="store_true")
+    args = parser.parse_args()
+    approval_bytes, result = audit()
+    if args.write_go:
+        with APPROVAL.open("xb") as f:
+            f.write(approval_bytes)
+        with AUDIT.open("xb") as f:
+            f.write((json.dumps(result, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+    print(json.dumps(result, indent=2, sort_keys=True))

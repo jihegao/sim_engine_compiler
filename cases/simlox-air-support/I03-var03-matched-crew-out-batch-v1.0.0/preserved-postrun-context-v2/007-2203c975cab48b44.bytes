@@ -1,0 +1,81 @@
+"""Root one-time exact author handoff freeze; no SSH or native execution."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+import subprocess
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / 'cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0'
+HANDOFF = REPO / 'tmp/i03-var03-author-freeze-ready-20261008.json'
+OUT = REPO / 'tmp/i03-var03-root-freeze-20261008-01'
+
+def pin(data):
+    return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+
+def readonly(path):
+    os.chmod(path, stat.S_IREAD)
+    assert not path.stat().st_mode & stat.S_IWRITE, str(path)
+
+assert not OUT.exists(), 'Preserve prior root freeze; do not retry same output'
+assert pin(HANDOFF.read_bytes()) == {'bytes': 27355, 'sha256': '797dd4ba25608553b837f55f129cb3cffd08d086e44d0ba80a476b3aae41fb31'}
+h = json.loads(HANDOFF.read_bytes())
+assert Path(h['case']).resolve() == CASE.resolve()
+assert h['source_count'] == len(h['source_files']) == 135
+assert not (CASE / 'runs').exists()
+assert not (CASE / 'transport-evidence').exists()
+assert not (CASE / 'source-inventory.json').exists()
+assert not list(CASE.glob('prelaunch-manifest-*.json'))
+assert not list((CASE / 'review').glob('independent-prelaunch*'))
+assert len({r['path'] for r in h['source_files']}) == 135
+for r in h['source_files']:
+    p = (CASE / r['path']).resolve()
+    assert p.is_relative_to(CASE.resolve()) and p.is_file(), r
+    assert pin(p.read_bytes()) == {k: r[k] for k in ('bytes', 'sha256')}, r
+sys.path.insert(0, str(CASE))
+from make_source_inventory import candidate as inventory_candidate
+from make_prelaunch_manifest import candidate as manifest_candidate
+assert pin(inventory_candidate()) == h['source_inventory_expected']
+assert pin(manifest_candidate('control_out1', 'live', True)) == {k: h['control_manifest_preview'][k] for k in ('bytes', 'sha256')}
+OUT.mkdir()
+receipt = {'schema': 'i03-var03-root-freeze/v1', 'decision': 'IN_PROGRESS',
+           'handoff': pin(HANDOFF.read_bytes()), 'commands': [], 'new_native_runs': 0,
+           'approval_scope': 'source freeze only; no SSH preflight or native approval'}
+try:
+    for r in h['source_files']:
+        readonly(CASE / r['path'])
+    readonly(HANDOFF)
+    for tag, args, target, expected in [
+        ('inventory', ['make_source_inventory.py', '--write'], CASE / 'source-inventory.json', h['source_inventory_expected']),
+        ('control-manifest', ['make_prelaunch_manifest.py', '--arm', 'control_out1', '--write'], CASE / 'prelaunch-manifest-control_out1.json', {k: h['control_manifest_preview'][k] for k in ('bytes', 'sha256')})
+    ]:
+        argv = [sys.executable, '-X', 'utf8', '-B', *args]
+        result = subprocess.run(argv, cwd=CASE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        streams = {}
+        for name, body in [('stdout', result.stdout), ('stderr', result.stderr)]:
+            p = OUT / f'{tag}-{name}.bin'
+            p.write_bytes(body)
+            readonly(p)
+            streams[name] = {'path': str(p), **pin(body)}
+        receipt['commands'].append({'argv': argv, 'cwd': str(CASE), 'exit_code': result.returncode, 'streams': streams})
+        assert result.returncode == 0 and result.stderr == b'', tag
+        assert pin(target.read_bytes()) == expected, tag
+        readonly(target)
+    for r in h['source_files']:
+        p = CASE / r['path']
+        assert pin(p.read_bytes()) == {k: r[k] for k in ('bytes', 'sha256')}
+        assert not p.stat().st_mode & stat.S_IWRITE
+    receipt.update(decision='GO_FROZEN_SOURCE_BYTES_ONLY', source_count=135,
+                   inventory=pin((CASE / 'source-inventory.json').read_bytes()),
+                   control_manifest=pin((CASE / 'prelaunch-manifest-control_out1.json').read_bytes()),
+                   manifest_source_records=349, all_owned_sources_readonly=True)
+except BaseException as exc:
+    receipt.update(decision='NO_GO_PRESERVED', error=repr(exc))
+    raise
+finally:
+    p = OUT / 'receipt.json'
+    p.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
+    readonly(p)
+print(json.dumps({'receipt': str(p), **pin(p.read_bytes()), 'decision': receipt['decision']}))

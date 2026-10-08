@@ -1,0 +1,85 @@
+"""Read-only independent gate for the frozen child manifest and prior control."""
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+READER = CASE / "review/independent_replay.py"
+CONTROL_MANIFEST = CASE / "prelaunch-manifest-control_out1.json"
+CHILD_MANIFEST = CASE / "prelaunch-manifest-child_out2.json"
+INVENTORY = CASE / "source-inventory.json"
+CONTROL_GO = CASE / "review/independent-control-postrun-go.json"
+CONTROL = CASE / "runs/i03-var03-control-out1-v100-ssh-20261008-01"
+CHILD = CASE / "runs/i03-var03-child-out2-v100-ssh-20261008-01"
+ROOT_FREEZE = REPO / "tmp/i03-var03-root-child-manifest-freeze-20261008-01/receipt.json"
+RECEIPT = REPO / "tmp/i03-var03-independent-child-source-audit-20261008.json"
+
+
+def pin(path):
+    raw = path.read_bytes()
+    return {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def parse(path):
+    return json.loads(path.read_bytes().decode("utf-8-sig"))
+
+
+def audit():
+    assert pin(ROOT_FREEZE) == {"bytes": 52719, "sha256": "1754e8755e75b788105534d9c854ddfabf63343427231468f0e4295bf7fcda74"}
+    freeze = parse(ROOT_FREEZE)
+    assert freeze["schema"] == "i03-var03-root-child-manifest-freeze/v1"
+    assert freeze["decision"] == "GO_CHILD_MANIFEST_BYTES_ONLY" and freeze["exit_code"] == 0
+    assert freeze["manifest_matches_preview"] is True and freeze["new_native_calls"] == 0
+    for stream in freeze["streams"].values():
+        assert pin(Path(stream["path"])) == {k: stream[k] for k in ("bytes", "sha256")}
+    assert freeze["streams"]["stderr"]["bytes"] == 0
+    assert pin(CHILD_MANIFEST) == freeze["expected_manifest"] == {"bytes": 158855, "sha256": "6d20e232d4f80916ace58012e9f5553755384b02743b804c0cd108a7fce9d19c"}
+    assert pin(INVENTORY) == {"bytes": 25519, "sha256": "68213e358cda15de0874b48b0cc03f1c4bfe09b2896f69d8fb4a07b7bf9a158f"}
+    assert pin(CONTROL_GO) == freeze["control_go"] == {"bytes": 814, "sha256": "c1b251f8dcb3f2f39f8ecc54cb313440e1308c3720f5feada46c127c3e6faa42"}
+    assert len(freeze["frozen_source_and_control_pins"]) == 161
+    for path, expected in freeze["frozen_source_and_control_pins"].items():
+        assert pin(Path(path)) == expected, path
+    assert not CHILD.exists()
+    assert not (CASE / "review/independent-prelaunch-go-child_out2.json").exists()
+    assert not list((CASE / "review").glob("preflight-ssh0-child_out2-*.json"))
+    spec = importlib.util.spec_from_file_location("independent_replay_frozen", READER)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    contract = reader.parse_json(reader.CONTRACT.read_bytes())
+    custody = reader.check_contract_source_custody(contract)
+    control, control_map, control_sha = reader.check_manifest("control_out1", contract)
+    child, child_map, child_sha = reader.check_manifest("child_out2", contract)
+    assert len(control_map) == 349 and len(child_map) == freeze["source_records"] == 375
+    assert set(control_map) < set(child_map) and len(set(child_map) - set(control_map)) == 26
+    assert all(child_map[k] == v for k, v in control_map.items())
+    go = parse(CONTROL_GO)
+    assert go["decision"] == "GO_BOUNDED" and go["report_cell_checks"] == 5210
+    assert go["closure_sha256"] == pin(CONTROL / "closure.json")["sha256"]
+    assert go["invocation_sha256"] == pin(CONTROL / "invocation.json")["sha256"]
+    assert go["verdict_sha256"] == pin(CASE / "review/independent-control-postrun-verdict.json")["sha256"]
+    assert go["source_map_sha256"] == control_sha and go["independent_replay_sha256"] == pin(READER)["sha256"]
+    assert len(child["prior_control"]["files"]) == 25 and set(child["prior_control"]["files"]) == {x.name for x in CONTROL.iterdir()}
+    return {"decision": "GO_PURE_PREFLIGHT", "scope": "one_child_out2_zero_native_ssh5_file_preflight_only",
+            "root_freeze": pin(ROOT_FREEZE), "control_go": pin(CONTROL_GO),
+            "control_manifest": pin(CONTROL_MANIFEST), "child_manifest": pin(CHILD_MANIFEST),
+            "source_inventory": pin(INVENTORY), "child_source_count": len(child_map),
+            "control_source_count": len(control_map), "sealed_control_original_files": 25,
+            "child_source_map_sha256": child_sha, "accepted_custody": custody, "new_native_calls": 0}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write-receipt", action="store_true")
+    args = parser.parse_args()
+    result = audit()
+    body = (json.dumps(result, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if args.write_receipt:
+        with RECEIPT.open("xb") as f:
+            f.write(body)
+    elif RECEIPT.exists():
+        assert RECEIPT.read_bytes() == body
+    print(json.dumps({"decision": result["decision"], "child_source_count": result["child_source_count"],
+                      "sealed_control_original_files": 25, "new_native_calls": 0}, sort_keys=True))

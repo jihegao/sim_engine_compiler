@@ -1,0 +1,154 @@
+"""Author a prospective contract proposal only; never create case inputs or runs."""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import pathlib
+import struct
+import subprocess
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+CASE = ROOT / "cases/simlox-air-support"
+PARENT = CASE / "I03-var01-crew-out-in-v1.0.0"
+ROOT_PROOF = ROOT / "tmp/i03-var03-root-dependency-audit-20261008.json"
+CATALOG = CASE / "publication-index-v1.json"
+BASE = "8981e29847af744993aa6f7a66f689150ca124e5"
+OUTPUT = ROOT / "tmp/i03-var03-prospective-contract-design-v6-20261008.json"
+
+
+def seal(path: pathlib.Path) -> dict:
+    b = path.read_bytes()
+    return {"path": str(path.relative_to(ROOT)).replace("\\", "/"), "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
+
+
+def f32(value: float) -> float:
+    return struct.unpack("<f", struct.pack("<f", value))[0]
+
+
+root_proof = json.loads(ROOT_PROOF.read_text(encoding="utf-8"))
+parent_index = json.loads((PARENT / "evidence-index.json").read_text(encoding="utf-8"))
+parent_source = json.loads((PARENT / "out-input.json").read_text(encoding="utf-8"))
+parent_tables = parent_source["model"]["tables"]
+assert len(parent_tables) == 32
+assert sum(len(i["rows"]) for t in parent_tables for i in t["instances"]) == 24
+assert sum(len(row) for t in parent_tables for i in t["instances"] for row in i["rows"]) == 220
+assert sum(not any(i["rows"] for i in t["instances"]) for t in parent_tables) == 11
+table_names = [t["name"] for t in parent_tables]
+
+reference_gate = json.loads((CASE / "I03-var02-idle-crew-out-v1.0.2/contract.json").read_text(encoding="utf-8"))["report_gate"]
+report_gate = copy.deepcopy(reference_gate)
+report_gate.pop("source_event_integrals_aircraft_hours")
+report_gate.pop("source_event_counts")
+report_gate["source_event_integrals_by_arm"] = {
+    "control_out1": {"NSYRY": 66, "NSYMA": 6, "NSYMO": 4, "NSYMP": 2, "NSYMR": 0, "NSYA": 72, "FTMO": 2, "STACC": 4},
+    "child_out2": {"NSYRY": 65, "NSYMA": 7, "NSYMO": 4, "NSYMP": 2.5, "NSYMR": 0.5, "NSYA": 72, "FTMO": 2, "STACC": 4},
+}
+report_gate["source_event_counts_by_arm"] = {arm: {"NPSTA": 4, "NPSUC": 4} for arm in ("control_out1", "child_out2")}
+report_gate["system_per_bin_formula"] = {
+    "bins": "For each j=0..71 use exact [j/2,(j+1)/2); exposure([a,b),bin)=length(intersection)/0.5. Derive a,b from authored mission and linked typed prep/mission/return events; no candidate report reads in expectation construction.",
+    "assigned": "sum over 2 aircraft x 2 waves of exposure(preparation_start,return); NSYMA=assigned, NSYRY=2-assigned, NSYA=2",
+    "mission": "sum aircraft exposure(launch,return); NSYMO=mission, STACC=mission; FTMO=mission/2 is bounded native per-system fraction, so 72 raw FTMO rows sum4 and their 0.5-hour integral2",
+    "preparation": "For each wave: NSYMP=2*exposure(prep_start,first_prep_end)+exposure(first_prep_end,last_prep_end); NSYMR=exposure(first_prep_end,last_prep_end). These fields overlap and must not be treated as an exclusive partition.",
+    "counts": "NPSTA=two starts in their prep_start bin; NPSUC=one per matching first/last completion in its bin; exact four each",
+    "other_fields": "Every other SystemResults field is in the exhaustive fixed field-class map inherited below; source-event zero, bounded native presentation zero or no-downtime null. No broad default-zero for unknown fields.",
+}
+report_gate["resource_fields"]["per_bin_expected"] = {
+    "control_out1": "NR=NRA=NRN=3 on [0,7.75), 2 on [7.75,36); NRUM=2 [7.5,8) and [19.5,20); NRW=0",
+    "child_out2": "NR=NRA=3 [0,7.75), 2 [7.75,8), 1 [8,36); NRN=3 [0,7.75),1 [7.75,36); NRUM=2 [7.5,8),1 [19.5,20.5); NRW=1 [19.5,20), otherwise0",
+    "clock_separation": "NR/NRA local physically held resources change on positive task start; NRN nominal schedule changes by full requested TFQTY at h7.75. Transfer backorder is not NRW, which is a waiting preparation task.",
+}
+report_gate["resource_fields"]["total_expected_float32"] = {
+    "control_out1": {"NR": f32(79.75/36), "NRA": f32(79.75/36), "NRN": f32(79.75/36), "NRUM": f32(2/36), "NRW": 0},
+    "child_out2": {"NR": f32(51.75/36), "NRA": f32(51.75/36), "NRN": f32(51.5/36), "NRUM": f32(2/36), "NRW": f32(.5/36)},
+}
+report_gate["resource_fields"]["all_other_total_numeric_zero"] = True
+report_gate["numeric_comparison"] = {
+    "exact": "All source times and expected event boundaries 0,7.5,7.75,8,9,19.5,20,20.5,21,21.5,36 are binary-exact. Exact finite numeric comparison for source, discrete, zero, null, whole-bin and fractional [7.5,8) cells; reject bool as numeric and NaN/Inf. No half-last-decimal tolerance for authored 7.75.",
+    "binary32_means": "For exactly NR,NRA,NRN,NRUM,NRW in ResourceResultsTotal, compare parsed finite JSON numeric value exactly to binary32(typed integral/36). Other total fields exact zero or typed identity.",
+    "unexpected_observed_edge": "NO_GO. All prospective source and event edges in this exact case are binary quarter- or half-hours, so there is no uncertainty class or tolerance escape for h7.75, h8, or any other forecast edge. A divergent observed edge requires a separately versioned contract after preserving the failed run.",
+    "metadata": "Full recursive type-exact compare of root/table/column/instance keys, names, order, datatypes and key Boolean, duplicate-key rejection. Native trailing comma repaired only in an in-memory parsing copy; original bytes sealed.",
+}
+report_gate["result_summary_expected"] = reference_gate["result_summary_expected"]
+report_gate["full_cell_oracle"] = "For each arm independently derive all 5210 expectations from that arm's source and fully typed events using the declared field classes, interval formulas and bounded presentation constants. Never copy accepted parent dynamic cells or fit child report. Cross-arm difference is diagnostic only. Unknown physical formula or unexplained cell is NO_GO."
+
+cat_bytes = CATALOG.read_bytes()
+git_record = subprocess.check_output(["git", "ls-tree", BASE, "--", "cases/simlox-air-support/publication-index-v1.json"], cwd=ROOT).decode().strip()
+oid = git_record.split()[2]
+git_bytes = subprocess.check_output(["git", "cat-file", "blob", oid], cwd=ROOT)
+current_catalog = json.loads(cat_bytes)
+assert len(current_catalog["entries"]) == 493
+assert current_catalog["schema"] == "simlox-air-support-publication-index/v1"
+catalog_meta = {k: current_catalog[k] for k in current_catalog if k != "entries"}
+
+doc_paths = ["AGENTS.md", "README.md", "docs/architecture.md", "docs/semantic-baseline.md", "docs/roadmap.md", "cases/simlox-air-support/execution-plan-v2.md", "cases/simlox-air-support/ssh-cli-acceptance-policy-v1.md", "cases/simlox-air-support/catalog-v2.json"]
+installed = json.loads((CASE / "I03-var11-out-unarrived-horizon-v1.0.0/contract.json").read_text(encoding="utf-8"))["source_lineage"]["installed"]
+
+contract = {
+    "schema": "simlox-air-support-i03-var03-prospective-contract-design/v6",
+    "phase": "CONTRACT_DESIGN_ONLY_INDEPENDENT_GO_REQUIRED",
+    "case_id": "I03",
+    "variant_id": "I03.var03",
+    "version": "1.0.0-proposal",
+    "package_proposed_absent": "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0",
+    "publication_state": "not_created_not_accepted",
+    "run_ids_proposed_absent": ["i03-var03-control-out1-v100-ssh-20261008-01", "i03-var03-child-out2-v100-ssh-20261008-01"],
+    "new_native_calls": 0,
+    "accepted_parent_reruns": 0,
+    "scope": "One matched opening-three P-CREW OUT quantity contrast at h7.75: OUT1 versus OUT2, with exactly one initially idle crew and two occupied until h8. Prospective one immediate plus one later positive tranche in child; source-specific fixed seed, two waves, zero TFDT, BASE-01 to OUT, horizon36 only.",
+    "source_delta": {
+        "base": {"path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/out-input.json", "bytes": 43349, "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"},
+        "parent_model": {"database_version": 20160627, "tables": 32, "authored_rows": 24, "authored_cells": 220, "empty_tables": [t["name"] for t in parent_tables if not any(i["rows"] for i in t["instances"])], "tables_in_order": table_names},
+        "shared_changes": [{"table": "ResourceAllocation", "key": ["AIR_BASIC", "P-CREW", "BASE-01"], "column": "RQTY", "from": 2, "to": 3}],
+        "per_arm_changes": {
+            "control_out1": [{"table": "ProblemDescription", "column": "PDESC", "to": "I03.var03 matched control: opening three P-CREW, one OUT at 7.75"}],
+            "child_out2": [{"table": "ProblemDescription", "column": "PDESC", "to": "I03.var03 matched child: opening three P-CREW, two OUT at 7.75"}, {"table": "ResourceTransfer", "key": ["BASE-01", "<OUTSIDE>", "P-CREW", 7.75], "column": "TFQTY", "from": 1, "to": 2}],
+        },
+        "unchanged_gate": "All other authored values, root/model/table/column/instance metadata and table order type-exact from accepted parent; TFDT stays0, two wave DTIM1, NREPS1, seed1, SIMPE36, RCINT.5/RCEND36, ENLOG Y, mission DURN1 and TFOUT/TFRET each dimensionless fraction .25. Never normalize native export or alter source after failure.",
+        "native_roundtrip": "All32 tables including11 empty placeholders and every authored cell/metadata must equal each arm's input before calc. Native empty table may export exactly one all-null placeholder row as bounded format; never confuse it with an authored nonempty row.",
+    },
+    "event_ledger": {
+        "control_out1_hypothesis": "At h7.5 two aircraft each book one crew; h7.75 one available crew physically and nominally leaves in one positive zero-duration OUT tranche; no transfer backorder. Both prep complete h8, first formation departs h8, completes/returns h9; second wave two parallel preps [19.5,20), departure h20, completion/return h21. Terminal local crew2, free2, booked0, pendingOUT0, completedOUT1, aircraft ready2.",
+        "child_out2_hypothesis": "At h7.5 two aircraft each book one crew; h7.75 request2, nominal decreases2, one available crew physically leaves in a positive zero-duration tranche, one transfer backorder remains. At h8 positive second tranche qty1 follows one/both prep releases with exact causal linkage, no double decrement, backorder closes. First formation h8–9. Second wave one remaining local crew forces serial prep [19.5,20) and [20,20.5), departure20.5, completion/return21.5. Terminal local crew1, free1, booked0, pendingOUT0, completedOUT2, aircraft ready2.",
+        "task_linkage": "Parse full timed and untimed log, not loose substring matches: request/quantity, backorder snapshots, each created/started/arrived transfer task (including zero-unit diagnostic tasks if any), positive tranche sums, preparation booking/deallocation/wait, aircraft IDs, mission lifecycle, queue/availability and return/ready lines; preserve same-time causal line order. Never assume inherited task IDs; no unknown extra typed event or early cancellation.",
+        "conservation": "At each transition local physically held + positive completed OUT = opening3; local free + booked = physically held when no transfer in progress. Separately retain requested/nominal, backordered and completed quantities; no persistent observed OUTSIDE-person identity claim.",
+        "control_intervals": [{"start": 0, "end": 7.75, "NR_NRA_NRN": 3}, {"start": 7.75, "end": 36, "NR_NRA_NRN": 2}],
+        "child_intervals": [{"start": 0, "end": 7.75, "NR_NRA": 3, "NRN": 3}, {"start": 7.75, "end": 8, "NR_NRA": 2, "NRN": 1}, {"start": 8, "end": 36, "NR_NRA": 1, "NRN": 1}],
+        "distinct_waiting": "Child one preparation waits [19.5,20) for crew, giving NRW .5 crew-hour. Transfer backorder [7.75,8) is NOT preparation NRW.",
+        "terminal": "Source h36 closes all missions and transfer tasks, no crew booked or backorder. Two ready aircraft. No new IN/BETWEEN/shift-rest/per-person claim.",
+    },
+    "report_gate": report_gate,
+    "native_and_provenance_gate": {
+        "stage_order_each_arm": ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"],
+        "both_runs": "Use two serial, separately approved native runs in this exact order: control_out1 then child_out2. Each arm requires its own exact frozen manifest/input/run ID/runner/method, actual zero-native SSH5 -PreflightOnly receipt with absent *that arm's* run path, and separate independent GO_PRELAUNCH bound to that arm's exact source map and receipt. The first approval does not authorize the second. After control finishes naturally, first seal its original raw/closure, verify every integer0 capture, valid checker JSON, all 5,210 control cells and complete typed ledger. On any failure preserve NO_GO and do NOT conduct the child's preflight or launch. Only after a control GO may root start a fresh child -PreflightOnly, independent approval, and launch sequence. Before each native dispatch root freshly rechecks GUI identity/responsiveness, WTS, mutex, sshd ancestry, broad runner absence, source hashes and that arm's unique absent run path; control's existing sealed run is expected during child preflight and must not be treated as an absent child. Hold the serial mutex through each natural child completion. Never rerun accepted parent. No stop/kill/timeout/retry.",
+        "capture": "Actual PS5 session0/sshd ancestry, sole protected responding GUI13340/session1/start1790590196826/WTS active, broad competing-runner guard, native/checker PID/session/int OS exit/UTC/program/argv, original byte stdout/stderr, source before/after, 23 raw seals per six-step arm if same topology, closure/failure even on NO_GO. Exact counts are confirmed from generated runner schema before approval, never inferred from a synthetic fixture.",
+        "converter": {"each_arm_summary_exact": "Input conversion completed. Errors: 0, Warnings: 2, Notes: 0", "ordered_warning_records_exactly_once_each": [{"form": "Control", "record": 1, "code": 108, "line": "rec 1: (warning #108) Enabling simulation log may generate extensive data in log file", "source_reason": "Control.ENLOG=Y"}, {"form": "System", "record": 1, "code": 126, "line": "rec 1: (warning #126) This system contains no items: TEACH-AIR-01", "source_reason": "fixed System TEACH-AIR-01 has no Item rows"}], "matching_rule": "Decode sealed native run.log, permit only native CRLF/LF line-ending representation and separately verified arm-specific Input/Output file paths. Require exact Form: Control then Form: System section ownership, exact rec/code/message lines with anchored whole-line equality and order, exactly one of each, no other warning/error/note record and no source identity mismatch. Require exactly one exact summary line. A warning code seen in unrelated text or wrong form/record does not count.", "stage_gate": "Run the known six stages in order: import→export→check_import_export→calc→jsonreport→check_behavior. Before calc, require only exact source/input/export full32-table type-sensitive roundtrip and roundtrip checker actual integer0 plus valid versioned JSON/typed pass; run.log converter diagnostics do not exist yet. After calc exits actual integer0 and its original run.log is sealed, require the exact two warning records and Errors0/Warnings2/Notes0 summary above as an internal runner gate BEFORE launching jsonreport or accepting behavior. If run.log is missing/uncaptured, warning ownership/text/count differs, SXI/SXO is absent/invalid, or an error/extra note appears, seal NO_GO immediately and do not start jsonreport or check_behavior. No extra native/test stage or retry. Preserve every failure unchanged."},
+    },
+    "source_lineage": {
+        "base_commit": BASE,
+        "root_selection_guard": {"path": "tmp/issue18-next-owner-proof-20261008/receipt.json", "bytes": 816, "sha256": "af0987f52ee90f4796232841feffac8c33462ad8aff3e5de5e1a165fc3033ba5"},
+        "root_dependency_audit": seal(ROOT_PROOF),
+        "accepted_parent_evidence_index": seal(PARENT / "evidence-index.json"),
+        "accepted_parent_source_disk_git_at_base": root_proof["parent_source_disk_git"],
+        "accepted_parent_original_raw": root_proof["parent_original_raw"],
+        "accepted_prerequisite_indexes": [seal(CASE / p) for p in ["C03-var01-staffing-v0.1.1/evidence-index.json", "C08-partial-pool-v1.0.0/evidence-index.json", "C08-shift-maxut-v1.0.0/evidence-index.json"]],
+        "required_docs": [seal(ROOT / p) for p in doc_paths],
+        "installed": installed,
+        "catalog_at_design": {"path": "cases/simlox-air-support/publication-index-v1.json", "entries": 493, "local_disk": {"bytes": len(cat_bytes), "sha256": hashlib.sha256(cat_bytes).hexdigest()}, "published_git_at_base": {"oid": oid, "bytes": len(git_bytes), "sha256": hashlib.sha256(git_bytes).hexdigest()}, "metadata": catalog_meta, "later_owned_archive_required": "At case construction, archive these exact local493 bytes in an inert owned source and retain distinct Git blob identity. Before launch require live exact493 point-time bytes; after authorized append always validate mandatory archive and typed metadata/prefix493/unique IDs, with no conditional dropped check or mutable live catalog SHA misrepresented as current source."},
+        "draft_history": [seal(ROOT / p) for p in ["tmp/i03-var03-batch-contract-design-draft-v1-20261008.md", "tmp/i03-var03-batch-contract-design-20261008.md", "tmp/i03-var03-batch-contract-design-v2-20261008.md", "tmp/i03-var03-batch-contract-design-v3-20261008.md", "tmp/i03-var03-batch-contract-design-v4-20261008.md", "tmp/i03-var03-independent-design-v2-no-go-20261008.md", "tmp/i03-var03-ftmo-review-correction-20261008.md", "tmp/make-i03-var03-prospective-contract-design-failed-v1-20261008.py", "tmp/make-i03-var03-prospective-contract-design-v1-preserved-20261008.py", "tmp/i03-var03-prospective-contract-design-v1-preserved-20261008.json", "tmp/make-i03-var03-prospective-contract-design-v2-20261008.py", "tmp/i03-var03-prospective-contract-design-v2-20261008.json", "tmp/make-i03-var03-prospective-contract-design-v3-20261008.py", "tmp/i03-var03-prospective-contract-design-v3-20261008.json", "tmp/make-i03-var03-prospective-contract-design-v4-20261008.py", "tmp/i03-var03-prospective-contract-design-v4-20261008.json", "tmp/i03-var03-independent-contract-design-v4-no-go-20261008.md", "tmp/make-i03-var03-prospective-contract-design-v5-20261008.py", "tmp/i03-var03-prospective-contract-design-v5-20261008.json", "tmp/i03-var03-independent-contract-design-audit-v5-20261008.py", "tmp/i03-var03-independent-contract-design-v5-no-go-20261008.md"]],
+    },
+    "negative_probes_required": [
+        "wrong parent/source hash, missing table, changed metadata key Bool→int, duplicate JSON key or table/instance, nonfinite numeric, extra source cell, altered TFDT or opening3/TFQTY contrast",
+        "no positive h7.75 tranche, missing second positive child tranche, wrong transfer quantity or order, extra/double decrement, lingering backorder, cancellation, unlinked zero task, altered busy booking/wait interval, wrong terminal local/nominal/free/booked",
+        "physical NR versus scheduled NRN swapped, h7.75 fractional half-bin wrong by exact .5, binary32 adjacent ULP in each of five total means, exact zero to tiny nonzero, null to zero, hidden extra report column/row/table",
+        "wrong System integral or FTMO raw-sum/time-integral confusion; altered h20 vs h20.5 second wave; extra aircraft return/ready/mission; source/raw/custody/GUI/session/run/approval/preflight mutation",
+    ],
+    "limits": "Prospective fixed-seed source-specific matched OUT1/OUT2 batch, not accepted native behavior. No BETWEEN/IN/equipment/person identity/other capacities/shift max-rest/priority versus simultaneous ordinary request/GUI visual/performance/cross-engine/general I03 claim. Synthetic pure fixture never accepted native result. Unknown report physical formula or unexpected topology/timing is NO_GO, not expectation fitting.",
+}
+
+assert len(contract["report_gate"]["topology"]) == 6
+assert sum(t["rows"] * len(t["columns"]) for t in contract["report_gate"]["topology"]) == 5210
+assert len(contract["source_lineage"]["accepted_parent_source_disk_git_at_base"]) == 17
+assert len(contract["source_lineage"]["accepted_parent_original_raw"]) == 34
+OUTPUT.write_text(json.dumps(contract, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+print(json.dumps({"output": str(OUTPUT), "bytes": OUTPUT.stat().st_size, "sha256": hashlib.sha256(OUTPUT.read_bytes()).hexdigest(), "parent_source_pairs": 17, "parent_raw": 34, "report_cells_each": 5210}, sort_keys=True))
