@@ -1,0 +1,83 @@
+"""One approved zero-native SSH5 -File preflight and original proof freeze."""
+from pathlib import Path
+import datetime as dt
+import hashlib,json,re,stat,subprocess,sys
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0'
+OUT=ROOT/'tmp/i03-var05-root-ssh-preflight-20261008-01'
+GO=ROOT/'tmp/i03-var05-independent-pure-preflight-go-20261008.md'
+MAN=CASE/'prelaunch-manifest.json'
+TRANSPORT=CASE/'ssh_transport.py'
+RUN_ID='i03-var05-in-zero-delay-v100-ssh-20261008-01'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+def freeze(p):
+ p.chmod(stat.S_IREAD)
+ assert p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ freeze(p)
+assert not OUT.exists()
+assert pin(GO.read_bytes())=={'bytes':3477,'sha256':'3300000cbefa8e7a803185a625ab590297c152f1c8404ce26fffe1abed815680'}
+assert GO.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+assert pin(MAN.read_bytes())=={'bytes':107588,'sha256':'1f9782187297b5bf7f20e4c3876b1ff0b38da6124d901f85f97e84caea8c4a24'}
+assert not (CASE/'runs').exists() and not (CASE/'transport-evidence').exists()
+assert not list((CASE/'review').glob('preflight-ssh0-*')) and not (CASE/'review/independent-prelaunch-go.json').exists()
+m=json.loads(MAN.read_bytes());assert m['source_count']==len(m['source_files'])==313
+expected={r['key']:r['sha256'] for r in m['source_files']};assert len(expected)==313
+def verify():
+ for r in m['source_files']:assert pin(Path(r['path']).read_bytes())=={k:r[k] for k in ('bytes','sha256')},r['key']
+verify()
+Path(__file__).chmod(stat.S_IREAD);OUT.mkdir()
+receipt={'schema':'i03-var05-root-ssh-preflight/v1','decision':'IN_PROGRESS','started_utc':utc(),
+ 'approval_scope':'One actual SSH5 -File -PreflightOnly, zero native calls',
+ 'pure_go':pin(GO.read_bytes()),'manifest':pin(MAN.read_bytes()),'wrapper':pin(Path(__file__).read_bytes()),
+ 'native_calls':0,'native_launch_approved':False,'error':None}
+try:
+ argv=[sys.executable,'-X','utf8','-B',str(TRANSPORT),'preflight']
+ r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+ save(OUT/'transport-command-stdout.bin',r.stdout);save(OUT/'transport-command-stderr.bin',r.stderr)
+ receipt.update(argv=argv,actual_exit=r.returncode,stdout=pin(r.stdout),stderr=pin(r.stderr))
+ assert type(r.returncode) is int and r.returncode==0 and not r.stderr,'preflight command failed'
+ d=json.loads(r.stdout);assert d['mode']=='preflight' and type(d['exit_code']) is int and d['exit_code']==0 and d['error'] is None
+ folder=Path(d['evidence_dir']).resolve(strict=True)
+ assert folder.parent==(CASE/'transport-evidence').resolve() and folder.name.startswith('ssh-preflight-')
+ assert {p.name for p in folder.iterdir()}=={'ssh-stdout.bin','ssh-stderr.bin','transport-receipt.json'}
+ transport=json.loads((folder/'transport-receipt.json').read_bytes())
+ assert transport['schema']=='i03-var05-in-zero-ssh-transport/v1' and transport['mode']=='preflight'
+ assert type(transport['exit_code']) is int and transport['exit_code']==0 and transport['error'] is None
+ assert type(transport['native_approved']) is bool and transport['native_approved'] is False
+ assert transport['run_id']==RUN_ID and transport['manifest_sha256']==pin(MAN.read_bytes())['sha256']
+ assert transport['command'][-1]=='-PreflightOnly' and '-File' in transport['command']
+ assert transport['runner_sha256']==expected['runner_script'] and transport['transport_sha256']==pin(TRANSPORT.read_bytes())['sha256']
+ for name,wanted in transport['streams'].items():assert pin((folder/name).read_bytes())==wanted
+ assert (folder/'ssh-stderr.bin').read_bytes()==b''
+ path=Path((folder/'ssh-stdout.bin').read_bytes().decode('utf-8-sig').strip()).resolve(strict=True)
+ assert path.parent==(CASE/'review').resolve() and re.fullmatch(r'preflight-ssh0-\d{8}T\d{9}Z\.json',path.name)
+ pre=json.loads(path.read_bytes())
+ assert pre['schema']=='i03-var05-in-zero-ssh-preflight/v1' and pre['run_id']==RUN_ID
+ for k,v in [('ssh_session',0),('ps_major',5),('wts_active_gui_count',1),('accepted_raw_seals',112),
+  ('accepted_nonclosure_raw',101),('accepted_closures',7),('accepted_invocations',4),('excluded_failed_witness_raw',0),('total_original_raw',112)]:
+  assert type(pre[k]) is int and pre[k]==v,k
+ for k,v in [('mutex_free',True),('run_dirs_absent',True),('native_process_started',False)]:assert type(pre[k]) is bool and pre[k] is v,k
+ assert pre['gui']=={'pid':13340,'session_id':1,'start_unix_ms':1790590196826,'responding':True}
+ assert all(type(pre['gui'][k]) is int for k in ('pid','session_id','start_unix_ms')) and type(pre['gui']['responding']) is bool
+ assert 'sshd.exe' in pre['ssh_ancestors'] and pre['source_hashes']==expected
+ map_sha=hashlib.sha256(json.dumps(expected,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+ assert pre['source_map_sha256']==map_sha and pre['manifest_sha256']==pin(MAN.read_bytes())['sha256']
+ verify();assert not (CASE/'runs').exists()
+ for p in folder.iterdir():freeze(p)
+ freeze(path)
+ receipt.update(decision='GO_ACTUAL_ZERO_NATIVE_PREFLIGHT_ONLY',transport_dir=str(folder),
+  transport_files={p.name:pin(p.read_bytes()) for p in folder.iterdir()},preflight_path=str(path),
+  preflight=pin(path.read_bytes()),source_map_sha256=map_sha,source_records_revalidated=313,
+  gui=pre['gui'],ssh_session=0,powershell_major=5,mutex_free=True,run_absent=True,
+  limits='Fresh independent receipt-based GO_PRELAUNCH and fresh root live ownership/GUI/mutex guard still required before native.')
+except BaseException as exc:
+ receipt.update(decision='NO_GO_PRESERVED',error=f'{type(exc).__name__}: {exc}')
+finally:
+ receipt['completed_utc']=utc()
+ data=(json.dumps(receipt,indent=2)+'\n').encode();save(OUT/'receipt.json',data)
+print(json.dumps({'decision':receipt['decision'],'receipt':pin(data),'preflight_path':receipt.get('preflight_path'),
+ 'preflight':receipt.get('preflight'),'transport_dir':receipt.get('transport_dir'),'error':receipt['error']}))
+assert receipt['decision']=='GO_ACTUAL_ZERO_NATIVE_PREFLIGHT_ONLY'

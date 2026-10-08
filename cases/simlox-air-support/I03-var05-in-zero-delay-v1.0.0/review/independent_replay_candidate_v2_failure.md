@@ -1,0 +1,3 @@
+# Independent reader candidate v2 failure
+
+`independent_replay_candidate_v2.py` is 20,710 bytes, SHA-256 `ce9231541d0905013976e60f252960a5c41a084f4555bb291563af4ea347f34f`. Its read-only pure replay failed at `ResourceTransfer.columns[0]` because the accepted export changes JSON object member order within otherwise identical column metadata. JSON object order is not schema order; list order of tables, columns, instances, and rows remains exact. The repair compares exact metadata key sets and recursively exact typed values, without requiring object-member order. The traceback is a command tool transcript only; original stdout/stderr bytes were not captured. No native or source evidence changed.

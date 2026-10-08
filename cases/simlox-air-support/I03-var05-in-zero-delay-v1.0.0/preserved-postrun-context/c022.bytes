@@ -1,0 +1,22 @@
+from pathlib import Path
+import hashlib,json,stat,subprocess,sys
+ROOT=Path(__file__).resolve().parents[1]
+old=ROOT/'tmp/i03-var05-root-postrun-seal-audit-20261008.py'
+new=ROOT/'tmp/i03-var05-root-postrun-seal-audit-v2-20261008.py'
+out=ROOT/'tmp/i03-var05-root-postrun-audit-proof-20261008-01'
+assert not new.exists() and not out.exists()
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+b=old.read_bytes();old.chmod(stat.S_IREAD)
+assert b.count(b"raw=cl['raw_files']")==1
+save(new,b.replace(b"raw=cl['raw_files']",b"raw=cl['raw']"));out.mkdir()
+save(out/'preserved-first-audit-failure.json',(json.dumps({'schema':'i03-var05-root-postrun-audit-failure/v1','excluded':True,'draft':pin(b),'actual_exit':1,'decoded_tool_error':"KeyError: 'raw_files' at line34; actual closure key is raw",'original_binary_streams_available':False,'native_calls':0,'source_raw_unchanged':True,'recovery':'New v2 changes only closure raw key; original draft retained RO.'},indent=2)+'\n').encode())
+argv=[sys.executable,'-X','utf8','-B',str(new)]
+r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+save(out/'stdout.bin',r.stdout);save(out/'stderr.bin',r.stderr)
+save(out/'receipt.json',(json.dumps({'schema':'i03-var05-root-postrun-audit-capture/v1','argv':argv,'actual_exit':r.returncode,'script':pin(new.read_bytes()),'stdout':pin(r.stdout),'stderr':pin(r.stderr),'native_calls':0},indent=2)+'\n').encode())
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'actual_exit':r.returncode,'stdout':r.stdout.decode('utf-8'),'stderr':r.stderr.decode('utf-8'),'receipt':pin((out/'receipt.json').read_bytes())}))
+assert type(r.returncode) is int and r.returncode==0 and not r.stderr

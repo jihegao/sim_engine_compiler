@@ -1,0 +1,147 @@
+"""Read-only source, accepted-parent and prospective in-memory mutation checks."""
+from __future__ import annotations
+
+import copy
+import json
+import math
+from pathlib import Path
+import struct
+import tempfile
+
+from build import construct, exact_diff, typed_equal
+from check_roundtrip import parse
+from event_ledger import PARENT_LOG, prospective_child_lines, validate, validate_lines
+from report_oracle import PARENT_REPORT, check_report, expected
+from source_gate import unique_json, verify
+
+HERE = Path(__file__).resolve().parent
+
+
+def rejected(call) -> None:
+    try:
+        call()
+    except (AssertionError, ValueError, KeyError, IndexError, TypeError):
+        return
+    raise AssertionError("semantic mutation escaped production gate")
+
+
+def f32_neighbor(value: float, direction: int) -> float:
+    bits = struct.unpack("<I", struct.pack("<f", value))[0]
+    assert value > 0 and direction in (-1, 1)
+    return struct.unpack("<f", struct.pack("<I", bits + direction))[0]
+
+
+def run() -> dict:
+    verify("live")
+    design = json.loads((HERE / "contract.json").read_text(encoding="utf-8"))
+    parent_source = json.loads((HERE.parent / "I03-var01-crew-out-in-v1.0.0" / "out_in-input.json").read_text(encoding="utf-8"))
+    child_source = json.loads((HERE / "native-input.json").read_text(encoding="utf-8"))
+    assert typed_equal(child_source, construct(parent_source, design))
+    assert len(exact_diff(parent_source, child_source, design)["changes"]) == 2
+    parent_timeline = validate(PARENT_LOG, parent=True)
+    assert check_report(parse(PARENT_REPORT), parent_timeline, parent=True) == 5210
+    child_lines = prospective_child_lines()
+    child_timeline = validate_lines(child_lines, parent=False)
+    parent_rows = expected(parent_timeline, parent=True)
+    child_rows = expected(child_timeline, parent=False)
+    differences = [(table, index, field) for table in parent_rows
+                   for index, (a, b) in enumerate(zip(parent_rows[table], child_rows[table]))
+                   for field in a if a[field] != b[field]]
+    assert differences == [
+        ("ResourceResults", 20, "NR"), ("ResourceResults", 20, "NRA"),
+        ("ResourceResults", 20, "NRN"), ("ProblemDescription", 0, "PDESC"),
+        ("ResourceResultsTotal", 0, "NR"), ("ResourceResultsTotal", 0, "NRA"),
+        ("ResourceResultsTotal", 0, "NRN"),
+    ], differences
+    probes = 0
+
+    def log_mutation(old: str, new: str, *, occurrence: int = 0) -> None:
+        nonlocal probes
+        positions = [i for i, line in enumerate(child_lines) if line == old]
+        assert len(positions) > occurrence, old
+        changed = child_lines.copy()
+        changed[positions[occurrence]] = new
+        rejected(lambda: validate_lines(changed, parent=False))
+        probes += 1
+
+    log_mutation("Time: 10  resource transfer task 2 (IN)  starts with 1 resources, transfer time: 0",
+                 "Time: 10  resource transfer task 2 (IN)  starts with 1 resources, transfer time: 0.5")
+    log_mutation("Time: 10  resource transfer task 2 (IN)  arrives with 1 resources",
+                 "Time: 10.5  resource transfer task 2 (IN)  arrives with 1 resources")
+    log_mutation("Time: 10  <P-CREW at <BASE-01,0>> transfer arrives: 1",
+                 "Time: 10  <P-CREW at <BASE-01,0>> transfer arrives: 2")
+    log_mutation("Time: 8  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 1",
+                 "Time: 8  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 2", occurrence=1)
+    log_mutation("  Resource transfer backorders at:  <P-CREW at <BASE-01,0>> Nbr: 0",
+                 "  Resource transfer backorders at:  <P-CREW at <BASE-01,0>> Nbr: 2")
+    log_mutation("Time: 8  resource transfer task 1 (OUT)  starts with 1 resources, transfer time: 0",
+                 "Time: 8  resource transfer task 1 (OUT)  starts with 0 resources, transfer time: 0")
+    # Same-time causal reversal must fail even though all individual typed lines remain.
+    swapped = child_lines.copy()
+    arrival = swapped.index("Time: 10  resource transfer task 2 (IN)  arrives with 1 resources")
+    receipt = swapped.index("Time: 10  <P-CREW at <BASE-01,0>> transfer arrives: 1")
+    swapped[arrival], swapped[receipt] = swapped[receipt], swapped[arrival]
+    rejected(lambda: validate_lines(swapped, parent=False))
+    probes += 1
+    swapped = child_lines.copy()
+    book0 = swapped.index("Time: 7.5  subtask 0 seqno 1 within system preparation task 0 on <TEACH-AIR-01,0> books resources")
+    book1 = swapped.index("Time: 7.5  subtask 1 seqno 1 within system preparation task 1 on <TEACH-AIR-01,1> books resources")
+    swapped[book0], swapped[book1] = swapped[book1], swapped[book0]
+    rejected(lambda: validate_lines(swapped, parent=False))
+    probes += 1
+    swapped = child_lines.copy()
+    free0 = swapped.index("Time: 8  subtask 0 seqno 1 within system preparation task 0 on <TEACH-AIR-01,0> frees resources")
+    released0 = swapped.index("Time: 8  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 1")
+    swapped[free0], swapped[released0] = swapped[released0], swapped[free0]
+    rejected(lambda: validate_lines(swapped, parent=False))
+    probes += 1
+    duplicated = child_lines.copy()
+    duplicated.insert(receipt, duplicated[receipt])
+    rejected(lambda: validate_lines(duplicated, parent=False))
+    probes += 1
+    missing = child_lines.copy()
+    missing.remove("  Free resources at: <BASE-01,0> P-CREW 2")
+    rejected(lambda: validate_lines(missing, parent=False))
+    probes += 1
+
+    report = parse(PARENT_REPORT)
+    mutated = copy.deepcopy(report)
+    mutated["report"]["tables"][1]["instances"][0]["rows"][0][0] = 1.0
+    rejected(lambda: check_report(mutated, parent_timeline, parent=True))
+    probes += 1
+    mutated = copy.deepcopy(report)
+    mutated["report"]["tables"][4]["instances"][0]["rows"][20][4] += 0.5
+    rejected(lambda: check_report(mutated, parent_timeline, parent=True))
+    probes += 1
+    mutated = copy.deepcopy(report)
+    value = mutated["report"]["tables"][5]["instances"][0]["rows"][0][2]
+    mutated["report"]["tables"][5]["instances"][0]["rows"][0][2] = f32_neighbor(value, 1)
+    rejected(lambda: check_report(mutated, parent_timeline, parent=True))
+    probes += 1
+    mutated = copy.deepcopy(report)
+    mutated["report"]["tables"][2]["instances"][0]["rows"][0][0] = "wrong unit"
+    rejected(lambda: check_report(mutated, parent_timeline, parent=True))
+    probes += 1
+    mutated = copy.deepcopy(report)
+    mutated["report"]["tables"].append(copy.deepcopy(mutated["report"]["tables"][-1]))
+    rejected(lambda: check_report(mutated, parent_timeline, parent=True))
+    probes += 1
+    wrong_source = copy.deepcopy(child_source)
+    transfer = next(t for t in wrong_source["model"]["tables"] if t["name"] == "ResourceTransfer")
+    transfer["instances"][0]["rows"][1][5] = False
+    rejected(lambda: exact_diff(parent_source, wrong_source, design))
+    probes += 1
+    rejected(lambda: unique_json(b'{"nested":{"value":1e999}}'))
+    probes += 1
+    with tempfile.TemporaryDirectory(prefix="i03-var05-pure-parser-") as folder:
+        synthetic = Path(folder) / "roundtrip-raw.json"
+        synthetic.write_bytes(b'{"model":{"value":1e999}}')
+        rejected(lambda: parse(synthetic))
+        probes += 1
+    return {"schema": "i03-var05-pure-self-check/v1", "accepted_parent_report_cells": 5210,
+            "prospective_child_expected_cells": 5210, "distinct_child_expected_cells": len(differences),
+            "semantic_mutations_rejected": probes, "native_calls": 0}
+
+
+if __name__ == "__main__":
+    print(json.dumps(run(), sort_keys=True))

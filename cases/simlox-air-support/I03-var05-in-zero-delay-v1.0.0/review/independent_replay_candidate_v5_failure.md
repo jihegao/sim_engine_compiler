@@ -1,0 +1,3 @@
+# Independent reader candidate v5 failure
+
+`independent_replay_candidate_v5.py` is 30,116 bytes, SHA-256 `4dd02ee5f6739f63d55a95cd30c5335b1ccaa9e1f938d2846d80959a04564299`. The new eventwise ledger first failed at accepted line 60, h7.75 OUT task creation, before the separate demand-arrival line. It incorrectly used `current_hour >= 7.75` to decrement nominal crew at every h7.75 microstep. The corrected ledger counts the actual typed OUT demand event; nominal changes only when that event occurs. Original traceback is tool transcript only, without captured stream bytes. No native or author source changed.

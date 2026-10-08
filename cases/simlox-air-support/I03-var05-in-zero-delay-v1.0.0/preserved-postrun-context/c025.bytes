@@ -1,0 +1,47 @@
+"""Root appends one reviewed prospective entry and captures narrow plan checks."""
+from pathlib import Path
+import hashlib,json,stat,subprocess,sys
+ROOT=Path(__file__).resolve().parents[1]
+C=ROOT/'cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0'
+CAT=ROOT/'cases/simlox-air-support/publication-index-v1.json'
+E=C/'publication-entry.json'
+OUT=ROOT/'tmp/i03-var05-root-catalog-regression-20261008-01'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+def typed(a,b):
+ if type(a) is not type(b):return False
+ if isinstance(a,dict):return a.keys()==b.keys() and all(typed(a[k],b[k]) for k in a)
+ if isinstance(a,list):return len(a)==len(b) and all(typed(x,y) for x,y in zip(a,b))
+ return a==b
+assert len(sys.argv)==2 and not OUT.exists()
+assert pin(E.read_bytes())['sha256']==sys.argv[1] and E.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT).decode().strip()=='b321a5d0b19fc016e4473c04e17615458db556f9'
+assert subprocess.check_output(['git','diff','--name-only'],cwd=ROOT)==b''
+assert subprocess.check_output(['git','diff','--cached','--name-only'],cwd=ROOT)==b''
+before=CAT.read_bytes();assert pin(before)=={'bytes':527959,'sha256':'933d4172522c9ef3e8afc0f97bfd0e67ce4823812906cef25265076ab3697320'}
+old=json.loads(before);entry=json.loads(E.read_bytes());assert len(old['entries'])==494
+assert entry['publication_id']=='I03.var05.in_zero_delay.1.0.0' and entry['package']==C.name
+assert not any(e['publication_id']==entry['publication_id'] for e in old['entries'])
+assert not any(e.get('variant_id')=='I03.var05' for e in old['entries'])
+new=json.loads(before);new['entries'].append(entry)
+after=(json.dumps(new,ensure_ascii=False,indent=2)+'\n').replace('\n','\r\n').encode('utf-8')
+assert typed(old['entries'],new['entries'][:494])
+assert typed({k:v for k,v in old.items() if k!='entries'},{k:v for k,v in new.items() if k!='entries'})
+OUT.mkdir();CAT.write_bytes(after);Path(__file__).chmod(stat.S_IREAD)
+records=[]
+for name,args in [('catalog',['cases/simlox-air-support/tools/check_catalog_v2.py']),('tests',['-m','unittest','discover','-s','tests/conformance','-p','test_simlox_manual_catalog_v2.py','-v'])]:
+ argv=[sys.executable,'-X','utf8','-B',*args];r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+ streams={}
+ for label,b in [('stdout',r.stdout),('stderr',r.stderr)]:
+  path=OUT/(name+'-'+label+'.bin');save(path,b);streams[label]={'path':str(path),**pin(b)}
+ records.append({'name':name,'argv':argv,'actual_exit':r.returncode,'streams':streams})
+result={'schema':'i03-var05-root-catalog-append-planning-regression/v1','decision':'PASS_PLANNING_ONLY' if all(type(r['actual_exit']) is int and r['actual_exit']==0 for r in records) else 'NO_GO_PRESERVED',
+ 'catalog_before':pin(before),'catalog_after':pin(after),'entry':pin(E.read_bytes()),'entries_before':494,'entries_after':495,'prior494_and_metadata_type_exact':True,
+ 'case_ids':len({e['case_id'] for e in new['entries']}),'commands':records,'new_native_calls':0,
+ 'scope':'Planning consistency only, independent original native postrun is separate',
+ 'full_local_source_mapping':'M-B03 OperationProfile.MTID installed dictionary absence remains; no --verify-local-sources retry'}
+data=(json.dumps(result,indent=2)+'\n').encode();save(OUT/'receipt.json',data)
+print(json.dumps({'decision':result['decision'],'receipt':pin(data),'catalog_after':pin(after),'entries':495}))
+assert result['decision']=='PASS_PLANNING_ONLY'

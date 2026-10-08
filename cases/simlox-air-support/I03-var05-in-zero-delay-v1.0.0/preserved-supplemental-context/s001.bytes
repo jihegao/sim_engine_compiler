@@ -1,0 +1,159 @@
+"""Independent direct byte/provenance check of the sole sealed I03.var05 child run."""
+from __future__ import annotations
+
+import hashlib
+import json
+from datetime import datetime
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+CASE = REPO / "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0"
+RUN_ID = "i03-var05-in-zero-delay-v100-ssh-20261008-01"
+RUN = CASE / "runs" / RUN_ID
+NATIVE_TRANSPORT = CASE / "transport-evidence/ssh-native-20261008T013558073898Z-67a983c9"
+ROOT = REPO / "tmp/i03-var05-root-native-dispatch-20261008-01/receipt.json"
+REPLAY = REPO / "tmp/i03-var05-independent-postrun-capture-20261008-01/receipt.json"
+EXPECTED = {
+    "manifest": "1f9782187297b5bf7f20e4c3876b1ff0b38da6124d901f85f97e84caea8c4a24",
+    "approval": "81a89071370c0556c86e55a41d7850d61302e3c4356d612a3f4cbda5de468e00",
+    "reader": "7f8bba4df8c8c051af6334959e72878e3874eb97221f6c1218fe0cf1d23028ba",
+    "root": "9ab3d4f20110f8ccd4677c4a7089122093f701638fbeb1d41a1240643e8f7e9e",
+}
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": sha(data)}
+
+
+def pairs(items):
+    result = {}
+    for key, value in items:
+        if key in result:
+            raise ValueError(f"duplicate JSON key {key}")
+        result[key] = value
+    return result
+
+
+def reject_constant(value):
+    raise ValueError(f"nonfinite JSON constant {value}")
+
+
+def read(path: Path):
+    return json.loads(path.read_bytes(), object_pairs_hook=pairs, parse_constant=reject_constant)
+
+
+def integer(value, expected):
+    assert type(value) is int and value == expected
+
+
+def main() -> None:
+    assert pin(CASE / "prelaunch-manifest.json")["sha256"] == EXPECTED["manifest"]
+    assert pin(CASE / "review/independent-prelaunch-go.json")["sha256"] == EXPECTED["approval"]
+    assert pin(CASE / "review/independent_replay.py")["sha256"] == EXPECTED["reader"]
+    assert pin(ROOT)["sha256"] == EXPECTED["root"]
+    manifest = read(CASE / "prelaunch-manifest.json")
+    source_map = {}
+    for row in manifest["source_files"]:
+        assert pin(Path(row["path"])) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        assert row["key"] not in source_map
+        source_map[row["key"]] = row["sha256"]
+    assert len(source_map) == 313
+    approval = read(CASE / "review/independent-prelaunch-go.json")
+    pref = read(CASE / approval["preflight_relative_path"])
+    assert pin(CASE / approval["preflight_relative_path"])["sha256"] == approval["preflight_sha256"]
+    assert pref["source_hashes"] == source_map
+    inv, closure, steps = (read(RUN / name) for name in ("invocation.json", "closure.json", "steps.json"))
+    files = {p.name: p for p in RUN.iterdir() if p.is_file()}
+    assert len(files) == 25 and "failure-seal.json" not in files
+    assert len(closure["raw"]) == 23 and set(closure["raw"]) == set(files) - {"invocation.json", "closure.json"}
+    for name, wanted in closure["raw"].items():
+        assert pin(files[name]) == wanted
+        assert files[name].stat().st_file_attributes & 1  # ReadOnly on Windows
+    assert pin(files["invocation.json"])["sha256"] == closure["invocation_sha256"]
+    assert closure["schema"] == "i03-var05-in-zero-closure/v1"
+    assert inv["schema"] == "i03-var05-in-zero-invocation/v1"
+    assert closure["run_id"] == inv["run_id"] == RUN_ID
+    assert closure["source_hashes_before"] == closure["source_hashes_after"] == inv["source_hashes_before"] == source_map
+    assert closure["manifest_sha256"] == inv["manifest_sha256"] == EXPECTED["manifest"]
+    assert closure["approval_sha256"] == inv["approval_sha256"] == EXPECTED["approval"]
+    assert closure["approved_preflight_sha256"] == inv["approved_preflight_sha256"] == approval["preflight_sha256"]
+    assert closure["error"] in (None, "") and closure["step_error"] in (None, "")
+    assert inv["session_id"] == 0 and "sshd.exe" in inv["ssh_ancestors"]
+    assert len(steps) == 6
+    names = ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"]
+    prior_end = None
+    for index, step in enumerate(steps):
+        integer(step["sequence"], index)
+        assert step["name"] == names[index]
+        integer(step["child_session_id"], 0)
+        integer(step["exit_code"], 0)
+        assert type(step["child_pid"]) is int and step["child_pid"] > 0
+        assert step["capture_error"] is None and step["error"] in (None, "")
+        assert step["status"] == "completed" and step["gui_preserved"] is True
+        start = datetime.fromisoformat(step["started_utc"].replace("Z", "+00:00"))
+        end = datetime.fromisoformat(step["completed_utc"].replace("Z", "+00:00"))
+        assert start <= end and (prior_end is None or prior_end <= start)
+        prior_end = end
+        plan = (inv["planned_commands"] + inv["planned_checkers"])
+        matches = [p for p in plan if p["name"] == step["name"]]
+        assert len(matches) == 1 and step["program"] == matches[0]["program"]
+        assert step["arguments"] == matches[0]["arguments"]
+        for stream in ("stdout", "stderr"):
+            path = RUN / step[stream + "_path"]
+            assert path.is_file()
+            wanted = {"bytes": step[stream + "_bytes"], "sha256": step[stream + "_sha256"]}
+            assert pin(path) == wanted == closure["raw"][path.name]
+            if stream == "stderr":
+                integer(step[stream + "_bytes"], 0)
+    calc = steps[3]
+    assert calc["converter_log_validated"] is True
+    assert {"bytes": calc["converter_log_bytes"], "sha256": calc["converter_log_sha256"]} == \
+        closure["raw"]["model-run.log"] == pin(RUN / "model-run.log")
+    converter = (RUN / "model-run.log").read_text(encoding="utf-8-sig")
+    assert "#108" in converter and "#126" in converter
+    assert "Errors: 0" in converter and "Warnings: 2" in converter and "Notes: 0" in converter
+    assert (RUN / "model-run.log").stat().st_file_attributes & 1
+    author = read(RUN / "author-validation.json")
+    roundtrip = read(RUN / "roundtrip-validation.json")
+    assert author["passed"] is True and roundtrip["passed"] is True
+    assert author["report_cell_checks"] == 5210
+    assert roundtrip["table_objects"] == 32
+    transport = read(NATIVE_TRANSPORT / "transport-receipt.json")
+    assert transport["mode"] == "native" and transport["native_approved"] is True
+    integer(transport["exit_code"], 0)
+    assert transport["error"] is None
+    for name in ("ssh-stdout.bin", "ssh-stderr.bin"):
+        assert transport["streams"][name] == pin(NATIVE_TRANSPORT / name)
+    assert pin(NATIVE_TRANSPORT / "ssh-stderr.bin")["bytes"] == 0
+    root = read(ROOT)
+    assert root["safe_native_boundary"] is True and root["native_transport_attempts"] == 1
+    integer(root["actual_exit"], 0)
+    assert root["error"] is None and root["source_records_revalidated"] == 313
+    assert root["decision"] == "NATURAL_COMPLETION_SEALED_AWAITING_INDEPENDENT_ACCEPTANCE"
+    assert len(root["sealed_files"]) == 28
+    for row in root["sealed_files"]:
+        assert pin(REPO / row["path"]) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        assert row["read_only"] is True
+    captured = read(REPLAY)
+    assert captured["actual_exit"] == 0 and captured["stderr"]["bytes"] == 0
+    assert captured["reader"]["sha256"] == EXPECTED["reader"]
+    assert captured["original_run_files"] == {name: pin(path) for name, path in files.items()}
+    verdict = captured["verdict"]
+    assert verdict["decision"] == "GO_BOUNDED" and verdict["checks"] == 70095
+    assert verdict["parent_report_cells"] == verdict["child_report_cells"] == 5210
+    assert verdict["paired_cell_differences"] == 7
+    assert verdict["original_run_files"] == 25 and verdict["original_raw_files"] == 23
+    assert verdict["native_and_checker_stages"] == 6
+    print(json.dumps({"decision": "GO_BOUNDED_POSTRUN", "checks": verdict["checks"],
+                      "report_cells_per_arm": 5210, "paired_differences": 7,
+                      "source_records": 313, "original_run_files": 25,
+                      "root_receipt_sha256": EXPECTED["root"], "new_native_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

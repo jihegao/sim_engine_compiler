@@ -1,0 +1,3 @@
+The preserved candidate `independent_replay_candidate_v8.py` is 33,285 bytes, SHA-256 `e1f1f92786fec28d3148ec9689f033de105edd66c11db9b434100883ec110422`.
+
+Static review found a post-publication portability defect: its context loop compares the current live `publication-index-v1.json` byte-for-byte with the historical 494-entry owned copy whenever the original path exists. An authorized catalog append would fail before the separate typed prefix, metadata, and unique-ID checks. The owned historical copy and base Git blob must remain exact; only the mutable live original requires append-aware validation. This candidate was not run against an appended catalog, so this is a static NO_GO finding, not an observed execution failure. No native command was invoked.

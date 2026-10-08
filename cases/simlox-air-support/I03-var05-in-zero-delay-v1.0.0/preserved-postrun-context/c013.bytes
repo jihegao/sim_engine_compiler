@@ -1,0 +1,28 @@
+from pathlib import Path
+import datetime,hashlib,json,stat,subprocess
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/'tmp/i03-var05-root-owner-proof-20261008-01'
+GUARD=ROOT/'tmp/issue18-next-owner-guard-20261008.ps1'
+assert not OUT.exists()
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(GUARD)=={'bytes':2081,'sha256':'e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'}
+OUT.mkdir()
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',str(GUARD)]
+started=datetime.datetime.now(datetime.timezone.utc).isoformat()
+r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+streams={}
+for n,b in [('stdout',r.stdout),('stderr',r.stderr)]:
+ p=OUT/(n+'.bin');p.write_bytes(b);p.chmod(stat.S_IREAD);streams[n]=pin(p)
+d={'schema':'issue18-i03-var05-owner-capture/v1','argv':argv,'actual_exit':r.returncode,'started_utc':started,'completed_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'streams':streams,'guard_source':pin(GUARD),'native_calls':0}
+if r.returncode==0:
+ d['observed']=json.loads(r.stdout.decode('utf-8-sig'))
+p=OUT/'receipt.json';p.write_bytes((json.dumps(d,indent=2)+'\n').encode());p.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'actual_exit':r.returncode,'receipt':pin(p),'observed':d.get('observed')}))
+assert r.returncode==0 and not r.stderr
+o=d['observed']
+assert o['ssh_present'] is True and o['sshd_ancestor'] is True and type(o['self_session']) is int and o['self_session']==0 and o['powershell_major']==5
+assert o['mutex_free'] is True and o['runner_candidates']==[] and o['active_gui_session1_count']==1 and o['session_query_exit']==0
+assert len(o['native'])==1
+g=o['native'][0]
+assert g['pid']==13340 and g['session']==1 and g['start_ms']==1790590196826 and g['responding'] is True

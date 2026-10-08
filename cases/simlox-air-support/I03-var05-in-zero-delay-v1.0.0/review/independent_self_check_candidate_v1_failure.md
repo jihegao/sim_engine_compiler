@@ -1,0 +1,3 @@
+# Independent self-check candidate v1 failure
+
+`independent_self_check_candidate_v1.py` is 8,324 bytes, SHA-256 `5b42c93a9e535823a660e4622f5b7eef58892aaa77e143bc810822cdca07b2de`. Its first read-only run stopped during mutation construction, before the full negative suite: subtracting one from the IEEE-754 bit pattern for exact positive zero produced an invalid unsigned integer. The corrected fixture uses the adjacent negative subnormal bit pattern for the `NRW=0` downward mutation. The original traceback is only a command tool transcript; no original stdout/stderr byte files exist for this failed draft. No native evidence or author source changed.

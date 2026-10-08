@@ -1,0 +1,72 @@
+"""Root captures the frozen independent PURE pair; no SSH/native/old helper."""
+from pathlib import Path
+import datetime as dt
+import hashlib, json, stat, subprocess, sys
+
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0'
+OUT=ROOT/'tmp/i03-var05-root-independent-pure-capture-20261008-01'
+EXPECTED={
+ 'review/independent_replay.py':(61595,'7f8bba4df8c8c051af6334959e72878e3874eb97221f6c1218fe0cf1d23028ba'),
+ 'review/independent_self_check.py':(26609,'1bff378a79c8ef87d9109c52d2a413a7b8845490d527c4409af5590877a774ce'),
+ 'review/independent-method-static-go-2026-10-08.md':(4708,'3e85ec5d7433294d31afb52ade9d38c0fee2acb42dd039a3dc80a54ed4876a98'),
+ 'source_gate.py':(None,'9850297b02d1f78888301c64ce1a1872afabb1ef3850eac08530359d81299297'),
+ 'check_roundtrip.py':(None,'31538b781062129b1924926b4ad33e7fae813a7ba8b54030f9c42d159fba230a'),
+ 'event_ledger.py':(None,'c9611a37c306cb8a7a19b6d6a572c3c57e2100f4deac2770277b076182ac2c66'),
+ 'report_oracle.py':(None,'8fe2d71c984ee478630b1c3a5bd2284fbf0c22dc14963cc9a2146cde2e0c5e96'),
+ 'validate_native_cli.py':(None,'061e8fd10dc4de88a2e28400ce880b871ca06d02b7a557b82c4e04128ad76631'),
+ 'run_native_ssh.ps1':(None,'20a41ee32479656e1208b9bbb50f68fb15e94ab28238d71564772ea9b2a112a2'),
+ 'preflight_receipt.ps1':(None,'b661ac52c71feb3eb972f1aa05ae9a929a0ac19079cf972f405fe0bc44f8f88a'),
+ 'checker_receipt.ps1':(None,'f2ade118915bf2aa72b47bc3b14d47c350ddfa4bdf84d0dbc9fd07fd7732a62a'),
+ 'ssh_transport.py':(None,'3480ed9730b6ef7d47d2898c03588d375e643f843fda3c964e2995a5f4511a19'),
+ 'make_source_inventory.py':(None,'42e4ebe3d6f6bbc1a979ab0dcbae23f783268fe9d64b8ef0228aaebe6271a8f2'),
+ 'make_prelaunch_manifest.py':(None,'35dcc696aac4f32936c03752e8d8350fe5182b693500f88596dc5fc8c92a186e'),
+}
+def pin(data): return {'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+def utc(): return dt.datetime.now(dt.timezone.utc).isoformat()
+def save(path,data):
+ with path.open('xb') as f: f.write(data)
+ path.chmod(stat.S_IREAD)
+assert not OUT.exists()
+before={n:pin((CASE/n).read_bytes()) for n in EXPECTED}
+for n,(length,sha) in EXPECTED.items():
+ assert before[n]['sha256']==sha and (length is None or before[n]['bytes']==length), n
+ if n.startswith('review/'): assert (CASE/n).stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+assert not (CASE/'runs').exists()
+Path(__file__).chmod(stat.S_IREAD)
+OUT.mkdir()
+steps=[];error=None
+try:
+ for name,args,decision in [
+  ('fixture',['review/independent_replay.py','--pure-fixture'],'STATIC_ONLY_PREDICTION'),
+  ('negatives',['review/independent_self_check.py'],'STATIC_ONLY_SELF_CHECK')]:
+  argv=[sys.executable,'-X','utf8','-B',str(CASE/args[0]),*args[1:]]
+  started=utc()
+  r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+  for stream,data in [('stdout',r.stdout),('stderr',r.stderr)]: save(OUT/f'{name}-{stream}.bin',data)
+  step={'name':name,'argv':argv,'started_utc':started,'completed_utc':utc(),'actual_exit':r.returncode,
+   'stdout':pin(r.stdout),'stderr':pin(r.stderr)}
+  steps.append(step)
+  assert type(r.returncode) is int and r.returncode==0 and not r.stderr, name
+  d=json.loads(r.stdout)
+  step['derived_decoded_json']=d
+  assert d['decision']==decision and type(d['native_started']) is bool and d['native_started'] is False
+  assert type(d['parent_report_cells']) is int and d['parent_report_cells']==5210
+  assert type(d['prospective_child_report_cells']) is int and d['prospective_child_report_cells']==5210
+  if name=='fixture': assert type(d['checks']) is int and d['checks']==47486
+  else:
+   assert type(d['semantic_rejections']) is int and d['semantic_rejections']==84
+   assert type(d['scratch_protocol_files']) is int and d['scratch_protocol_files']==25
+except BaseException as exc: error=f'{type(exc).__name__}: {exc}'
+after={n:pin((CASE/n).read_bytes()) for n in EXPECTED}
+if before!=after: error='Frozen/reviewed method source drift'
+if (CASE/'runs').exists(): error='Reserved native runs directory unexpectedly appeared'
+receipt={'schema':'i03-var05-root-independent-pure-capture/v1',
+ 'decision':'GO_PURE_METHOD_BYTES_ONLY' if error is None and len(steps)==2 else 'NO_GO_PRESERVED',
+ 'wrapper':pin(Path(__file__).read_bytes()),'steps':steps,'source_before':before,'source_after':after,
+ 'error':error,'ssh_calls':0,'native_calls':0,'accepted_native_or_helper_reruns':0,
+ 'limits':'Frozen new PURE methods only; canonical source freeze, actual SSH5 preflight and fresh independent GO_PRELAUNCH remain required.'}
+data=(json.dumps(receipt,indent=2)+'\n').encode()
+save(OUT/'receipt.json',data)
+print(json.dumps({'decision':receipt['decision'],'receipt':pin(data),'steps':len(steps),'error':error}))
+assert receipt['decision']=='GO_PURE_METHOD_BYTES_ONLY'

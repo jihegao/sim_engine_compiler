@@ -1,0 +1,194 @@
+"""Deterministic bounded postrun index. Default and --dry never write."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+from build import typed_equal
+from copy_postrun_context import verify as verify_context
+from copy_supplemental_context import verify as verify_supplemental
+from make_raw_custody import candidate as raw_candidate, body as raw_body
+from source_gate import HERE, REPO, unique_json, verify as verify_source
+
+INDEX = HERE / "evidence-index.json"
+INVENTORY = HERE / "source-inventory.json"
+MANIFEST = HERE / "prelaunch-manifest.json"
+RUN_ID = "i03-var05-in-zero-delay-v100-ssh-20261008-01"
+RUN = HERE / "runs" / RUN_ID
+PUBLICATION_ID = "I03.var05.in_zero_delay.1.0.0"
+INVENTORY_SHA = "1813b0f3551afb1393ab4d8f8dc44afc08e768dc04e37bea0f99d004b9fa24ee"
+MANIFEST_SHA = "1f9782187297b5bf7f20e4c3876b1ff0b38da6124d901f85f97e84caea8c4a24"
+INDEPENDENT_METHOD_SHA = "7f8bba4df8c8c051af6334959e72878e3874eb97221f6c1218fe0cf1d23028ba"
+INDEPENDENT_STDOUT_SHA = "b0ddd17c3b4d7fbba5e5570ca022bbe9e05d01b2d5e3daeec7487af4379f7831"
+INDEPENDENT_GO_SHA = "1e9bdf28474f6a13234285fdef7e0c9c59a294e17e56b0c86049ff7d864ad959"
+EXCLUDED_REVIEW_PREFIXES = ("review/independent-content-", "review/independent-staged-",
+                            "review/independent-remote-", "review/independent-pr-")
+ADDITIONAL = (
+    "source-inventory.json", "prelaunch-manifest.json",
+    "publication-entry.json", "README-publication.md", "REPRODUCTION-postrun.md",
+    "cli-scope-signoff-2026-10-08.md",
+    "copy_postrun_context.py", "postrun-context-custody.json",
+    "copy_supplemental_context.py", "supplemental-context-custody.json",
+    "make_raw_custody.py", "raw-custody-map.json", "make_evidence_index.py",
+    "review/preflight-ssh0-20261008T012936519Z.json",
+    "review/independent-prelaunch-go.json",
+    "review/independent-postrun-go-2026-10-08.md",
+    "preserved-postrun-development/make_evidence_index-draft1-failed.py.bytes",
+    "preserved-postrun-development/make_evidence_index-draft2-failed.py.bytes",
+    "preserved-postrun-development/make_evidence_index-pre-readonly-review.py.bytes",
+    "preserved-postrun-development/README.md",
+)
+
+
+def pin(data: bytes) -> dict:
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def owned_copy_rows(name: str) -> list[dict]:
+    rows = unique_json((HERE / name).read_bytes())["records"]
+    assert rows and len(rows) == len({row["owned_copy"] for row in rows})
+    return rows
+
+
+def source_files() -> list[dict]:
+    frozen = unique_json(INVENTORY.read_bytes())
+    assert pin(INVENTORY.read_bytes())["sha256"] == INVENTORY_SHA
+    assert frozen["schema"] == "i03-var05-in-zero-owned-source-inventory/v1"
+    assert frozen["source_count"] == len(frozen["source_files"]) == 108
+    original = [row["relative_path"] for row in frozen["source_files"]]
+    assert len(set(original)) == 108
+    for row in frozen["source_files"]:
+        assert pin((HERE / row["relative_path"]).read_bytes()) == \
+               {key: row[key] for key in ("bytes", "sha256")}
+    assert pin(MANIFEST.read_bytes())["sha256"] == MANIFEST_SHA
+    manifest = unique_json(MANIFEST.read_bytes())
+    assert manifest["source_count"] == len(manifest["source_files"]) == 313
+    extras = list(ADDITIONAL)
+    extras += [row["owned_copy"] for row in owned_copy_rows("postrun-context-custody.json")]
+    extras += [row["owned_copy"] for row in owned_copy_rows("supplemental-context-custody.json")]
+    assert len(extras) == len(set(extras)) and not set(extras).intersection(original)
+    names = set(original) | set(extras)
+    assert INDEX.name not in names
+    actual = {path.relative_to(HERE).as_posix() for path in HERE.rglob("*") if path.is_file()
+              and not any(part in {"runs", "transport-evidence", "test-output", "__pycache__"}
+                          for part in path.relative_to(HERE).parts)
+              and path.name != INDEX.name
+              and not any(path.relative_to(HERE).as_posix().startswith(prefix)
+                          for prefix in EXCLUDED_REVIEW_PREFIXES)}
+    assert actual == names, {"unindexed": sorted(actual - names), "missing": sorted(names - actual)}
+    return [{"path": name, **pin((HERE / name).read_bytes())} for name in sorted(names)]
+
+
+def independent_verdict() -> dict:
+    assert pin((HERE / "review/independent_replay.py").read_bytes())["sha256"] == INDEPENDENT_METHOD_SHA
+    assert pin((HERE / "review/independent-postrun-go-2026-10-08.md").read_bytes())["sha256"] == INDEPENDENT_GO_SHA
+    historical = (HERE / "preserved-postrun-context/c067.bytes").read_bytes()
+    postappend = (HERE / "preserved-supplemental-context/s007.bytes").read_bytes()
+    assert historical == postappend and pin(historical)["sha256"] == INDEPENDENT_STDOUT_SHA
+    primary = unique_json((HERE / "preserved-postrun-context/c065.bytes").read_bytes())
+    later = unique_json((HERE / "preserved-supplemental-context/s009.bytes").read_bytes())
+    assert primary["actual_exit"] == later["actual_exit"] == 0
+    assert primary["stderr"] == later["stderr"] == pin(b"")
+    assert primary["stdout"] == later["stdout"] == pin(historical)
+    assert primary["reader"]["sha256"] == later["reader"]["sha256"] == INDEPENDENT_METHOD_SHA
+    assert later["stdout_byte_equal"] is True and later["typed_verdict_equal"] is True
+    assert later["original_run_files_unchanged"] is True and later["new_native_calls"] == 0
+    verdict = unique_json(historical)
+    assert verdict["decision"] == "GO_BOUNDED" and verdict["checks"] == 70095
+    assert verdict["parent_report_cells"] == verdict["child_report_cells"] == 5210
+    assert verdict["paired_cell_differences"] == 7
+    return verdict
+
+
+def author_verdicts() -> dict:
+    roundtrip = unique_json((RUN / "roundtrip-validation.json").read_bytes())
+    behavior = unique_json((RUN / "author-validation.json").read_bytes())
+    assert roundtrip["schema"] == "i03-var05-in-zero-roundtrip/v1"
+    assert roundtrip["passed"] is True and roundtrip["issues"] == []
+    assert roundtrip["table_objects"] == 32 and roundtrip["all_null_placeholder_tables"] == 11
+    assert roundtrip["input_sha256"] == pin((HERE / "native-input.json").read_bytes())["sha256"]
+    assert roundtrip["export_sha256"] == pin((RUN / "roundtrip-raw.json").read_bytes())["sha256"]
+    assert behavior["passed"] is True and behavior["report_cell_checks"] == 5210
+    assert behavior["schema"] == "i03-var05-in-zero-behavior/v1" and behavior["issues"] == []
+    assert behavior["run_id"] == RUN_ID and behavior["input_sha256"] == roundtrip["input_sha256"]
+    assert behavior["typed_event_records"] == 184
+    assert behavior["timeline"]["terminal_local"] == 2
+    return {"roundtrip": roundtrip, "behavior": behavior}
+
+
+def build() -> dict:
+    assert (HERE / ".gitattributes").read_bytes() == b"* -text\n"
+    verified = verify_source("sealed")
+    assert verified["counts"] == {"source_pairs": 80, "accepted_original_raw": 112,
+                                  "required_docs": 8, "installed": 3}
+    assert verified["catalog"]["historical_prefix_checked"] == 494
+    context = verify_context()
+    supplement = verify_supplemental()
+    assert context["records"] == 91 and supplement["records"] == 10
+    raw = raw_candidate()
+    assert len(raw["records"]) == 140
+    assert typed_equal(raw, unique_json((HERE / "raw-custody-map.json").read_bytes()))
+    assert raw_body(raw) == (HERE / "raw-custody-map.json").read_bytes()
+    independent = independent_verdict()
+    authors = author_verdicts()
+    entry = unique_json((HERE / "publication-entry.json").read_bytes())
+    assert entry["publication_id"] == PUBLICATION_ID and entry["new_native_runs"] == 1
+    catalog = unique_json((REPO / "cases/simlox-air-support/publication-index-v1.json").read_bytes())
+    matches = [row for row in catalog["entries"] if row["publication_id"] == PUBLICATION_ID]
+    assert len(matches) == 1 and typed_equal(matches[0], entry)
+    sources = source_files()
+    assert len(sources) == 108 + len(ADDITIONAL) + 91 + 10
+    design = unique_json((HERE / "contract.json").read_bytes())
+    lineage = design["source_lineage"]
+    dual = lineage["accepted_parent"]["all_source_refs"] + \
+           lineage["accepted_prerequisites"]["all_source_refs"]
+    assert len(dual) == 80
+    return {"schema": "i03-var05-bounded-original-evidence-index/v1",
+            "publication_id": PUBLICATION_ID, "decision": "GO_BOUNDED_ORIGINAL_CHILD",
+            "run_id": RUN_ID, "accepted_parent_runs_repeated": 0, "new_native_runs": 1,
+            "source_count": len(sources), "source_files": sources, "sources": sources,
+            "raw_count": len(raw["records"]), "raw_files": raw["records"],
+            "accepted_source_pairs": dual,
+            "historical_catalog": {"prefix_entries": 494,
+                                   "owned_archive_path": "preserved-context/c017.bytes",
+                                   "owned_archive": lineage["catalog_local_point_time"],
+                                   "base_git_path": "cases/simlox-air-support/publication-index-v1.json",
+                                   "base_git_blob": lineage["catalog_git_base_blob"],
+                                   "always_check_live_prefix_metadata_unique_ids": True},
+            "context_custody": {"prelaunch_owned": 17, "prelaunch_pure_proof_owned": 26,
+                                "postrun_owned": context["records"],
+                                "supplemental_owned": supplement["records"]},
+            "independent_verdict": independent,
+            "author_verdict": {"roundtrip": authors["roundtrip"],
+                               "behavior_passed": authors["behavior"]["passed"],
+                               "child_report_cells": authors["behavior"]["report_cell_checks"]},
+            "limitations": ["One new original IN-zero child; accepted positive-IN parent not rerun.",
+                            "Raw accepted/new/native transport originals mandatory at exact paths.",
+                            "Presentation zeros/nulls are bounded native conventions.",
+                            "No general transfer, outside-person, GUI, performance or cross-engine claim."],
+            "postindex_review_excluded_prefixes": list(EXCLUDED_REVIEW_PREFIXES)}
+
+
+def body(doc: dict) -> bytes:
+    return (json.dumps(doc, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+
+
+def main() -> None:
+    args = sys.argv[1:]
+    assert args in ([], ["--dry"], ["--write"])
+    document = build()
+    data = body(document)
+    if args == ["--write"]:
+        assert not INDEX.exists()
+        INDEX.write_bytes(data)
+    elif args == []:
+        assert INDEX.read_bytes() == data
+    print(json.dumps({"schema": "i03-var05-evidence-index-check/v1", "sources": document["source_count"],
+                      "raw_originals": 140, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+                      "written": args == ["--write"]}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,2673 @@
+{
+  "schema": "simlox-air-support-i03-var05-prospective-contract-design/v3",
+  "phase": "CONTRACT_DESIGN_ONLY; no package, input, runner, SSH, or native approval",
+  "case_id": "I03",
+  "variant_id": "I03.var05",
+  "package_proposed_absent": "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0",
+  "run_id_proposed_absent": "i03-var05-in-zero-delay-v100-ssh-20261008-01",
+  "native_calls_so_far": 0,
+  "accepted_parent_native_or_checker_reruns": 0,
+  "hypothesis_status": "prospective and falsifiable; any discrepant linked event or expected cell is NO_GO",
+  "scope": {
+    "question": "For this one fixed P-CREW IN row, does TFDT0 move its positive arrival from h10.5 to the scheduled h10, restoring the local crew count one half-hour earlier?",
+    "one_new_child_only": true,
+    "accepted_positive_delay_parent_reused_read_only": true,
+    "source_model": "two aircraft; BASE-01; opening P-CREW=2; one OUT at h7.75 and one IN at h10; two scheduled two-aircraft mission waves h8 and h20; seed1; horizon36; interval0.5h",
+    "difference_from_parent": "only ProblemDescription.PDESC and the IN ResourceTransfer.TFDT=0.5 to 0; existing OUT and all other business cells unchanged",
+    "not_claimed": [
+      "individual crew identity or outside-person pool",
+      "universal zero-time event ordering",
+      "BETWEEN or equipment transfer",
+      "shift/MAXUT and priority competition",
+      "GUI",
+      "cross-engine parity",
+      "performance",
+      "general I03.var05 or all Issue18"
+    ]
+  },
+  "source_lineage": {
+    "base_commit": "b321a5d0b19fc016e4473c04e17615458db556f9",
+    "root_selection_receipt": {
+      "path": "tmp/i03-var05-root-selection-20261008.json",
+      "bytes": 80529,
+      "sha256": "6a290d65d7427142411212679b31662913e1fe00c2524a107bf35e0f056332b3"
+    },
+    "root_selection_decision": "ELIGIBLE_FOR_PROSPECTIVE_INDEPENDENT_CONTRACT_REVIEW_ONLY",
+    "catalog_historical_entries": 494,
+    "catalog_local_point_time": {
+      "bytes": 527959,
+      "sha256": "933d4172522c9ef3e8afc0f97bfd0e67ce4823812906cef25265076ab3697320"
+    },
+    "catalog_git_base_blob": {
+      "oid": "2e17be92352185d87176e8a3a8c4459d01e5e0d7",
+      "bytes": 523376,
+      "sha256": "d43286b424d81f88d49f914c188caacf9206e192328f7f0859e55575447bb9f4"
+    },
+    "catalog_local_and_git_bytes_distinct": true,
+    "later_replay_rule": "own exact 494-entry historical local archive and base Git blob; always validate live typed first494 entries, original metadata and unique publication IDs after authorized append; a later live whole-file SHA/count may differ but the gate is never skipped or reduced",
+    "accepted_parent": {
+      "package": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0",
+      "arm": "out_in",
+      "run_id": "i03-var01-crew-transfer-v100-ssh-20261005-01",
+      "input": {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/out_in-input.json",
+        "bytes": 43550,
+        "sha256": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+      },
+      "index": {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/evidence-index.json",
+        "bytes": 8505,
+        "sha256": "163356ad2cde1f6c4040c23c1bad629b43771ec6bff2467e11bc4686a06832af"
+      },
+      "raw_log": {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/runs/i03-var01-crew-transfer-v100-ssh-20261005-01/out_in.log",
+        "bytes": 17008,
+        "sha256": "673706cc043d4c5b1ce07c0692070b7931677257779fa3a67ebf190e2644f0c5"
+      },
+      "raw_report": {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/runs/i03-var01-crew-transfer-v100-ssh-20261005-01/out_in-report-raw.json",
+        "bytes": 148314,
+        "sha256": "46c798558486eff6f4714d9e1783914b9a2169ec535d773d72ec2471b9959cbd"
+      },
+      "raw_converter_log": {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/runs/i03-var01-crew-transfer-v100-ssh-20261005-01/out_in-run.log",
+        "bytes": 1064,
+        "sha256": "d3053918eb968775711d54fbda8425c0fd04cba80ac34aedb3336b8345151076"
+      },
+      "independent_GO_verdict": {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/independent-verdict.json",
+        "bytes": 2187,
+        "sha256": "6bf5d5d567c7301beb5c91039ef587e594a1be8418b7bbc88fa2b49b7fdd4a62"
+      },
+      "all_source_refs": [
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/.gitattributes",
+          "disk": {
+            "bytes": 35,
+            "sha256": "f3f7cc62402e05512a2df836744b6b5fd3e0cfa7cb23049eef8fed77502a3a2c"
+          },
+          "git": {
+            "bytes": 35,
+            "sha256": "f3f7cc62402e05512a2df836744b6b5fd3e0cfa7cb23049eef8fed77502a3a2c"
+          },
+          "oid": "ad3a2a8c8687f01e26f0f1e90100c11259f44fa0",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/.gitignore",
+          "disk": {
+            "bytes": 19,
+            "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+          },
+          "git": {
+            "bytes": 19,
+            "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+          },
+          "oid": "2fcb51f75d98ca07c567b6ddeba05c5fca44bca2",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/build.py",
+          "disk": {
+            "bytes": 2898,
+            "sha256": "df4020d9b8e1c298208aa478cd4abdb5045513f3c20f8238bf1174573b4ae470"
+          },
+          "git": {
+            "bytes": 2898,
+            "sha256": "df4020d9b8e1c298208aa478cd4abdb5045513f3c20f8238bf1174573b4ae470"
+          },
+          "oid": "59ce6a6c95c6c9be40053c3a4f82f4037ae048b0",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/contract.json",
+          "disk": {
+            "bytes": 3819,
+            "sha256": "3d5d88e717667d7fd75b4a6cf5d97431733154786212e5700fb70d8780e8d644"
+          },
+          "git": {
+            "bytes": 3819,
+            "sha256": "3d5d88e717667d7fd75b4a6cf5d97431733154786212e5700fb70d8780e8d644"
+          },
+          "oid": "1ad311c34f6913f2d4e192638074e6b327aaad53",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/run_native_ssh.ps1",
+          "disk": {
+            "bytes": 12303,
+            "sha256": "d5b6c15ae6823748d1d726a4cf3aff85618082d5cb725f46cff21f982c11288f"
+          },
+          "git": {
+            "bytes": 12303,
+            "sha256": "d5b6c15ae6823748d1d726a4cf3aff85618082d5cb725f46cff21f982c11288f"
+          },
+          "oid": "2ad151e8a869816d6d674c9b543f35088c8a105b",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/control-input.json",
+          "disk": {
+            "bytes": 43341,
+            "sha256": "60f7f277965a2a7c001aed29dc99c48a2736b104e1744791f20b92772d1d3caa"
+          },
+          "git": {
+            "bytes": 43341,
+            "sha256": "60f7f277965a2a7c001aed29dc99c48a2736b104e1744791f20b92772d1d3caa"
+          },
+          "oid": "9d820282afc15ed6da2fe95a21676ed9da49358d",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/out-input.json",
+          "disk": {
+            "bytes": 43349,
+            "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"
+          },
+          "git": {
+            "bytes": 43349,
+            "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"
+          },
+          "oid": "694592bb48f1b99786f514b28441c04b47511d74",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/out_in-input.json",
+          "disk": {
+            "bytes": 43550,
+            "sha256": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+          },
+          "git": {
+            "bytes": 43550,
+            "sha256": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+          },
+          "oid": "0562a3e5c9e4041c67c4904508595657fdb6c2d3",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/validate.py",
+          "disk": {
+            "bytes": 10028,
+            "sha256": "976fde323252e849514991b3bc11e760f5da6d347d93a93a85661ef199b6f7c9"
+          },
+          "git": {
+            "bytes": 10028,
+            "sha256": "976fde323252e849514991b3bc11e760f5da6d347d93a93a85661ef199b6f7c9"
+          },
+          "oid": "7f7d44910c3df6d24960916170da05d487a84aca",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/make_evidence_index.py",
+          "disk": {
+            "bytes": 2607,
+            "sha256": "9c759b6693e6a9351f1e83069e477b072bfe2767671ff0af33baf5b340b899e5"
+          },
+          "git": {
+            "bytes": 2607,
+            "sha256": "9c759b6693e6a9351f1e83069e477b072bfe2767671ff0af33baf5b340b899e5"
+          },
+          "oid": "ef3a1b364d18e55f5fbd6e386b5fee05a68bf2d3",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/preflight-2026-10-05.md",
+          "disk": {
+            "bytes": 1567,
+            "sha256": "0d5ba7a515ad66ccd043c742dbdcbd449239205458e4dd33bc5ec1783d85b7d9"
+          },
+          "git": {
+            "bytes": 1567,
+            "sha256": "0d5ba7a515ad66ccd043c742dbdcbd449239205458e4dd33bc5ec1783d85b7d9"
+          },
+          "oid": "e3bc0a7065e87ff0cc4f3237fead3fe9f1729474",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/author-validation-2026-10-05.json",
+          "disk": {
+            "bytes": 848,
+            "sha256": "ecaf565859d2a5de50cabe1339dd939045be9e7110d1c48d02f2122742ba7a30"
+          },
+          "git": {
+            "bytes": 848,
+            "sha256": "ecaf565859d2a5de50cabe1339dd939045be9e7110d1c48d02f2122742ba7a30"
+          },
+          "oid": "e2b853776390d037230f2b8ea757692234c72542",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/independent_replay.py",
+          "disk": {
+            "bytes": 13432,
+            "sha256": "43d663467d09aee9bd03f6ad948019ea383476ae2f09db1ffb61331bc2372fd8"
+          },
+          "git": {
+            "bytes": 13432,
+            "sha256": "43d663467d09aee9bd03f6ad948019ea383476ae2f09db1ffb61331bc2372fd8"
+          },
+          "oid": "4240ae48e88653928aa3a36d022de79392a90063",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/independent-verdict.json",
+          "disk": {
+            "bytes": 2187,
+            "sha256": "6bf5d5d567c7301beb5c91039ef587e594a1be8418b7bbc88fa2b49b7fdd4a62"
+          },
+          "git": {
+            "bytes": 2187,
+            "sha256": "6bf5d5d567c7301beb5c91039ef587e594a1be8418b7bbc88fa2b49b7fdd4a62"
+          },
+          "oid": "6f5c79e638dcedefaf4d67a51cb91f01d7c5a133",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/cli-scope-signoff-2026-10-05.md",
+          "disk": {
+            "bytes": 2091,
+            "sha256": "83d464641de1e1bb37ed454d0d607be1ca46523b438f558a00d068386d8e2da2"
+          },
+          "git": {
+            "bytes": 2091,
+            "sha256": "83d464641de1e1bb37ed454d0d607be1ca46523b438f558a00d068386d8e2da2"
+          },
+          "oid": "667bcfd9badd2433d77a9777d51102de6c02c3d6",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/README.md",
+          "disk": {
+            "bytes": 1965,
+            "sha256": "5db49abde360bd0e70885ff4728d5986f7a95ef00d7f3068bacb7555dd9e4dfb"
+          },
+          "git": {
+            "bytes": 1965,
+            "sha256": "5db49abde360bd0e70885ff4728d5986f7a95ef00d7f3068bacb7555dd9e4dfb"
+          },
+          "oid": "f1f6ee8e2f27bd60222ec106e0cacdbb2443c1c9",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/evidence-index.json",
+          "disk": {
+            "bytes": 8505,
+            "sha256": "163356ad2cde1f6c4040c23c1bad629b43771ec6bff2467e11bc4686a06832af"
+          },
+          "git": {
+            "bytes": 8505,
+            "sha256": "163356ad2cde1f6c4040c23c1bad629b43771ec6bff2467e11bc4686a06832af"
+          },
+          "oid": "51377e206bc6b08b6216851d3cb74163511bc71d",
+          "byte_equal": true
+        }
+      ]
+    },
+    "accepted_prerequisites": {
+      "packages": [
+        "C03-shared-crew-formation-v1.0.2",
+        "C03-var01-staffing-v0.1.1",
+        "C08-partial-pool-v1.0.0",
+        "C08-shift-maxut-v1.0.0"
+      ],
+      "all_source_refs": [
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/evidence-index.json",
+          "disk": {
+            "bytes": 16140,
+            "sha256": "987519ac76f60fbdb8fb3e848c4619a67a82bb9f69c488bf6525da3caf443b01"
+          },
+          "git": {
+            "bytes": 16140,
+            "sha256": "987519ac76f60fbdb8fb3e848c4619a67a82bb9f69c488bf6525da3caf443b01"
+          },
+          "oid": "130c94b33270bd807b7725081bf3d7d1b8f4cc7c",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/.gitattributes",
+          "disk": {
+            "bytes": 8,
+            "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+          },
+          "git": {
+            "bytes": 8,
+            "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+          },
+          "oid": "fa1385d99a319b43c06f5309d1aae9fdd3adea46",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/author-validation.json",
+          "disk": {
+            "bytes": 1234,
+            "sha256": "58b4bd712a0abc6b747f7cc1530a07a0ec0eb85dc185be74e57847933d45a519"
+          },
+          "git": {
+            "bytes": 1234,
+            "sha256": "58b4bd712a0abc6b747f7cc1530a07a0ec0eb85dc185be74e57847933d45a519"
+          },
+          "oid": "ca7bcc383002d1178ac0d5030cba2cd14469ee24",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/check_reclassification.py",
+          "disk": {
+            "bytes": 23056,
+            "sha256": "77b707abe1929bba203c39bc1da12a01d45151875e98ffb5d4622671cbcece7d"
+          },
+          "git": {
+            "bytes": 23056,
+            "sha256": "77b707abe1929bba203c39bc1da12a01d45151875e98ffb5d4622671cbcece7d"
+          },
+          "oid": "423ef4a4d8b07a74f32aea6e888b1e715997b016",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/cli-scope-signoff-2026-10-07.md",
+          "disk": {
+            "bytes": 2139,
+            "sha256": "eb12f73bd335a695058c8f4ae9dd7b5065bb16bd1ab165fae82dbd2ad8a84ea7"
+          },
+          "git": {
+            "bytes": 2139,
+            "sha256": "eb12f73bd335a695058c8f4ae9dd7b5065bb16bd1ab165fae82dbd2ad8a84ea7"
+          },
+          "oid": "ec686459c613f32858ea695d83232cd9aab87420",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/contract.json",
+          "disk": {
+            "bytes": 8351,
+            "sha256": "652f886c5d22eaaa20f605812695055586af81209b99682d357112a8c903043f"
+          },
+          "git": {
+            "bytes": 8351,
+            "sha256": "652f886c5d22eaaa20f605812695055586af81209b99682d357112a8c903043f"
+          },
+          "oid": "c7787d665ce0d4eb93b76fcaedb393864f12496a",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/make_evidence_index.py",
+          "disk": {
+            "bytes": 8267,
+            "sha256": "8d74960b493cb84c36294218e7b232658581df9f9d3e2adc8b461006b32bd8c4"
+          },
+          "git": {
+            "bytes": 8267,
+            "sha256": "8d74960b493cb84c36294218e7b232658581df9f9d3e2adc8b461006b32bd8c4"
+          },
+          "oid": "6e5a23969b1b6b2e83669221b8b734cff9ce9592",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/README.md",
+          "disk": {
+            "bytes": 1656,
+            "sha256": "6cf66339789fa2f5f73142655f70aaa50f0dcbe540d0a3454b586ad718514ed0"
+          },
+          "git": {
+            "bytes": 1656,
+            "sha256": "6cf66339789fa2f5f73142655f70aaa50f0dcbe540d0a3454b586ad718514ed0"
+          },
+          "oid": "c69b343a900197a107beb0803c1896b48a54097d",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/review/independent-contract-2026-10-07.md",
+          "disk": {
+            "bytes": 2023,
+            "sha256": "10b2ee7eb302b08e9d62039a7953e0b03d543dd2f6ccfa74ca62bc453d7041c0"
+          },
+          "git": {
+            "bytes": 2023,
+            "sha256": "10b2ee7eb302b08e9d62039a7953e0b03d543dd2f6ccfa74ca62bc453d7041c0"
+          },
+          "oid": "48ae3123f59056617f195acf66002541c1efe13d",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/review/independent-postrun-review-2026-10-07.md",
+          "disk": {
+            "bytes": 3634,
+            "sha256": "6f95cb18af4b8fbd190dac3a4b4ece21aac4df4c03423d63d1b79b72643c09f0"
+          },
+          "git": {
+            "bytes": 3634,
+            "sha256": "6f95cb18af4b8fbd190dac3a4b4ece21aac4df4c03423d63d1b79b72643c09f0"
+          },
+          "oid": "357a2ddee6aeceee73ba645e0a0490cd74cfd8e0",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/review/independent-staged-no-go-2026-10-07.md",
+          "disk": {
+            "bytes": 2565,
+            "sha256": "7f3cd60656764a7930874cd709f472d23218e2acc743e5275b1efd8a39129338"
+          },
+          "git": {
+            "bytes": 2565,
+            "sha256": "7f3cd60656764a7930874cd709f472d23218e2acc743e5275b1efd8a39129338"
+          },
+          "oid": "be210ce0f7001e2af4dc2dff13743edf90e3e2f7",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/review/independent-verdict.json",
+          "disk": {
+            "bytes": 366,
+            "sha256": "45f4b5fc80ca5ac5700428ad03346d21fa3158d816f81f0d5a0eaa9a15a6095e"
+          },
+          "git": {
+            "bytes": 366,
+            "sha256": "45f4b5fc80ca5ac5700428ad03346d21fa3158d816f81f0d5a0eaa9a15a6095e"
+          },
+          "oid": "456467b3a01acf285ad710369c3ead484474690b",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/review/independent_replay.py",
+          "disk": {
+            "bytes": 21163,
+            "sha256": "4e92a1c9f9ff1647e18fb5bc3baf5bbc85f162554a31a6be2e8d8caf84d53c38"
+          },
+          "git": {
+            "bytes": 21163,
+            "sha256": "4e92a1c9f9ff1647e18fb5bc3baf5bbc85f162554a31a6be2e8d8caf84d53c38"
+          },
+          "oid": "537d58e7d3daa632cfdff5c30db52703cbc13ee9",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/.gitignore",
+          "disk": {
+            "bytes": 8,
+            "sha256": "8d22814e19ac1121bcdcfb89aa88c9da384ec98d2f31f90cedc7a29f95b5f17f"
+          },
+          "git": {
+            "bytes": 7,
+            "sha256": "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933"
+          },
+          "oid": "483fb84a5db9fdb5365a2be62726adcc85696e7e",
+          "byte_equal": false
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/README.md",
+          "disk": {
+            "bytes": 1681,
+            "sha256": "ea6dbf4840055baf379f0acccf5a1eb5e86e09f7faed96be49026bbe662fdcd8"
+          },
+          "git": {
+            "bytes": 1681,
+            "sha256": "ea6dbf4840055baf379f0acccf5a1eb5e86e09f7faed96be49026bbe662fdcd8"
+          },
+          "oid": "ab313258e0a5778aa899eed16c3a91635fc53efa",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/build.py",
+          "disk": {
+            "bytes": 5434,
+            "sha256": "055c61f034958c4566070e5293d9472387d27ad52514d27bc75d36c508380f4e"
+          },
+          "git": {
+            "bytes": 5434,
+            "sha256": "055c61f034958c4566070e5293d9472387d27ad52514d27bc75d36c508380f4e"
+          },
+          "oid": "6be432ea9b1cd6f258dc87ab0e495b80e7bb0a7b",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/contract.json",
+          "disk": {
+            "bytes": 2753,
+            "sha256": "e2c7ade63916f1d2ff976f63d6c7898e445194af3b733ac5296fdf4faab8045d"
+          },
+          "git": {
+            "bytes": 2753,
+            "sha256": "e2c7ade63916f1d2ff976f63d6c7898e445194af3b733ac5296fdf4faab8045d"
+          },
+          "oid": "3834e247667a5a5a73f2f4ea78025726b96f244b",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/evidence-2026-09-29.md",
+          "disk": {
+            "bytes": 7361,
+            "sha256": "c775be70b01efec0bfb8c8b8de22332a96a566a4951bafb7975ab0e53b87f6c0"
+          },
+          "git": {
+            "bytes": 7361,
+            "sha256": "c775be70b01efec0bfb8c8b8de22332a96a566a4951bafb7975ab0e53b87f6c0"
+          },
+          "oid": "09cdd683f21c8fcadfda7e401a5c866e37583d24",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/inputs/staffing-0.json",
+          "disk": {
+            "bytes": 41914,
+            "sha256": "50682827a363aeb2cb35f860f78671fffd1ea48fbea655ce664eb2c1e2b19267"
+          },
+          "git": {
+            "bytes": 41914,
+            "sha256": "50682827a363aeb2cb35f860f78671fffd1ea48fbea655ce664eb2c1e2b19267"
+          },
+          "oid": "2c0b21416785e63b8abbdc41c89cdf75bf6c0118",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/inputs/staffing-1.json",
+          "disk": {
+            "bytes": 41914,
+            "sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789"
+          },
+          "git": {
+            "bytes": 41914,
+            "sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789"
+          },
+          "oid": "1e4542f29e31f2c3f429f06e966fd2ba95597579",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/inputs/staffing-2.json",
+          "disk": {
+            "bytes": 41914,
+            "sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0"
+          },
+          "git": {
+            "bytes": 41914,
+            "sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0"
+          },
+          "oid": "8ffb4881dad9630297205c75640d19c9f1f4b05a",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/invoke_loopback.ps1",
+          "disk": {
+            "bytes": 476,
+            "sha256": "0a29bb32b7392978d5d804c4b5a737a05203d9b0d3cb0f0970d0f941e90c31aa"
+          },
+          "git": {
+            "bytes": 476,
+            "sha256": "0a29bb32b7392978d5d804c4b5a737a05203d9b0d3cb0f0970d0f941e90c31aa"
+          },
+          "oid": "7add9b8e732827723783a863785e4b1a137353ce",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/parent-diffs/staffing-0.json",
+          "disk": {
+            "bytes": 6840,
+            "sha256": "8ee490f85bcbf169c1e0b1eef6936e7d5df2c6fdc9406bc9fa779237601a1015"
+          },
+          "git": {
+            "bytes": 6840,
+            "sha256": "8ee490f85bcbf169c1e0b1eef6936e7d5df2c6fdc9406bc9fa779237601a1015"
+          },
+          "oid": "e4eb929270654a2f28f9fede579c84feaab77159",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/parent-diffs/staffing-1.json",
+          "disk": {
+            "bytes": 6840,
+            "sha256": "6a4bfc3f8c1267597a09da866968399c0662c04e91ebf427dba0839e9b66852d"
+          },
+          "git": {
+            "bytes": 6840,
+            "sha256": "6a4bfc3f8c1267597a09da866968399c0662c04e91ebf427dba0839e9b66852d"
+          },
+          "oid": "a55673a73908e008dfbabba3db6d7cd53df4ff4d",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/parent-diffs/staffing-2.json",
+          "disk": {
+            "bytes": 6840,
+            "sha256": "d31a0f67b623448ddd3553132b42d8eb911b256f0ee6866fb821bf521c8a978e"
+          },
+          "git": {
+            "bytes": 6840,
+            "sha256": "d31a0f67b623448ddd3553132b42d8eb911b256f0ee6866fb821bf521c8a978e"
+          },
+          "oid": "eb49d2a8c2e6c18ea14fe48c8551036acfa12a4d",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/review/independent-readonly-2026-09-29.json",
+          "disk": {
+            "bytes": 3577,
+            "sha256": "4acfa440725a1991335df3bdde9e844e83a40a6e0b1b6ab1c9fd39816a39c674"
+          },
+          "git": {
+            "bytes": 3577,
+            "sha256": "4acfa440725a1991335df3bdde9e844e83a40a6e0b1b6ab1c9fd39816a39c674"
+          },
+          "oid": "dd6dbd59c4186a5752e905730563c7d3510591af",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/review_readonly.py",
+          "disk": {
+            "bytes": 15767,
+            "sha256": "6cddf1ea6ef90e70047993c6e71ffd4000548504793f10e674a17b79aa587772"
+          },
+          "git": {
+            "bytes": 15767,
+            "sha256": "6cddf1ea6ef90e70047993c6e71ffd4000548504793f10e674a17b79aa587772"
+          },
+          "oid": "46ddc3f503878d102ebf541fdf2792726046f2e1",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/run_native_ssh.ps1",
+          "disk": {
+            "bytes": 12109,
+            "sha256": "0f938f6ea5c78b47dba9dd96d1ff091998cee771be8acd3473d2389a30c00279"
+          },
+          "git": {
+            "bytes": 12109,
+            "sha256": "0f938f6ea5c78b47dba9dd96d1ff091998cee771be8acd3473d2389a30c00279"
+          },
+          "oid": "00f020bca3fa9d753c50ff37426a019746c247e6",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C03-shared-crew-formation-v1.0.2/validate.py",
+          "disk": {
+            "bytes": 16180,
+            "sha256": "9aabd5cadabd771429801a363ac2e2074765ef89552cc45e33c02f5ab2239933"
+          },
+          "git": {
+            "bytes": 16180,
+            "sha256": "9aabd5cadabd771429801a363ac2e2074765ef89552cc45e33c02f5ab2239933"
+          },
+          "oid": "238d28a8aff82e16d8259c8b53a4d165e7f57a6b",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/evidence-index.json",
+          "disk": {
+            "bytes": 5651,
+            "sha256": "f0c1e3da56681bbc7f50742cf42792177795497706d1049004e50e7a3a2d28b2"
+          },
+          "git": {
+            "bytes": 5651,
+            "sha256": "f0c1e3da56681bbc7f50742cf42792177795497706d1049004e50e7a3a2d28b2"
+          },
+          "oid": "9f7b18b9f651f0d4f1a13d6a596ab254bfbe4c5e",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/evidence-index.json",
+          "disk": {
+            "bytes": 3053,
+            "sha256": "e40eed162902fbe50055618f0cc1495895e77264c98fa5e876618e2567cd50bc"
+          },
+          "git": {
+            "bytes": 3053,
+            "sha256": "e40eed162902fbe50055618f0cc1495895e77264c98fa5e876618e2567cd50bc"
+          },
+          "oid": "93bde1460e51470d2c77e11b5144e41e7907bf68",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/.gitattributes",
+          "disk": {
+            "bytes": 45,
+            "sha256": "c73756a507123b2897d00bebf5c99dfada2a5959eb42274888942332df15b8c9"
+          },
+          "git": {
+            "bytes": 45,
+            "sha256": "c73756a507123b2897d00bebf5c99dfada2a5959eb42274888942332df15b8c9"
+          },
+          "oid": "f65cc4938478369a1d6040edf0aa1e7ef9f198b3",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/.gitignore",
+          "disk": {
+            "bytes": 19,
+            "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+          },
+          "git": {
+            "bytes": 19,
+            "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+          },
+          "oid": "2fcb51f75d98ca07c567b6ddeba05c5fca44bca2",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/README.md",
+          "disk": {
+            "bytes": 3368,
+            "sha256": "9d0056783bba70a667a6c6040d188af9f73eca54c0fd754348e065185f35e822"
+          },
+          "git": {
+            "bytes": 3368,
+            "sha256": "9d0056783bba70a667a6c6040d188af9f73eca54c0fd754348e065185f35e822"
+          },
+          "oid": "88b6acbcb8465ab7fa79fcdc34faa45c247f6939",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/author-native-validation-2026-09-30.json",
+          "disk": {
+            "bytes": 1240,
+            "sha256": "d0a5fed2766dbe2250cc41d9e6584d8000ff96766494227cb2df765e29761fb5"
+          },
+          "git": {
+            "bytes": 1240,
+            "sha256": "d0a5fed2766dbe2250cc41d9e6584d8000ff96766494227cb2df765e29761fb5"
+          },
+          "oid": "f011c6a0ea8b07fdcc5678bca32d3934d5266a54",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/build.py",
+          "disk": {
+            "bytes": 3085,
+            "sha256": "11d12e206affef978268cd775e92805076d51e82f4ab0e0d19ae47ac51fb8757"
+          },
+          "git": {
+            "bytes": 3085,
+            "sha256": "11d12e206affef978268cd775e92805076d51e82f4ab0e0d19ae47ac51fb8757"
+          },
+          "oid": "140445dd129349b0f8f84b7b537dd42a00c22838",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/build_evidence_index.py",
+          "disk": {
+            "bytes": 2017,
+            "sha256": "e3cc3f6b56019ed36f446de940707e44aac6aaa49d41d0e02302d9ac6fe31889"
+          },
+          "git": {
+            "bytes": 2017,
+            "sha256": "e3cc3f6b56019ed36f446de940707e44aac6aaa49d41d0e02302d9ac6fe31889"
+          },
+          "oid": "2db7b5d3edbe6659d06cba88096cb7ee9435b68e",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/check_roundtrip.py",
+          "disk": {
+            "bytes": 5115,
+            "sha256": "c9271b82d4a1f93249b3e166bcd57b39adb6c7549d47c8a876f5f7c25b555a76"
+          },
+          "git": {
+            "bytes": 5115,
+            "sha256": "c9271b82d4a1f93249b3e166bcd57b39adb6c7549d47c8a876f5f7c25b555a76"
+          },
+          "oid": "b231773415e3e288391d8b0b580750c368655314",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/cli-scope-signoff-2026-09-30.md",
+          "disk": {
+            "bytes": 3742,
+            "sha256": "f5702dc798e988be922376b0a9dc1c6382c1aba0f275cbc0867562aee1909d50"
+          },
+          "git": {
+            "bytes": 3742,
+            "sha256": "f5702dc798e988be922376b0a9dc1c6382c1aba0f275cbc0867562aee1909d50"
+          },
+          "oid": "0df79b1c029d3e0de579d3ceb8ea005f12113039",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/contract.json",
+          "disk": {
+            "bytes": 2815,
+            "sha256": "1a43b8e3e387c8c546f66e13d6c46d9bb1e75a0ba625479ca679313a51aec975"
+          },
+          "git": {
+            "bytes": 2815,
+            "sha256": "1a43b8e3e387c8c546f66e13d6c46d9bb1e75a0ba625479ca679313a51aec975"
+          },
+          "oid": "68f68f357c8c0a9154897582e65649615606a8e0",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/exact-diff.json",
+          "disk": {
+            "bytes": 834,
+            "sha256": "670983f23c35737b0ea7ab4cc539b0b7f7204955e3a41952b568b930377043e5"
+          },
+          "git": {
+            "bytes": 834,
+            "sha256": "670983f23c35737b0ea7ab4cc539b0b7f7204955e3a41952b568b930377043e5"
+          },
+          "oid": "84f2e5a11dc1e95f897d37526712ff6d5197fbd8",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/review/independent-readonly-2026-09-30.json",
+          "disk": {
+            "bytes": 28078,
+            "sha256": "17d7ec0ec8c1d8bbeb2f9a32c27b394aaf5a21becda1b45bd6da3fcd2d116ec6"
+          },
+          "git": {
+            "bytes": 28078,
+            "sha256": "17d7ec0ec8c1d8bbeb2f9a32c27b394aaf5a21becda1b45bd6da3fcd2d116ec6"
+          },
+          "oid": "458a814892eb0692bc68f7bdf676d584b72af3bf",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/review/independent_readonly.py",
+          "disk": {
+            "bytes": 21784,
+            "sha256": "bca307b9f0f5390c895ead0eeb132e0c6e42f1dd503b283b172e60143525bfe0"
+          },
+          "git": {
+            "bytes": 21784,
+            "sha256": "bca307b9f0f5390c895ead0eeb132e0c6e42f1dd503b283b172e60143525bfe0"
+          },
+          "oid": "3353d5ef5585523e7b66cc90e562d2158b413de6",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/run_native_ssh.ps1",
+          "disk": {
+            "bytes": 12248,
+            "sha256": "1ece6d62297cb86f0bcb1cae874d8e019fe2c3846d6683198b6b73e816faa0f0"
+          },
+          "git": {
+            "bytes": 12248,
+            "sha256": "1ece6d62297cb86f0bcb1cae874d8e019fe2c3846d6683198b6b73e816faa0f0"
+          },
+          "oid": "6e53e38d2c4e2119952191aee7082fa199aa3882",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/stagger-maxut-input.json",
+          "disk": {
+            "bytes": 46578,
+            "sha256": "415c1a918dd643f3db869e28c02ceebbde68c887847df222ec3780ae9c4deb75"
+          },
+          "git": {
+            "bytes": 46578,
+            "sha256": "415c1a918dd643f3db869e28c02ceebbde68c887847df222ec3780ae9c4deb75"
+          },
+          "oid": "58f29495f04f5034c0069a05cc3d7e7c3bdc8a9d",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/stagger-unlimited-input.json",
+          "disk": {
+            "bytes": 46567,
+            "sha256": "f69be976c2afa0515670f76737397b3fc1258b0fcc16a1243086ded579f34ee4"
+          },
+          "git": {
+            "bytes": 46567,
+            "sha256": "f69be976c2afa0515670f76737397b3fc1258b0fcc16a1243086ded579f34ee4"
+          },
+          "oid": "66253e732449d83d79543dd52d6744ea9acb0047",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/validate_native.py",
+          "disk": {
+            "bytes": 11862,
+            "sha256": "91b11ab56b5400d847c60c4ca1daac73c1bc180af4e4605335ea2a672b6733a0"
+          },
+          "git": {
+            "bytes": 11862,
+            "sha256": "91b11ab56b5400d847c60c4ca1daac73c1bc180af4e4605335ea2a672b6733a0"
+          },
+          "oid": "48a1056243543311a99b127bca542debf6b9b408",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/.gitattributes",
+          "disk": {
+            "bytes": 45,
+            "sha256": "c73756a507123b2897d00bebf5c99dfada2a5959eb42274888942332df15b8c9"
+          },
+          "git": {
+            "bytes": 45,
+            "sha256": "c73756a507123b2897d00bebf5c99dfada2a5959eb42274888942332df15b8c9"
+          },
+          "oid": "f65cc4938478369a1d6040edf0aa1e7ef9f198b3",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/.gitignore",
+          "disk": {
+            "bytes": 19,
+            "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+          },
+          "git": {
+            "bytes": 19,
+            "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+          },
+          "oid": "2fcb51f75d98ca07c567b6ddeba05c5fca44bca2",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/README.md",
+          "disk": {
+            "bytes": 3054,
+            "sha256": "0b9c437e573588b2eb493612d45040946b20418131e3d425f6dce5a0531ccf5b"
+          },
+          "git": {
+            "bytes": 3054,
+            "sha256": "0b9c437e573588b2eb493612d45040946b20418131e3d425f6dce5a0531ccf5b"
+          },
+          "oid": "a26359670d86ed78ab24b11f9637802e27eec4bc",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/author-native-validation-2026-09-30.json",
+          "disk": {
+            "bytes": 558,
+            "sha256": "d6e2d5ff79c393652cfbc8545bc6c3ef20a3fc042a070c0cbdd7f72abd0f465d"
+          },
+          "git": {
+            "bytes": 558,
+            "sha256": "d6e2d5ff79c393652cfbc8545bc6c3ef20a3fc042a070c0cbdd7f72abd0f465d"
+          },
+          "oid": "0ffb769b5b86a49096eb3da7216e586276cf049b",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/build.py",
+          "disk": {
+            "bytes": 1418,
+            "sha256": "9525408170f953ee6fa48c9e0d23b6830c075b1b899e03866dba5cf67717cc8e"
+          },
+          "git": {
+            "bytes": 1418,
+            "sha256": "9525408170f953ee6fa48c9e0d23b6830c075b1b899e03866dba5cf67717cc8e"
+          },
+          "oid": "246beef60ade7b8e032f86c131afbe0430ff3ae2",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/build_evidence_index.py",
+          "disk": {
+            "bytes": 1838,
+            "sha256": "e38e820fba7cb4e7b9b1fe639e2241fd21325d394cc01784e6f2426effb58ecc"
+          },
+          "git": {
+            "bytes": 1838,
+            "sha256": "e38e820fba7cb4e7b9b1fe639e2241fd21325d394cc01784e6f2426effb58ecc"
+          },
+          "oid": "6eff201d90a5d83ee3d2333f352a01d3b3a56660",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/check_roundtrip.py",
+          "disk": {
+            "bytes": 4960,
+            "sha256": "ce66902230c09848b639c769895c1c97d297ea36a984f50719cc1a65e218b947"
+          },
+          "git": {
+            "bytes": 4960,
+            "sha256": "ce66902230c09848b639c769895c1c97d297ea36a984f50719cc1a65e218b947"
+          },
+          "oid": "a9cebc0c0d582bf770a8e859d2f5a97c2b031b89",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/cli-scope-signoff-2026-09-30.md",
+          "disk": {
+            "bytes": 3456,
+            "sha256": "4672031a052e3db83e73b4f8e72b8beba6104e93a7fa0502fa2fe828ff69a62d"
+          },
+          "git": {
+            "bytes": 3456,
+            "sha256": "4672031a052e3db83e73b4f8e72b8beba6104e93a7fa0502fa2fe828ff69a62d"
+          },
+          "oid": "7f1d1862657e2c73f483abf5778a75745c38d777",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/contract.json",
+          "disk": {
+            "bytes": 2086,
+            "sha256": "702b5b04f7e86dc0f249b20adda0aba5e0dfcc3f2c628666ca4478696c0d84b0"
+          },
+          "git": {
+            "bytes": 2086,
+            "sha256": "702b5b04f7e86dc0f249b20adda0aba5e0dfcc3f2c628666ca4478696c0d84b0"
+          },
+          "oid": "b63d29e2c1ca1a9b16f976a92841fb4df592df07",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/describe_diff.py",
+          "disk": {
+            "bytes": 1904,
+            "sha256": "5337c02bf645468bff07aef2e4262f3a736d18e5458ed25863ea7e57cd238467"
+          },
+          "git": {
+            "bytes": 1904,
+            "sha256": "5337c02bf645468bff07aef2e4262f3a736d18e5458ed25863ea7e57cd238467"
+          },
+          "oid": "4f893aff7bc9bebaf0431bc50e08ed42e72092d3",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/exact-diff.json",
+          "disk": {
+            "bytes": 579,
+            "sha256": "1e4c9e3c9c8485e9310484762b1317ba026fa21ab8b652b3c63eb3674cc71414"
+          },
+          "git": {
+            "bytes": 579,
+            "sha256": "1e4c9e3c9c8485e9310484762b1317ba026fa21ab8b652b3c63eb3674cc71414"
+          },
+          "oid": "5494cdedfea1cf45c15870c47db4322b95a45f46",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/maxut-one-input.json",
+          "disk": {
+            "bytes": 46236,
+            "sha256": "00e660275ace4d71d41cdafa725da2b552baeea9604756d94ad6b07de846e9d5"
+          },
+          "git": {
+            "bytes": 46236,
+            "sha256": "00e660275ace4d71d41cdafa725da2b552baeea9604756d94ad6b07de846e9d5"
+          },
+          "oid": "af8e675b09be97413626ac3cf0b2e86854d4098a",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/review/independent-readonly-2026-09-30.json",
+          "disk": {
+            "bytes": 9280,
+            "sha256": "024ed729d1241da412d764e6b3ff0ca37f9563f450a584b8bc0988e15762ee5f"
+          },
+          "git": {
+            "bytes": 9280,
+            "sha256": "024ed729d1241da412d764e6b3ff0ca37f9563f450a584b8bc0988e15762ee5f"
+          },
+          "oid": "db77ef2481693c9558b9605ca9c6c37910e6dba9",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/review/independent_readonly.py",
+          "disk": {
+            "bytes": 18850,
+            "sha256": "605f4dc6f55038812e8e12456e37b5bffc2ef30c2537b8f01e3318859e0334e4"
+          },
+          "git": {
+            "bytes": 18850,
+            "sha256": "605f4dc6f55038812e8e12456e37b5bffc2ef30c2537b8f01e3318859e0334e4"
+          },
+          "oid": "288aee0b4eeac0797794ffd7e17ddcd117613144",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/run_native_ssh.ps1",
+          "disk": {
+            "bytes": 11909,
+            "sha256": "777c235b4b1585ded29a4fa957bafc4e06d3dbdd44a2b9121ff9d26504291914"
+          },
+          "git": {
+            "bytes": 11909,
+            "sha256": "777c235b4b1585ded29a4fa957bafc4e06d3dbdd44a2b9121ff9d26504291914"
+          },
+          "oid": "64795dec8ef7735fb1318256ab4b6be8afaf3003",
+          "byte_equal": true
+        },
+        {
+          "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/validate_native.py",
+          "disk": {
+            "bytes": 8726,
+            "sha256": "ee24d1a9e6bd58ceb45a5d7eb65988171f0626178119aa587f89aaf9fd49233b"
+          },
+          "git": {
+            "bytes": 8726,
+            "sha256": "ee24d1a9e6bd58ceb45a5d7eb65988171f0626178119aa587f89aaf9fd49233b"
+          },
+          "oid": "3712e3bc0d2cb11f77cc593f2be8179ea8e1acf2",
+          "byte_equal": true
+        }
+      ],
+      "scope": "accepted staffing and resource/shifts as source/prerequisite context only; no new shift or max-utilization behavior claimed"
+    },
+    "mandatory_original_raw": [
+      {
+        "bytes": 262,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-export.log",
+        "role": "accepted_parent_original",
+        "sha256": "8fa3d0a3875ca28b8fd93b3570d45b4a3b48875c8c1572fe749a7f33222b31d7"
+      },
+      {
+        "bytes": 1889,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-import.log",
+        "role": "accepted_parent_original",
+        "sha256": "e229e9fe38fb48efc337624b6644317a4a2b2e37dbc522f0617e85ffd853f8b6"
+      },
+      {
+        "bytes": 43341,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-input.json",
+        "role": "accepted_parent_original",
+        "sha256": "60f7f277965a2a7c001aed29dc99c48a2736b104e1744791f20b92772d1d3caa"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-report-export.log",
+        "role": "accepted_parent_original",
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "bytes": 148309,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-report-raw.json",
+        "role": "accepted_parent_original",
+        "sha256": "0124e765a5aa08e6ca6757a1a783388c4223941d7b1944f4fefc171876824618"
+      },
+      {
+        "bytes": 58912,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-roundtrip-raw.json",
+        "role": "accepted_parent_original",
+        "sha256": "2fdddd55dd5c6262dd98c2ae2d42992b7c1e3f1855905459a07cd02db790d504"
+      },
+      {
+        "bytes": 1067,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-run.log",
+        "role": "accepted_parent_original",
+        "sha256": "f650cc013ebfadff06604a26d661c9e64ccd8e184b9894d949b6ddde400d4be0"
+      },
+      {
+        "bytes": 15539,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control.log",
+        "role": "accepted_parent_original",
+        "sha256": "bc718534bb8680d4615682f83590c76c975ff0b96130244004a5a0fa8654374e"
+      },
+      {
+        "bytes": 189798,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control.sxi",
+        "role": "accepted_parent_original",
+        "sha256": "7bc41aeb9698b6697cd2e6a67f1dda04872b920aa5e653bfd216fc8a0ef61f1e"
+      },
+      {
+        "bytes": 341889,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control.sxo",
+        "role": "accepted_parent_original",
+        "sha256": "0e160ff1f6d59ac9ea06da9e7bd0f9888bc0ac9a81952c6abd6593addae5f6c2"
+      },
+      {
+        "bytes": 258,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-export.log",
+        "role": "accepted_parent_original",
+        "sha256": "22cbb9ff213316b1e7eb44e56c72a505d125f0ea4c14437d8af4a7e04e164cb8"
+      },
+      {
+        "bytes": 1885,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-import.log",
+        "role": "accepted_parent_original",
+        "sha256": "63a501c6035ba4dcf5ae3ee1aff19c715d8f87e2fab49e49c374ed269f80b667"
+      },
+      {
+        "bytes": 43349,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-input.json",
+        "role": "accepted_parent_original",
+        "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-report-export.log",
+        "role": "accepted_parent_original",
+        "sha256": "1122e2fbfae5587783a0c305b308a833d6394e35b18a0088ce31c0ad6910123e"
+      },
+      {
+        "bytes": 148330,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-report-raw.json",
+        "role": "accepted_parent_original",
+        "sha256": "eb921d0b07b33528f56ee2cf1e7e69270d92a1f95f79702652b419ec9700c433"
+      },
+      {
+        "bytes": 58871,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-roundtrip-raw.json",
+        "role": "accepted_parent_original",
+        "sha256": "5689bed487fc2ccaa1ceb78c40b86706c83219ffff3f2f1e656e63db968224b8"
+      },
+      {
+        "bytes": 1055,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-run.log",
+        "role": "accepted_parent_original",
+        "sha256": "2d69b9c6731df2dc21cd409b4595ed65e837014c2e49134385da0f445e55c795"
+      },
+      {
+        "bytes": 16812,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out.log",
+        "role": "accepted_parent_original",
+        "sha256": "bc6f3b1fbda10fe0973282d206f505c4f0c6f146797e189d1ea8d7cf424062ee"
+      },
+      {
+        "bytes": 189851,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out.sxi",
+        "role": "accepted_parent_original",
+        "sha256": "54860c739f1c68d52a920d90ed37fe4651496fbc77d8a6e40c4a32c3306cd4a2"
+      },
+      {
+        "bytes": 341934,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out.sxo",
+        "role": "accepted_parent_original",
+        "sha256": "28bee9ac93262a32e49c11ceef66207369d772fe2aa863325520268b7a1461aa"
+      },
+      {
+        "bytes": 1548,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\outcome.json",
+        "role": "accepted_parent_original",
+        "sha256": "3ba6e73f521a65b37cd25da540cdd41654aa7470be712920998c649cb6497e4b"
+      },
+      {
+        "bytes": 261,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-export.log",
+        "role": "accepted_parent_original",
+        "sha256": "08989132543fb3acde10347a7d3bb5986987a0b593e58d2b7b55c896e9a4d353"
+      },
+      {
+        "bytes": 1888,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-import.log",
+        "role": "accepted_parent_original",
+        "sha256": "81cada6313d0e4eed3dc1b7fc6e37a4a698284fb25eca6c235288530b312a10f"
+      },
+      {
+        "bytes": 43550,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-input.json",
+        "role": "accepted_parent_original",
+        "sha256": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-report-export.log",
+        "role": "accepted_parent_original",
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "bytes": 148314,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-report-raw.json",
+        "role": "accepted_parent_original",
+        "sha256": "46c798558486eff6f4714d9e1783914b9a2169ec535d773d72ec2471b9959cbd"
+      },
+      {
+        "bytes": 58952,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-roundtrip-raw.json",
+        "role": "accepted_parent_original",
+        "sha256": "2d2057fb88c65ed2fe057d969fc90e024369b324c9c90327252e9dd4f5c7f7b2"
+      },
+      {
+        "bytes": 1064,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-run.log",
+        "role": "accepted_parent_original",
+        "sha256": "d3053918eb968775711d54fbda8425c0fd04cba80ac34aedb3336b8345151076"
+      },
+      {
+        "bytes": 17008,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in.log",
+        "role": "accepted_parent_original",
+        "sha256": "673706cc043d4c5b1ce07c0692070b7931677257779fa3a67ebf190e2644f0c5"
+      },
+      {
+        "bytes": 189922,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in.sxi",
+        "role": "accepted_parent_original",
+        "sha256": "f137198560f356a067b224047aa7cd39362e610631275d8cfcbcc41159edf443"
+      },
+      {
+        "bytes": 342011,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in.sxo",
+        "role": "accepted_parent_original",
+        "sha256": "62f23034ae4a2985c6ca8c9d84a81656361cc33c6b24082e2851edf32031d1bc"
+      },
+      {
+        "bytes": 10799,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\steps.json",
+        "role": "accepted_parent_original",
+        "sha256": "38809db6a72e9bc89f9489a53363fdae75d4253be5e036b7ee0abc3572bf3596"
+      },
+      {
+        "bytes": 2790,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\invocation.json",
+        "role": "accepted_parent_original",
+        "sha256": "ff12cd78a0358e036365eb49f85ce36755d927d8195b29b591f75cc5322910f9"
+      },
+      {
+        "bytes": 11902,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\closure.json",
+        "role": "accepted_parent_original",
+        "sha256": "fffdaa778a68fc46d1cbec9e8884e8c29af05ae0769098122206f7fd8bf43cf8"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\report-export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "bytes": 3173,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\steps.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "1e0eacad97a7eae7dc3d32e934aec37332949274771b9d048ff62dbc4ed58e09"
+      },
+      {
+        "bytes": 8387,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\model.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "9b9e6f13cad2b15f868d541cdc9c1468d28f8ca3eaac0fba196cd5888370930e"
+      },
+      {
+        "bytes": 57137,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\roundtrip-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "377c71edf23e6eedf50429e9f339e2407d1b91ed0c689ff7d35bd47b28f1d218"
+      },
+      {
+        "bytes": 341596,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\model.sxo",
+        "role": "accepted_prerequisite_original",
+        "sha256": "3cdbf7ef82c135d10fd7ca8ed8ebdbe2ef0668acfa07d7c05410cee82daf2557"
+      },
+      {
+        "bytes": 148257,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\report-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "8b49eaf285b4a18f5c47bdaa278c46b7cf5f5af62ebedcf83ab2ff379ab4b937"
+      },
+      {
+        "bytes": 977,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\run.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "96a42dc91ad388c726c53b81ae7283765478ca3119e647a39da0f8088a016459"
+      },
+      {
+        "bytes": 41914,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\input.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "83b454bd145621f36571a87cdf8abcbccc184f07ab8f9ad5f3111651c78881e0"
+      },
+      {
+        "bytes": 1818,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\import.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "2e3e2ed75af514a920ce4b8f7bb177eb2114a443d85b8b2eb7d0962940ffbc54"
+      },
+      {
+        "bytes": 226,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "8ecc83fc26bc90ee537edab1e2863590e19cfec2f652594463d259b540a2714c"
+      },
+      {
+        "bytes": 189648,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\model.sxi",
+        "role": "accepted_prerequisite_original",
+        "sha256": "748cc8deadf4f8b970e0fc6f922dc5e6db443f8da6635758465b369206859b66"
+      },
+      {
+        "bytes": 2479,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\invocation.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "1501b97eea93e5f1b98474c28cde922d1c1b8f7b9c5ab91b71a57b3bbb22b7e2"
+      },
+      {
+        "bytes": 3049,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff2-ssh-20260929-04\\closure.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "7f8f26da9d48758838635968a5ec878ea079b6ca6cf00feb8b755ea4573ff92a"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\report-export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "bytes": 3191,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\steps.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "b878550668855c7e11280d34d6274fe1193d383969996efbd1455b445627fe86"
+      },
+      {
+        "bytes": 8776,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\model.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "f51cdb3e7fdde1f2120324b88199791c95eff725ddc56991e9e03d10041e23a9"
+      },
+      {
+        "bytes": 57137,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\roundtrip-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "58f577a047a02fc0413356de55eafdc6359117b88e911a04f2ff018374e6ee7a"
+      },
+      {
+        "bytes": 341596,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\model.sxo",
+        "role": "accepted_prerequisite_original",
+        "sha256": "2e0bef956dca989602c5e53b95f2eadf329a66cf71eedc91114f39de2b38f69b"
+      },
+      {
+        "bytes": 148276,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\report-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "498bb4fde60bb81d1554e34bf91cafd7f92605e8de4537f005e573b88b2004fd"
+      },
+      {
+        "bytes": 977,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\run.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "8391e8abb7cbf45dc5fedb0b7bbd17f8dbd24af97890a3cc89d9bb88450c6811"
+      },
+      {
+        "bytes": 41914,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\input.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "159f5fa91d50afbd0d15840f8f007c62a3775d02d718152004017e20e545b789"
+      },
+      {
+        "bytes": 1818,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\import.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "7f80f432a244cf4ada2a0f18270fe4ca402541c4d9c9f084e1adc5b3792dcfc9"
+      },
+      {
+        "bytes": 226,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "5e6c9526eb3801f79aecd50b1a3c6194028ff23c538891b65bcb74c2ecd7842b"
+      },
+      {
+        "bytes": 189648,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\model.sxi",
+        "role": "accepted_prerequisite_original",
+        "sha256": "356fc0e55b984a457328cea5eef43a4161edc20317ffe2af3fd23fe4788286fe"
+      },
+      {
+        "bytes": 2479,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\invocation.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "d961e1b122a2419e3dae1286dab1f2cb0b46f25de50e80eb0d0a3bad5e88bfe3"
+      },
+      {
+        "bytes": 3049,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff1-ssh-20260929-02\\closure.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "8c078f6f3c2660bbdd3f98e3eba8132718bc537eecd80a779c3983e4058b46f2"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\report-export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "1122e2fbfae5587783a0c305b308a833d6394e35b18a0088ce31c0ad6910123e"
+      },
+      {
+        "bytes": 3173,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\steps.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "c1b86626b0a7a64961730375b28545d2900135b297b663c6d97ad50c429dd297"
+      },
+      {
+        "bytes": 5825,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\model.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "3b1df1c2a52065697192b1b5da6dd14a52e088142a341f71f0b4aa6f3e1e729b"
+      },
+      {
+        "bytes": 57137,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\roundtrip-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "eefeca3e97e3beb128854391c5fc1a01da95cded2444d793eab0b601c75f56ae"
+      },
+      {
+        "bytes": 341596,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\model.sxo",
+        "role": "accepted_prerequisite_original",
+        "sha256": "7997bf00601701e2fa7582b32b287a42133e6387c0485fd115e26d2c50160993"
+      },
+      {
+        "bytes": 148256,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\report-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "fe7343be53da193e54a3a20724ff3619c78a6ec92a5ce7e130363d62cfa565ae"
+      },
+      {
+        "bytes": 977,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\run.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "9a2384a4bb64e71b116ec4a764a2c2e11881745d4312fcc98b96523cff5f9b1b"
+      },
+      {
+        "bytes": 41914,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\input.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "50682827a363aeb2cb35f860f78671fffd1ea48fbea655ce664eb2c1e2b19267"
+      },
+      {
+        "bytes": 1818,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\import.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "491cdc38fe39e8aac1fe470d82527f24758d53c484865e3bb492f00688ac35ba"
+      },
+      {
+        "bytes": 226,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "4e1b65a135bb1ffee06e29f736f20504abf46fe59835ee78613fa86d06350b99"
+      },
+      {
+        "bytes": 189648,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\model.sxi",
+        "role": "accepted_prerequisite_original",
+        "sha256": "90298dc26b38d5082c8fe365155ebd0134f39e53b1aa3b18c602cf11f22f7b17"
+      },
+      {
+        "bytes": 2479,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\invocation.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "67fa272ed314cc38ebedfa9266921012d811d14d7bf0c6cb1f97b3bfd330e450"
+      },
+      {
+        "bytes": 3049,
+        "path": "C:\\Users\\user\\dev\\sim_engine_compiler-b02-v102\\cases\\simlox-air-support\\C03-shared-crew-formation-v1.0.2\\runs\\c03-v102-staff0-ssh-20260929-02\\closure.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "41063c7f0dc509988a68f48247df5b93a4d8eeacab2be3bc6ba389fe2060c68d"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\report-export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "bytes": 1388,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\roundtrip-validation.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "98f3102d86aca5176061967bb9380a1101968bbcc11a55bde147cbb5114a01f5"
+      },
+      {
+        "bytes": 1955,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\import.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "7412cb9059efed02104a202c485f9ba0f02e3bdf14f1544d7e54c11ba0ba5336"
+      },
+      {
+        "bytes": 14975,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\model.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "964a6ef691dc840ef1d808dcd0a91df87ca5ac4e36336785bc517b1aa1274f3b"
+      },
+      {
+        "bytes": 342088,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\model.sxo",
+        "role": "accepted_prerequisite_original",
+        "sha256": "8bc165e23185bbe10fb66f9acd987f3e2c9e380a43df508976c28f5c1607a108"
+      },
+      {
+        "bytes": 1013,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\run.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "acc2caac7c00a0e94c8910fc6b1b7bb7c0ecbd1049df4c45ad01581079e3feb1"
+      },
+      {
+        "bytes": 148280,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\report-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "7221bbfdfd442dd0e3b1e4f51a679c05c556f2f0cd2dfbe0145ef19ed45dba5d"
+      },
+      {
+        "bytes": 62735,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\roundtrip-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "b5a98fa41a43a68d71f61ff75a81282c274175e2dc728b2e2fe970e841f57d8d"
+      },
+      {
+        "bytes": 46567,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\input.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "f69be976c2afa0515670f76737397b3fc1258b0fcc16a1243086ded579f34ee4"
+      },
+      {
+        "bytes": 238,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "46a3e8074b435551a221fad9dc8298cc64c85dfd96b43a2fb6f4ba0abbdae124"
+      },
+      {
+        "bytes": 190124,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\model.sxi",
+        "role": "accepted_prerequisite_original",
+        "sha256": "517bf6f7b0d66b8c31bcb3941c297175543d65e406094316cdade1fa7b052d76"
+      },
+      {
+        "bytes": 4071,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\steps.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "4f88a3d5ba4a6bd117e9ab32bf4e70defc792263a48696293d88b8edf6499b31"
+      },
+      {
+        "bytes": 5258,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-unlimited-20260930-01\\closure.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "369e611486f54bd214a2d041e5989b251a5795ebf36fb78b0afce9b503bac9b5"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\report-export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "bytes": 1384,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\roundtrip-validation.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "b05a6616d9aa5ce71e92a052d36b0cee1fd49d82ac7f1e06862334d7ae26ef4c"
+      },
+      {
+        "bytes": 1951,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\import.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "c54484194bea49d6ea31711352c6bde2860f270e90153fb8d2054cabd0d8e8e8"
+      },
+      {
+        "bytes": 15595,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\model.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "014d0537cff03b6e86fd18f98da3020795ded717453b52a1e715c9ee9dddf6e9"
+      },
+      {
+        "bytes": 342100,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\model.sxo",
+        "role": "accepted_prerequisite_original",
+        "sha256": "d2e146fc604fb161d807793dbb06f7c30ae28843e40ee35a804d6e79ca2b6d82"
+      },
+      {
+        "bytes": 1001,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\run.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "a7f6651608ab06e099b2f53d66453d41a3e0387c7e72003719baf8e445eb5f0d"
+      },
+      {
+        "bytes": 148306,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\report-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "e4dea26f54d29588ba5ce4e8d219aea2d017b4918480f251742ae5631973846d"
+      },
+      {
+        "bytes": 62744,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\roundtrip-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "ec0995c09d377a6877273ebaed4d153db86256fb0aa45fa0a3f4f0c4c493f200"
+      },
+      {
+        "bytes": 46578,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\input.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "415c1a918dd643f3db869e28c02ceebbde68c887847df222ec3780ae9c4deb75"
+      },
+      {
+        "bytes": 234,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "3c2d1bc11c788e6402874d5ea2f4b6ad537ac99d2c71316fbd331dce784aba30"
+      },
+      {
+        "bytes": 190144,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\model.sxi",
+        "role": "accepted_prerequisite_original",
+        "sha256": "2b3007465212cb58cecc9e75a67d7b7a2bb0bdcae47b18bb28140e9dad6160ae"
+      },
+      {
+        "bytes": 4023,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\steps.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "f4b215a587a96715eb8e1f0c91688bcc467561d5f24357f7f0c8798aa8e3f22a"
+      },
+      {
+        "bytes": 5254,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-partial-pool-v1.0.0\\runs\\c08-partial-maxut-20260930-01\\closure.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "9598d49ef32350511c18baaa30963f937f813981c56217a47ad0f6c3197710a2"
+      },
+      {
+        "bytes": 64,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\report-export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "bytes": 1379,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\roundtrip-validation.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "63336185849024c7bec2ff3cc062026198124c97a2d965f5503b10da6da8ec45"
+      },
+      {
+        "bytes": 1946,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\import.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "84dfe7c543ef6486fb0703443bdd1bdff974c226ec0d9435e474916c162b0ca7"
+      },
+      {
+        "bytes": 14949,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\model.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "ed9d540368b5bc1cb8c85374d6d174a7032ee06e7c82c2494ec222c815b77a14"
+      },
+      {
+        "bytes": 341843,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\model.sxo",
+        "role": "accepted_prerequisite_original",
+        "sha256": "2c36ff26a2601707490402704fe8d92b27127d442e4b57ec993996dcae9b817c"
+      },
+      {
+        "bytes": 986,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\run.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "f7c55fd14942e2b3b9c873c386f8a52e8b99c267b3666f48f4d0b5986e5c5cd3"
+      },
+      {
+        "bytes": 148272,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\report-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "eb9648737d9313f3e62cc3cc1a2b473ce29c56ebdff8721cee52106783c06f66"
+      },
+      {
+        "bytes": 62280,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\roundtrip-raw.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "a9ccafe9c9467dc1bfdde671f0fd5fb7f3a3def64126b9fed04e6fb875034eea"
+      },
+      {
+        "bytes": 46236,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\input.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "00e660275ace4d71d41cdafa725da2b552baeea9604756d94ad6b07de846e9d5"
+      },
+      {
+        "bytes": 229,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\export.log",
+        "role": "accepted_prerequisite_original",
+        "sha256": "0971c5a6234d5314c746f1d4b4dbbf2e236ab46612682a5b7fb68bd1c90c4453"
+      },
+      {
+        "bytes": 190026,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\model.sxi",
+        "role": "accepted_prerequisite_original",
+        "sha256": "5a3240c2b458a20b45443f9eaf133d685f6d7994f7d4a2c00716cd2ae9abd2dd"
+      },
+      {
+        "bytes": 3962,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\steps.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "7894f512ba485d5b34f870ebf6498a4a26fc3d91c491d6482f2b7c530475eba0"
+      },
+      {
+        "bytes": 5248,
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\C08-shift-maxut-v1.0.0\\runs\\c08-maxut-one-20260930-01\\closure.json",
+        "role": "accepted_prerequisite_original",
+        "sha256": "c70857f59ed2152b1efe8cdea93f0d04c52d35d9a853ce71048ee4ebb41a02e5"
+      }
+    ],
+    "mandatory_original_raw_count": 112,
+    "mandatory_source_refs_total": 80,
+    "required_docs": {
+      "AGENTS.md": {
+        "bytes": 4285,
+        "sha256": "120b806a085ca017a53fa285dacd3def670bf6d5f1d3cd0adadfe7cefb25ee20"
+      },
+      "README.md": {
+        "bytes": 8055,
+        "sha256": "74fe292816b3fdd460b347c389caff91f3521fd96c88158fb2de3af731ca7d3e"
+      },
+      "docs/architecture.md": {
+        "bytes": 8340,
+        "sha256": "1884ec18212c0a3ceac470ee2e1eaa0587c987bff5be3bd6ac8dd55c0c16f556"
+      },
+      "docs/semantic-baseline.md": {
+        "bytes": 3676,
+        "sha256": "56c93264d27d5c61609b7ce78845fc4d3a3d5effe1bbf8520776b499c338b815"
+      },
+      "docs/roadmap.md": {
+        "bytes": 10731,
+        "sha256": "968248b565e7db8ce9eac5044668ae05cec7337cc75e3ac3e04c8e04f9ef001d"
+      },
+      "cases/simlox-air-support/execution-plan-v2.md": {
+        "bytes": 16533,
+        "sha256": "b9ad6572e9bedc4bbe6bcd928820a0861806167782910aa46bd83e1b4e0ccc66"
+      },
+      "cases/simlox-air-support/ssh-cli-acceptance-policy-v1.md": {
+        "bytes": 5058,
+        "sha256": "06e2b6197b8389ed49a7e1be5f7fd1394ac4cb284490b114ebefc8f22b5688f5"
+      },
+      "cases/simlox-air-support/catalog-v2.json": {
+        "bytes": 264016,
+        "sha256": "8c491ec16693cd64d212f986ed03dad5ed013d7e0bd8e170c0a4d1bf4450b55d"
+      }
+    },
+    "installed_manual": {
+      "path": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+      "bytes": 18124110,
+      "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3"
+    },
+    "installed_dictionary": {
+      "path": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+      "bytes": 78577,
+      "sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+    },
+    "installed_executable": {
+      "path": "C:\\Program Files\\Systecon\\SIMLOX\\Simlox.exe",
+      "bytes": 33196032,
+      "sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+      "basis": "author and independent reviewer read-only installed-file hash after v1; absent from root selection receipt; rehash at actual preflight"
+    },
+    "root_installed_pin_receipt": {
+      "path": "tmp/i03-var05-root-installed-pins-20261008.json",
+      "bytes": 870,
+      "sha256": "496c96ac1e0b836ad56c8112423b13d627076807f91c893b7354ff3e631f6c7f"
+    },
+    "design_history": [
+      {
+        "path": "tmp/i03-var05-prospective-contract-design-v1-20261008.json",
+        "bytes": 110590,
+        "sha256": "4fc361b92417c18b157b21aef690c3bc35f6f82511b1361722175ef92dd9df2f"
+      },
+      {
+        "path": "tmp/build-i03-var05-design-v1-20261008.py",
+        "bytes": 20366,
+        "sha256": "5f107441c8f240d7b100c6d94595daf84d50841b313fcf41792ee3a224dda438"
+      },
+      {
+        "path": "tmp/i03-var05-prospective-contract-design-v2-20261008.json",
+        "bytes": 110792,
+        "sha256": "f45fd3dec666ab35c348b5c32af8e62a453a2db2436860afc3d158f3f87c8392"
+      },
+      {
+        "path": "tmp/build-i03-var05-design-v2-20261008.py",
+        "bytes": 20597,
+        "sha256": "d49832dec7c35c4ae69b5a8636ce02949a28fee8e92cc4e40c2bf0b59c2ef0c7"
+      },
+      {
+        "path": "tmp/i03-var05-independent-contract-v1-no-go-20261008.md",
+        "bytes": 3370,
+        "sha256": "7dceee319b244154e5b5e9973bde233d5668215d58c12204b96d9fdba5f872da"
+      }
+    ],
+    "root_owner_context_is_point_time_only": {
+      "bytes": 936,
+      "sha256": "265cbf1813a0a267c03183eac8b7bf0460c66a31f3672f1eec920750cbe0fb43"
+    }
+  },
+  "manual_basis": {
+    "pages_225_226": "Transfer can be delayed or split when an asset is unavailable; resource transfers resemble item transfers, but this child has no resource shortage at scheduled IN.",
+    "pages_476_479": "ResourceTransfer STFID, STTID, RID, TFTIME identify row; TFQTY integer; TFDT double with default0 and field-level IN applicability; the general introductory sentence emphasizes BETWEEN, so this is specifically the later TFDT field wording plus actual positive-delay parent, not a universal rule.",
+    "pages_751_760": "NR physical local number, NRA available local, NRN nominal; interval means and whole-horizon ResourceResultsTotal are distinct; OUT request changes NRN at h7.75 before physical release h8; parent IN nominal and physical both change on observed arrival h10.5."
+  },
+  "source_delta": {
+    "parent_model_database_version": 20160627,
+    "full_table_count": 32,
+    "table_names_ordered": [
+      "ProblemDescription",
+      "ControlParameters",
+      "Control",
+      "GlobalParameters",
+      "System",
+      "Item",
+      "ItemStructure",
+      "Station",
+      "StationStructure",
+      "SystemDeployment",
+      "SystemRepair",
+      "ItemRepair",
+      "ItemReorder",
+      "MissionType",
+      "OperationProfile",
+      "OperationParameter",
+      "Operations",
+      "Unit",
+      "MissionPreparation",
+      "Tasks",
+      "TaskResource",
+      "Resource",
+      "ResourceAllocation",
+      "ResourceTransfer",
+      "MaterielPM",
+      "PMLocation",
+      "StockAllocation",
+      "ResultCollection",
+      "ItemReplacement",
+      "SubTaskType",
+      "TaskBreakDown",
+      "SubTaskResource"
+    ],
+    "full_row_count_including_null_placeholders": 25,
+    "full_cell_count_including_null_placeholders": 227,
+    "authored_source_role": "32 authored tables/25 stored rows/227 stored cells: 11 declared tables have zero rows; 3 existing all-null rows in the other tables are retained unchanged",
+    "zero_row_tables": [
+      "Item",
+      "ItemStructure",
+      "StationStructure",
+      "SystemRepair",
+      "ItemRepair",
+      "ItemReorder",
+      "TaskResource",
+      "MaterielPM",
+      "PMLocation",
+      "StockAllocation",
+      "ItemReplacement"
+    ],
+    "all_null_placeholder_tables": [
+      "ControlParameters",
+      "GlobalParameters",
+      "OperationParameter"
+    ],
+    "native_roundtrip_role": {
+      "parent_original_roundtrip": {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/runs/i03-var01-crew-transfer-v100-ssh-20261005-01/out_in-roundtrip-raw.json",
+        "bytes": 58952,
+        "sha256": "2d2057fb88c65ed2fe057d969fc90e024369b324c9c90327252e9dd4f5c7f7b2"
+      },
+      "expected_tables": 32,
+      "expected_rows": 36,
+      "expected_cells": 368,
+      "added_native_empty_table_placeholders": [
+        {
+          "table": "Item",
+          "columns": 29,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "ItemStructure",
+          "columns": 9,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "StationStructure",
+          "columns": 11,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "SystemRepair",
+          "columns": 15,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "ItemRepair",
+          "columns": 16,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "ItemReorder",
+          "columns": 11,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "TaskResource",
+          "columns": 8,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "MaterielPM",
+          "columns": 14,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "PMLocation",
+          "columns": 9,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "StockAllocation",
+          "columns": 9,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "table": "ItemReplacement",
+          "columns": 10,
+          "rows": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ],
+      "gate": "Every originally empty table exports exactly one all-null row of its declared column width; every originally nonempty row and full column/key/datatype/instance metadata type-exact and ordered; no other normalization or loss."
+    },
+    "parent_description": "I03.var01 out_in: second formation at h20; crew transfer comparison",
+    "child_description_predeclared": "I03.var05 zero-delay IN at h10 versus accepted positive 0.5-hour IN",
+    "row_key": {
+      "table": "ResourceTransfer",
+      "STFID": "<OUTSIDE>",
+      "STTID": "BASE-01",
+      "RID": "P-CREW",
+      "TFTIME": 10.0
+    },
+    "parent_IN_row": [
+      "<OUTSIDE>",
+      "BASE-01",
+      "P-CREW",
+      10.0,
+      1,
+      0.5,
+      null
+    ],
+    "child_IN_row_expected": [
+      "<OUTSIDE>",
+      "BASE-01",
+      "P-CREW",
+      10.0,
+      1,
+      0.0,
+      null
+    ],
+    "unchanged_OUT_row": [
+      "BASE-01",
+      "<OUTSIDE>",
+      "P-CREW",
+      7.75,
+      1,
+      0.0,
+      null
+    ],
+    "allowed_changes_exactly": [
+      "ProblemDescription.PDESC old exact string -> child_description_predeclared",
+      "ResourceTransfer exact IN row TFDT numeric0.5 -> numeric0.0"
+    ],
+    "gate": "construct new input deterministically from exact parent bytes; recursively type-sensitive compare all 32 authored tables/metadata/25 rows/227 cells and accept precisely these two cell changes; reject bool-as-number, duplicate tables/keys/instances, source rewrite or changed defaults; native export must have 32 tables/36 rows/368 cells due solely to exact eleven all-null native placeholder rows, with all metadata intact"
+  },
+  "physical_gate": {
+    "clock_edges_hours_exact": [
+      0,
+      7.5,
+      7.75,
+      8,
+      8.25,
+      8.75,
+      9,
+      10,
+      19.5,
+      20,
+      20.25,
+      20.75,
+      21,
+      24,
+      36
+    ],
+    "printed_time_rule": "all fixed quarter/half-hour source edges are exactly binary representable and checked exactly; no generic half-last-digit tolerance; zero duration requires linked start and arrival both h10",
+    "OUT_parent_preserved_in_child": "At h7.75 positive request1 while two crew are booked; task0 zero-quantity start/arrival and transfer backorder1 may be emitted as in accepted parent; task-linked positive task1 starts/arrives h8 after release. Nominal crew2->1 h7.75, physical local2->1 h8; no premature physical decrement/double transfer.",
+    "IN_target": "One and only one task linked to the exact IN source row: created and starts at h10 with quantity1 and printed transfer time0, arrives at h10 with quantity1, then resource transfer arrives1; local free count and nominal count become2 at h10. No h10.5 arrival, no duplicate receipt, no IN backorder.",
+    "task_id_expectation": "Accepted parent uses OUT task0 zero, OUT task1 positive, IN task2 positive; child typed parser binds one-to-one task ID/lifecycle/quantity and rejects extra known-pattern events, while an ID renumbering is a review-triggering discrepancy rather than silently discarded.",
+    "derived_quantity_ledger": [
+      {
+        "interval": "[0,7.75)",
+        "local_roster": 2,
+        "booked_at_prep_only": "2 on [7.5,8), else0",
+        "OUT_pending": 0,
+        "completed_OUT": 0,
+        "IN_pending": 0,
+        "completed_IN": 0
+      },
+      {
+        "interval": "[7.75,8)",
+        "local_roster": 2,
+        "booked": 2,
+        "reserved_OUT": 0,
+        "free": 0,
+        "OUT_pending": 1,
+        "completed_OUT": 0,
+        "IN_pending": 0,
+        "completed_IN": 0,
+        "nominal_local": 1
+      },
+      {
+        "interval": "[8,10)",
+        "local_roster": 1,
+        "booked": 0,
+        "free": 1,
+        "OUT_pending": 0,
+        "completed_OUT": 1,
+        "IN_pending": 0,
+        "completed_IN": 0,
+        "nominal_local": 1
+      },
+      {
+        "interval": "[10,36]",
+        "local_roster": 2,
+        "booked": "2 on [19.5,20), else0",
+        "free": "local minus booked",
+        "OUT_pending": 0,
+        "completed_OUT": 1,
+        "IN_pending": 0,
+        "completed_IN": 1,
+        "nominal_local": 2
+      }
+    ],
+    "h8_transient_reservation": "First prep release: local2/booked1/reserved_OUT0/free1; backorder removal reserves the newly freed OUT1; second prep release: local2/booked0/reserved_OUT1/free1 (the accepted printed snapshot); positive OUT departure clears reservation and reduces local to1 once, yielding booked0/reserved0/free1. Do not count reservation as completed OUT or decrement local before positive task start/departure.",
+    "conservation": "After completed OUT/IN: local roster = opening2 - completed OUT task quantity + completed IN task quantity; at every accepted typed event microstep free = local - task booked - reserved_OUT, including h8. At h10 linked IN start/arrival restores local once. This is a bounded task-quantity ledger, not an observed outside-person pool or persistent individual identity.",
+    "mission_and_system_ledger": "Two distinct mission instances wave0/1, aircraft0/1 allocation each; prep starts7.5 and19.5, four one-crew bookings and completions at8/20, mission starts8/20, task operations8.25-8.75/20.25-20.75, success/return9/21, terminal two ready; no failures/damage/PM; all typed lifecycle and untimed continuations consumed with exact family cardinalities and allowed same-time partial order",
+    "native_log_gate": "Parse entire original child log including header36, all timed lines and untimed resource/backorder/availability/queue/return continuations, unique task and aircraft identities, chronological order and terminal boundary; reject missing, duplicate, extra known-pattern or unknown lines, wrong times/quantities/owner/status. Parent original positive IN raw independently checked, never rewritten."
+  },
+  "report_gate": {
+    "six_tables_in_order": [
+      "ProblemDescription",
+      "ResultSummary",
+      "SystemResults",
+      "StockTotalResults",
+      "ResourceResults",
+      "ResourceResultsTotal"
+    ],
+    "topology_exact": [
+      {
+        "name": "ProblemDescription",
+        "columns": [
+          "PDESC"
+        ],
+        "rows": 1,
+        "instance_name": ""
+      },
+      {
+        "name": "ResultSummary",
+        "columns": [
+          "NREP",
+          "RTILW",
+          "RTIUP",
+          "MTMF",
+          "RSMTMF",
+          "MSTF",
+          "RSMSTF",
+          "MSUF",
+          "RSMSUF",
+          "STMF",
+          "RSSTMF"
+        ],
+        "rows": 1,
+        "instance_name": ""
+      },
+      {
+        "name": "SystemResults",
+        "columns": [
+          "UNID",
+          "SID",
+          "STINT",
+          "ETINT",
+          "NSYRY",
+          "NSYMA",
+          "NSYMO",
+          "NSYMC",
+          "NSYMP",
+          "NSYMT",
+          "NSYMS",
+          "NSYMR",
+          "NSYUA",
+          "NSYA",
+          "NSYAL",
+          "FTMO",
+          "NSYRP",
+          "NSYPM",
+          "NSYTP",
+          "NSYWR",
+          "NSYWI",
+          "NSYLA",
+          "NSYUH",
+          "NREPT",
+          "NPMT",
+          "NFAIL",
+          "NDAM",
+          "NPMS",
+          "NROBT",
+          "NRCFG",
+          "STREQ",
+          "STACC",
+          "STF",
+          "STLOW",
+          "SYDT",
+          "SYDTU",
+          "NSYDT",
+          "NSYSW",
+          "NPSTA",
+          "NPSUC"
+        ],
+        "rows": 72,
+        "instance_name": "Total over all Units;Total over all Systems;0.00;36.00"
+      },
+      {
+        "name": "StockTotalResults",
+        "columns": [
+          "STINT",
+          "ETINT",
+          "NBO",
+          "NBOU",
+          "ROS",
+          "ROST",
+          "WT",
+          "WTT",
+          "WTS",
+          "PNB",
+          "NDF",
+          "NDD",
+          "NDR",
+          "NDP",
+          "NLD",
+          "NWT"
+        ],
+        "rows": 72,
+        "instance_name": "0.00;36.00;"
+      },
+      {
+        "name": "ResourceResults",
+        "columns": [
+          "RID",
+          "STID",
+          "STINT",
+          "ETINT",
+          "NR",
+          "NRMO",
+          "NRMA",
+          "NRUM",
+          "NRLA",
+          "NRW",
+          "NRA",
+          "NRN",
+          "NRF",
+          "NRRI",
+          "NRRT",
+          "NRRO"
+        ],
+        "rows": 72,
+        "instance_name": "Total over all Resources;Total over all Stations;0.00;36.00"
+      },
+      {
+        "name": "ResourceResultsTotal",
+        "columns": [
+          "RID",
+          "STID",
+          "NR",
+          "NRMO",
+          "NRMA",
+          "NRUM",
+          "NRLA",
+          "NRW",
+          "NRA",
+          "NRN",
+          "NRF",
+          "NRRI",
+          "NRRT",
+          "NRRO"
+        ],
+        "rows": 1,
+        "instance_name": "Total over all Resources;Total over all Stations;0.00;36.00"
+      }
+    ],
+    "cells_per_arm": 5210,
+    "metadata_gate": "Exact root/report/table/column/instance key sets, column datatype/key booleans, names/order, one instance and row counts; ResultSummary.NREP is actual int1 and bool/float1.0 reject; double numeric fields permit finite JSON int/float with exact value and bool reject; string/null exact type. Native trailing comma only at one declared report-tables closing location may be repaired in memory, raw bytes unchanged; duplicate JSON keys, nonfinite values or extra repair positions reject.",
+    "source_event_expected": {
+      "ResultSummary": {
+        "NREP": 1,
+        "RTILW": 0,
+        "RTIUP": 36,
+        "MTMF": 1,
+        "RSMTMF": 0,
+        "MSTF": 1,
+        "RSMSTF": 0,
+        "MSUF": 1,
+        "RSMSUF": 0,
+        "STMF": 1,
+        "RSSTMF": 0
+      },
+      "SystemResults": {
+        "field_classes": {
+          "identity_and_interval": [
+            "UNID",
+            "SID",
+            "STINT",
+            "ETINT"
+          ],
+          "source_event_dynamic": [
+            "NSYRY",
+            "NSYMA",
+            "NSYMO",
+            "NSYMP",
+            "NSYMR",
+            "NSYA",
+            "FTMO",
+            "STACC",
+            "NPSTA",
+            "NPSUC"
+          ],
+          "source_event_zero": [
+            "NSYMC",
+            "NSYMT",
+            "NSYMS",
+            "NSYUA",
+            "NSYRP",
+            "NSYPM",
+            "NSYTP",
+            "NSYWR",
+            "NSYWI",
+            "NSYLA",
+            "NSYUH",
+            "NREPT",
+            "NPMT",
+            "NFAIL",
+            "NDAM",
+            "NPMS",
+            "NROBT",
+            "NRCFG",
+            "NSYDT",
+            "NSYSW"
+          ],
+          "bounded_native_presentation_zero": [
+            "NSYAL",
+            "STREQ",
+            "STF",
+            "STLOW",
+            "SYDTU"
+          ],
+          "bounded_no_downtime_null": [
+            "SYDT"
+          ]
+        },
+        "row_identity_every_bin": {
+          "UNID": "Total over all Units",
+          "SID": "Total over all Systems"
+        },
+        "per_bin": "for half-hour [a,b), assigned2 on [7.5,9) and [19.5,21), else0; NSYRY=2-assigned; NSYMA=assigned; NSYMO=STACC=2 on [8,9) and [20,21), else0; NSYMP=2 on [7.5,8) and [19.5,20), else0; NSYMR=0; NSYA=2; FTMO=NSYMO/2; NPSTA=2 in bins starting7.5,19.5; NPSUC=2 in bins starting8,20; all source-event-zero fields0, five bounded presentation fields0, SYDT null",
+        "integrals_halfhour_weighted": {
+          "NSYRY": 66,
+          "NSYMA": 6,
+          "NSYMO": 4,
+          "NSYMP": 2,
+          "NSYMR": 0,
+          "NSYA": 72,
+          "FTMO": 2,
+          "STACC": 4
+        },
+        "raw_row_sums_distinct": {
+          "FTMO": 4,
+          "NPSTA": 4,
+          "NPSUC": 4
+        }
+      },
+      "StockTotalResults": {
+        "field_classes": {
+          "interval": [
+            "STINT",
+            "ETINT"
+          ],
+          "exact_zero": [
+            "NBO",
+            "NDF",
+            "NDD",
+            "NDR",
+            "NDP",
+            "NLD",
+            "NWT"
+          ],
+          "bounded_empty_stock_presentation_one": [
+            "PNB"
+          ],
+          "bounded_undefined_null": [
+            "NBOU",
+            "ROS",
+            "ROST",
+            "WT",
+            "WTT",
+            "WTS"
+          ]
+        },
+        "per_bin": "STINT=a, ETINT=b; source-event zeros exactly0; bounded empty-stock PNB1; undefined NBOU/ROS/ROST/WT/WTT/WTS null"
+      },
+      "ResourceResults": {
+        "field_classes": {
+          "identity_and_interval": [
+            "RID",
+            "STID",
+            "STINT",
+            "ETINT"
+          ],
+          "source_event_dynamic": [
+            "NR",
+            "NRUM",
+            "NRW",
+            "NRA",
+            "NRN"
+          ],
+          "source_event_zero": [
+            "NRMO",
+            "NRMA",
+            "NRLA",
+            "NRF",
+            "NRRI",
+            "NRRT",
+            "NRRO"
+          ]
+        },
+        "row_identity_every_bin": {
+          "RID": "Total over all Resources",
+          "STID": "Total over all Stations"
+        },
+        "per_bin": "NR=NRA 2 on [0,8),1 on [8,10),2 on [10,36); NRN 2 on [0,7.75),1 on [7.75,10),2 on [10,36). Bin7.5-8 NRN1.5; bin10-10.5 NR=NRA=NRN2. NRUM2 on [7.5,8) and [19.5,20), else0; NRW0; all other fields source-event0; each bin average exact over [a,b).",
+        "hour_integrals": {
+          "NR": 70,
+          "NRA": 70,
+          "NRN": 69.75,
+          "NRUM": 2,
+          "NRW": 0
+        }
+      },
+      "ResourceResultsTotal": {
+        "expected_float32": {
+          "NR": 1.9444444179534912,
+          "NRA": 1.9444444179534912,
+          "NRN": 1.9375,
+          "NRUM": 0.0555555559694767,
+          "NRW": 0
+        },
+        "all_other_numeric": 0,
+        "identity": [
+          "Total over all Resources",
+          "Total over all Stations"
+        ],
+        "precision": "quantize each derived exact integral/36 to binary32, compare parsed finite numeric exactly; no broad epsilon or posthoc ULP widening"
+      }
+    },
+    "parent_crosscheck_only": "If all hypotheses pass, 5203 report cells equal accepted positive-delay parent; exactly PDESC, three ResourceResults 10-10.5 cells NR/NRA/NRN and three ResourceResultsTotal means differ. This crosscheck is secondary; derive and check every child cell independently from source and typed events plus predeclared bounded presentation constants.",
+    "bounded_presentation_convention_not_general_formula": "System NSYAL/STREQ/STF/STLOW/SYDTU zero; no-downtime SYDT null; empty-stock PNB1 and six undefined stock nulls are exact source-specific native presentation expectations, not proven general mathematical statistics",
+    "unknown_formula": "NO_GO; do not infer expected numeric values from candidate report or widen a bound after seeing native output"
+  },
+  "native_and_provenance_gate": {
+    "ordered_six_stages": [
+      "import",
+      "export",
+      "check_import_export",
+      "calc",
+      "jsonreport",
+      "check_behavior"
+    ],
+    "pre_calc": "Exact child source import/export/roundtrip must pass before calc; authored32/25/227 and native32/36/368 with precisely eleven all-null additions and exact metadata, no dropped defaults/rows.",
+    "post_calc_before_jsonreport": "Bind exact new-run model.sxi/model.sxo Input file, Output file and File lines (not parent out_in.sxi/out_in.sxo); native converter Errors:0, Warnings:2, Notes:0 with exactly one Control rec1 #108 'Enabling simulation log may generate extensive data in log file' and one System rec1 #126 'This system contains no items: TEACH-AIR-01', exact full warning message/owner/code, no other warnings/errors/notes. Seal model-run.log SHA/size immediately after natural calc exit; no report stage on missing/mismatched diagnostics.",
+    "preflight": "Separate actual SSH5 -File -PreflightOnly zero-native receipt must bind frozen contract/input/runner/author and independent methods/manifest/source map, unique absent run, mandatory parent/prereq/raw/manual/exe pins and live historical494 catalog; independent GO_PURE_PREFLIGHT then fresh receipt-based GO_PRELAUNCH before root sole native child.",
+    "runner": "One immutable run directory only, six stages serial under Global\\SimloxIssue18NativeQueue; no kill/timeout/retry; hold mutex until every child exits naturally even on observation/capture failure; actual PID/session0/sshd ancestor/integer OS exit/UTC/program/argv/original binary stdout-stderr seals; protected GUI13340/session1/start1790590196826/responding/WTS1 and no competing runner before/after; source bytes before/after, invocation/closure/failure seals and read-only raw. Root is sole SSH/native/Git/catalog owner.",
+    "raw_and_replay": "All 112 accepted original raw remain mandatory, never substituted with copies; new child original raw/closure/invocation mandatory only after approved native; author and independent standalone read-only replays derive full ledger/report; original accepted parent method may be read but not rerun for convenience; any failed run stays excluded and byte-preserved."
+  },
+  "negative_probes_predeclared": [
+    "TFDT remains0.5, wrong IN row key, changed OUT row, changed 32-table metadata/empty row or bool numeric",
+    "IN start at10 but arrival at10.5, zero quantity, duplicate IN task, wrong transfer time or missing local free2 snapshot",
+    "OUT positive before h8 release, missing backorder, duplicate/extra zero OUT diagnostic or wrong nominal/physical clock",
+    "h8 second release free2 instead of reserved-aware free1, missing or duplicated reserve, early local decrement, failure to clear reservation on positive OUT departure",
+    "extra known-pattern task at another hour, missing/duplicated untimed queue/availability/free snapshot, wrong owner/aircraft/mission/terminal",
+    "SystemResults per-bin UNID/SID or ResourceResults RID/STID altered even when instance metadata unchanged",
+    "one cell in each System/Stock/Resource, exact zero tiny nonzero, null->zero, NREP int1->float1.0, wrong table/column/instance metadata, duplicate JSON key or extra trailing comma",
+    "ResourceTotal each five means ±one adjacent binary32 ULP where finite, plus wrong h10-10.5 NR/NRA/NRN and wrong event-derived integrals",
+    "raw/closure/invocation/source/manual/prerequisite SHA mutation, approval/preflight/GUI/session/PID/source-map mismatch, catalog prefix/metadata/unique-ID mutation"
+  ],
+  "publication_rule": "Only new source-bound guarded child and independent direct original raw replay may accept a bounded fixed IN-zero contrast; no report-fit, no old parent rerun, no GUI/performance/cross-engine/general transfer claim. Any source, typed lifecycle, 5210-cell, converter, provenance, or custody mismatch freezes NO_GO evidence and requires a new version, never a rewrite of this prospective contract or raw run."
+}

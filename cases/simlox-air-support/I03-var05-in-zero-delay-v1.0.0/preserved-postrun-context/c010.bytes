@@ -1,0 +1,148 @@
+"""Read only: bind the actual zero-native SSH receipt to the frozen source map."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+CASE = REPO / "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0"
+MANIFEST = CASE / "prelaunch-manifest.json"
+PREF = CASE / "review/preflight-ssh0-20261008T012936519Z.json"
+TRANSPORT = CASE / "transport-evidence/ssh-preflight-20261008T012917878040Z-af3006e6"
+ROOT = REPO / "tmp/i03-var05-root-ssh-preflight-20261008-01/receipt.json"
+RUN = "i03-var05-in-zero-delay-v100-ssh-20261008-01"
+EXPECTED = {
+    "manifest": "1f9782187297b5bf7f20e4c3876b1ff0b38da6124d901f85f97e84caea8c4a24",
+    "preflight": "cbf99928743dbac0ade5333c71137a04314a4e2c1bbc133310fb3802a635f77d",
+    "root": "08851ef99dede1dcf86a3cd4e9d67122ec36a22c2e7b17230d2660a0afefb3f8",
+    "transport": "385bbd50d13d38b4cb5c7b4d2f36eca6b195144417d77d166cb7007ab656910f",
+    "runner": "20a41ee32479656e1208b9bbb50f68fb15e94ab28238d71564772ea9b2a112a2",
+    "reader": "7f8bba4df8c8c051af6334959e72878e3874eb97221f6c1218fe0cf1d23028ba",
+    "transport_source": "3480ed9730b6ef7d47d2898c03588d375e643f843fda3c964e2995a5f4511a19",
+}
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def pairs(items):
+    result = {}
+    for key, value in items:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def reject(value):
+    raise ValueError(f"nonfinite JSON constant: {value}")
+
+
+def read(path: Path):
+    return json.loads(path.read_bytes(), object_pairs_hook=pairs, parse_constant=reject)
+
+
+def pin(path: Path):
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": sha(data)}
+
+
+def exact_int(value, wanted):
+    assert type(value) is int and value == wanted, (value, wanted)
+
+
+def exact_bool(value, wanted):
+    assert type(value) is bool and value is wanted, (value, wanted)
+
+
+def main() -> None:
+    assert pin(MANIFEST)["sha256"] == EXPECTED["manifest"]
+    assert pin(PREF) == {"bytes": 40114, "sha256": EXPECTED["preflight"]}
+    assert pin(ROOT) == {"bytes": 2758, "sha256": EXPECTED["root"]}
+    assert pin(TRANSPORT / "transport-receipt.json") == {"bytes": 1275, "sha256": EXPECTED["transport"]}
+    manifest, pref, root = read(MANIFEST), read(PREF), read(ROOT)
+    transport = read(TRANSPORT / "transport-receipt.json")
+    assert len(manifest["source_files"]) == manifest["source_count"] == 313
+    keys = set()
+    source_map = {}
+    for row in manifest["source_files"]:
+        assert type(row) is dict and set(row) == {"key", "path", "bytes", "sha256"}
+        assert row["key"] not in keys
+        keys.add(row["key"])
+        observed = pin(Path(row["path"]))
+        assert observed == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        source_map[row["key"]] = observed["sha256"]
+    assert source_map == pref["source_hashes"]
+    packed_map = json.dumps(source_map, ensure_ascii=False, separators=(",", ":")).encode()
+    assert sha(packed_map) == pref["source_map_sha256"] == root["source_map_sha256"]
+    assert pref["schema"] == "i03-var05-in-zero-ssh-preflight/v1"
+    assert pref["run_id"] == RUN
+    assert pref["manifest_sha256"] == EXPECTED["manifest"]
+    exact_int(pref["ssh_session"], 0)
+    exact_int(pref["ps_major"], 5)
+    assert type(pref["ssh_ancestors"]) is list and "sshd.exe" in pref["ssh_ancestors"]
+    exact_bool(pref["mutex_free"], True)
+    exact_bool(pref["run_dirs_absent"], True)
+    exact_bool(pref["native_process_started"], False)
+    exact_int(pref["wts_active_gui_count"], 1)
+    assert set(pref["gui"]) == {"pid", "session_id", "start_unix_ms", "responding"}
+    exact_int(pref["gui"]["pid"], 13340)
+    exact_int(pref["gui"]["session_id"], 1)
+    exact_int(pref["gui"]["start_unix_ms"], 1790590196826)
+    exact_bool(pref["gui"]["responding"], True)
+    for key, wanted in (("accepted_raw_seals", 112), ("accepted_nonclosure_raw", 101),
+                        ("accepted_closures", 7), ("accepted_invocations", 4),
+                        ("excluded_failed_witness_raw", 0), ("total_original_raw", 112)):
+        exact_int(pref[key], wanted)
+    assert pref["accepted_nonclosure_raw"] + pref["accepted_closures"] + pref["accepted_invocations"] == 112
+    assert not (CASE / "runs" / RUN).exists()
+    assert not (CASE / "review/independent-prelaunch-go.json").exists()
+    assert root["decision"] == "GO_ACTUAL_ZERO_NATIVE_PREFLIGHT_ONLY"
+    exact_int(root["actual_exit"], 0)
+    exact_int(root["native_calls"], 0)
+    exact_bool(root["native_launch_approved"], False)
+    exact_bool(root["run_absent"], True)
+    assert root["preflight"] == pin(PREF)
+    assert root["manifest"]["sha256"] == EXPECTED["manifest"]
+    assert root["source_records_revalidated"] == 313
+    assert transport["schema"] == "i03-var05-in-zero-ssh-transport/v1"
+    assert transport["mode"] == "preflight" and transport["run_id"] == RUN
+    exact_bool(transport["native_approved"], False)
+    exact_int(transport["exit_code"], 0)
+    assert transport["error"] is None
+    assert transport["manifest_sha256"] == EXPECTED["manifest"]
+    assert transport["runner_sha256"] == EXPECTED["runner"]
+    assert transport["transport_sha256"] == EXPECTED["transport_source"]
+    assert transport["command"][-1] == "-PreflightOnly"
+    assert transport["command"][-2] == str(CASE / "run_native_ssh.ps1").replace("\\", "/")
+    for name in ("ssh-stdout.bin", "ssh-stderr.bin"):
+        assert transport["streams"][name] == pin(TRANSPORT / name)
+        assert root["transport_files"][name] == pin(TRANSPORT / name)
+    assert pin(TRANSPORT / "ssh-stderr.bin")["bytes"] == 0
+    assert root["transport_files"]["transport-receipt.json"] == pin(TRANSPORT / "transport-receipt.json")
+    approval = {
+        "schema": "i03-var05-in-zero-independent-prelaunch-go/v1",
+        "decision": "GO_PRELAUNCH",
+        "run_id": RUN,
+        "manifest_sha256": EXPECTED["manifest"],
+        "runner_sha256": source_map["runner_script"],
+        "validator_sha256": source_map["behavior_validator"],
+        "contract_sha256": source_map["child_contract"],
+        "execution_binding_sha256": source_map["execution_binding"],
+        "input_sha256": source_map["child_input"],
+        "source_map_sha256": pref["source_map_sha256"],
+        "independent_replay_sha256": source_map["independent_replay"],
+        "preflight_relative_path": "review/" + PREF.name,
+        "preflight_sha256": EXPECTED["preflight"],
+    }
+    assert approval["runner_sha256"] == EXPECTED["runner"]
+    assert approval["independent_replay_sha256"] == EXPECTED["reader"]
+    print(json.dumps({"decision": "GO_PRELAUNCH", "approval_candidate": approval,
+                      "source_count": 313, "preflight_sha256": EXPECTED["preflight"],
+                      "transport_sha256": EXPECTED["transport"], "native_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
