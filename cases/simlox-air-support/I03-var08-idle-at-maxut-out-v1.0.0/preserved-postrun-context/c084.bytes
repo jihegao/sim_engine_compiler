@@ -1,0 +1,104 @@
+"""Root one-shot approved SSH5 -File zero-native preflight, original stream capture."""
+from pathlib import Path
+import datetime as dt
+import hashlib,json,re,stat,subprocess,sys
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0'
+OUT=ROOT/'tmp/i03-var08-root-ssh-preflight-20261008-01'
+MAN=CASE/'prelaunch-manifest.json'
+RUN_ID='i03-var08-idle-maxut-out-v100-ssh-20261008-01'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+def freeze(p):
+ p.chmod(stat.S_IREAD)
+ assert p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ freeze(p)
+assert len(sys.argv)==3
+GO=Path(sys.argv[1]).resolve(strict=True)
+assert GO.is_relative_to(ROOT) and re.fullmatch('[0-9a-f]{64}',sys.argv[2])
+assert pin(GO.read_bytes())['sha256']==sys.argv[2] and 'GO_PURE_PREFLIGHT' in GO.read_text(encoding='utf-8-sig')
+assert pin(MAN.read_bytes())=={'bytes':97798,'sha256':'e93579a085ca6716cbf9778724a1454a726016af49a64db5a4017a07d1905b78'}
+assert not OUT.exists() and not (CASE/'runs').exists() and not (CASE/'transport-evidence').exists()
+assert not list((CASE/'review').glob('preflight-ssh0-*')) and not (CASE/'review/independent-prelaunch-go.json').exists()
+m=json.loads(MAN.read_bytes());assert m['source_count']==len(m['source_files'])==287
+expected={r['key']:r['sha256'] for r in m['source_files']};assert len(expected)==287
+def verify():
+ for row in m['source_files']:assert pin(Path(row['path']).read_bytes())=={k:row[k] for k in ('bytes','sha256')},row['key']
+verify();freeze(Path(__file__));freeze(GO);OUT.mkdir()
+receipt={'schema':'i03-var08-root-ssh-preflight/v1','decision':'IN_PROGRESS','started_utc':utc(),
+ 'approval_scope':'One actual SSH5 -File -PreflightOnly; no native command',
+ 'pure_go':pin(GO.read_bytes()),'manifest':pin(MAN.read_bytes()),'wrapper':pin(Path(__file__).read_bytes()),
+ 'native_calls':0,'native_launch_approved':False,'error':None}
+try:
+ argv=[sys.executable,'-X','utf8','-B',str(CASE/'ssh_transport.py'),'preflight']
+ started=utc()
+ with (OUT/'transport-command-stdout.bin').open('xb') as so,(OUT/'transport-command-stderr.bin').open('xb') as se:
+  process=subprocess.run(argv,cwd=ROOT,stdout=so,stderr=se)
+ stdout=(OUT/'transport-command-stdout.bin').read_bytes();stderr=(OUT/'transport-command-stderr.bin').read_bytes()
+ freeze(OUT/'transport-command-stdout.bin');freeze(OUT/'transport-command-stderr.bin')
+ receipt.update(argv=argv,transport_started_utc=started,transport_completed_utc=utc(),actual_exit=process.returncode,
+                stdout=pin(stdout),stderr=pin(stderr))
+ assert type(process.returncode) is int and process.returncode==0 and not stderr,'Preflight failed; preserve without retry'
+ d=json.loads(stdout)
+ assert d['mode']=='preflight' and type(d['exit_code']) is int and d['exit_code']==0 and d['error'] is None
+ folder=Path(d['evidence_dir']).resolve(strict=True)
+ assert folder.parent==(CASE/'transport-evidence').resolve() and folder.name.startswith('ssh-preflight-')
+ assert {p.name for p in folder.iterdir()}=={'ssh-stdout.bin','ssh-stderr.bin','transport-receipt.json'}
+ transport=json.loads((folder/'transport-receipt.json').read_bytes())
+ assert transport['schema']=='i03-var08-idle-maxut-ssh-transport/v1' and transport['mode']=='preflight'
+ assert type(transport['exit_code']) is int and transport['exit_code']==0 and transport['error'] is None
+ assert transport['native_approved'] is False and transport['run_id']==RUN_ID
+ assert transport['manifest_sha256']==pin(MAN.read_bytes())['sha256']
+ assert transport['command'][-1]=='-PreflightOnly' and '-File' in transport['command']
+ assert transport['runner_sha256']==expected['runner_script'] and transport['transport_sha256']==expected['owned:ssh_transport.py']
+ for name,wanted in transport['streams'].items():assert pin((folder/name).read_bytes())==wanted
+ assert not (folder/'ssh-stderr.bin').read_bytes()
+ path=Path((folder/'ssh-stdout.bin').read_bytes().decode('utf-8-sig').strip()).resolve(strict=True)
+ assert path.parent==(CASE/'review').resolve() and re.fullmatch(r'preflight-ssh0-\d{8}T\d{9}Z\.json',path.name)
+ pre=json.loads(path.read_bytes())
+ assert pre['schema']=='i03-var08-idle-maxut-ssh-preflight/v1' and pre['run_id']==RUN_ID
+ for key,value in [('ssh_session',0),('ps_major',5),('wts_active_gui_count',1),('accepted_raw_seals',108),
+  ('accepted_nonclosure_raw',93),('accepted_closures',8),('accepted_invocations',7),('excluded_failed_witness_raw',0),('total_original_raw',108)]:
+  assert type(pre[key]) is int and pre[key]==value,key
+ for key,value in [('mutex_free',True),('run_dirs_absent',True),('native_process_started',False)]:
+  assert type(pre[key]) is bool and pre[key] is value,key
+ assert 'sshd.exe' in pre['ssh_ancestors']
+ assert pre['source_hashes']==expected==pre['source_hashes_after_pure']
+ map_sha=hashlib.sha256(json.dumps(expected,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+ assert pre['source_map_sha256']==map_sha and pre['manifest_sha256']==pin(MAN.read_bytes())['sha256']
+ sys.path.insert(0,str(CASE/'review'))
+ import independent_replay as reviewer
+ assert pin(Path(reviewer.__file__).read_bytes())['sha256']=='4f2a96484c181260ae3586658caa984556562e2bae5ff7ab3211f602dded5cda'
+ reviewer.verify_gui(pre['gui'])
+ proof_path=Path(pre['pure_proof_path']).resolve(strict=True)
+ assert proof_path.parent==Path(pre['pure_proof_directory']).resolve(strict=True)
+ assert proof_path.name=='pure-proof.json' and proof_path.parent.parent==(CASE/'test-output').resolve()
+ assert re.fullmatch(r'preflight-pure-\d{8}T\d{13}Z-[0-9a-f]{8}',proof_path.parent.name)
+ proof=reviewer.verify_pure_proof(proof_path,'preflight',MAN.read_bytes(),expected,pre['pure_proof_sha256'])
+ assert reviewer.typed(proof['checks'],pre['pure_checks'])
+ verify();assert not (CASE/'runs').exists()
+ files=[*folder.iterdir(),*proof_path.parent.iterdir(),path]
+ assert len(list(proof_path.parent.iterdir()))==11
+ for file in files:freeze(file)
+ receipt.update(decision='GO_ACTUAL_ZERO_NATIVE_PREFLIGHT_ONLY',transport_dir=str(folder),
+  preflight_path=str(path),preflight=pin(path.read_bytes()),pure_proof_path=str(proof_path),
+  pure_proof=pin(proof_path.read_bytes()),original_files=[{'path':str(p),**pin(p.read_bytes())} for p in files],
+  source_map_sha256=map_sha,source_records_revalidated=287,gui=pre['gui'],ssh_session=0,
+  powershell_major=5,mutex_free=True,run_absent=True,
+  limits='Fresh independent receipt-based GO_PRELAUNCH and fresh root live ownership/GUI/mutex guard remain required.')
+except BaseException as exc:
+ receipt.update(decision='NO_GO_PRESERVED',error=f'{type(exc).__name__}: {exc}')
+finally:
+ # Preflight mode contains no native command. Preserve every generated proof even on failure.
+ for base,pattern in ((CASE/'transport-evidence','ssh-preflight-*'),(CASE/'test-output','preflight-pure-*')):
+  if base.exists():
+   for folder in base.glob(pattern):
+    for file in folder.rglob('*'):
+     if file.is_file():freeze(file)
+ for file in (CASE/'review').glob('preflight-ssh0-*.json'):freeze(file)
+ receipt['completed_utc']=utc();data=(json.dumps(receipt,indent=2)+'\n').encode();save(OUT/'receipt.json',data)
+print(json.dumps({'decision':receipt['decision'],'receipt':pin(data),'preflight_path':receipt.get('preflight_path'),
+ 'preflight':receipt.get('preflight'),'error':receipt['error']}))
+assert receipt['decision']=='GO_ACTUAL_ZERO_NATIVE_PREFLIGHT_ONLY'

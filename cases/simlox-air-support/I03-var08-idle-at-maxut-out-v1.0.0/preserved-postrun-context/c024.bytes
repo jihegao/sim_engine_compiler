@@ -1,0 +1,57 @@
+import hashlib
+import json
+from pathlib import Path
+import os
+
+ROOT=Path(__file__).resolve().parent.parent
+PKG=ROOT/'cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0'
+RUN=PKG/'runs/i03-var08-idle-maxut-out-v100-ssh-20261008-01'
+RPATH=ROOT/'tmp/i03-var08-root-native-dispatch-20261008-01/receipt.json'
+CAP=ROOT/'tmp/i03-var08-independent-sealed-native-20261008-01/receipt.json'
+EMPTY=hashlib.sha256(b'').hexdigest()
+def sha(b):return hashlib.sha256(b).hexdigest()
+def pin(p):
+    b=Path(p).read_bytes();return {'bytes':len(b),'sha256':sha(b)}
+root=json.loads(RPATH.read_bytes())
+assert sha(RPATH.read_bytes())=='704f155d7358d2be719029c2f518c7c906e3dd814d39ea6ba7469c5bc9012a25'
+assert root['schema']=='i03-var08-root-native-dispatch/v1'
+assert root['decision']=='NATURAL_COMPLETION_SEALED_AWAITING_INDEPENDENT_ACCEPTANCE'
+assert root['native_transport_attempts']==1 and root['actual_exit']==0
+assert root['safe_native_boundary'] is True and root['error'] is None
+assert root['approval']==pin(PKG/'review/independent-prelaunch-go.json')
+assert root['manifest']==pin(PKG/'prelaunch-manifest.json')
+assert root['source_records_revalidated']==287
+for phase in ('pre_guard','post_guard'):
+    g=root[phase]
+    assert g['actual_exit']==0 and g['stderr']=={'bytes':0,'sha256':EMPTY}
+    o=g['observed']
+    assert o['self_session']==0 and o['powershell_major']==5
+    assert o['mutex_free'] is True and o['runner_candidates']==[]
+    assert o['active_gui_session1_count']==1 and len(o['native'])==1
+    n=o['native'][0]
+    assert n['pid']==13340 and n['session']==1 and n['start_ms']==1790590196826 and n['responding'] is True
+sealed=root['sealed_files']
+assert len(sealed)==39 and len({v['path'] for v in sealed})==39
+for v in sealed:
+    p=ROOT/v['path']
+    assert pin(p)=={'bytes':v['bytes'],'sha256':v['sha256']},p
+    assert p.stat().st_file_attributes & 1,p
+assert len(list(RUN.iterdir()))==25
+assert {p.name for p in RUN.iterdir()}=={Path(v['path']).name for v in sealed if '\\runs\\' in v['path'] or '/runs/' in v['path']}
+capture=json.loads(CAP.read_bytes())
+assert sha(CAP.read_bytes())=='8d0ebec591642aa4d35f3347da0a8704e16a5e6c340cf471b633a809d2714fd0'
+assert capture['actual_exit']==0 and capture['stderr']=={'bytes':0,'sha256':EMPTY}
+assert capture['method']==pin(PKG/'review/independent_replay.py')
+assert capture['method']['sha256']=='4f2a96484c181260ae3586658caa984556562e2bae5ff7ab3211f602dded5cda'
+assert capture['stdout']==pin(CAP.parent/'stdout.bin')
+result=json.loads((CAP.parent/'stdout.bin').read_bytes())
+assert result=={'closure_raw_files':23,'export_cells':383,'mode':'GO_BOUNDED_SEALED_ORIGINAL_NATIVE',
+                'native_and_checker_stages':6,'original_run_files':25,'report_cells':5210,
+                'source_and_custody_pins':232,'source_cells':242,'timed_events':113}
+behavior=json.loads((RUN/'author-validation.json').read_bytes())
+assert behavior['timeline']['terminal']=={'opening':2,'local':1,'nominal':1,'booked':0,
+    'reserved_OUT':0,'requested_OUT':1,'started_OUT':1,'arrived_OUT':1,
+    'pending_OUT':0,'backorder':0,'ready_aircraft':2}
+assert behavior['report']['prospective_paired_differences']==55
+print(json.dumps({'decision':'GO_BOUNDED_CANDIDATE','root_sealed_files':39,
+                  'run_files':25,'independent_checks':result,'paired_differences':55},sort_keys=True))

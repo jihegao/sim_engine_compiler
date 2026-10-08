@@ -1,0 +1,101 @@
+"""Root one approved serial child, natural completion and safe-boundary original sealing."""
+from pathlib import Path
+import datetime as dt
+import hashlib,json,re,stat,subprocess,sys
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0'
+OUT=ROOT/'tmp/i03-var08-root-native-dispatch-20261008-01'
+GUARD=ROOT/'tmp/issue18-next-owner-guard-20261008.ps1'
+GO=CASE/'review/independent-prelaunch-go.json'
+MAN=CASE/'prelaunch-manifest.json'
+RUN_ID='i03-var08-idle-maxut-out-v100-ssh-20261008-01'
+RUN=CASE/'runs'/RUN_ID
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+def freeze(p):
+ p.chmod(stat.S_IREAD)
+ assert p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ freeze(p)
+assert len(sys.argv)==2 and re.fullmatch('[0-9a-f]{64}',sys.argv[1])
+assert pin(GO.read_bytes())['sha256']==sys.argv[1]
+assert GO.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+assert not OUT.exists() and not RUN.exists()
+assert pin(MAN.read_bytes())=={'bytes':97798,'sha256':'e93579a085ca6716cbf9778724a1454a726016af49a64db5a4017a07d1905b78'}
+assert pin(GUARD.read_bytes())=={'bytes':2081,'sha256':'e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'}
+m=json.loads(MAN.read_bytes());assert m['source_count']==len(m['source_files'])==287
+def verify():
+ for row in m['source_files']:assert pin(Path(row['path']).read_bytes())=={k:row[k] for k in ('bytes','sha256')},row['key']
+verify()
+sys.path.insert(0,str(CASE/'review'))
+import independent_replay as reviewer
+manifest_raw,manifest,source_map,map_sha=reviewer.verify_manifest()
+reviewer.verify_preflight(manifest_raw,source_map,map_sha)
+ownership=ROOT/'tmp/i03-var08-root-launch-app-ownership-20261008.json'
+own=json.loads(ownership.read_bytes())
+assert own['sole_active_issue18_owner']=='01a0ed5b-dc75-74f3-a26c-23674dd997d6'
+assert own['unavailableHosts']==own['unavailableSources']==[]
+freeze(ownership);freeze(Path(__file__));OUT.mkdir()
+receipt={'schema':'i03-var08-root-native-dispatch/v1','decision':'IN_PROGRESS','started_utc':utc(),
+ 'approval':pin(GO.read_bytes()),'manifest':pin(MAN.read_bytes()),'wrapper':pin(Path(__file__).read_bytes()),
+ 'app_ownership':pin(ownership.read_bytes()),'native_transport_attempts':0,'safe_native_boundary':False,'error':None}
+def guard(label):
+ argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa',
+       'user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',str(GUARD).replace('\\','/')]
+ started=utc();result=subprocess.run(argv,cwd=ROOT,capture_output=True)
+ save(OUT/(label+'-stdout.bin'),result.stdout);save(OUT/(label+'-stderr.bin'),result.stderr)
+ row={'argv':argv,'started_utc':started,'completed_utc':utc(),'actual_exit':result.returncode,
+      'stdout':pin(result.stdout),'stderr':pin(result.stderr)}
+ receipt[label]=row
+ assert type(result.returncode) is int and result.returncode==0 and not result.stderr
+ observed=json.loads(result.stdout.decode('utf-8-sig'));row['observed']=observed
+ assert observed['ssh_present'] is True and observed['sshd_ancestor'] is True
+ for key,want in [('self_session',0),('powershell_major',5),('active_gui_session1_count',1),('session_query_exit',0)]:
+  assert type(observed[key]) is int and observed[key]==want,key
+ assert observed['mutex_free'] is True and observed['runner_candidates']==[] and len(observed['native'])==1
+ g=observed['native'][0]
+ for key,want in [('pid',13340),('session',1),('start_ms',1790590196826)]:
+  assert type(g[key]) is int and g[key]==want,key
+ assert g['responding'] is True
+ return observed
+try:
+ guard('pre_guard');verify();assert not RUN.exists()
+ argv=[sys.executable,'-X','utf8','-B',str(CASE/'ssh_transport.py'),'native']
+ receipt.update(native_transport_attempts=1,native_command=argv,native_started_utc=utc())
+ with (OUT/'transport-command-stdout.bin').open('xb') as so,(OUT/'transport-command-stderr.bin').open('xb') as se:
+  process=subprocess.run(argv,cwd=ROOT,stdout=so,stderr=se)
+ receipt.update(native_completed_utc=utc(),actual_exit=process.returncode)
+ for name in ('transport-command-stdout.bin','transport-command-stderr.bin'):
+  freeze(OUT/name);receipt[name]=pin((OUT/name).read_bytes())
+ # No active raw folder is touched until the actual post-run guard passes.
+ guard('post_guard');receipt['safe_native_boundary']=True
+ sealed=[]
+ folders=list((CASE/'transport-evidence').glob('ssh-native-*'))
+ assert len(folders)==1
+ pure_folders=list((CASE/'test-output').glob('native-pure-*'))
+ for folder in [*folders,*pure_folders,RUN]:
+  if folder.exists():
+   for file in sorted(folder.rglob('*')):
+    if file.is_file():freeze(file);sealed.append({'path':str(file.relative_to(ROOT)),**pin(file.read_bytes()),'read_only':True})
+ receipt['sealed_files']=sealed
+ verify();receipt['source_records_revalidated']=287
+ stdout=(OUT/'transport-command-stdout.bin').read_bytes();stderr=(OUT/'transport-command-stderr.bin').read_bytes()
+ assert type(process.returncode) is int and process.returncode==0 and not stderr,'Native transport failed; retain excluded run without retry'
+ d=json.loads(stdout)
+ assert d['mode']=='native' and type(d['exit_code']) is int and d['exit_code']==0 and d['error'] is None
+ folder=Path(d['evidence_dir']).resolve(strict=True);assert folder==folders[0].resolve()
+ transport=json.loads((folder/'transport-receipt.json').read_bytes())
+ assert transport['mode']=='native' and transport['native_approved'] is True and type(transport['exit_code']) is int and transport['exit_code']==0 and transport['error'] is None
+ for name,want in transport['streams'].items():assert pin((folder/name).read_bytes())==want
+ assert not (folder/'ssh-stderr.bin').read_bytes()
+ assert len([f for f in RUN.iterdir() if f.is_file()])==25
+ assert len(pure_folders)==1 and len(list(pure_folders[0].iterdir()))==11
+ receipt['decision']='NATURAL_COMPLETION_SEALED_AWAITING_INDEPENDENT_ACCEPTANCE'
+except BaseException as exc:
+ receipt.update(decision='NO_GO_PRESERVED',error=f'{type(exc).__name__}: {exc}')
+finally:
+ receipt['completed_utc']=utc();data=(json.dumps(receipt,indent=2)+'\n').encode();save(OUT/'receipt.json',data)
+print(json.dumps({'decision':receipt['decision'],'receipt':pin(data),'safe_native_boundary':receipt['safe_native_boundary'],
+                 'actual_exit':receipt.get('actual_exit'),'error':receipt['error']}))
+assert receipt['decision']=='NATURAL_COMPLETION_SEALED_AWAITING_INDEPENDENT_ACCEPTANCE'

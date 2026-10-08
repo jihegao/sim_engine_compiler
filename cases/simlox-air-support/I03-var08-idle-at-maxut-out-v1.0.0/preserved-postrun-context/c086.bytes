@@ -1,0 +1,60 @@
+"""Read-only source inventory preview and external root freeze handoff.
+
+This file is outside the case's frozen source list. Root alone writes the
+canonical inventory and prelaunch manifest after independent method freeze.
+"""
+from __future__ import annotations
+import datetime as dt
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+REPO=Path(__file__).resolve().parents[1]
+CASE=REPO/"cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0"
+sys.path.insert(0,str(CASE))
+import make_source_inventory as inventory
+import make_prelaunch_manifest as manifest
+from source_gate import verify
+
+def pin(path):
+    data=path.read_bytes()
+    return {"bytes":len(data),"sha256":hashlib.sha256(data).hexdigest()}
+
+def main():
+    assert sys.argv[1:]==["--write-handoff"]
+    assert not (CASE/"source-inventory.json").exists()
+    assert not (CASE/"prelaunch-manifest.json").exists()
+    assert not (CASE/"runs"/"i03-var08-idle-maxut-out-v100-ssh-20261008-01").exists()
+    assert verify("live")["counts"]=={"accepted_source_git_pairs":81,"mandatory_accepted_original_raw":108,
+                                        "required_docs":8,"installed":3}
+    owned=inventory.candidate(False)
+    body=inventory.body(owned)
+    provisional=manifest.candidate(provisional=True,mode="live")
+    actual={p.relative_to(CASE).as_posix() for p in CASE.rglob("*") if p.is_file() and
+            not any(part in p.relative_to(CASE).parts for part in ("runs","transport-evidence","test-output","__pycache__"))}
+    declared=set(inventory.paths(False))
+    assert actual==declared,("unlisted",sorted(actual-declared),"missing",sorted(declared-actual))
+    expected_manifest_records=provisional["source_count"]+len(inventory.REVIEW)+1
+    output={"schema":"i03-var08-author-freeze-ready/v1","utc":dt.datetime.now(dt.timezone.utc).isoformat(),
+            "case_path":str(CASE),"run_id":"i03-var08-idle-maxut-out-v100-ssh-20261008-01",
+            "owned_source_count":owned["source_count"],"owned_source_files":owned["source_files"],
+            "expected_inventory":{
+                "bytes":len(body),"sha256":hashlib.sha256(body).hexdigest(),
+                "write_command":[str(Path(sys.executable)),"-X","utf8","-B",str(CASE/"make_source_inventory.py"),"--write"]},
+            "manifest_generator":pin(CASE/"make_prelaunch_manifest.py"),
+            "expected_manifest_source_count":expected_manifest_records,
+            "manifest_write_command":[str(Path(sys.executable)),"-X","utf8","-B",str(CASE/"make_prelaunch_manifest.py"),"--write"],
+            "provisional_manifest_source_count":provisional["source_count"],
+            "provisional_manifest_sha256":hashlib.sha256(manifest.body(provisional)).hexdigest(),
+            "canonical_inventory_and_manifest_absent":True,
+            "native_or_ssh_calls":0,
+            "captured_construction_pure_receipt":pin(CASE/"preserved-pure-proof/pure-12.bytes"),
+            "captured_construction_pure_map":pin(CASE/"pure-proof-custody.json")}
+    path=REPO/"tmp/i03-var08-author-freeze-ready-20261008.json"
+    assert not path.exists()
+    with path.open("xb") as f:f.write((json.dumps(output,ensure_ascii=False,indent=2)+"\n").encode("utf-8"))
+    print(json.dumps({"path":str(path),**pin(path),"owned_source_count":owned["source_count"],
+                      "expected_manifest_source_count":expected_manifest_records},sort_keys=True))
+
+if __name__=="__main__":main()

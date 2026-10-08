@@ -1,0 +1,222 @@
+"""Read-only prospective contract audit. No accepted checker or native invocation."""
+import hashlib
+import json
+import math
+import re
+import struct
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+GIT = r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe"
+PARENT = ROOT / "cases/simlox-air-support/C08-exact-limit-v1.0.0"
+ACCEPTED = PARENT / "runs/c08-exact-limit-20260930-02"
+
+
+def sha(b):
+    return hashlib.sha256(b).hexdigest()
+
+
+def pinned(p, spec):
+    b = Path(p).read_bytes()
+    assert len(b) == spec["bytes"] and sha(b) == spec["sha256"], p
+    return b
+
+
+def unique_pairs(pairs):
+    d = {}
+    for k, v in pairs:
+        assert k not in d, f"duplicate JSON key {k}"
+        d[k] = v
+    return d
+
+
+def strict_load(b, native=False):
+    s = b.decode("utf-8-sig")
+    if native:
+        # The accepted native report has trailing commas. Repair in memory only.
+        s = re.sub(r",(?=\s*[}\]])", "", s)
+    def bad_constant(v):
+        raise ValueError(f"nonfinite literal {v}")
+    d = json.loads(s, object_pairs_hook=unique_pairs, parse_constant=bad_constant)
+    def walk(v):
+        if isinstance(v, float):
+            assert math.isfinite(v), "nonfinite overflow"
+        elif isinstance(v, dict):
+            for y in v.values(): walk(y)
+        elif isinstance(v, list):
+            for y in v: walk(y)
+    walk(d)
+    return d
+
+
+def numeric_equal(a, b):
+    return type(a) in (int, float) and type(b) in (int, float) and math.isfinite(a) and math.isfinite(b) and a == b
+
+
+def typed_equal(a, b):
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(typed_equal(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed_equal(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def eq_cell(actual, expected):
+    if type(expected) in (int, float):
+        assert numeric_equal(actual, expected), (actual, expected)
+    else:
+        assert type(actual) is type(expected) and actual == expected, (actual, expected)
+
+
+def f32(v):
+    return struct.unpack("<f", struct.pack("<f", v))[0]
+
+
+def source_and_custody(c):
+    l = c["lineage"]
+    pinned(l["selection_v2"]["path"], l["selection_v2"])
+    pinned(l["parent"]["source"]["path"], l["parent"]["source"])
+    pinned(l["parent"]["report_raw"]["path"], l["parent"]["report_raw"])
+    pinned(l["parent"]["evidence_index"]["path"], l["parent"]["evidence_index"])
+    assert len(l["accepted_81_local_and_base_git_refs"]) == 81
+    assert len(l["mandatory_108_original_raw"]) == 108
+    for r in l["accepted_81_local_and_base_git_refs"]:
+        local = pinned(ROOT / r["path"], r["disk"])
+        z = subprocess.run([GIT, "cat-file", "blob", r["oid"]], cwd=ROOT, capture_output=True, check=True)
+        assert len(z.stdout) == r["git"]["bytes"] and sha(z.stdout) == r["git"]["sha256"]
+        assert (local == z.stdout) is r["byte_equal"]
+    for r in l["mandatory_108_original_raw"]:
+        pinned(r["path"], r)
+    for name, r in l["required_docs_8"].items():
+        pinned(ROOT / name, r)
+    for r in l["installed_exe_manual_dictionary_3"].values():
+        pinned(r["path"], r)
+    source = strict_load((PARENT / "exact-limit-input.json").read_bytes())["model"]
+    exported = strict_load((ACCEPTED / "roundtrip-raw.json").read_bytes(), native=True)["model"]
+    tables = source["tables"]
+    assert len(tables) == len(exported["tables"]) == 35
+    assert [t["name"] for t in tables] == [t["name"] for t in exported["tables"]]
+    assert len({t["name"] for t in tables}) == 35
+    assert "ResourceTransfer" not in {t["name"] for t in tables}
+    for t, e in zip(tables, exported["tables"]):
+        assert typed_equal(t["columns"], e["columns"])
+        assert len(t["instances"]) == len(e["instances"]) == 1
+        assert typed_equal(t["instances"][0]["instance_name"], e["instances"][0]["instance_name"])
+        original_rows, export_rows = t["instances"][0]["rows"], e["instances"][0]["rows"]
+        if original_rows:
+            assert len(original_rows) == len(export_rows)
+            for row, out in zip(original_rows, export_rows):
+                assert len(row) == len(out) == len(t["columns"])
+                for a, b, col in zip(row, out, t["columns"]):
+                    if col["datatype"] == "double" and a is not None:
+                        assert numeric_equal(a, b)
+                    else:
+                        assert typed_equal(a, b)
+    authored_rows = sum(len(i["rows"]) for t in tables for i in t["instances"])
+    authored_cells = sum(len(row) for t in tables for i in t["instances"] for row in i["rows"])
+    exported_rows = sum(len(i["rows"]) for t in exported["tables"] for i in t["instances"])
+    exported_cells = sum(len(row) for t in exported["tables"] for i in t["instances"] for row in i["rows"])
+    assert (authored_rows, authored_cells, exported_rows, exported_cells) == (27, 235, 38, 376)
+    empty = [t for t in tables if all(not i["rows"] for i in t["instances"])]
+    assert len(empty) == 11
+    for t in empty:
+        et = next(e for e in exported["tables"] if e["name"] == t["name"])
+        assert len(et["instances"]) == 1 and et["instances"][0]["rows"] == [[None] * len(t["columns"])]
+    names = [t["name"] for t in tables]
+    assert names[22] == "ResourceAllocation" and names[23] == "MaterielPM"
+    rt = c["source_delta"]
+    assert rt["insert_table"] == "ResourceTransfer" and rt["insert_at_zero_based_index"] == 23
+    accepted_rt_path = ROOT / "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0/native-input.json"
+    accepted_rt_raw = accepted_rt_path.read_bytes()
+    assert len(accepted_rt_raw) == 43550 and sha(accepted_rt_raw) == "6803d02f8c113891bccaa5dd2f89a1b5c7807a5753fb4b7eeb170d3ac050cc08"
+    accepted_rt = strict_load(accepted_rt_raw)["model"]["tables"][23]
+    assert accepted_rt["name"] == "ResourceTransfer" and rt["columns"] == accepted_rt["columns"]
+    assert rt["one_row"] == ["BASE-01", "<OUTSIDE>", "P-CREW", 24.75, 1, 0.0, None]
+    assert rt["child_authored"] == {"tables": 36, "rows": 28, "cells": 242, "empty_tables": 11}
+    assert rt["child_exported"] == {"tables": 36, "rows": 39, "cells": 383, "empty_placeholders": 11}
+    return source
+
+
+def report(c):
+    raw = strict_load((ACCEPTED / "report-raw.json").read_bytes(), native=True)["report"]
+    tbs = raw["tables"]
+    spec = c["report"]
+    assert [t["name"] for t in tbs] == spec["table_order"]
+    assert len(tbs) == 6
+    cells = sum(len(i["rows"]) * len(t["columns"]) for t in tbs for i in t["instances"])
+    assert cells == 5210 == spec["cells_each_arm"]
+    ts = {t["name"]: t for t in tbs}
+    child = {}
+    changed = 0
+    for name,t in ts.items():
+        meta=spec["metadata"][name]
+        assert typed_equal(t["columns"], meta["columns"])
+        assert [i["instance_name"] for i in t["instances"]] == meta["instances"]
+        assert len(t["instances"]) == 1
+        rows=t["instances"][0]["rows"]
+        assert len(rows)==meta["rows"]
+        cols=[x["name"] for x in t["columns"]]
+        child_rows=[]
+        for j,row in enumerate(rows):
+            assert len(row)==len(cols)
+            st=j/2; en=(j+1)/2
+            if name=="ProblemDescription":
+                exp={"PDESC":c["source_delta"]["old_pdesc"]}
+                nxt={"PDESC":c["source_delta"]["new_pdesc"]}
+            elif name=="ResultSummary":
+                exp=spec["summary"];nxt=exp.copy()
+            elif name=="SystemResults":
+                exp={k:0 for k in cols}; exp.update({"UNID":"Total over all Units","SID":"Total over all Systems","STINT":st,"ETINT":en,"SYDT":None})
+                exp.update({"NSYRY":0 if 23.5<=st<29 else 2,"NSYMA":2 if 23.5<=st<29 else 0,
+                            "NSYMO":2 if 28<=st<29 else 0,"NSYMP":2 if 23.5<=st<24.5 else 0,
+                            "NSYMR":2 if 24.5<=st<28 else 0,"NSYA":2,"FTMO":1 if 28<=st<29 else 0,
+                            "STACC":2 if 28<=st<29 else 0,"NPSTA":2 if st==23.5 else 0,
+                            "NPSUC":2 if st==24.5 else 0})
+                nxt=exp.copy()
+            elif name=="StockTotalResults":
+                exp={k:0 for k in cols};exp.update({"STINT":st,"ETINT":en,"PNB":1})
+                for k in spec["stock"]["undefined_null"]:exp[k]=None
+                nxt=exp.copy()
+            elif name=="ResourceResults":
+                exp={k:0 for k in cols};exp.update({"RID":"Total over all Resources","STID":"Total over all Stations","STINT":st,"ETINT":en,"NR":2,"NRN":2,
+                     "NRA":2 if (23<=st<25 or 26<=st<28) else 0,"NRUM":2 if 23.5<=st<24.5 else 0})
+                nxt=exp.copy()
+                nxt["NR"]=nxt["NRN"]=(2 if en<=24.5 else 1.5 if st==24.5 else 1)
+                nxt["NRA"]=(2 if 23<=st<24.5 else 1.5 if st==24.5 else 1 if 26<=st<28 else 0)
+            elif name=="ResourceResultsTotal":
+                exp={k:0 for k in cols};exp.update({"RID":"Total over all Resources","STID":"Total over all Stations","NR":2,"NRN":2,"NRA":f32(8/36),"NRUM":f32(2/36)})
+                nxt=exp.copy();nxt.update({"NR":f32(60.75/36),"NRN":f32(60.75/36),"NRA":f32(5.75/36)})
+            else:raise AssertionError(name)
+            assert set(exp)==set(cols)==set(nxt)
+            for k,val in zip(cols,row):eq_cell(val,exp[k])
+            child_rows.append([nxt[k] for k in cols])
+            changed+=sum(exp[k]!=nxt[k] for k in cols)
+        child[name]=child_rows
+    assert changed==spec["paired_different_cells_if_GO"]==55
+    rr=child["ResourceResults"]
+    assert rr[49][2:4]==[24.5,25] and rr[49][4]==1.5 and rr[49][10:12]==[1.5,1.5]
+    rr_columns=[x["name"] for x in ts["ResourceResults"]["columns"]]
+    total_columns=[x["name"] for x in ts["ResourceResultsTotal"]["columns"]]
+    for field in ("NR", "NRN", "NRA", "NRUM", "NRW"):
+        integral=sum(row[rr_columns.index(field)]*0.5 for row in rr)
+        assert integral==spec["resource"]["child_integrals"][field]
+        assert f32(integral/36)==child["ResourceResultsTotal"][0][total_columns.index(field)]
+    for k,v in spec["resource"]["child_total_f32"].items():
+        col=[x["name"] for x in ts["ResourceResultsTotal"]["columns"]].index(k)
+        eq_cell(child["ResourceResultsTotal"][0][col],v)
+    return changed,cells
+
+
+def main():
+    cpath=Path(sys.argv[1]) if len(sys.argv)>1 else ROOT/"tmp/i03-var08-prospective-contract-design-v2-20261008.json"
+    c=strict_load(cpath.read_bytes())
+    source_and_custody(c)
+    changed,cells=report(c)
+    print(json.dumps({"decision":"PASS_CONTRACT_ONLY","contract_sha256":sha(cpath.read_bytes()),"dual_refs":81,"mandatory_raw":108,"parent_cells":cells,"predicted_child_cells":cells,"predicted_differences":changed,"native_calls":0},sort_keys=True))
+
+
+if __name__=="__main__":main()

@@ -1,0 +1,162 @@
+"""Source/event-derived six-table, 5,210-cell oracle for I03.var08."""
+from __future__ import annotations
+import hashlib
+import json
+import math
+from pathlib import Path
+import struct
+
+HERE=Path(__file__).resolve().parent
+CONTRACT=HERE/"contract.json"
+CONTRACT_SHA="f23c6284afdaf25c7115f293907411ab941c0603b11d8bbf45d7fd8a5e671b41"
+PARENT=HERE.parent/"C08-exact-limit-v1.0.0"/"runs"/"c08-exact-limit-20260930-02"/"report-raw.json"
+PARENT_SHA="a12a898c41c72609f78979b9c69233981d0dcfbe84669aa3f24367f825c2fd37"
+
+def f32(v):
+    return struct.unpack("<f",struct.pack("<f",v))[0]
+
+def strict_pairs(pairs):
+    out={}
+    for k,v in pairs:
+        if k in out: raise AssertionError(f"duplicate JSON key {k}")
+        out[k]=v
+    return out
+
+def bad_constant(x):
+    raise AssertionError(f"nonfinite JSON constant {x}")
+
+def finite(x):
+    if isinstance(x,float):
+        assert math.isfinite(x), "nonfinite JSON number"
+    elif isinstance(x,dict):
+        for v in x.values():finite(v)
+    elif isinstance(x,list):
+        for v in x:finite(v)
+
+def parse(raw:bytes):
+    text=raw.decode("utf-8-sig")
+    try:
+        d=json.loads(text,object_pairs_hook=strict_pairs,parse_constant=bad_constant)
+    except json.JSONDecodeError:
+        # Exact native exporter punctuation defect, one final table-array comma.
+        marker=",\n      ]"
+        assert text.count(marker)==1 and text.endswith("      ]\n   }\n}\n")
+        d=json.loads(text.replace(marker,"\n      ]",1),object_pairs_hook=strict_pairs,parse_constant=bad_constant)
+    finite(d)
+    return d
+
+def contract():
+    b=CONTRACT.read_bytes()
+    assert hashlib.sha256(b).hexdigest()==CONTRACT_SHA
+    d=parse(b)
+    assert d["schema"]=="simlox-i03-var08-prospective-contract-design/v2"
+    return d
+
+def classify(name,field,start,end,child,d):
+    a=start;b=end
+    if name=="SystemResults":
+        if field=="UNID":return "Total over all Units"
+        if field=="SID":return "Total over all Systems"
+        if field=="STINT":return a
+        if field=="ETINT":return b
+        if field in d["report"]["system"]["source_event_zero"]+d["report"]["system"]["bounded_presentation_zero"]:return 0
+        if field=="SYDT":return None
+        if field=="NSYRY":return 0 if 23.5<=a<29 else 2
+        if field=="NSYMA":return 2 if 23.5<=a<29 else 0
+        if field=="NSYMO":return 2 if 28<=a<29 else 0
+        if field=="NSYMP":return 2 if 23.5<=a<24.5 else 0
+        if field=="NSYMR":return 2 if 24.5<=a<28 else 0
+        if field=="NSYA":return 2
+        if field=="FTMO":return 1 if 28<=a<29 else 0
+        if field=="STACC":return 2 if 28<=a<29 else 0
+        if field=="NPSTA":return 2 if a==23.5 else 0
+        if field=="NPSUC":return 2 if a==24.5 else 0
+    if name=="StockTotalResults":
+        if field=="STINT":return a
+        if field=="ETINT":return b
+        if field in d["report"]["stock"]["source_event_zero"]:return 0
+        if field=="PNB":return 1
+        if field in d["report"]["stock"]["undefined_null"]:return None
+    if name=="ResourceResults":
+        if field=="RID":return "Total over all Resources"
+        if field=="STID":return "Total over all Stations"
+        if field=="STINT":return a
+        if field=="ETINT":return b
+        if field in d["report"]["resource"]["source_event_zero"]:return 0
+        if field=="NRUM":return 2 if 23.5<=a<24.5 else 0
+        if field=="NRW":return 0
+        if field in ("NR","NRN"):
+            if not child:return 2
+            return 2 if b<=24.5 else 1.5 if a==24.5 else 1
+        if field=="NRA":
+            if not child:return 2 if 23<=a<25 or 26<=a<28 else 0
+            return 2 if 23<=a<24.5 else 1.5 if a==24.5 else 1 if 26<=a<28 else 0
+    if name=="ResourceResultsTotal":
+        if field=="RID":return "Total over all Resources"
+        if field=="STID":return "Total over all Stations"
+        if field in d["report"]["resource"]["source_event_zero"]:return 0
+        return d["report"]["resource"]["child_total_f32" if child else "parent_total_f32"][field]
+    if name=="ResultSummary":
+        return d["report"]["summary"][field]
+    if name=="ProblemDescription":
+        return d["source_delta"]["new_pdesc" if child else "old_pdesc"]
+    raise AssertionError((name,field))
+
+def expected(child:bool):
+    d=contract()
+    rep={"tables":[]}
+    for name in d["report"]["table_order"]:
+        m=d["report"]["metadata"][name]
+        table={"columns":m["columns"],"instances":[],"name":name}
+        for instance_name in m["instances"]:
+            rows=[]
+            for j in range(m["rows"]):
+                a=j/2 if m["rows"]==72 else 0
+                b=(j+1)/2 if m["rows"]==72 else 36
+                rows.append([classify(name,c["name"],a,b,child,d) for c in m["columns"]])
+            table["instances"].append({"instance_name":instance_name,"rows":rows})
+        rep["tables"].append(table)
+    assert sum(len(t["columns"])*sum(len(i["rows"]) for i in t["instances"]) for t in rep["tables"])==5210
+    return {"report":rep}
+
+def numeric_equal(actual,want,datatype):
+    if datatype=="integer":
+        return type(actual) is int and type(want) is int and actual==want
+    if datatype=="double":
+        return type(actual) in (int,float) and type(want) in (int,float) and math.isfinite(actual) and actual==want
+    if datatype=="string":return type(actual) is str and type(want) is str and actual==want
+    return type(actual) is type(want) and actual==want
+
+def validate(actual,child:bool):
+    want=expected(child)
+    assert set(actual)=={"report"}
+    at=actual["report"]["tables"];wt=want["report"]["tables"]
+    assert len(at)==len(wt)==6
+    count=0;different=0
+    for a,w in zip(at,wt):
+        assert a["name"]==w["name"] and a["columns"]==w["columns"],a["name"]
+        assert len(a["instances"])==len(w["instances"])
+        for ai,wi in zip(a["instances"],w["instances"]):
+            assert ai["instance_name"]==wi["instance_name"]
+            assert len(ai["rows"])==len(wi["rows"])
+            for j,(ar,wr) in enumerate(zip(ai["rows"],wi["rows"])):
+                assert len(ar)==len(wr)==len(w["columns"])
+                for c,av,wv in zip(w["columns"],ar,wr):
+                    assert numeric_equal(av,wv,c["datatype"]), (a["name"],j,c["name"],av,wv)
+                    count+=1
+    assert count==5210
+    if child:
+        parent=expected(False)["report"]["tables"]
+        for ct,pt in zip(wt,parent):
+            for ci,pi in zip(ct["instances"],pt["instances"]):
+                for cr,pr in zip(ci["rows"],pi["rows"]):
+                    different+=sum(x!=y for x,y in zip(cr,pr))
+        assert different==55,different
+    return {"schema":"i03-var08-full-report-oracle/v1","arm":"child" if child else "accepted_parent",
+            "cells_checked":count,"prospective_paired_differences":different if child else 0}
+
+def accepted_parent():
+    b=PARENT.read_bytes()
+    assert hashlib.sha256(b).hexdigest()==PARENT_SHA
+    return validate(parse(b),False)
+

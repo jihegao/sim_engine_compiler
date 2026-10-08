@@ -1,0 +1,82 @@
+import importlib.util
+import json
+import hashlib
+import os
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+PKG = ROOT / 'cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0'
+RPATH = PKG / 'review/independent_replay.py'
+PREF = PKG / 'review/preflight-ssh0-20261008T032845886Z.json'
+ROOT_RECEIPT = ROOT / 'tmp/i03-var08-root-ssh-preflight-20261008-01/receipt.json'
+EMPTY = hashlib.sha256(b'').hexdigest()
+
+def sha(b): return hashlib.sha256(b).hexdigest()
+def load(p): return json.loads(Path(p).read_bytes())
+def exact(p, record):
+    p = Path(p)
+    assert p.is_file() and not p.is_symlink(), p
+    b = p.read_bytes()
+    assert len(b) == record['bytes'] and sha(b) == record['sha256'], p
+    assert not os.access(p, os.W_OK) or bool(p.stat().st_file_attributes & 1), p
+    return b
+
+spec = importlib.util.spec_from_file_location('independent_var08', RPATH)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+assert sha(RPATH.read_bytes()) == '4f2a96484c181260ae3586658caa984556562e2bae5ff7ab3211f602dded5cda'
+raw, manifest, source_map, map_sha = m.verify_manifest()
+assert sha(raw) == 'e93579a085ca6716cbf9778724a1454a726016af49a64db5a4017a07d1905b78'
+assert map_sha == '9cbbdecd3055ec1fe602db1bc1acb0a6aa9b13b073c930c482211e1d02a7ef20'
+root = load(ROOT_RECEIPT)
+assert root['schema'] == 'i03-var08-root-ssh-preflight/v1'
+assert root['decision'] == 'GO_ACTUAL_ZERO_NATIVE_PREFLIGHT_ONLY' and root['error'] is None
+assert root['native_calls'] == 0 and root['native_launch_approved'] is False
+assert root['actual_exit'] == 0 and root['stderr'] == {'bytes':0,'sha256':EMPTY}
+assert root['wrapper'] == {'bytes':7512,'sha256':'a884bf301e618f7b90b34ff6c08c7c217b62d44c12ea1bd3b273a9662fdbb9d8'}
+exact(ROOT / 'tmp/i03-var08-root-ssh-preflight-20261008.py', root['wrapper'])
+assert root['manifest'] == {'bytes':len(raw),'sha256':sha(raw)}
+assert root['source_map_sha256'] == map_sha and root['source_records_revalidated'] == 287
+assert root['preflight_path'] == str(PREF)
+prefraw = exact(PREF, root['preflight'])
+assert sha(prefraw) == 'ffbfe53b42cf2f44b6ecf19c2bc2320920bd2040a29da80d3f06593a8ec91c50'
+p = m.parse_json(prefraw)
+assert p['schema'] == 'i03-var08-idle-maxut-ssh-preflight/v1'
+assert p['run_id'] == 'i03-var08-idle-maxut-out-v100-ssh-20261008-01'
+assert p['manifest_sha256'] == sha(raw) and p['source_map_sha256'] == map_sha
+assert m.typed(p['source_hashes'], source_map) and m.typed(p['source_hashes_after_pure'], source_map)
+for key, want in [('ssh_session',0),('ps_major',5),('wts_active_gui_count',1),
+                  ('accepted_raw_seals',108),('accepted_nonclosure_raw',93),
+                  ('accepted_closures',8),('accepted_invocations',7),
+                  ('excluded_failed_witness_raw',0),('total_original_raw',108)]:
+    m.assert_int(p[key], want)
+for key, want in [('run_dirs_absent',True),('mutex_free',True),('native_process_started',False)]:
+    assert type(p[key]) is bool and p[key] is want
+assert type(p['ssh_ancestors']) is list and 'sshd.exe' in p['ssh_ancestors']
+m.verify_gui(p['gui'])
+assert m.typed(root['gui'], p['gui']) and root['ssh_session'] == 0 and root['powershell_major'] == 5
+assert root['mutex_free'] is True and root['run_absent'] is True
+proof = Path(p['pure_proof_path'])
+assert root['pure_proof_path'] == str(proof)
+assert proof.parent == Path(p['pure_proof_directory'])
+assert exact(proof, root['pure_proof']) and root['pure_proof']['sha256'] == p['pure_proof_sha256']
+pure = m.verify_pure_proof(proof,'preflight',raw,source_map,p['pure_proof_sha256'])
+assert m.typed(p['pure_checks'], pure['checks']) and len(pure['checks']) == 5
+assert root['source_records_revalidated'] == len(source_map)
+assert len(root['original_files']) == 15
+paths = [v['path'] for v in root['original_files']]
+assert len(paths) == len(set(paths))
+for v in root['original_files']:
+    exact(v['path'], v)
+transport = Path(root['transport_dir'])
+assert transport.parent == PKG / 'transport-evidence'
+assert set(x.name for x in transport.iterdir()) == {'ssh-stdout.bin','ssh-stderr.bin','transport-receipt.json'}
+assert (transport / 'ssh-stderr.bin').read_bytes() == b''
+t = load(transport / 'transport-receipt.json')
+assert t['mode'] == 'preflight' and t['exit_code'] == 0
+assert not (PKG / 'runs').exists()
+assert not (PKG / 'review/independent-prelaunch-go.json').exists()
+print(json.dumps({'decision':'GO_PRELAUNCH_CANDIDATE','manifest_sha256':sha(raw),
+ 'source_map_sha256':map_sha,'preflight_sha256':sha(prefraw),
+ 'pure_checks':len(pure['checks']),'sealed_original_files':len(paths),
+ 'native_calls':0},sort_keys=True))

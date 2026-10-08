@@ -1,0 +1,105 @@
+"""Root exact-byte PURE capture and one-time canonical source freeze; no SSH/native."""
+from pathlib import Path
+import datetime as dt
+import hashlib,json,re,stat,subprocess,sys
+
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0'
+HANDOFF=ROOT/'tmp/i03-var08-author-freeze-ready-20261008.json'
+OUT=ROOT/'tmp/i03-var08-root-pure-source-freeze-20261008-01'
+RUN_ID='i03-var08-idle-maxut-out-v100-ssh-20261008-01'
+MEMO=CASE/'review/independent-method-static-go-2026-10-08.md'
+METHODS={
+ 'review/independent_replay.py':'4f2a96484c181260ae3586658caa984556562e2bae5ff7ab3211f602dded5cda',
+ 'review/independent_self_check.py':'5eb3fd082ccec72806f6fe6f5570989a625730e008908d2bac95a73cda750385',
+ 'review/independent-method-static-go-2026-10-08.md':'43636401bfbe684c89af4bd60c5ac01eec77b743d039d5c09aac14396c84b1b0'}
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+def freeze(p):
+ p.chmod(stat.S_IREAD)
+ assert p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY,str(p)
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ freeze(p)
+assert len(sys.argv)==2 and re.fullmatch('[0-9a-f]{64}',sys.argv[1])
+assert pin(HANDOFF.read_bytes())['sha256']==sys.argv[1]
+assert not OUT.exists()
+OUT.mkdir();freeze(Path(__file__))
+receipt={'schema':'i03-var08-root-pure-source-freeze/v1','decision':'IN_PROGRESS',
+ 'started_utc':utc(),'wrapper':pin(Path(__file__).read_bytes()),'handoff':pin(HANDOFF.read_bytes()),
+ 'commands':[],'ssh_calls':0,'native_calls':0,'native_launch_approved':False,'error':None}
+def command(tag,relative,args):
+ argv=[sys.executable,'-X','utf8','-B',str(CASE/relative),*args]
+ started=utc()
+ with (OUT/f'{tag}-stdout.bin').open('xb') as so,(OUT/f'{tag}-stderr.bin').open('xb') as se:
+  r=subprocess.run(argv,cwd=CASE,stdout=so,stderr=se)
+ so=OUT/f'{tag}-stdout.bin';se=OUT/f'{tag}-stderr.bin';freeze(so);freeze(se)
+ row={'tag':tag,'argv':argv,'cwd':str(CASE),'started_utc':started,'completed_utc':utc(),
+      'actual_exit':r.returncode,'stdout':pin(so.read_bytes()),'stderr':pin(se.read_bytes())}
+ receipt['commands'].append(row)
+ assert type(r.returncode) is int and r.returncode==0 and se.stat().st_size==0,tag
+ return json.loads(so.read_bytes())
+try:
+ h=json.loads(HANDOFF.read_bytes())
+ assert h['schema']=='i03-var08-author-freeze-ready/v1' and Path(h['case_path']).resolve()==CASE.resolve()
+ assert h['run_id']==RUN_ID and h['owned_source_count']==len(h['owned_source_files'])==85
+ assert h['canonical_inventory_and_manifest_absent'] is True and h['native_or_ssh_calls']==0
+ assert h['expected_manifest_source_count']==287
+ assert not (CASE/'source-inventory.json').exists() and not (CASE/'prelaunch-manifest.json').exists()
+ assert not (CASE/'runs').exists() and not (CASE/'transport-evidence').exists()
+ assert not list((CASE/'review').glob('preflight-ssh0-*'))
+ before={}
+ for row in h['owned_source_files']:
+  name=row['relative_path'];p=(CASE/name).resolve(strict=True)
+  assert p.is_relative_to(CASE.resolve()) and p==Path(row['path']).resolve(strict=True)
+  assert name not in before
+  before[name]=pin(p.read_bytes())
+  assert before[name]=={k:row[k] for k in ('bytes','sha256')},name
+ assert len(before)==85
+ for name,want in METHODS.items():assert before[name]['sha256']==want,name
+ memo=MEMO.read_text(encoding='utf-8-sig')
+ assert '**GO_METHOD_ONLY**' in memo
+ for name,want in re.findall(r'^\| ([^|]+?) \| `([0-9a-f]{64})` \|',memo,re.M):
+  assert before[name.strip()]['sha256']==want,name
+ assert before['contract.json']['sha256']=='f23c6284afdaf25c7115f293907411ab941c0603b11d8bbf45d7fd8a5e671b41'
+ assert before['native-input.json']=={'bytes':47391,'sha256':'38a2b5c0e7f75ec477557e87c200424cdabc859e11c9e5db3ca15ecaace4bb05'}
+ receipt['source_before']=before
+ for name in before:freeze(CASE/name)
+ freeze(HANDOFF)
+ pure=command('independent-pure','review/independent_replay.py',['--pure-fixture'])
+ assert pure['source_cells']==242 and pure['export_cells']==383 and pure['timed_events']==113 and pure['report_cells']==5210,pure
+ mutants=command('independent-mutants','review/independent_self_check.py',[])
+ assert mutants['mode']=='PURE_SYNTHETIC_ONLY' and mutants['report_cells']==5210 and mutants['rejections']==66
+ sys.path.insert(0,str(CASE))
+ import make_source_inventory as inv
+ import make_prelaunch_manifest as man
+ candidate=inv.body(inv.candidate(False))
+ assert pin(candidate)=={k:h['expected_inventory'][k] for k in ('bytes','sha256')}
+ result=command('inventory','make_source_inventory.py',['--write'])
+ assert result['written'] is True and result['source_count']==85
+ assert (CASE/'source-inventory.json').read_bytes()==candidate
+ freeze(CASE/'source-inventory.json')
+ preview=man.candidate(False,'live')
+ assert preview['source_count']==len(preview['source_files'])==287
+ assert preview['run_id']==RUN_ID and preview['historical_catalog_prefix_always_checked']==495
+ assert preview['new_native_runs_authorized_by_manifest']==0
+ expected=man.body(preview)
+ receipt['manifest_preview_before_write']=pin(expected)
+ result=command('manifest','make_prelaunch_manifest.py',['--write'])
+ assert result['written'] is True and result['source_count']==287
+ assert (CASE/'prelaunch-manifest.json').read_bytes()==expected
+ freeze(CASE/'prelaunch-manifest.json')
+ after={name:pin((CASE/name).read_bytes()) for name in before}
+ assert before==after and not (CASE/'runs').exists()
+ assert all((CASE/n).stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY for n in before)
+ receipt.update(decision='GO_FROZEN_SOURCE_BYTES_ONLY',source_after=after,
+  owned_source_count=85,manifest_source_count=287,inventory=pin(candidate),manifest=pin(expected),
+  all_owned_sources_readonly=True,
+  limits='No SSH/native. Independent frozen GO_PURE_PREFLIGHT and actual SSH5 zero-native proof then fresh GO_PRELAUNCH still required.')
+except BaseException as exc:
+ receipt.update(decision='NO_GO_PRESERVED',error=f'{type(exc).__name__}: {exc}')
+finally:
+ receipt['completed_utc']=utc();data=(json.dumps(receipt,indent=2)+'\n').encode();save(OUT/'receipt.json',data)
+print(json.dumps({'decision':receipt['decision'],'receipt':pin(data),'inventory':receipt.get('inventory'),
+ 'manifest':receipt.get('manifest'),'error':receipt['error']}))
+assert receipt['decision']=='GO_FROZEN_SOURCE_BYTES_ONLY'

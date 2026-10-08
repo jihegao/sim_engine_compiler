@@ -1,0 +1,75 @@
+"""Create once, then verify exact inert copies of the prospective contract history.
+
+Accepted original run bytes remain mandatory at their own paths. These copies
+only preserve small decision records and the two historical catalog identities.
+"""
+from __future__ import annotations
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+
+HERE=Path(__file__).resolve().parent
+REPO=HERE.parents[2]
+OWNED=HERE/"preserved-context"
+MAP=HERE/"context-custody.json"
+CATALOG=REPO/"cases/simlox-air-support/publication-index-v1.json"
+GIT=Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe")
+FILES=(
+    "tmp/i03-var08-root-selection-v2-20261008-01/selection.json",
+    "tmp/i03-var08-root-selection-v2-20261008.py",
+    "tmp/i03-var08-root-selection-20261008-01/selection.json",
+    "tmp/i03-var08-root-selection-20261008.py",
+    "tmp/i03-var08-prospective-contract-design-v1-20261008.json",
+    "tmp/build-i03-var08-contract-design-v1-20261008.py",
+    "tmp/i03-var08-v1-metadata-no-go-20261008.md",
+    "tmp/i03-var08-independent-contract-v1-no-go-20261008.md",
+    "tmp/i03-var08-prospective-contract-design-v2-20261008.json",
+    "tmp/build-i03-var08-contract-design-v2-20261008.py",
+    "tmp/i03-var08-prospective-contract-design-v2-20261008.md",
+    "tmp/i03-var08-independent-contract-audit-v2-failed-null-draft.py",
+    "tmp/i03-var08-independent-contract-audit-v2-failed-null-note.md",
+    "tmp/i03-var08-independent-contract-audit-v2.py",
+    "tmp/i03-var08-independent-contract-v2-go-20261008.md",
+    "tmp/i03-var08-root-construction-gate-20261008.md",
+    "tmp/i03-var08-root-live-reconciliation-20261008.json",
+)
+
+def pin(data):return {"bytes":len(data),"sha256":hashlib.sha256(data).hexdigest()}
+
+def blob(oid):
+    p=subprocess.run([str(GIT),"cat-file","blob",oid],cwd=REPO,capture_output=True)
+    assert p.returncode==0,p.stderr.decode(errors="replace")
+    return p.stdout
+
+def candidate(write=False):
+    selection=json.loads((REPO/FILES[0]).read_text(encoding="utf-8"))
+    assert selection["schema"]=="issue18-i03-var08-root-selection/v2"
+    sources=[(p,(REPO/p).read_bytes(),True) for p in FILES]
+    sources.append(("cases/simlox-air-support/publication-index-v1.json",CATALOG.read_bytes(),False))
+    oid=selection["catalog_git"]["oid"]
+    sources.append(("git-blob:"+oid,blob(oid),False))
+    rows=[]
+    for idx,(original,data,original_if_present) in enumerate(sources):
+        target=OWNED/f"context-{idx:02d}.bytes"
+        if target.exists():assert target.read_bytes()==data,target
+        elif write:
+            OWNED.mkdir(exist_ok=True)
+            with target.open("xb") as f:f.write(data)
+        rows.append({"original_path":original,"owned_copy":target.relative_to(HERE).as_posix(),
+                     **pin(data),"original_if_present_must_match":original_if_present})
+    assert rows[-2]["bytes"]==selection["catalog_local"]["bytes"]
+    assert rows[-2]["sha256"]==selection["catalog_local"]["sha256"]
+    assert pin(sources[-1][1])=={k:selection["catalog_git"][k] for k in ("bytes","sha256")}
+    result={"schema":"i03-var08-context-custody/v1","records":rows,
+            "accepted_original_raw_are_not_replaced_by_copies":True}
+    raw=(json.dumps(result,ensure_ascii=False,indent=2)+"\n").encode("utf-8")
+    if MAP.exists():assert MAP.read_bytes()==raw
+    elif write:
+        with MAP.open("xb") as f:f.write(raw)
+    return {"schema":result["schema"],"copies":len(rows),"map":pin(raw),"exists":MAP.exists()}
+
+if __name__=="__main__":
+    ap=argparse.ArgumentParser();ap.add_argument("--write",action="store_true")
+    print(json.dumps(candidate(ap.parse_args().write),sort_keys=True))

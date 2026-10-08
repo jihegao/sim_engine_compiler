@@ -1,0 +1,93 @@
+"""Closed owned source inventory. Root alone writes canonical JSON once."""
+from __future__ import annotations
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+HERE=Path(__file__).resolve().parent
+SCHEMA="i03-var08-idle-maxut-owned-source-inventory/v1"
+OWNED=(
+    ".gitattributes",".gitignore","contract.json","DEVELOPMENT-CONTRACT.md",
+    "execution-contract.json","README.md","REPRODUCTION.md","build.py",
+    "native-input.json","exact-diff.json","check_roundtrip.py","event_ledger.py",
+    "report_oracle.py","validate_native_cli.py","source_gate.py","self_check.py",
+    "copy_context.py","context-custody.json","copy_pure_proof.py","pure-proof-custody.json",
+    "captured_process.ps1",
+    "checker_receipt.ps1","preflight_receipt.ps1","run_native_ssh.ps1",
+    "ssh_transport.py","pure_proof.py","make_source_inventory.py","make_prelaunch_manifest.py",
+)
+PRESERVED=(
+    "checker_receipt.ps1.var05-template.bytes",
+    "copy-context-v1-original-required-draft.py.bytes",
+    "event-ledger-v1-incomplete-terminal.py.bytes",
+    "event-ledger-v1-terminal-gap.md",
+    "preflight_receipt.ps1.var05-template.bytes",
+    "report-oracle-v1-parse-failure.md",
+    "report-oracle-v1-trailing-comma-draft.py.bytes",
+    "report-oracle-v2-suffix-draft.py.bytes",
+    "report-oracle-v2-suffix-failure.md",
+    "report-oracle-v3-total-constant-draft.py.bytes",
+    "report-oracle-v3-total-constant-gap.md",
+    "run_native_ssh.ps1.var05-template.bytes",
+    "run-native-v1-pure-proof-not-durable.ps1.bytes",
+    "run-native-v1-pure-proof-gap.md",
+    "ssh_transport.py.var05-template.bytes",
+)
+REVIEW=(
+    "independent_replay.py","independent_self_check.py",
+    "preserved-reviewer-v1-fixedid.py.bytes",
+    "preserved-reviewer-v2-broad-comma.py.bytes",
+    "preserved-reviewer-v3-gittree-mode.py.bytes",
+    "preserved-reviewer-v4-preprovenance.py.bytes",
+    "preserved-reviewer-v5-first-provenance.py.bytes",
+    "preserved-reviewer-v6-subset-owned.py.bytes",
+    "preserved-reviewer-custody-map-shape-failure.md",
+    "independent-method-static-go-2026-10-08.md",
+)
+
+def pin(path):
+    b=path.read_bytes()
+    return {"bytes":len(b),"sha256":hashlib.sha256(b).hexdigest()}
+
+def paths(provisional=False):
+    out=list(OWNED)
+    out.extend("preserved-development/"+name for name in PRESERVED)
+    out.extend(f"preserved-context/context-{i:02d}.bytes" for i in range(19))
+    out.extend(f"preserved-pure-proof/pure-{i:02d}.bytes" for i in range(13))
+    if not provisional:out.extend("review/"+name for name in REVIEW)
+    assert len(out)==len(set(out))
+    return out
+
+def candidate(provisional=False):
+    records=[]
+    for relative in paths(provisional):
+        path=HERE/relative
+        assert path.is_file(),relative
+        records.append({"relative_path":relative,"path":str(path.resolve(strict=True)),**pin(path)})
+    assert len({row["path"].lower() for row in records})==len(records)
+    return {"schema":SCHEMA,"source_count":len(records),"source_files":records,
+            "provisional_independent_methods_absent":provisional,
+            "excluded_future":["source-inventory.json","prelaunch-manifest.json","runs/",
+                "transport-evidence/","test-output/","review/independent-prelaunch-",
+                "review/independent-postrun-","review/independent-content-"]}
+
+def body(data):
+    return (json.dumps(data,ensure_ascii=False,sort_keys=True,indent=2)+"\n").encode("utf-8")
+
+def main():
+    args=sys.argv[1:]
+    assert args in ([],["--dry"],["--provisional"],["--write"])
+    provisional=args==["--provisional"]
+    data=body(candidate(provisional))
+    output=HERE/"source-inventory.json"
+    if args==["--write"]:
+        assert not output.exists(),"canonical inventory exists"
+        output.write_bytes(data)
+    elif args==[]:
+        assert output.is_file() and output.read_bytes()==data
+    print(json.dumps({"schema":SCHEMA,"source_count":json.loads(data)["source_count"],
+                      "inventory_sha256":hashlib.sha256(data).hexdigest(),
+                      "written":args==["--write"],"provisional":provisional},sort_keys=True))
+
+if __name__=="__main__":main()
