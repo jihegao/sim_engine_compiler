@@ -1,0 +1,38 @@
+"""Root one-time byte recovery, no native/checker/Git invocation."""
+from pathlib import Path
+import datetime as dt
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+S=R/'tmp/i04-var06-root-selection-20261008/20261008T151141226728Z-9cc9c2b4/receipt.json'
+O=R/'tmp/i04-var06-return-complete-classification-v100-20261008-01'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def unique(rows):
+ d={}
+ for k,v in rows:
+  assert k not in d,k
+  d[k]=v
+ return d
+def read_json(b):return json.loads(b,object_pairs_hook=unique)
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+assert pin(S.read_bytes())=={'bytes':13587,'sha256':'7b70423434ab8b745d40c9f75d19256da5ee4391b37d1b3bae2e84089086c214'}
+s=read_json(S.read_bytes());assert s['error'] is None and len(s['originals'])==24
+rows=[]
+for row in s['originals']:
+ p=Path(row['path']);b=p.read_bytes();assert pin(b)=={k:row[k] for k in ('bytes','sha256')}
+ rows.append((p,b,p.stat().st_mode,p.stat().st_file_attributes))
+assert len({p.name for p,b,m,a in rows})==24
+assert not O.exists()
+O.mkdir(exist_ok=False);(O/'raw').mkdir(exist_ok=False)
+manifest=[]
+for p,b,mode,attributes in rows:
+ target=O/'raw'/p.name;save(target,b)
+ assert target.read_bytes()==b and not target.stat().st_mode&stat.S_IWRITE
+ assert p.read_bytes()==b and p.stat().st_mode==mode and p.stat().st_file_attributes==attributes
+ manifest.append({'name':p.name,'original_path':str(p),'copy_path':str(target),**pin(b),'original_mode_before':mode,'original_attributes_before':attributes,'original_mode_after':p.stat().st_mode,'original_attributes_after':p.stat().st_file_attributes,'copy_readonly':True})
+for p,b,mode,attributes in rows:
+ assert p.read_bytes()==b and p.stat().st_mode==mode and p.stat().st_file_attributes==attributes
+record={'schema':'i04-var06-root-byte-recovery/v100','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'decision':'PASS_BYTE_RECOVERY_ONLY','classification_is_native_run':False,'native_calls':0,'accepted_checker_calls':0,'selection_receipt':{'path':str(S),**pin(S.read_bytes())},'method':{'path':str(Path(__file__)),**pin(Path(__file__).read_bytes())},'copies':manifest,'copies_count':24,'semantic_acceptance':False}
+save(O/'recovery-manifest.json',(json.dumps(record,indent=2)+'\n').encode())
+print(json.dumps({'decision':record['decision'],'manifest':str(O/'recovery-manifest.json'),**pin((O/'recovery-manifest.json').read_bytes()),'copies':24,'native_calls':0}))

@@ -1,0 +1,93 @@
+"""Independent read-only prospective audit of the I04.var06 narrow classification."""
+import hashlib
+import json
+from pathlib import Path
+import re
+
+R=Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+P=R/"cases/simlox-air-support/I04-var01-system-between-v1.0.0"
+CP=R/"tmp/i04-var06-prospective-v100-20261008-01"
+SEL=R/"tmp/i04-var06-root-selection-20261008/20261008T150201856194Z-f57fceea/receipt.json"
+PACKAGE=R/"cases/simlox-air-support/I04-var06-return-complete-transfer-v1.0.0"
+SCRATCH=R/"tmp/i04-var06-return-complete-classification-v100-20261008-01"
+def sha(b):return hashlib.sha256(b).hexdigest()
+def exact(p,n,h):
+    b=p.read_bytes();assert (len(b),sha(b))==(n,h),p;return b
+def unique(pairs):
+    d={}
+    for k,v in pairs:
+        assert k not in d,k
+        d[k]=v
+    return d
+def load(b):return json.loads(b,object_pairs_hook=unique,parse_constant=lambda x:(_ for _ in ()).throw(ValueError(x)))
+def main():
+    assert not PACKAGE.exists() and not SCRATCH.exists()
+    c=load(exact(CP/"contract.json",10668,"87a22902a86bde7d9d668d816830bd5b4b87ee6b6c4d6f289bf94190f83b90a2"))
+    exact(CP/"contract.md",5589,"a68a8c21bb83ec4b5e2a2ea2a7fb5faef0819ae6a14329197e2e8726653e8036")
+    assert c["schema"]=="i04-var06-return-complete-classification-prospective/v100" and c["decision"]=="PROSPECTIVE_CONTRACT_ONLY"
+    assert c["classification_directory_is_native_run"] is False
+    assert c["source_delta"]=={"authored_input_changes":0,"native_runs":0,"accepted_parent_checker_reruns":0,"new_report_exports":0,"new_simlox_invocations":0}
+    selection=load(exact(SEL,13588,"2f97e7766570da48201fa4837bff67949731b280c36c9f832860f6c5f652b889"))
+    assert selection["decision"]=="ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_ONLY" and selection["native_calls"]==0
+    assert selection["accepted_parent_dependency_pairs"]==76 and len(selection["originals"])==24
+    assert selection["originals_readonly_count"]==0 and selection["guard_actual_exit"]==0 and selection["error"] is None
+    outer=c["root_selection"]["outer_capture"]
+    assert (len(exact(R/outer["path"],outer["bytes"],outer["sha256"]))>0)
+    for row in selection["originals"]:
+        assert row["read_only_observed"] is False
+        exact(Path(row["path"]),row["bytes"],row["sha256"])
+    parent=c["accepted_parent"]
+    idx=load(exact(R/parent["source_index"]["path"],7440,"7cc499df680969e65d178d9c1db90c32c44e80d784f3b6d2f75d50532b7d102b"))
+    assert len(idx["source"])==15
+    for name,row in idx["source"].items():exact(P/name,row["bytes"],row["sha256"])
+    verdict=load(exact(R/parent["independent_verdict"]["path"],1340,"944bcac5d31ab378eb56dd4ae1983451cdd82b3e4463d4509577aa91e7531b32"))
+    assert verdict["verdict"]=="GO_BOUNDED" and verdict["checks"]==verdict["passed"]==439 and verdict["failed"]==[]
+    authored=load(exact(R/parent["input"]["path"],44614,"50cc69df36afa0cecbbf8e6e7d699012f8987bb06bee11a1e347235d397da0ea"))
+    tables=authored["model"]["tables"]
+    transfer=[t for t in tables if t["name"]=="SystemTransfer"]
+    assert len(transfer)==1
+    t=transfer[0]
+    assert [col["name"] for col in t["columns"]]==c["source_predicate"]["columns"]
+    assert [col["name"] for col in t["columns"] if col.get("key") is True]==c["source_predicate"]["key_columns"]
+    assert len(t["instances"])==1 and t["instances"][0]["rows"]==[c["source_predicate"]["only_row"]]
+    log=exact(R/parent["log"]["path"],8158,"e9c2bbc20a9496c1ce72f3e4c2806c94d1a52ab8ee409a37ea790bc98eca1c8f")
+    lines=log.decode("utf-8").splitlines()
+    assert len(lines)==117 and sum(x.startswith("Time:") for x in lines)==103
+    chain=[
+      "Time: 10 <TEACH-AIR-01,0> turnround ended, mission: <BASIC-MISSION,TEACH-GROUP,0,0,0>",
+      "Time: 10 <TEACH-AIR-01,BASE-01,0> System arrives <TEACH-AIR-01,0>, mission success, ",
+      "Time: 10 <TEACH-AIR-01,0> nbr ready increased at unit: <TEACH-UNIT at <BASE-01,0>>",
+      "Time: 10 <TEACH-AIR-01,BASE-01,0> System ready <TEACH-AIR-01,0>",
+      "Time: 10 <TEACH-AIR-01,0> nbr ready decreased at unit: <TEACH-UNIT at <BASE-01,0>>",
+      "Time: 10 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>.",
+      "Time: 10.5 <TEACH-UNIT-2 at <BASE-02,0>> system transfered in: <TEACH-AIR-01,0>.",
+      "Time: 10.5 <TEACH-AIR-01,0> nbr ready increased at unit: <TEACH-UNIT-2 at <BASE-02,0>>",
+      "Time: 10.5 <TEACH-UNIT-2 at <BASE-02,0>> systems ready: 2 :<TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+      "Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission allocates system: <TEACH-AIR-01,0>",
+    ]
+    at=-1
+    for item in chain:
+        places=[i for i,x in enumerate(lines) if x==item]
+        assert len(places)==1 and places[0]>at,item
+        at=places[0]
+    rawpath=P/"runs/i04-var01-system-between-v100-ssh-20261005-01/between-report-raw.json"
+    report=exact(rawpath,103974,"f1cd6496d7fbdeda3f6deb7d57ee16f762db27984e0aa27e13b16bc9715375b3")
+    marker=b'         },\r\n      ]'
+    assert report.count(marker)==1
+    report_obj=load(report.replace(marker,b'         }\r\n      ]'))
+    tab=[t for t in report_obj["report"]["tables"] if t["name"]=="SystemResults"]
+    assert len(tab)==1 and len(tab[0]["instances"])==1
+    ins=tab[0]["instances"][0]
+    sel=c["positive_oracle"]["report_selected_corroboration"]
+    assert ins["instance_name"]==sel["SystemResults_instance_name"]
+    names=[r["name"] for r in tab[0]["columns"]]
+    assert len(ins["rows"])==72
+    for i,key in [(20,"row_20_10_to_10_5"),(21,"row_21_10_5_to_11")]:
+        for field,want in sel[key].items():
+            value=ins["rows"][i][names.index(field)]
+            assert type(value) is type(want) and value==want,(i,field,value,want)
+    assert len(c["prospective_negative_clones"])==7 and len(c["decision_table"])==5
+    assert c["manual"]["sha256"]=="39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3"
+    exact(Path(c["manual"]["path_local_only"]),c["manual"]["bytes"],c["manual"]["sha256"])
+    print("PASS_I04_VAR06_CONTRACT_ONLY 15 24 76 117 103 selected2 zero_native")
+if __name__=="__main__":main()

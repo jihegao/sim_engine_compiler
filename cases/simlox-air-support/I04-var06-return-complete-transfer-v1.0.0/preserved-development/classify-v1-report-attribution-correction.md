@@ -1,0 +1,7 @@
+# Author classification metadata correction
+
+The frozen `author/classify.py` (21,193 bytes, SHA-256 `944992495904c2bae878bc139ec98f9716c705c9e5f277cf346d6e93aeda0a4b`) and its original captured stdout remain historical evidence. Its result contains `report.full_report_acceptance_inherited: true`. That label overstates the accepted I04.var01 parent verdict: its 439/439 checks were bounded report and behavior checks, not verification of every report cell. The field is excluded as a full-report acceptance claim.
+
+The distinct read-only `author/classify_v2.py` (21,199 bytes, SHA-256 `ab193256aa3d890cbd1b3eafe52dda7f70aac1945f0ec0c60c47971f86697a36`) changes exactly one source token: `"full_report_acceptance_inherited"` becomes `"bounded_parent_report_checks_inherited"`. Every other byte of the semantic parser, causal ledger, source gate invocation, selected report predicates, and output structure is identical. The original author proof therefore remains evidence for that unchanged semantic computation, while its old metadata field is historical and superseded. No new semantic execution, accepted-parent checker run, SIMLOX dispatch, or report export was performed for this correction.
+
+The authoritative independent classification is `review/independent-verdict-v2.json` with `cli-scope-signoff-2026-10-08-v2.md`. Those files correct the related parent-attribution wording and retain the original independent semantic proof identities. Final publication must include the original source/proof, the corrected source, and this note distinctly.

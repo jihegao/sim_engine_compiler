@@ -1,0 +1,5 @@
+# Preserved independent self-check v101 static NO_GO
+
+The frozen `independent_self_check.py` is 8,345 bytes, SHA-256 `b2cd999034181e0d9335b291714bd77722b2a18f4aab49cd194b9ffe42ed8a8e`. Root static review found that its `report_mutant` returned bytes while `check_selected_tables` required a list. Its 11 report mutations therefore rejected on the argument type, regardless of the mutated cell. The decoded local `PASS_INDEPENDENT_PRIVATE_NEGATIVES` output was false assurance for those 11 checks. It is excluded from independent acceptance. It was never executed through root original-stream capture.
+
+`independent_self_check_v102.py` is a distinct active method. It returns private parsed table lists for the report clones and first passes an unmutated clone through the same `check_selected_tables` target before testing changed fields. The accepted parent report remains unchanged. This correction does not alter the frozen independent classifier, the parent raw files, the recovery copies, or any native/checker execution.
