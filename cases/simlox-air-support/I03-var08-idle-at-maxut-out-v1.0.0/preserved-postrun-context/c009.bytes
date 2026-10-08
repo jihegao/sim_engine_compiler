@@ -1,0 +1,16 @@
+import importlib.util
+import json
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parent.parent
+PKG=ROOT/'cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0'
+SOURCE=PKG/'review/independent_replay.py'
+spec=importlib.util.spec_from_file_location('independent_var08',SOURCE)
+m=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+manifest_raw,_,source_map,map_sha=m.verify_manifest()
+approval_raw,approval,preflight_raw,preflight,path=m.verify_preflight(manifest_raw,source_map,map_sha)
+assert not (PKG/'runs').exists()
+print(json.dumps({'decision':approval['decision'],'approval_sha256':m.sha(approval_raw),
+                  'preflight_sha256':m.sha(preflight_raw),'source_map_sha256':map_sha,
+                  'pure_checks':len(preflight['pure_checks']),'native_started':preflight['native_process_started']},sort_keys=True))

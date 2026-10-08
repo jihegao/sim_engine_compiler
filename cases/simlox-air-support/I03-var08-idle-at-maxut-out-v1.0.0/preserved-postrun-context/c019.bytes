@@ -1,0 +1,79 @@
+"""Independent, read-only exact-file gate for the frozen I03.var08 PURE bundle."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parent.parent
+CASE=ROOT/"cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0"
+PROOF=ROOT/"tmp/i03-var08-root-pure-source-freeze-20261008-01"
+RECEIPT=PROOF/"receipt.json"
+RECEIPT_SHA="3da1bab9203ff19942cf0ae156c74fc4f5dce2dc48ae70d2236ce7ecd3168505"
+INV_SHA="f2bc7bea6d68ef404b8fcb990b58e8ba27e428869922eec44713a8ce99be5ece"
+MAN_SHA="e93579a085ca6716cbf9778724a1454a726016af49a64db5a4017a07d1905b78"
+READER_SHA="4f2a96484c181260ae3586658caa984556562e2bae5ff7ab3211f602dded5cda"
+SELF_SHA="5eb3fd082ccec72806f6fe6f5570989a625730e008908d2bac95a73cda750385"
+MEMO_SHA="43636401bfbe684c89af4bd60c5ac01eec77b743d039d5c09aac14396c84b1b0"
+
+spec=importlib.util.spec_from_file_location("independent_reader",CASE/"review/independent_replay.py")
+m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+def pin(path):return m.file_record(path)
+def require(path,hash_):assert pin(path)["sha256"]==hash_,path
+require(RECEIPT,RECEIPT_SHA)
+require(CASE/"source-inventory.json",INV_SHA)
+require(CASE/"prelaunch-manifest.json",MAN_SHA)
+require(CASE/"review/independent_replay.py",READER_SHA)
+require(CASE/"review/independent_self_check.py",SELF_SHA)
+require(CASE/"review/independent-method-static-go-2026-10-08.md",MEMO_SHA)
+
+d=m.parse_json(RECEIPT.read_bytes())
+assert d["schema"]=="i03-var08-root-pure-source-freeze/v1"
+assert d["decision"]=="GO_FROZEN_SOURCE_BYTES_ONLY"
+assert type(d["ssh_calls"]) is int and d["ssh_calls"]==0
+assert type(d["native_calls"]) is int and d["native_calls"]==0
+assert type(d["native_launch_approved"]) is bool and not d["native_launch_approved"]
+assert d["error"] is None
+assert type(d["owned_source_count"]) is int and d["owned_source_count"]==85
+assert type(d["manifest_source_count"]) is int and d["manifest_source_count"]==287
+assert type(d["all_owned_sources_readonly"]) is bool and d["all_owned_sources_readonly"]
+assert d["inventory"]==pin(CASE/"source-inventory.json")
+assert d["manifest"]==pin(CASE/"prelaunch-manifest.json")
+assert m.typed(d["source_before"],d["source_after"])
+assert len(d["source_before"])==85
+for relative,want in d["source_before"].items():
+    path=CASE/relative
+    assert pin(path)==want
+    assert bool(os.stat(path).st_file_attributes & 1),relative
+for name in ("source-inventory.json","prelaunch-manifest.json"):
+    assert bool(os.stat(CASE/name).st_file_attributes & 1),name
+
+expected_cmds=("independent-pure","independent-mutants","inventory","manifest")
+assert [x["tag"] for x in d["commands"]]==list(expected_cmds)
+for item in d["commands"]:
+    tag=item["tag"]
+    assert type(item["actual_exit"]) is int and item["actual_exit"]==0
+    for stream in ("stdout","stderr"):
+        file=PROOF/(tag+"-"+stream+".bin")
+        assert item[stream]==pin(file)
+    assert item["stderr"]["bytes"]==0
+pure=m.parse_json((PROOF/"independent-pure-stdout.bin").read_bytes())
+assert pure=={"export_cells":383,"mode":"PURE_SYNTHETIC_NOT_NATIVE",
+              "report_cells":5210,"source_and_custody_pins":232,
+              "source_cells":242,"timed_events":113}
+mut=m.parse_json((PROOF/"independent-mutants-stdout.bin").read_bytes())
+assert mut["mode"]=="PURE_SYNTHETIC_ONLY"
+assert type(mut["rejections"]) is int and mut["rejections"]==66
+assert type(mut["labels"]) is list and len(mut["labels"])==66
+assert mut["report_cells"]==5210
+
+raw,manifest,source_map,map_sha=m.verify_manifest()
+assert m.sha(raw)==MAN_SHA and len(source_map)==287
+assert map_sha=="9cbbdecd3055ec1fe602db1bc1acb0a6aa9b13b073c930c482211e1d02a7ef20"
+assert m.custody(m.parse_json((CASE/"contract.json").read_bytes()))==232
+assert not (CASE/"runs"/m.RUN_ID).exists()
+assert not (CASE/"review/independent-prelaunch-go.json").exists()
+print(json.dumps({"decision":"GO_PURE_PREFLIGHT","manifest_sha256":MAN_SHA,
+                  "inventory_sha256":INV_SHA,"owned_sources":85,
+                  "manifest_records":287,"custody_groups":232,
+                  "pure_report_cells":5210,"pure_negative_rejections":66,
+                  "ssh_calls":0,"native_calls":0},sort_keys=True))

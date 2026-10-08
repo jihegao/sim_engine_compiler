@@ -1,0 +1,11 @@
+# I03.var08 prospective contract design v2
+
+**Status:** contract review only. The [JSON design](i03-var08-prospective-contract-design-v2-20261008.json) is 105,915 bytes, SHA-256 `f23c6284afdaf25c7115f293907411ab941c0603b11d8bbf45d7fd8a5e671b41`. No case package, child input, preflight or native run exists.
+
+The accepted C08.var04 exact-limit run is the one parent. Two P-CREW members finish preparation and release at h24.5; the log reports no first-shift use budget remaining, but its h24.5–25 `NRA` bin still reads two. The child would add one scheduled `ResourceTransfer` OUT at h24.75. Manual physical p226 says an unoccupied resource may transfer despite a maximum-use limit. An immediate task-linked departure is the **prospective GO hypothesis**; a wait, backorder, shift-created phantom crew or changed mission is NO_GO against this version.
+
+The source change is only `PDESC` plus a seven-column, one-row ResourceTransfer table inserted after ResourceAllocation. The four transfer key columns have `key:true`; the table is absent from the parent. Parent authored/exported topology is 35 tables, 27/38 rows and 235/376 cells; child forecast is 36 tables, 28/39 rows and 242/383 cells, with eleven native all-null placeholder rows. The JSON design pins all 81 accepted local/base-Git source identities, 108 original raw dependencies, eight docs and three installed assets, plus distinct historical catalog local/Git byte identities.
+
+The report gate covers all six tables and 5,210 cells in each arm. If the h24.75 departure occurs, exactly 55 paired cells are forecast to differ: description one; 23 `NR` and 23 `NRN` bins; five shift-open `NRA` bins; three ResourceResultsTotal means. Predicted child `NR=NRN=1.6875`, `NRA=0.1597222238779068`, `NRUM=0.0555555559694767`, `NRW=0` are exact parsed binary32-quantized horizon means. `physical_idle`, printed shift `Free resources`, nominal `NRN`, report `NRA`, and remaining `MAXUT` budget are separate quantities; the physical roster equation does not equate them.
+
+This design is bounded to one source, seed, station, executable and horizon. It makes no claim about individual crew identity, a general transfer or usage-limit law, GUI behavior, performance or cross-engine equivalence. Independent contract approval and fresh root-controlled preflight remain required before any construction or execution.

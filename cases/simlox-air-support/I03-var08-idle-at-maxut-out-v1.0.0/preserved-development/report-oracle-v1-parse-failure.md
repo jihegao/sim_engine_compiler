@@ -1,0 +1,5 @@
+# First parent report oracle probe: source preserved, no raw stream claim
+
+The original draft is `report-oracle-v1-trailing-comma-draft.py.bytes`, 6,943 bytes, SHA-256 `4cc2a51da1edbf3fc14ee7f34fd6e862fac87b2030b52df90818facd3cb9f57e`. A local read-only invocation through `exec_command` returned actual process exit 1; the tool displayed a decoded traceback, but original stdout/stderr byte streams were not captured, so this note does not assert their hashes.
+
+The accepted parent report has exactly one known trailing comma before the top-level report table array closes. The draft parser correctly found that comma but imposed a too-short final suffix and raised `AssertionError`. Root also found that the draft rejected native nulls in declared-double result fields and used ordinary Python equality for report metadata. The corrected working oracle will retain the same predeclared physical/report values, repair only the one bounded comma in memory, accept exact null where the contract declares it, and compare recursive metadata types and keys. No source, native file or contract value was changed to fit the output.

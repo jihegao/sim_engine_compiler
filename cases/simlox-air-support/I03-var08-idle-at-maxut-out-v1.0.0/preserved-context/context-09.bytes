@@ -1,0 +1,146 @@
+"""Build a prospective I03.var08 contract. No SIMLOX invocation or case writes."""
+import hashlib
+import json
+import pathlib
+import struct
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+SEL = ROOT / "tmp/i03-var08-root-selection-v2-20261008-01/selection.json"
+PARENT = ROOT / "cases/simlox-air-support/C08-exact-limit-v1.0.0"
+SRC = PARENT / "exact-limit-input.json"
+RAW = PARENT / "runs/c08-exact-limit-20260930-02/report-raw.json"
+OUT = ROOT / "tmp/i03-var08-prospective-contract-design-v2-20261008.json"
+
+def pin(path):
+    b = path.read_bytes()
+    return {"path": str(path), "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
+
+def f32(value):
+    return struct.unpack("<f", struct.pack("<f", value))[0]
+
+def main():
+    sel = json.loads(SEL.read_bytes())
+    assert sel["schema"] == "issue18-i03-var08-root-selection/v2"
+    assert len(sel["accepted_source_refs"]) == 81
+    assert len(sel["mandatory_original_raw"]) == 108
+    source = json.loads(SRC.read_bytes())["model"]
+    tables = source["tables"]
+    assert len(tables) == 35
+    assert sum(len(i["rows"]) for t in tables for i in t["instances"]) == 27
+    assert sum(len(i["rows"]) * len(t["columns"]) for t in tables for i in t["instances"]) == 235
+    empty = {t["name"]: len(t["columns"]) for t in tables if not any(i["rows"] for i in t["instances"])}
+    assert len(empty) == 11 and sum(empty.values()) == 141
+    text = RAW.read_text(encoding="utf-8-sig")
+    assert text.count(",\n      ]") == 1
+    report = json.loads(text.replace(",\n      ]", "\n      ]", 1))["report"]
+    rt = report["tables"]
+    names = [t["name"] for t in rt]
+    assert names == ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults", "ResourceResults", "ResourceResultsTotal"]
+    assert sum(len(t["columns"]) * sum(len(i["rows"]) for i in t["instances"]) for t in rt) == 5210
+
+    contract = {
+      "schema": "simlox-i03-var08-prospective-contract-design/v2",
+      "phase": "CONTRACT_REVIEW_ONLY_NO_SOURCE_OR_NATIVE_AUTHORIZATION",
+      "case_id": "I03.var08",
+      "proposed_package_absent": sel["package_proposed_absent"],
+      "proposed_run_absent": sel["run_id_proposed_absent"],
+      "scope": "One fixed-seed P-CREW OUT at h24.75 after both C08 exact-limit preparations release at h24.5 and MAXUT reaches zero, before first shift closes at h25.",
+      "lineage": {
+        "selection_v2": pin(SEL), "base_commit": sel["base"],
+        "catalog_local_495": sel["catalog_local"], "catalog_git_495": sel["catalog_git"],
+        "catalog_rule": "Before any future native preflight live catalog must be exact495 local bytes. Postappend replay requires owned exact495 archive and base Git blob plus type-exact historical prefix/metadata and globally unique appended publication IDs; old live SHA is a point-time identity only.",
+        "parent": {"package": "C08-exact-limit-v1.0.0", "publication_id": "C08.var04.exact_limit_completion.1.0.0",
+                   "accepted_run": "c08-exact-limit-20260930-02", "source": pin(SRC), "report_raw": pin(RAW),
+                   "evidence_index": pin(PARENT / "evidence-index.json"),
+                   "authored": {"tables":35,"rows":27,"cells":235,"empty_table_widths":empty},
+                   "exported": {"tables":35,"rows":38,"cells":376,"empty_table_rule":"11 authored-empty tables each export one all-null row of declared width."},
+                   "original_run_records":14,"index_raw_records":12,
+                   "excluded_diagnostic":"c08-exact-limit-20260930-01 is historical diagnostic only; not accepted parent."},
+        "prerequisite_families": ["C03 staffing/shared crew", "C08 shift MAXUT", "C07 shift control"],
+        "accepted_81_local_and_base_git_refs": sel["accepted_source_refs"],
+        "mandatory_108_original_raw": sel["mandatory_original_raw"],
+        "required_docs_8": sel["required_docs"],
+        "installed_exe_manual_dictionary_3": sel["installed_refs"],
+        "all_pin_rule": "Exact disk and base Git identities checked separately for all 81 refs; all 108 original raw required at sealed absolute paths. No fallback, accepted-run rerun, or inferred evidence from copies."
+      },
+      "manual": {
+        "pdf_sha256":sel["installed_refs"]["manual"]["sha256"],
+        "p225_226":"Idle resource may transfer despite reaching maximum utilization; transfer requests outrank ordinary demands; reducing nominal quantity increases later limit risk. This is documented expectation, not observed child behavior.",
+        "p422_423":"ShiftResource.MAXUT is pooled per-resource shift usage limit; ongoing work stops at limit and utilization resets at next shift/no-shift. ResourceStationData.MUTILF does not apply during shifts.",
+        "p477_479":"ResourceTransfer OUT uses STTID <OUTSIDE>; STFID/STTID/RID/TFTIME keys, TFQTY positive integer and TFDT nonnegative hours. ResourceTransfer has no TFPRI.",
+        "p751_760":"NR physical, NRN nominal, NRA shift-available/report state, NRUM work and NRW waiting/time means are distinct. NRA=2 at parent h24.5-25 despite logged MAXUT remaining0; NRA is not a remaining-budget measurement."
+      },
+      "source_delta": {
+        "old_pdesc":"C08 exact MAXUT limit at preparation completion; DRAOS=N",
+        "new_pdesc":"I03.var08 idle P-CREW OUT at first-shift MAXUT limit; fixed C08 exact-limit source",
+        "insert_table":"ResourceTransfer",
+        "insert_at_zero_based_index":23,
+        "insert_after":"ResourceAllocation",
+        "insert_before":"MaterielPM",
+        "columns":[{"name":n,"datatype":d,**({"key":True} if j<4 else {})} for j,(n,d) in enumerate(zip(
+          ["STFID","STTID","RID","TFTIME","TFQTY","TFDT","NOTE"],
+          ["string","string","string","double","integer","double","string"]))],
+        "instance_name":"","one_row":["BASE-01","<OUTSIDE>","P-CREW",24.75,1,0.0,None],
+        "unchanged":"All existing 35 tables retain relative order, metadata/instances and 235 authored cells except PDESC. ResourceTransfer is inserted at index23, matching accepted I03 source placement. RQTY2, ShiftResource QTY2 MAXUT1, 23-25/26-28 shifts, TaskBreakDown DURN1, h28 formation, seed and horizon36 remain fixed.",
+        "child_authored":{"tables":36,"rows":28,"cells":242,"empty_tables":11},
+        "child_exported":{"tables":36,"rows":39,"cells":383,"empty_placeholders":11},
+        "roundtrip_rule":"All source tables and full recursive metadata/instance names/table order/column datatypes checked. Integer fields JSON int excluding bool; declared double cells may export finite JSON int or float with equal value (e.g. MAXUT1.0->1), excluding bool. All string/null cells exact. Eleven exact all-null native placeholder rows. No duplicate table or JSON key, NaN/Infinity/overflow, silent normalization or additional row."
+      },
+      "native_protocol": {
+        "six_serial_stages":["import","export","type_sensitive_roundtrip_check","calculate","json_report","behavior_check"],
+        "converter_after_calc_before_report":{"errors":0,"warnings":2,"notes":0,
+          "ordered_exact":[["Control","rec 1: (warning #108) Enabling simulation log may generate extensive data in log file"],["System","rec 1: (warning #126) This system contains no items: TEACH-AIR-01"]],
+          "rule":"Exact whole lines once each, no extra error/warning/note or wrong Form owner. Bind Input file, Output file and File to new run model.sxi/model.sxo. Seal converter log immediately after natural calc completion before report; preserve original binary streams and actual integer exits."},
+        "future_run_rule":"Root sole serial session-0 SSH invoking PowerShell 5 -File with authenticated sshd ancestry, actual integer exits, fresh GUI/session/PID/start/WTS/mutex guard and unique absent run ID. Separate actual zero-native preflight, independent GO_PURE and GO_PRELAUNCH. No native call before these. Preserve all raw and failure streams, never terminate a child or rerun accepted parent/helper."
+      },
+      "event_hypothesis": {
+        "accepted_parent_edges":[23.0,23.5,24.5,25.0,26.0,28.0,29.0,36.0],
+        "new_exact_edge":24.75,
+        "parent_h24_5":"Two distinct one-hour preparation subtasks complete/release one crew each; available-now snapshots 1 then2; first release prints remaining MAXUT0. Both crew idle before h25. No later crew work.",
+        "positive_GO_outcome":"At h24.75 exactly one typed positive quantity-one P-CREW OUT task from BASE-01 is created, demand arrives, starts with printed transfer time0, and arrives. No zero-quantity task, backorder, duplicate task, second decrement, later arrival, crew booking, or altered mission.",
+        "adverse_NO_GO_alternatives":"No start/arrival at h24.75, wait to h26 or later, backorder despite two idle local crew, a shift-created replacement crew, changed mission, or any unpredicted line/report value. Preserve native bytes and classify against frozen hypothesis rather than fitting expectations.",
+        "microstate_equations":["local=opening2-departed_OUT","physical_idle=local-booked_for_prep-reserved_OUT","requested1=started1=arrived1, pending0","nominal2->1 at h24.75 request; physical local2->1 exactly once at positive departure; arrival cannot decrement again"],
+        "free_quantity_distinction":"physical_idle is the unbooked local roster quantity and is not the printed shift Free resources snapshot or a claim about remaining MAXUT budget. Parent closes shift at h25 with local2/physical_idle2 but printed Free resources0, then opens h26 with printed2. Prospective child should show local1/physical_idle1 but printed shift-free0 at h25 and printed1 at h26; same-time resource deallocation available-now and shift snapshots are classified by their own clocks. NRA report remains a separately declared bounded native convention.",
+        "shift_clock":"First 23-25 shift MAXUT1 pooled over2 crew; two crew-hours worked 23.5-24.5 and zero remaining budget printed. At h24.75 crew are unbooked. Transfer requires no work and should not wait for 26 reset. After transfer later shift budget is smaller but no subsequent crew work measures a general budget law.",
+        "mission_clock":"Two aircraft prepare 23.5-24.5, mission flies28-29 and succeeds, ready2 terminal; no failure/damage/maintenance/stock movements.",
+        "terminal":{"local_crew":1,"nominal_crew":1,"booked":0,"reserved_OUT":0,"backorder":0,"pending_OUT":0,"ready_aircraft":2},
+        "closed_log":"Parse all timed and untimed lines with exact typed owner/quantity/time/sequence and bounded padding only. Accepted parent events remain ordered; only one linked transfer lifecycle is added. Reject unknown, extra, missing, duplicate, wrong-owner, moved-time or contradictory diagnostic/queue/free/shift lines. Parent and child original raw hashes remain separate."
+      },
+      "report": {
+        "table_order":names,"cells_each_arm":5210,"paired_different_cells_if_GO":55,
+        "metadata":{t["name"]:{"columns":t["columns"],"instances":[i["instance_name"] for i in t["instances"]],"rows":sum(len(i["rows"]) for i in t["instances"])} for t in rt},
+        "numeric_rule":"72 consecutive exact half-hour bins [0,36). Declared double finite JSON int or float equal to formula, excluding bool; NREP declared integer actual JSON int excluding bool; string/null exact. A single known native trailing comma may be repaired in memory only after raw SHA seal. Reject duplicate keys and nonfinite overflow.",
+        "description":{"parent":"old_pdesc above","child":"new_pdesc above"},
+        "summary":{"NREP":1,"RTILW":0,"RTIUP":36,"MTMF":1,"RSMTMF":0,"MSTF":1,"RSMSTF":0,"MSUF":1,"RSMSUF":0,"STMF":1,"RSSTMF":0},
+        "system":{
+          "identity":{"UNID":"Total over all Units","SID":"Total over all Systems","STINT":"bin_start","ETINT":"bin_end"},
+          "dynamic":{"NSYRY":"2 outside [23.5,29), else0","NSYMA":"2 on [23.5,29), else0","NSYMO":"2 on [28,29), else0","NSYMP":"2 on [23.5,24.5), else0","NSYMR":"2 on [24.5,28), else0","NSYA":"2 all bins","FTMO":"1 on [28,29), else0 (native per-system fraction)","STACC":"2 on [28,29), else0","NPSTA":"2 on [23.5,24), else0","NPSUC":"2 on [24.5,25), else0"},
+          "source_event_zero":["NSYMC","NSYMT","NSYMS","NSYUA","NSYRP","NSYPM","NSYTP","NSYWR","NSYWI","NSYLA","NSYUH","NREPT","NPMT","NFAIL","NDAM","NPMS","NROBT","NRCFG","NSYDT","NSYSW"],
+          "bounded_presentation_zero":["NSYAL","STREQ","STF","STLOW","SYDTU"],"null":["SYDT"],
+          "weighted_integrals":{"NSYRY":61,"NSYMA":11,"NSYMO":2,"NSYMP":2,"NSYMR":7,"NSYA":72,"FTMO":1,"STACC":2},
+          "count_note":"NPSTA/NPSUC each value2 in one bin for two aircraft; FTMO raw row sum2 weighted by half hour gives integral1, separate from NSYMO two aircraft-hours."
+        },
+        "stock":{"identity":{"STINT":"bin_start","ETINT":"bin_end"},
+          "source_event_zero":["NBO","NDF","NDD","NDR","NDP","NLD","NWT"],"bounded_empty_stock_presentation":{"PNB":1},
+          "undefined_null":["NBOU","ROS","ROST","WT","WTT","WTS"]},
+        "resource":{
+          "identity":{"RID":"Total over all Resources","STID":"Total over all Stations","STINT":"bin_start","ETINT":"bin_end"},
+          "source_event_zero":["NRMO","NRMA","NRLA","NRF","NRRI","NRRT","NRRO"],
+          "parent_bins":{"NR":"2 all bins","NRN":"2 all bins","NRA":"2 on [23,25) and [26,28), else0","NRUM":"2 on [23.5,24.5), else0","NRW":"0 all bins"},
+          "child_bins":{"NR":"2 for bin_end<=24.5; 1.5 in [24.5,25); 1 for bin_start>=25","NRN":"same binned values as NR; nominal request clock remains separately bound","NRA":"2 on [23,24.5),1.5 in [24.5,25),1 on [26,28),0 otherwise","NRUM":"2 on [23.5,24.5), else0","NRW":"0 all bins"},
+          "parent_integrals":{"NR":72,"NRA":8,"NRN":72,"NRUM":2,"NRW":0},
+          "child_integrals":{"NR":60.75,"NRA":5.75,"NRN":60.75,"NRUM":2,"NRW":0},
+          "parent_total_f32":{"NR":f32(72/36),"NRA":f32(8/36),"NRN":f32(72/36),"NRUM":f32(2/36),"NRW":0},
+          "child_total_f32":{"NR":f32(60.75/36),"NRA":f32(5.75/36),"NRN":f32(60.75/36),"NRUM":f32(2/36),"NRW":0},
+          "total_rule":"ResourceResultsTotal exact RID/STID, seven zeros above, and five exact parsed binary32-quantized horizon means; no broad tolerance."
+        },
+        "difference_accounting":"PDESC1 + ResourceResults NR/NRN for23 bins each(46) + NRA for five bins(5) + ResourceResultsTotal NR/NRA/NRN(3) =55. System, stock, summary and all other resource cells independently checked unchanged."
+      },
+      "limits":"One fixed source, seed, executable, horizon, station and personnel row only. No persistent person identity, general transfer/priority/MAXUT law, later budget effect, GUI, performance, cross-engine, K01/K08 retry, I07 opening-three or full-I03 claim. Any prospective mismatch is NO_GO with original evidence retained."
+    }
+    OUT.write_text(json.dumps(contract,ensure_ascii=False,indent=2)+"\n",encoding="utf-8",newline="\n")
+    print(json.dumps({"path":str(OUT),"bytes":OUT.stat().st_size,"sha256":hashlib.sha256(OUT.read_bytes()).hexdigest(),"refs":81,"raw":108,"cells_per_arm":5210},sort_keys=True))
+
+if __name__ == "__main__":
+    main()
+

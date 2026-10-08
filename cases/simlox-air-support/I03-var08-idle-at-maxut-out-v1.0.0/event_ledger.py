@@ -1,0 +1,118 @@
+"""Closed PURE/native model.log oracle for the one prospective h24.75 OUT."""
+from __future__ import annotations
+import hashlib
+from pathlib import Path
+import re
+
+HERE = Path(__file__).resolve().parent
+PARENT = HERE.parent / "C08-exact-limit-v1.0.0" / "runs/c08-exact-limit-20260930-02/model.log"
+PARENT_SHA = "e8548de0133a1f819ffce1eb8dd99eb17bd276dd12e81a02a0fe66b0e3f79eec"
+RUN_ID = "i03-var08-idle-maxut-out-v100-ssh-20261008-01"
+CREATED = re.compile(r"^Time: 24\.75  resource transfer task ([0-9]+) \(OUT\)  created: starting from  <P-CREW at <BASE-01,0>>$")
+START = re.compile(r"^Time: 24\.75  resource transfer task ([0-9]+) \(OUT\)  starts with 1 resources, transfer time: 0$")
+ARRIVE = re.compile(r"^Time: 24\.75  resource transfer task ([0-9]+) \(OUT\)  arrives with 1 resources$")
+DEMAND = "Time: 24.75  <P-CREW at <BASE-01,0>> Resource transfer demand arrives from OUT-transfer "
+FREE2 = "  Free resources at: <BASE-01,0> P-CREW 2"
+FREE1 = "  Free resources at: <BASE-01,0> P-CREW 1"
+
+def parent_lines():
+    b = PARENT.read_bytes()
+    assert hashlib.sha256(b).hexdigest() == PARENT_SHA
+    x = b.decode("utf-8-sig").splitlines()
+    assert len(x) == 171 and x[:2] == ["SIMLOX LOG FILE","36"]
+    assert x[-1] == "Time: 36  resource shift 4 ended at <P-CREW at <BASE-01,0>> time gap to next = 0"
+    return x
+
+def _one(lines, value):
+    positions = [i for i,x in enumerate(lines) if x == value]
+    assert len(positions) == 1, (value,positions)
+    return positions[0]
+
+def expected_synthetic(task_id=0):
+    """PURE fixture, never accepted native evidence."""
+    assert type(task_id) is int and task_id >= 0
+    x = parent_lines().copy()
+    at25 = next(i for i,line in enumerate(x) if line.startswith("Time: 25  resource shift 2 created"))
+    four = [
+        f"Time: 24.75  resource transfer task {task_id} (OUT)  created: starting from  <P-CREW at <BASE-01,0>>",
+        DEMAND,
+        f"Time: 24.75  resource transfer task {task_id} (OUT)  starts with 1 resources, transfer time: 0",
+        f"Time: 24.75  resource transfer task {task_id} (OUT)  arrives with 1 resources",
+    ]
+    x[at25:at25] = four
+    at26 = next(i for i,line in enumerate(x) if line.startswith("Time: 26  resource shift 3 starting"))
+    assert x[at26+1] == FREE2
+    x[at26+1] = FREE1
+    assert len(x) == 175
+    return x
+
+def validate(lines):
+    assert isinstance(lines,list) and len(lines) == 175
+    assert lines[:2] == ["SIMLOX LOG FILE","36"]
+    candidates = [(i,CREATED.fullmatch(line)) for i,line in enumerate(lines)]
+    candidates = [(i,m) for i,m in candidates if m]
+    assert len(candidates) == 1, candidates
+    start,m = candidates[0]; task_id = int(m.group(1))
+    assert lines[start+1] == DEMAND
+    s = START.fullmatch(lines[start+2]); a = ARRIVE.fullmatch(lines[start+3])
+    assert s and a and int(s.group(1)) == task_id == int(a.group(1))
+    assert all(not ("resource transfer task" in line or "Resource transfer demand" in line)
+               for i,line in enumerate(lines) if i not in range(start,start+4))
+    assert lines == expected_synthetic(task_id), "full timed/untimed line grammar or order differs"
+    parent = parent_lines()
+    assert parent.index("Time: 24.5 <TEACH-AIR-01,1> Next random failure will occur 1e+010") < start
+    assert start < next(i for i,line in enumerate(lines) if line.startswith("Time: 25  resource shift 2 created"))
+    assert lines.count("Time: 24.5  <P-CREW at <BASE-01,0>> set time to max utilisation: 0") == 1
+    assert lines.count("Time: 24.5  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 1") == 1
+    assert lines.count("Time: 24.5  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 2") == 1
+    assert lines.count(FREE1) == 1
+    assert lines.count(FREE2) == parent.count(FREE2)-1
+    # Task-linked event microstates. Printed shift-free is separately checked above.
+    state = {"opening":2,"local":2,"nominal":2,"booked":0,"reserved_OUT":0,
+             "requested_OUT":0,"started_OUT":0,"arrived_OUT":0,
+             "pending_OUT":0,"backorder":0,"ready_aircraft":0}
+    snapshots=[]
+    for index,line in enumerate(lines):
+        if "allocated to maintenance task: 1" in line and "<P-CREW at <BASE-01,0>>" in line:
+            state["booked"] += 1
+        elif "deallocated from  maintenance task: 1" in line and "<P-CREW at <BASE-01,0>>" in line:
+            state["booked"] -= 1
+        elif index == start+1:
+            state["requested_OUT"] += 1
+            state["reserved_OUT"] += 1
+            state["nominal"] -= 1
+            state["pending_OUT"] += 1
+        elif index == start+2:
+            state["started_OUT"] += 1
+            state["local"] -= 1
+            state["reserved_OUT"] -= 1
+        elif index == start+3:
+            state["arrived_OUT"] += 1
+            state["pending_OUT"] -= 1
+        if "nbr ready increased at unit" in line:
+            state["ready_aircraft"] += 1
+        elif "nbr ready decreased at unit" in line:
+            state["ready_aircraft"] -= 1
+        physical_idle = state["local"]-state["booked"]-state["reserved_OUT"]
+        assert 0 <= state["booked"] <= state["local"] <= 2
+        assert 0 <= physical_idle <= 2
+        assert state["local"] == state["opening"]-state["started_OUT"]
+        assert state["nominal"] == state["opening"]-state["requested_OUT"]
+        assert state["pending_OUT"] == state["requested_OUT"]-state["arrived_OUT"]
+        assert 0 <= state["ready_aircraft"] <= 2
+        if index in [start-1,start+1,start+2,start+3]:
+            snapshots.append({"line":index,"local":state["local"],"booked":state["booked"],
+                              "reserved_OUT":state["reserved_OUT"],"physical_idle":physical_idle})
+    assert not any("backorder" in line.lower() for line in lines)
+    assert all(line.endswith(" 0") for line in lines if "Tasks waiting for resources at:" in line)
+    assert state == {"opening":2,"local":1,"nominal":1,"booked":0,"reserved_OUT":0,
+                     "requested_OUT":1,"started_OUT":1,"arrived_OUT":1,
+                     "pending_OUT":0,"backorder":0,"ready_aircraft":2}
+    assert snapshots[1]["reserved_OUT"] == 1 and snapshots[2]["local"] == 1
+    return {"schema":"i03-var08-model-log-ledger/v1","lines":175,"transfer_task_id":task_id,
+            "typed_transfer_events":4,"terminal":state,"microstates":snapshots,
+            "native_accepted":False}
+
+def parse_bytes(b:bytes):
+    return validate(b.decode("utf-8-sig").splitlines())
+

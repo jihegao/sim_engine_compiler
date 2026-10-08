@@ -1,0 +1,100 @@
+"""Root prospective I03.var08 selection checks, no behavior or native rerun."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess
+ROOT=Path(__file__).resolve().parents[1];CASES=ROOT/'cases/simlox-air-support'
+BASE='94ba3fc4fdd73f97733e6eee2d15cba687b664ca'
+OUT=ROOT/'tmp/i03-var08-root-selection-v2-20261008-01';assert not OUT.exists()
+CASE=CASES/'I03-var08-idle-at-maxut-out-v1.0.0'
+RUN='i03-var08-idle-maxut-out-v100-ssh-20261008-01'
+assert not list(CASES.glob('I03-var08*')) and not CASE.exists()
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def git(*a):return subprocess.check_output(['git','-c','core.longpaths=true',*a],cwd=ROOT)
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+assert git('rev-parse','HEAD').decode().strip()==git('rev-parse','origin/simlox/main').decode().strip()==BASE
+assert not git('status','--porcelain','--untracked-files=no')
+refsraw=git('ls-remote','origin','refs/heads/main','refs/heads/simlox/main')
+remote={l.split()[1]:l.split()[0] for l in refsraw.decode().splitlines()}
+assert remote=={'refs/heads/main':'a1a44c72f64d754b711abe4095f1111f8a5ba896','refs/heads/simlox/main':BASE}
+owner=load(ROOT/'tmp/i03-var08-root-app-ownership-20261008.json')
+assert not owner['unavailableHosts'] and not owner['unavailableSources']
+assert [t['id'] for t in owner['threads'] if t['status']=='active']==['01a0ed5b-dc75-74f3-a26c-23674dd997d6']
+catpath=CASES/'publication-index-v1.json';cat=load(catpath)
+assert len(cat['entries'])==495 and len({e['publication_id'] for e in cat['entries']})==495
+assert not any(e.get('variant_id')=='I03.var08' for e in cat['entries'])
+ids=['C08.var04.exact_limit_completion.1.0.0','C08.var02.shift_maxut_one.1.0.0']
+assert all(sum(e['publication_id']==pid for e in cat['entries'])==1 for pid in ids)
+plan=next(c for c in load(CASES/'catalog-v2.json')['cases'] if c['case_id']=='I03')
+assert plan['instructional_prerequisites']==['C03','C08']
+assert next(v for v in plan['boundary_variants'] if v['variant_id']=='I03.var08')['planned_delta']=='使用上限已达但资源未占用'
+lineage=load(CASES/'I03-var05-in-zero-delay-v1.0.0/contract.json')['source_lineage']
+source=[r for r in lineage['accepted_prerequisites']['all_source_refs'] if '/C03-' in r['path'] or '/C08-shift-maxut-' in r['path']]
+tree={}
+for row in git('ls-tree','-r','-z',BASE).split(b'\0'):
+ if row:
+  meta,name=row.split(b'\t',1);a=meta.split()
+  if a[1]==b'blob':tree[name.decode()]=a[2].decode()
+pkgs=['C08-exact-limit-v1.0.0','C07-repeat-nested-v1.0.0']
+existing={r['path'] for r in source}
+for pkg in pkgs:
+ prefix='cases/simlox-air-support/'+pkg+'/'
+ for n in sorted(tree):
+  if n.startswith(prefix) and n not in existing:
+   assert not n.startswith(prefix+'runs/')
+   disk=(ROOT/n).read_bytes();blob=git('cat-file','blob',tree[n])
+   source.append({'path':n,'disk':pin(disk),'git':pin(blob)});existing.add(n)
+for r in source:
+ disk=(ROOT/r['path']).read_bytes();blob=git('cat-file','blob',tree[r['path']])
+ assert pin(disk)=={k:r['disk'][k] for k in ('bytes','sha256')}
+ assert pin(blob)=={k:r['git'][k] for k in ('bytes','sha256')}
+ r['oid']=tree[r['path']];r['byte_equal']=disk==blob
+raw=[r for r in lineage['mandatory_original_raw'] if any(tag in r['path'].replace(chr(92),'/') for tag in ('/C03-','/C08-shift-maxut-'))]
+for pkg in pkgs:
+ idx=load(CASES/pkg/'evidence-index.json')
+ for run in idx['runs']:
+  rd=CASES/pkg/'runs'/run['run_id']
+  assert rd.resolve()==Path(run['original_run_dir']).resolve()
+  for name,row in run['raw'].items():
+   assert pin((rd/name).read_bytes())==row
+  closure=load(rd/'closure.json')
+  assert pin((rd/'closure.json').read_bytes())['sha256']==run['closure_sha256']
+  assert pin((rd/'invocation.json').read_bytes())['sha256']==closure['invocation_sha256']
+  assert closure['source_hashes_before']==closure['source_hashes_after'] and closure['error'] is None
+  for f in sorted(rd.iterdir()):
+   if f.is_file():raw.append({'path':str(f.resolve()),'role':'accepted_parent_original' if pkg.startswith('C08-exact') else 'accepted_lineage_original',**pin(f.read_bytes())})
+unique={}
+for r in raw:
+ assert pin(Path(r['path']).read_bytes())=={k:r[k] for k in ('bytes','sha256')}
+ key=str(Path(r['path']).resolve()).lower()
+ if key in unique:assert unique[key]['sha256']==r['sha256'] and unique[key]['bytes']==r['bytes']
+ else:unique[key]=r
+raw=list(unique.values())
+parent=CASES/'C08-exact-limit-v1.0.0';idxraw=(parent/'evidence-index.json').read_bytes()
+assert pin(idxraw)=={'bytes':3193,'sha256':'e55e136949073a783377608c8226a62fab4a13e250c9f0e9c5f0099296a7d5da'}
+assert pin((parent/'exact-limit-input.json').read_bytes())=={'bytes':46250,'sha256':'dc75e99a8007fe74c7a830633657c32957877b9eb0a162588f7dedc6bc1f428b'}
+v=load(parent/'review/independent-readonly-2026-09-30.json')
+assert v['passed'] is True and v['check_count']==v['passed_count']==135 and v['failures']==[] and v['decision']=='GO_bounded_exact_limit_completion'
+docs=['AGENTS.md','README.md','docs/architecture.md','docs/semantic-baseline.md','docs/roadmap.md','cases/simlox-air-support/execution-plan-v2.md','cases/simlox-air-support/ssh-cli-acceptance-policy-v1.md','cases/simlox-air-support/catalog-v2.json']
+installed=[('exe',Path(r'C:\Program Files\Systecon\SIMLOX\Simlox.exe'),'fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0'),('manual',Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf'),'39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3'),('dictionary',Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt'),'11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0')]
+installedpins={}
+for name,path,sha in installed:
+ p=pin(path.read_bytes());assert p['sha256']==sha;installedpins[name]={'path':str(path),**p}
+OUT.mkdir();save(OUT/'refs-stdout.bin',refsraw)
+guard=ROOT/'tmp/issue18-next-owner-guard-20261008.ps1'
+assert pin(guard.read_bytes())['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',str(guard).replace('\\','/')]
+g=subprocess.run(argv,cwd=ROOT,capture_output=True)
+save(OUT/'guard-stdout.bin',g.stdout);save(OUT/'guard-stderr.bin',g.stderr)
+assert type(g.returncode) is int and g.returncode==0 and not g.stderr
+o=json.loads(g.stdout.decode('utf-8-sig'))
+assert o['ssh_present'] is True and o['sshd_ancestor'] is True and o['self_session']==0 and o['powershell_major']==5 and o['mutex_free'] is True and o['runner_candidates']==[] and o['active_gui_session1_count']==1 and o['session_query_exit']==0
+assert len(o['native'])==1
+gui=o['native'][0];assert gui['pid']==13340 and gui['session']==1 and gui['start_ms']==1790590196826 and gui['responding'] is True
+assert not CASE.exists()
+gcat=git('cat-file','blob',tree[catpath.relative_to(ROOT).as_posix()])
+assert catpath.read_bytes()!=gcat and catpath.read_bytes().replace(b'\r\n',b'\n')==gcat
+d={'schema':'issue18-i03-var08-root-selection/v2','preserved_v1_note':'v1 omitted C03/C08-shift raw references because it searched forward slashes in Windows absolute paths. v1 retained/excluded; v2 normalizes separators for selection only, preserves original path strings and byte identities.','decision':'ELIGIBLE_FOR_PROSPECTIVE_INDEPENDENT_CONTRACT_REVIEW_ONLY','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'base':BASE,'package_proposed_absent':str(CASE.relative_to(ROOT)).replace('\\','/'),'run_id_proposed_absent':RUN,'catalog_entries':495,'catalog_local':pin(catpath.read_bytes()),'catalog_git':{'oid':tree[catpath.relative_to(ROOT).as_posix()],**pin(gcat)},'catalog_byte_equal':False,'parent_package':'C08-exact-limit-v1.0.0','parent_run':'c08-exact-limit-20260930-02','parent_original_count':14,'indexed_parent_raw_count':12,'accepted_source_refs':source,'mandatory_original_raw':raw,'required_docs':{n:pin((ROOT/n).read_bytes()) for n in docs},'installed_refs':installedpins,'owner_context':pin((ROOT/'tmp/i03-var08-root-app-ownership-20261008.json').read_bytes()),'actual_ssh_guard':{'argv':argv,'actual_exit':g.returncode,'stdout':pin(g.stdout),'stderr':pin(g.stderr),'observed':o},'proposed_delta':'Append ResourceTransfer OUT BASE-01/<OUTSIDE>/P-CREW/h24.75/TFQTY1/TFDT0/NOTE null; PDESC provenance only; all other typed parent cells unchanged. No construction/native approval until independent contract GO.','hypothesis':'Idle crew may depart before next shift despite exhausted MAXUT. Full physical/nominal/free/booked/transfer/use/mission/report/terminal ledger required; adverse result preserved NO_GO. No general or individual-identity claim.','new_native_calls':0,'accepted_native_or_checker_reruns':0,'goal':'ACTIVE/unfinished','K01_K08':'blocked/no capture retry','I07_opening_three':'excluded','root_read_diagnostics':'Guessed C03-shared package evidence-index absent (package has evidence-2026-09-29.md); staffing index raw key absent. Actual source refs reused from accepted pinned I03.var05 prerequisite lineage instead; no native or source changes. Other root read-only fitz/guessed-file diagnostics are in decoded transcript only.'}
+b=(json.dumps(d,indent=2)+'\n').encode();save(OUT/'selection.json',b);Path(__file__).chmod(stat.S_IREAD);(ROOT/'tmp/i03-var08-root-app-ownership-20261008.json').chmod(stat.S_IREAD)
+print(json.dumps({'decision':d['decision'],'sources':len(source),'original_raw':len(raw),'parent_originals':14,'receipt':pin(b),'guard':o}))

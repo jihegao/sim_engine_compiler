@@ -1,0 +1,25 @@
+"""Capture original streams from one read-only postrun custody audit."""
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+
+ROOT=Path(__file__).resolve().parent.parent
+OUT=ROOT/'tmp/i03-var08-independent-postrun-audit-20261008-01'
+assert not OUT.exists()
+OUT.mkdir()
+PY=Path(r'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe')
+SCRIPT=ROOT/'tmp/i03-var08-independent-postrun-audit.py'
+def pin(data):return {'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+argv=[str(PY),'-B',str(SCRIPT)]
+r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+(OUT/'stdout.bin').write_bytes(r.stdout)
+(OUT/'stderr.bin').write_bytes(r.stderr)
+doc={'schema':'i03-var08-independent-postrun-audit-capture/v1','argv':argv,
+     'audit_source':pin(SCRIPT.read_bytes()),'actual_exit':r.returncode,
+     'stdout':pin(r.stdout),'stderr':pin(r.stderr)}
+body=(json.dumps(doc,indent=2)+'\n').encode()
+(OUT/'receipt.json').write_bytes(body)
+print(json.dumps({'actual_exit':r.returncode,'receipt_sha256':hashlib.sha256(body).hexdigest(),
+                  'stdout':doc['stdout'],'stderr':doc['stderr']},sort_keys=True))
+assert r.returncode==0 and not r.stderr

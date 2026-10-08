@@ -1,0 +1,22 @@
+"""Root unique prospective case branch; no source or native work."""
+from pathlib import Path
+import hashlib,json,stat,subprocess
+ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'tmp/i03-var08-root-branch-20261008-01'
+BASE='94ba3fc4fdd73f97733e6eee2d15cba687b664ca';BRANCH='codex/simlox-i03-var08-idle-maxut-out-20261008'
+assert not OUT.exists()
+def git(*a):return subprocess.check_output(['git','-c','core.longpaths=true',*a],cwd=ROOT)
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+assert git('rev-parse','HEAD').decode().strip()==BASE and not git('status','--porcelain','--untracked-files=no')
+assert not git('branch','--list',BRANCH).strip()
+selection=ROOT/'tmp/i03-var08-root-selection-v2-20261008-01/selection.json'
+assert pin(selection.read_bytes())['sha256']=='d11ea347f20f68fcece1a820b8c2dd68ab86419466682bca088592c3604978de'
+OUT.mkdir();argv=['git','-c','core.longpaths=true','switch','-c',BRANCH]
+r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+for n,b in [('stdout',r.stdout),('stderr',r.stderr)]:save(OUT/(n+'.bin'),b)
+d={'schema':'i03-var08-root-branch/v1','argv':argv,'actual_exit':r.returncode,'stdout':pin(r.stdout),'stderr':pin(r.stderr),'base':BASE,'branch':git('branch','--show-current').decode().strip(),'head':git('rev-parse','HEAD').decode().strip(),'native_calls':0}
+d['decision']='PASS_BRANCH' if r.returncode==0 and d['head']==BASE and d['branch']==BRANCH else 'NO_GO_PRESERVED'
+b=(json.dumps(d,indent=2)+'\n').encode();save(OUT/'receipt.json',b);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'decision':d['decision'],'receipt':pin(b)}));assert d['decision']=='PASS_BRANCH'
