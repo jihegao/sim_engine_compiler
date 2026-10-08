@@ -1,0 +1,17 @@
+# E02.var02 v1.0.4 prospective recovery draft
+
+**Contract review only.** No v1.0.4 package, runner, preflight, or native run exists. The proposed run has `DIRPT=10.75` hours. This differs from the accepted parent's 1 hour and the excluded v1.0.3 attempt's 10.5 hours. All other authored cells, including PDESC, the 36 hour horizon, seed, and mission schedule, stay fixed.
+
+The v1.0.3 contract required 117 physical log lines and placed `NREPT` in the 21–21.5 hour report bin. Its sole native attempt produced 123 lines and placed `NREPT` in the preceding bin. The first failure remains **NO_GO**. Its 79 frozen sources, 40 sealed native originals, 26 read only diagnostic copies, preflight receipts, and failed static fixture proofs are pinned separately in [contract.json](contract.json). None is v1.0.4 acceptance evidence. The six unexpected v1.0.3 cancellation continuations also occur, byte for byte, in an accepted A02 insufficient-gap log; that accepted log supports the grammar only, not this E02 outcome.
+
+## New falsifiable prediction
+
+The new duration predicts direct repair completion at 20.9167 hours, backorder clearance then, completion of fitting and system readiness at 21.25 hours, one second mission cancelled at 20.3333 without allocation, and the third mission succeeding at 34 hours. The full predicted log has **123 physical and 99 timed CRLF lines**. [event-oracle.json](event-oracle.json) specifies an ordered transformation of the frozen v1.0.3 prospective template, with the six accepted A02 continuation lines inserted after cancellation. Any extra, missing, reordered, differently timed, or differently identified event is NO_GO.
+
+The selected report has **4,044 typed cells**, not merely two revised `NREPT` cells. [report-formulas.json](report-formulas.json) updates interval averages for the longer backorder, repair, unavailability, readiness, and availability; it updates retrospective waiting and downtime values. It predicts `NREPT=1` in bin 42 (21–21.5 hours) and `NREPT=0` in bin 41. This is a strict, unobserved interior-bin representation hypothesis. The manual names `NREPT` but does not guarantee boundary rounding, so a different placement fails the proposed contract. All zero and null placeholders remain strict one-rep rendering hypotheses. Numeric comparison is finite and type strict, with tolerance at most 1e-5 where declared; metadata, integer, string, and null comparisons are exact.
+
+## Decision and custody
+
+The planned physical native directory is `C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo\tmp\e02-var02-native-v104-20261009-01`; the logical run ID is `e02-var02-repair-deadline-v104-ssh-20261009-01`. The three converter diagnostic line bodies must be exact absolute Input/Output/File spellings of 125/126/119 ASCII bytes, with File using forward slashes and pointing to `model.sxi`. The physical directory, proposed case, and run must receive new absence and path guards before construction or execution.
+
+An independent reviewer must first approve this contract and a separately frozen pure materializer for all 123 log records and 4,044 report cells, with meaningful negative clones. The root executor alone may later approve and capture source inventory, manifest, zero-native preflight, a fresh native guard, and one new attempt. A native deviation is preserved as NO_GO; no post-observation oracle edit, v1.0.3 reclassification, accepted-parent checker rerun, or general SIMLOX timing claim follows from this draft.

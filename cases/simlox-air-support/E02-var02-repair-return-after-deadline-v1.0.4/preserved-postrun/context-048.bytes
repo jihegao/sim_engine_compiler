@@ -1,0 +1,71 @@
+"""Root recover completed E02 raw bytes without invoking native/checkers."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,sys,uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+N=R/'tmp/e02-var02-native-v104-20261009-01'
+D=C/'runs/e02-var02-repair-deadline-v104-ssh-20261009-01'
+F=R/'tmp/e02-var02-root-static-freeze-v104-20261009.json'
+assert len(sys.argv)==3
+T=Path(sys.argv[1]).resolve(strict=True)
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes().decode('utf-8-sig'))
+assert T.parent==C/'transport-evidence' and T.name.startswith('ssh-native-')
+assert pin(T/'transport-receipt.json')['sha256']==sys.argv[2]
+transport=load(T/'transport-receipt.json')
+assert transport['mode']=='native' and transport['native_approved'] is True
+assert type(transport['exit_code']) is int and transport['exit_code']==0 and transport['error'] is None
+assert transport['native_run_directory']==str(N)
+assert pin(F)['sha256']=='321bcf8ea42a0bde82e74bd2588c4591533d83830bc36b5bfc58d3f427fb4f5b'
+freeze=load(F)
+def stable():
+ for rel,spec in freeze['case_sources'].items():
+  p=C/rel;assert pin(p)==spec and p.stat().st_file_attributes&1
+ for row in freeze['mandatory_originals']:
+  p=Path(row['path']);s=p.stat()
+  assert pin(p)=={k:row[k] for k in ('bytes','sha256')}
+  assert s.st_mode==row['original_mode'] and s.st_file_attributes==row['original_attributes']
+stable()
+assert N.is_dir() and not D.exists() and not (N/'failure-seal.json').exists()
+closure=load(N/'closure.json');invocation=load(N/'invocation.json')
+assert closure['error'] in (None,'') and closure['step_error'] in (None,'')
+assert closure['native_run_directory']==invocation['native_run_directory']==str(N)
+assert closure['invocation_sha256']==pin(N/'invocation.json')['sha256']
+assert len(closure['raw'])==23
+assert {p.name for p in N.iterdir()}==set(closure['raw'])|{'invocation.json','closure.json'}
+for name,spec in closure['raw'].items():assert pin(N/name)==spec
+pure=Path(invocation['pure_proof_path']).parent
+assert pure.parent==C/'test-output' and pure.name.startswith('native-pure-')
+assert pin(pure/'pure-proof.json')['sha256']==invocation['pure_proof_sha256']
+assert len(list(pure.iterdir()))==11 and len(list(T.iterdir()))==3
+paths=list(N.iterdir())+list(T.iterdir())+list(pure.iterdir())
+assert len(paths)==39 and len(set(paths))==39
+before={}
+for p in paths:
+ assert p.is_file() and not p.is_symlink() and not p.is_junction() and not p.stat().st_file_attributes&1024
+ before[str(p)]=pin(p)
+for p in paths:p.chmod(stat.S_IREAD)
+originals={}
+for p in paths:
+ assert pin(p)==before[str(p)] and p.stat().st_file_attributes&1
+ originals[str(p)]={**pin(p),'mode':p.stat().st_mode,'attributes':p.stat().st_file_attributes}
+D.mkdir(parents=True,exist_ok=False)
+recovered={}
+for p in N.iterdir():
+ q=D/p.name
+ with q.open('xb') as f:f.write(p.read_bytes())
+ q.chmod(stat.S_IREAD)
+ assert pin(q)==pin(p)
+ recovered[p.name]=pin(q)
+assert len(recovered)==25
+for p in paths:
+ assert pin(p)==before[str(p)] and p.stat().st_mode==originals[str(p)]['mode'] and p.stat().st_file_attributes==originals[str(p)]['attributes']
+stable()
+O=R/'tmp/e02-var02-root-native-custody-v104-20261009'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False)
+body={'schema':'e02-var02-root-native-custody/v104','native_calls':0,'accepted_checker_calls':0,'original_run':str(N),'recovered_run':str(D),'originals':originals,'recovered':recovered,'source_bytes_modes_attributes_stable':True,'frozen_file_count':44,'historical_original_count':42,'method':pin(Path(__file__)),'semantic_acceptance':False}
+p=O/'receipt.json'
+with p.open('xb') as f:f.write((json.dumps(body,indent=2)+'\n').encode())
+p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(p),**pin(p),'originals':39,'recovered':25,'decision':'PASS_BYTE_CUSTODY_ONLY','native_calls':0}))

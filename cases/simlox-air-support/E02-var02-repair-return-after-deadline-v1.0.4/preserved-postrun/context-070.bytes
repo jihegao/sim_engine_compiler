@@ -1,0 +1,30 @@
+"""Root absent-only exact-byte promotion of independently signed v104 approval."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+P=R/'tmp/e02-var02-v104-independent-prelaunch-go-20261009.json'
+G=R/'tmp/e02-var02-v104-independent-prelaunch-scope-go-20261009.md'
+D=C/'review/independent-prelaunch-go.json'
+O=R/'tmp/e02-var02-root-approval-promotion-v104-20261009.json'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+for p in (P,G):
+    assert p.stat().st_file_attributes&1
+    for q in (p,*p.parents):assert not q.is_symlink() and not q.is_junction() and not q.stat().st_file_attributes&1024
+assert pin(P)=={'bytes':1190,'sha256':'d5aed105cf0276019d45b67fb4d02ad793d539c104a3e2ce060b959b91fcbf1b'}
+assert pin(G)=={'bytes':2192,'sha256':'85464280805363d2d80f0f4a2fb707ef8846cf528aee86f7bf450a9cdce61968'}
+assert not D.exists() and not O.exists() and not (R/'tmp/e02-var02-native-v104-20261009-01').exists()
+doc=json.loads(P.read_bytes());manifest=json.loads((C/'prelaunch-manifest.json').read_bytes())
+assert doc['schema']=='e02-var02-independent-prelaunch-go/v104' and doc['decision']=='GO_PRELAUNCH'
+assert len(doc)==14 and doc['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+assert doc['preflight_sha256']==pin(C/doc['preflight_relative_path'])['sha256']
+for key in ('runner_sha256','validator_sha256','contract_sha256','execution_binding_sha256','input_sha256','independent_reader_sha256','run_id','native_run_directory'):
+    assert doc[key]==manifest[key],key
+with D.open('xb') as f:f.write(P.read_bytes())
+D.chmod(stat.S_IREAD)
+assert pin(D)==pin(P)
+body={'schema':'e02-var02-root-approval-promotion/v104','candidate':{'path':str(P),**pin(P)},'target':{'path':str(D),**pin(D)},'scope_note':{'path':str(G),**pin(G)},'method':pin(Path(__file__)),'native_dispatch':False}
+with O.open('xb') as f:f.write((json.dumps(body,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O),**pin(O),'decision':'PROMOTED_APPROVAL_BYTES_ONLY','native_dispatch':False}))

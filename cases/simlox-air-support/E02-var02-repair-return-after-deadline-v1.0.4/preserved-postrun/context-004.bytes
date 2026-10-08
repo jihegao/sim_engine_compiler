@@ -1,0 +1,99 @@
+"""Root absent-only promotion of frozen reviewed source bytes, never execution."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import sys
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+S = R / 'tmp/e02-var02-author-v104-20261009-01/package'
+C = R / 'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+N = R / 'tmp/e02-var02-native-v104-20261009-01'
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+def plain(path, readonly=False):
+    for place in (path, *path.parents):
+        if place.exists():
+            assert not place.is_symlink() and not place.is_junction()
+            assert not place.stat().st_file_attributes & 1024, str(place)
+    if readonly:
+        assert path.is_file() and path.stat().st_file_attributes & 1
+
+assert len(sys.argv) == 3
+specpath = Path(sys.argv[1]).resolve(strict=True)
+assert specpath.is_relative_to(R / 'tmp')
+plain(specpath, True)
+assert pin(specpath)['sha256'] == sys.argv[2]
+spec = json.loads(specpath.read_bytes())
+assert set(spec) == {'schema', 'source_files', 'independent_method_go', 'mandatory_originals'}
+assert spec['schema'] == 'e02-var02-root-case-promotion-spec/v104'
+files = spec['source_files']
+assert type(files) is dict and len(files) == len({x.casefold() for x in files})
+for rel in files:
+    path = Path(rel)
+    assert not path.is_absolute() and '..' not in path.parts and path.as_posix() == rel
+assert json.loads((S / 'source-list.json').read_bytes()) == {
+    'schema': 'e02-var02-owned-source-list/v104', 'files': list(files)}
+assert spec['independent_method_go'] == files['review/independent-static-go-2026-10-09.md']
+assert not C.exists() and not N.exists()
+plain(C)
+plain(N)
+
+def snapshot():
+    observed = {}
+    for path in sorted(S.rglob('*')):
+        plain(path)
+        if path.is_file():
+            plain(path, True)
+            observed[path.relative_to(S).as_posix()] = pin(path)
+    assert observed == files
+    for row in spec['mandatory_originals']:
+        path = Path(row['path'])
+        assert pin(path) == {k: row[k] for k in ('bytes', 'sha256')}
+        assert path.stat().st_mode == row['original_mode']
+        assert path.stat().st_file_attributes == row['original_attributes']
+    return observed
+
+assert len(spec['mandatory_originals']) == 42
+before = snapshot()
+out = R / 'tmp/e02-var02-root-case-promotions-v104-20261009' / (
+    dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+out.mkdir(parents=True, exist_ok=False)
+copied = []
+failure = None
+try:
+    C.mkdir(exist_ok=False)
+    for rel, expected in files.items():
+        assert pin(S / rel) == expected
+        target = C / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        plain(target)
+        with target.open('xb') as stream:
+            stream.write((S / rel).read_bytes())
+        target.chmod(stat.S_IREAD)
+        plain(target, True)
+        assert pin(target) == expected
+        copied.append(rel)
+    assert snapshot() == before
+    assert {p.relative_to(C).as_posix(): pin(p) for p in C.rglob('*') if p.is_file()} == files
+    assert not N.exists()
+except BaseException as exc:
+    failure = type(exc).__name__ + ': ' + str(exc)
+receipt = {'schema': 'e02-var02-root-case-promotion/v104',
+           'utc': dt.datetime.now(dt.timezone.utc).isoformat(), 'native_dispatch': False,
+           'method': pin(Path(__file__)), 'spec': {'path': str(specpath), **pin(specpath)},
+           'source': str(S), 'target': str(C), 'source_files': before,
+           'copied': copied, 'mandatory_original_count': 42,
+           'decision': 'PROMOTED_SOURCE_ONLY' if failure is None else 'PARTIAL_PROMOTION_EXCLUDED',
+           'failure': failure}
+with (out / 'receipt.json').open('xb') as stream:
+    stream.write((json.dumps(receipt, indent=2) + '\n').encode())
+(out / 'receipt.json').chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(out / 'receipt.json'), **pin(out / 'receipt.json'),
+                  'source_count': len(files), 'decision': receipt['decision'], 'failure': failure}))
+assert failure is None

@@ -1,0 +1,53 @@
+"""Record exact already-promoted v104 sources; no source generation or run."""
+from pathlib import Path
+import hashlib
+import json
+import stat
+import sys
+
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+O=R/'tmp/e02-var02-root-static-freeze-v104-20261009.json'
+SPEC=R/'tmp/e02-var02-root-case-promotion-spec-v104-20261009.json'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def exact(p,digest):
+    assert p.stat().st_file_attributes&1 and not p.stat().st_file_attributes&1024
+    assert not p.is_symlink() and not p.is_junction() and pin(p)['sha256']==digest,str(p)
+    return json.loads(p.read_bytes())
+assert len(sys.argv)==4 and not O.exists()
+spec=exact(SPEC,sys.argv[1])
+assert spec['schema']=='e02-var02-root-case-promotion-spec/v104'
+assert spec['independent_method_go']==spec['source_files']['review/independent-static-go-2026-10-09.md']
+expected=dict(spec['source_files'])
+assert len(expected)==42
+receipts={}
+for mode,rel,digest in [('inventory','source-inventory.json',sys.argv[2]),('manifest','prelaunch-manifest.json',sys.argv[3])]:
+    p=R/f'tmp/e02-var02-root-{mode}-promotion-v104-20261009.json'
+    body=exact(p,digest)
+    assert body['schema']=='e02-var02-root-candidate-promotion/v104'
+    assert body['mode']==mode and body['native_dispatch'] is False
+    assert body['method']=={'bytes':4144,'sha256':'32f7e536fa3a4cc4dcc0cf525ad1feb93720a52c5da7d56016eae7689988c91c'}
+    assert body['frozen_spec']=={'path':str(SPEC),**pin(SPEC)}
+    assert body['target']=={'path':str(C/rel),**pin(C/rel)}
+    candidate=Path(body['candidate']['path'])
+    assert body['candidate']=={'path':str(candidate),**pin(candidate)} and pin(candidate)==pin(C/rel)
+    expected[rel]=pin(C/rel)
+    receipts[mode]={'path':str(p),**pin(p)}
+observed={}
+for p in C.rglob('*'):
+    assert not p.is_symlink() and not p.is_junction() and not p.stat().st_file_attributes&1024,str(p)
+    if p.is_file():
+        assert p.stat().st_file_attributes&1
+        observed[p.relative_to(C).as_posix()]=pin(p)
+assert observed==expected and len(observed)==44
+assert len(spec['mandatory_originals'])==42
+for row in spec['mandatory_originals']:
+    p=Path(row['path']);assert pin(p)=={k:row[k] for k in ('bytes','sha256')}
+    assert p.stat().st_mode==row['original_mode'] and p.stat().st_file_attributes==row['original_attributes']
+assert not (R/'tmp/e02-var02-native-v104-20261009-01').exists()
+assert all(not (C/name).exists() for name in ('runs','test-output','transport-evidence'))
+record={'schema':'e02-var02-root-static-freeze/v104','native_dispatch':False,'case_sources':expected,'mandatory_originals':spec['mandatory_originals'],'source_spec':{'path':str(SPEC),**pin(SPEC)},'promotion_receipts':receipts,'method':pin(Path(__file__))}
+with O.open('xb') as f:f.write((json.dumps(record,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O),**pin(O),'case_sources':44,'mandatory_originals':42,'native_dispatch':False}))

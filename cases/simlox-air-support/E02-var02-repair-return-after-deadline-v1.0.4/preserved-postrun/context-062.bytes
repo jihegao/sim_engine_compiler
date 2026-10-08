@@ -1,0 +1,26 @@
+"""Root seal new completed zero-native preflight artifacts; never execute a checker."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+T=C/'transport-evidence/ssh-preflight-20261008T224121705909Z-98d1fd8d'
+P=C/'review/preflight-ssh0-20261008T224129595Z.json'
+O=R/'tmp/e02-var02-root-preflight-seal-v104-20261009.json'
+assert not O.exists()
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+d=json.loads(P.read_bytes());proof=Path(d['pure_proof_directory'])
+assert proof.is_relative_to(C/'test-output') and d['native_process_started'] is False
+assert not (R/'tmp/e02-var02-native-v104-20261009-01').exists()
+paths=[P]+[p for folder in (T,proof) for p in folder.rglob('*') if p.is_file()]
+assert len(paths)==15 and len(set(paths))==15
+before={}
+for p in paths:
+ assert not p.is_symlink() and not p.is_junction() and not p.stat().st_file_attributes&1024
+ before[str(p)]=pin(p)
+for p in paths:p.chmod(stat.S_IREAD)
+for p in paths:assert pin(p)==before[str(p)] and p.stat().st_file_attributes&1
+body={'schema':'e02-var02-root-preflight-seal/v104','native_calls':0,'files':before,'method':pin(Path(__file__))}
+with O.open('xb') as f:f.write((json.dumps(body,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O),**pin(O),'files':len(paths),'preflight':pin(P),'transport':pin(T/'transport-receipt.json')}))
