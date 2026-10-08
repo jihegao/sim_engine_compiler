@@ -1,0 +1,82 @@
+"""Seal one naturally completed original transport and its owned evidence."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / 'cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0'
+assert len(sys.argv) == 2
+TRANSPORT = Path(sys.argv[1]).resolve()
+assert TRANSPORT.is_relative_to((CASE / 'transport-evidence').resolve())
+
+def pin(path):
+    data = path.read_bytes()
+    return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+
+def load(path):
+    return json.loads(path.read_bytes().decode('utf-8-sig'))
+
+def freeze(path):
+    os.chmod(path, stat.S_IREAD)
+    assert not path.stat().st_mode & stat.S_IWRITE
+
+t = load(TRANSPORT / 'transport-receipt.json')
+assert t['schema'] == 'i03-var03-matched-out-ssh-transport/v1'
+assert t['arm'] in ('control_out1', 'child_out2') and t['mode'] in ('preflight', 'native')
+receipt_path = REPO / ('tmp/i03-var03-root-seal-' + TRANSPORT.name + '.json')
+assert not receipt_path.exists(), 'preserve existing seal, no repeated same seal write'
+result = {'schema': 'i03-var03-root-completed-seal/v1', 'mode': t['mode'],
+          'arm': t['arm'], 'run_id': t['run_id'], 'transport_dir': str(TRANSPORT),
+          'transport_files': {}, 'owned_files': {}, 'decision': 'IN_PROGRESS'}
+try:
+    for p in sorted(TRANSPORT.iterdir()):
+        assert p.is_file()
+        result['transport_files'][p.name] = pin(p)
+        freeze(p)
+    assert set(result['transport_files']) == {'transport-receipt.json', 'ssh-stdout.bin', 'ssh-stderr.bin'}
+    for name, expected in t['streams'].items():
+        assert result['transport_files'][name] == expected, name
+    assert type(t['exit_code']) is int and t['exit_code'] == 0 and t['error'] is None, t
+    assert (TRANSPORT / 'ssh-stderr.bin').read_bytes() == b''
+    manifest_path = CASE / f"prelaunch-manifest-{t['arm']}.json"
+    manifest = load(manifest_path)
+    assert pin(manifest_path)['sha256'] == t['manifest_sha256']
+    assert pin(CASE / 'run_native_ssh.ps1')['sha256'] == t['runner_sha256']
+    assert pin(CASE / 'ssh_transport.py')['sha256'] == t['transport_sha256']
+    for row in manifest['source_files']:
+        assert pin(Path(row['path'])) == {k: row[k] for k in ('bytes', 'sha256')}, row['key']
+    if t['mode'] == 'preflight':
+        path = Path((TRANSPORT / 'ssh-stdout.bin').read_bytes().decode('utf-8-sig').strip())
+        assert path.resolve().is_relative_to((CASE / 'review').resolve())
+        assert path.name.startswith('preflight-ssh0-' + t['arm'] + '-')
+        preflight = load(path)
+        assert preflight['run_id'] == t['run_id'] and preflight['arm'] == t['arm']
+        assert preflight['native_process_started'] is False and preflight['selected_run_dir_absent'] is True
+        assert not (CASE / 'runs' / t['run_id']).exists()
+        result['owned_files'][str(path)] = pin(path)
+        freeze(path)
+    else:
+        run = CASE / 'runs' / t['run_id']
+        for path in sorted(run.iterdir()):
+            assert path.is_file()
+            result['owned_files'][path.name] = pin(path)
+            freeze(path)
+        assert len(result['owned_files']) == 25 and 'failure-seal.json' not in result['owned_files']
+        closure = load(run / 'closure.json')
+        assert closure['error'] in (None, '') and closure['step_error'] in (None, '')
+        assert closure['arm'] == t['arm'] and closure['run_id'] == t['run_id']
+        assert len(closure['raw']) == 23
+        for name, expected in closure['raw'].items():
+            assert result['owned_files'][name] == expected, name
+        assert result['owned_files']['invocation.json']['sha256'] == closure['invocation_sha256']
+    result['decision'] = 'GO_ORIGINAL_BYTES_SEALED_ONLY'
+except BaseException as exc:
+    result.update(decision='NO_GO_PRESERVED', error=repr(exc))
+    raise
+finally:
+    receipt_path.write_bytes((json.dumps(result, indent=2) + '\n').encode())
+    freeze(receipt_path)
+print(json.dumps({'receipt': str(receipt_path), **pin(receipt_path), 'decision': result['decision']}))

@@ -1,0 +1,61 @@
+"""Read-only author inventory computation with one new handoff receipt; no native calls."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+OUT = REPO / "tmp/i03-var03-author-freeze-ready-20261008.json"
+sys.path.insert(0, str(CASE))
+import make_source_inventory as inventory  # noqa: E402
+import make_prelaunch_manifest as manifest  # noqa: E402
+
+
+def pin(data: bytes) -> dict:
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def main() -> None:
+    assert not OUT.exists(), "preserve an existing handoff"
+    inventory_bytes = inventory.candidate()
+    source_files = json.loads(inventory_bytes)["source_files"]
+    control_bytes = manifest.candidate("control_out1", "live", True)
+    control = json.loads(control_bytes)
+    assert control["source_count"] == len(control["source_files"])
+    assert control["source_files"][0] == {
+        "key": "owned_source_inventory",
+        "path": str((CASE / "source-inventory.json").resolve()),
+        **pin(inventory_bytes),
+    }
+    handoff = {
+        "schema": "i03-var03-author-freeze-ready/v1",
+        "scope": "owned author and frozen independent source bytes, no SSH or native approval",
+        "case": str(CASE),
+        "source_inventory_expected": pin(inventory_bytes),
+        "source_count": len(source_files),
+        "source_files": source_files,
+        "control_manifest_preview": {**pin(control_bytes), "source_count": control["source_count"],
+                                     "run_id": control["run_id"], "arm": control["arm"]},
+        "runner": pin((CASE / "run_native_ssh.ps1").read_bytes()),
+        "behavior_validator": pin((CASE / "validate_native_cli.py").read_bytes()),
+        "source_verifier": pin((CASE / "source_gate.py").read_bytes()),
+        "roundtrip_validator": pin((CASE / "check_roundtrip.py").read_bytes()),
+        "manifest_builder": pin((CASE / "make_prelaunch_manifest.py").read_bytes()),
+        "contract": pin((CASE / "contract.json").read_bytes()),
+        "independent_replay": pin((CASE / "review/independent_replay.py").read_bytes()),
+        "independent_self_check": pin((CASE / "review/independent_self_check.py").read_bytes()),
+        "new_native_runs": 0,
+        "test_stream_limitation": "local pure command stdout/stderr observed through tool transcript, not claimed as captured original bytes",
+    }
+    OUT.write_bytes((json.dumps(handoff, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    print(json.dumps({"path": str(OUT), "handoff": pin(OUT.read_bytes()),
+                      "source_count": len(source_files),
+                      "source_inventory": pin(inventory_bytes),
+                      "control_manifest_preview": pin(control_bytes)}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

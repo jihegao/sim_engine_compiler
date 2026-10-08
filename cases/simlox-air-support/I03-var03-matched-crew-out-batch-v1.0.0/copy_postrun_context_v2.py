@@ -1,0 +1,113 @@
+"""Preserve small original proof streams and receipts; never copy native run files."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+OUT = HERE / "postrun-context-custody-v2.json"
+COPIES = HERE / "preserved-postrun-context-v2"
+TMP_DIRS = (
+    "i03-var03-root-freeze-20261008-01",
+    "i03-var03-root-child-manifest-freeze-20261008-01",
+    "i03-var03-root-independent-pure-freeze-20261008-01",
+    "i03-var03-root-independent-sealed-control-20261008-01",
+    "i03-var03-root-independent-sealed-both-20261008-01",
+    "i03-var03-author-control-postrun-20261008-01",
+    "i03-var03-author-paired-postrun-20261008-01",
+    "i03-var03-independent-control-postrun-proof-20261008-01",
+    "i03-var03-independent-paired-postrun-proof-20261008-01",
+)
+TMP_FILES = (
+    "check-i03-var03-control-postrun-20261008.py",
+    "check-i03-var03-paired-postrun-20261008.py",
+    "make-i03-var03-author-freeze-ready-20261008.py",
+    "i03-var03-author-freeze-ready-20261008.json",
+    "i03-var03-control-manifest-provisional-20261008.json",
+    "i03-var03-control-manifest-provisional-v2-20261008.json",
+    "i03-var03-child-manifest-dry-before-freeze-20261008.json",
+    "i03-var03-root-freeze-20261008.py",
+    "i03-var03-root-child-manifest-freeze-20261008.py",
+    "i03-var03-root-seal-completed-20261008.py",
+    "i03-var03-root-capture-sealed-replay-20261008.py",
+    "i03-var03-root-independent-pure-freeze-20261008.py",
+    "i03-var03-root-seal-ssh-preflight-control_out1-20261007T232912138480Z-1ce85126.json",
+    "i03-var03-root-seal-ssh-preflight-child_out2-20261007T233653211961Z-c6715910.json",
+    "i03-var03-root-seal-ssh-native-control_out1-20261007T233143347757Z-341e8041.json",
+    "i03-var03-root-seal-ssh-native-child_out2-20261007T233848248287Z-c67f6a7a.json",
+    "i03-var03-root-control-postseal-read-path-error-20261008.md",
+    "i03-var03-root-catalog-append-20261008.json",
+    "i03-var03-root-append-publication-20261008.py",
+    "i03-var03-independent-control-source-audit-20261008.py",
+    "i03-var03-independent-control-source-audit-20261008.json",
+    "i03-var03-independent-control-prelaunch-audit-20261008.py",
+    "i03-var03-independent-control-prelaunch-audit-20261008.json",
+    "i03-var03-independent-child-source-audit-20261008.py",
+    "i03-var03-independent-child-source-audit-20261008.json",
+    "i03-var03-independent-child-prelaunch-audit-20261008.py",
+    "i03-var03-independent-child-prelaunch-audit-20261008.json",
+    "i03-var03-independent-control-postrun-audit-20261008.py",
+    "i03-var03-independent-paired-postrun-audit-20261008.py",
+)
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def original_paths() -> list[Path]:
+    paths = [REPO / "tmp" / name for name in TMP_FILES]
+    for dirname in TMP_DIRS:
+        directory = REPO / "tmp" / dirname
+        assert directory.is_dir(), directory
+        paths.extend(sorted(directory.iterdir(), key=lambda p: p.name))
+    transport = HERE / "transport-evidence"
+    for directory in sorted(transport.iterdir(), key=lambda p: p.name):
+        assert directory.is_dir()
+        paths.extend(sorted(directory.iterdir(), key=lambda p: p.name))
+    assert all(path.is_file() for path in paths)
+    assert len(paths) == len(set(paths))
+    return paths
+
+
+def record(path: Path, index: int) -> dict:
+    relative = path.relative_to(REPO).as_posix()
+    key = hashlib.sha256(relative.encode("utf-8")).hexdigest()[:16]
+    owned = f"preserved-postrun-context-v2/{index:03d}-{key}.bytes"
+    return {"original": relative, "owned_copy": owned, **pin(path)}
+
+
+def verify(write: bool = False) -> dict:
+    if write:
+        assert not OUT.exists() and not COPIES.exists()
+        rows = [record(path, index) for index, path in enumerate(original_paths())]
+        for row in rows:
+            target = HERE / row["owned_copy"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((REPO / row["original"]).read_bytes())
+        OUT.write_bytes((json.dumps({"schema": "i03-var03-postrun-context-custody/v2", "records": rows},
+                                    indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    mapping = json.loads(OUT.read_bytes())
+    assert mapping["schema"] == "i03-var03-postrun-context-custody/v2"
+    rows = mapping["records"]
+    assert len(rows) == len({row["original"] for row in rows}) == len({row["owned_copy"] for row in rows})
+    assert len(rows) >= 70
+    for row in rows:
+        wanted = {k: row[k] for k in ("bytes", "sha256")}
+        assert pin(HERE / row["owned_copy"]) == wanted
+        original = REPO / row["original"]
+        if original.exists():
+            assert pin(original) == wanted
+    return {"schema": "i03-var03-postrun-context-custody-check/v2", "records": len(rows),
+            "written": write, "map": pin(OUT)}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    args = parser.parse_args()
+    print(json.dumps(verify(args.write), sort_keys=True))

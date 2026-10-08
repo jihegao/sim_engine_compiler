@@ -1,0 +1,98 @@
+"""Read-only PURE fixture and semantic mutation checks; no native acceptance."""
+from __future__ import annotations
+
+import copy
+import json
+from pathlib import Path
+
+import event_ledger
+import report_oracle
+from validate_native_cli import converter
+
+HERE = Path(__file__).resolve().parent
+
+
+def reject(call, label: str) -> None:
+    try:
+        call()
+    except (AssertionError, ValueError, KeyError, TypeError):
+        return
+    raise AssertionError(f"production gate accepted semantic mutation: {label}")
+
+
+def changed_once(text: str, before: str, after: str) -> str:
+    assert text.count(before) == 1, (before, text.count(before))
+    return text.replace(before, after, 1)
+
+
+def synthetic_report(timeline: dict, arm: str) -> dict:
+    report = copy.deepcopy(report_oracle.parse(report_oracle.PARENT_REPORT))
+    rows = report_oracle.expected(timeline, arm)
+    for table in report["report"]["tables"]:
+        fields = [c["name"] for c in table["columns"]]
+        table["instances"][0]["rows"] = [[row[f] for f in fields] for row in rows[table["name"]]]
+    return report
+
+
+def main() -> dict:
+    probes = 0
+    cells = 0
+    for arm in ("control_out1", "child_out2"):
+        original = (HERE / f"synthetic-{arm}.log").read_text(encoding="utf-8")
+        timeline = event_ledger.validate(original, arm)
+        report = synthetic_report(timeline, arm)
+        cells += report_oracle.check_report(report, timeline, arm)
+        cases = {
+            "duplicate preparation at another time": original.replace(
+                "Time: 8.25 <BASIC-MISSION", "Time: 8.1  system preparation task 0 on <TEACH-AIR-01,0> started\nTime: 8.25 <BASIC-MISSION", 1),
+            "extra ready marker": original.replace(
+                "Time: 9 <TEACH-AIR-01,BASE-01,0> System ready <TEACH-AIR-01,0>",
+                "Time: 9 <TEACH-AIR-01,BASE-01,0> System ready <TEACH-AIR-01,0>\n"
+                "Time: 9 <TEACH-AIR-01,BASE-01,0> System ready <TEACH-AIR-01,0>", 1),
+            "unowned failed availability": original.replace(
+                "request for: 1 OK", "request for: 1 failed", 1),
+        }
+        assert all(value != original for value in cases.values())
+        if arm == "child_out2":
+            cases["wrong backorder quantity"] = changed_once(original, "Nbr: 1 Backorders:<OUT,7.75>,", "Nbr: 2 Backorders:<OUT,7.75>,")
+            cases["wrong reserved crew release"] = changed_once(
+                original,
+                "Time: 8  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 1\n"
+                "Time: 8 <BASE-01,0> trig missions",
+                "Time: 8  <P-CREW at <BASE-01,0>> deallocated from  maintenance task: 1  available now: 2\n"
+                "Time: 8 <BASE-01,0> trig missions")
+            cases["missing failed availability"] = changed_once(
+                original,
+                "Time: 19.5  subtask 3 seqno 1 within system preparation task 3 on <TEACH-AIR-01,1> resource availability test\n"
+                "  Availability test on  <P-CREW at <BASE-01,0>> request for: 1 failed \n", "")
+        for label, mutant in cases.items():
+            reject(lambda mutant=mutant: event_ledger.validate(mutant, arm), f"{arm}: {label}")
+            probes += 1
+        bad = copy.deepcopy(report)
+        bad["report"]["tables"][1]["instances"][0]["rows"][0][0] = 1.0
+        reject(lambda: report_oracle.check_report(bad, timeline, arm), f"{arm}: integer NREP changed to float")
+        probes += 1
+        bad = copy.deepcopy(report)
+        bad["report"]["tables"][5]["instances"][0]["rows"][0][4] += 2**-23
+        reject(lambda: report_oracle.check_report(bad, timeline, arm), f"{arm}: resource mean changed")
+        probes += 1
+    converter_log = (HERE.parent / "I03-var01-crew-out-in-v1.0.0" / "runs" /
+                     "i03-var01-crew-transfer-v100-ssh-20261005-01" / "out-run.log").read_text(encoding="utf-8-sig")
+    converter(converter_log)
+    warning = "rec 1: (warning #108) Enabling simulation log may generate extensive data in log file"
+    converter_mutations = {
+        "warning message changed": changed_once(converter_log, warning, warning + " altered"),
+        "warning owner changed": changed_once(converter_log, "Form: Control", "Form: System"),
+        "warning record duplicated": changed_once(converter_log, warning, warning + "\n" + warning),
+        "extra note code": converter_log + "\nrec 2: (note #17) extra\n",
+        "mixed-case extra warning": converter_log + "\nrec 2: (WARNING #17) extra\n",
+    }
+    for label, mutant in converter_mutations.items():
+        reject(lambda mutant=mutant: converter(mutant), label)
+        probes += 1
+    return {"schema": "i03-var03-pure-self-check/v1", "pure": True, "native_calls": 0,
+            "synthetic_report_cells": cells, "semantic_rejections": probes}
+
+
+if __name__ == "__main__":
+    print(json.dumps(main(), sort_keys=True))

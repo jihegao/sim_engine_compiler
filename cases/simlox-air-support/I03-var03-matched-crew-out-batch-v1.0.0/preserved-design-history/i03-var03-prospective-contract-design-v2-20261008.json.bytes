@@ -1,0 +1,1065 @@
+{
+  "schema": "simlox-air-support-i03-var03-prospective-contract-design/v2",
+  "phase": "CONTRACT_DESIGN_ONLY_INDEPENDENT_GO_REQUIRED",
+  "case_id": "I03",
+  "variant_id": "I03.var03",
+  "version": "1.0.0-proposal",
+  "package_proposed_absent": "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0",
+  "publication_state": "not_created_not_accepted",
+  "run_ids_proposed_absent": [
+    "i03-var03-control-out1-v100-ssh-20261008-01",
+    "i03-var03-child-out2-v100-ssh-20261008-01"
+  ],
+  "new_native_calls": 0,
+  "accepted_parent_reruns": 0,
+  "scope": "One matched opening-three P-CREW OUT quantity contrast at h7.75: OUT1 versus OUT2, with exactly one initially idle crew and two occupied until h8. Prospective one immediate plus one later positive tranche in child; source-specific fixed seed, two waves, zero TFDT, BASE-01 to OUT, horizon36 only.",
+  "source_delta": {
+    "base": {
+      "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/out-input.json",
+      "bytes": 43349,
+      "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"
+    },
+    "parent_model": {
+      "database_version": 20160627,
+      "tables": 32,
+      "authored_rows": 24,
+      "authored_cells": 220,
+      "empty_tables": [
+        "Item",
+        "ItemStructure",
+        "StationStructure",
+        "SystemRepair",
+        "ItemRepair",
+        "ItemReorder",
+        "TaskResource",
+        "MaterielPM",
+        "PMLocation",
+        "StockAllocation",
+        "ItemReplacement"
+      ],
+      "tables_in_order": [
+        "ProblemDescription",
+        "ControlParameters",
+        "Control",
+        "GlobalParameters",
+        "System",
+        "Item",
+        "ItemStructure",
+        "Station",
+        "StationStructure",
+        "SystemDeployment",
+        "SystemRepair",
+        "ItemRepair",
+        "ItemReorder",
+        "MissionType",
+        "OperationProfile",
+        "OperationParameter",
+        "Operations",
+        "Unit",
+        "MissionPreparation",
+        "Tasks",
+        "TaskResource",
+        "Resource",
+        "ResourceAllocation",
+        "ResourceTransfer",
+        "MaterielPM",
+        "PMLocation",
+        "StockAllocation",
+        "ResultCollection",
+        "ItemReplacement",
+        "SubTaskType",
+        "TaskBreakDown",
+        "SubTaskResource"
+      ]
+    },
+    "shared_changes": [
+      {
+        "table": "ResourceAllocation",
+        "key": [
+          "AIR_BASIC",
+          "P-CREW",
+          "BASE-01"
+        ],
+        "column": "RQTY",
+        "from": 2,
+        "to": 3
+      }
+    ],
+    "per_arm_changes": {
+      "control_out1": [
+        {
+          "table": "ProblemDescription",
+          "column": "PDESC",
+          "to": "I03.var03 matched control: opening three P-CREW, one OUT at 7.75"
+        }
+      ],
+      "child_out2": [
+        {
+          "table": "ProblemDescription",
+          "column": "PDESC",
+          "to": "I03.var03 matched child: opening three P-CREW, two OUT at 7.75"
+        },
+        {
+          "table": "ResourceTransfer",
+          "key": [
+            "BASE-01",
+            "<OUTSIDE>",
+            "P-CREW",
+            7.75
+          ],
+          "column": "TFQTY",
+          "from": 1,
+          "to": 2
+        }
+      ]
+    },
+    "unchanged_gate": "All other authored values, root/model/table/column/instance metadata and table order type-exact from accepted parent; TFDT stays0, two wave DTIM1, NREPS1, seed1, SIMPE36, RCINT.5/RCEND36, ENLOG Y, mission DURN1 and TFOUT/TFRET each dimensionless fraction .25. Never normalize native export or alter source after failure.",
+    "native_roundtrip": "All32 tables including11 empty placeholders and every authored cell/metadata must equal each arm's input before calc. Native empty table may export exactly one all-null placeholder row as bounded format; never confuse it with an authored nonempty row."
+  },
+  "event_ledger": {
+    "control_out1_hypothesis": "At h7.5 two aircraft each book one crew; h7.75 one available crew physically and nominally leaves in one positive zero-duration OUT tranche; no transfer backorder. Both prep complete h8, first formation departs h8, completes/returns h9; second wave two parallel preps [19.5,20), departure h20, completion/return h21. Terminal local crew2, free2, booked0, pendingOUT0, completedOUT1, aircraft ready2.",
+    "child_out2_hypothesis": "At h7.5 two aircraft each book one crew; h7.75 request2, nominal decreases2, one available crew physically leaves in a positive zero-duration tranche, one transfer backorder remains. At h8 positive second tranche qty1 follows one/both prep releases with exact causal linkage, no double decrement, backorder closes. First formation h8–9. Second wave one remaining local crew forces serial prep [19.5,20) and [20,20.5), departure20.5, completion/return21.5. Terminal local crew1, free1, booked0, pendingOUT0, completedOUT2, aircraft ready2.",
+    "task_linkage": "Parse full timed and untimed log, not loose substring matches: request/quantity, backorder snapshots, each created/started/arrived transfer task (including zero-unit diagnostic tasks if any), positive tranche sums, preparation booking/deallocation/wait, aircraft IDs, mission lifecycle, queue/availability and return/ready lines; preserve same-time causal line order. Never assume inherited task IDs; no unknown extra typed event or early cancellation.",
+    "conservation": "At each transition local physically held + positive completed OUT = opening3; local free + booked = physically held when no transfer in progress. Separately retain requested/nominal, backordered and completed quantities; no persistent observed OUTSIDE-person identity claim.",
+    "control_intervals": [
+      {
+        "start": 0,
+        "end": 7.75,
+        "NR_NRA_NRN": 3
+      },
+      {
+        "start": 7.75,
+        "end": 36,
+        "NR_NRA_NRN": 2
+      }
+    ],
+    "child_intervals": [
+      {
+        "start": 0,
+        "end": 7.75,
+        "NR_NRA": 3,
+        "NRN": 3
+      },
+      {
+        "start": 7.75,
+        "end": 8,
+        "NR_NRA": 2,
+        "NRN": 1
+      },
+      {
+        "start": 8,
+        "end": 36,
+        "NR_NRA": 1,
+        "NRN": 1
+      }
+    ],
+    "distinct_waiting": "Child one preparation waits [19.5,20) for crew, giving NRW .5 crew-hour. Transfer backorder [7.75,8) is NOT preparation NRW.",
+    "terminal": "Source h36 closes all missions and transfer tasks, no crew booked or backorder. Two ready aircraft. No new IN/BETWEEN/shift-rest/per-person claim."
+  },
+  "report_gate": {
+    "tables_in_order": [
+      "ProblemDescription",
+      "ResultSummary",
+      "SystemResults",
+      "StockTotalResults",
+      "ResourceResults",
+      "ResourceResultsTotal"
+    ],
+    "cells_per_arm": 5210,
+    "topology": [
+      {
+        "name": "ProblemDescription",
+        "columns": [
+          "PDESC"
+        ],
+        "rows": 1,
+        "instance_name": ""
+      },
+      {
+        "name": "ResultSummary",
+        "columns": [
+          "NREP",
+          "RTILW",
+          "RTIUP",
+          "MTMF",
+          "RSMTMF",
+          "MSTF",
+          "RSMSTF",
+          "MSUF",
+          "RSMSUF",
+          "STMF",
+          "RSSTMF"
+        ],
+        "rows": 1,
+        "instance_name": ""
+      },
+      {
+        "name": "SystemResults",
+        "columns": [
+          "UNID",
+          "SID",
+          "STINT",
+          "ETINT",
+          "NSYRY",
+          "NSYMA",
+          "NSYMO",
+          "NSYMC",
+          "NSYMP",
+          "NSYMT",
+          "NSYMS",
+          "NSYMR",
+          "NSYUA",
+          "NSYA",
+          "NSYAL",
+          "FTMO",
+          "NSYRP",
+          "NSYPM",
+          "NSYTP",
+          "NSYWR",
+          "NSYWI",
+          "NSYLA",
+          "NSYUH",
+          "NREPT",
+          "NPMT",
+          "NFAIL",
+          "NDAM",
+          "NPMS",
+          "NROBT",
+          "NRCFG",
+          "STREQ",
+          "STACC",
+          "STF",
+          "STLOW",
+          "SYDT",
+          "SYDTU",
+          "NSYDT",
+          "NSYSW",
+          "NPSTA",
+          "NPSUC"
+        ],
+        "rows": 72,
+        "instance_name": "Total over all Units;Total over all Systems;0.00;36.00"
+      },
+      {
+        "name": "StockTotalResults",
+        "columns": [
+          "STINT",
+          "ETINT",
+          "NBO",
+          "NBOU",
+          "ROS",
+          "ROST",
+          "WT",
+          "WTT",
+          "WTS",
+          "PNB",
+          "NDF",
+          "NDD",
+          "NDR",
+          "NDP",
+          "NLD",
+          "NWT"
+        ],
+        "rows": 72,
+        "instance_name": "0.00;36.00;"
+      },
+      {
+        "name": "ResourceResults",
+        "columns": [
+          "RID",
+          "STID",
+          "STINT",
+          "ETINT",
+          "NR",
+          "NRMO",
+          "NRMA",
+          "NRUM",
+          "NRLA",
+          "NRW",
+          "NRA",
+          "NRN",
+          "NRF",
+          "NRRI",
+          "NRRT",
+          "NRRO"
+        ],
+        "rows": 72,
+        "instance_name": "Total over all Resources;Total over all Stations;0.00;36.00"
+      },
+      {
+        "name": "ResourceResultsTotal",
+        "columns": [
+          "RID",
+          "STID",
+          "NR",
+          "NRMO",
+          "NRMA",
+          "NRUM",
+          "NRLA",
+          "NRW",
+          "NRA",
+          "NRN",
+          "NRF",
+          "NRRI",
+          "NRRT",
+          "NRRO"
+        ],
+        "rows": 1,
+        "instance_name": "Total over all Resources;Total over all Stations;0.00;36.00"
+      }
+    ],
+    "full_cell_oracle": "For each arm independently derive all 5210 expectations from that arm's source and fully typed events using the declared field classes, interval formulas and bounded presentation constants. Never copy accepted parent dynamic cells or fit child report. Cross-arm difference is diagnostic only. Unknown physical formula or unexplained cell is NO_GO.",
+    "system_field_classes": {
+      "identity_and_interval": [
+        "UNID",
+        "SID",
+        "STINT",
+        "ETINT"
+      ],
+      "source_event_dynamic": [
+        "NSYRY",
+        "NSYMA",
+        "NSYMO",
+        "NSYMP",
+        "NSYMR",
+        "NSYA",
+        "FTMO",
+        "STACC",
+        "NPSTA",
+        "NPSUC"
+      ],
+      "source_event_zero": [
+        "NSYMC",
+        "NSYMT",
+        "NSYMS",
+        "NSYUA",
+        "NSYRP",
+        "NSYPM",
+        "NSYTP",
+        "NSYWR",
+        "NSYWI",
+        "NSYLA",
+        "NSYUH",
+        "NREPT",
+        "NPMT",
+        "NFAIL",
+        "NDAM",
+        "NPMS",
+        "NROBT",
+        "NRCFG",
+        "NSYDT",
+        "NSYSW"
+      ],
+      "bounded_native_presentation_zero": [
+        "NSYAL",
+        "STREQ",
+        "STF",
+        "STLOW",
+        "SYDTU"
+      ],
+      "bounded_no_downtime_null": [
+        "SYDT"
+      ]
+    },
+    "stock_fields": {
+      "interval": [
+        "STINT",
+        "ETINT"
+      ],
+      "exact_zero": [
+        "NBO",
+        "NDF",
+        "NDD",
+        "NDR",
+        "NDP",
+        "NLD",
+        "NWT"
+      ],
+      "bounded_empty_stock_presentation_one": [
+        "PNB"
+      ],
+      "bounded_undefined_null": [
+        "NBOU",
+        "ROS",
+        "ROST",
+        "WT",
+        "WTT",
+        "WTS"
+      ]
+    },
+    "resource_fields": {
+      "identity_and_interval": [
+        "RID",
+        "STID",
+        "STINT",
+        "ETINT"
+      ],
+      "source_event_dynamic": [
+        "NR",
+        "NRUM",
+        "NRW",
+        "NRA",
+        "NRN"
+      ],
+      "source_event_zero": [
+        "NRMO",
+        "NRMA",
+        "NRLA",
+        "NRF",
+        "NRRI",
+        "NRRT",
+        "NRRO"
+      ],
+      "per_bin_expected": {
+        "control_out1": "NR=NRA=NRN=3 on [0,7.75), 2 on [7.75,36); NRUM=2 [7.5,8) and [19.5,20); NRW=0",
+        "child_out2": "NR=NRA=3 [0,7.75), 2 [7.75,8), 1 [8,36); NRN=3 [0,7.75),1 [7.75,36); NRUM=2 [7.5,8),1 [19.5,20.5); NRW=1 [19.5,20), otherwise0",
+        "clock_separation": "NR/NRA local physically held resources change on positive task start; NRN nominal schedule changes by full requested TFQTY at h7.75. Transfer backorder is not NRW, which is a waiting preparation task."
+      },
+      "total_expected_float32": {
+        "control_out1": {
+          "NR": 2.215277671813965,
+          "NRA": 2.215277671813965,
+          "NRN": 2.215277671813965,
+          "NRUM": 0.0555555559694767,
+          "NRW": 0
+        },
+        "child_out2": {
+          "NR": 1.4375,
+          "NRA": 1.4375,
+          "NRN": 1.4305555820465088,
+          "NRUM": 0.0555555559694767,
+          "NRW": 0.013888888992369175
+        }
+      },
+      "all_other_total_numeric_zero": true
+    },
+    "result_summary_expected": {
+      "NREP": 1,
+      "RTILW": 0,
+      "RTIUP": 36,
+      "MTMF": 1,
+      "RSMTMF": 0,
+      "MSTF": 1,
+      "RSMSTF": 0,
+      "MSUF": 1,
+      "RSMSUF": 0,
+      "STMF": 1,
+      "RSSTMF": 0
+    },
+    "numeric_comparison": {
+      "exact": "All source times and expected event boundaries 0,7.5,7.75,8,9,19.5,20,20.5,21,21.5,36 are binary-exact. Exact finite numeric comparison for source, discrete, zero, null, whole-bin and fractional [7.5,8) cells; reject bool as numeric and NaN/Inf. No half-last-decimal tolerance for authored 7.75.",
+      "binary32_means": "For exactly NR,NRA,NRN,NRUM,NRW in ResourceResultsTotal, compare parsed finite JSON numeric value exactly to binary32(typed integral/36). Other total fields exact zero or typed identity.",
+      "unexpected_observed_edge": "NO_GO. All prospective source and event edges in this exact case are binary quarter- or half-hours, so there is no uncertainty class or tolerance escape for h7.75, h8, or any other forecast edge. A divergent observed edge requires a separately versioned contract after preserving the failed run.",
+      "metadata": "Full recursive type-exact compare of root/table/column/instance keys, names, order, datatypes and key Boolean, duplicate-key rejection. Native trailing comma repaired only in an in-memory parsing copy; original bytes sealed."
+    },
+    "unknown_formula_or_unexplained_cell": "NO_GO; presentation constants have named bounded status and may not be claimed as statistical formula validation",
+    "source_event_integrals_by_arm": {
+      "control_out1": {
+        "NSYRY": 66,
+        "NSYMA": 6,
+        "NSYMO": 4,
+        "NSYMP": 2,
+        "NSYMR": 0,
+        "NSYA": 72,
+        "FTMO": 2,
+        "STACC": 4
+      },
+      "child_out2": {
+        "NSYRY": 65,
+        "NSYMA": 7,
+        "NSYMO": 4,
+        "NSYMP": 2.5,
+        "NSYMR": 0.5,
+        "NSYA": 72,
+        "FTMO": 2,
+        "STACC": 4
+      }
+    },
+    "source_event_counts_by_arm": {
+      "control_out1": {
+        "NPSTA": 4,
+        "NPSUC": 4
+      },
+      "child_out2": {
+        "NPSTA": 4,
+        "NPSUC": 4
+      }
+    },
+    "system_per_bin_formula": {
+      "bins": "For each j=0..71 use exact [j/2,(j+1)/2); exposure([a,b),bin)=length(intersection)/0.5. Derive a,b from authored mission and linked typed prep/mission/return events; no candidate report reads in expectation construction.",
+      "assigned": "sum over 2 aircraft x 2 waves of exposure(preparation_start,return); NSYMA=assigned, NSYRY=2-assigned, NSYA=2",
+      "mission": "sum aircraft exposure(launch,return); NSYMO=mission, STACC=mission; FTMO=mission/2 is bounded native per-system fraction, so 72 raw FTMO rows sum4 and their 0.5-hour integral2",
+      "preparation": "For each wave: NSYMP=2*exposure(prep_start,first_prep_end)+exposure(first_prep_end,last_prep_end); NSYMR=exposure(first_prep_end,last_prep_end). These fields overlap and must not be treated as an exclusive partition.",
+      "counts": "NPSTA=two starts in their prep_start bin; NPSUC=one per matching first/last completion in its bin; exact four each",
+      "other_fields": "Every other SystemResults field is in the exhaustive fixed field-class map inherited below; source-event zero, bounded native presentation zero or no-downtime null. No broad default-zero for unknown fields."
+    }
+  },
+  "native_and_provenance_gate": {
+    "stage_order_each_arm": [
+      "import",
+      "export",
+      "check_import_export",
+      "calc",
+      "jsonreport",
+      "check_behavior"
+    ],
+    "both_runs": "Fresh zero-native SSH5 -PreflightOnly then separate independent GO_PRELAUNCH bound to exact manifest/input/runner/method/preflight SHA. Two absent unique run IDs; root sole executor. Hold serial mutex through each natural child completion; after any first-arm failure do not launch second. No stop/kill/timeout/retry, and never rerun accepted parent.",
+    "capture": "Actual PS5 session0/sshd ancestry, sole protected responding GUI13340/session1/start1790590196826/WTS active, broad competing-runner guard, native/checker PID/session/int OS exit/UTC/program/argv, original byte stdout/stderr, source before/after, 23 raw seals per six-step arm if same topology, closure/failure even on NO_GO. Exact counts are confirmed from generated runner schema before approval, never inferred from a synthetic fixture.",
+    "converter": "Errors0 and source-specific exact known warning codes, no new unclassified warning; roundtrip/schema gate before calc; checker integer0 plus valid versioned JSON/typed pass. Preserve failures unchanged."
+  },
+  "source_lineage": {
+    "base_commit": "8981e29847af744993aa6f7a66f689150ca124e5",
+    "root_selection_guard": {
+      "path": "tmp/issue18-next-owner-proof-20261008/receipt.json",
+      "bytes": 816,
+      "sha256": "af0987f52ee90f4796232841feffac8c33462ad8aff3e5de5e1a165fc3033ba5"
+    },
+    "root_dependency_audit": {
+      "path": "tmp/i03-var03-root-dependency-audit-20261008.json",
+      "bytes": 19487,
+      "sha256": "d731776a766bf5140a402ecc66aa2194f57691b1545bbbcb7f3ce17880fc9ea5"
+    },
+    "accepted_parent_evidence_index": {
+      "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/evidence-index.json",
+      "bytes": 8505,
+      "sha256": "163356ad2cde1f6c4040c23c1bad629b43771ec6bff2467e11bc4686a06832af"
+    },
+    "accepted_parent_source_disk_git_at_base": [
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/.gitattributes",
+        "disk": {
+          "bytes": 35,
+          "sha256": "f3f7cc62402e05512a2df836744b6b5fd3e0cfa7cb23049eef8fed77502a3a2c"
+        },
+        "git": {
+          "bytes": 35,
+          "sha256": "f3f7cc62402e05512a2df836744b6b5fd3e0cfa7cb23049eef8fed77502a3a2c"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/.gitignore",
+        "disk": {
+          "bytes": 19,
+          "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+        },
+        "git": {
+          "bytes": 19,
+          "sha256": "ccf58e28fccde6c0c37d6abe83e98be8db118e70e1d82214ccaceca4bcac7931"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/build.py",
+        "disk": {
+          "bytes": 2898,
+          "sha256": "df4020d9b8e1c298208aa478cd4abdb5045513f3c20f8238bf1174573b4ae470"
+        },
+        "git": {
+          "bytes": 2898,
+          "sha256": "df4020d9b8e1c298208aa478cd4abdb5045513f3c20f8238bf1174573b4ae470"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/contract.json",
+        "disk": {
+          "bytes": 3819,
+          "sha256": "3d5d88e717667d7fd75b4a6cf5d97431733154786212e5700fb70d8780e8d644"
+        },
+        "git": {
+          "bytes": 3819,
+          "sha256": "3d5d88e717667d7fd75b4a6cf5d97431733154786212e5700fb70d8780e8d644"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/run_native_ssh.ps1",
+        "disk": {
+          "bytes": 12303,
+          "sha256": "d5b6c15ae6823748d1d726a4cf3aff85618082d5cb725f46cff21f982c11288f"
+        },
+        "git": {
+          "bytes": 12303,
+          "sha256": "d5b6c15ae6823748d1d726a4cf3aff85618082d5cb725f46cff21f982c11288f"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/control-input.json",
+        "disk": {
+          "bytes": 43341,
+          "sha256": "60f7f277965a2a7c001aed29dc99c48a2736b104e1744791f20b92772d1d3caa"
+        },
+        "git": {
+          "bytes": 43341,
+          "sha256": "60f7f277965a2a7c001aed29dc99c48a2736b104e1744791f20b92772d1d3caa"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/out-input.json",
+        "disk": {
+          "bytes": 43349,
+          "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"
+        },
+        "git": {
+          "bytes": 43349,
+          "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/out_in-input.json",
+        "disk": {
+          "bytes": 43550,
+          "sha256": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+        },
+        "git": {
+          "bytes": 43550,
+          "sha256": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/validate.py",
+        "disk": {
+          "bytes": 10028,
+          "sha256": "976fde323252e849514991b3bc11e760f5da6d347d93a93a85661ef199b6f7c9"
+        },
+        "git": {
+          "bytes": 10028,
+          "sha256": "976fde323252e849514991b3bc11e760f5da6d347d93a93a85661ef199b6f7c9"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/make_evidence_index.py",
+        "disk": {
+          "bytes": 2607,
+          "sha256": "9c759b6693e6a9351f1e83069e477b072bfe2767671ff0af33baf5b340b899e5"
+        },
+        "git": {
+          "bytes": 2607,
+          "sha256": "9c759b6693e6a9351f1e83069e477b072bfe2767671ff0af33baf5b340b899e5"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/preflight-2026-10-05.md",
+        "disk": {
+          "bytes": 1567,
+          "sha256": "0d5ba7a515ad66ccd043c742dbdcbd449239205458e4dd33bc5ec1783d85b7d9"
+        },
+        "git": {
+          "bytes": 1567,
+          "sha256": "0d5ba7a515ad66ccd043c742dbdcbd449239205458e4dd33bc5ec1783d85b7d9"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/author-validation-2026-10-05.json",
+        "disk": {
+          "bytes": 848,
+          "sha256": "ecaf565859d2a5de50cabe1339dd939045be9e7110d1c48d02f2122742ba7a30"
+        },
+        "git": {
+          "bytes": 848,
+          "sha256": "ecaf565859d2a5de50cabe1339dd939045be9e7110d1c48d02f2122742ba7a30"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/independent_replay.py",
+        "disk": {
+          "bytes": 13432,
+          "sha256": "43d663467d09aee9bd03f6ad948019ea383476ae2f09db1ffb61331bc2372fd8"
+        },
+        "git": {
+          "bytes": 13432,
+          "sha256": "43d663467d09aee9bd03f6ad948019ea383476ae2f09db1ffb61331bc2372fd8"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/review/independent-verdict.json",
+        "disk": {
+          "bytes": 2187,
+          "sha256": "6bf5d5d567c7301beb5c91039ef587e594a1be8418b7bbc88fa2b49b7fdd4a62"
+        },
+        "git": {
+          "bytes": 2187,
+          "sha256": "6bf5d5d567c7301beb5c91039ef587e594a1be8418b7bbc88fa2b49b7fdd4a62"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/cli-scope-signoff-2026-10-05.md",
+        "disk": {
+          "bytes": 2091,
+          "sha256": "83d464641de1e1bb37ed454d0d607be1ca46523b438f558a00d068386d8e2da2"
+        },
+        "git": {
+          "bytes": 2091,
+          "sha256": "83d464641de1e1bb37ed454d0d607be1ca46523b438f558a00d068386d8e2da2"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/README.md",
+        "disk": {
+          "bytes": 1965,
+          "sha256": "5db49abde360bd0e70885ff4728d5986f7a95ef00d7f3068bacb7555dd9e4dfb"
+        },
+        "git": {
+          "bytes": 1965,
+          "sha256": "5db49abde360bd0e70885ff4728d5986f7a95ef00d7f3068bacb7555dd9e4dfb"
+        },
+        "byte_equal": true
+      },
+      {
+        "path": "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/evidence-index.json",
+        "disk": {
+          "bytes": 8505,
+          "sha256": "163356ad2cde1f6c4040c23c1bad629b43771ec6bff2467e11bc4686a06832af"
+        },
+        "git": {
+          "bytes": 8505,
+          "sha256": "163356ad2cde1f6c4040c23c1bad629b43771ec6bff2467e11bc4686a06832af"
+        },
+        "byte_equal": true
+      }
+    ],
+    "accepted_parent_original_raw": [
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-export.log",
+        "bytes": 262,
+        "sha256": "8fa3d0a3875ca28b8fd93b3570d45b4a3b48875c8c1572fe749a7f33222b31d7"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-import.log",
+        "bytes": 1889,
+        "sha256": "e229e9fe38fb48efc337624b6644317a4a2b2e37dbc522f0617e85ffd853f8b6"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-input.json",
+        "bytes": 43341,
+        "sha256": "60f7f277965a2a7c001aed29dc99c48a2736b104e1744791f20b92772d1d3caa"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-report-export.log",
+        "bytes": 64,
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-report-raw.json",
+        "bytes": 148309,
+        "sha256": "0124e765a5aa08e6ca6757a1a783388c4223941d7b1944f4fefc171876824618"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-roundtrip-raw.json",
+        "bytes": 58912,
+        "sha256": "2fdddd55dd5c6262dd98c2ae2d42992b7c1e3f1855905459a07cd02db790d504"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control-run.log",
+        "bytes": 1067,
+        "sha256": "f650cc013ebfadff06604a26d661c9e64ccd8e184b9894d949b6ddde400d4be0"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control.log",
+        "bytes": 15539,
+        "sha256": "bc718534bb8680d4615682f83590c76c975ff0b96130244004a5a0fa8654374e"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control.sxi",
+        "bytes": 189798,
+        "sha256": "7bc41aeb9698b6697cd2e6a67f1dda04872b920aa5e653bfd216fc8a0ef61f1e"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\control.sxo",
+        "bytes": 341889,
+        "sha256": "0e160ff1f6d59ac9ea06da9e7bd0f9888bc0ac9a81952c6abd6593addae5f6c2"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-export.log",
+        "bytes": 258,
+        "sha256": "22cbb9ff213316b1e7eb44e56c72a505d125f0ea4c14437d8af4a7e04e164cb8"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-import.log",
+        "bytes": 1885,
+        "sha256": "63a501c6035ba4dcf5ae3ee1aff19c715d8f87e2fab49e49c374ed269f80b667"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-input.json",
+        "bytes": 43349,
+        "sha256": "7f07e30d95f88228d9551cda93c0cf53e196f7473258096a86d2fa06949c262e"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-report-export.log",
+        "bytes": 64,
+        "sha256": "1122e2fbfae5587783a0c305b308a833d6394e35b18a0088ce31c0ad6910123e"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-report-raw.json",
+        "bytes": 148330,
+        "sha256": "eb921d0b07b33528f56ee2cf1e7e69270d92a1f95f79702652b419ec9700c433"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-roundtrip-raw.json",
+        "bytes": 58871,
+        "sha256": "5689bed487fc2ccaa1ceb78c40b86706c83219ffff3f2f1e656e63db968224b8"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out-run.log",
+        "bytes": 1055,
+        "sha256": "2d69b9c6731df2dc21cd409b4595ed65e837014c2e49134385da0f445e55c795"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out.log",
+        "bytes": 16812,
+        "sha256": "bc6f3b1fbda10fe0973282d206f505c4f0c6f146797e189d1ea8d7cf424062ee"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out.sxi",
+        "bytes": 189851,
+        "sha256": "54860c739f1c68d52a920d90ed37fe4651496fbc77d8a6e40c4a32c3306cd4a2"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out.sxo",
+        "bytes": 341934,
+        "sha256": "28bee9ac93262a32e49c11ceef66207369d772fe2aa863325520268b7a1461aa"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\outcome.json",
+        "bytes": 1548,
+        "sha256": "3ba6e73f521a65b37cd25da540cdd41654aa7470be712920998c649cb6497e4b"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-export.log",
+        "bytes": 261,
+        "sha256": "08989132543fb3acde10347a7d3bb5986987a0b593e58d2b7b55c896e9a4d353"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-import.log",
+        "bytes": 1888,
+        "sha256": "81cada6313d0e4eed3dc1b7fc6e37a4a698284fb25eca6c235288530b312a10f"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-input.json",
+        "bytes": 43550,
+        "sha256": "81107e9713b9e21178de4d877a146963b693af7193d0663aa9e4d32871b44e84"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-report-export.log",
+        "bytes": 64,
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-report-raw.json",
+        "bytes": 148314,
+        "sha256": "46c798558486eff6f4714d9e1783914b9a2169ec535d773d72ec2471b9959cbd"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-roundtrip-raw.json",
+        "bytes": 58952,
+        "sha256": "2d2057fb88c65ed2fe057d969fc90e024369b324c9c90327252e9dd4f5c7f7b2"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in-run.log",
+        "bytes": 1064,
+        "sha256": "d3053918eb968775711d54fbda8425c0fd04cba80ac34aedb3336b8345151076"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in.log",
+        "bytes": 17008,
+        "sha256": "673706cc043d4c5b1ce07c0692070b7931677257779fa3a67ebf190e2644f0c5"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in.sxi",
+        "bytes": 189922,
+        "sha256": "f137198560f356a067b224047aa7cd39362e610631275d8cfcbcc41159edf443"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\out_in.sxo",
+        "bytes": 342011,
+        "sha256": "62f23034ae4a2985c6ca8c9d84a81656361cc33c6b24082e2851edf32031d1bc"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\steps.json",
+        "bytes": 10799,
+        "sha256": "38809db6a72e9bc89f9489a53363fdae75d4253be5e036b7ee0abc3572bf3596"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\invocation.json",
+        "bytes": 2790,
+        "sha256": "ff12cd78a0358e036365eb49f85ce36755d927d8195b29b591f75cc5322910f9"
+      },
+      {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\I03-var01-crew-out-in-v1.0.0\\runs\\i03-var01-crew-transfer-v100-ssh-20261005-01\\closure.json",
+        "bytes": 11902,
+        "sha256": "fffdaa778a68fc46d1cbec9e8884e8c29af05ae0769098122206f7fd8bf43cf8"
+      }
+    ],
+    "accepted_prerequisite_indexes": [
+      {
+        "path": "cases/simlox-air-support/C03-var01-staffing-v0.1.1/evidence-index.json",
+        "bytes": 16140,
+        "sha256": "987519ac76f60fbdb8fb3e848c4619a67a82bb9f69c488bf6525da3caf443b01"
+      },
+      {
+        "path": "cases/simlox-air-support/C08-partial-pool-v1.0.0/evidence-index.json",
+        "bytes": 5651,
+        "sha256": "f0c1e3da56681bbc7f50742cf42792177795497706d1049004e50e7a3a2d28b2"
+      },
+      {
+        "path": "cases/simlox-air-support/C08-shift-maxut-v1.0.0/evidence-index.json",
+        "bytes": 3053,
+        "sha256": "e40eed162902fbe50055618f0cc1495895e77264c98fa5e876618e2567cd50bc"
+      }
+    ],
+    "required_docs": [
+      {
+        "path": "AGENTS.md",
+        "bytes": 4285,
+        "sha256": "120b806a085ca017a53fa285dacd3def670bf6d5f1d3cd0adadfe7cefb25ee20"
+      },
+      {
+        "path": "README.md",
+        "bytes": 8055,
+        "sha256": "74fe292816b3fdd460b347c389caff91f3521fd96c88158fb2de3af731ca7d3e"
+      },
+      {
+        "path": "docs/architecture.md",
+        "bytes": 8340,
+        "sha256": "1884ec18212c0a3ceac470ee2e1eaa0587c987bff5be3bd6ac8dd55c0c16f556"
+      },
+      {
+        "path": "docs/semantic-baseline.md",
+        "bytes": 3676,
+        "sha256": "56c93264d27d5c61609b7ce78845fc4d3a3d5effe1bbf8520776b499c338b815"
+      },
+      {
+        "path": "docs/roadmap.md",
+        "bytes": 10731,
+        "sha256": "968248b565e7db8ce9eac5044668ae05cec7337cc75e3ac3e04c8e04f9ef001d"
+      },
+      {
+        "path": "cases/simlox-air-support/execution-plan-v2.md",
+        "bytes": 16533,
+        "sha256": "b9ad6572e9bedc4bbe6bcd928820a0861806167782910aa46bd83e1b4e0ccc66"
+      },
+      {
+        "path": "cases/simlox-air-support/ssh-cli-acceptance-policy-v1.md",
+        "bytes": 5058,
+        "sha256": "06e2b6197b8389ed49a7e1be5f7fd1394ac4cb284490b114ebefc8f22b5688f5"
+      },
+      {
+        "path": "cases/simlox-air-support/catalog-v2.json",
+        "bytes": 264016,
+        "sha256": "8c491ec16693cd64d212f986ed03dad5ed013d7e0bd8e170c0a4d1bf4450b55d"
+      }
+    ],
+    "installed": [
+      {
+        "bytes": 33196032,
+        "path": "C:\\Program Files\\Systecon\\SIMLOX\\Simlox.exe",
+        "role": "exe",
+        "sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"
+      },
+      {
+        "bytes": 18124110,
+        "path": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+        "role": "manual",
+        "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3"
+      },
+      {
+        "bytes": 78577,
+        "path": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+        "role": "dictionary",
+        "sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+      }
+    ],
+    "catalog_at_design": {
+      "path": "cases/simlox-air-support/publication-index-v1.json",
+      "entries": 493,
+      "local_disk": {
+        "bytes": 525721,
+        "sha256": "958999368138f53bbf9fc3653de808422135d24c56acdc877c41b5af8decd32a"
+      },
+      "published_git_at_base": {
+        "oid": "e5ff98882512ce7a9fca548bfe3b21f3e9777467",
+        "bytes": 521161,
+        "sha256": "241783914dabda6a51013bf7808cebe8cccf57fd48bde9e2eeb0474901493a8b"
+      },
+      "metadata": {
+        "schema": "simlox-air-support-publication-index/v1",
+        "as_of": "2026-10-06",
+        "catalog_snapshot": "catalog-v2.json",
+        "entry_publication_state": "reusable_published",
+        "meaning": "Accepted reusable CLI scopes on simlox/main. The catalog-v2.json planning snapshot is intentionally frozen and its legacy publication_state fields are not current publication decisions. Each evidence document defines the actual accepted behavior and limits. Unlisted cases and variants are not implied to be published."
+      },
+      "later_owned_archive_required": "At case construction, archive these exact local493 bytes in an inert owned source and retain distinct Git blob identity. Before launch require live exact493 point-time bytes; after authorized append always validate mandatory archive and typed metadata/prefix493/unique IDs, with no conditional dropped check or mutable live catalog SHA misrepresented as current source."
+    },
+    "draft_history": [
+      {
+        "path": "tmp/i03-var03-batch-contract-design-draft-v1-20261008.md",
+        "bytes": 10808,
+        "sha256": "1c77bcbaa2b152272656be0a2df9f7211cb16b7b1329272f007026edbcfb4b25"
+      },
+      {
+        "path": "tmp/i03-var03-batch-contract-design-20261008.md",
+        "bytes": 11707,
+        "sha256": "8d436c63f7a5a9d240cf9a2c915716e2375a27204ec0052c5eccab859aa700a9"
+      },
+      {
+        "path": "tmp/i03-var03-batch-contract-design-v2-20261008.md",
+        "bytes": 11762,
+        "sha256": "d0cbfd3569a037580f9589e069a3823b01aa2e4c93157812a984539f35ddbf61"
+      },
+      {
+        "path": "tmp/i03-var03-batch-contract-design-v3-20261008.md",
+        "bytes": 12137,
+        "sha256": "c2ef22b35e8a7f570c7a9d2a0a5c93ba894eda09e0850e173763bc4c31ac7682"
+      },
+      {
+        "path": "tmp/i03-var03-batch-contract-design-v4-20261008.md",
+        "bytes": 12302,
+        "sha256": "1b0df24268b9da7a357d3a4b3f481883f65a725cc6db9d052837663d603cfd4b"
+      },
+      {
+        "path": "tmp/i03-var03-independent-design-v2-no-go-20261008.md",
+        "bytes": 3545,
+        "sha256": "4d67697c04fe3c05f3d0dae307bd74e276f30fd46e14d54e3160c0990455afdc"
+      },
+      {
+        "path": "tmp/i03-var03-ftmo-review-correction-20261008.md",
+        "bytes": 1604,
+        "sha256": "2be09d23e3539f7c8ee47ca70f7646b55c9c5c3f3f4b026d450d81f56ffd08b5"
+      },
+      {
+        "path": "tmp/make-i03-var03-prospective-contract-design-failed-v1-20261008.py",
+        "bytes": 17015,
+        "sha256": "93e29704e2fd9b3c67a29ac8cce474e3e669a4b9a9f1d3dfd041c716b4b9dee6"
+      },
+      {
+        "path": "tmp/make-i03-var03-prospective-contract-design-v1-preserved-20261008.py",
+        "bytes": 17016,
+        "sha256": "b123ddbeb2c179aee1ac82a6ecbb67871e7ed16988da942f49192fc105740f61"
+      },
+      {
+        "path": "tmp/i03-var03-prospective-contract-design-v1-preserved-20261008.json",
+        "bytes": 44886,
+        "sha256": "04b25c33d983cbf7ff76da68fcd9820b5ff99863619d1fa77b37dbefd56b00ae"
+      }
+    ]
+  },
+  "negative_probes_required": [
+    "wrong parent/source hash, missing table, changed metadata key Bool→int, duplicate JSON key or table/instance, nonfinite numeric, extra source cell, altered TFDT or opening3/TFQTY contrast",
+    "no positive h7.75 tranche, missing second positive child tranche, wrong transfer quantity or order, extra/double decrement, lingering backorder, cancellation, unlinked zero task, altered busy booking/wait interval, wrong terminal local/nominal/free/booked",
+    "physical NR versus scheduled NRN swapped, h7.75 fractional half-bin wrong by exact .5, binary32 adjacent ULP in each of five total means, exact zero to tiny nonzero, null to zero, hidden extra report column/row/table",
+    "wrong System integral or FTMO raw-sum/time-integral confusion; altered h20 vs h20.5 second wave; extra aircraft return/ready/mission; source/raw/custody/GUI/session/run/approval/preflight mutation"
+  ],
+  "limits": "Prospective fixed-seed source-specific matched OUT1/OUT2 batch, not accepted native behavior. No BETWEEN/IN/equipment/person identity/other capacities/shift max-rest/priority versus simultaneous ordinary request/GUI visual/performance/cross-engine/general I03 claim. Synthetic pure fixture never accepted native result. Unknown report physical formula or unexpected topology/timing is NO_GO, not expectation fitting."
+}

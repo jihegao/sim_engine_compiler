@@ -1,0 +1,31 @@
+"""Read-only exact-byte audit of frozen I03.var03 v5 design."""
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+CONTRACT = ROOT / "tmp/i03-var03-prospective-contract-design-v5-20261008.json"
+LOG = ROOT / "cases/simlox-air-support/I03-var01-crew-out-in-v1.0.0/runs/i03-var01-crew-transfer-v100-ssh-20261005-01/out-run.log"
+expected_contract = "37b9ddcdd24f4f7e88261751545c678ddee645d48c160534fc089b794f7801f3"
+expected_log = "2d69b9c6731df2dc21cd409b4595ed65e837014c2e49134385da0f445e55c795"
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+assert CONTRACT.stat().st_size == 49195 and sha(CONTRACT) == expected_contract
+assert sha(LOG) == expected_log
+j = json.loads(CONTRACT.read_text(encoding="utf-8"))
+gate = j["native_and_provenance_gate"]
+assert gate["stage_order_each_arm"] == ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"]
+conv = gate["converter"]
+assert conv["each_arm_summary_exact"] == "Input conversion completed. Errors: 0, Warnings: 2, Notes: 0"
+assert [(x["form"], x["record"], x["code"]) for x in conv["ordered_warning_records_exactly_once_each"]] == [("Control", 1, 108), ("System", 1, 126)]
+log = LOG.read_text(encoding="utf-8")
+assert log.startswith("Performing simulation")
+assert log.index("Converting input data ...") < log.index(conv["each_arm_summary_exact"])
+for x in conv["ordered_warning_records_exactly_once_each"]:
+    assert log.count(x["line"]) == 1
+assert "Converter and type-sensitive all32-table roundtrip must pass before calc" in conv["stage_gate"]
+print("NO_GO_CONTRACT_DESIGN_ONLY_V5: converter output is produced in calc, yet frozen gate requires it before calc")
+print("contract_sha256=" + expected_contract)
+print("accepted_log_sha256=" + expected_log)

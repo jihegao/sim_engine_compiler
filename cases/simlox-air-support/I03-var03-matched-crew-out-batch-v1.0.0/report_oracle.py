@@ -1,0 +1,157 @@
+"""Predeclared source/event oracle for all 5,210 cells in each matched arm."""
+from __future__ import annotations
+
+import json
+import hashlib
+import math
+from pathlib import Path
+import struct
+
+from build import typed_equal
+from check_roundtrip import parse
+
+HERE = Path(__file__).resolve().parent
+CONTRACT = json.loads((HERE / "contract.json").read_text(encoding="utf-8"))
+GATE = CONTRACT["report_gate"]
+PARENT_REPORT = HERE.parent / "I03-var01-crew-out-in-v1.0.0" / "runs" / "i03-var01-crew-transfer-v100-ssh-20261005-01" / "out-report-raw.json"
+PARENT_REPORT_SHA = "eb921d0b07b33528f56ee2cf1e7e69270d92a1f95f79702652b419ec9700c433"
+DESCRIPTIONS = {arm: changes[0]["to"] for arm, changes in CONTRACT["source_delta"]["per_arm_changes"].items()}
+SYSTEM = GATE["topology"][2]["columns"]
+STOCK = GATE["topology"][3]["columns"]
+RESOURCE = GATE["topology"][4]["columns"]
+TOTAL = GATE["topology"][5]["columns"]
+SYSTEM_CLASSES = GATE["system_field_classes"]
+STOCK_CLASSES = GATE["stock_fields"]
+RESOURCE_CLASSES = GATE["resource_fields"]
+
+
+def assert_complete_classes(columns: list[str], groups: list[list[str]]) -> None:
+    assigned = [field for group in groups for field in group]
+    assert len(assigned) == len(set(assigned)) and set(assigned) == set(columns), (columns, assigned)
+
+
+assert_complete_classes(SYSTEM, [value for value in SYSTEM_CLASSES.values()])
+assert_complete_classes(STOCK, [value for value in STOCK_CLASSES.values()])
+assert_complete_classes(RESOURCE, [RESOURCE_CLASSES["identity_and_interval"],
+                                   RESOURCE_CLASSES["source_event_dynamic"],
+                                   RESOURCE_CLASSES["source_event_zero"]])
+assert_complete_classes(TOTAL, [["RID", "STID"], RESOURCE_CLASSES["source_event_dynamic"],
+                                RESOURCE_CLASSES["source_event_zero"]])
+
+
+def f32(value: float) -> float:
+    return struct.unpack("<f", struct.pack("<f", value))[0]
+
+
+def exposure(start: float, end: float, left: float, right: float) -> float:
+    assert 0 <= start <= end <= 36
+    return max(0.0, min(right, end) - max(left, start)) / (right - left)
+
+
+def expected(timeline: dict, arm: str) -> dict[str, list[dict]]:
+    """Use only the separately validated source/event timeline, never report cells."""
+    assert arm in DESCRIPTIONS
+    waves = timeline["waves"]
+    assert len(waves) == 2
+    assert timeline["first_positive_out"] == 7.75
+    assert timeline["second_positive_out"] == (None if arm == "control_out1" else 8)
+    assert timeline["transfer_quantity"] == (1 if arm == "control_out1" else 2)
+    system, stock, resource = [], [], []
+    for i in range(72):
+        left, right = i / 2, (i + 1) / 2
+        assigned = sum(2 * exposure(w["preparation_start"], w["return"], left, right) for w in waves)
+        work_wait = sum(2 * exposure(w["preparation_start"], w["first_preparation_end"], left, right)
+                        + exposure(w["first_preparation_end"], w["last_preparation_end"], left, right) for w in waves)
+        prepared = sum(exposure(w["first_preparation_end"], w["last_preparation_end"], left, right) for w in waves)
+        mission = sum(2 * exposure(w["launch"], w["return"], left, right) for w in waves)
+        starts = sum(2 for w in waves if left <= w["preparation_start"] < right)
+        completions = sum(int(left <= w["first_preparation_end"] < right) + int(left <= w["last_preparation_end"] < right) for w in waves)
+        s = {name: 0 for name in (SYSTEM_CLASSES["source_event_zero"] +
+                                  SYSTEM_CLASSES["bounded_native_presentation_zero"])}
+        s.update(UNID="Total over all Units", SID="Total over all Systems", STINT=left, ETINT=right,
+                 NSYRY=2-assigned, NSYMA=assigned, NSYMO=mission, NSYMP=work_wait,
+                 NSYMR=prepared, NSYA=2, FTMO=mission/2, STACC=mission,
+                 SYDT=None, NPSTA=starts, NPSUC=completions)
+        assert set(s) == set(SYSTEM)
+        system.append(s)
+        t = {name: 0 for name in STOCK_CLASSES["exact_zero"]}
+        t.update(STINT=left, ETINT=right, PNB=1,
+                 NBOU=None, ROS=None, ROST=None, WT=None, WTT=None, WTS=None)
+        assert set(t) == set(STOCK)
+        stock.append(t)
+        first_departure = exposure(7.75, 36, left, right)
+        second_departure = exposure(8, 36, left, right) if arm == "child_out2" else 0
+        cap = 3 - first_departure - second_departure
+        nominal = 3 - (2 if arm == "child_out2" else 1) * first_departure
+        booking = sum(exposure(a, b, left, right) for w in waves for a, b in w["bookings"])
+        waiting = sum(exposure(a, b, left, right) for w in waves for a, b in w["waits"])
+        r = {name: 0 for name in RESOURCE_CLASSES["source_event_zero"]}
+        r.update(RID="Total over all Resources", STID="Total over all Stations",
+                 STINT=left, ETINT=right, NR=cap, NRA=cap, NRN=nominal, NRUM=booking, NRW=waiting)
+        assert set(r) == set(RESOURCE)
+        resource.append(r)
+    totals = {name: 0 for name in RESOURCE_CLASSES["source_event_zero"]}
+    total_resource_hours = sum((row["NR"] / 2) for row in resource)
+    total_nominal_hours = sum((row["NRN"] / 2) for row in resource)
+    total_booking_hours = sum((row["NRUM"] / 2) for row in resource)
+    total_wait_hours = sum((row["NRW"] / 2) for row in resource)
+    totals.update(RID="Total over all Resources", STID="Total over all Stations",
+                  NR=f32(total_resource_hours/36), NRA=f32(total_resource_hours/36),
+                  NRN=f32(total_nominal_hours/36), NRUM=f32(total_booking_hours/36),
+                  NRW=f32(total_wait_hours/36))
+    assert set(totals) == set(TOTAL)
+    expected_hours = (79.75, 79.75, 0) if arm == "control_out1" else (51.75, 51.5, 0.5)
+    assert (total_resource_hours, total_nominal_hours, total_wait_hours) == expected_hours
+    assert total_booking_hours == 2
+    anchors = GATE["resource_fields"]["total_expected_float32"][arm]
+    assert {k: totals[k] for k in anchors} == anchors
+    integrals = {field: sum(row[field]/2 for row in system) for field in GATE["source_event_integrals_by_arm"][arm]}
+    assert integrals == GATE["source_event_integrals_by_arm"][arm], integrals
+    assert sum(row["NPSTA"] for row in system) == sum(row["NPSUC"] for row in system) == 4
+    assert sum(row["FTMO"] for row in system) == 4
+    return {"ProblemDescription": [{"PDESC": DESCRIPTIONS[arm]}],
+            "ResultSummary": [GATE["result_summary_expected"]],
+            "SystemResults": system, "StockTotalResults": stock,
+            "ResourceResults": resource, "ResourceResultsTotal": [totals]}
+
+
+def check_report(report: dict, timeline: dict, arm: str) -> int:
+    expected_rows = expected(timeline, arm)
+    assert hashlib.sha256(PARENT_REPORT.read_bytes()).hexdigest() == PARENT_REPORT_SHA
+    parent_tables = parse(PARENT_REPORT)["report"]["tables"]
+    assert set(report) == {"report"} and set(report["report"]) == {"tables"}
+    tables = report["report"]["tables"]
+    assert [table["name"] for table in tables] == GATE["tables_in_order"]
+    comparisons = 0
+    for table, spec in zip(tables, GATE["topology"]):
+        name = spec["name"]
+        assert set(table) == {"name", "columns", "instances"}, name
+        assert len(table["columns"]) == len(spec["columns"])
+        assert [c["name"] for c in table["columns"]] == spec["columns"]
+        assert typed_equal(table["columns"], parent_tables[GATE["tables_in_order"].index(name)]["columns"]), (name, "column metadata")
+        assert len({c["name"] for c in table["columns"]}) == len(spec["columns"])
+        # Native report metadata is part of the gate, including column datatype and key presence.
+        for col in table["columns"]:
+            assert set(col) == {"name", "datatype"} or set(col) == {"name", "datatype", "key"}, (name, col)
+            assert type(col["datatype"]) is str
+            if "key" in col:
+                assert type(col["key"]) is bool
+        assert len(table["instances"]) == 1
+        inst = table["instances"][0]
+        assert set(inst) == {"instance_name", "rows"}
+        assert inst["instance_name"] == spec["instance_name"]
+        rows = inst["rows"]
+        assert len(rows) == spec["rows"]
+        for i, (row, wanted) in enumerate(zip(rows, expected_rows[name])):
+            assert len(row) == len(spec["columns"])
+            for field, actual in zip(spec["columns"], row):
+                value = wanted[field]
+                if name == "ResultSummary" and field == "NREP":
+                    assert type(actual) is int and actual == value, (name, i, field, actual, value)
+                elif type(value) in (int, float):
+                    assert type(actual) in (int, float) and math.isfinite(actual) and actual == value, (name, i, field, actual, value)
+                else:
+                    assert type(actual) is type(value) and actual == value, (name, i, field, actual, value)
+                comparisons += 1
+    assert comparisons == 5210
+    return comparisons

@@ -1,0 +1,154 @@
+"""Independent paired original-byte replay; no SSH or native process is invoked."""
+import argparse
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+RUNS = {role: CASE / "runs" / run_id for role, run_id in {
+    "control_out1": "i03-var03-control-out1-v100-ssh-20261008-01",
+    "child_out2": "i03-var03-child-out2-v100-ssh-20261008-01"}.items()}
+CHILD_TRANSPORT = CASE / "transport-evidence/ssh-native-child_out2-20261007T233848248287Z-c67f6a7a"
+CHILD_SEAL = REPO / "tmp/i03-var03-root-seal-ssh-native-child_out2-20261007T233848248287Z-c67f6a7a.json"
+ROOT_PROOF = REPO / "tmp/i03-var03-root-independent-sealed-both-20261008-01/receipt.json"
+READER = CASE / "review/independent_replay.py"
+SELF_CHECK = CASE / "review/independent_self_check.py"
+PYTHON = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+PROOF = REPO / "tmp/i03-var03-independent-paired-postrun-proof-20261008-01"
+VERDICT = CASE / "review/independent-postrun-paired-verdict.json"
+GO = CASE / "review/independent-postrun-paired-go.json"
+
+
+def pin(path):
+    raw = path.read_bytes()
+    return {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def parse(raw):
+    return json.loads(raw.decode("utf-8-sig"))
+
+
+def audit():
+    assert pin(READER) == {"bytes": 63558, "sha256": "c45bcc2c696031ce04a687086fa266aa01446a2504a02f93aa053d8163ede037"}
+    assert pin(CHILD_SEAL) == {"bytes": 4291, "sha256": "0a529ed75ce09154d4150736a89e43800896978022e660bbd68d634424a07af4"}
+    assert pin(ROOT_PROOF) == {"bytes": 17674, "sha256": "6fc6f113a37b48e64def64c07d9840c447cc006c2b169a8f8cfeab15ff0f1b21"}
+    seal, root_proof = parse(CHILD_SEAL.read_bytes()), parse(ROOT_PROOF.read_bytes())
+    assert seal["schema"] == "i03-var03-root-completed-seal/v1" and seal["decision"] == "GO_ORIGINAL_BYTES_SEALED_ONLY"
+    assert seal["mode"] == "native" and seal["arm"] == "child_out2"
+    assert seal["run_id"] == RUNS["child_out2"].name
+    assert Path(seal["transport_dir"]).resolve() == CHILD_TRANSPORT.resolve()
+    assert len(seal["owned_files"]) == 25 and set(seal["owned_files"]) == {p.name for p in RUNS["child_out2"].iterdir()}
+    for name, expected in seal["owned_files"].items():
+        assert pin(RUNS["child_out2"] / name) == expected, name
+    for name, expected in seal["transport_files"].items():
+        assert pin(CHILD_TRANSPORT / name) == expected, name
+    tr = parse((CHILD_TRANSPORT / "transport-receipt.json").read_bytes())
+    assert tr["schema"] == "i03-var03-matched-out-ssh-transport/v1"
+    assert tr["mode"] == "native" and tr["arm"] == "child_out2"
+    assert tr["native_approved"] is True and type(tr["exit_code"]) is int and tr["exit_code"] == 0
+    assert tr["error"] is None and tr["streams"]["ssh-stderr.bin"]["bytes"] == 0
+    assert tr["streams"] == {name: pin(CHILD_TRANSPORT / name) for name in ("ssh-stdout.bin", "ssh-stderr.bin")}
+    assert root_proof["schema"] == "i03-var03-root-original-independent-sealed-proof/v1"
+    assert root_proof["mode"] == "both" and root_proof["decision"] == "GO_REPLAY_METHOD_ONLY"
+    assert type(root_proof["exit_code"]) is int and root_proof["exit_code"] == 0
+    assert root_proof["method"] == pin(READER) and root_proof["raw_unchanged_after"] is True
+    assert len(root_proof["raw_files"]) == 50
+    for path, row in root_proof["raw_files"].items():
+        assert pin(Path(path)) == row
+    for row in root_proof["streams"].values():
+        assert pin(Path(row["path"])) == {k: row[k] for k in ("bytes", "sha256")}
+    assert root_proof["streams"]["stderr"]["bytes"] == 0
+    replay = subprocess.run([str(PYTHON), "-X", "utf8", "-B", str(READER), "--sealed-both"],
+                            cwd=REPO, capture_output=True)
+    selfcheck = subprocess.run([str(PYTHON), "-X", "utf8", "-B", str(SELF_CHECK)],
+                               cwd=REPO, capture_output=True)
+    assert replay.returncode == 0 and replay.stderr == b""
+    assert selfcheck.returncode == 0 and selfcheck.stderr == b""
+    assert replay.stdout == Path(root_proof["streams"]["stdout"]["path"]).read_bytes()
+    result = parse(replay.stdout)
+    assert result["decision"] == "GO_BOUNDED" and result["scope"] == "paired_original_runs"
+    assert result["accepted_parent_cells"] == 5210 and result["accepted_parent_typed_events"] == 180
+    assert result["original_arm_report_cells"] == 10420 and result["new_native_calls_by_reviewer"] == 0
+    assert set(result["runs"]) == set(RUNS)
+    for role, cells, events in (("control_out1", 5210, 173), ("child_out2", 5210, 180)):
+        rr = result["runs"][role]
+        assert rr["run_id"] == RUNS[role].name and rr["report_cells"] == cells
+        assert rr["typed_events"] == events and rr["native_checker_steps"] == 6
+        assert rr["closure_sha256"] == pin(RUNS[role] / "closure.json")["sha256"]
+        assert rr["invocation_sha256"] == pin(RUNS[role] / "invocation.json")["sha256"]
+        assert rr["approval_sha256"] == pin(CASE / f"review/independent-prelaunch-go-{role}.json")["sha256"]
+        assert rr["independent_replay_sha256"] == pin(READER)["sha256"]
+        author = parse((RUNS[role] / "author-validation.json").read_bytes())
+        assert author["passed"] is True and author["issues"] == []
+        assert author["report_cell_checks"] == cells and author["typed_event_records"] == events
+    child_author = parse((RUNS["child_out2"] / "author-validation.json").read_bytes())
+    assert child_author["timeline"]["first_positive_out"] == 7.75
+    assert child_author["timeline"]["second_positive_out"] == 8
+    assert child_author["timeline"]["transfer_quantity"] == 2
+    assert child_author["timeline"]["waves"][1]["launch"] == 20.5
+    assert child_author["timeline"]["waves"][1]["return"] == 21.5
+    assert child_author["timeline"]["terminal"] == {"local": 1, "booked": 0, "transfer_backorder": 0, "ready_aircraft": 2}
+    assert len({p for run in RUNS.values() for p in run.iterdir()}) == 50
+    for path, row in root_proof["raw_files"].items():
+        assert pin(Path(path)) == row
+    streams = {"replay-stdout.bin": replay.stdout, "replay-stderr.bin": replay.stderr,
+               "selfcheck-stdout.bin": selfcheck.stdout, "selfcheck-stderr.bin": selfcheck.stderr}
+    receipt = {"schema": "i03-var03-independent-paired-postrun-proof/v1", "decision": "GO_BOUNDED",
+               "child_root_seal": pin(CHILD_SEAL), "root_replay_proof": pin(ROOT_PROOF),
+               "reader": pin(READER), "self_check": pin(SELF_CHECK),
+               "run_files": {role: {p.name: pin(p) for p in sorted(run.iterdir())} for role, run in RUNS.items()},
+               "replay_exit_code": replay.returncode, "selfcheck_exit_code": selfcheck.returncode,
+               "streams": {name: {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+                           for name, raw in streams.items()},
+               "report_cell_checks": result["original_arm_report_cells"],
+               "typed_events": {role: result["runs"][role]["typed_events"] for role in RUNS},
+               "new_native_calls_by_reviewer": 0}
+    return streams, receipt, replay.stdout, result
+
+
+def write_once():
+    streams, receipt, stdout, result = audit()
+    PROOF.mkdir(parents=True, exist_ok=False)
+    for name, raw in streams.items():
+        with (PROOF / name).open("xb") as f:
+            f.write(raw)
+    with (PROOF / "receipt.json").open("xb") as f:
+        f.write((json.dumps(receipt, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+    with VERDICT.open("xb") as f:
+        f.write(stdout)
+    go = {"schema": "i03-var03-matched-out-independent-paired-postrun-go/v1",
+          "decision": "GO_BOUNDED", "scope": "paired_original_runs",
+          "original_arm_report_cells": 10420,
+          "control_run_id": RUNS["control_out1"].name, "child_run_id": RUNS["child_out2"].name,
+          "control_closure_sha256": result["runs"]["control_out1"]["closure_sha256"],
+          "child_closure_sha256": result["runs"]["child_out2"]["closure_sha256"],
+          "control_approval_sha256": result["runs"]["control_out1"]["approval_sha256"],
+          "child_approval_sha256": result["runs"]["child_out2"]["approval_sha256"],
+          "control_source_map_sha256": result["runs"]["control_out1"]["source_map_sha256"],
+          "child_source_map_sha256": result["runs"]["child_out2"]["source_map_sha256"],
+          "independent_replay_sha256": pin(READER)["sha256"],
+          "verdict_sha256": pin(VERDICT)["sha256"]}
+    with GO.open("xb") as f:
+        f.write((json.dumps(go, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+    return receipt
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write-proof", action="store_true")
+    args = parser.parse_args()
+    if args.write_proof:
+        result = write_once()
+    else:
+        _, result, stdout, values = audit()
+        if VERDICT.exists():
+            assert VERDICT.read_bytes() == stdout
+        if GO.exists():
+            go = parse(GO.read_bytes())
+            assert go["decision"] == "GO_BOUNDED" and go["original_arm_report_cells"] == 10420
+            assert go["child_closure_sha256"] == values["runs"]["child_out2"]["closure_sha256"]
+    print(json.dumps({"decision": result["decision"], "report_cell_checks": 10420,
+                      "control_typed_events": 173, "child_typed_events": 180,
+                      "new_native_calls_by_reviewer": 0}, sort_keys=True))

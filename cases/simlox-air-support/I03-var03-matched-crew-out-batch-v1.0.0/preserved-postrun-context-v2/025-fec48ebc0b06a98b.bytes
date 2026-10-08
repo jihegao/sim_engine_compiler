@@ -1,0 +1,101 @@
+"""Independent actual child SSH5 preflight review; no SSH or native calls."""
+import argparse
+import hashlib
+import importlib.util
+import json
+from datetime import datetime
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+READER = CASE / "review/independent_replay.py"
+MANIFEST = CASE / "prelaunch-manifest-child_out2.json"
+PREF_REL = "review/preflight-ssh0-child_out2-20261007T233706349Z.json"
+PREF = CASE / PREF_REL
+TRANSPORT = CASE / "transport-evidence/ssh-preflight-child_out2-20261007T233653211961Z-c6715910"
+SEAL = REPO / "tmp/i03-var03-root-seal-ssh-preflight-child_out2-20261007T233653211961Z-c6715910.json"
+APPROVAL = CASE / "review/independent-prelaunch-go-child_out2.json"
+AUDIT = REPO / "tmp/i03-var03-independent-child-prelaunch-audit-20261008.json"
+GO_CONTROL = CASE / "review/independent-control-postrun-go.json"
+ROLE = "child_out2"
+RUN_ID = "i03-var03-child-out2-v100-ssh-20261008-01"
+
+
+def pin(path):
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def stamp(text):
+    return datetime.fromisoformat(text.replace("Z", "+00:00"))
+
+
+def audit():
+    spec = importlib.util.spec_from_file_location("independent_replay_frozen", READER)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    contract = reader.parse_json(reader.CONTRACT.read_bytes())
+    custody = reader.check_contract_source_custody(contract)
+    manifest, source_map, source_map_sha = reader.check_manifest(ROLE, contract)
+    manifest_pin, pref_pin, seal_pin = pin(MANIFEST), pin(PREF), pin(SEAL)
+    assert manifest_pin == {"bytes": 158855, "sha256": "6d20e232d4f80916ace58012e9f5553755384b02743b804c0cd108a7fce9d19c"}
+    assert pref_pin == {"bytes": 52711, "sha256": "7277cf9fdad7bcd917b8f41b7864f515ab54feca4538f9cb03a8629817449ffa"}
+    assert seal_pin == {"bytes": 1223, "sha256": "904415b6056f4f134f5517425d574317dd70cc9a7f65edd9af93381ed39ec725"}
+    assert pin(GO_CONTROL) == {"bytes": 814, "sha256": "c1b251f8dcb3f2f39f8ecc54cb313440e1308c3720f5feada46c127c3e6faa42"}
+    seal = reader.parse_json(SEAL.read_bytes())
+    assert seal["schema"] == "i03-var03-root-completed-seal/v1" and seal["decision"] == "GO_ORIGINAL_BYTES_SEALED_ONLY"
+    assert seal["mode"] == "preflight" and seal["arm"] == ROLE and seal["run_id"] == RUN_ID
+    assert Path(seal["transport_dir"]).resolve() == TRANSPORT.resolve()
+    for name, expected in seal["transport_files"].items():
+        assert pin(TRANSPORT / name) == expected, name
+    assert seal["owned_files"] == {str(PREF): pref_pin}
+    tr = reader.parse_json((TRANSPORT / "transport-receipt.json").read_bytes())
+    assert tr["schema"] == "i03-var03-matched-out-ssh-transport/v1"
+    assert tr["mode"] == "preflight" and tr["arm"] == ROLE and tr["run_id"] == RUN_ID
+    assert tr["native_approved"] is False and type(tr["exit_code"]) is int and tr["exit_code"] == 0
+    assert tr["error"] is None and stamp(tr["started_utc"]) < stamp(tr["completed_utc"])
+    assert tr["transport_sha256"] == source_map["owned:ssh_transport.py"]
+    assert tr["runner_sha256"] == source_map["runner_script"]
+    assert tr["manifest_sha256"] == manifest_pin["sha256"]
+    command = ["ssh", "-n", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-i",
+               "C:/Users/user/.ssh/id_rsa", "user@127.0.0.1", "powershell.exe", "-NoProfile",
+               "-NonInteractive", "-File", str(CASE / "run_native_ssh.ps1").replace("\\", "/"),
+               "-Arm", ROLE, "-PreflightOnly"]
+    assert tr["command"] == command
+    assert tr["streams"] == {name: pin(TRANSPORT / name) for name in ("ssh-stdout.bin", "ssh-stderr.bin")}
+    assert tr["streams"]["ssh-stderr.bin"]["bytes"] == 0
+    assert (TRANSPORT / "ssh-stdout.bin").read_bytes().decode("utf-8-sig").strip() == str(PREF)
+    wants = reader.expected_approval(ROLE, source_map, source_map_sha, manifest_pin["sha256"])
+    pre = reader.parse_json(PREF.read_bytes())
+    reader.validate_preflight_data(ROLE, pre, wants, source_map)
+    assert pre["source_map_sha256"] == "f88ae692319782d0c9ac08331e213dce8802b22354903f43b448eff367394a6d"
+    assert pre["control_run_state"] == "sealed_existing_control" and pre["sealed_control_original_files"] == 25
+    assert not (CASE / "runs" / RUN_ID).exists()
+    approval = {"schema": "i03-var03-matched-out-independent-prelaunch-go/v1",
+                "decision": "GO_PRELAUNCH", "arm": ROLE, "run_id": RUN_ID, **wants,
+                "preflight_relative_path": PREF_REL, "preflight_sha256": pref_pin["sha256"]}
+    reader.validate_approval_data(ROLE, approval, wants)
+    approval_bytes = (json.dumps(approval, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    if APPROVAL.exists():
+        assert APPROVAL.read_bytes() == approval_bytes
+    return approval_bytes, {"decision": "GO_PRELAUNCH", "scope": "one_root_owned_child_native_run_only",
+                            "arm": ROLE, "run_id": RUN_ID, "manifest": manifest_pin, "preflight": pref_pin,
+                            "transport_receipt": pin(TRANSPORT / "transport-receipt.json"), "root_seal": seal_pin,
+                            "source_map_sha256": source_map_sha, "control_go": pin(GO_CONTROL),
+                            "sealed_control_original_files": 25, "accepted_custody": custody,
+                            "approval": {"bytes": len(approval_bytes), "sha256": hashlib.sha256(approval_bytes).hexdigest()},
+                            "new_native_calls_by_reviewer": 0}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write-go", action="store_true")
+    args = parser.parse_args()
+    approval_bytes, result = audit()
+    if args.write_go:
+        with APPROVAL.open("xb") as f:
+            f.write(approval_bytes)
+        with AUDIT.open("xb") as f:
+            f.write((json.dumps(result, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+    print(json.dumps({"decision": result["decision"], "arm": ROLE,
+                      "sealed_control_original_files": 25, "new_native_calls_by_reviewer": 0}, sort_keys=True))

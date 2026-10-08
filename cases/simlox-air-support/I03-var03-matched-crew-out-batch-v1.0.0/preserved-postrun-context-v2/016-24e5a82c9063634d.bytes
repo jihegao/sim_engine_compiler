@@ -1,0 +1,16 @@
+# Root post-seal diagnostic read error
+
+After the successful one-time control seal, a read-only PowerShell `Get-Content`
+diagnostic requested the nonexistent `check_behavior-stdout.txt`. The tool call
+therefore ended with exit 1 after printing the successful seal receipt. The
+actual frozen checker's stdout file is `author-validation.json`; it was read on
+the following diagnostic call and is a passing 5,210-cell verdict.
+
+The seal helper itself exited 0 and produced the RO receipt
+`i03-var03-root-seal-ssh-native-control_out1-20261007T233143347757Z-341e8041.json`,
+SHA-256 `b67a98fd40ea6e4063caf6736a3e7f5cd4f03302ffa29fe8bef2efa3a28dd2ec`.
+The native transport exited 0, all six native/checker stages exited 0, and all
+25 original run files remained unchanged and RO. No native command was retried.
+
+The path error is recorded from the tool transcript only. No original binary
+stderr capture is claimed for that diagnostic PowerShell call.

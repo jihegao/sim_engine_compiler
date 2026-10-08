@@ -1,0 +1,249 @@
+"""Typed source-bound child log, quantity, order and terminal ledger."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+import re
+
+AIR = r"<TEACH-AIR-01,[01]>"
+MISSION = r"<BASIC-MISSION,TEACH-UNIT,0,0,[01]>"
+CREW = r"<P-CREW at <BASE-01,0>>"
+TASK = r"system preparation task [0-3] on " + AIR
+SUB = r"subtask [0-3] seqno 1 within " + TASK
+NUMBER = r"(?:0|[1-9][0-9]*)(?:\.[0-9]+)?"
+TIME = re.compile(r"^Time: (" + NUMBER + r")\s+(.*)$")
+
+
+@dataclass(frozen=True)
+class Event:
+    hour: float
+    line: int
+    body: str
+    continuations: tuple[str, ...]
+
+
+PATTERNS = [
+    AIR + r" Next random failure will occur 1e\+010",
+    AIR + r" nbr ready (?:increased|decreased) at unit: <TEACH-UNIT at <BASE-01,0>>",
+    r"<TEACH-UNIT at <BASE-01,0>> systems ready: [0-2] :(?:" + AIR + r"(?:," + AIR + r")?)?",
+    r"Start of day no [01]",
+    r"<BASE-01,0> trig missions and tasks waiting for resources",
+    r"resource shift 0 (?:created|starting) at " + CREW + r"(?: no shift period)?",
+    r"resource shift 0 ended at " + CREW + r" time gap to next = 0",
+    r"<TEACH-UNIT> mission ordered: BASIC-MISSION",
+    MISSION + r" mission (?:created:|activated, systems requested: 2|allocates system: " + AIR + r"|starting, duration: 1 : " + AIR + r"," + AIR + r"|success:|completed: " + AIR + r"," + AIR + r")",
+    MISSION + r" task (?:starting|completed): " + AIR + r"," + AIR,
+    AIR + r" releases excess resources \(if any\)",
+    AIR + r" preparation (?:started|ended), mission: " + MISSION,
+    TASK + r" (?:started|completed)",
+    SUB + r" (?:started|requests resources|resource availability test|resource received|books resources|starts performing, planned to last for 0\.5 hours|completed|frees resources)",
+    r"subtask [0-3] seqno 1 check return remote resources",
+    CREW + r" (?:allocated to maintenance task: 1  available now: [0-3]|deallocated from  maintenance task: 1  available now: [0-3]|check for return transport: 1|Resource transfer demand arrives from OUT-transfer|Resource transfer backorder (?:added|removed))",
+    r"resource transfer task [0-9]+ \(OUT\)  (?:created: starting from  " + CREW + r"|starts with [0-2]+ resources, transfer time: 0|arrives with [0-2]+ resources)",
+    r"<TEACH-AIR-01,BASE-01,0> System soon ready " + AIR + r", estimated remaining time: 0",
+    AIR + r" turnround (?:started, mission: " + MISSION + r" reduction factor: 1|ended, mission: " + MISSION + r")",
+    r"<TEACH-AIR-01,BASE-01,0> System arrives " + AIR + r", mission success,",
+    r"<TEACH-AIR-01,BASE-01,0> System ready " + AIR,
+    r"<TEACH-AIR-01,BASE-01,0> Repair task priority list:",
+]
+COMPILED = [re.compile(r"(?:" + x + r")\Z") for x in PATTERNS]
+CONTINUATIONS = [
+    re.compile(r"Missions waiting for resources at: <BASE-01,0>"),
+    re.compile(r"Tasks waiting for resources at: <BASE-01,0> [0-2]"),
+    re.compile(r"Free resources at: <BASE-01,0> P-CREW [0-3]"),
+    re.compile(r"Missions and tasks using resources at: <BASE-01,0> [0-2]"),
+    re.compile(r"Availability test on  " + CREW + r" request for: 1 (?:OK|failed)"),
+    re.compile(r"< subtask [0-3] seqno 1 within " + TASK + r", C, (?:0\.5|1, 0\.5)>"),
+    re.compile(r"Resource transfer backorders at:  " + CREW + r" Nbr: [0-2](?: Backorders:<OUT," + NUMBER + r">,)?"),
+    re.compile(r"no failures"), re.compile(r"no PMTasks"),
+]
+
+
+def parse_log(text: str) -> list[Event]:
+    lines = text.splitlines()
+    assert lines[:2] == ["SIMLOX LOG FILE", "36"], "native header/horizon"
+    mutable: list[list] = []
+    for line_no, line in enumerate(lines[2:], start=3):
+        match = TIME.fullmatch(line)
+        if match:
+            hour, body = float(match.group(1)), match.group(2).rstrip()
+            assert 0 <= hour <= 36 and (not mutable or hour >= mutable[-1][0]), (line_no, hour)
+            assert any(pattern.fullmatch(body) for pattern in COMPILED), (line_no, body)
+            mutable.append([hour, line_no, body, []])
+        else:
+            assert mutable and (not line.strip() or line[0].isspace()), (line_no, line)
+            if line.strip():
+                value = line.strip()
+                assert any(pattern.fullmatch(value) for pattern in CONTINUATIONS), (line_no, value)
+                mutable[-1][3].append(value)
+    assert mutable and mutable[-1][0] == 36
+    return [Event(hour, line, body, tuple(cont)) for hour, line, body, cont in mutable]
+
+
+def only(events: list[Event], pattern: str, hour: float | None = None) -> Event:
+    matches = [e for e in events if re.fullmatch(pattern, e.body) and (hour is None or e.hour == hour)]
+    assert len(matches) == 1, (pattern, hour, [(e.hour, e.line) for e in matches])
+    return matches[0]
+
+
+def sequence(*events: Event) -> None:
+    assert all(a.line < b.line for a, b in zip(events, events[1:])), [(e.hour, e.line, e.body) for e in events]
+
+
+def no(events: list[Event], text: str) -> None:
+    assert not any(text in e.body or any(text in c for c in e.continuations) for e in events), text
+
+
+def _matches(events: list[Event], pattern: str) -> list[Event]:
+    return [e for e in events if re.fullmatch(pattern, e.body)]
+
+
+def validate(text: str, arm: str) -> dict:
+    """Check complete typed log and derive the report timeline; no report cells read."""
+    assert arm in ("control_out1", "child_out2")
+    events = parse_log(text)
+    child = arm == "child_out2"
+    assert events[0].hour == 0 and events[-1].hour == 36
+    assert [e.hour for e in _matches(events, r"Start of day no [01]")] == [0, 24]
+    assert len(_matches(events, r"resource shift 0 created at " + CREW)) == 1
+    assert len(_matches(events, r"resource shift 0 starting at " + CREW + r" no shift period")) == 1
+    assert len(_matches(events, r"resource shift 0 ended at " + CREW + r" time gap to next = 0")) == 1
+    initial_shift = only(events, r"resource shift 0 starting at " + CREW + r" no shift period", 0)
+    assert initial_shift.continuations.count("Free resources at: <BASE-01,0> P-CREW 3") == 1
+    assert len(_matches(events, r"<TEACH-UNIT> mission ordered: BASIC-MISSION")) == 2
+    assert len(_matches(events, MISSION + r" mission created:")) == 2
+    assert len(_matches(events, MISSION + r" mission activated, systems requested: 2")) == 2
+    assert len(_matches(events, MISSION + r" mission starting, duration: 1 : " + AIR + r"," + AIR)) == 2
+    assert len(_matches(events, MISSION + r" mission success:")) == 2
+    assert len(_matches(events, MISSION + r" mission completed: " + AIR + r"," + AIR)) == 2
+    assert len(_matches(events, r"<TEACH-AIR-01,BASE-01,0> System arrives " + AIR + r", mission success,")) == 4
+    assert len(_matches(events, r"<TEACH-AIR-01,BASE-01,0> System ready " + AIR)) == 8
+    assert len(_matches(events, r"subtask [0-3] seqno 1 within " + TASK + r" books resources")) == 4
+    assert len(_matches(events, r"subtask [0-3] seqno 1 within " + TASK + r" frees resources")) == 4
+    assert len(_matches(events, CREW + r" allocated to maintenance task: 1  available now: [0-3]")) == 4
+    assert len(_matches(events, CREW + r" deallocated from  maintenance task: 1  available now: [0-3]")) == 4
+    for forbidden in ("mission cancelled:", "Stock ", "Replacement item", "SYSTEM FAILURE", "IN-transfer", "BETWEEN-transfer"):
+        no(events, forbidden)
+
+    demand = only(events, CREW + r" Resource transfer demand arrives from OUT-transfer", 7.75)
+    back_add = _matches(events, CREW + r" Resource transfer backorder added")
+    back_remove = _matches(events, CREW + r" Resource transfer backorder removed")
+    assert [(e.hour, e.body) for e in back_add] == ([(7.75, demand.body.replace("Resource transfer demand arrives from OUT-transfer", "Resource transfer backorder added"))] if child else [])
+    assert [e.hour for e in back_remove] == ([8] if child else [])
+    created: dict[int, Event] = {}
+    started: dict[int, tuple[Event, int]] = {}
+    arrived: dict[int, tuple[Event, int]] = {}
+    create_re = re.compile(r"resource transfer task (\d+) \(OUT\)  created: starting from  " + CREW + r"\Z")
+    start_re = re.compile(r"resource transfer task (\d+) \(OUT\)  starts with (\d+) resources, transfer time: 0\Z")
+    arrive_re = re.compile(r"resource transfer task (\d+) \(OUT\)  arrives with (\d+) resources\Z")
+    for event in events:
+        for pattern, target in ((create_re, created), (start_re, started), (arrive_re, arrived)):
+            match = pattern.fullmatch(event.body)
+            if not match:
+                continue
+            task_id = int(match.group(1))
+            assert task_id not in target, (task_id, event.line)
+            if target is created:
+                target[task_id] = event
+            else:
+                target[task_id] = (event, int(match.group(2)))
+    assert created and created.keys() == started.keys() == arrived.keys()
+    positive = []
+    zero = []
+    for task_id in created:
+        c, (s, quantity), (a, received) = created[task_id], started[task_id], arrived[task_id]
+        assert quantity == received and quantity in (0, 1)
+        assert c.hour == s.hour == a.hour and c.hour in (7.75, 8)
+        sequence(c, s, a)
+        (positive if quantity else zero).append((task_id, s))
+    assert len(zero) <= 1 and all(event.hour == 7.75 for _, event in zero)
+    assert [event.hour for _, event in positive] == ([7.75, 8] if child else [7.75])
+    assert sum(q for _, q in (started[i] for i in started)) == (2 if child else 1)
+    assert created[0].line < demand.line < started[0][0].line
+    assert all(c.line > demand.line for task_id, c in created.items() if task_id != 0)
+    if child:
+        sequence(back_add[0], back_remove[0], positive[1][1])
+    else:
+        assert not back_add and not back_remove
+
+    free, booked, departed = 3, 0, 0
+    positive_start_lines = {event.line for _, event in positive}
+    for e in events:
+        if e.line in positive_start_lines:
+            assert free >= 1
+            free -= 1
+            departed += 1
+        elif re.fullmatch(CREW + r" allocated to maintenance task: 1  available now: [0-3]", e.body):
+            free -= 1
+            booked += 1
+            assert int(e.body.rsplit("available now: ", 1)[1]) == free
+        elif re.fullmatch(CREW + r" deallocated from  maintenance task: 1  available now: [0-3]", e.body):
+            free += 1
+            booked -= 1
+            assert int(e.body.rsplit("available now: ", 1)[1]) == free
+        assert 0 <= free <= 3 and 0 <= booked <= 2 and free + booked + departed == 3, (e.line, free, booked, departed)
+        for continuation in e.continuations:
+            if continuation.startswith("Missions and tasks using resources at:"):
+                assert continuation == f"Missions and tasks using resources at: <BASE-01,0> {booked}", (e.line, continuation, booked)
+            if continuation.startswith("Free resources at:"):
+                assert continuation == f"Free resources at: <BASE-01,0> P-CREW {free}"
+            if continuation.startswith("Resource transfer backorders at:"):
+                assert ("Nbr: 1" in continuation) == (child and e.hour == 7.75)
+            if continuation in ("no failures", "no PMTasks"):
+                assert " System arrives " in e.body
+    assert (free, booked, departed) == ((1, 0, 2) if child else (2, 0, 1))
+    assert len([c for e in events for c in e.continuations if c == "no failures"]) == 4
+    assert len([c for e in events for c in e.continuations if c == "no PMTasks"]) == 4
+
+    waves = []
+    for wave, prep_start in enumerate((7.5, 19.5)):
+        first_end = prep_start + .5
+        last_end = first_end + (.5 if child and wave == 1 else 0)
+        launch, finish = last_end, last_end + 1
+        mission = f"<BASIC-MISSION,TEACH-UNIT,0,0,{wave}>"
+        ordered = only(events, r"<TEACH-UNIT> mission ordered: BASIC-MISSION", prep_start)
+        created_m = only(events, re.escape(mission) + r" mission created:", prep_start)
+        activated = only(events, re.escape(mission) + r" mission activated, systems requested: 2", prep_start)
+        started_m = only(events, re.escape(mission) + r" mission starting, duration: 1 : <TEACH-AIR-01,0>,<TEACH-AIR-01,1>", launch)
+        task_start = only(events, re.escape(mission) + r" task starting: <TEACH-AIR-01,0>,<TEACH-AIR-01,1>", launch+.25)
+        task_end = only(events, re.escape(mission) + r" task completed: <TEACH-AIR-01,0>,<TEACH-AIR-01,1>", launch+.75)
+        success = only(events, re.escape(mission) + r" mission success:", finish)
+        completed_m = only(events, re.escape(mission) + r" mission completed: <TEACH-AIR-01,0>,<TEACH-AIR-01,1>", finish)
+        sequence(ordered, created_m, activated, started_m, task_start, task_end, success, completed_m)
+        bookings = []
+        waits = []
+        for aircraft in (0, 1):
+            task_id = 2*wave + aircraft
+            end = first_end if aircraft == 0 else last_end
+            air = f"<TEACH-AIR-01,{aircraft}>"
+            prefix = f"subtask {task_id} seqno 1 within system preparation task {task_id} on {air}"
+            prep = only(events, re.escape(air) + r" preparation started, mission: " + re.escape(mission), prep_start)
+            main_start = only(events, fr"system preparation task {task_id} on " + re.escape(air) + r" started", prep_start)
+            sub_start = only(events, re.escape(prefix) + r" started", prep_start)
+            request = only(events, re.escape(prefix) + r" requests resources", prep_start)
+            test = only(events, re.escape(prefix) + r" resource availability test", prep_start if end == first_end else first_end)
+            booking = only(events, re.escape(prefix) + r" books resources", prep_start if end == first_end else first_end)
+            work = only(events, re.escape(prefix) + r" starts performing, planned to last for 0\.5 hours", prep_start if end == first_end else first_end)
+            sub_done = only(events, re.escape(prefix) + r" completed", end)
+            freed = only(events, re.escape(prefix) + r" frees resources", end)
+            main_done = only(events, fr"system preparation task {task_id} on " + re.escape(air) + r" completed", end)
+            prep_done = only(events, re.escape(air) + r" preparation ended, mission: " + re.escape(mission), end)
+            return_check = only(events, fr"subtask {task_id} seqno 1 check return remote resources", end)
+            sequence(prep, main_start, sub_start, request, test, booking, work, sub_done, freed, return_check, main_done, prep_done, started_m)
+            assert test.continuations.count("Availability test on  <P-CREW at <BASE-01,0>> request for: 1 OK") == 1
+            bookings.append((prep_start if end == first_end else first_end, end))
+            if end != first_end:
+                waits.append((prep_start, first_end))
+            arrival = only(events, r"<TEACH-AIR-01,BASE-01,0> System arrives " + re.escape(air) + r", mission success,", finish)
+            ready = [e for e in events if e.hour == finish and e.body == f"<TEACH-AIR-01,BASE-01,0> System ready {air}"]
+            assert len(ready) == 2
+            sequence(completed_m, arrival, ready[0], ready[1])
+        waves.append({"preparation_start": prep_start, "first_preparation_end": first_end,
+                      "last_preparation_end": last_end, "launch": launch, "return": finish,
+                      "bookings": bookings, "waits": waits})
+    return {"arm": arm, "waves": waves, "first_positive_out": 7.75,
+            "second_positive_out": 8 if child else None,
+            "transfer_quantity": 2 if child else 1,
+            "terminal": {"local": 1 if child else 2, "booked": 0, "transfer_backorder": 0, "ready_aircraft": 2},
+            "typed_events": len(events)}
+
+

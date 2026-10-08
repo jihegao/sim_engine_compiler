@@ -1,0 +1,70 @@
+"""One-time child manifest only after independently accepted sealed control."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+import subprocess
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / 'cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0'
+OUT = REPO / 'tmp/i03-var03-root-child-manifest-freeze-20261008-01'
+TARGET = CASE / 'prelaunch-manifest-child_out2.json'
+assert not OUT.exists() and not TARGET.exists()
+assert not (CASE / 'runs/i03-var03-child-out2-v100-ssh-20261008-01').exists()
+assert not list((CASE / 'review').glob('preflight-ssh0-child_out2*'))
+assert not (CASE / 'review/independent-prelaunch-go-child_out2.json').exists()
+
+def pin(path):
+    data = path.read_bytes()
+    return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+
+def freeze(path):
+    os.chmod(path, stat.S_IREAD)
+    assert not path.stat().st_mode & stat.S_IWRITE
+
+control_go = CASE / 'review/independent-control-postrun-go.json'
+go = json.loads(control_go.read_bytes())
+assert go['decision'] == 'GO_BOUNDED' and go['schema'] == 'i03-var03-matched-out-control-postrun-go/v1'
+assert not control_go.stat().st_mode & stat.S_IWRITE
+before = {str(control_go): pin(control_go)}
+inventory = json.loads((CASE / 'source-inventory.json').read_bytes())
+for r in inventory['source_files']:
+    p = CASE / r['path']
+    assert pin(p) == {k: r[k] for k in ('bytes', 'sha256')}
+    assert not p.stat().st_mode & stat.S_IWRITE
+    before[str(p)] = pin(p)
+for p in (CASE / 'runs/i03-var03-control-out1-v100-ssh-20261008-01').iterdir():
+    assert p.is_file() and not p.stat().st_mode & stat.S_IWRITE
+    before[str(p)] = pin(p)
+assert len(before) == 161
+sys.path.insert(0, str(CASE))
+from make_prelaunch_manifest import candidate
+body = candidate('child_out2', 'live')
+preview = {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+assert json.loads(body)['source_count'] == 375
+OUT.mkdir()
+argv = [sys.executable, '-X', 'utf8', '-B', 'make_prelaunch_manifest.py', '--arm', 'child_out2', '--write']
+r = subprocess.run(argv, cwd=CASE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+streams = {}
+for name, data in [('stdout', r.stdout), ('stderr', r.stderr)]:
+    path = OUT / (name + '.bin')
+    path.write_bytes(data)
+    freeze(path)
+    streams[name] = {'path': str(path), **pin(path)}
+unchanged = all(pin(Path(p)) == wanted for p, wanted in before.items())
+same = TARGET.exists() and pin(TARGET) == preview
+if TARGET.exists():
+    freeze(TARGET)
+receipt = {'schema': 'i03-var03-root-child-manifest-freeze/v1', 'argv': argv,
+           'exit_code': r.returncode, 'streams': streams, 'control_go': pin(control_go),
+           'expected_manifest': preview, 'manifest_matches_preview': same,
+           'source_records': 375, 'frozen_source_and_control_pins': before,
+           'all_frozen_source_and_control_bytes_unchanged': unchanged, 'new_native_calls': 0,
+           'decision': 'GO_CHILD_MANIFEST_BYTES_ONLY' if r.returncode == 0 and r.stderr == b'' and unchanged and same else 'NO_GO_PRESERVED'}
+path = OUT / 'receipt.json'
+path.write_bytes((json.dumps(receipt, indent=2) + '\n').encode())
+freeze(path)
+print(json.dumps({'receipt': str(path), **pin(path), 'decision': receipt['decision'], 'manifest': preview}))
+assert receipt['decision'] == 'GO_CHILD_MANIFEST_BYTES_ONLY'

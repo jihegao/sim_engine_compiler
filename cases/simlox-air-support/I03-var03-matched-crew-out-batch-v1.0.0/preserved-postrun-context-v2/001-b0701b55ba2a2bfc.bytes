@@ -1,0 +1,92 @@
+"""Read-only author assessment of both original, already sealed new runs."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+ROOT_SEALS = {
+    "control_out1": REPO / "tmp/i03-var03-root-seal-ssh-native-control_out1-20261007T233143347757Z-341e8041.json",
+    "child_out2": REPO / "tmp/i03-var03-root-seal-ssh-native-child_out2-20261007T233848248287Z-c67f6a7a.json",
+}
+INDEPENDENT_PROOF = REPO / "tmp/i03-var03-root-independent-sealed-both-20261008-01/receipt.json"
+OUT = REPO / "tmp/i03-var03-author-paired-postrun-20261008-01"
+STAGES = ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"]
+RUN_IDS = {
+    "control_out1": "i03-var03-control-out1-v100-ssh-20261008-01",
+    "child_out2": "i03-var03-child-out2-v100-ssh-20261008-01",
+}
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def replay(label: str, argv: list[str]) -> tuple[dict, dict]:
+    result = subprocess.run(argv, cwd=CASE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = OUT / f"{label}-stdout.bin"
+    stderr = OUT / f"{label}-stderr.bin"
+    stdout.write_bytes(result.stdout)
+    stderr.write_bytes(result.stderr)
+    assert result.returncode == 0 and result.stderr == b"", (label, result.returncode, result.stderr)
+    return {"argv": argv, "exit_code": result.returncode, "stdout": pin(stdout), "stderr": pin(stderr)}, json.loads(result.stdout)
+
+
+def main() -> None:
+    assert not OUT.exists(), "preserve existing paired author assessment"
+    OUT.mkdir()
+    python = sys.executable
+    arms = {}
+    for arm, run_id in RUN_IDS.items():
+        directory = CASE / "runs" / run_id
+        root_seal = ROOT_SEALS[arm]
+        seal = json.loads(root_seal.read_bytes())
+        assert seal["arm"] == arm and seal["run_id"] == run_id
+        originals = {path.name: pin(path) for path in directory.iterdir() if path.is_file()}
+        assert len(originals) == 25 and originals == seal["owned_files"]
+        steps = json.loads((directory / "steps.json").read_bytes())
+        assert [step["name"] for step in steps] == STAGES
+        assert all(step["sequence"] == index and step["exit_code"] == 0 and
+                   step["child_session_id"] == 0 and type(step["child_pid"]) is int and
+                   step["capture_error"] is None and step["gui_preserved"] is True and
+                   step["status"] == "completed" and step["stderr_bytes"] == 0
+                   for index, step in enumerate(steps))
+        author, result = replay(f"{arm}-author", [python, "-X", "utf8", "-B", str(CASE / "validate_native_cli.py"), str(directory), arm])
+        source, source_result = replay(f"{arm}-source", [python, "-X", "utf8", "-B", str(CASE / "source_gate.py"), "--mode", "sealed", "--arm", arm])
+        assert result == json.loads((directory / "author-validation.json").read_bytes())
+        assert result["passed"] is True and result["report_cell_checks"] == 5210
+        assert source_result["catalog"]["archived_entries"] == 493 and source_result["mode"] == "sealed"
+        arms[arm] = {"root_seal": pin(root_seal), "originals": originals,
+                     "author_replay": author, "sealed_source_replay": source,
+                     "report_cells": result["report_cell_checks"],
+                     "typed_event_records": result["typed_event_records"],
+                     "timeline": result["timeline"], "six_stage_actual_exit_codes": [step["exit_code"] for step in steps]}
+    control = arms["control_out1"]["timeline"]
+    child = arms["child_out2"]["timeline"]
+    assert arms["control_out1"]["typed_event_records"] == 173
+    assert arms["child_out2"]["typed_event_records"] == 180
+    assert (control["first_positive_out"], control["second_positive_out"], control["transfer_quantity"]) == (7.75, None, 1)
+    assert (child["first_positive_out"], child["second_positive_out"], child["transfer_quantity"]) == (7.75, 8, 2)
+    assert [(w["launch"], w["return"]) for w in control["waves"]] == [(8, 9), (20, 21)]
+    assert [(w["launch"], w["return"]) for w in child["waves"]] == [(8, 9), (20.5, 21.5)]
+    assert control["terminal"] == {"local": 2, "booked": 0, "transfer_backorder": 0, "ready_aircraft": 2}
+    assert child["terminal"] == {"local": 1, "booked": 0, "transfer_backorder": 0, "ready_aircraft": 2}
+    receipt = {"schema": "i03-var03-author-paired-postrun/v1",
+               "decision": "AUTHOR_BOUNDED_PAIR_PASS_AWAIT_INDEPENDENT_GO",
+               "scope": "two original sealed new arms; accepted parent reused without rerun",
+               "independent_root_proof_reference": pin(INDEPENDENT_PROOF),
+               "arms": arms, "original_run_files": 50, "report_cell_checks": 10420,
+               "new_native_calls_by_this_assessment": 0,
+               "limitation": "author result does not replace independent paired behavior and publication gates"}
+    path = OUT / "receipt.json"
+    path.write_bytes((json.dumps(receipt, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    print(json.dumps({"receipt": str(path), "receipt_pin": pin(path), "decision": receipt["decision"]}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

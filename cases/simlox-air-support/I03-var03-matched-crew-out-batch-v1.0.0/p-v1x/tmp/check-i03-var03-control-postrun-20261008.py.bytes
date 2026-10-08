@@ -1,0 +1,82 @@
+"""Read-only author assessment of one already sealed control run."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var03-matched-crew-out-batch-v1.0.0"
+RUN_ID = "i03-var03-control-out1-v100-ssh-20261008-01"
+RUN = CASE / "runs" / RUN_ID
+ROOT_SEAL = REPO / "tmp/i03-var03-root-seal-ssh-native-control_out1-20261007T233143347757Z-341e8041.json"
+INDEPENDENT_PROOF = REPO / "tmp/i03-var03-root-independent-sealed-control-20261008-01/receipt.json"
+OUT_DIR = REPO / "tmp/i03-var03-author-control-postrun-20261008-01"
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def capture(label: str, argv: list[str]) -> dict:
+    process = subprocess.run(argv, cwd=CASE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = OUT_DIR / f"{label}-stdout.bin"
+    stderr = OUT_DIR / f"{label}-stderr.bin"
+    stdout.write_bytes(process.stdout)
+    stderr.write_bytes(process.stderr)
+    assert process.returncode == 0 and not process.stderr, (label, process.returncode, process.stderr)
+    return {"argv": argv, "exit_code": process.returncode, "stdout": pin(stdout), "stderr": pin(stderr)}
+
+
+def main() -> None:
+    assert not OUT_DIR.exists(), "preserve existing author postrun proof"
+    OUT_DIR.mkdir()
+    seal = json.loads(ROOT_SEAL.read_bytes())
+    assert seal["arm"] == "control_out1" and seal["run_id"] == RUN_ID
+    owned = seal["owned_files"]
+    files = {path.name: pin(path) for path in RUN.iterdir() if path.is_file()}
+    assert len(files) == 25 and files == owned
+    assert len(list(RUN.iterdir())) == 25
+    python = sys.executable
+    author = capture("author-replay", [python, "-X", "utf8", "-B", str(CASE / "validate_native_cli.py"), str(RUN), "control_out1"])
+    source = capture("source-sealed", [python, "-X", "utf8", "-B", str(CASE / "source_gate.py"), "--mode", "sealed", "--arm", "control_out1"])
+    actual = json.loads((OUT_DIR / "author-replay-stdout.bin").read_bytes())
+    sealed = json.loads((RUN / "author-validation.json").read_bytes())
+    assert actual == sealed and actual["passed"] is True
+    assert actual["report_cell_checks"] == 5210 and actual["typed_event_records"] == 173
+    timeline = actual["timeline"]
+    assert timeline["first_positive_out"] == 7.75 and timeline["second_positive_out"] is None
+    assert timeline["transfer_quantity"] == 1
+    assert [(w["launch"], w["return"]) for w in timeline["waves"]] == [(8, 9), (20, 21)]
+    assert timeline["terminal"] == {"local": 2, "booked": 0, "transfer_backorder": 0, "ready_aircraft": 2}
+    src = json.loads((OUT_DIR / "source-sealed-stdout.bin").read_bytes())
+    assert src["mode"] == "sealed" and src["catalog"]["archived_entries"] == 493
+    receipt = {
+        "schema": "i03-var03-author-control-postrun/v1",
+        "decision": "AUTHOR_CONTROL_BOUNDED_PASS_AWAIT_INDEPENDENT_GO",
+        "scope": "one sealed new control run; no child launch or publication claim",
+        "root_seal": pin(ROOT_SEAL),
+        "independent_root_proof_reference": pin(INDEPENDENT_PROOF),
+        "run_id": RUN_ID,
+        "original_run_files": files,
+        "original_run_file_count": 25,
+        "author_replay": author,
+        "sealed_source_replay": source,
+        "report_cells": 5210,
+        "typed_event_records": 173,
+        "positive_out": 7.75,
+        "transfer_quantity": 1,
+        "launch_return_waves": [[8, 9], [20, 21]],
+        "terminal": timeline["terminal"],
+        "new_native_calls_by_this_assessment": 0,
+    }
+    path = OUT_DIR / "receipt.json"
+    path.write_bytes((json.dumps(receipt, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    print(json.dumps({"receipt": str(path), "receipt_pin": pin(path), "decision": receipt["decision"]}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

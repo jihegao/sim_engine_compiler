@@ -1,0 +1,141 @@
+"""Deterministic per-arm prelaunch manifest; default dry, never native."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+from source_gate import HERE, REPO, INPUT_SHA, RUN_IDS, check, pin, unique_json, verify
+
+SCHEMA = "i03-var03-matched-out-prelaunch-manifest/v1"
+CONTRACT = HERE / "contract.json"
+INVENTORY = HERE / "source-inventory.json"
+
+
+def file_pin(path: Path) -> dict:
+    return pin(path.read_bytes())
+
+
+def add(rows: list[dict], key: str, path: Path, expected: dict | None = None) -> None:
+    assert not any(row["key"] == key for row in rows), key
+    found = check(path, expected or file_pin(path))
+    rows.append({"key": key, "path": str(path.resolve()), **found})
+
+
+def prior_control(rows: list[dict]) -> dict:
+    run_id = RUN_IDS["control_out1"]
+    directory = HERE / "runs" / run_id
+    go_path = HERE / "review/independent-control-postrun-go.json"
+    assert directory.is_dir() and go_path.is_file(), "control must finish and receive independent GO"
+    go = unique_json(go_path.read_bytes())
+    assert go["schema"] == "i03-var03-matched-out-control-postrun-go/v1"
+    assert go["decision"] == "GO_BOUNDED" and go["run_id"] == run_id
+    assert type(go["report_cell_checks"]) is int and go["report_cell_checks"] == 5210
+    files = {}
+    for path in sorted(directory.iterdir(), key=lambda p: p.name):
+        assert path.is_file()
+        files[path.name] = file_pin(path)
+        add(rows, "sealed_control:" + path.name, path, files[path.name])
+    assert len(files) == 25 and "invocation.json" in files and "closure.json" in files
+    add(rows, "control_independent_go", go_path)
+    assert go["invocation_sha256"] == files["invocation.json"]["sha256"]
+    assert go["closure_sha256"] == files["closure.json"]["sha256"]
+    assert go["independent_replay_sha256"] == next(row["sha256"] for row in rows if row["key"] == "independent_replay")
+    return {"run_id": run_id, "go_relative_path": "review/independent-control-postrun-go.json",
+            "go_sha256": file_pin(go_path)["sha256"], "invocation_sha256": go["invocation_sha256"],
+            "closure_sha256": go["closure_sha256"], "manifest_sha256": go["manifest_sha256"],
+            "approval_sha256": go["approval_sha256"], "independent_replay_sha256": go["independent_replay_sha256"],
+            "verdict_sha256": go["verdict_sha256"], "source_map_sha256": go["source_map_sha256"],
+            "files": files}
+
+
+def candidate(arm: str, mode: str, provisional: bool = False) -> bytes:
+    assert arm in RUN_IDS and mode in ("live", "sealed")
+    verify(mode, arm)
+    contract = unique_json(CONTRACT.read_bytes())
+    if provisional:
+        from make_source_inventory import candidate as inventory_candidate
+        inventory = unique_json(inventory_candidate())
+    else:
+        inventory = unique_json(INVENTORY.read_bytes())
+    assert inventory["schema"] == "i03-var03-owned-prelaunch-source-inventory/v1"
+    rows: list[dict] = []
+    if not provisional:
+        add(rows, "owned_source_inventory", INVENTORY)
+    for row in inventory["source_files"]:
+        path = HERE / row["path"]
+        add(rows, "owned:" + row["path"], path, row)
+    aliases = {
+        "prospective_contract": CONTRACT,
+        "control_input": HERE / "control_out1-input.json",
+        "child_input": HERE / "child_out2-input.json",
+        "runner_script": HERE / "run_native_ssh.ps1",
+        "roundtrip_validator": HERE / "check_roundtrip.py",
+        "behavior_validator": HERE / "validate_native_cli.py",
+        "source_verifier": HERE / "source_gate.py",
+        "independent_replay": HERE / "review/independent_replay.py",
+        "independent_self_check": HERE / "review/independent_self_check.py",
+        "historical_catalog_archive": HERE / "preserved-catalog/publication-index-at-design.json.bytes",
+    }
+    for key, path in aliases.items():
+        assert any(row["path"] == str(path.resolve()) for row in rows), key
+        add(rows, key, path)
+    lineage = contract["source_lineage"]
+    base_git = {}
+    for index, row in enumerate(lineage["accepted_parent_source_disk_git_at_base"]):
+        add(rows, f"accepted_parent_source:{index:02d}", REPO / row["path"], row["disk"])
+        base_git[row["path"]] = row["git"]
+    for index, row in enumerate(lineage["accepted_parent_original_raw"]):
+        add(rows, f"accepted_parent_raw:{index:02d}", Path(row["path"]), row)
+    prereq = unique_json((HERE / "preserved-root-context/i03-var03-root-prerequisite-seals-v2-20261008.json.bytes").read_bytes())
+    assert len(prereq["records"]) == 141 and len(prereq["source_git_identities"]) == 63
+    for index, row in enumerate(prereq["records"]):
+        add(rows, f"prerequisite_original:{index:03d}", Path(row["path"]), row["observed"])
+    for row in prereq["source_git_identities"]:
+        base_git[row["path"]] = row["published_git"]
+    for index, row in enumerate(lineage["required_docs"]):
+        add(rows, f"required_doc:{index:02d}", REPO / row["path"], row)
+    for index, row in enumerate(lineage["installed"]):
+        add(rows, f"installed:{index:02d}", Path(row["path"]), row)
+    prior = prior_control(rows) if arm == "child_out2" else None
+    assert len({row["key"] for row in rows}) == len(rows)
+    live_catalog = lineage["catalog_at_design"]
+    payload = {"schema": SCHEMA, "arm": arm, "run_id": RUN_IDS[arm],
+               "contract_sha256": file_pin(CONTRACT)["sha256"], "input_sha256": INPUT_SHA[arm],
+               "source_files": rows, "source_count": len(rows),
+               "base_commit": lineage["base_commit"], "base_git_identities": base_git,
+               "live_catalog_prelaunch_pin": {"path": str((REPO / live_catalog["path"]).resolve()),
+                                              **live_catalog["local_disk"]},
+               "historical_catalog_entries": 493, "catalog_archive_sha256": live_catalog["local_disk"]["sha256"],
+               "accepted_parent_raw": 34, "accepted_prerequisite_raw": 78,
+               "sealed_control_original_files": 25 if prior else 0,
+               "prior_control": prior,
+               "stage_order": ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"],
+               "converter_gate_after_calc_before_jsonreport": True,
+               "publication_state": "prospective_not_yet_accepted"}
+    return (json.dumps(payload, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--arm", choices=tuple(RUN_IDS), required=True)
+    parser.add_argument("--mode", choices=("live", "sealed"), default="live")
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--provisional", action="store_true")
+    args = parser.parse_args()
+    assert not (args.provisional and args.write)
+    body = candidate(args.arm, args.mode, args.provisional)
+    path = HERE / f"prelaunch-manifest-{args.arm}.json"
+    if args.write:
+        assert not path.exists(), "preserve an existing frozen or failed manifest"
+        path.write_bytes(body)
+    else:
+        if path.exists() and not args.provisional:
+            assert path.read_bytes() == body, "frozen prelaunch manifest differs from dry rebuild"
+    print(json.dumps({"arm": args.arm, "written": args.write, "source_count": len(unique_json(body)["source_files"]),
+                      "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}))
+
+
+if __name__ == "__main__":
+    main()
