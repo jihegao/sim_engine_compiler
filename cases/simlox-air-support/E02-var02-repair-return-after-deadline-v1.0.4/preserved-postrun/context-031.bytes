@@ -1,0 +1,119 @@
+"""Once-only frozen new-child pure checks; no SSH, native, or parent checker."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import subprocess
+import sys
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+F = R / 'tmp/e02-var02-root-static-freeze-v104-20261009.json'
+N = R / 'tmp/e02-var02-native-v104-20261009-01'
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+assert len(sys.argv) == 2 and pin(F)['sha256'] == sys.argv[1]
+assert F.stat().st_file_attributes & 1
+freeze = json.loads(F.read_bytes())
+assert freeze['schema'] == 'e02-var02-root-static-freeze/v104'
+assert freeze['native_dispatch'] is False
+expected = freeze['case_sources']
+rows = freeze['mandatory_originals']
+assert len(rows) == 42
+source_list=json.loads((C/'source-list.json').read_bytes())
+assert source_list['schema']=='e02-var02-owned-source-list/v104'
+assert set(expected)==set(source_list['files'])|{'source-inventory.json','prelaunch-manifest.json'}
+M=R/'tmp/e02-var02-root-ps5-fixture-environment-v104-20261009.ps1'
+assert pin(M)=={'bytes':2386,'sha256':'5e5721853f6db49263c7e0eb9894b1906726bb767cc18cbacf33989d21c40125'}
+assert M.stat().st_file_attributes&1 and not M.stat().st_file_attributes&1024
+
+def sources():
+    result = {}
+    for path in sorted(C.rglob('*')):
+        assert not path.is_symlink() and not path.is_junction()
+        assert not path.stat().st_file_attributes & 1024
+        if path.is_file():
+            assert path.stat().st_file_attributes & 1
+            result[path.relative_to(C).as_posix()] = pin(path)
+    assert result == expected
+    assert not N.exists() and not (C / 'runs').exists()
+    return result
+
+def originals():
+    result = []
+    for row in rows:
+        path = Path(row['path'])
+        assert pin(path) == {k: row[k] for k in ('bytes', 'sha256')}
+        assert path.stat().st_mode == row['original_mode']
+        assert path.stat().st_file_attributes == row['original_attributes']
+        result.append(row)
+    return result
+
+before = sources()
+old_before = originals()
+proofroot = R / 'tmp/pure-proofs'
+existing = set(proofroot.glob('e02v02-t104-*'))
+out = R / 'tmp/e02-var02-root-static-proofs-v104-20261009' / (
+    dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+out.mkdir(parents=True, exist_ok=False)
+steps = []
+failure = None
+methods = [(name, [sys.executable, '-X', 'utf8', '-B', str(C / name)]) for name in (
+    'build.py', 'source_gate.py', 'self_check.py', 'make_source_inventory.py',
+    'make_prelaunch_manifest.py', 'review/independent_self_check.py')]
+methods.append(('review/independent_reader.py', [sys.executable, '-X', 'utf8', '-B',
+                str(C / 'review/independent_reader.py'), '--pure']))
+methods.append(('test_converter_gate.ps1', [
+    r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
+    '-NoLogo', '-NoProfile', '-NonInteractive', '-File', str(M), '-ExpectedFixtureSha', expected['test_converter_gate.ps1']['sha256']]))
+try:
+    for index, (rel, argv) in enumerate(methods):
+        sources()
+        originals()
+        started = dt.datetime.now(dt.timezone.utc).isoformat()
+        stdout, stderr = out / f'{index}-stdout.bin', out / f'{index}-stderr.bin'
+        with stdout.open('xb') as so, stderr.open('xb') as se:
+            code = subprocess.run(argv, cwd=R, stdout=so, stderr=se).returncode
+        steps.append({'method': rel, 'method_pin': expected[rel], 'argv': argv,
+            'started_utc': started, 'completed_utc': dt.datetime.now(dt.timezone.utc).isoformat(),
+            'actual_exit': code, 'streams': {'stdout': pin(stdout), 'stderr': pin(stderr)}})
+        assert type(code) is int and code == 0, (rel, code)
+        assert stderr.read_bytes() == b'', rel
+        sources()
+        originals()
+except BaseException as exc:
+    failure = type(exc).__name__ + ': ' + str(exc)
+clones = {}
+for directory in sorted(set(proofroot.glob('e02v02-t104-*')) - existing):
+    assert directory.resolve().parent == proofroot.resolve()
+    assert not directory.is_symlink() and not directory.is_junction()
+    for path in sorted(directory.iterdir()):
+        assert path.is_file() and not path.stat().st_file_attributes & 1024
+        path.chmod(stat.S_IREAD)
+        clones[str(path)] = pin(path)
+after_error = None
+try:
+    after, old_after = sources(), originals()
+except BaseException as exc:
+    after, old_after = None, None
+    after_error = type(exc).__name__ + ': ' + str(exc)
+receipt = {'schema': 'e02-var02-root-static-proof/v104', 'native_dispatch': False,
+    'accepted_parent_checker_calls': 0, 'freeze': pin(F), 'method': pin(Path(__file__)), 'ps5_environment_wrapper': pin(M),
+    'case_sources_before': before, 'case_sources_after': after,
+    'mandatory_originals_before': old_before, 'mandatory_originals_after': old_after,
+    'steps': steps, 'private_fixture_clones': clones,
+    'decision': 'PASS_STATIC_ONLY' if failure is None and after_error is None else 'NO_GO_PRESERVED',
+    'failure': failure, 'after_error': after_error}
+with (out / 'receipt.json').open('xb') as stream:
+    stream.write((json.dumps(receipt, indent=2) + '\n').encode())
+for path in out.iterdir():
+    path.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(out / 'receipt.json'), **pin(out / 'receipt.json'),
+    'decision': receipt['decision'], 'actual_exits': [x['actual_exit'] for x in steps],
+    'private_fixture_files': len(clones), 'failure': failure, 'after_error': after_error}))
+assert failure is None and after_error is None

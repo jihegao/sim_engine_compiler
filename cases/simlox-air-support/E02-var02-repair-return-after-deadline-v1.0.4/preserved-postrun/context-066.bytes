@@ -1,0 +1,103 @@
+"""Read-only, receipt-bound audit of the one E02.var02 SSH preflight."""
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+
+REPO = Path(r'C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo')
+CASE = REPO / 'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+READER = CASE / 'review/independent_reader.py'
+READER_SHA = 'c505559dd2a3f962a6c53830eea23f0aba1424a3b1a5b25cf333474e55cbd6cf'
+PREFLIGHT = CASE / 'review/preflight-ssh0-20261008T224129595Z.json'
+PREFLIGHT_SHA = 'a55c7336f6142845b62c50f5614b6ffa62e4401ce69061ebede2d2aec2e6a10e'
+TRANSPORT = CASE / 'transport-evidence/ssh-preflight-20261008T224121705909Z-98d1fd8d'
+TRANSPORT_SHA = '50bb530e924ff62798834ee0c6a1271a3cb42fd5cccef380b0f2ce436b37f3b9'
+OUTER = REPO / 'tmp/e02-var02-root-command-proofs-v104-20261009/ssh-preflight-v104-20261008T224121616315Z-f16099a2'
+OUTER_SHA = '95d3328988354ed7d4c42c0facf7c869656c4b9832673ed07dd639f9537e1e52'
+SEAL = REPO / 'tmp/e02-var02-root-preflight-seal-v104-20261009.json'
+SEAL_SHA = 'd895b98b4d2b029b1bcbba1bf515533c9ae515a8cafc29a1c04742d3ec17d7b6'
+EMPTY_SHA = hashlib.sha256(b'').hexdigest()
+
+def digest(path):
+    data = path.read_bytes()
+    return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+
+def pinned(path, sha):
+    assert digest(path)['sha256'] == sha, str(path)
+    assert path.stat().st_file_attributes & 1, str(path)
+    return path.read_bytes()
+
+def exact(path, spec):
+    assert digest(path) == spec, str(path)
+    assert path.stat().st_file_attributes & 1, str(path)
+    assert not path.is_symlink(), str(path)
+    return path.read_bytes()
+
+def load_json(path, sha):
+    data = pinned(path, sha)
+    return json.loads(data[3:] if data.startswith(b'\xef\xbb\xbf') else data)
+
+def main():
+    assert not (REPO / 'tmp/e02-var02-native-v104-20261009-01').exists()
+    assert not (CASE / 'runs/e02-var02-repair-deadline-v104-ssh-20261009-01').exists()
+    assert not (CASE / 'review/independent-prelaunch-go.json').exists()
+    assert not list(CASE.rglob('failure-seal.json'))
+    pinned(READER, READER_SHA)
+    spec = importlib.util.spec_from_file_location('e02_independent_reader', READER)
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    preflight, source_map = reader.preflight_receipt(PREFLIGHT)
+    assert digest(PREFLIGHT)['sha256'] == PREFLIGHT_SHA
+    manifest, check_map = reader.manifest_document()
+    assert check_map == source_map and len(source_map) == 274
+    assert reader.source_map_digest(source_map) == preflight['source_map_sha256']
+
+    seal = load_json(SEAL, SEAL_SHA)
+    assert set(seal) == {'schema','native_calls','files','method'}
+    assert seal['schema'] == 'e02-var02-root-preflight-seal/v104'
+    assert type(seal['native_calls']) is int and seal['native_calls'] == 0
+    assert len(seal['files']) == 15
+    pure_dir = Path(preflight['pure_proof_directory'])
+    expected = {PREFLIGHT, TRANSPORT/'transport-receipt.json', TRANSPORT/'ssh-stdout.bin', TRANSPORT/'ssh-stderr.bin', pure_dir/'pure-proof.json'}
+    expected.update(pure_dir/(Path(tool).stem+'-'+stream+'.bin') for tool in reader.TOOLS for stream in ('stdout','stderr'))
+    assert set(seal['files']) == {str(path) for path in expected}
+    for name, file_spec in seal['files'].items():
+        assert set(file_spec) == {'bytes','sha256'}
+        exact(Path(name), file_spec)
+
+    outer = load_json(OUTER/'receipt.json', OUTER_SHA)
+    assert set(outer) == {'schema','argv','started_utc','completed_utc','native_dispatch','actual_exit','method_before','method_after','streams'}
+    assert outer['schema'] == 'e02-var02-root-command-proof/v104'
+    assert outer['native_dispatch'] is False and type(outer['actual_exit']) is int and outer['actual_exit'] == 0
+    assert outer['argv'] == [reader.PYTHON,'-X','utf8','-B',str(CASE/'ssh_transport.py'),'preflight']
+    assert outer['method_before'] == outer['method_after']
+    method = outer['method_before']
+    for name,path in {'capture': REPO/'tmp/e02-var02-root-command-capture-v104-20261009.py', 'spec': REPO/'tmp/e02-var02-ssh-preflight-command-spec-v104-20261009.json', 'method': CASE/'ssh_transport.py'}.items():
+        assert method[name] == digest(path)
+    outer_stdout = exact(OUTER/'stdout.bin', outer['streams']['stdout.bin'])
+    exact(OUTER/'stderr.bin', outer['streams']['stderr.bin'])
+    assert outer['streams']['stderr.bin'] == {'bytes':0,'sha256':EMPTY_SHA}
+    summary = json.loads(outer_stdout)
+    assert summary == {'mode':'preflight','exit_code':0,'evidence_dir':str(TRANSPORT),'error':None}
+
+    transport = load_json(TRANSPORT/'transport-receipt.json', TRANSPORT_SHA)
+    assert set(transport) == {'schema','mode','run_id','native_approved','native_run_directory','transport_sha256','runner_sha256','manifest_sha256','started_utc','completed_utc','command','exit_code','error','streams'}
+    assert transport['schema'] == 'e02-var02-ssh-transport/v104' and transport['mode'] == 'preflight'
+    assert transport['native_approved'] is False and type(transport['exit_code']) is int and transport['exit_code'] == 0 and transport['error'] is None
+    assert transport['run_id'] == reader.RUN_ID and transport['native_run_directory'] == str(reader.RUN)
+    assert transport['transport_sha256'] == method['method']['sha256']
+    assert transport['runner_sha256'] == manifest['runner_sha256']
+    assert transport['manifest_sha256'] == digest(CASE/'prelaunch-manifest.json')['sha256']
+    assert reader.utc(outer['started_utc']) <= reader.utc(transport['started_utc']) <= reader.utc(transport['completed_utc']) <= reader.utc(outer['completed_utc'])
+    expected_cmd = ['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',str(CASE/'run_native_ssh.ps1').replace('\\','/'),'-PreflightOnly']
+    assert transport['command'] == expected_cmd
+    assert set(transport['streams']) == {'ssh-stdout.bin','ssh-stderr.bin'}
+    for name,row in transport['streams'].items():
+        exact(TRANSPORT/name,row)
+    assert transport['streams']['ssh-stderr.bin'] == {'bytes':0,'sha256':EMPTY_SHA}
+    assert (TRANSPORT/'ssh-stdout.bin').read_bytes() == (str(PREFLIGHT)+'\r\n').encode('ascii')
+
+    print(json.dumps({'decision':'PASS_ACTUAL_ZERO_NATIVE_PREFLIGHT','run_id':reader.RUN_ID,'manifest_sha256':transport['manifest_sha256'],'source_map_sha256':preflight['source_map_sha256'],'preflight_sha256':PREFLIGHT_SHA,'transport_receipt_sha256':TRANSPORT_SHA,'outer_receipt_sha256':OUTER_SHA,'sealed_preflight_originals':15,'source_roles':len(source_map),'native_calls':0},sort_keys=True))
+
+if __name__ == '__main__':
+    main()

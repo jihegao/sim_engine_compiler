@@ -1,0 +1,31 @@
+param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{64}$')][string]$ExpectedFixtureSha)
+$ErrorActionPreference='Stop'
+if ($PSVersionTable.PSVersion.Major -ne 5) { throw 'Windows PowerShell5 required' }
+$priorPath=$env:PSModulePath
+$initial=$null
+$initialError=$null
+try { $initial=Get-Command Get-FileHash -ErrorAction Stop } catch { $initialError=$_.Exception.Message }
+$systemHome='C:\Windows\System32\WindowsPowerShell\v1.0'
+$systemRoot=Join-Path $systemHome 'Modules'
+$utility=Join-Path $systemRoot 'Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1'
+$env:PSModulePath=$systemRoot
+Import-Module -Name $utility -Force -ErrorAction Stop
+$resolved=Get-Command Get-FileHash -ErrorAction Stop
+[ordered]@{schema='e02-var02-local-ps5-environment/v104';ps_major=$PSVersionTable.PSVersion.Major;
+  session_id=[System.Diagnostics.Process]::GetCurrentProcess().SessionId;
+  prior_module_path=$priorPath;initial_get_filehash_present=($null -ne $initial);
+  initial_error=$initialError;effective_module_path=$env:PSModulePath;
+  utility_manifest_path=$utility;utility_manifest_sha256=(Get-FileHash -LiteralPath $utility -Algorithm SHA256).Hash.ToLowerInvariant();
+  resolved_command_type=[string]$resolved.CommandType;resolved_module_name=$resolved.ModuleName;
+  resolved_module_path=$resolved.Module.Path;resolved_module_base=$resolved.Module.ModuleBase;
+  resolved_module_version=$resolved.Module.Version.ToString();native_calls=0} | ConvertTo-Json -Compress
+if ($resolved.CommandType -ne 'Function' -or $resolved.ModuleName -cne 'Microsoft.PowerShell.Utility' -or
+    $resolved.Module.Path -ine $utility -or $resolved.Module.ModuleBase -ine $systemHome -or
+    $resolved.Module.Version.ToString() -cne '3.1.0.0') {
+  throw 'system WindowsPowerShell Utility resolution differs from measured system identity'
+}
+$fixture='C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo\cases\simlox-air-support\E02-var02-repair-return-after-deadline-v1.0.4\test_converter_gate.ps1'
+$fixtureItem=Get-Item -LiteralPath $fixture -ErrorAction Stop
+if (-not $fixtureItem.IsReadOnly -or ($fixtureItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'fixture must be frozen plain file' }
+if ((Get-FileHash -LiteralPath $fixture -Algorithm SHA256).Hash.ToLowerInvariant() -cne $ExpectedFixtureSha) { throw 'frozen converter fixture bytes differ' }
+& $fixture

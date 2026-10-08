@@ -1,0 +1,71 @@
+"""Absent-only root byte promotion of an independently audited v104 candidate."""
+from pathlib import Path
+import hashlib
+import json
+import stat
+import sys
+
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.4'
+N=R/'tmp/e02-var02-native-v104-20261009-01'
+SPEC=R/'tmp/e02-var02-root-case-promotion-spec-v104-20261009.json'
+def pin(p):
+    b=p.read_bytes(); return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def plain(p):
+    for q in (p,*p.parents):
+        if q.exists(): assert not q.is_symlink() and not q.is_junction() and not q.stat().st_file_attributes&1024,str(q)
+def exact(p,sha):
+    plain(p)
+    assert p.is_file() and p.stat().st_file_attributes&1 and pin(p)['sha256']==sha,str(p)
+    return json.loads(p.read_bytes())
+assert len(sys.argv)==6
+mode,candidate_sha,audit_arg,audit_sha,spec_sha=sys.argv[1:]
+assert mode in ('inventory','manifest')
+frozen=exact(SPEC,spec_sha)
+assert set(frozen)=={'schema','source_files','independent_method_go','mandatory_originals'}
+assert frozen['schema']=='e02-var02-root-case-promotion-spec/v104'
+assert frozen['independent_method_go']==frozen['source_files']['review/independent-static-go-2026-10-09.md']
+candidate=R/f'tmp/e02-var02-{mode}-candidate-v104-20261009.json'
+target=C/('source-inventory.json' if mode=='inventory' else 'prelaunch-manifest.json')
+doc=exact(candidate,candidate_sha)
+auditpath=Path(audit_arg).resolve(strict=True)
+assert auditpath.is_relative_to(R/'tmp/e02-var02-root-command-proofs-v104-20261009')
+audit=exact(auditpath,audit_sha)
+assert audit['schema']=='e02-var02-root-command-proof/v104'
+assert type(audit['actual_exit']) is int and audit['actual_exit']==0
+assert audit['native_dispatch'] is False and audit['method_before']==audit['method_after']
+assert audit['method_before']['method']==frozen['source_files']['review/independent_reader.py']
+assert audit['argv']==[sys.executable,'-X','utf8','-B',str(C/'review/independent_reader.py'),'--'+mode+'-candidate',str(candidate)]
+assert set(audit['streams'])=={'stdout.bin','stderr.bin'}
+for name,spec in audit['streams'].items():
+    p=auditpath.parent/name;plain(p)
+    assert p.stat().st_file_attributes&1 and pin(p)==spec
+assert (auditpath.parent/'stderr.bin').read_bytes()==b''
+verdict=json.loads((auditpath.parent/'stdout.bin').read_bytes())
+count=len(frozen['source_files']) if mode=='inventory' else len(frozen['source_files'])+1+231
+assert verdict=={'decision':'PASS_INVENTORY_CANDIDATE' if mode=='inventory' else 'PASS_MANIFEST_CANDIDATE','source_count':count,'candidate_sha256':candidate_sha}
+assert doc['schema']==('e02-var02-source-inventory/v104' if mode=='inventory' else 'e02-var02-prelaunch-manifest/v104')
+assert doc['source_count']==count
+def stable():
+    for rel,spec in frozen['source_files'].items():
+        p=C/rel;plain(p)
+        assert p.stat().st_file_attributes&1 and pin(p)==spec
+    assert len(frozen['mandatory_originals'])==42
+    for row in frozen['mandatory_originals']:
+        p=Path(row['path']);plain(p)
+        assert pin(p)=={k:row[k] for k in ('bytes','sha256')}
+        assert p.stat().st_mode==row['original_mode'] and p.stat().st_file_attributes==row['original_attributes']
+    assert not N.exists()
+stable()
+plain(target)
+assert not target.exists()
+output=R/f'tmp/e02-var02-root-{mode}-promotion-v104-20261009.json'
+assert not output.exists()
+with target.open('xb') as f: f.write(candidate.read_bytes())
+target.chmod(stat.S_IREAD)
+assert pin(target)==pin(candidate)
+stable()
+receipt={'schema':'e02-var02-root-candidate-promotion/v104','mode':mode,'native_dispatch':False,'method':pin(Path(__file__)),'frozen_spec':{'path':str(SPEC),**pin(SPEC)},'candidate':{'path':str(candidate),**pin(candidate)},'target':{'path':str(target),**pin(target)},'audit':{'path':str(auditpath),**pin(auditpath)},'verdict':verdict,'owned_sources_unchanged':len(frozen['source_files']),'mandatory_originals_unchanged':42}
+with output.open('xb') as f: f.write((json.dumps(receipt,indent=2)+'\n').encode())
+output.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(output),**pin(output),'mode':mode,'native_dispatch':False}))

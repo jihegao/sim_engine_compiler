@@ -1,0 +1,59 @@
+{
+  "schema": "e02-var02-prospective-event-oracle/v104",
+  "status": "post-v103-diagnostic, unobserved-10.75h strict hypothesis",
+  "template_source": {
+    "path": "cases/simlox-air-support/E02-var02-repair-return-after-deadline-v1.0.3/preserved-oracle/log-patterns.json",
+    "bytes": 15556,
+    "sha256": "e39b2e75aac1a61a1f35bc4ce0e91735ddf2119ba077d62226dcc5adb0a536e9",
+    "role": "frozen 117-line v103 prospective template, used only as a disclosed starting grammar"
+  },
+  "accepted_cancellation_precedent": {
+    "path": "cases/simlox-air-support/A02-var01-insufficient-gap-v0.1.1/runs/a02-var01-insufficient-gap-v011-ssh-20261006-01/model.log",
+    "bytes": 4784,
+    "sha256": "ae99693f61618e10212b414855aee1995f3744b73f8a3960d8955ebbd5ab3514",
+    "zero_based_lines": [25, 26, 27, 28, 29, 30],
+    "six_crlf_terminated_lines_bytes": 117,
+    "six_crlf_terminated_lines_sha256": "e7878ad17c4112b1710ceef1b6bbfc3613693adf2e70a8ae611f28b8cf6e8101"
+  },
+  "strict_render_recipe": [
+    "Require the frozen v103 template has exactly 117 ordered line records and exactly 99 timed records; reject any unexpected source token or row change.",
+    "Copy records 0..60 exactly; their CRLF-terminated bytes are 4729/SHA256 b02fa06684be18b8d2e0138b1ca26b7ba614da53602dd9dc2f67f64659758db0.",
+    "In record 61 only, replace the one literal planned-duration token '10.5 hours' with '10.75 hours'.",
+    "Copy records 62..66 exactly, including h19 mission order/creation/activation/wait and h20.3333 cancellation of <BASIC-MISSION,TEACH-UNIT,0,0,1>.",
+    "Immediately after old record 66 append the exact six CRLF-terminated accepted A02 cancellation-continuation lines, in the pinned order and spelling. The cancelled mission has no allocation, start, task, success or completion.",
+    "For old records 67..79 only, replace each expected time token '20.6667' with '20.9167' and the one displayed backorder duration '10.6667' with '10.9167'; keep all other characters and physical identities exact.",
+    "For old records 80..86 only, replace each leading 'Time: 21 ' token with 'Time: 21.25 '; keep the 1e+010 post-repair failure marker and all descriptors exact.",
+    "Copy old records 87..116 exactly, except the one already-declared finite numeric Next random failure marker after the third mission remains strictly greater than hour 34 and triggers no event."
+  ],
+  "expected_physical_lines": 123,
+  "expected_timed_lines": 99,
+  "encoding": "UTF-8 without BOM; exactly CRLF after every physical line; no lone LF, extra line, missing line, moved continuation or trailing payload",
+  "causal_ledger_hours": {
+    "first_failure": 9.8829,
+    "demand_and_backorder_start": 10.0,
+    "remove_complete_and_direct_repair_start": 10.166666666666666,
+    "direct_repair_duration": 10.75,
+    "direct_repair_complete_and_backorder_clear_display": "20.9167",
+    "direct_repair_complete_interval": "20.5 <= t < 21.0",
+    "fit_duration": 0.3333333333333333,
+    "system_repair_complete_and_ready_display": "21.25",
+    "system_repair_complete_interval": "21.0 <= t < 21.5",
+    "second_mission_order": 19.0,
+    "second_deadline_display": 20.3333,
+    "second_outcome": "exact one cancellation before repair completion; zero allocation and launch",
+    "third_mission_order": 31.0,
+    "third_mission_launch": 32.0,
+    "third_mission_success": 34.0,
+    "terminal_system_ready": true,
+    "terminal_backorders": 0
+  },
+  "branch_table": [
+    {"id": "strict-primary", "condition": "all 123/99 physical, ownership, cancellation, third-success and report predicates hold", "decision": "eligible_for_independent_bounded_review_only"},
+    {"id": "different-time-or-grammar", "condition": "any different printed time, extra/missing/moved line, changed ID or cancellation ordering", "decision": "NO_GO"},
+    {"id": "different-third-mission", "condition": "random marker fails to exceed34 or any h32-to34 mission/failure branch differs", "decision": "NO_GO"}
+  ],
+  "disclosure": "The six continuation lines were visible in both accepted A02 precedent and excluded v103 output before this new contract. They are not presented as a newly deduced engine law. The 10.75h timeline and exact resulting transcript are a fresh falsifiable hypothesis; the old v103 run is never reclassified.",
+  "floating_point_limit": "The displayed completion tokens and strict half-hour bin inequalities are predictions. The contract does not assert an exact internal binary64 instant or an undocumented event-scheduling operation order.",
+  "design_native_calls": 0,
+  "design_accepted_checker_calls": 0
+}
