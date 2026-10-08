@@ -1,0 +1,73 @@
+{
+  "schema": "a17-var06-full-oracle-map/v100",
+  "status": "prospective_not_observed",
+  "source_oracle": {
+    "parent_path": "cases/simlox-air-support/A17-multi-unit-group-v1.0.0/native-input.json",
+    "parent_sha256": "66d3eef1e1cf42d26971af9719feb68e7ec3ecd4ed188a8477f8cbe0918bb974",
+    "root_metadata_exact": true,
+    "tables": 33,
+    "authored_rows": 20,
+    "authored_cells": 203,
+    "row": "model.tables[name=UnitGroupMember].instances[instance_name=''].rows[UGID='TEACH-GROUP',USTID='TEACH-UNIT-2']",
+    "changed_column": "XTIME",
+    "before": 0.0,
+    "after": 1.0,
+    "all_other_202_cells_and_all_metadata": "typed_equal_to_parent",
+    "bool_as_number": "reject"
+  },
+  "roundtrip_oracle": {
+    "parent_path": "cases/simlox-air-support/A17-multi-unit-group-v1.0.0/runs/a17-v100-ssh-20260929-01/roundtrip-raw.json",
+    "parent_bytes": 59625,
+    "parent_sha256": "819bbdd65799d20441191f41ca4a5d4df9aaf658466dd49dd952707d96943a42",
+    "root_metadata_exact": true,
+    "tables": 33,
+    "exported_rows": 38,
+    "exported_cells": 387,
+    "row_and_changed_column": "same UnitGroupMember key and XTIME as source_oracle",
+    "before_numeric": 0,
+    "after_numeric": 1,
+    "all_other_386_cells_and_all_metadata": "typed_equal_to_parent",
+    "nulls_and_defaults": "exact_parent_export_representation",
+    "duplicate_json_keys_or_nonfinite_numbers": "reject"
+  },
+  "physical_log_oracle": {
+    "parent_path": "cases/simlox-air-support/A17-multi-unit-group-v1.0.0/runs/a17-v100-ssh-20260929-01/model.log",
+    "parent_bytes": 4039,
+    "parent_sha256": "ae6c8430c26490c16e98f7ea66a0137ea7bcd1e309c1f2ba46a44940a0e7f33e",
+    "expected_physical_lines": 60,
+    "expected_timed_lines": 52,
+    "expected_line_endings": "CRLF",
+    "expected_body": "byte_equal_to_parent_original",
+    "semantic_checks_in_addition_to_hash": ["one exact group mission", "mission requests and allocates two systems", "physical aircraft 0 from TEACH-UNIT and physical aircraft 1 from TEACH-UNIT-2", "mission starts at 8", "task interval 8.5 to 9.5", "mission succeeds and both return at 10", "ordered complete physical lines including untimed continuations"],
+    "unexpected_line_or_order": "NO_GO"
+  },
+  "report_oracle": {
+    "instrumentation_settings_path": "cases/simlox-air-support/J07-unit-type-report-v1.0.0/runs/report-settings/group.sxs",
+    "instrumentation_settings_sha256": "e78466cc27d8c213e4d9bf4ed0065844471593069e81abe665cbd7fa4e9172ea",
+    "accepted_A17_group_control_path": "cases/simlox-air-support/J07-unit-type-report-v1.0.0/runs/report-settings/a17-group-report-20261001-01/report-raw.json",
+    "accepted_A17_group_control_bytes": 146793,
+    "accepted_A17_group_control_sha256": "2c0894b74bab55c1d6cb239089e66980c7cd3d214bbab8b2b334bd89f7525474",
+    "database_version_and_all_table_instance_column_metadata": "exact_control",
+    "tables_ordered": ["ProblemDescription", "ResultSummary", "MissionResults", "MissionResultsTotal", "FixedMissionResults", "FixedMissionResultsTotal", "SystemResults", "StockTotalResults"],
+    "typed_row_cells_total": 4966,
+    "only_changed_cell": {
+      "table": "FixedMissionResults",
+      "instance_name": "",
+      "row_key": {"UNID": "TEACH-GROUP", "MTID": "Total over all Missions"},
+      "column": "STOTD",
+      "declared_datatype": "double",
+      "control_value": 0,
+      "predicted_value": 1,
+      "reason": "manual p. 567 defines STOTD as sum of selected systems' XTIME; parent log selects one from each unit, so 0 plus 1"
+    },
+    "all_other_4965_cells": "typed_equal_to_accepted_A17_group_control",
+    "numeric_policy": "finite numeric equality for declared double; bool rejected; no serialization-spelling inference",
+    "null_boolean_string_integer_types_elsewhere": "exact_declared_type_and_control_value",
+    "unknown_extra_or_missing_table_row_column_cell": "NO_GO"
+  },
+  "manual_basis": {
+    "pdf_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [313, 314, 567],
+    "boundary": "XTIME result delay is calculated at mission launch from actually used units; no physical flight-event shift or STACC/MTACC change asserted"
+  }
+}

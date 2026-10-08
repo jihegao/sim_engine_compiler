@@ -1,0 +1,46 @@
+"""Promote the independently reviewed receipt-bound approval, no execution."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,sys
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0'
+assert len(sys.argv)==3
+JSON=R/'tmp/a17-var06-independent-prelaunch-go-v100-20261009.json'
+NOTE=R/'tmp/a17-var06-independent-prelaunch-scope-go-v100-20261009.md'
+F=R/'tmp/a17-var06-root-static-freeze-v100-20261009.json'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes().decode('utf-8-sig'))
+for p,sha in zip((JSON,NOTE),sys.argv[1:],strict=True):
+ assert pin(p)['sha256']==sha and p.stat().st_file_attributes&1 and not p.stat().st_file_attributes&1024
+assert pin(F)=={'bytes':9360,'sha256':'d21e5bca14a233f56c501e75514d43867a48d02e2e2efa53290963f50b450b85'}
+sources=load(F)['case_sources'];assert len(sources)==51
+def stable():
+ for rel,spec in sources.items():
+  p=C/rel;assert pin(p)==spec and p.stat().st_file_attributes&1,rel
+stable()
+m=load(C/'prelaunch-manifest.json');p=load(C/'review/preflight-ssh0-20261008T191408484Z.json');a=load(JSON)
+assert set(a)==set('schema decision run_id native_run_directory manifest_sha256 runner_sha256 validator_sha256 contract_sha256 execution_binding_sha256 input_sha256 source_map_sha256 independent_reader_sha256 preflight_relative_path preflight_sha256'.split())
+assert a['schema']=='a17-var06-independent-prelaunch-go/v100' and a['decision']=='GO_PRELAUNCH'
+assert a['run_id']==m['run_id']==p['run_id']=='a17-var06-xtime-v100-ssh-20261009-01'
+assert a['native_run_directory']==m['native_run_directory']==p['native_run_directory']==str(C/'runs'/a['run_id'])
+assert not (C/'runs').exists()
+for key in ('runner_sha256','validator_sha256','contract_sha256','execution_binding_sha256','input_sha256','independent_reader_sha256'):
+ assert a[key]==m[key],key
+assert a['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']==p['manifest_sha256']
+assert a['source_map_sha256']==p['source_map_sha256']
+assert a['preflight_relative_path']=='review/preflight-ssh0-20261008T191408484Z.json'
+assert a['preflight_sha256']==pin(C/a['preflight_relative_path'])['sha256']=='b0fdcc2bdd4cdc2c22f1e9170bb0b65eb4e735f975c44a0bdb15c91fa140c608'
+work=[(JSON,C/'review/independent-prelaunch-go.json'),(NOTE,C/'review/independent-prelaunch-scope-go-2026-10-09.md')]
+O=R/'tmp/a17-var06-root-native-approval-promotion-v100-20261009.json'
+assert not O.exists()
+for src,dst in work:assert not dst.exists()
+records=[]
+for src,dst in work:
+ with dst.open('xb') as f:f.write(src.read_bytes())
+ dst.chmod(stat.S_IREAD);assert pin(dst)==pin(src)
+ records.append({'source':str(src),'target':str(dst),**pin(dst)})
+stable()
+body={'schema':'a17-var06-root-native-approval-promotion/v100','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'native_dispatch':False,'promoted':records,'case_frozen_sources_unchanged':51,'method':pin(Path(__file__))}
+with O.open('xb') as f:f.write((json.dumps(body,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O),**pin(O),'promoted':2,'native_dispatch':False}))

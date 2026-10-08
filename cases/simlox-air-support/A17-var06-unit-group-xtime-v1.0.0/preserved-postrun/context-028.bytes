@@ -1,0 +1,131 @@
+"""Read-only audit of the one original A17.var06 zero-native SSH preflight."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import importlib.util
+import json
+import os
+import stat
+import sys
+
+sys.dont_write_bytecode = True
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0"
+READER = CASE / "review/independent_reader.py"
+PREFLIGHT = CASE / "review/preflight-ssh0-20261008T191408484Z.json"
+TRANSPORT = CASE / "transport-evidence/ssh-preflight-20261008T191401241958Z-bfc3d6f2"
+CUSTODY = REPO / "tmp/a17-var06-root-actual-preflight-custody-v100-20261009.json"
+RUN_ID = "a17-var06-xtime-v100-ssh-20261009-01"
+READER_SHA = "2c6526454f8fde0c90eff0e5a8145e712b3a37b4902dcbd19acbaedfd5c2599a"
+MANIFEST_SHA = "667f1ca78abc1e45909feb1860add2d73e8d4bd8d38aa7adddf47e3765bf4593"
+PREFLIGHT_SHA = "b0fdcc2bdd4cdc2c22f1e9170bb0b65eb4e735f975c44a0bdb15c91fa140c608"
+TRANSPORT_SHA = "d42a4260e613e3e6fc440c893b53d85dea233877c9f3f12aa5e5abfcef73a63a"
+CUSTODY_SHA = "e7326e5d8704ec19bfc5a6e47342c248fee0e95f32b80af42597123dd9ad84fa"
+STDOUT_SHA = "fcbdf95bb9c4cd02e4119578d3858992a987b631a7f36e8b53e6a99dab34afd8"
+EMPTY_SHA = hashlib.sha256(b"").hexdigest()
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def exact(path: Path, size: int, sha: str) -> None:
+    assert path.is_file() and not path.is_symlink(), path
+    assert path.resolve(strict=True).is_relative_to(REPO.resolve(strict=True)), path
+    assert pin(path) == {"bytes": size, "sha256": sha}, path
+    assert path.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY, path
+    assert not path.stat().st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT, path
+
+
+def strict_json(data: bytes):
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            assert key not in result, key
+            result[key] = value
+        return result
+    def nonfinite(value):
+        raise AssertionError(value)
+    return json.loads(data, object_pairs_hook=pairs, parse_constant=nonfinite)
+
+
+def utc(value):
+    assert type(value) is str
+    moment = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    assert moment.tzinfo is not None and moment.utcoffset() == dt.timedelta(0)
+    return moment
+
+
+def main():
+    method_before = pin(Path(__file__))
+    exact(READER, 41065, READER_SHA)
+    exact(CASE / "prelaunch-manifest.json", 72081, MANIFEST_SHA)
+    exact(PREFLIGHT, 68591, PREFLIGHT_SHA)
+    exact(TRANSPORT / "transport-receipt.json", 1472, TRANSPORT_SHA)
+    exact(TRANSPORT / "ssh-stdout.bin", 173, STDOUT_SHA)
+    exact(TRANSPORT / "ssh-stderr.bin", 0, EMPTY_SHA)
+    exact(CUSTODY, 6018, CUSTODY_SHA)
+    assert not (CASE / "runs").exists()
+    spec = importlib.util.spec_from_file_location("a17_var06_independent_reader", READER)
+    assert spec is not None and spec.loader is not None
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    receipt, source_map = reader.preflight_receipt(PREFLIGHT)
+    assert receipt["run_id"] == RUN_ID and receipt["native_process_started"] is False
+    assert receipt["manifest_sha256"] == MANIFEST_SHA
+    assert len(source_map) == 193
+
+    transport = strict_json((TRANSPORT / "transport-receipt.json").read_bytes())
+    assert set(transport) == {"schema", "mode", "run_id", "native_approved", "native_run_directory",
+                              "transport_sha256", "runner_sha256", "manifest_sha256", "started_utc",
+                              "completed_utc", "command", "exit_code", "error", "streams"}
+    assert transport["schema"] == "a17-var06-ssh-transport/v100"
+    assert transport["mode"] == "preflight" and transport["run_id"] == RUN_ID
+    assert transport["native_approved"] is False and transport["exit_code"] == 0 and transport["error"] is None
+    assert type(transport["native_run_directory"]) is str and transport["native_run_directory"] == str(reader.RUN)
+    assert transport["manifest_sha256"] == MANIFEST_SHA
+    assert transport["transport_sha256"] == pin(CASE / "ssh_transport.py")["sha256"]
+    assert transport["runner_sha256"] == pin(CASE / "run_native_ssh.ps1")["sha256"]
+    expected_command = ["ssh", "-n", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-i",
+                        "C:/Users/user/.ssh/id_rsa", "user@127.0.0.1", "powershell.exe", "-NoProfile",
+                        "-NonInteractive", "-File", str(CASE / "run_native_ssh.ps1").replace("\\", "/"),
+                        "-PreflightOnly"]
+    assert transport["command"] == expected_command
+    assert transport["streams"] == {"ssh-stdout.bin": {"bytes": 173, "sha256": STDOUT_SHA},
+                                    "ssh-stderr.bin": {"bytes": 0, "sha256": EMPTY_SHA}}
+    assert (TRANSPORT / "ssh-stdout.bin").read_bytes() == (str(PREFLIGHT) + "\n").encode("utf-8")
+    proof = strict_json(Path(receipt["pure_proof_path"]).read_bytes().lstrip(b"\xef\xbb\xbf"))
+    assert utc(transport["started_utc"]) <= utc(proof["started_utc"])
+    assert utc(proof["completed_utc"]) <= utc(transport["completed_utc"])
+
+    custody = strict_json(CUSTODY.read_bytes())
+    assert set(custody) == {"schema", "files", "files_readonly_after", "native_dispatch"}
+    assert custody["schema"] == "a17-var06-root-actual-preflight-custody/v100"
+    assert custody["files_readonly_after"] is True and custody["native_dispatch"] is False
+    rows = custody["files"]
+    assert type(rows) is list and len(rows) == 15
+    proofdir = Path(receipt["pure_proof_directory"])
+    wanted = {PREFLIGHT, TRANSPORT / "transport-receipt.json", TRANSPORT / "ssh-stdout.bin",
+              TRANSPORT / "ssh-stderr.bin", proofdir / "pure-proof.json"}
+    for tool in reader.TOOLS:
+        for stream in ("stdout", "stderr"):
+            wanted.add(proofdir / (Path(tool).stem + "-" + stream + ".bin"))
+    assert len(wanted) == 15
+    seen = set()
+    for row in rows:
+        assert set(row) == {"path", "bytes", "sha256", "original_attributes"}
+        path = Path(row["path"])
+        assert path in wanted and path not in seen
+        seen.add(path)
+        assert type(row["original_attributes"]) is int and row["original_attributes"] == 32
+        exact(path, row["bytes"], row["sha256"])
+    assert seen == wanted
+    assert pin(READER)["sha256"] == READER_SHA and pin(Path(__file__)) == method_before
+    return {"decision": "PASS_ACTUAL_ZERO_NATIVE_PREFLIGHT", "source_roles": len(source_map),
+            "new_originals": len(rows), "native_dispatch": False, "native_run_absent": True,
+            "preflight_sha256": PREFLIGHT_SHA, "transport_sha256": TRANSPORT_SHA}
+
+
+if __name__ == "__main__":
+    print(json.dumps(main(), sort_keys=True))

@@ -1,0 +1,58 @@
+"""Seal naturally completed A17 originals and make one absent-only recovered copy. No native."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0'
+run=C/'runs/a17-var06-xtime-v100-ssh-20261009-01'
+transport=C/'transport-evidence/ssh-native-20261008T191956443157Z-9c7902f1'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes().decode('utf-8-sig'))
+assert pin(C/'prelaunch-manifest.json')=={'bytes':72081,'sha256':'667f1ca78abc1e45909feb1860add2d73e8d4bd8d38aa7adddf47e3765bf4593'}
+m=load(C/'prelaunch-manifest.json')
+assert len(m['source_files'])==193
+sources_before={}
+for e in m['source_files']:
+ p=Path(e['path']);assert pin(p)=={'bytes':e['bytes'],'sha256':e['sha256']}
+ sources_before[e['key']]={'pin':pin(p),'mode':p.stat().st_mode,'attributes':p.stat().st_file_attributes}
+rows=load(C/'source-maps/prospective-source-pins.json')['mandatory_originals']
+assert len(rows)==66
+for row in rows:
+ p=Path(row['path']);s=p.stat()
+ assert pin(p)=={k:row[k] for k in ('bytes','sha256')}
+ assert s.st_mode==row['original_mode'] and s.st_file_attributes==row['original_attributes']
+closure=load(run/'closure.json');inv=load(run/'invocation.json')
+assert closure['error'] in (None,'') and closure['step_error'] in (None,'')
+assert inv['native_run_directory']==str(run) and closure['native_run_directory']==str(run)
+assert closure['invocation_sha256']==pin(run/'invocation.json')['sha256']
+files=sorted(run.iterdir(),key=lambda p:p.name)
+assert len(files)==25 and all(p.is_file() for p in files)
+assert {p.name:pin(p) for p in files if p.name not in ('closure.json','invocation.json')}==closure['raw']
+t=load(transport/'transport-receipt.json')
+assert t['mode']=='native' and t['exit_code']==0 and t['error'] is None
+for name,expected in t['streams'].items():assert pin(transport/name)==expected
+pure=Path(inv['pure_proof_path']).parent
+assert pure.parent==C/'test-output' and pure.name.startswith('native-pure-')
+assert pin(pure/'pure-proof.json')['sha256']==inv['pure_proof_sha256']
+assert len(list(pure.iterdir()))==11
+originals=files+sorted(pure.iterdir())+sorted(transport.iterdir())
+assert len(originals)==39 and len(set(originals))==39
+before={str(p):pin(p) for p in originals}
+for p in originals:p.chmod(stat.S_IREAD)
+assert before=={str(p):pin(p) for p in originals}
+stamp=dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]
+out=R/'tmp/a17-var06-root-native-custody-v100-20261009'/stamp
+out.mkdir(parents=True,exist_ok=False)
+recovered=out/'recovered-run';recovered.mkdir(exist_ok=False)
+for p in files:
+ target=recovered/p.name
+ with target.open('xb') as f:f.write(p.read_bytes())
+ target.chmod(stat.S_IREAD)
+ assert pin(target)==before[str(p)]
+sources_after={e['key']:{'pin':pin(Path(e['path'])),'mode':Path(e['path']).stat().st_mode,'attributes':Path(e['path']).stat().st_file_attributes} for e in m['source_files']}
+assert sources_before==sources_after
+receipt={'schema':'a17-var06-root-native-custody/v100','native_dispatch':False,'original_run':str(run),'recovered_run':str(recovered),'originals':{str(p):{**pin(p),'mode':p.stat().st_mode,'attributes':p.stat().st_file_attributes,'readonly':not bool(p.stat().st_mode&stat.S_IWRITE)} for p in originals},'recovered':{p.name:pin(p) for p in sorted(recovered.iterdir())},'source_roles':len(sources_before),'source_bytes_modes_attributes_stable':sources_before==sources_after,'method':pin(Path(__file__))}
+receipt_path=out/'receipt.json'
+with receipt_path.open('xb') as f:f.write((json.dumps(receipt,indent=2)+'\n').encode())
+receipt_path.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(receipt_path),**pin(receipt_path),'originals':39,'recovered':25,'recovered_run':str(recovered),'sources_stable':True,'native_dispatch':False}))

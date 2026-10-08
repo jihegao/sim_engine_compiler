@@ -1,0 +1,54 @@
+"""Capture one zero-native candidate construction or independent audit, never canonical writes."""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, subprocess, sys, uuid
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/A17-var06-unit-group-xtime-v1.0.0'
+assert len(sys.argv)==2
+mode=sys.argv[1];assert mode in ('build-inventory','audit-inventory','build-manifest','audit-manifest')
+kind=mode.split('-')[1]
+candidate=R/('tmp/a17-var06-'+kind+'-candidate-v100-20261009.json')
+builder=C/('make_source_inventory.py' if kind=='inventory' else 'make_prelaunch_manifest.py')
+reader=C/'review/independent_reader.py'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def snapshot():
+ result={}
+ for p in sorted(C.rglob('*')):
+  if not p.is_file():continue
+  rel=p.relative_to(C).as_posix()
+  assert rel.split('/')[0] not in ('runs','test-output','transport-evidence','__pycache__'),rel
+  assert p.stat().st_file_attributes&1 and not p.stat().st_file_attributes&1024,rel
+  assert p.resolve().is_relative_to(C.resolve()),rel
+  result[rel]=pin(p)
+ return result
+before=snapshot();method_before=pin(Path(__file__))
+assert len(before)==(49 if kind=='inventory' else 50)
+if mode.startswith('build'):
+ assert not candidate.exists()
+ argv=[sys.executable,'-X','utf8','-B',str(builder),'--candidate',str(candidate)]
+else:
+ assert candidate.is_file() and candidate.stat().st_file_attributes&1
+ argv=[sys.executable,'-X','utf8','-B',str(reader),'--'+kind+'-candidate',str(candidate)]
+O=R/'tmp/a17-var06-root-candidate-proofs-v100-20261009'/(mode+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False)
+code=None;error=None;after=None;value=None
+started=dt.datetime.now(dt.timezone.utc).isoformat()
+try:
+ with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+  code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+ assert type(code) is int and code==0 and (O/'stderr.bin').read_bytes()==b''
+ value=json.loads((O/'stdout.bin').read_bytes())
+ expected='PASS_INVENTORY_CANDIDATE' if kind=='inventory' else 'PASS_MANIFEST_CANDIDATE'
+ if mode.startswith('audit'):
+  assert value['decision']==expected and value['candidate_sha256']==pin(candidate)['sha256']
+ else:assert value['passed'] is True and value['sha256']==pin(candidate)['sha256']
+ assert value['source_count']==(49 if kind=='inventory' else 193)
+ after=snapshot();assert after==before and pin(Path(__file__))==method_before
+except BaseException as e:error=type(e).__name__+': '+str(e)
+finally:
+ if candidate.is_file():candidate.chmod(stat.S_IREAD)
+record={'schema':'a17-var06-root-candidate-stage/v100','mode':mode,'argv':argv,'started_utc':started,'completed_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'actual_exit':code,'error':error,'native_dispatch':False,'canonical_writes':0,'candidate':{'path':str(candidate),**pin(candidate)} if candidate.is_file() else None,'source_before':before,'source_after':after,'method_before':method_before,'method_after':pin(Path(__file__)),'parsed_stdout':value,'streams':{p.name:pin(p) for p in sorted(O.iterdir()) if p.is_file()},'decision':'PASS_CANDIDATE_STAGE_ONLY' if error is None else 'NO_GO_PRESERVED'}
+with (O/'receipt.json').open('xb') as f:f.write((json.dumps(record,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'decision':record['decision'],'actual_exit':code,'error':error,'candidate':record['candidate'],'parsed_stdout':value}))
+assert error is None
