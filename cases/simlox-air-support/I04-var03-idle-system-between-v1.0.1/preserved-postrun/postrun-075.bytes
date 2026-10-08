@@ -1,0 +1,39 @@
+"""Read-only recovery audit of frozen sources, approval and absent unique run."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,uuid
+R=Path(__file__).resolve().parents[1]; C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+RUN='i04-var03-idle-system-between-v101-ssh-20261008-01'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+I=C/'source-inventory.json';M=C/'prelaunch-manifest.json';G=C/'review/independent-prelaunch-go.json'
+assert pin(I)=={'bytes':93926,'sha256':'b5cac833294ea73d8f103579a779630205988e131007ada76dc009c44279aa1a'}
+assert pin(M)=={'bytes':161922,'sha256':'d05541613248279a5620349ade72bcaf80b12f3be042b470694f45b6efa690f3'}
+assert pin(G)=={'bytes':1065,'sha256':'257223d137a12529a3d1bd9c665ad092e703084b21e388983e6ef4a08124559a'}
+assert not (C/'runs'/RUN).exists()
+i=load(I);m=load(M);g=load(G)
+assert len(i['source_files'])==i['source_count']==251
+assert len(m['source_files'])==m['source_count']==456
+assert g['run_id']==m['run_id']==RUN and g['decision']=='GO_PRELAUNCH'
+for row in m['source_files']:
+ assert pin(Path(row['path']))=={k:row[k] for k in ['bytes','sha256']},row['key']
+for row in i['source_files']:
+ p=C/row['relative_path']
+ assert p.resolve(strict=True)==Path(row['path']).resolve(strict=True) and not p.is_symlink()
+ assert not bool(p.stat().st_mode&0o200)
+for p in [I,M,G]:assert not bool(p.stat().st_mode&0o200)
+pre=C/g['preflight_relative_path'];assert pin(pre)['sha256']==g['preflight_sha256']
+p=load(pre);assert p['native_process_started'] is False and p['run_dirs_absent'] is True
+assert p['manifest_sha256']==g['manifest_sha256']==pin(M)['sha256']
+W=R/'tmp/i04-var03-root-wts-state-v101-20261008/20261008T064700936800Z-6aee19d2/receipt.json'
+assert pin(W)['sha256']=='987965e77073e678e519b49328aea1e3d31300f6925ce07a99936a7a84e9e42d'
+wr=load(W)
+for name,record in wr['streams'].items():assert pin(W.parent/name)==record
+w=load(W.parent/'stdout.bin')
+assert w['connect_state']==0 and w['connect_state_name']=='WTSActive' and w['queried_session']==1
+assert w['gui']=={'pid':13340,'session':1,'responding':True,'start_ms':1790590196826}
+O=R/'tmp/i04-var03-root-reconnect-source-audit-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+d={'schema':'issue18-i04-var03-root-reconnect-source-audit/v1','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'decision':'FROZEN_SOURCE_AND_RECONNECTED_WTS_PASS_REQUIRES_FRESH_STRICT_GUARD','inventory':pin(I),'manifest':pin(M),'approval':pin(G),'actual_preflight':pin(pre),'wts_receipt':{'path':str(W),**pin(W)},'source_records_unchanged':456,'owned_sources_read_only':251,'run_id':RUN,'run_absent':True,'native_calls':0,'accepted_parent_runs_repeated':0,'root_method':pin(Path(__file__)),'limits':'No source/checker/native/preflight rerun; original conditional launch approval and hold history preserved. Fresh strict mutex/GUI/ownership guard is still required.'}
+q=O/'receipt.json';q.write_bytes((json.dumps(d,indent=2)+'\n').encode())
+q.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(q),**pin(q),'source_records':456,'owned_read_only':251,'run_absent':True,'native_calls':0}))

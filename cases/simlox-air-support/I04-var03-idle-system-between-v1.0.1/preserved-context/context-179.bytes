@@ -1,0 +1,22 @@
+"""Copy reviewed v100 author methods into a separate prospective v101 package."""
+from __future__ import annotations
+
+import shutil
+import sys
+from pathlib import Path
+
+repo = Path(__file__).resolve().parents[1]
+old = repo / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.0"
+new = repo / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+assert new.is_dir() and not (new / "review").exists()
+sys.path.insert(0, str(old))
+import make_source_inventory as previous  # noqa: E402
+
+names = [name for name in (*previous.CORE, *previous.LATER)
+         if name not in ("context-custody.json", "pure-proof-custody.json")]
+assert len(names) == 30
+for name in names:
+    source, target = old / name, new / name
+    assert source.is_file() and not target.exists(), name
+    shutil.copyfile(source, target)
+print({"copied": len(names), "native_calls": 0, "new_package": str(new)})

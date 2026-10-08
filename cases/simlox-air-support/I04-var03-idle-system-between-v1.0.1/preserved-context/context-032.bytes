@@ -1,0 +1,32 @@
+function Assert-CheckerVerdict([string]$name,[string]$stdout,[string]$expectedRunId,
+                               [string]$expectedInputSha,[string]$expectedExportSha) {
+  if (-not (Test-Path -LiteralPath $stdout -PathType Leaf)) { throw 'checker JSON stdout absent' }
+  $verdict = Get-Content -LiteralPath $stdout -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ($verdict.passed -isnot [bool] -or -not $verdict.passed) { throw "$name checker JSON does not pass" }
+  if ($name -eq 'check_import_export') {
+    if ($verdict.schema -ne 'i04-var03-idle-between-roundtrip/v1' -or
+        $verdict.tables -isnot [int] -or $verdict.tables -ne 36 -or
+        $verdict.authored_rows -isnot [int] -or $verdict.authored_rows -ne 28 -or
+        $verdict.exported_rows -isnot [int] -or $verdict.exported_rows -ne 39 -or
+        $verdict.authored_cells -isnot [int] -or $verdict.authored_cells -ne 242 -or
+        $verdict.exported_cells -isnot [int] -or $verdict.exported_cells -ne 383 -or
+        $verdict.all_null_placeholder_tables -isnot [int] -or $verdict.all_null_placeholder_tables -ne 11 -or
+        @($verdict.issues).Count -ne 0 -or $verdict.input_sha256 -ne $expectedInputSha -or
+        $expectedExportSha -notmatch '^[0-9a-f]{64}$' -or
+        $verdict.export_sha256 -ne $expectedExportSha) { throw 'roundtrip checker JSON identity differs' }
+  } elseif ($name -eq 'check_behavior') {
+    if ($verdict.schema -ne 'i04-var03-idle-between-behavior/v1' -or
+        $verdict.run_id -ne $expectedRunId -or $verdict.input_sha256 -ne $expectedInputSha -or
+        @($verdict.issues).Count -ne 0 -or
+        $verdict.report_cell_checks -isnot [int] -or $verdict.report_cell_checks -ne 5210 -or
+        $verdict.timed_event_records -isnot [int] -or $verdict.timed_event_records -ne 113 -or
+        $verdict.timeline.terminal.local -isnot [int] -or $verdict.timeline.terminal.local -ne 1 -or
+        $verdict.timeline.terminal.nominal -isnot [int] -or $verdict.timeline.terminal.nominal -ne 1 -or
+        $verdict.timeline.terminal.pending_OUT -isnot [int] -or $verdict.timeline.terminal.pending_OUT -ne 0 -or
+        $verdict.timeline.terminal.backorder -isnot [int] -or $verdict.timeline.terminal.backorder -ne 0 -or
+        $verdict.timeline.terminal.ready_aircraft -isnot [int] -or $verdict.timeline.terminal.ready_aircraft -ne 2) {
+      throw 'behavior checker JSON identity differs'
+    }
+  } else { throw "unknown checker stage $name" }
+  return $verdict
+}

@@ -1,0 +1,36 @@
+"""Root-only freeze of the canonical owned files; historical attributes untouched."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,uuid
+R=Path(__file__).resolve().parents[1];C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+assert not (C/'runs/i04-var03-idle-system-between-v101-ssh-20261008-01').exists()
+I=C/'source-inventory.json';M=C/'prelaunch-manifest.json'
+inventory=load(I);manifest=load(M)
+assert inventory['provisional'] is False
+assert len(inventory['source_files'])==inventory['source_count']
+assert manifest['new_native_runs_authorized_by_manifest']==0
+assert manifest['run_id']=='i04-var03-idle-system-between-v101-ssh-20261008-01'
+assert manifest['source_count']==len(manifest['source_files'])
+assert 'GO_METHOD_ONLY' in (C/'review/independent-method-static-go-2026-10-08.md').read_text(encoding='utf-8-sig')
+for row in manifest['source_files']:
+ assert pin(Path(row['path']))=={k:row[k] for k in ['bytes','sha256']},row['key']
+owned=[]
+for row in inventory['source_files']:
+ p=C/row['relative_path']
+ assert p.resolve(strict=True)==Path(row['path']).resolve(strict=True)
+ assert p.is_relative_to(C) and not p.is_symlink()
+ assert pin(p)=={k:row[k] for k in ['bytes','sha256']}
+ owned.append(p)
+assert len(set(owned))==len(owned)
+owned.extend([I,M])
+before={str(p.relative_to(C)).replace('\\','/'):{**pin(p),'read_only':not bool(p.stat().st_mode&0o200)} for p in owned}
+for p in owned:p.chmod(stat.S_IREAD)
+after={str(p.relative_to(C)).replace('\\','/'):{**pin(p),'read_only':not bool(p.stat().st_mode&0o200)} for p in owned}
+assert all(after[n]['read_only'] and {k:before[n][k] for k in ['bytes','sha256']}=={k:after[n][k] for k in ['bytes','sha256']} for n in before)
+O=R/'tmp/i04-var03-root-owned-freeze-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+d={'schema':'issue18-i04-var03-root-owned-freeze/v1','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'root_method':pin(Path(__file__)),'owned_inventory_sources':inventory['source_count'],'total_owned_frozen':len(owned),'manifest_records':manifest['source_count'],'before':before,'after':after,'historical_attributes_changed':False,'native_calls':0}
+(O/'receipt.json').write_bytes((json.dumps(d,indent=2)+'\n').encode())
+(O/'receipt.json').chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'owned_sources':inventory['source_count'],'total_frozen':len(owned),'manifest_records':manifest['source_count'],'native_calls':0}))

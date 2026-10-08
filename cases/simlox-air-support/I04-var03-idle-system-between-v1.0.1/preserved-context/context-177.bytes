@@ -1,0 +1,24 @@
+"""Prepare separate root capture methods; never edit or execute the v100 methods."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+jobs=[('i04-var03-root-phase-capture-20261008.py','i04-var03-root-phase-capture-v101-20261008.py'),('i04-var03-root-guard-capture-20261008.py','i04-var03-root-guard-capture-v101-20261008.py'),('i04-var03-root-freeze-owned-20261008.py','i04-var03-root-freeze-owned-v101-20261008.py'),('i04-var03-root-sealed-replay-capture-20261008.py','i04-var03-root-sealed-replay-capture-v101-20261008.py')]
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+records=[]
+for original,target in jobs:
+ p=R/'tmp'/original;q=R/'tmp'/target;assert not q.exists()
+ b=p.read_bytes();text=b.decode('utf-8')
+ assert 'I04-var03-idle-system-between-v1.0.0' in text
+ assert 'i04-var03-idle-system-between-v100-ssh-20261008-01' in text
+ text=text.replace('I04-var03-idle-system-between-v1.0.0','I04-var03-idle-system-between-v1.0.1').replace('i04-var03-idle-system-between-v100-ssh-20261008-01','i04-var03-idle-system-between-v101-ssh-20261008-01')
+ for namespace in ['i04-var03-root-phases-20261008','i04-var03-root-guards-20261008','i04-var03-root-owned-freeze-20261008','i04-var03-root-sealed-replay-20261008']:
+  text=text.replace(namespace,namespace.replace('-20261008','-v101-20261008'))
+ with q.open('xb') as f:f.write(text.encode('utf-8'))
+ q.chmod(stat.S_IREAD)
+ assert p.read_bytes()==b
+ records.append({'original':str(p),'original_pin':pin(p),'new':str(q),'new_pin':pin(q),'only_changes':'v101 package/run IDs and new root evidence directory namespaces','executed_new_method':False})
+out=R/'tmp/i04-var03-root-v101-method-preparation-20261008.json';assert not out.exists()
+with out.open('xb') as f:f.write((json.dumps({'schema':'issue18-i04-var03-root-v101-method-preparation/v1','records':records,'native_calls':0,'case_construction':False},indent=2)+'\n').encode())
+out.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(out),**pin(out),'methods':len(records),'native_calls':0}))

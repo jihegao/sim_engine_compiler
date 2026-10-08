@@ -1,0 +1,67 @@
+"""Prepare exact frozen-source handoff without canonical case writes."""
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+PKG = REPO / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+PREVIEW = REPO / "tmp/i04-var03-v101-owned-inventory-preview-20261008.json"
+HANDOFF = REPO / "tmp/i04-var03-v101-author-freeze-ready-20261008.json"
+sys.path.insert(0, str(PKG))
+from make_source_inventory import body, candidate
+
+
+def pin(path):
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+assert not PREVIEW.exists() and not HANDOFF.exists()
+inventory = candidate(False)
+assert inventory["source_count"] == len(inventory["source_files"]) == 251
+expected = body(inventory)
+with PREVIEW.open("xb") as stream:
+    stream.write(expected)
+review = {relative: pin(PKG / relative) for relative in (
+    "review/independent_replay.py", "review/independent_self_check.py",
+    "review/independent-method-static-go-2026-10-08.md")}
+generators = {relative: pin(PKG / relative) for relative in (
+    "make_source_inventory.py", "make_prelaunch_manifest.py",
+    "copy_context.py", "copy_pure_proof.py", "source_gate.py",
+    "run_native_ssh.ps1", "ssh_transport.py", "validate_native_cli.py")}
+handoff = {
+    "schema": "i04-var03-v101-author-freeze-ready/v1",
+    "case_path": str(PKG),
+    "run_id": "i04-var03-idle-system-between-v101-ssh-20261008-01",
+    "canonical_inventory_absent": not (PKG / "source-inventory.json").exists(),
+    "canonical_manifest_absent": not (PKG / "prelaunch-manifest.json").exists(),
+    "run_absent": not (PKG / "runs/i04-var03-idle-system-between-v101-ssh-20261008-01").exists(),
+    "owned_source_count": 251,
+    "owned_source_files": inventory["source_files"],
+    "inventory_preview": {"path": str(PREVIEW), "bytes": len(expected),
+                          "sha256": hashlib.sha256(expected).hexdigest()},
+    "planned_manifest_source_count": 456,
+    "planned_manifest_schema": "i04-var03-idle-between-prelaunch-manifest/v101",
+    "planned_manifest_roles": ["local_only_context_original:147", "local_only_context_original:148",
+                               "owned_source_inventory", "accepted_capture_helper_ancestry"],
+    "generator_pins": generators,
+    "independent_method_pins": review,
+    "pure_proof_custody": pin(PKG / "pure-proof-custody.json"),
+    "context_custody": pin(PKG / "context-custody.json"),
+    "canonical_write_invocations": [
+        "python -X utf8 -B make_source_inventory.py --write",
+        "python -X utf8 -B make_prelaunch_manifest.py --write"],
+    "native_calls": 0,
+}
+assert all((handoff[key] for key in ("canonical_inventory_absent", "canonical_manifest_absent", "run_absent")))
+data = (json.dumps(handoff, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+with HANDOFF.open("xb") as stream:
+    stream.write(data)
+print(json.dumps({"schema": handoff["schema"], "path": str(HANDOFF),
+                  "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+                  "inventory_preview_sha256": handoff["inventory_preview"]["sha256"],
+                  "source_count": 251, "planned_manifest_source_count": 456,
+                  "native_calls": 0}, sort_keys=True))

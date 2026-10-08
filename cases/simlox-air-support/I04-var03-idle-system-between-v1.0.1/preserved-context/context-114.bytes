@@ -1,0 +1,247 @@
+"""PURE prospective acceptance/rejection probes; no native run or source writes."""
+import copy
+import importlib.util
+import json
+from pathlib import Path
+
+path = Path(__file__).with_name("independent_replay.py")
+spec = importlib.util.spec_from_file_location("i04_independent_replay", path)
+reader = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(reader)
+
+
+def rejects(call, label):
+    try:
+        call()
+    except (AssertionError, ValueError, UnicodeError, KeyError, TypeError, IndexError):
+        return 1
+    raise AssertionError(f"accepted mutation: {label}")
+
+
+c = reader.contract()
+positive = reader.pure_fixture()
+assert positive["decision"] == "PURE_PROSPECTIVE_FIXTURE_ONLY"
+checks = 0
+
+# Direct semantic mutations are applied to synthetic objects, after the pinned
+# historical evidence was verified. A seal failure cannot hide a weak parser.
+source = reader.expected_source(c)
+for label, mutate in (
+    ("TFTIME", lambda x: x["model"]["tables"][10]["instances"][0]["rows"][0].__setitem__(3, 10)),
+    ("description", lambda x: x["model"]["tables"][0]["instances"][0]["rows"][0].__setitem__(0, "wrong")),
+    ("key metadata bool", lambda x: x["model"]["tables"][10]["columns"][0].__setitem__("key", 1)),
+    ("extra table", lambda x: x["model"]["tables"].append(copy.deepcopy(x["model"]["tables"][10]))),
+    ("database bool", lambda x: x["model"].__setitem__("database_version", True)),
+):
+    candidate = copy.deepcopy(source)
+    mutate(candidate)
+    checks += rejects(lambda x=candidate: reader.verify_source(c, x), label)
+
+export = reader.oracle(c, "child-roundtrip-oracle.json")
+for label, mutate in (
+    ("export table order", lambda x: x["model"]["tables"].reverse()),
+    ("placeholder row", lambda x: x["model"]["tables"][0]["instances"][0]["rows"].append([None])),
+    ("export metadata", lambda x: x["model"]["tables"][17]["columns"][0].__setitem__("key", 1)),
+):
+    candidate = copy.deepcopy(export)
+    mutate(candidate)
+    checks += rejects(lambda x=candidate: reader.verify_export(c, source, x), label)
+
+report = reader.oracle(c, "child-report-oracle.json")
+for table_index, row_index, column_index in ((0, 0, 0), (1, 0, 0), (2, 20, 4), (2, 21, 4), (2, 71, 39), (3, 0, 2), (3, 71, 15)):
+    candidate = copy.deepcopy(report)
+    row = candidate["report"]["tables"][table_index]["instances"][0]["rows"][row_index]
+    old = row[column_index]
+    row[column_index] = (old + 1) if type(old) in (int, float) else "wrong"
+    checks += rejects(lambda x=candidate: reader.verify_report(c, x, child=True), f"report cell {table_index}/{row_index}/{column_index}")
+for label, mutate in (
+    ("report bool numeric", lambda x: x["report"]["tables"][2]["instances"][0]["rows"][0].__setitem__(4, True)),
+    ("report metadata bool", lambda x: x["report"]["tables"][2]["columns"][0].__setitem__("datatype", True)),
+    ("report extra key", lambda x: x["report"]["tables"][2].__setitem__("extra", 0)),
+    ("report null", lambda x: x["report"]["tables"][2]["instances"][0]["rows"][20].__setitem__(4, None)),
+    ("report overflow", lambda x: x["report"]["tables"][2]["instances"][0]["rows"][20].__setitem__(4, float("inf"))),
+):
+    candidate = copy.deepcopy(report)
+    mutate(candidate)
+    checks += rejects(lambda x=candidate: reader.verify_report(c, x, child=True), label)
+
+# Check that the whole-report comparator visits every cell in both arms.
+# In-place mutations are immediately restored; no raw file is changed.
+all_cell_rejections = 0
+for arm in ("parent-report-oracle.json", "child-report-oracle.json"):
+    reference = reader.oracle(c, arm)
+    candidate = copy.deepcopy(reference)
+    for table in candidate["report"]["tables"]:
+        for instance in table["instances"]:
+            for row in instance["rows"]:
+                for index, original in enumerate(row):
+                    row[index] = True if type(original) in (int, float) else "invalid-cell"
+                    assert not reader.report_equal(candidate, reference), (arm, table["name"], index)
+                    row[index] = original
+                    all_cell_rejections += 1
+assert all_cell_rejections == 8088
+
+forms = list(reader.proposed_logs(c))
+assert len(forms) == 4
+for _, _, lines in forms:
+    reader.verify_log(c, ("\n".join(lines) + "\n").encode())
+base = list(forms[0][2])
+def malformed(mutate):
+    lines = list(base)
+    mutate(lines)
+    return ("\n".join(lines) + "\n").encode()
+for label, mutate in (
+    ("extra known line", lambda x: x.insert(35, x[35])),
+    ("unknown line", lambda x: x.append("Time: 36 UNKNOWN")),
+    ("wrong departure time", lambda x: x.__setitem__(59, x[59].replace("10.5", "10", 1))),
+    ("wrong arrival time", lambda x: x.__setitem__(61, x[61].replace("11", "10.5", 1))),
+    ("wrong owner", lambda x: x.__setitem__(59, x[59].replace("TEACH-AIR-01,0", "TEACH-AIR-01,1"))),
+    ("swapped transfer", lambda x: x.__setitem__(slice(59, 62), [x[61], x[60], x[59]])),
+    ("missing source ready", lambda x: x.pop(46)),
+    ("duplicate departure", lambda x: x.insert(60, x[60])),
+    ("mission order", lambda x: x.__setitem__(slice(12, 14), [x[13], x[12]])),
+    ("untimed continuation", lambda x: x.__setitem__(41, "different continuation")),
+):
+    data = malformed(mutate)
+    checks += rejects(lambda b=data: reader.verify_log(c, b), label)
+checks += rejects(lambda: reader.verify_log(c, "\n".join(base).encode()), "unterminated full log")
+for label, mutate in (
+    ("transit count", lambda x: x["behavior"]["ready_ledger"][6].__setitem__("transit_after", [])),
+    ("ready count bool", lambda x: x["behavior"]["ready_ledger"][6]["unit_ready_after"].__setitem__("TEACH-UNIT", False)),
+    ("terminal bool", lambda x: x["behavior"]["terminal"].__setitem__("in_transit", False)),
+):
+    mutated_contract = copy.deepcopy(c)
+    mutate(mutated_contract)
+    data = ("\n".join(base) + "\n").encode()
+    checks += rejects(lambda x=mutated_contract, b=data: reader.verify_log(x, b), label)
+
+run = reader.PKG / "runs" / reader.RUN_ID
+parent_converter = (reader.PARENT_RUN / "between-run.log").read_bytes().decode("utf-8-sig")
+synthetic_converter = (parent_converter.replace(str(reader.PARENT_RUN), str(run))
+                       .replace(reader.PARENT_RUN.as_posix(), run.as_posix())
+                       .replace("between.sxi", "model.sxi").replace("between.sxo", "model.sxo"))
+assert reader.verify_converter(synthetic_converter.encode(), run)["converter_lines"] == 17
+for label, changed in (
+    ("unnumbered warning", synthetic_converter + "Warning: added diagnostic\r\n"),
+    ("wrong input path", synthetic_converter.replace("model.sxi", "stale.sxi", 1)),
+    ("wrong warning owner", synthetic_converter.replace("Form: Control", "Form: System", 1)),
+    ("wrong summary", synthetic_converter.replace("Warnings: 2", "Warnings: 3", 1)),
+    ("extra note", synthetic_converter + "Note: extra\r\n"),
+):
+    checks += rejects(lambda x=changed: reader.verify_converter(x.encode(), run), label)
+
+selection = reader.strict_json(reader.pinned(reader.PKG / "preserved-context/root-selection.json", c["selection"]))
+catalog_path = reader.PKG / "preserved-context/publication-index-local-496.json.bytes"
+old_catalog = reader.strict_json(reader.pinned(catalog_path, selection["catalog_local"]))
+append = copy.deepcopy(old_catalog)
+new_entry = copy.deepcopy(append["entries"][-1])
+new_entry["publication_id"] = "I04.var03.synthetic-append-probe"
+append["entries"].append(new_entry)
+assert reader.catalog_prefix(old_catalog, append) == 496
+for label, mutate in (
+    ("catalog prefix", lambda x: x["entries"][0].__setitem__("publication_id", "corrupt")),
+    ("catalog metadata type", lambda x: x.__setitem__("as_of", True)),
+    ("catalog duplicate id", lambda x: x["entries"][-1].__setitem__("publication_id", x["entries"][0]["publication_id"])),
+    ("catalog truncated", lambda x: x["entries"].__delitem__(slice(1, None))),
+):
+    candidate = copy.deepcopy(append)
+    mutate(candidate)
+    checks += rejects(lambda x=candidate: reader.catalog_prefix(old_catalog, x), label)
+
+for label, blob, native in (
+    ("duplicate key", b'{"a":1,"a":2}', False),
+    ("nan", b'{"x":NaN}', False),
+    ("infinity", b'{"x":Infinity}', False),
+    ("overflow", b'{"x":1e999}', False),
+    ("unapproved trailing comma", b'{"a":1,}', True),
+    ("unexpected array comma", b'{"a":[1,]}', True),
+):
+    checks += rejects(lambda b=blob, n=native: reader.strict_json(b, native_report=n), label)
+
+synthetic_map = {"child_input": "0" * 64, "runner_script": "1" * 64}
+synthetic_sha = reader.source_map_sha(synthetic_map)
+synthetic_preflight = {
+    "schema": "i04-var03-idle-between-ssh-preflight/v1", "run_id": reader.RUN_ID,
+    "manifest_sha256": "2" * 64, "source_map_sha256": synthetic_sha,
+    "run_dirs_absent": True, "native_process_started": False, "mutex_free": True,
+    "ssh_session": 0, "ps_major": 5, "wts_active_gui_count": 1,
+    "accepted_raw_seals": 114, "accepted_nonclosure_raw": 100,
+    "accepted_closures": 7, "accepted_invocations": 7,
+    "excluded_failed_witness_raw": 0, "total_original_raw": 114,
+    "ssh_ancestors": ["sshd.exe"], "gui": copy.deepcopy(reader.GUI),
+    "source_hashes": copy.deepcopy(synthetic_map),
+    "source_hashes_after_pure": copy.deepcopy(synthetic_map),
+    "pure_checks": [{"tool": tool} for tool in reader.PURE_TOOLS],
+    "pure_proof_path": "synthetic-only", "pure_proof_directory": "synthetic-only",
+    "pure_proof_sha256": "3" * 64,
+}
+assert reader.preflight_core(synthetic_preflight, "2" * 64, synthetic_map, synthetic_sha)
+for label, field, changed in (
+    ("preflight GUI session bool", ("gui", "session_id"), True),
+    ("preflight GUI responding int", ("gui", "responding"), 1),
+    ("preflight GUI start", ("gui", "start_unix_ms"), 0),
+    ("preflight source drift", ("source_hashes_after_pure", "child_input"), "f" * 64),
+    ("preflight raw count bool", ("accepted_raw_seals",), True),
+    ("preflight native started", ("native_process_started",), True),
+    ("preflight run present", ("run_dirs_absent",), False),
+    ("preflight SSH session", ("ssh_session",), 1),
+    ("preflight no ancestor", ("ssh_ancestors",), []),
+):
+    candidate = copy.deepcopy(synthetic_preflight)
+    target = candidate
+    for part in field[:-1]:
+        target = target[part]
+    target[field[-1]] = changed
+    checks += rejects(lambda x=candidate: reader.preflight_core(x, "2" * 64, synthetic_map, synthetic_sha), label)
+
+closed = sorted(reader.CLOSED_OWNED)
+assert reader.require_core_owned(closed)
+for label, candidate in (
+    ("coordinated core helper omission", [name for name in closed if name != "captured_process.ps1"]),
+    ("coordinated invented owned file", closed + ["invented-helper.py"]),
+    ("coordinated owner replacement", ["invented-helper.py" if name == "captured_process.ps1" else name for name in closed]),
+    ("casefold duplicate owned file", closed + ["Captured_Process.ps1"]),
+):
+    checks += rejects(lambda x=candidate: reader.require_core_owned(x), label)
+
+originals = {"input.json": {"bytes": 5, "sha256": "0" * 64},
+             "model.log": {"bytes": 17, "sha256": "1" * 64}}
+assert reader.evidence_set_core(list(originals), copy.deepcopy(originals), originals, set(originals))
+for label, names, copies in (
+    ("recovered copy missing file", ["input.json"], copy.deepcopy(originals)),
+    ("recovered copy extra file", list(originals) + ["invented.log"], copy.deepcopy(originals)),
+    ("recovered copy hash drift", list(originals), {**originals, "model.log": {"bytes": 17, "sha256": "f" * 64}}),
+    ("recovered copy byte length bool", list(originals), {**originals, "input.json": {"bytes": True, "sha256": "0" * 64}}),
+):
+    checks += rejects(lambda n=names, x=copies: reader.evidence_set_core(n, x, originals, set(originals)), label)
+
+native_plan, checker_plan = reader.expected_plan(reader.PKG / "runs" / reader.RUN_ID)
+synthetic_step = {
+    "sequence": 0, "name": "import", "program": native_plan[0]["program"],
+    "arguments": native_plan[0]["arguments"],
+    "started_utc": "2026-10-08T00:00:00Z", "completed_utc": "2026-10-08T00:00:01Z",
+    "child_pid": 1234, "child_session_id": 0, "exit_code": 0, "capture_error": None,
+    "stdout_path": "synthetic-import-stdout", "stderr_path": "synthetic-import-stderr",
+    "stdout_bytes": 0, "stderr_bytes": 0, "stdout_sha256": "0" * 64,
+    "stderr_sha256": "0" * 64, "converter_log_bytes": None,
+    "converter_log_sha256": None, "converter_log_validated": False,
+    "gui_preserved": True, "status": "completed", "error": None,
+}
+prior = reader.utc("2026-10-07T23:59:59Z")
+reader.stage_core(synthetic_step, 0, "import", native_plan[0], prior)
+for label, field, altered in (
+    ("stage argv", "arguments", "-wrong"), ("stage program", "program", str(reader.PYTHON)),
+    ("stage sequence bool", "sequence", False), ("stage exit bool", "exit_code", False),
+    ("stage session", "child_session_id", 1), ("stage PID bool", "child_pid", True),
+    ("stage UTC overlap", "started_utc", "2026-10-07T23:59:58Z"),
+    ("stage GUI bool", "gui_preserved", 1),
+    ("stage unvalidated converter", "converter_log_validated", True),
+    ("stage stderr", "stderr_bytes", 1),
+):
+    row = copy.deepcopy(synthetic_step)
+    row[field] = altered
+    checks += rejects(lambda x=row: reader.stage_core(x, 0, "import", native_plan[0], prior), label)
+
+print(json.dumps({"decision": "PURE_SELF_CHECK_PASS", "positive_log_forms": 4,
+                  "predicted_child_cells": 4044, "semantic_rejections": checks,
+                  "all_cell_rejections": all_cell_rejections}, sort_keys=True))

@@ -1,0 +1,61 @@
+"""Read-only exact saved inventory/manifest and root PURE receipt audit."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import stat
+
+ROOT = Path(__file__).resolve().parents[1]
+CASE = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+READER = CASE / "review/independent_replay.py"
+RECEIPT = ROOT / "tmp/i04-var03-root-phases-v101-20261008/independent-preflight-20261008T054253691825Z-d0cfeaa2/receipt.json"
+INVENTORY_SHA = "b5cac833294ea73d8f103579a779630205988e131007ada76dc009c44279aa1a"
+MANIFEST_SHA = "d05541613248279a5620349ade72bcaf80b12f3be042b470694f45b6efa690f3"
+SOURCE_MAP_SHA = "d9085c3fe63ced6473507f483f7c55dfb91f8181f2ef0cc4e32a47b28c1aad8e"
+READER_SHA = "e9ffcb9a491d39402fab9ac320c1611a1b1149f70ce35b6ff604ce67e79021f3"
+
+def pin(path):
+    blob = path.read_bytes()
+    return {"bytes": len(blob), "sha256": hashlib.sha256(blob).hexdigest()}
+
+spec = importlib.util.spec_from_file_location("independent_v101_reader", READER)
+reader = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(reader)
+assert pin(READER)["sha256"] == READER_SHA
+inventory_path = CASE / "source-inventory.json"
+manifest_path = CASE / "prelaunch-manifest.json"
+assert pin(inventory_path)["sha256"] == INVENTORY_SHA
+assert pin(manifest_path)["sha256"] == MANIFEST_SHA
+inventory = reader.strict_json(inventory_path.read_bytes())
+manifest = reader.strict_json(manifest_path.read_bytes())
+reader.require_core_owned([r["relative_path"] for r in inventory["source_files"])
+assert type(inventory["source_count"]) is int and inventory["source_count"] == 251
+assert type(manifest["source_count"]) is int and manifest["source_count"] == 456
+for row in inventory["source_files"]:
+    path = Path(row["path"])
+    assert path == CASE / row["relative_path"] and pin(path) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+    assert not path.stat().st_mode & stat.S_IWUSR
+for path in (inventory_path, manifest_path):
+    assert not path.stat().st_mode & stat.S_IWUSR
+source_map, source_sha = reader.verify_manifest_document(manifest, final=True)
+assert len(source_map) == 456 and source_sha == SOURCE_MAP_SHA
+receipt = reader.strict_json(RECEIPT.read_bytes())
+assert receipt["schema"] == "issue18-i04-var03-root-phase-transport/v1"
+assert receipt["action"] == "independent-preflight" and receipt["native_dispatch"] is False
+assert receipt["expected_run_id"] == reader.RUN_ID and receipt["run_exists_after"] is False
+assert type(receipt["actual_exit"]) is int and receipt["actual_exit"] == 0
+assert receipt["error"] is None and reader.typed(receipt["method_before"], receipt["method_after"])
+assert receipt["method_before"]["invoked_method"] == pin(READER)
+for stream in ("stdout.bin", "stderr.bin"):
+    assert receipt["streams"][stream] == pin(RECEIPT.parent / stream)
+assert receipt["streams"]["stderr.bin"]["bytes"] == 0
+result = reader.strict_json((RECEIPT.parent / "stdout.bin").read_bytes())
+assert result["decision"] == "PURE_PREFLIGHT_SOURCE_PASS_REQUIRES_ACTUAL_SSH5_RECEIPT"
+assert result["source_records"] == 456 and result["source_map_sha256"] == SOURCE_MAP_SHA
+assert result["native_process_started"] is False
+assert not (CASE / "runs" / reader.RUN_ID).exists()
+assert not (CASE / "review/independent-prelaunch-go.json").exists()
+print(json.dumps({"decision": "GO_PURE_PREFLIGHT", "owned": 251, "manifest_records": 456,
+                  "manifest_sha256": MANIFEST_SHA, "source_map_sha256": SOURCE_MAP_SHA,
+                  "root_pure_receipt_sha256": pin(RECEIPT)["sha256"],
+                  "native_calls": 0}, sort_keys=True))

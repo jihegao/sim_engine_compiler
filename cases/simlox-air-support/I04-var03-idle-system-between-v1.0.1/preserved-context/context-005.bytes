@@ -1,0 +1,31 @@
+{
+  "schema": "i04-var03-idle-between-execution-binding/v1",
+  "classification": "prospective bounded CLI child; not a native approval",
+  "approved_design": {
+    "path": "prospective-contract.json",
+    "bytes": 24635,
+    "sha256": "8a4d23dced3b4a9049a657fb94b63bdad116d93a35db87409a09ac8f0deff583"
+  },
+  "package": "I04-var03-idle-system-between-v1.0.0",
+  "run_id": "i04-var03-idle-system-between-v100-ssh-20261008-01",
+  "base_commit": "33193ce8ce5763d9dd892eda9c68ab9d729c8a3a",
+  "historical_catalog_prefix": 496,
+  "source_roles": {
+    "prospective_contract": "prospective-contract.json",
+    "execution_binding": "execution-contract.json",
+    "child_input": "native-input.json",
+    "behavior_validator": "validate_native_cli.py",
+    "runner_script": "run_native_ssh.ps1",
+    "independent_replay": "review/independent_replay.py",
+    "independent_self_check": "review/independent_self_check.py"
+  },
+  "authored_source_topology": {"tables": 34, "rows": 22, "cells": 223},
+  "native_export_topology": {"tables": 34, "rows": 40, "cells": 407},
+  "native_report_topology": {"tables": 4, "cells": 4044},
+  "native_commands": ["import", "export", "calc", "jsonreport"],
+  "serial_stages": ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"],
+  "converter_gate": "after naturally completed calc and sealed model-run.log; before jsonreport; exact warning 108 Control, 126 System and Errors 0 Warnings 2 Notes 0",
+  "capture": "original binary stdout/stderr; actual integer process exits, PID, session and UTC; no kill/timeout/retry",
+  "approval": "actual SSH session 0 PowerShell 5 -File zero-native preflight and fresh independent GO_PRELAUNCH bound to exact manifest/source map/input/runner/reader/preflight",
+  "limits": ["one child; no accepted-parent rerun", "four predeclared full-log forms only", "no general transfer law", "no GUI or cross-engine claim"]
+}

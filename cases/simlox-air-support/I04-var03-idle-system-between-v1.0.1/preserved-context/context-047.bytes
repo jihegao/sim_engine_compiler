@@ -1,0 +1,112 @@
+"""Root eligibility and original custody selection; no native or checker rerun."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess
+R=Path(__file__).resolve().parents[1];C=R/'cases/simlox-air-support'
+BASE='33193ce8ce5763d9dd892eda9c68ab9d729c8a3a'
+O=R/'tmp/i04-var03-root-selection-20261008-01'
+P=C/'I04-var01-system-between-v1.0.0'
+CHILD=C/'I04-var03-idle-system-between-v1.0.0'
+RUN='i04-var03-idle-system-between-v100-ssh-20261008-01'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def git(*a):return subprocess.check_output(['git','-c','core.longpaths=true',*a],cwd=R)
+def save(n,b):
+ p=O/n
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+assert not O.exists() and not CHILD.exists() and not list(C.glob('I04-var03*'))
+assert git('rev-parse','HEAD').decode().strip()==git('rev-parse','origin/simlox/main').decode().strip()==BASE
+assert not git('status','--porcelain','--untracked-files=no')
+refsraw=git('ls-remote','origin','refs/heads/main','refs/heads/simlox/main')
+remote={l.split()[1]:l.split()[0] for l in refsraw.decode().splitlines()}
+assert remote=={'refs/heads/main':'a1a44c72f64d754b711abe4095f1111f8a5ba896','refs/heads/simlox/main':BASE}
+owner=load(R/'tmp/i04-var03-root-app-ownership-20261008.json')
+assert not owner['unavailableHosts'] and not owner['unavailableSources'] and owner['open_pr']['issues']==[]
+assert [t['id'] for t in owner['threads'] if t['status']=='active']==['01a0ed5b-dc75-74f3-a26c-23674dd997d6']
+catalog=load(C/'publication-index-v1.json');entries=catalog['entries']
+assert len(entries)==len({e['publication_id'] for e in entries})==496
+assert not any(e.get('variant_id')=='I04.var03' for e in entries)
+ids=['I04.var01.system_between_explicit_units.1.0.0','A17.two_units.1.0.0','A02.repeated.1.0.0','D03.calendar_pm.1.0.0','D09.var01.calendar_vs_operational_ncftl_pending_repair.1.0.0']
+accepted=[next(e for e in entries if e['publication_id']==n) for n in ids]
+plan=next(c for c in load(C/'catalog-v2.json')['cases'] if c['case_id']=='I04')
+assert plan['instructional_prerequisites']==['A02','A17','D03','D09']
+assert next(v for v in plan['boundary_variants'] if v['variant_id']=='I04.var03')['planned_delta']=='任务中/闲置'
+parent_index=load(P/'evidence-index.json');pc=load(P/'contract.json')
+assert pin((P/'evidence-index.json').read_bytes())['sha256']=='7cc499df680969e65d178d9c1db90c32c44e80d784f3b6d2f75d50532b7d102b'
+for n,s in parent_index['source'].items():assert pin((P/n).read_bytes())==s,n
+assert pin((P/'between-input.json').read_bytes())['sha256']=='50cc69df36afa0cecbbf8e6e7d699012f8987bb06bee11a1e347235d397da0ea'
+v=load(P/'review/independent-verdict.json')
+assert v['verdict']=='GO_BOUNDED' and v['checks']==v['passed']==439 and v['failed']==[]
+dependency_files={
+ 'A17_input':C/'A17-multi-unit-group-v1.0.0/native-input.json',
+ 'A17_signoff':C/'A17-multi-unit-group-v1.0.0/cli-scope-signoff-2026-09-29.md',
+ 'A02_input':C/'A02-single-aircraft-repeated-missions/native-input.json',
+ 'A02_signoff':C/'A02-single-aircraft-repeated-missions/cli-scope-signoff-2026-09-29.md',
+ 'D03_input':C/'D03-calendar-pm-v1.0.0/native-input.json',
+ 'D03_signoff':C/'D03-calendar-pm-v1.0.0/cli-scope-signoff-2026-09-30.md',
+ 'D09_input':C/'D09-var01-calendar-vs-operational-v1.0.0/native-input-calendar.json',
+ 'D09_signoff':C/'D09-var01-calendar-vs-operational-v1.0.0/cli-scope-signoff-2026-10-02.md'}
+for n,p in dependency_files.items():
+ expected=pc['dependency'][n.split('_')[1]+'_sha256'] if n.startswith('A17_') else pc['instructional_prerequisites'][n+'_sha256']
+ assert pin(p.read_bytes())['sha256']==expected,n
+tree={}
+for row in git('ls-tree','-r','-z',BASE).split(b'\0'):
+ if row:
+  meta,name=row.split(b'\t',1);a=meta.split()
+  if a[1]==b'blob':tree[name.decode()]=a[2].decode()
+source=[]
+for e in accepted:
+ prefix='cases/simlox-air-support/'+e['package']+'/'
+ for n in sorted(tree):
+  if n.startswith(prefix):
+   assert '/runs/' not in n
+   b=(R/n).read_bytes();g=git('cat-file','blob',tree[n])
+   source.append({'path':n,'oid':tree[n],'disk':pin(b),'git':pin(g),'byte_equal':b==g})
+raw={}
+def add(p,role,seal=None):
+ p=p.resolve(strict=True);b=p.read_bytes();s=pin(b)
+ if seal is not None:assert s=={k:seal[k] for k in ('bytes','sha256')},str(p)
+ key=str(p).casefold()
+ if key in raw:assert raw[key]['sha256']==s['sha256']
+ else:raw[key]={'path':str(p),'role':role,**s}
+def closure(rd,sha,role):
+ d=load(rd/'closure.json');assert pin((rd/'closure.json').read_bytes())['sha256']==sha
+ assert d['error'] is None and d['source_hashes_before']==d['source_hashes_after']
+ assert pin((rd/'invocation.json').read_bytes())['sha256']==d['invocation_sha256']
+ for n,s in d['raw'].items():add(rd/n,role,s)
+ add(rd/'closure.json',role);add(rd/'invocation.json',role)
+pr=parent_index['run'];rd=Path(pr['local_directory'])
+assert rd==P/'runs'/pr['run_id']
+for n,s in pr['raw'].items():add(rd/n,'accepted_I04_parent_original',s)
+closure(rd,pr['closure']['sha256'],'accepted_I04_parent_original')
+assert pin((rd/'invocation.json').read_bytes())==pr['invocation']
+ai=load(C/'A02-single-aircraft-repeated-missions/evidence-index.json')
+assert {r['run_id'] for r in ai['runs']}=={'a02-bound-final-20260927-03','a02-bound-replay-20260927-04'}
+for r in ai['runs']:
+ for n,s in r['artifacts'].items():add(Path(s['path']),'accepted_A02_original',s)
+closure(C/'A17-multi-unit-group-v1.0.0/runs/a17-v100-ssh-20260929-01','f1885aa1c21bf2260d1d7671e762d18451d91a0fc0398cf45309574d16c2f76b','accepted_A17_original')
+closure(C/'D03-calendar-pm-v1.0.0/runs/d03-calendar-v100-ssh-20261001-02','9cd845f957105eb8659809ec09cf380ae5df68a63babb264d70631c164f7d2d8','accepted_D03_original')
+di=load(C/'D09-var01-calendar-vs-operational-v1.0.0/evidence-index.json')
+for r in di['accepted_runs']:
+ dr=Path(r['local_path']);closure(dr,r['closure_sha256'],'accepted_D09_original')
+ for n,s in r['raw'].items():add(dr/n,'accepted_D09_original',s)
+ assert pin((dr/'invocation.json').read_bytes())['sha256']==r['invocation_sha256']
+docs=['AGENTS.md','README.md','docs/architecture.md','docs/semantic-baseline.md','docs/roadmap.md','cases/simlox-air-support/execution-plan-v2.md','cases/simlox-air-support/ssh-cli-acceptance-policy-v1.md','cases/simlox-air-support/catalog-v2.json']
+installed={}
+for n,p,s in [('exe',Path(r'C:\Program Files\Systecon\SIMLOX\Simlox.exe'),'fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0'),('manual',Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf'),'39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3'),('dictionary',Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt'),'11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0')]:
+ pp=pin(p.read_bytes());assert pp['sha256']==s;installed[n]={'path':str(p),**pp}
+O.mkdir();save('refs-stdout.bin',refsraw)
+guard=R/'tmp/issue18-next-owner-guard-20261008.ps1'
+assert pin(guard.read_bytes())['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',str(guard).replace('\\','/')]
+g=subprocess.run(argv,cwd=R,capture_output=True);save('guard-stdout.bin',g.stdout);save('guard-stderr.bin',g.stderr)
+assert type(g.returncode) is int and g.returncode==0 and not g.stderr
+o=json.loads(g.stdout.decode('utf-8-sig'))
+assert o['ssh_present'] is True and o['sshd_ancestor'] is True and o['self_session']==0 and o['powershell_major']==5 and o['mutex_free'] is True and o['runner_candidates']==[] and o['active_gui_session1_count']==1 and o['session_query_exit']==0
+assert len(o['native'])==1
+gui=o['native'][0];assert gui['pid']==13340 and gui['session']==1 and gui['start_ms']==1790590196826 and gui['responding'] is True
+catpath='cases/simlox-air-support/publication-index-v1.json';catraw=(R/catpath).read_bytes();catgit=git('cat-file','blob',tree[catpath])
+assert catraw!=catgit and catraw.replace(b'\r\n',b'\n')==catgit
+d={'schema':'issue18-i04-var03-root-selection/v1','decision':'ELIGIBLE_FOR_PROSPECTIVE_INDEPENDENT_CONTRACT_REVIEW_ONLY','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'base':BASE,'proposed_package':str(CHILD.relative_to(R)).replace('\\','/'),'proposed_run_id':RUN,'accepted_publications':accepted,'parent_package':P.name,'parent_run':pr['run_id'],'parent_index':pin((P/'evidence-index.json').read_bytes()),'parent_originals':24,'catalog_entries':496,'catalog_local':pin(catraw),'catalog_git':{'oid':tree[catpath],**pin(catgit)},'catalog_byte_equal':False,'accepted_source_refs':source,'mandatory_original_raw':list(raw.values()),'required_docs':{n:pin((R/n).read_bytes()) for n in docs},'installed_refs':installed,'ownership_context':pin((R/'tmp/i04-var03-root-app-ownership-20261008.json').read_bytes()),'actual_ssh_guard':{'argv':argv,'actual_exit':g.returncode,'stdout':pin(g.stdout),'stderr':pin(g.stderr),'observed':o},'proposal':'Only SystemTransfer.TFTIME8.5→10.5 and PDESC; source is ready at request, prospective departure10.5/arrival11, same later two-aircraft mission20–22. Request is source-authored, not separately logged.','remaining_contract_requirements':['Independently derive all4044 accepted-parent and proposed-child report cells from source/event ledgers before launch','Freeze exact source/export topology and stable-identity full log oracle; distinguish physical transfer from source-only request time','Independent contract, method, actual SSH0 PowerShell5 -File pure preflight and fresh launch GO before one unique native run'],'accepted_behavior_limit':'Parent selected439-check acceptance is not a full4044-cell oracle; this stronger contract must be independently derived','new_native_calls':0,'accepted_native_or_checker_reruns':0,'goal':'ACTIVE/unfinished','K01_K08':'blocked/no capture retries','I07_opening_three':'excluded','I03_var07':'Not selected: offshift transfer timing ambiguity; manual225–226/422–423/478–479 does not decide immediate versus deferred departure. Recovery requires reviewed falsifiable contract with an adequate complete prospective oracle.'}
+save('selection.json',(json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode());Path(__file__).chmod(stat.S_IREAD);(R/'tmp/i04-var03-root-app-ownership-20261008.json').chmod(stat.S_IREAD)
+print(json.dumps({'decision':d['decision'],'source_pairs':len(source),'original_raw':len(raw),'parent_originals':24,'receipt':pin((O/'selection.json').read_bytes()),'guard':o}))

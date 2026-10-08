@@ -1,0 +1,40 @@
+"""Capture original bytes from reviewer-only PURE methods; never invokes SIMLOX."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import subprocess
+import sys
+import uuid
+
+root = Path(__file__).resolve().parents[1]
+case = root / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+python = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+actions = {"fixture": [case / "review/independent_replay.py", "--pure-fixture"],
+           "selfcheck": [case / "review/independent_self_check.py"],
+           "canonical": [root / "tmp/i04-var03-v101-independent-canonical-audit-20261008.py"],
+           "actual-preflight": [root / "tmp/i04-var03-v101-independent-actual-preflight-audit-20261008.py"],
+           "postrun": [root / "tmp/i04-var03-v101-independent-postrun-audit-20261008.py"]}
+assert len(sys.argv) == 2 and sys.argv[1] in actions
+action = sys.argv[1]
+stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+out = root / "tmp" / ("i04-var03-v101-independent-local-" + action + "-" + stamp + "-" + uuid.uuid4().hex[:8])
+out.mkdir()
+
+def pin(path):
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+source = actions[action][0]
+before = pin(source)
+with (out / "stdout.bin").open("xb") as stdout, (out / "stderr.bin").open("xb") as stderr:
+    code = subprocess.run([str(python), "-X", "utf8", "-B", *map(str, actions[action])],
+                          cwd=root, stdout=stdout, stderr=stderr, check=False).returncode
+after = pin(source)
+receipt = {"schema": "i04-var03-v101-independent-local-pure-capture/v1", "action": action,
+           "actual_exit": code, "source_before": before, "source_after": after,
+           "stdout": pin(out / "stdout.bin"), "stderr": pin(out / "stderr.bin"),
+           "native_calls": 0}
+(out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+print(json.dumps({"receipt": str(out / "receipt.json"), **pin(out / "receipt.json"), **receipt}, sort_keys=True))
+raise SystemExit(code)

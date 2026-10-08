@@ -1,0 +1,48 @@
+"""Root seals naturally completed zero-native preflight originals; no execution."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,uuid
+R=Path(__file__).resolve().parents[1];C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+RUN='i04-var03-idle-system-between-v101-ssh-20261008-01'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+assert not (C/'runs'/RUN).exists() and not (C/'review/independent-prelaunch-go.json').exists()
+preflights=list((C/'review').glob('preflight-ssh0-*.json'));assert len(preflights)==1
+P=preflights[0];pre=load(P)
+assert pre['run_id']==RUN and pre['native_process_started'] is False
+assert pre['run_dirs_absent'] is True and pre['ssh_session']==0 and pre['ps_major']==5
+assert pre['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+proof=Path(pre['pure_proof_path']);assert proof.parent==Path(pre['pure_proof_directory'])
+assert proof.resolve().is_relative_to((C/'test-output').resolve())
+assert pin(proof)['sha256']==pre['pure_proof_sha256']
+d=load(proof);assert d['status']=='passed' and d['error'] is None and len(d['checks'])==5
+assert d['checks']==pre['pure_checks']
+files=[P,proof]
+for step in d['checks']:
+ assert type(step['exit_code']) is int and step['exit_code']==0
+ assert type(step['child_session_id']) is int and step['child_session_id']==0
+ assert step['status']=='completed' and step['error'] is None and step['capture_error'] is None
+ for stream in ['stdout','stderr']:
+  p=Path(step[stream+'_path']);assert p.parent==proof.parent
+  assert pin(p)=={'bytes':step[stream+'_bytes'],'sha256':step[stream+'_sha256']}
+  files.append(p)
+ assert step['stderr_bytes']==0
+transports=list((C/'transport-evidence').glob('ssh-preflight-*/transport-receipt.json'));assert len(transports)==1
+T=transports[0];transport=load(T)
+assert transport['mode']=='preflight' and transport['run_id']==RUN and transport['native_approved'] is False
+assert type(transport['exit_code']) is int and transport['exit_code']==0 and transport['error'] is None
+assert transport['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+files.append(T)
+for name,record in transport['streams'].items():
+ p=T.parent/name;assert pin(p)==record;files.append(p)
+assert len(files)==len(set(files))==15
+for p in files:
+ assert p.resolve(strict=True).is_relative_to(C.resolve()) and not p.is_symlink()
+ p.chmod(stat.S_IREAD)
+records=[{'path':str(p),**pin(p),'read_only':not bool(p.stat().st_mode&0o200)} for p in files]
+assert all(r['read_only'] for r in records)
+O=R/'tmp/i04-var03-root-preflight-seal-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+q=O/'receipt.json'
+with q.open('xb') as f:f.write((json.dumps({'schema':'issue18-i04-var03-root-preflight-seal/v1','run_id':RUN,'root_method':pin(Path(__file__)),'original_files':records,'original_count':15,'native_calls':0,'historical_attributes_changed':False},indent=2)+'\n').encode())
+q.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(q),**pin(q),'preflight':str(P),'preflight_sha256':pin(P)['sha256'],'original_files':15,'native_calls':0}))

@@ -1,0 +1,29 @@
+"""Read-only source/raw/manual material inventory, no acceptance/native rerun."""
+from pathlib import Path
+import json,re
+R=Path(__file__).resolve().parents[1];C=R/'cases/simlox-air-support'
+def load(p):return json.loads(p.read_bytes())
+P=C/'I04-var01-system-between-v1.0.0'
+S=load(P/'between-input.json')
+for t in S['model']['tables']:
+ rows=[r for i in t['instances'] for r in i['rows']]
+ if rows:print(json.dumps({'source_table':t['name'],'columns':t['columns'],'rows':rows},ensure_ascii=False))
+run=P/'runs/i04-var01-system-between-v100-ssh-20261005-01'
+text=(run/'between-report-raw.json').read_text(encoding='utf-8-sig')
+marker=',\n      ]';assert text.count(marker)==1
+D=json.loads(text.replace(marker,'\n      ]'))
+for t in D['report']['tables']:
+ rows=[r for i in t['instances'] for r in i['rows']]
+ cols=[c['name'] for c in t['columns']]
+ values={n:list(dict.fromkeys(json.dumps(r[j],sort_keys=True) for r in rows)) for j,n in enumerate(cols)}
+ print(json.dumps({'report_table':t['name'],'columns':t['columns'],'instances':len(t['instances']),'rows':len(rows),'cells':sum(map(len,rows)),'unique_values':values},ensure_ascii=False))
+for name,rd in [('A17','A17-multi-unit-group-v1.0.0/runs/a17-v100-ssh-20260929-01'),('D03','D03-calendar-pm-v1.0.0/runs/d03-calendar-v100-ssh-20261001-02')]:
+ d=load(C/rd/'closure.json')
+ print(json.dumps({'closure_package':name,'keys':list(d),'raw_type':type(d.get('raw')).__name__,'raw_files_type':type(d.get('raw_files')).__name__,'raw_files':d.get('raw_files'),'run_id':d.get('run_id')}))
+for pkg in ['A02-single-aircraft-repeated-missions','D09-var01-calendar-vs-operational-v1.0.0']:
+ d=load(C/pkg/'evidence-index.json')
+ print(json.dumps({'index_package':pkg,'keys':list(d),'run_keys':[list(x) for x in d.get('runs',[])],'runs':d.get('runs')},ensure_ascii=False))
+from pypdf import PdfReader
+reader=PdfReader(r'C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf')
+for page in [225,480,481]:
+ print('MANUAL_PHYSICAL_PAGE '+str(page));print(reader.pages[page-1].extract_text())

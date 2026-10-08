@@ -1,0 +1,121 @@
+"""Read-only byte and provenance audit of the completed single v101 run."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import stat
+
+ROOT = Path(__file__).resolve().parents[1]
+CASE = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+RUN_ID = "i04-var03-idle-system-between-v101-ssh-20261008-01"
+RUN = CASE / "runs" / RUN_ID
+OUTER = ROOT / "tmp/i04-var03-root-phases-v101-20261008/native-20261008T064836417631Z-b9e6741e/receipt.json"
+SEAL14 = ROOT / "tmp/i04-var03-root-native-transport-seal-v101-20261008/20261008T065353412074Z-88343646/receipt.json"
+REPLAY = ROOT / "tmp/i04-var03-root-sealed-replay-v101-20261008/20261008T065358193780Z-30866710/receipt.json"
+MANIFEST_SHA = "d05541613248279a5620349ade72bcaf80b12f3be042b470694f45b6efa690f3"
+APPROVAL_SHA = "257223d137a12529a3d1bd9c665ad092e703084b21e388983e6ef4a08124559a"
+READER_SHA = "e9ffcb9a491d39402fab9ac320c1611a1b1149f70ce35b6ff604ce67e79021f3"
+
+def pin(path):
+    blob = path.read_bytes()
+    return {"bytes": len(blob), "sha256": hashlib.sha256(blob).hexdigest()}
+
+spec = importlib.util.spec_from_file_location("independent_v101_reader", CASE / "review/independent_replay.py")
+reader = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(reader)
+strict = reader.strict_json
+assert pin(CASE / "review/independent_replay.py")["sha256"] == READER_SHA
+assert pin(CASE / "prelaunch-manifest.json")["sha256"] == MANIFEST_SHA
+assert pin(CASE / "review/independent-prelaunch-go.json")["sha256"] == APPROVAL_SHA
+manifest = strict((CASE / "prelaunch-manifest.json").read_bytes())
+source_map = {row["key"]: row["sha256"] for row in manifest["source_files"]}
+assert len(source_map) == 456
+for row in manifest["source_files"]:
+    assert pin(Path(row["path"])) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+outer = strict(OUTER.read_bytes())
+assert outer["schema"] == "issue18-i04-var03-root-phase-transport/v1"
+assert outer["action"] == "native" and outer["native_dispatch"] is True
+reader.integer(outer["actual_exit"], 0)
+assert outer["error"] is None and reader.typed(outer["method_before"], outer["method_after"])
+assert outer["expected_run_id"] == RUN_ID and outer["run_exists_after"] is True
+for name in ("stdout.bin", "stderr.bin"):
+    assert pin(OUTER.parent / name) == outer["streams"][name]
+reader.integer(outer["streams"]["stderr.bin"]["bytes"], 0)
+assert RUN.is_dir() and not (RUN / "failure-seal.json").exists()
+names = {path.name for path in RUN.iterdir()}
+closure = strict((RUN / "closure.json").read_bytes())
+invocation = strict((RUN / "invocation.json").read_bytes())
+steps = strict((RUN / "steps.json").read_bytes())
+assert names == set(closure["raw"]) | {"invocation.json", "closure.json"}
+assert len(names) == 25 and len(closure["raw"]) == 23
+assert closure["schema"] == "i04-var03-idle-between-closure/v101"
+assert invocation["schema"] == "i04-var03-idle-between-invocation/v101"
+assert closure["run_id"] == invocation["run_id"] == RUN_ID
+assert closure["error"] in (None, "") and closure["step_error"] in (None, "")
+assert closure["manifest_sha256"] == invocation["manifest_sha256"] == MANIFEST_SHA
+assert closure["approval_sha256"] == invocation["approval_sha256"] == APPROVAL_SHA
+assert pin(RUN / "invocation.json")["sha256"] == closure["invocation_sha256"]
+for name, wanted in closure["raw"].items():
+    assert pin(RUN / name) == wanted
+for path in RUN.iterdir():
+    assert path.is_file() and not path.is_symlink() and not path.stat().st_mode & stat.S_IWUSR
+for source_key in ("source_hashes_before", "source_hashes_after"):
+    assert reader.typed(closure[source_key], source_map)
+assert reader.typed(invocation["source_hashes_before"], source_map)
+assert reader.typed(invocation["source_hashes_after_pure"], source_map)
+assert type(steps) is list and len(steps) == 6
+assert [row["name"] for row in steps] == list(reader.STAGES)
+for index, step in enumerate(steps):
+    reader.integer(step["sequence"], index)
+    reader.integer(step["exit_code"], 0)
+    reader.integer(step["child_session_id"], 0)
+    assert step["capture_error"] is None and step["status"] == "completed" and step["error"] is None
+    assert step["gui_preserved"] is True
+    reader.integer(step["stderr_bytes"], 0)
+    for kind in ("stdout", "stderr"):
+        name = ({"check_import_export": "roundtrip-validation.json",
+                 "check_behavior": "author-validation.json"}.get(step["name"])
+                if kind == "stdout" else None) or f"{step['name']}-{kind}.txt"
+        path = RUN / name
+        assert Path(step[kind + "_path"]) == path
+        assert pin(path) == {"bytes": step[kind + "_bytes"], "sha256": step[kind + "_sha256"]}
+calc = steps[3]
+assert calc["converter_log_validated"] is True
+assert pin(RUN / "model-run.log") == closure["raw"]["model-run.log"] == {
+    "bytes": calc["converter_log_bytes"], "sha256": calc["converter_log_sha256"]}
+seal = strict(SEAL14.read_bytes())
+assert seal["schema"] == "issue18-i04-var03-root-native-transport-seal/v1"
+reader.integer(seal["original_count"], 14)
+reader.integer(seal["native_calls"], 0)
+assert len(seal["original_files"]) == 14
+for row in seal["original_files"]:
+    path = Path(row["path"])
+    assert path.is_relative_to(CASE) and pin(path) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+    assert row["read_only"] is True and not path.stat().st_mode & stat.S_IWUSR
+replay = strict(REPLAY.read_bytes())
+assert replay["schema"] == "issue18-i04-var03-root-sealed-independent-replay/v1"
+assert replay["run_id"] == RUN_ID and replay["native_dispatch"] is False
+reader.integer(replay["actual_exit"], 0)
+assert replay["source_map_unchanged"] is True
+assert reader.typed(replay["method_before"], replay["method_after"])
+assert replay["method_before"]["reader"]["sha256"] == READER_SHA
+assert reader.typed(replay["originals_before"], replay["originals_after"])
+assert replay["originals_before"] == {name: pin(RUN / name) for name in names}
+copy = Path(replay["copy"])
+assert copy.is_dir() and {path.name for path in copy.iterdir()} == names
+assert all(pin(copy / name) == pin(RUN / name) for name in names)
+for name in ("stdout.bin", "stderr.bin"):
+    assert pin(REPLAY.parent / name) == replay["streams"][name]
+reader.integer(replay["streams"]["stderr.bin"]["bytes"], 0)
+verdict = strict((REPLAY.parent / "stdout.bin").read_bytes())
+assert verdict == {"decision": "GO_BOUNDED", "historical_catalog_prefix_entries": 496,
+                   "log_lines": 118, "original_raw_files": 25, "paired_differences": 5,
+                   "report_cells_checked": 4044, "run_id": RUN_ID,
+                   "source_records": 456, "timed_event_records": 104}
+log = (RUN / "model.log").read_bytes().decode("utf-8-sig")
+assert "Time: 10.5 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>." in log
+assert "Time: 11 <TEACH-UNIT-2 at <BASE-02,0>> system transfered in: <TEACH-AIR-01,0>." in log
+print(json.dumps({"decision": "GO_POSTRUN_BOUNDED", "source_records": 456,
+                  "run_files": 25, "native_time_and_transport_originals": 14,
+                  "report_cells": 4044, "paired_differences": 5,
+                  "root_replay_sha256": pin(REPLAY)["sha256"], "native_reruns": 0}, sort_keys=True))

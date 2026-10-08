@@ -1,0 +1,58 @@
+"""Root prospective version recovery; preserve v100, no native or case construction."""
+from pathlib import Path
+import copy,datetime as dt,hashlib,json,stat
+R=Path(__file__).resolve().parents[1];OLD=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.0'
+NEW=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+O=R/'tmp/i04-var03-prospective-v101-20261008-01'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def load(p):return json.loads(p.read_bytes())
+def put(name,d):
+ with (O/name).open('xb') as f:f.write((json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode())
+ return {'path':(O/name).relative_to(R).as_posix(),**pin(O/name)}
+assert not NEW.exists() and not (OLD/'runs').exists() and not O.exists()
+assert pin(OLD/'prospective-contract.json')['sha256']=='8a4d23dced3b4a9049a657fb94b63bdad116d93a35db87409a09ac8f0deff583'
+assert pin(OLD/'source-inventory.json')['sha256']=='636c6bc66dee88123f87a55c20e413c5108c738345e36e6042b0eba9286a8810'
+assert pin(OLD/'prelaunch-manifest.json')['sha256']=='473937e60a1c390e2b8c6018f9540b418696e8a1fcae71d6d0ce599de6950183'
+no_go=R/'tmp/i04-var03-independent-publication-routing-no-go-20261008.md'
+assert pin(no_go)=={'bytes':1508,'sha256':'b5450f5c3693ac388755c2b7275f08c16f3d7009f6c998bc5db1526248a46378'}
+old_inventory=load(OLD/'source-inventory.json')
+for row in old_inventory['source_files']:assert pin(Path(row['path']))=={k:row[k] for k in ['bytes','sha256']}
+history_paths=[Path(row['path']) for row in old_inventory['source_files']]
+history_paths += [OLD/'source-inventory.json',OLD/'prelaunch-manifest.json',OLD/'review/independent-prelaunch-pure-go-2026-10-08.md',no_go]
+for dirname in ['i04-var03-root-phases-20261008','i04-var03-root-owned-freeze-20261008','i04-var03-root-author-handoff-check-20261008','i04-var03-root-guards-20261008']:
+ history_paths += sorted(p for p in (R/'tmp'/dirname).rglob('*') if p.is_file())
+for name in ['i04-var03-author-freeze-ready-20261008.json','i04-var03-resume144-live-context-20261008.json','i04-var03-preflight-live-context-20261008.json','i04-var03-root-resume-read-diagnostics-20261008.md','i04-var03-root-readonly-missing-file-note-20261008.md']:
+ history_paths.append(R/'tmp'/name)
+proof=OLD/'test-output/local-pure-20261008T050122737508Z-d1623f45'
+history_paths += sorted(p for p in proof.iterdir() if p.is_file())
+assert len(history_paths)==len({str(p).casefold() for p in history_paths})
+history=[{'path':str(p.resolve(strict=True)),**pin(p)} for p in history_paths]
+O.mkdir(exist_ok=False)
+history_pin=put('v100-excluded-history.json',{'schema':'issue18-i04-var03-excluded-prelaunch-history/v1','version':'1.0.0','decision':'NO_GO_PUBLICATION_ROUTING_BEFORE_NATIVE','reason':'Closed frozen source scanner rejects later normal package-root publication artifacts. Ignored runs publication workaround independently rejected.','native_calls':0,'actual_case_ssh_preflight_calls':0,'go_prelaunch_ever_issued':False,'prior_gate':'GO_PURE_PREFLIGHT only, never a native approval','records':history})
+selection=load(OLD/'preserved-context/root-selection.json')
+old_selection=copy.deepcopy(selection)
+selection['schema']='issue18-i04-var03-root-selection/v2'
+selection['utc']=dt.datetime.now(dt.timezone.utc).isoformat()
+selection['proposed_package']=NEW.relative_to(R).as_posix()
+selection['proposed_run_id']='i04-var03-idle-system-between-v101-ssh-20261008-01'
+selection['supersedes_excluded_prelaunch']={'old_selection':{'path':'tmp/i04-var03-root-selection-20261008-01/selection.json',**pin(OLD/'preserved-context/root-selection.json')},'history':history_pin,'reason':'Fresh publication-aware source policy/version; physical input and oracle unchanged. No accepted/native behavior rerun.'}
+selection_pin=put('selection.json',selection)
+c=load(OLD/'prospective-contract.json');before=copy.deepcopy(c)
+c['design_revision']=3;c['version']='1.0.1';c['package']=NEW.name;c['run_id']=selection['proposed_run_id'];c['selection']=selection_pin
+c['excluded_prelaunch_version']=history_pin
+c['publication_policy']={
+ 'source_freeze':'Closed explicit execution-source inventory; canonical sources and manifest immutable after fresh review. Keep normal package-root publication artifacts separate from execution sources.',
+ 'future_author_files':['README-publication.md','REPRODUCTION-postrun.md','results-summary.json','cli-scope-signoff-2026-10-08.md','publication-entry.json','make_evidence_index.py','evidence-index.json','copy_postrun_context.py','postrun-context-originals.json','postrun-context-custody.json','make_raw_custody.py','raw-custody-map.json','make_preflight_custody.py','preflight-custody-map.json'],
+ 'future_generated_namespaces':{'preserved-postrun/':'Only inert exactly named postrun-NNN.bytes copies, plus custody.json; all actual paths must be closed and hash-pinned by final evidence index.','preserved-postrun-development/':'Only inert exactly named draft-NNN.bytes copies, plus custody.json; preserve failed drafts and classify excluded.','preserved-raw/':'Only inert exactly named raw-NNN.bytes copies, plus custody.json; original paths mandatory and exact source/raw pins retained.','preserved-preflight/':'Only inert exactly named preflight-NNN.bytes copies, plus custody.json; original streams and integer exits mandatory.'},
+ 'review_later_prefixes':['review/independent-prelaunch-','review/independent-postrun-','review/independent-content-','review/independent-staged-','review/independent-remote-','review/independent-pr-','review/preflight-ssh0-'],
+ 'final_publication_closure':'Independent content/staged/remote audits require exact full actual publication path set, including each later author/generated file; excluding a later artifact from execution freeze never excludes it from final index/review. No product main edits.',
+ 'rebuild':'Default/dry evidence index and execution-manifest reconstruction remain byte-identical after authorized catalog append; historical496 prefix+metadata type-exact and IDs unique; no native or accepted checker rerun.'}
+unchanged=[k for k in before if k not in ['design_revision','version','package','run_id','selection']]
+assert all(c[k]==before[k] for k in unchanged)
+assert all(selection[k]==old_selection[k] for k in ['accepted_source_refs','mandatory_original_raw','required_docs','installed_refs','catalog_local','catalog_git','accepted_publications','parent_package','parent_run'])
+contract_pin=put('contract.json',c)
+proof_pin=put('identity-only-proof.json',{'schema':'issue18-i04-var03-v101-prospective-identity-only/v1','utc':dt.datetime.now(dt.timezone.utc).isoformat(),'root_method':pin(Path(__file__)),'old_contract':pin(OLD/'prospective-contract.json'),'new_contract':contract_pin,'selection':selection_pin,'excluded_history':history_pin,'same_contract_fields':unchanged,'native_input':pin(OLD/'native-input.json'),'parent_report_oracle':pin(OLD/'parent-report-oracle.json'),'child_report_oracle':pin(OLD/'child-report-oracle.json'),'child_export_oracle':pin(OLD/'child-roundtrip-oracle.json'),'history_records':len(history),'actual_case_preflight_calls':0,'native_calls':0,'state':'DRAFT_REQUIRES_FRESH_INDEPENDENT_GO_CONTRACT_ONLY_NO_CONSTRUCTION_NO_NATIVE'})
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'contract':contract_pin,'selection':selection_pin,'proof':proof_pin,'history':history_pin,'history_records':len(history),'native_calls':0}))

@@ -1,0 +1,22 @@
+from pathlib import Path
+import stat
+R=Path(__file__).resolve().parents[1]
+old=R/'tmp/i04-var03-prospective-design-20261008.py'
+s=old.read_text(encoding='utf-8')
+a="assert len(t['instances'])==1 and t['instances'][0]['instance_name']==''"
+assert s.count(a)==1
+s=s.replace(a,"assert len(t['instances'])==1")
+s=s.replace("i04-var03-prospective-design-20261008-01'","i04-var03-prospective-design-20261008-02'")
+s=s.replace("tables=src['model']['tables'];assert len(tables)==34","tables=src['model']['tables'];assert len(tables)==34\nassert all(t['instances'][0]['instance_name']=='' for t in tables)")
+anchor="for t,cs,n in zip(observed['report']['tables']"
+assert s.count(anchor)==1
+s=s.replace(anchor,"assert [t['instances'][0]['instance_name'] for t in observed['report']['tables']]==['','','Total over all Units;Total over all Systems;0.00;36.00','0.00;36.00;']\n"+anchor)
+s=s.replace("assert len(export['model']['tables'])==34","assert len(export['model']['tables'])==34\nassert all(t['instances'][0]['instance_name']=='' for t in export['model']['tables'])")
+s=s.replace("'schema':'issue18-i04-var03-prospective-contract/v1'","'design_revision':2,'excluded_design_failure':{'source':pin(old.read_bytes()) if False else {'bytes':16564,'sha256':'ec2cfe7e6fe98dcd39e0db3fb171d48851ee03a7b41129c39cb027b16cd3e7e7'},'original_stderr':{'bytes':626,'sha256':'ecbcb59655df9e090fdf5758522abbb2b9202b9d49f480828aff3bb452945826'},'reason':'Pure design v1 incorrectly assumed report instance labels empty; original exit1 retained, no native/case construction.'},'schema':'issue18-i04-var03-prospective-contract/v1'")
+p=R/'tmp/i04-var03-prospective-design-v2-20261008.py'
+with p.open('x',encoding='utf-8',newline='\n') as f:f.write(s)
+c=(R/'tmp/i04-var03-design-capture-20261008.py').read_text(encoding='utf-8')
+c=c.replace('i04-var03-design-transport-20261008-01','i04-var03-design-transport-20261008-02').replace('i04-var03-prospective-design-20261008.py','i04-var03-prospective-design-v2-20261008.py')
+p=R/'tmp/i04-var03-design-v2-capture-20261008.py'
+with p.open('x',encoding='utf-8',newline='\n') as f:f.write(c)
+Path(__file__).chmod(stat.S_IREAD)

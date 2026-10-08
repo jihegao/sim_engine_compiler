@@ -1,0 +1,5 @@
+# Root exploratory read failure
+
+During author construction, root tried `Get-Content -TotalCount` on the new package's `report_oracle.py` and `source_gate.py` before those files existed. The PowerShell command returned exit 1 with two missing-path diagnostics in the decoded tool output. This was a read-only inspection; neither script executed and no repository, native process or accepted evidence changed.
+
+The available record is the decoded tool transcript only. No original stdout/stderr bytes or transport hashes are claimed. Root will inspect the files after the author reports them ready; this is not a native retry or acceptance failure.

@@ -1,0 +1,5 @@
+# Concurrent freeze handoff diagnostic
+
+The author attempted `tmp/i04-var03-v101-author-freeze-ready-20261008.py` after root had already completed its one-time canonical source-inventory and prelaunch-manifest writes. The helper exited 1 on its deliberate absent-canonical-files assertion. It wrote only the noncanonical `tmp/i04-var03-v101-owned-inventory-preview-20261008.json`; no case source, run, native process, Git state or catalog file was changed. The traceback is preserved only in the decoded tool transcript, with no original stdout/stderr binary-stream claim.
+
+Read-only comparison showed the preview and root canonical inventory are both 93,926 bytes and SHA-256 `b5cac833294ea73d8f103579a779630205988e131007ada76dc009c44279aa1a`. The canonical manifest is 161,922 bytes, SHA-256 `d05541613248279a5620349ade72bcaf80b12f3be042b470694f45b6efa690f3`, with 456 source records and two local-only context originals. The failed helper remains outside the frozen package source inventory as local history.

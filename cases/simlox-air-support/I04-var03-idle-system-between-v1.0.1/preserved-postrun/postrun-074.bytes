@@ -1,0 +1,20 @@
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,uuid
+R=Path(__file__).resolve().parents[1]; P=R/'tmp/i04-var03-root-wts-diagnostic-v101-20261008.ps1'
+C=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+assert not (C/'runs/i04-var03-idle-system-between-v101-ssh-20261008-01').exists()
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+O=R/'tmp/i04-var03-root-wts-diagnostic-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',P.as_posix()]
+before=pin(P)
+with (O/'stdout.bin').open('xb') as out,(O/'stderr.bin').open('xb') as err:
+ code=subprocess.run(argv,cwd=R,stdout=out,stderr=err).returncode
+d={'schema':'issue18-i04-var03-root-wts-diagnostic-transport/v1','argv':argv,'actual_exit':code,'source_before':before,'source_after':pin(P),'streams':{n:pin(O/n) for n in ['stdout.bin','stderr.bin']},'native_calls':0,'session_changes':0}
+q=O/'receipt.json';q.write_bytes((json.dumps(d,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+P.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(q),**pin(q),'actual_exit':code,'streams':d['streams']}))
+print((O/'stdout.bin').read_bytes().decode('utf-8-sig',errors='replace'))
+if (O/'stderr.bin').stat().st_size:print((O/'stderr.bin').read_bytes().decode('utf-8-sig',errors='replace'))
+assert code==0 and (O/'stderr.bin').stat().st_size==0 and before==pin(P)

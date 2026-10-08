@@ -1,0 +1,16 @@
+from pathlib import Path
+import datetime,hashlib,json,stat,subprocess,sys
+R=Path(__file__).resolve().parents[1];O=R/'tmp/i04-var03-design-transport-20261008-01'
+assert not O.exists();O.mkdir()
+script=R/'tmp/i04-var03-prospective-design-20261008.py'
+argv=[sys.executable,'-X','utf8','-B',str(script)]
+r=subprocess.run(argv,cwd=R,capture_output=True)
+def put(n,b):
+ p=O/n
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+ return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+d={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'argv':argv,'exit':r.returncode,'stdout':put('stdout.bin',r.stdout),'stderr':put('stderr.bin',r.stderr),'script':{'bytes':script.stat().st_size,'sha256':hashlib.sha256(script.read_bytes()).hexdigest()},'native_calls':0}
+put('receipt.json',(json.dumps(d,indent=2)+'\n').encode());script.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps(d));print(r.stdout.decode('utf-8',errors='replace'));print(r.stderr.decode('utf-8',errors='replace'))
+raise SystemExit(r.returncode)

@@ -1,0 +1,154 @@
+"""Read-only independent source, manual-scope, log and 4044-cell contract audit."""
+import copy
+import hashlib
+import json
+import math
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parent.parent
+D=ROOT/'tmp/i04-var03-prospective-design-20261008-02'
+P=ROOT/'cases/simlox-air-support/I04-var01-system-between-v1.0.0'
+RUN=P/'runs/i04-var01-system-between-v100-ssh-20261005-01'
+def sha(b):return hashlib.sha256(b).hexdigest()
+def strict(b):
+    def pairs(items):
+        out={}
+        for k,v in items:
+            if k in out:raise ValueError(k)
+            out[k]=v
+        return out
+    def finite(s):
+        v=float(s)
+        if not math.isfinite(v):raise ValueError(s)
+        return v
+    return json.loads(b.decode('utf-8-sig'),object_pairs_hook=pairs,
+                      parse_float=finite,parse_constant=lambda s:(_ for _ in ()).throw(ValueError(s)))
+def typed(a,b):
+    if type(a) is not type(b):return False
+    if isinstance(a,dict):return a.keys()==b.keys() and all(typed(a[k],b[k]) for k in a)
+    if isinstance(a,list):return len(a)==len(b) and all(typed(x,y) for x,y in zip(a,b))
+    return a==b
+def cells(d):return sum(len(r) for t in d['report']['tables'] for i in t['instances'] for r in i['rows'])
+def overlap(a,b,x,y):return max(0,min(b,y)-max(a,x))
+
+raw=(D/'contract.json').read_bytes()
+assert len(raw)==24635 and sha(raw)=='8a4d23dced3b4a9049a657fb94b63bdad116d93a35db87409a09ac8f0deff583'
+c=strict(raw)
+assert c['state']=='DRAFT_REQUIRES_INDEPENDENT_GO_NO_CASE_CONSTRUCTION_NO_NATIVE'
+selection=strict((ROOT/c['selection']['path']).read_bytes())
+assert sha((ROOT/c['selection']['path']).read_bytes())==c['selection']['sha256']
+assert len(selection['accepted_source_refs'])==76 and len(selection['mandatory_original_raw'])==114
+assert selection['catalog_entries']==496 and selection['parent_run']=='i04-var01-system-between-v100-ssh-20261005-01'
+for r in selection['mandatory_original_raw']:
+    b=Path(r['path']).read_bytes();assert len(b)==r['bytes'] and sha(b)==r['sha256']
+for r in selection['accepted_source_refs']:
+    p=ROOT/r['path'];b=p.read_bytes();want=r['disk']
+    assert len(b)==want['bytes'] and sha(b)==want['sha256']
+for name,pin in c['manual']['installed_pins'].items():
+    b=Path(pin['path']).read_bytes();assert len(b)==pin['bytes'] and sha(b)==pin['sha256']
+
+parent=strict((P/'between-input.json').read_bytes())
+child=copy.deepcopy(parent)
+tables=child['model']['tables']
+assert len(tables)==34 and tables[0]['name']=='ProblemDescription' and tables[10]['name']=='SystemTransfer'
+assert tables[10]['instances'][0]['rows'][0]==['TEACH-UNIT','TEACH-UNIT-2','TEACH-AIR-01',8.5,1,0.5,None,None]
+assert [k for k in tables[10]['columns'] if k.get('key') is True] == tables[10]['columns'][:4]
+for change in c['source']['changes']:
+    t=tables[change['table_index']];assert t['name']==change['table']
+    assert t['columns'][change['column_index']]['name']==change['column']
+    row=t['instances'][0]['rows'][change['row']]
+    assert typed(row[change['column_index']],change['parent'])
+    row[change['column_index']]=change['child']
+assert len(tables)==c['source']['tables']==34
+assert sum(len(i['rows']) for t in tables for i in t['instances'])==c['source']['rows']==22
+assert sum(len(r) for t in tables for i in t['instances'] for r in i['rows'])==c['source']['cells']==223
+assert child['model']['database_version']==20160627
+oracle_export=strict((D/'child-roundtrip-oracle.json').read_bytes())
+assert sha((D/'child-roundtrip-oracle.json').read_bytes())==c['oracle_files']['child-roundtrip-oracle.json']['sha256']
+assert len(oracle_export['model']['tables'])==34
+assert sum(len(i['rows']) for t in oracle_export['model']['tables'] for i in t['instances'])==40
+assert sum(len(r) for t in oracle_export['model']['tables'] for i in t['instances'] for r in i['rows'])==407
+assert sum(not t['instances'][0]['rows'] for t in tables)==18
+source_by_name={t['name']:t for t in tables}
+export_tables=oracle_export['model']['tables']
+accepted_export=strict((RUN/'between-roundtrip-raw.json').read_bytes())
+assert len(source_by_name)==len(export_tables)==34
+assert [t['name'] for t in export_tables]==[t['name'] for t in accepted_export['model']['tables']]
+for y in export_tables:
+    x=source_by_name[y['name']]
+    assert typed(x['columns'],y['columns'])
+    assert len(x['instances'])==len(y['instances'])==1
+    xi,yi=x['instances'][0],y['instances'][0]
+    assert xi['instance_name']==yi['instance_name']
+    expected=xi['rows'] if xi['rows'] else [[None]*len(x['columns'])]
+    assert len(expected)==len(yi['rows'])
+    for a,b in zip(expected,yi['rows']):
+        assert len(a)==len(b)
+        for va,vb,col in zip(a,b,x['columns']):
+            if col['datatype']=='double' and va is not None:
+                assert type(va) in (int,float) and type(vb) in (int,float) and va==vb
+            else:assert typed(va,vb)
+
+report_raw=(RUN/'between-report-raw.json').read_bytes()
+text=report_raw.decode('utf-8-sig').replace('\r\n','\n')
+marker='         },\n      ]'
+assert text.count(marker)==1 and text.rstrip().endswith('      ]\n   }\n}')
+actual_parent=strict(text.replace(marker,'         }\n      ]').encode())
+parent_oracle=strict((D/'parent-report-oracle.json').read_bytes())
+child_oracle=strict((D/'child-report-oracle.json').read_bytes())
+assert sha((D/'parent-report-oracle.json').read_bytes())==c['oracle_files']['parent-report-oracle.json']['sha256']
+assert sha((D/'child-report-oracle.json').read_bytes())==c['oracle_files']['child-report-oracle.json']['sha256']
+assert typed(actual_parent,parent_oracle)
+assert cells(parent_oracle)==cells(child_oracle)==c['report']['cells_per_arm']==4044
+assert [t['name'] for t in parent_oracle['report']['tables']]==[t['name'] for t in child_oracle['report']['tables']]
+assert [len(t['instances'][0]['rows'])*len(t['columns']) for t in parent_oracle['report']['tables']]==[1,11,2880,1152]
+for is_child,d in ((False,parent_oracle),(True,child_oracle)):
+    tables=d['report']['tables']
+    assert tables[1]['instances'][0]['rows']==[c['report']['summary']]
+    sys= tables[2]; stock=tables[3]
+    names=[x['name'] for x in sys['columns']]
+    snames=[x['name'] for x in stock['columns']]
+    tr=(10.5,11) if is_child else (10,10.5)
+    sums={name:0 for name in c['report']['integrals']['parent']}
+    for i,(r,s) in enumerate(zip(sys['instances'][0]['rows'],stock['instances'][0]['rows'])):
+        a,b=i/2,(i+1)/2
+        assigned=2*(overlap(a,b,7,10)+overlap(a,b,19,22))/0.5
+        flying=2*(overlap(a,b,8,10)+overlap(a,b,20,22))/0.5
+        reserved=2*(overlap(a,b,7,8)+overlap(a,b,19,20))/0.5
+        inunit=2-overlap(a,b,*tr)/0.5
+        ready=inunit-assigned
+        vals={'NSYRY':ready,'NSYMA':assigned,'NSYMO':flying,
+              'NSYMR':reserved,'NSYA':inunit,'FTMO':flying/2,'STACC':flying}
+        assert r[names.index('STINT')]==s[snames.index('STINT')]==a
+        assert r[names.index('ETINT')]==s[snames.index('ETINT')]==b
+        for name in names[4:]:
+            expect=None if name=='SYDT' else vals.get(name,0)
+            assert r[names.index(name)]==expect,(is_child,i,name,r[names.index(name)],expect)
+        for name in snames[2:]:
+            expect=None if name in {'NBOU','ROS','ROST','WT','WTT','WTS'} else 1 if name=='PNB' else 0
+            assert r is not None and s[snames.index(name)]==expect,(is_child,i,name)
+        for name in sums:sums[name]+=vals[name]*0.5
+    assert sums==c['report']['integrals']['child' if is_child else 'parent']
+diff=[]
+for ta,tb in zip(parent_oracle['report']['tables'],child_oracle['report']['tables']):
+    assert typed(ta['columns'],tb['columns']) and ta['name']==tb['name']
+    for i,(ra,rb) in enumerate(zip(ta['instances'][0]['rows'],tb['instances'][0]['rows'])):
+        for j,(va,vb) in enumerate(zip(ra,rb)):
+            if not typed(va,vb):diff.append({'table':ta['name'],'row':i,'column':ta['columns'][j]['name'],'parent':va,'child':vb})
+assert diff==c['report']['paired_differences'] and len(diff)==5
+log=c['full_log']
+assert len(log['fixed_prefix'])+len(log['departure'])+len(log['arrival'])+len(log['fixed_tail'])==118
+assert log['total_lines_allowed']==[118,119,120,121]
+assert log['timed_lines_allowed']==[104,105,106]
+for ready in (False,True):
+    for priority in (False,True):
+        lines=log['fixed_prefix']+log['departure']
+        if ready:lines+=log['optional_departure_diagnostics'][0]['lines']
+        if priority:lines+=log['optional_departure_diagnostics'][1]['lines']
+        lines+=log['arrival']+log['fixed_tail']
+        assert len(lines)==118+ready+2*priority
+        assert sum(x.startswith('Time:') for x in lines)==104+ready+priority
+assert not (ROOT/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.0').exists()
+print(json.dumps({'decision':'GO_CONTRACT_CANDIDATE','parent_cells':4044,'child_cells':4044,
+                  'paired_differences':5,'allowed_log_transcripts':4,'source_cells':223,
+                  'export_cells':407,'mandatory_original_raw':114},sort_keys=True))

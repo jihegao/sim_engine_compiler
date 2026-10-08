@@ -1,0 +1,1083 @@
+"""Independent read-only I04.var03 source, trace and report oracle.
+
+Prospective fixtures prove parser coverage only. Native acceptance additionally
+requires the sealed invocation, source inventory and original raw evidence.
+"""
+from __future__ import annotations
+
+import copy
+import datetime
+import hashlib
+import json
+import math
+import re
+import subprocess
+from pathlib import Path
+
+PKG = Path(__file__).resolve().parent.parent
+ROOT = PKG.parents[2]
+DESIGN = ROOT / "tmp/i04-var03-prospective-design-20261008-02"
+PARENT = ROOT / "cases/simlox-air-support/I04-var01-system-between-v1.0.0"
+PARENT_RUN = PARENT / "runs/i04-var01-system-between-v100-ssh-20261005-01"
+CONTRACT_SHA = "8a4d23dced3b4a9049a657fb94b63bdad116d93a35db87409a09ac8f0deff583"
+RUN_ID = "i04-var03-idle-system-between-v100-ssh-20261008-01"
+EXPECTED_ORACLE_SHA = {
+    "parent-report-oracle.json": "fb337384ec3d0cb8a538f3edbc8ac8286ed237c9b08a67550c22c99382741628",
+    "child-report-oracle.json": "83d5519306d0efa692deab6b2a2a2bfd682982aa0a1a3ea1275bef9b5a5257fc",
+    "child-roundtrip-oracle.json": "012913693d6af024f1a4176b0bc80a8229053bee6fb0ccfb75fd638c8da900c2",
+}
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def strict_json(data: bytes, *, native_report: bool = False):
+    text = data.decode("utf-8-sig")
+    assert "\r" not in text.replace("\r\n", ""), "bare CR"
+    text = text.replace("\r\n", "\n")
+    if native_report:
+        marker = "         },\n      ]"
+        assert text.count(marker) == 1 and text.rstrip().endswith("      ]\n   }\n}"), "unknown native JSON defect"
+        text = text.replace(marker, "         }\n      ]", 1)
+
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            assert key not in result, f"duplicate JSON key: {key}"
+            result[key] = value
+        return result
+
+    def bad_constant(value):
+        raise AssertionError(f"nonfinite JSON constant: {value}")
+
+    value = json.loads(text, object_pairs_hook=pairs, parse_constant=bad_constant)
+
+    def finite(node):
+        if isinstance(node, float):
+            assert math.isfinite(node), "overflow/nonfinite JSON number"
+        elif isinstance(node, dict):
+            for item in node.values():
+                finite(item)
+        elif isinstance(node, list):
+            for item in node:
+                finite(item)
+
+    finite(value)
+    return value
+
+
+def typed(a, b) -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(typed(a[key], b[key]) for key in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def number(a, b) -> bool:
+    return type(a) in (int, float) and type(b) in (int, float) and math.isfinite(a) and math.isfinite(b) and a == b
+
+
+def pinned(path: Path, spec: dict) -> bytes:
+    blob = path.read_bytes()
+    assert len(blob) == spec["bytes"] and sha(blob) == spec["sha256"], path
+    return blob
+
+
+def catalog_prefix(old, live):
+    assert old.keys() == live.keys() == {"schema", "as_of", "catalog_snapshot", "entry_publication_state", "meaning", "entries"}
+    for key in old:
+        if key != "entries":
+            assert typed(old[key], live[key]), key
+    assert len(old["entries"]) == 496 and len(live["entries"]) >= 496
+    assert typed(live["entries"][:496], old["entries"])
+    ids = [entry["publication_id"] for entry in live["entries"]]
+    assert all(type(value) is str and value for value in ids)
+    assert len(ids) == len(set(ids))
+    return 496
+
+
+def contract():
+    current = PKG / "prospective-contract.json"
+    path = current if current.exists() else DESIGN / "contract.json"
+    blob = path.read_bytes()
+    assert len(blob) == 24635 and sha(blob) == CONTRACT_SHA
+    value = strict_json(blob)
+    assert value["run_id"] == RUN_ID
+    return value
+
+
+def selection_custody(c, *, prelaunch_exact=False):
+    spec = c["selection"]
+    selection_path = ROOT / spec["path"]
+    if selection_path.exists():
+        selection_blob = pinned(selection_path, spec)
+    else:
+        owned = strict_json((PKG / "context-custody.json").read_bytes())
+        matches = [row for row in owned["records"] if Path(row["original_path"]) == selection_path]
+        assert len(matches) == 1 and matches[0]["bytes"] == spec["bytes"] and matches[0]["sha256"] == spec["sha256"]
+        selection_blob = pinned(PKG / matches[0]["owned_copy"], spec)
+    selection = strict_json(selection_blob)
+    assert len(selection["accepted_source_refs"]) == 76
+    assert len(selection["mandatory_original_raw"]) == 114
+    tree_raw = subprocess.run(["git", "ls-tree", "-rz", selection["base"]], cwd=ROOT,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True).stdout
+    tree = {}
+    for entry in tree_raw.split(b"\0"):
+        if not entry:
+            continue
+        meta, path = entry.split(b"\t", 1)
+        _mode, kind, oid = meta.decode("ascii").split(" ")
+        assert kind == "blob"
+        key = path.decode("utf-8")
+        assert key not in tree
+        tree[key] = oid
+    for record in selection["mandatory_original_raw"]:
+        pinned(Path(record["path"]), record)
+    for record in selection["accepted_source_refs"]:
+        assert tree[record["path"]] == record["oid"]
+        disk = pinned(ROOT / record["path"], record["disk"])
+        proc = subprocess.run(["git", "cat-file", "blob", record["oid"]], cwd=ROOT,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        assert not proc.stderr
+        git = proc.stdout
+        assert len(git) == record["git"]["bytes"] and sha(git) == record["git"]["sha256"]
+        assert (disk == git) is record["byte_equal"]
+    assert len(selection["required_docs"]) == 8
+    for relative, spec in selection["required_docs"].items():
+        pinned(ROOT / relative, spec)
+    assert len(selection["installed_refs"]) == 3
+    for spec in selection["installed_refs"].values():
+        pinned(Path(spec["path"]), spec)
+    for spec in c["manual"]["installed_pins"].values():
+        pinned(Path(spec["path"]), spec)
+    local_archive = pinned(PKG / "preserved-context/publication-index-local-496.json.bytes", selection["catalog_local"])
+    git_archive = pinned(PKG / "preserved-context/publication-index-git-496.json.bytes", selection["catalog_git"])
+    git_blob = subprocess.run(["git", "cat-file", "blob", selection["catalog_git"]["oid"]], cwd=ROOT,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True).stdout
+    assert git_archive == git_blob and local_archive != git_archive
+    live_bytes = (ROOT / "cases/simlox-air-support/publication-index-v1.json").read_bytes()
+    if prelaunch_exact:
+        assert live_bytes == local_archive
+    catalog_prefix(strict_json(local_archive), strict_json(live_bytes))
+    custody_path = PKG / "context-custody.json"
+    if custody_path.exists():
+        owned = strict_json(custody_path.read_bytes())
+        assert owned.keys() == {"schema", "records", "root_frozen_context_count",
+                                "independent_contract_history_count", "originals_optional_after_publication"}
+        assert owned["schema"] == "i04-var03-context-custody/v1"
+        assert type(owned["root_frozen_context_count"]) is int and type(owned["independent_contract_history_count"]) is int
+        assert type(owned["originals_optional_after_publication"]) is bool and owned["originals_optional_after_publication"]
+        assert owned["root_frozen_context_count"] == 28 and owned["independent_contract_history_count"] == 15
+        assert len(owned["records"]) == owned["root_frozen_context_count"] + owned["independent_contract_history_count"]
+        originals = set()
+        for index, row in enumerate(owned["records"]):
+            assert row.keys() == {"original_path", "owned_copy", "bytes", "sha256", "original_if_present_must_match"}
+            assert row["owned_copy"] == f"preserved-context/context-{index:03d}.bytes"
+            assert type(row["original_if_present_must_match"]) is bool and row["original_if_present_must_match"]
+            pinned(PKG / row["owned_copy"], row)
+            original = Path(row["original_path"])
+            assert original.is_absolute() and str(original).casefold() not in originals
+            originals.add(str(original).casefold())
+            if original.exists():
+                pinned(original, row)
+    return selection
+
+
+def owned_pure_history():
+    path = PKG / "pure-proof-custody.json"
+    assert path.is_file()
+    mapping = strict_json(path.read_bytes())
+    assert mapping.keys() == {"schema", "records", "first_proof_decision",
+                              "second_proof_decision", "originals_optional_after_publication"}
+    assert mapping["schema"] == "i04-var03-pure-proof-custody/v1"
+    assert mapping["first_proof_decision"] == "FAILED_SYNTHETIC_GET_FILEHASH_AUTOLOAD"
+    assert mapping["second_proof_decision"] == "PASSED_PURE_NO_NATIVE"
+    assert type(mapping["originals_optional_after_publication"]) is bool and mapping["originals_optional_after_publication"]
+    assert type(mapping["records"]) is list and len(mapping["records"]) == 26
+    originals = set()
+    for index, row in enumerate(mapping["records"]):
+        assert row.keys() == {"original_path", "owned_copy", "bytes", "sha256", "original_if_present_must_match"}
+        assert row["owned_copy"] == f"preserved-pure-proof/pure-{index:02d}.bytes"
+        assert type(row["original_if_present_must_match"]) is bool and row["original_if_present_must_match"]
+        assert type(row["original_path"]) is str and row["original_path"].casefold() not in originals
+        originals.add(row["original_path"].casefold())
+        pinned(PKG / row["owned_copy"], row)
+        original = Path(row["original_path"])
+        if original.exists():
+            pinned(original, row)
+    return 26
+
+
+def expected_source(c):
+    parent = strict_json((PARENT / "between-input.json").read_bytes())
+    child = copy.deepcopy(parent)
+    tables = child["model"]["tables"]
+    assert len(tables) == 34 and tables[10]["name"] == "SystemTransfer"
+    assert tables[10]["instances"][0]["rows"][0] == ["TEACH-UNIT", "TEACH-UNIT-2", "TEACH-AIR-01", 8.5, 1, 0.5, None, None]
+    assert [column for column in tables[10]["columns"] if column.get("key") is True] == tables[10]["columns"][:4]
+    assert len(c["source"]["changes"]) == 2
+    for change in c["source"]["changes"]:
+        table = tables[change["table_index"]]
+        assert table["name"] == change["table"]
+        assert table["columns"][change["column_index"]]["name"] == change["column"]
+        row = table["instances"][0]["rows"][change["row"]]
+        assert typed(row[change["column_index"]], change["parent"])
+        row[change["column_index"]] = change["child"]
+    assert len(tables) == c["source"]["tables"] == 34
+    assert sum(len(instance["rows"]) for table in tables for instance in table["instances"]) == c["source"]["rows"] == 22
+    assert sum(len(row) for table in tables for instance in table["instances"] for row in instance["rows"]) == c["source"]["cells"] == 223
+    assert child["model"]["database_version"] == 20160627
+    return child
+
+
+def verify_source(c, actual):
+    assert typed(expected_source(c), actual), "source differs outside two predeclared cells"
+    return 223
+
+
+def oracle(c, name):
+    path = PKG / name
+    if not path.exists():
+        path = DESIGN / name
+    data = pinned(path, c["oracle_files"][name])
+    assert sha(data) == EXPECTED_ORACLE_SHA[name]
+    return strict_json(data)
+
+
+def verify_export(c, source, export):
+    want = oracle(c, "child-roundtrip-oracle.json")
+    assert export.keys() == want.keys() and export["model"].keys() == want["model"].keys()
+    for key in export:
+        if key != "model":
+            assert typed(export[key], want[key])
+    for key in export["model"]:
+        if key != "tables":
+            assert typed(export["model"][key], want["model"][key])
+    st = source["model"]["tables"]
+    et = export["model"]["tables"]
+    accepted = strict_json((PARENT_RUN / "between-roundtrip-raw.json").read_bytes())["model"]["tables"]
+    assert [x["name"] for x in et] == [x["name"] for x in accepted]
+    by_name = {x["name"]: x for x in st}
+    assert len(by_name) == len(et) == 34
+    for e in et:
+        s = by_name[e["name"]]
+        w = next(x for x in want["model"]["tables"] if x["name"] == e["name"])
+        assert e.keys() == w.keys()
+        for key in e:
+            if key not in {"name", "columns", "instances"}:
+                assert typed(e[key], w[key])
+        assert typed(s["columns"], e["columns"])
+        assert len(s["instances"]) == len(e["instances"]) == 1
+        si, ei = s["instances"][0], e["instances"][0]
+        wi = w["instances"][0]
+        assert ei.keys() == wi.keys()
+        for key in ei:
+            if key not in {"instance_name", "rows"}:
+                assert typed(ei[key], wi[key])
+        assert si["instance_name"] == ei["instance_name"]
+        rows = si["rows"] if si["rows"] else [[None] * len(s["columns"])]
+        assert len(rows) == len(ei["rows"])
+        for sr, er in zip(rows, ei["rows"]):
+            assert len(sr) == len(er) == len(s["columns"])
+            for sv, ev, col in zip(sr, er, s["columns"]):
+                if col["datatype"] == "double" and sv is not None:
+                    assert number(sv, ev)
+                else:
+                    assert typed(sv, ev)
+    assert sum(len(i["rows"]) for t in et for i in t["instances"]) == 40
+    assert sum(len(r) for t in et for i in t["instances"] for r in i["rows"]) == 407
+    return 407
+
+
+def report_equal(a, b):
+    if a.keys() != b.keys() or a["report"].keys() != b["report"].keys():
+        return False
+    for key in a:
+        if key != "report" and not typed(a[key], b[key]):
+            return False
+    for key in a["report"]:
+        if key != "tables" and not typed(a["report"][key], b["report"][key]):
+            return False
+    ats, bts = a["report"]["tables"], b["report"]["tables"]
+    if len(ats) != len(bts):
+        return False
+    for at, bt in zip(ats, bts):
+        if at.keys() != bt.keys() or at["name"] != bt["name"] or not typed(at["columns"], bt["columns"]):
+            return False
+        for key in at:
+            if key not in {"name", "columns", "instances"} and not typed(at[key], bt[key]):
+                return False
+        if len(at["instances"]) != len(bt["instances"]):
+            return False
+        for ai, bi in zip(at["instances"], bt["instances"]):
+            if ai.keys() != bi.keys() or ai["instance_name"] != bi["instance_name"]:
+                return False
+            for key in ai:
+                if key not in {"instance_name", "rows"} and not typed(ai[key], bi[key]):
+                    return False
+            if len(ai["rows"]) != len(bi["rows"]):
+                return False
+            for ar, br in zip(ai["rows"], bi["rows"]):
+                if not (len(ar) == len(br) == len(at["columns"])):
+                    return False
+                for av, bv, col in zip(ar, br, at["columns"]):
+                    if col["datatype"] == "double" and av is not None and bv is not None:
+                        if not number(av, bv):
+                            return False
+                    elif not typed(av, bv):
+                        return False
+    return True
+
+
+def overlap(a, b, x, y):
+    return max(0.0, min(b, y) - max(a, x))
+
+
+def verify_report(c, actual, *, child: bool):
+    want = oracle(c, "child-report-oracle.json" if child else "parent-report-oracle.json")
+    assert report_equal(actual, want), "whole report differs from predeclared oracle"
+    tables = actual["report"]["tables"]
+    assert [len(t["instances"][0]["rows"]) * len(t["columns"]) for t in tables] == [1, 11, 2880, 1152]
+    assert tables[1]["instances"][0]["rows"] == [c["report"]["summary"]]
+    system, stock = tables[2:4]
+    names = [x["name"] for x in system["columns"]]
+    stock_names = [x["name"] for x in stock["columns"]]
+    transit = (10.5, 11) if child else (10, 10.5)
+    sums = {key: 0.0 for key in c["report"]["integrals"]["parent"]}
+    for i, (row, srow) in enumerate(zip(system["instances"][0]["rows"], stock["instances"][0]["rows"])):
+        start, end = i / 2, (i + 1) / 2
+        assigned = 2 * (overlap(start, end, 7, 10) + overlap(start, end, 19, 22)) / 0.5
+        flying = 2 * (overlap(start, end, 8, 10) + overlap(start, end, 20, 22)) / 0.5
+        reserved = 2 * (overlap(start, end, 7, 8) + overlap(start, end, 19, 20)) / 0.5
+        in_unit = 2 - overlap(start, end, *transit) / 0.5
+        ready = in_unit - assigned
+        values = {"NSYRY": ready, "NSYMA": assigned, "NSYMO": flying, "NSYMR": reserved,
+                  "NSYA": in_unit, "FTMO": flying / 2, "STACC": flying}
+        assert number(row[names.index("STINT")], start) and number(row[names.index("ETINT")], end)
+        assert number(srow[stock_names.index("STINT")], start) and number(srow[stock_names.index("ETINT")], end)
+        for name in names[4:]:
+            expected = None if name == "SYDT" else values.get(name, 0)
+            assert (typed(row[names.index(name)], None) if expected is None else number(row[names.index(name)], expected)), (i, name)
+        for name in stock_names[2:]:
+            expected = None if name in {"NBOU", "ROS", "ROST", "WT", "WTT", "WTS"} else 1 if name == "PNB" else 0
+            assert (typed(srow[stock_names.index(name)], None) if expected is None else number(srow[stock_names.index(name)], expected)), (i, name)
+        for name in sums:
+            sums[name] += values[name] * 0.5
+    assert sums == c["report"]["integrals"]["child" if child else "parent"]
+    return 4044
+
+
+def proposed_logs(c):
+    spec = c["full_log"]
+    original = (PARENT_RUN / "between.log").read_text(encoding="utf-8-sig").splitlines()
+    assert len(original) == 117 and spec["header"] == original[:2]
+    assert spec["fixed_prefix"] == original[:46] + [
+        "Time: 10 <TEACH-UNIT at <BASE-01,0>> systems ready: 1 :<TEACH-AIR-01,0>"
+    ] + original[48:60]
+    assert spec["departure"] == [line.replace("Time: 10 ", "Time: 10.5 ", 1) for line in original[46:48]]
+    assert spec["arrival"] == [line.replace("Time: 10.5 ", "Time: 11 ", 1) for line in original[60:66]]
+    assert spec["fixed_tail"] == original[66:]
+    for ready in (False, True):
+        for priority in (False, True):
+            lines = list(spec["fixed_prefix"]) + list(spec["departure"])
+            if ready:
+                lines += spec["optional_departure_diagnostics"][0]["lines"]
+            if priority:
+                lines += spec["optional_departure_diagnostics"][1]["lines"]
+            lines += spec["arrival"] + spec["fixed_tail"]
+            assert len(lines) == 118 + ready + 2 * priority
+            assert sum(x.startswith("Time:") for x in lines) == 104 + ready + priority
+            yield ready, priority, lines
+
+
+def verify_log(c, actual: bytes):
+    text = actual.decode("utf-8-sig")
+    assert "\x00" not in text and "\r" not in text.replace("\r\n", ""), "unexpected control byte"
+    assert text.endswith("\n"), "unterminated full log"
+    lines = text.replace("\r\n", "\n").splitlines()
+    forms = [(ready, priority) for ready, priority, proposed in proposed_logs(c) if lines == proposed]
+    assert len(forms) == 1, "log outside four predeclared full transcripts"
+    events = []
+    pattern = re.compile(r"^Time: ([0-9]+(?:\.[0-9]+)?) <TEACH-AIR-01,([01])> nbr ready (increased|decreased) at unit: <(TEACH-UNIT(?:-2)?) at <(BASE-0[12]),0>>$")
+    for line in lines:
+        match = pattern.match(line)
+        if match:
+            events.append((float(match[1]), int(match[2]), match[4], match[5], match[3]))
+    ledger = c["behavior"]["ready_ledger"]
+    assert len(events) == len(ledger) == 12
+    ready = {"TEACH-UNIT": set(), "TEACH-UNIT-2": set()}
+    assigned = set()
+    transit = set()
+    location = {}
+    for event, record in zip(events, ledger):
+        assert event == (float(record["time"]), record["system"], record["unit"], record["base"], record["direction"])
+        hour, system, unit, _base, direction = event
+        if direction == "increased":
+            if hour in (10, 22):
+                assert system in assigned
+                assigned.remove(system)
+            elif hour == 11:
+                assert system in transit
+                transit.remove(system)
+                assert location[system] is None and unit == "TEACH-UNIT-2"
+                location[system] = unit
+            else:
+                assert hour == 0 and system not in assigned and system not in transit
+                assert system not in location
+                location[system] = unit
+            assert system not in ready[unit]
+            ready[unit].add(system)
+        else:
+            assert system in ready[unit]
+            assert location[system] == unit
+            ready[unit].remove(system)
+            if hour in (7, 19):
+                assert system not in assigned
+                assigned.add(system)
+            else:
+                assert hour == 10.5 and system == 0
+                assert system not in transit
+                transit.add(system)
+                location[system] = None
+        assert typed({key: len(value) for key, value in ready.items()}, record["unit_ready_after"])
+        assert typed(sorted(ready["TEACH-UNIT"] | ready["TEACH-UNIT-2"]), record["ready_systems_after"])
+        assert typed(sorted(transit), record["transit_after"])
+        assert all(location[member] is None for member in transit)
+        assert all(location[member] == unit_name for unit_name, members in ready.items() for member in members)
+        if not (hour == 0 and system == 0):
+            assert len(ready["TEACH-UNIT"] | ready["TEACH-UNIT-2"]) + len(assigned) + len(transit) == 2
+    assert c["behavior"]["departure"] == 10.5 and c["behavior"]["arrival"] == 11
+    assert lines.count(c["full_log"]["departure"][1]) == 1 and lines.count(c["full_log"]["arrival"][0]) == 1
+    assert typed(c["behavior"]["terminal"], {"physical_roster": 2, "source_ready": 0, "target_ready": 2,
+                                               "in_transit": 0, "assigned": 0, "failed": 0, "repair": 0, "PM": 0})
+    assert not ready["TEACH-UNIT"] and ready["TEACH-UNIT-2"] == {0, 1}
+    assert not assigned and not transit
+    assert location == {0: "TEACH-UNIT-2", 1: "TEACH-UNIT-2"}
+    return {"optional_ready": forms[0][0], "optional_priority": forms[0][1],
+            "timed_events": sum(x.startswith("Time:") for x in lines), "lines": len(lines)}
+
+
+def verify_converter(data: bytes, run: Path):
+    """Bound post-calc converter grammar from the sealed accepted parent."""
+    text = data.decode("utf-8-sig")
+    assert "\x00" not in text and "\r" not in text.replace("\r\n", "")
+    assert text.endswith("\n")
+    lines = text.replace("\r\n", "\n").splitlines()
+    assert len(lines) == 17, "converter added or omitted a line"
+    fixed = {
+        0: "Performing simulation", 3: "Simulating.", 4: "Converting input data ...",
+        6: "Form: Control",
+        7: "rec 1: (warning #108) Enabling simulation log may generate extensive data in log file",
+        8: "Form: System",
+        9: "rec 1: (warning #126) This system contains no items: TEACH-AIR-01",
+        10: "Input conversion completed. Errors: 0, Warnings: 2, Notes: 0",
+        12: "Starting simulation...", 14: "Saving results ...",
+    }
+    for index, expected in fixed.items():
+        assert lines[index] == expected, (index, lines[index])
+    for index, label, name in ((1, "Input file", "model.sxi"),
+                               (2, "Output file", "model.sxo"),
+                               (5, "File", "model.sxi")):
+        assert lines[index].startswith(label + ": ")
+        observed = lines[index][len(label) + 2:].replace("\\", "/")
+        assert observed == str(run / name).replace("\\", "/"), (index, observed)
+    for index, label in ((11, "Input data conversion time"), (13, "Simulation time"),
+                         (15, "Result saving time"), (16, "Total execution time")):
+        assert re.fullmatch(re.escape(label) + r": [0-9]+(?:\.[0-9]+)? secs\.", lines[index])
+    return {"converter_lines": 17, "errors": 0, "warnings": [108, 126], "notes": 0}
+
+
+def integer(value, expected=None):
+    assert type(value) is int and (expected is None or value == expected), (value, expected)
+
+
+def utc(value):
+    assert type(value) is str and value
+    moment = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    assert moment.tzinfo is not None and moment.utcoffset() == datetime.timedelta(0)
+    return moment
+
+
+def file_record(path: Path):
+    blob = path.read_bytes()
+    return {"bytes": len(blob), "sha256": sha(blob)}
+
+
+def source_map_sha(mapping):
+    return sha(json.dumps(mapping, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+
+
+OWNED_ROLE = {
+    "prospective-contract.json": "prospective_contract",
+    "execution-contract.json": "execution_binding",
+    "native-input.json": "child_input",
+    "validate_native_cli.py": "behavior_validator",
+    "run_native_ssh.ps1": "runner_script",
+    "review/independent_replay.py": "independent_replay",
+    "review/independent_self_check.py": "independent_self_check",
+}
+
+
+def verify_manifest_document(doc, *, final):
+    assert doc.keys() == {"schema", "run_id", "base_commit", "contract_sha256",
+                          "execution_binding_sha256", "source_count", "source_files",
+                          "live_catalog_prelaunch_pin", "historical_catalog_prefix_always_checked",
+                          "accepted_source_git_pairs", "accepted_raw_records", "accepted_nonclosure_raw",
+                          "accepted_closure_records", "accepted_invocation_records",
+                          "new_native_runs_authorized_by_manifest", "independent_method_state"}
+    assert doc["schema"] == "i04-var03-idle-between-prelaunch-manifest/v1"
+    assert doc["run_id"] == RUN_ID and doc["base_commit"] == "33193ce8ce5763d9dd892eda9c68ab9d729c8a3a"
+    assert doc["contract_sha256"] == CONTRACT_SHA
+    for key, expected in (("historical_catalog_prefix_always_checked", 496),
+                          ("accepted_source_git_pairs", 76), ("accepted_raw_records", 114),
+                          ("accepted_nonclosure_raw", 100), ("accepted_closure_records", 7),
+                          ("accepted_invocation_records", 7), ("new_native_runs_authorized_by_manifest", 0)):
+        integer(doc[key], expected)
+    assert doc["independent_method_state"] == ("exact methods pinned; fresh approval required" if final else "provisional")
+    rows = doc["source_files"]
+    assert type(rows) is list
+    integer(doc["source_count"], len(rows))
+    keys = [row["key"] for row in rows]
+    paths = [row["path"] for row in rows]
+    assert len(keys) == len(set(keys)) and len(paths) == len(set(paths))
+    assert len({path.casefold() for path in paths}) == len(paths)
+    by_key, source_map = {}, {}
+    for row in rows:
+        assert row.keys() == {"key", "path", "bytes", "sha256"}
+        assert type(row["key"]) is str and type(row["path"]) is str and type(row["sha256"]) is str
+        assert re.fullmatch(r"[0-9a-f]{64}", row["sha256"])
+        integer(row["bytes"])
+        path = Path(row["path"])
+        assert path.is_absolute() and not path.is_symlink()
+        assert file_record(path) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        by_key[row["key"]] = row
+        source_map[row["key"]] = row["sha256"]
+    for role, relative in ((role, relative) for relative, role in OWNED_ROLE.items()):
+        if final or role not in {"independent_replay", "independent_self_check"}:
+            assert Path(by_key[role]["path"]) == PKG / relative
+    assert source_map["prospective_contract"] == CONTRACT_SHA
+    assert source_map["execution_binding"] == doc["execution_binding_sha256"]
+    assert source_map["child_input"] == sha((PKG / "native-input.json").read_bytes())
+    live = doc["live_catalog_prelaunch_pin"]
+    selection = strict_json((ROOT / "tmp/i04-var03-root-selection-20261008-01/selection.json").read_bytes())
+    assert live.keys() == {"path", "bytes", "sha256"}
+    assert Path(live["path"]) == ROOT / "cases/simlox-air-support/publication-index-v1.json"
+    assert {key: live[key] for key in ("bytes", "sha256")} == selection["catalog_local"]
+    assert Path(live["path"]) not in map(Path, paths), "mutable live catalog must not be a source pin"
+    if final:
+        inventory = strict_json((PKG / "source-inventory.json").read_bytes())
+        assert inventory.keys() == {"schema", "source_count", "source_files", "provisional", "excluded_future"}
+        assert inventory["schema"] == "i04-var03-idle-between-owned-source-inventory/v1"
+        assert type(inventory["provisional"]) is bool and not inventory["provisional"]
+        assert typed(inventory["excluded_future"],
+                     ["runs/", "test-output/", "transport-evidence/",
+                      "review/independent-prelaunch-", "review/independent-postrun-",
+                      "review/independent-content-", "review/preflight-ssh0-"])
+        owned_rows = inventory["source_files"]
+        integer(inventory["source_count"], len(owned_rows))
+        require_core_owned([row["relative_path"] for row in owned_rows])
+        expected = {}
+
+        def add(role, path, pin=None):
+            assert role not in expected
+            observed = pin or file_record(path)
+            expected[role] = {"path": str(path), "bytes": observed["bytes"], "sha256": observed["sha256"]}
+
+        for row in owned_rows:
+            assert row.keys() == {"relative_path", "path", "bytes", "sha256"}
+            assert Path(row["path"]) == PKG / row["relative_path"]
+            add(OWNED_ROLE.get(row["relative_path"], "owned:" + row["relative_path"]), Path(row["path"]), row)
+        add("owned_source_inventory", PKG / "source-inventory.json")
+        for index, row in enumerate(selection["accepted_source_refs"]):
+            add(f"accepted_source:{index}", ROOT / row["path"], row["disk"])
+        for index, row in enumerate(selection["mandatory_original_raw"]):
+            add(f"accepted_raw:{index}", Path(row["path"]), row)
+        occupied = {value["path"].casefold() for value in expected.values()}
+        for index, (relative, spec) in enumerate(selection["required_docs"].items()):
+            path = ROOT / relative
+            if str(path).casefold() not in occupied:
+                add(f"required_doc:{index}", path, spec)
+            else:
+                assert file_record(path) == {"bytes": spec["bytes"], "sha256": spec["sha256"]}
+        for name, spec in selection["installed_refs"].items():
+            add("installed:" + name, Path(spec["path"]), spec)
+        ancestry = ROOT / "cases/simlox-air-support/I03-var08-idle-at-maxut-out-v1.0.0/captured_process.ps1"
+        helper_pin = file_record(PKG / "captured_process.ps1")
+        assert helper_pin["sha256"] == "17285b90093c2d80c6241e1345b9926a2e4dd0f0b2b24f831c84c1cfa885b794"
+        add("accepted_capture_helper_ancestry", ancestry, helper_pin)
+        assert set(by_key) == set(expected) and len(by_key) == len(expected)
+        for role, wanted in expected.items():
+            assert {key: by_key[role][key] for key in ("path", "bytes", "sha256")} == wanted, role
+    return source_map, source_map_sha(source_map)
+
+
+CORE_OWNED = {
+    ".gitattributes", ".gitignore", "README.md", "REPRODUCTION.md",
+    "prospective-contract.json", "execution-contract.json", "native-input.json", "exact-diff.json",
+    "parent-report-oracle.json", "child-report-oracle.json", "child-roundtrip-oracle.json",
+    "model_common.py", "build.py", "check_roundtrip.py", "event_ledger.py", "report_oracle.py",
+    "validate_native_cli.py", "self_check.py", "source_gate.py", "copy_context.py",
+    "context-custody.json", "captured_process.ps1", "checker_receipt.ps1",
+    "preflight_receipt.ps1", "run_native_ssh.ps1", "ssh_transport.py",
+    "test_converter_gate.ps1", "pure_proof.py", "make_source_inventory.py",
+    "make_prelaunch_manifest.py", "copy_pure_proof.py", "pure-proof-custody.json",
+}
+DEVELOPMENT_OWNED = {
+    "checker-receipt-copied-var08-draft.ps1.bytes",
+    "event-ledger-v1-target-during-transit.py.bytes",
+    "runner-v1-unnumbered-diagnostic-gap.ps1.bytes",
+    "inventory-copied-var08-draft.py.bytes",
+    "manifest-copied-var08-draft.py.bytes",
+    "converter-pure-v1-get-filehash-failure.ps1.bytes",
+}
+CONTEXT_OWNED = {
+    "authenticated-context.json", "design-proof-v2.json", "independent-contract-review.md",
+    "publication-index-git-496.json.bytes", "publication-index-local-496.json.bytes",
+    "root-selection.json",
+}
+REVIEW_OWNED = {
+    "review/independent_replay.py", "review/independent_self_check.py",
+    "review/preserved-reviewer-selfcheck-live-catalog-exact.py.bytes",
+    "review/independent-method-static-go-2026-10-08.md",
+}
+CLOSED_OWNED = (CORE_OWNED |
+                {"preserved-development/" + name for name in DEVELOPMENT_OWNED} |
+                {"preserved-context/" + name for name in CONTEXT_OWNED} |
+                {f"preserved-context/context-{index:03d}.bytes" for index in range(43)} |
+                {f"preserved-pure-proof/pure-{index:02d}.bytes" for index in range(26)} |
+                REVIEW_OWNED)
+assert len(CLOSED_OWNED) == 117
+
+
+def require_core_owned(paths):
+    assert type(paths) is list and len(paths) == len(CLOSED_OWNED)
+    assert all(type(path) is str for path in paths)
+    assert len(paths) == len(set(paths)) and set(paths) == CLOSED_OWNED, "owned source closed set differs"
+    return True
+
+
+PYTHON = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe")
+SIMLOX = Path(r"C:\Program Files\Systecon\SIMLOX\Simlox.exe")
+WORKING_DIRECTORY = Path(r"C:\Users\user\Documents\Codex\2026-09-26\simlox-j35-event-parity\workspace")
+GUI = {"pid": 13340, "session_id": 1, "start_unix_ms": 1790590196826, "responding": True}
+PURE_TOOLS = ("build.py", "copy_context.py", "source_gate.py", "self_check.py", "make_prelaunch_manifest.py")
+STAGES = ("import", "export", "check_import_export", "calc", "jsonreport", "check_behavior")
+RUN_FILES = {
+    "input.json", "model.sxi", "import.log", "roundtrip-raw.json", "export.log",
+    "roundtrip-validation.json", "model.sxo", "model.log", "model-run.log",
+    "report-raw.json", "report-export.log", "author-validation.json", "steps.json",
+    "invocation.json", "closure.json",
+    *(name + "-stderr.txt" for name in STAGES),
+    *(name + "-stdout.txt" for name in ("import", "export", "calc", "jsonreport")),
+}
+
+
+def strict_source_map(actual, wanted):
+    assert type(actual) is dict and typed(actual, wanted), "source map mismatch"
+
+
+def verify_pure_proof(proof_path: Path, receipt: dict, *, mode: str, manifest_sha: str,
+                      source_map: dict, source_sha: str):
+    assert type(receipt) is dict and mode in ("preflight", "native")
+    directory = proof_path.parent
+    assert directory.parent == PKG / "test-output"
+    assert re.fullmatch(rf"{mode}-pure-[0-9]{{8}}T[0-9]{{13}}Z-[0-9a-f]{{8}}", directory.name)
+    assert proof_path == directory / "pure-proof.json" and not proof_path.is_symlink()
+    assert file_record(proof_path)["sha256"] == receipt["pure_proof_sha256"]
+    if mode == "preflight":
+        assert Path(receipt["pure_proof_directory"]) == directory
+    else:
+        assert "pure_proof_directory" not in receipt, "native invocation derives proof directory from exact path"
+    assert Path(receipt["pure_proof_path"]) == proof_path
+    proof = strict_json(proof_path.read_bytes())
+    assert proof["schema"] == "i04-var03-idle-between-pure-proof/v1"
+    assert proof["mode"] == mode and proof["run_id"] == RUN_ID
+    assert proof["manifest_sha256"] == manifest_sha and proof["source_map_sha256"] == source_sha
+    assert proof["status"] == "passed" and proof["error"] is None
+    assert type(proof["checks"]) is list and len(proof["checks"]) == 5
+    assert typed(proof["checks"], receipt["pure_checks"])
+    strict_source_map(proof["source_hashes_after"], source_map)
+    strict_source_map(receipt["source_hashes_after_pure"], source_map)
+    previous = utc(proof["started_utc"])
+    for index, (tool, check) in enumerate(zip(PURE_TOOLS, proof["checks"])):
+        assert check.keys() == {"tool", "program", "arguments", "started_utc", "completed_utc",
+                                "status", "error", "child_pid", "child_session_id", "exit_code",
+                                "capture_error", "stdout_path", "stderr_path", "stdout_bytes",
+                                "stderr_bytes", "stdout_sha256", "stderr_sha256"}
+        assert check["tool"] == tool and Path(check["program"]) == PYTHON
+        assert check["arguments"] == f'-X utf8 -B "{PKG / tool}"'
+        assert check["status"] == "completed" and check["error"] is None and check["capture_error"] is None
+        integer(check["child_session_id"], 0)
+        integer(check["exit_code"], 0)
+        integer(check["child_pid"])
+        assert check["child_pid"] > 0
+        start, done = utc(check["started_utc"]), utc(check["completed_utc"])
+        assert previous <= start <= done, (index, "pure step UTC")
+        previous = done
+        for stream in ("stdout", "stderr"):
+            path = directory / f"{Path(tool).stem}-{stream}.bin"
+            assert Path(check[f"{stream}_path"]) == path and not path.is_symlink()
+            assert file_record(path) == {"bytes": check[f"{stream}_bytes"],
+                                         "sha256": check[f"{stream}_sha256"]}
+            integer(check[f"{stream}_bytes"])
+        integer(check["stderr_bytes"], 0)
+    assert previous <= utc(proof["completed_utc"])
+    return proof
+
+
+def verify_preflight(preflight_path: Path, preflight_sha: str, manifest: dict,
+                     source_map: dict, source_sha: str):
+    assert preflight_path.parent == PKG / "review"
+    assert re.fullmatch(r"preflight-ssh0-[0-9]{8}T[0-9]{9}Z\.json", preflight_path.name)
+    assert not preflight_path.is_symlink() and file_record(preflight_path)["sha256"] == preflight_sha
+    receipt = strict_json(preflight_path.read_bytes())
+    preflight_core(receipt, file_record(PKG / "prelaunch-manifest.json")["sha256"],
+                   source_map, source_sha)
+    verify_pure_proof(Path(receipt["pure_proof_path"]), receipt, mode="preflight",
+                      manifest_sha=receipt["manifest_sha256"], source_map=source_map,
+                      source_sha=source_sha)
+    return receipt
+
+
+def preflight_core(receipt: dict, manifest_sha: str, source_map: dict, source_sha: str):
+    assert receipt.keys() == {"schema", "run_id", "run_dirs_absent", "ssh_session", "ps_major",
+                              "ssh_ancestors", "mutex_free", "wts_active_gui_count", "gui",
+                              "accepted_raw_seals", "accepted_nonclosure_raw", "accepted_closures",
+                              "accepted_invocations", "excluded_failed_witness_raw", "total_original_raw",
+                              "manifest_sha256", "source_map_sha256", "source_hashes",
+                              "source_hashes_after_pure", "pure_proof_directory", "pure_proof_path",
+                              "pure_proof_sha256", "pure_checks", "native_process_started"}
+    assert receipt["schema"] == "i04-var03-idle-between-ssh-preflight/v1"
+    assert receipt["run_id"] == RUN_ID
+    assert receipt["manifest_sha256"] == manifest_sha
+    assert receipt["source_map_sha256"] == source_sha
+    assert type(receipt["run_dirs_absent"]) is bool and receipt["run_dirs_absent"]
+    assert type(receipt["native_process_started"]) is bool and not receipt["native_process_started"]
+    assert type(receipt["mutex_free"]) is bool and receipt["mutex_free"]
+    for key, value in (("ssh_session", 0), ("ps_major", 5), ("wts_active_gui_count", 1),
+                       ("accepted_raw_seals", 114), ("accepted_nonclosure_raw", 100),
+                       ("accepted_closures", 7), ("accepted_invocations", 7),
+                       ("excluded_failed_witness_raw", 0), ("total_original_raw", 114)):
+        integer(receipt[key], value)
+    assert type(receipt["ssh_ancestors"]) is list and "sshd.exe" in receipt["ssh_ancestors"]
+    assert typed(receipt["gui"], GUI)
+    strict_source_map(receipt["source_hashes"], source_map)
+    strict_source_map(receipt["source_hashes_after_pure"], source_map)
+    assert type(receipt["pure_checks"]) is list and len(receipt["pure_checks"]) == 5
+    assert type(receipt["pure_proof_path"]) is str and type(receipt["pure_proof_directory"]) is str
+    assert re.fullmatch(r"[0-9a-f]{64}", receipt["pure_proof_sha256"])
+    return True
+
+
+def verify_approval(manifest: dict, source_map: dict, source_sha: str):
+    path = PKG / "review/independent-prelaunch-go.json"
+    approval = strict_json(path.read_bytes())
+    assert approval.keys() == {"schema", "decision", "run_id", "manifest_sha256", "runner_sha256",
+                               "validator_sha256", "contract_sha256", "execution_binding_sha256",
+                               "input_sha256", "source_map_sha256", "independent_replay_sha256",
+                               "preflight_relative_path", "preflight_sha256"}
+    assert approval["schema"] == "i04-var03-idle-between-independent-prelaunch-go/v1"
+    assert approval["decision"] == "GO_PRELAUNCH" and approval["run_id"] == RUN_ID
+    bindings = {"manifest_sha256": file_record(PKG / "prelaunch-manifest.json")["sha256"],
+                "runner_sha256": source_map["runner_script"],
+                "validator_sha256": source_map["behavior_validator"],
+                "contract_sha256": CONTRACT_SHA,
+                "execution_binding_sha256": source_map["execution_binding"],
+                "input_sha256": source_map["child_input"],
+                "source_map_sha256": source_sha,
+                "independent_replay_sha256": source_map["independent_replay"]}
+    assert all(approval[key] == expected for key, expected in bindings.items())
+    relative = approval["preflight_relative_path"].replace("\\", "/")
+    assert re.fullmatch(r"review/preflight-ssh0-[0-9]{8}T[0-9]{9}Z\.json", relative)
+    preflight = verify_preflight(PKG / relative, approval["preflight_sha256"],
+                                 manifest, source_map, source_sha)
+    return approval, path, preflight
+
+
+def expected_plan(run: Path):
+    native = [
+        ("import", f'-silent -jimport "{run / "input.json"}" -save "{run / "model.sxi"}" -log "{run / "import.log"}" -close'),
+        ("export", f'"{run / "model.sxi"}" -silent -jexport "{run / "roundtrip-raw.json"}" -log "{run / "export.log"}" -close'),
+        ("calc", f'"{run / "model.sxi"}" -silent -threads 1 -calc -log "{run / "model-run.log"}" -close'),
+        ("jsonreport", f'"{run / "model.sxo"}" -silent -jsonreport "{run / "report-raw.json"}" -log "{run / "report-export.log"}" -close'),
+    ]
+    checkers = [
+        ("check_import_export", f'-X utf8 -B "{PKG / "check_roundtrip.py"}" "{run}"'),
+        ("check_behavior", f'-X utf8 -B "{PKG / "validate_native_cli.py"}" "{run}"'),
+    ]
+    return ([{"name": name, "program": str(SIMLOX), "arguments": argv} for name, argv in native],
+            [{"name": name, "program": str(PYTHON), "arguments": argv} for name, argv in checkers])
+
+
+def stage_core(step: dict, index: int, name: str, planned: dict, previous):
+    assert step.keys() == {"sequence", "name", "program", "arguments", "started_utc", "completed_utc",
+                           "child_pid", "child_session_id", "exit_code", "capture_error",
+                           "stdout_path", "stderr_path", "stdout_bytes", "stderr_bytes",
+                           "stdout_sha256", "stderr_sha256", "converter_log_bytes",
+                           "converter_log_sha256", "converter_log_validated", "gui_preserved", "status", "error"}
+    integer(step["sequence"], index)
+    assert step["name"] == name and step["program"] == planned["program"]
+    assert step["arguments"] == planned["arguments"]
+    assert step["capture_error"] is None and step["error"] is None
+    assert step["status"] == "completed" and type(step["gui_preserved"]) is bool and step["gui_preserved"]
+    integer(step["child_session_id"], 0)
+    integer(step["exit_code"], 0)
+    integer(step["child_pid"])
+    assert step["child_pid"] > 0
+    started, completed = utc(step["started_utc"]), utc(step["completed_utc"])
+    assert previous <= started <= completed
+    for stream in ("stdout", "stderr"):
+        assert type(step[f"{stream}_path"]) is str
+        integer(step[f"{stream}_bytes"])
+        assert re.fullmatch(r"[0-9a-f]{64}", step[f"{stream}_sha256"])
+    integer(step["stderr_bytes"], 0)
+    if name == "calc":
+        integer(step["converter_log_bytes"])
+        assert re.fullmatch(r"[0-9a-f]{64}", step["converter_log_sha256"])
+        assert type(step["converter_log_validated"]) is bool and step["converter_log_validated"]
+    else:
+        assert step["converter_log_bytes"] is None and step["converter_log_sha256"] is None
+        assert type(step["converter_log_validated"]) is bool and not step["converter_log_validated"]
+    return completed
+
+
+def verify_run_provenance(run: Path, manifest: dict, source_map: dict, source_sha: str):
+    assert run == PKG / "runs" / RUN_ID and not run.is_symlink()
+    assert {item.name for item in run.iterdir()} == RUN_FILES
+    assert all(item.is_file() and not item.is_symlink() for item in run.iterdir())
+    assert all(not (item.stat().st_mode & 0o200) for item in run.iterdir()), "new native originals not sealed RO"
+    approval, approval_path, preflight = verify_approval(manifest, source_map, source_sha)
+    invocation_blob = (run / "invocation.json").read_bytes()
+    invocation = strict_json(invocation_blob)
+    closure = strict_json((run / "closure.json").read_bytes())
+    steps = strict_json((run / "steps.json").read_bytes())
+    manifest_sha = file_record(PKG / "prelaunch-manifest.json")["sha256"]
+    approval_sha = file_record(approval_path)["sha256"]
+    expected_native, expected_checkers = expected_plan(run)
+    assert invocation["schema"] == "i04-var03-idle-between-invocation/v1"
+    assert invocation.keys() == {"schema", "run_id", "created_utc", "original_run_dir",
+                                 "input_sha256", "contract_sha256", "manifest_sha256",
+                                 "approval_sha256", "approved_preflight_path", "approved_preflight_sha256",
+                                 "independent_replay_sha256", "runner_script_sha256", "session_id",
+                                 "ssh_ancestors", "gui", "queue_mutex", "working_directory",
+                                 "planned_commands", "planned_checkers", "source_hashes_before",
+                                 "source_hashes_after_pure", "pure_proof_path", "pure_proof_sha256",
+                                 "pure_checks", "publication_state"}
+    assert invocation["run_id"] == RUN_ID and Path(invocation["original_run_dir"]) == run
+    utc(invocation["created_utc"])
+    for key, expected in (("input_sha256", source_map["child_input"]),
+                          ("contract_sha256", CONTRACT_SHA), ("manifest_sha256", manifest_sha),
+                          ("approval_sha256", approval_sha),
+                          ("approved_preflight_sha256", approval["preflight_sha256"]),
+                          ("independent_replay_sha256", source_map["independent_replay"]),
+                          ("runner_script_sha256", source_map["runner_script"])):
+        assert invocation[key] == expected, key
+    assert Path(invocation["approved_preflight_path"]) == PKG / approval["preflight_relative_path"]
+    integer(invocation["session_id"], 0)
+    assert type(invocation["ssh_ancestors"]) is list and "sshd.exe" in invocation["ssh_ancestors"]
+    assert typed(invocation["gui"], GUI)
+    assert invocation["queue_mutex"] == r"Global\SimloxIssue18NativeQueue"
+    assert Path(invocation["working_directory"]) == WORKING_DIRECTORY
+    assert typed(invocation["planned_commands"], expected_native)
+    assert typed(invocation["planned_checkers"], expected_checkers)
+    assert invocation["publication_state"] == "not_published"
+    strict_source_map(invocation["source_hashes_before"], source_map)
+    verify_pure_proof(Path(invocation["pure_proof_path"]), invocation, mode="native",
+                      manifest_sha=manifest_sha, source_map=source_map, source_sha=source_sha)
+    assert closure["schema"] == "i04-var03-idle-between-closure/v1" and closure["run_id"] == RUN_ID
+    assert closure.keys() == {"schema", "run_id", "invocation_sha256", "manifest_sha256",
+                              "approval_sha256", "approved_preflight_sha256", "source_hashes_before",
+                              "source_hashes_after", "raw", "step_error", "error", "publication_state"}
+    assert closure["invocation_sha256"] == sha(invocation_blob)
+    for key, expected in (("manifest_sha256", manifest_sha), ("approval_sha256", approval_sha),
+                          ("approved_preflight_sha256", approval["preflight_sha256"])):
+        assert closure[key] == expected, key
+    assert closure["publication_state"] == "not_published"
+    assert closure["step_error"] in (None, "") and closure["error"] in (None, "")
+    strict_source_map(closure["source_hashes_before"], source_map)
+    strict_source_map(closure["source_hashes_after"], source_map)
+    raw = closure["raw"]
+    assert type(raw) is dict and set(raw) == RUN_FILES - {"invocation.json", "closure.json"}
+    assert len(raw) == 23
+    for name, record in raw.items():
+        assert record.keys() == {"bytes", "sha256"}
+        integer(record["bytes"])
+        assert re.fullmatch(r"[0-9a-f]{64}", record["sha256"])
+        assert file_record(run / name) == record, name
+    assert (run / "input.json").read_bytes() == (PKG / "native-input.json").read_bytes()
+    assert type(steps) is list and len(steps) == 6
+    previous = utc(invocation["created_utc"])
+    by_name = {row["name"]: row for row in expected_native + expected_checkers}
+    for index, (name, step) in enumerate(zip(STAGES, steps)):
+        previous = stage_core(step, index, name, by_name[name], previous)
+        for stream in ("stdout", "stderr"):
+            filename = ("roundtrip-validation.json" if name == "check_import_export" else
+                        "author-validation.json" if name == "check_behavior" else
+                        f"{name}-stdout.txt") if stream == "stdout" else f"{name}-stderr.txt"
+            path = run / filename
+            assert Path(step[f"{stream}_path"]) == path
+            integer(step[f"{stream}_bytes"])
+            assert file_record(path) == {"bytes": step[f"{stream}_bytes"],
+                                         "sha256": step[f"{stream}_sha256"]}
+        if name == "calc":
+            assert {"bytes": step["converter_log_bytes"],
+                    "sha256": step["converter_log_sha256"]} == raw["model-run.log"]
+            assert not (run / "model-run.log").stat().st_mode & 0o200, "converter seal is writable"
+    return {"invocation": invocation, "closure": closure, "steps": steps,
+            "approval": approval, "preflight": preflight, "raw_file_count": len(raw)}
+
+
+def verify_checker_receipts(run: Path, export: dict, trace: dict, source_map: dict):
+    roundtrip = strict_json((run / "roundtrip-validation.json").read_bytes())
+    assert roundtrip.keys() == {"schema", "passed", "tables", "authored_rows", "exported_rows",
+                                "authored_cells", "exported_cells", "all_null_placeholder_tables",
+                                "issues", "input_sha256", "export_sha256"}
+    assert roundtrip["schema"] == "i04-var03-idle-between-roundtrip/v1"
+    assert type(roundtrip["passed"]) is bool and roundtrip["passed"]
+    for key, value in (("tables", 34), ("authored_rows", 22), ("exported_rows", 40),
+                       ("authored_cells", 223), ("exported_cells", 407),
+                       ("all_null_placeholder_tables", 18)):
+        integer(roundtrip[key], value)
+    assert type(roundtrip["issues"]) is list and not roundtrip["issues"]
+    assert roundtrip["input_sha256"] == source_map["child_input"]
+    assert roundtrip["export_sha256"] == file_record(run / "roundtrip-raw.json")["sha256"]
+    behavior = strict_json((run / "author-validation.json").read_bytes())
+    assert behavior.keys() == {"schema", "passed", "run_id", "input_sha256", "export_sha256",
+                               "report_cell_checks", "paired_differences", "timed_event_records",
+                               "log_lines", "optional_diagnostics", "terminal", "issues", "native_calls"}
+    assert behavior["schema"] == "i04-var03-idle-between-behavior/v1"
+    assert type(behavior["passed"]) is bool and behavior["passed"]
+    assert behavior["run_id"] == RUN_ID and behavior["input_sha256"] == source_map["child_input"]
+    assert behavior["export_sha256"] == roundtrip["export_sha256"]
+    integer(behavior["report_cell_checks"], 4044)
+    integer(behavior["paired_differences"], 5)
+    integer(behavior["timed_event_records"], trace["timed_events"])
+    integer(behavior["log_lines"], trace["lines"])
+    assert type(behavior["issues"]) is list and not behavior["issues"]
+    integer(behavior["native_calls"], 0)
+    assert typed(behavior["optional_diagnostics"],
+                 {"empty_source_ready": trace["optional_ready"],
+                  "empty_source_priority": trace["optional_priority"]})
+    assert typed(behavior["terminal"], {"ready_edges": 12, "terminal_source_ready": 0,
+                                        "terminal_target_ready": 2, "terminal_transit": 0,
+                                        "terminal_assigned": 0})
+    return roundtrip, behavior
+
+
+def evidence_set_core(actual_names, copies, originals, filenames):
+    assert set(actual_names) == set(filenames)
+    assert set(copies) == set(originals) == set(filenames)
+    assert all(typed(copies[name], originals[name]) for name in filenames)
+    return True
+
+
+def verified_evidence_dir(original: Path, evidence_dir: Path, filenames=RUN_FILES):
+    assert not evidence_dir.is_symlink()
+    observed = evidence_dir.resolve(strict=True)
+    assert observed.is_dir() and observed != original
+    names = {item.name for item in observed.iterdir()}
+    copies, originals = {}, {}
+    for name in filenames:
+        copy_path = observed / name
+        assert copy_path.is_file() and not copy_path.is_symlink()
+        copies[name] = file_record(copy_path)
+        originals[name] = file_record(original / name)
+    evidence_set_core(names, copies, originals, filenames)
+    return observed
+
+
+def sealed_replay(evidence_dir: Path | None = None):
+    assert (PKG / "prospective-contract.json").exists()
+    assert all((PKG / name).exists() for name in EXPECTED_ORACLE_SHA)
+    c = contract()
+    selection_custody(c)
+    owned_pure_history()
+    manifest = strict_json((PKG / "prelaunch-manifest.json").read_bytes())
+    source_map, source_sha = verify_manifest_document(manifest, final=True)
+    source = strict_json((PKG / "native-input.json").read_bytes())
+    verify_source(c, source)
+    run = PKG / "runs" / RUN_ID
+    provenance = verify_run_provenance(run, manifest, source_map, source_sha)
+    observed = run
+    if evidence_dir is not None:
+        observed = verified_evidence_dir(run, evidence_dir)
+    export = strict_json((observed / "roundtrip-raw.json").read_bytes())
+    verify_export(c, source, export)
+    trace = verify_log(c, (observed / "model.log").read_bytes())
+    report = strict_json((observed / "report-raw.json").read_bytes(), native_report=True)
+    verify_report(c, report, child=True)
+    verify_converter((observed / "model-run.log").read_bytes(), run)
+    verify_checker_receipts(observed, export, trace, source_map)
+    return {"decision": "GO_BOUNDED", "run_id": RUN_ID, "source_records": len(source_map),
+            "original_raw_files": provenance["raw_file_count"] + 2,
+            "report_cells_checked": 4044, "paired_differences": 5,
+            "log_lines": trace["lines"], "timed_event_records": trace["timed_events"],
+            "historical_catalog_prefix_entries": 496}
+
+
+def pure_fixture():
+    c = contract()
+    selection_custody(c)
+    if (PKG / "pure-proof-custody.json").exists():
+        owned_pure_history()
+    source = expected_source(c)
+    verify_source(c, source)
+    if (PKG / "native-input.json").exists():
+        verify_source(c, strict_json((PKG / "native-input.json").read_bytes()))
+    verify_export(c, source, oracle(c, "child-roundtrip-oracle.json"))
+    parent_raw = (PARENT_RUN / "between-report-raw.json").read_bytes()
+    parent_report = strict_json(parent_raw, native_report=True)
+    verify_report(c, parent_report, child=False)
+    parent_oracle = oracle(c, "parent-report-oracle.json")
+    child_oracle = oracle(c, "child-report-oracle.json")
+    verify_report(c, child_oracle, child=True)
+    differences = []
+    for pt, ct in zip(parent_oracle["report"]["tables"], child_oracle["report"]["tables"]):
+        assert pt["name"] == ct["name"] and typed(pt["columns"], ct["columns"])
+        for row_index, (pr, cr) in enumerate(zip(pt["instances"][0]["rows"], ct["instances"][0]["rows"])):
+            for column_index, (pv, cv) in enumerate(zip(pr, cr)):
+                column = pt["columns"][column_index]
+                same = number(pv, cv) if column["datatype"] == "double" and pv is not None and cv is not None else typed(pv, cv)
+                if not same:
+                    differences.append({"table": pt["name"], "row": row_index,
+                                        "column": column["name"], "parent": pv, "child": cv})
+    assert differences == c["report"]["paired_differences"] and len(differences) == 5
+    for _, _, lines in proposed_logs(c):
+        verify_log(c, ("\n".join(lines) + "\n").encode())
+    return {"decision": "PURE_PROSPECTIVE_FIXTURE_ONLY", "source_cells": 223,
+            "export_cells": 407, "parent_report_cells": 4044,
+            "predicted_child_report_cells": 4044, "paired_differences": 5,
+            "allowed_log_forms": 4}
+
+
+def pure_preflight():
+    c = contract()
+    selection_custody(c, prelaunch_exact=True)
+    owned_pure_history()
+    assert not (PKG / "runs" / RUN_ID).exists()
+    assert not (PKG / "review/independent-prelaunch-go.json").exists()
+    manifest = strict_json((PKG / "prelaunch-manifest.json").read_bytes())
+    source_map, source_sha = verify_manifest_document(manifest, final=True)
+    verify_source(c, strict_json((PKG / "native-input.json").read_bytes()))
+    return {"decision": "PURE_PREFLIGHT_SOURCE_PASS_REQUIRES_ACTUAL_SSH5_RECEIPT",
+            "source_records": len(source_map), "source_map_sha256": source_sha,
+            "accepted_source_pairs": 76, "mandatory_original_raw": 114,
+            "historical_catalog_prefix_entries": 496, "native_process_started": False}
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pure-fixture", action="store_true")
+    parser.add_argument("--pure-preflight", action="store_true")
+    parser.add_argument("--evidence-dir", type=Path)
+    options = parser.parse_args()
+    assert not (options.pure_fixture and options.pure_preflight)
+    assert not (options.pure_fixture or options.pure_preflight) or options.evidence_dir is None
+    result = (pure_fixture() if options.pure_fixture else pure_preflight() if options.pure_preflight
+              else sealed_replay(options.evidence_dir))
+    print(json.dumps(result, sort_keys=True))

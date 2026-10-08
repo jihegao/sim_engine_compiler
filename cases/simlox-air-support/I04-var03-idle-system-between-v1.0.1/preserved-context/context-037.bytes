@@ -1,0 +1,24 @@
+$ErrorActionPreference='Stop'
+$case=(Resolve-Path $PSScriptRoot).Path
+$runner=Get-Content -LiteralPath (Join-Path $case 'run_native_ssh.ps1') -Raw -Encoding UTF8
+$start=$runner.IndexOf('function Assert-ConverterLog(')
+$end=$runner.IndexOf('function Save-Steps(', $start)
+if ($start -lt 0 -or $end -le $start) { throw 'runner converter function not found' }
+Invoke-Expression $runner.Substring($start,$end-$start)
+function Get-Sha([string]$path) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() }
+$parent=Join-Path (Split-Path $case -Parent) 'I04-var01-system-between-v1.0.0\runs\i04-var01-system-between-v100-ssh-20261005-01\between-run.log'
+$oldRun=Split-Path $parent -Parent
+$proof=Join-Path $case ('test-output\converter-pure-'+(Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffffffZ')+'-'+[Guid]::NewGuid().ToString('N').Substring(0,8))
+New-Item -ItemType Directory -Path $proof -Force | Out-Null
+$text=Get-Content -LiteralPath $parent -Raw -Encoding UTF8
+$text=$text.Replace($oldRun.Replace('\','/'),$proof.Replace('\','/')).Replace($oldRun,$proof)
+$text=$text.Replace('between.sxi','model.sxi').Replace('between.sxo','model.sxo')
+$log=Join-Path $proof 'model-run.log'
+Set-Content -LiteralPath $log -Value $text -Encoding UTF8 -NoNewline
+Assert-ConverterLog $proof (Get-Sha $log)
+$modified=$text.Replace('Input data conversion time:', "Warning: unnumbered extra diagnostic`r`nInput data conversion time:")
+Set-Content -LiteralPath $log -Value $modified -Encoding UTF8 -NoNewline
+$rejected=$false
+try { Assert-ConverterLog $proof (Get-Sha $log) } catch { $rejected=$true }
+if (-not $rejected) { throw 'extra unnumbered diagnostic escaped' }
+[ordered]@{schema='i04-var03-converter-pure-test/v1';positive=$true;extra_unnumbered_diagnostic_rejected=$true;native_calls=0} | ConvertTo-Json -Compress
