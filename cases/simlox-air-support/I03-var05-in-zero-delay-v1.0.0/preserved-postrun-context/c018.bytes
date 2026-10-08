@@ -1,0 +1,82 @@
+"""Root single approved dispatch, natural capture, and safe-boundary freeze."""
+from pathlib import Path
+import datetime as dt
+import hashlib,json,stat,subprocess,sys
+ROOT=Path(__file__).resolve().parents[1]
+CASE=ROOT/'cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0'
+OUT=ROOT/'tmp/i03-var05-root-native-dispatch-20261008-01'
+GUARD=ROOT/'tmp/issue18-next-owner-guard-20261008.ps1'
+GO=CASE/'review/independent-prelaunch-go.json'
+MAN=CASE/'prelaunch-manifest.json'
+RUN_ID='i03-var05-in-zero-delay-v100-ssh-20261008-01'
+RUN=CASE/'runs'/RUN_ID
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+def freeze(p):
+ p.chmod(stat.S_IREAD)
+ assert p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ freeze(p)
+assert not OUT.exists() and not RUN.exists()
+assert pin(GO.read_bytes())=={'bytes':1052,'sha256':'81a89071370c0556c86e55a41d7850d61302e3c4356d612a3f4cbda5de468e00'}
+assert GO.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY
+assert pin(MAN.read_bytes())=={'bytes':107588,'sha256':'1f9782187297b5bf7f20e4c3876b1ff0b38da6124d901f85f97e84caea8c4a24'}
+assert pin(GUARD.read_bytes())=={'bytes':2081,'sha256':'e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'}
+m=json.loads(MAN.read_bytes());assert m['source_count']==len(m['source_files'])==313
+def verify():
+ for r in m['source_files']:assert pin(Path(r['path']).read_bytes())=={k:r[k] for k in ('bytes','sha256')},r['key']
+verify()
+freeze(Path(__file__));freeze(ROOT/'tmp/i03-var05-root-launch-app-ownership-20261008.json');OUT.mkdir()
+receipt={'schema':'i03-var05-root-native-dispatch/v1','decision':'IN_PROGRESS','started_utc':utc(),
+ 'approval':pin(GO.read_bytes()),'manifest':pin(MAN.read_bytes()),'wrapper':pin(Path(__file__).read_bytes()),
+ 'native_transport_attempts':0,'safe_native_boundary':False,'error':None}
+def guard(label):
+ argv=['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',str(GUARD).replace('\\','/')]
+ start=utc();r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+ save(OUT/(label+'-stdout.bin'),r.stdout);save(OUT/(label+'-stderr.bin'),r.stderr)
+ d={'argv':argv,'started_utc':start,'completed_utc':utc(),'actual_exit':r.returncode,'stdout':pin(r.stdout),'stderr':pin(r.stderr)}
+ receipt[label]=d
+ assert type(r.returncode) is int and r.returncode==0 and not r.stderr
+ o=json.loads(r.stdout.decode('utf-8-sig'));d['observed']=o
+ assert o['ssh_present'] is True and o['sshd_ancestor'] is True and type(o['self_session']) is int and o['self_session']==0 and o['powershell_major']==5
+ assert o['mutex_free'] is True and o['runner_candidates']==[] and o['active_gui_session1_count']==1 and o['session_query_exit']==0
+ assert len(o['native'])==1
+ g=o['native'][0];assert g['pid']==13340 and g['session']==1 and g['start_ms']==1790590196826 and g['responding'] is True
+ return o
+try:
+ guard('pre_guard');verify();assert not RUN.exists()
+ argv=[sys.executable,'-X','utf8','-B',str(CASE/'ssh_transport.py'),'native']
+ receipt['native_transport_attempts']=1;receipt['native_command']=argv;receipt['native_started_utc']=utc()
+ with (OUT/'transport-command-stdout.bin').open('xb') as so,(OUT/'transport-command-stderr.bin').open('xb') as se:
+  r=subprocess.run(argv,cwd=ROOT,stdout=so,stderr=se)
+ receipt['native_completed_utc']=utc();receipt['actual_exit']=r.returncode
+ for n in ('transport-command-stdout.bin','transport-command-stderr.bin'):
+  freeze(OUT/n);receipt[n]=pin((OUT/n).read_bytes())
+ # No freeze of a possibly active raw folder until this fresh actual guard passes.
+ guard('post_guard');receipt['safe_native_boundary']=True
+ files=[]
+ folders=list((CASE/'transport-evidence').glob('ssh-native-*'))
+ assert len(folders)==1
+ for folder in folders+[RUN]:
+  if folder.exists():
+   for f in sorted(folder.rglob('*')):
+    if f.is_file():freeze(f);files.append({'path':str(f.relative_to(ROOT)),**pin(f.read_bytes()),'read_only':True})
+ receipt['sealed_files']=files
+ verify();receipt['source_records_revalidated']=313
+ stdout=(OUT/'transport-command-stdout.bin').read_bytes();stderr=(OUT/'transport-command-stderr.bin').read_bytes()
+ assert type(r.returncode) is int and r.returncode==0 and not stderr,'Native transport failed; retain excluded run without retry'
+ d=json.loads(stdout);assert d['mode']=='native' and type(d['exit_code']) is int and d['exit_code']==0 and d['error'] is None
+ folder=Path(d['evidence_dir']).resolve(strict=True);assert folder==folders[0].resolve()
+ transport=json.loads((folder/'transport-receipt.json').read_bytes())
+ assert transport['mode']=='native' and transport['native_approved'] is True and type(transport['exit_code']) is int and transport['exit_code']==0 and transport['error'] is None
+ for n,v in transport['streams'].items():assert pin((folder/n).read_bytes())==v
+ assert (folder/'ssh-stderr.bin').read_bytes()==b''
+ assert len([f for f in RUN.iterdir() if f.is_file()])==25
+ receipt['decision']='NATURAL_COMPLETION_SEALED_AWAITING_INDEPENDENT_ACCEPTANCE'
+except BaseException as exc:
+ receipt.update(decision='NO_GO_PRESERVED',error=f'{type(exc).__name__}: {exc}')
+finally:
+ receipt['completed_utc']=utc();data=(json.dumps(receipt,indent=2)+'\n').encode();save(OUT/'receipt.json',data)
+print(json.dumps({'decision':receipt['decision'],'receipt':pin(data),'safe_native_boundary':receipt['safe_native_boundary'],'actual_exit':receipt.get('actual_exit'),'error':receipt['error']}))
+assert receipt['decision']=='NATURAL_COMPLETION_SEALED_AWAITING_INDEPENDENT_ACCEPTANCE'

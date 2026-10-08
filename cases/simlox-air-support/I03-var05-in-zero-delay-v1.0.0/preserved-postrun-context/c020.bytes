@@ -1,0 +1,51 @@
+"""Root provenance audit, no behavior/helper/native execution."""
+from pathlib import Path
+import hashlib,json,stat
+ROOT=Path(__file__).resolve().parents[1]
+C=ROOT/'cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0'
+R=C/'runs/i03-var05-in-zero-delay-v100-ssh-20261008-01'
+OUT=ROOT/'tmp/i03-var05-root-postrun-seal-audit-20261008.json'
+assert not OUT.exists()
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def ro(p):assert p.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY,str(p)
+def check(p,v):assert pin(p)=={k:v[k] for k in ('bytes','sha256')},str(p)
+cl=json.loads((R/'closure.json').read_bytes());iv=json.loads((R/'invocation.json').read_bytes())
+steps=json.loads((R/'steps.json').read_bytes());man=json.loads((C/'prelaunch-manifest.json').read_bytes())
+assert cl['error']==cl['step_error']=='' and cl['publication_state']=='not_published'
+expected={x['key']:x['sha256'] for x in man['source_files']}
+assert cl['source_hashes_before']==cl['source_hashes_after']==iv['source_hashes_before']==expected
+for row in man['source_files']:check(Path(row['path']),row)
+assert len(expected)==313
+assert cl['invocation_sha256']==pin(R/'invocation.json')['sha256']
+assert cl['approval_sha256']==iv['approval_sha256']==pin(C/'review/independent-prelaunch-go.json')['sha256']
+assert cl['manifest_sha256']==iv['manifest_sha256']==pin(C/'prelaunch-manifest.json')['sha256']
+assert cl['approved_preflight_sha256']==iv['approved_preflight_sha256']==pin(Path(iv['approved_preflight_path']))['sha256']
+assert iv['session_id']==0 and 'sshd.exe' in iv['ssh_ancestors']
+assert iv['gui']=={'pid':13340,'session_id':1,'start_unix_ms':1790590196826,'responding':True}
+assert [s['name'] for s in steps]==['import','export','check_import_export','calc','jsonreport','check_behavior']
+for n,s in enumerate(steps):
+ assert s['sequence']==n and type(s['exit_code']) is int and s['exit_code']==0 and s['status']=='completed'
+ assert s['error'] is None and s['capture_error'] is None and s['gui_preserved'] is True and s['child_session_id']==0
+ for kind in ('stdout','stderr'):
+  check(Path(s[kind+'_path']),{'bytes':s[kind+'_bytes'],'sha256':s[kind+'_sha256']})
+ assert s['stderr_bytes']==0
+assert sum(Path(s['program']).name.lower()=='simlox.exe' for s in steps)==4
+raw=cl['raw_files'];assert len(raw)==23
+assert set(raw)=={p.name for p in R.iterdir()}-{'invocation.json','closure.json'}
+for n,v in raw.items():check(R/n,v)
+calc=steps[3];check(R/'model-run.log',{'bytes':calc['converter_log_bytes'],'sha256':calc['converter_log_sha256']})
+assert calc['converter_log_validated'] is True and raw['model-run.log']==pin(R/'model-run.log')
+assert len(list(R.iterdir()))==25
+for p in R.iterdir():ro(p)
+inv=json.loads((C/'source-inventory.json').read_bytes());assert len(inv['source_files'])==108
+for row in inv['source_files']:check(C/row['path'],row);ro(C/row['path'])
+result={'schema':'i03-var05-root-postrun-seal-audit/v1','decision':'PASS_PROVENANCE_ONLY_AWAITING_INDEPENDENT_BEHAVIOR',
+ 'source_records':313,'owned_frozen_source_records':108,'new_native_runs':1,'accepted_parent_runs_repeated':0,
+ 'native_program_invocations':4,'checker_invocations':2,'all_six_stages_exit_zero':True,'all_stderr_empty':True,
+ 'original_run_files':25,'closure_raw_records':23,'converter_triple_seal':pin(R/'model-run.log'),
+ 'run_files':[{'path':str(p.relative_to(ROOT)),**pin(p),'read_only':True} for p in sorted(R.iterdir())],
+ 'diagnostic_read_search_error':'Earlier root rg scripts/check_simlox* used a literal Windows glob path and returned OS123; no file/native change, decoded tool diagnostic only. Correct scripts directory search completed.',
+ 'new_native_calls_by_audit':0,'overall_goal':'unfinished'}
+OUT.write_bytes((json.dumps(result,indent=2)+'\n').encode());OUT.chmod(stat.S_IREAD);Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'decision':result['decision'],'receipt':pin(OUT)}))

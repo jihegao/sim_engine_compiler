@@ -1,0 +1,3 @@
+# Independent reader candidate v3 failure
+
+`independent_replay_candidate_v3.py` is 20,705 bytes, SHA-256 `cada024c66ac7c733988d659711e69836b944318f8dd7177d80dbe2cb3ed58d6`. Its read-only pure replay rejected a globally duplicated `Free resources ... P-CREW 2` continuation. The accepted original prints this same free-two snapshot earlier as well as after the IN receipt. The correct gate binds the snapshot immediately to the matching h10 `transfer arrives: 1` line, while the whole-log template retains the earlier occurrence and full cardinality. The traceback exists only as command tool transcript; original stdout/stderr bytes were not captured. No native or source evidence changed.

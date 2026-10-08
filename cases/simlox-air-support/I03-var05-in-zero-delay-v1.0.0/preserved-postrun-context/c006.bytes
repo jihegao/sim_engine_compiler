@@ -1,0 +1,136 @@
+"""Read-only exact-file audit before I03.var05's first SSH preflight."""
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+CASE = REPO / "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0"
+ROOT_PROOF = REPO / "tmp/i03-var05-root-source-freeze-20261008-01/receipt.json"
+HANDOFF = REPO / "tmp/i03-var05-author-freeze-ready-20261008.json"
+PURE_PROOF = REPO / "tmp/i03-var05-root-independent-pure-capture-20261008-01/receipt.json"
+SHA = {
+    "source-inventory.json": "1813b0f3551afb1393ab4d8f8dc44afc08e768dc04e37bea0f99d004b9fa24ee",
+    "prelaunch-manifest.json": "1f9782187297b5bf7f20e4c3876b1ff0b38da6124d901f85f97e84caea8c4a24",
+    "review/independent_replay.py": "7f8bba4df8c8c051af6334959e72878e3874eb97221f6c1218fe0cf1d23028ba",
+    "review/independent_self_check.py": "1bff378a79c8ef87d9109c52d2a413a7b8845490d527c4409af5590877a774ce",
+    "review/independent-method-static-go-2026-10-08.md": "3e85ec5d7433294d31afb52ade9d38c0fee2acb42dd039a3dc80a54ed4876a98",
+}
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def pairs(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key {key!r}")
+        result[key] = value
+    return result
+
+
+def reject_constant(value: str):
+    raise ValueError(f"nonfinite constant {value}")
+
+
+def load(path: Path) -> dict:
+    return json.loads(path.read_bytes(), object_pairs_hook=pairs, parse_constant=reject_constant)
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": sha(data)}
+
+
+def assert_rows(rows: list[dict], expected: int, key_name: str) -> tuple[set[str], set[str]]:
+    assert type(rows) is list and len(rows) == expected
+    keys, paths = set(), set()
+    for row in rows:
+        assert type(row) is dict and set(row) == {key_name, "path", "bytes", "sha256"}
+        assert type(row[key_name]) is str and row[key_name] not in keys
+        assert type(row["path"]) is str and type(row["bytes"]) is int
+        assert type(row["sha256"]) is str
+        path = Path(row["path"])
+        absolute = str(path.resolve(strict=True)).lower()
+        assert absolute not in paths
+        assert pin(path) == {"bytes": row["bytes"], "sha256": row["sha256"]}
+        keys.add(row[key_name])
+        paths.add(absolute)
+    return keys, paths
+
+
+def run(*args: str) -> dict:
+    proc = subprocess.run([sys.executable, "-X", "utf8", "-B", *args], cwd=CASE,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    assert proc.returncode == 0 and proc.stderr == b"", (args, proc.returncode, proc.stderr[:300])
+    try:
+        parsed = json.loads(proc.stdout, object_pairs_hook=pairs, parse_constant=reject_constant)
+    except ValueError:
+        parsed = proc.stdout.decode("utf-8").strip()
+    return {"command": list(args), "exit_code": proc.returncode,
+            "stdout_bytes": len(proc.stdout), "stdout_sha256": sha(proc.stdout),
+            "stderr_bytes": len(proc.stderr), "stderr_sha256": sha(proc.stderr),
+            "parsed": parsed}
+
+
+def main() -> None:
+    for name, expected in SHA.items():
+        assert pin(CASE / name)["sha256"] == expected, name
+    inventory = load(CASE / "source-inventory.json")
+    manifest = load(CASE / "prelaunch-manifest.json")
+    assert inventory["source_count"] == 108
+    assert manifest["source_count"] == 313
+    assert manifest["schema"] == "i03-var05-in-zero-prelaunch-manifest/v1"
+    assert manifest["run_id"] == "i03-var05-in-zero-delay-v100-ssh-20261008-01"
+    assert manifest["new_native_runs_authorized_by_manifest"] == 0
+    assert manifest["historical_catalog_prefix_always_checked"] == 494
+    assert manifest["accepted_raw_records"] == 112
+    assert manifest["accepted_nonclosure_raw"] == 101
+    assert manifest["accepted_closure_records"] == 7
+    assert manifest["accepted_invocation_records"] == 4
+    ik, ip = assert_rows(inventory["source_files"], 108, "relative_path")
+    mk, mp = assert_rows(manifest["source_files"], 313, "key")
+    assert len(ik) == 108 and ip < mp
+    for role, filename in (("independent_replay", "review/independent_replay.py"),
+                           ("independent_self_check", "review/independent_self_check.py"),
+                           ("child_contract", "contract.json"),
+                           ("execution_binding", "execution-contract.json"),
+                           ("child_input", "native-input.json"),
+                           ("behavior_validator", "validate_native_cli.py"),
+                           ("runner_script", "run_native_ssh.ps1"),
+                           ("owned_source_inventory", "source-inventory.json")):
+        matches = [r for r in manifest["source_files"] if r["key"] == role]
+        assert len(matches) == 1 and Path(matches[0]["path"]) == (CASE / filename), role
+    assert "catalog_live_prelaunch" not in mk
+    archive = [r for r in manifest["source_files"]
+               if r["key"] == "owned:preserved-catalog/catalog-at-selection-494.bytes"]
+    assert len(archive) == 1
+    live = manifest["live_catalog_prelaunch_pin"]
+    assert set(live) == {"path", "bytes", "sha256"}
+    assert pin(Path(live["path"])) == {"bytes": live["bytes"], "sha256": live["sha256"]}
+    assert Path(live["path"]).resolve() != Path(archive[0]["path"]).resolve()
+    assert not (CASE / "runs" / manifest["run_id"]).exists()
+    assert not (CASE / "review/independent-prelaunch-go.json").exists()
+    root = load(ROOT_PROOF)
+    assert root["ssh_calls"] == 0 and root["native_calls"] == 0
+    assert root["all_owned_sources_readonly"] is True
+    assert load(HANDOFF)["owned_source_count"] == 108
+    assert pin(PURE_PROOF)["sha256"] == "a862b4cf30ac34b48cc2a4348c5e0cfa3bb0eed45efe001e568fc17757f4e775"
+    commands = [run("make_source_inventory.py"), run("make_prelaunch_manifest.py"),
+                run("source_gate.py", "--mode", "live"),
+                run("review/independent_replay.py", "--pure-fixture"),
+                run("review/independent_self_check.py")]
+    print(json.dumps({"decision": "GO_PURE_PREFLIGHT", "scope": "one SSH0 -PreflightOnly call",
+                      "inventory_sha256": SHA["source-inventory.json"],
+                      "manifest_sha256": SHA["prelaunch-manifest.json"],
+                      "owned_sources": 108, "manifest_sources": 313, "commands": commands,
+                      "native_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

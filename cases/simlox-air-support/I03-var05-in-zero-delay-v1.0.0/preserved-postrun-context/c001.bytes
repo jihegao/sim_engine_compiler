@@ -1,0 +1,66 @@
+"""Read-only source freeze handoff. Does not write the canonical case files."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO / "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0"
+sys.path.insert(0, str(CASE))
+import make_source_inventory as inventory  # noqa: E402
+import make_prelaunch_manifest as manifest  # noqa: E402
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def main() -> None:
+    assert not (CASE / "source-inventory.json").exists()
+    assert not (CASE / "prelaunch-manifest.json").exists()
+    owned = inventory.candidate(provisional=False)
+    owned_bytes = inventory.body(owned)
+    assert len(owned["source_files"]) == 108
+    provisional = manifest.candidate(provisional=True, mode="live")
+    assert provisional["source_count"] == 291
+    record = {
+        "schema": "i03-var05-author-source-freeze-handoff/v1",
+        "case_path": str(CASE),
+        "run_id": "i03-var05-in-zero-delay-v100-ssh-20261008-01",
+        "frozen_design_sha256": manifest.DESIGN_SHA,
+        "owned_source_count": owned["source_count"],
+        "owned_source_files": owned["source_files"],
+        "expected_source_inventory": {"path": str(CASE / "source-inventory.json"),
+                                      "bytes": len(owned_bytes),
+                                      "sha256": hashlib.sha256(owned_bytes).hexdigest()},
+        "expected_manifest_source_count": provisional["source_count"] + len(inventory.REVIEW) + 1,
+        "expected_manifest_schema": manifest.SCHEMA,
+        "expected_manifest_roles": manifest.ROLE,
+        "generator_pins": {
+            name: pin(CASE / name)
+            for name in ("make_source_inventory.py", "make_prelaunch_manifest.py",
+                         "run_native_ssh.ps1", "validate_native_cli.py", "source_gate.py")
+        },
+        "root_one_time_commands": [
+            "python -X utf8 -B make_source_inventory.py --write",
+            "python -X utf8 -B make_prelaunch_manifest.py --write",
+        ],
+        "canonical_manifest_sha256": None,
+        "canonical_manifest_sha_reason": "Root computes exact candidate after inventory write, before its own one-time manifest write.",
+        "new_native_calls": 0,
+        "limitations": "This handoff is source bytes only. Independent exact-file GO and actual SSH5 preflight/GO_PRELAUNCH remain pending.",
+    }
+    path = REPO / "tmp/i03-var05-author-freeze-ready-20261008.json"
+    assert not path.exists()
+    path.write_bytes((json.dumps(record, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8"))
+    print(json.dumps({"handoff": str(path), "handoff_pin": pin(path),
+                      "owned_source_count": owned["source_count"],
+                      "manifest_source_count_expected": record["expected_manifest_source_count"],
+                      "inventory_pin": record["expected_source_inventory"]}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

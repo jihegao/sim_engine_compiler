@@ -1,0 +1,242 @@
+"""Construct the prospective I03.var05 contract design without creating a case."""
+from __future__ import annotations
+
+import hashlib
+import json
+import struct
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CASE_ROOT = ROOT / "cases/simlox-air-support"
+PARENT = CASE_ROOT / "I03-var01-crew-out-in-v1.0.0"
+PARENT_INPUT = PARENT / "out_in-input.json"
+PARENT_RUN = PARENT / "runs/i03-var01-crew-transfer-v100-ssh-20261005-01"
+PARENT_INDEX = PARENT / "evidence-index.json"
+SELECTION = ROOT / "tmp/i03-var05-root-selection-20261008.json"
+VAR03_CONTRACT = CASE_ROOT / "I03-var03-matched-crew-out-batch-v1.0.0/contract.json"
+OUT = ROOT / "tmp/i03-var05-prospective-contract-design-v4-20261008.json"
+ENGINE = Path(r"C:\Program Files\Systecon\SIMLOX\Simlox.exe")
+MANUAL = Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf")
+DICTIONARY = Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt")
+INSTALL_RECEIPT = ROOT / "tmp/i03-var05-root-installed-pins-20261008.json"
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"path": str(path.relative_to(ROOT)).replace("\\", "/"),
+            "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def f32(value: float) -> float:
+    return struct.unpack("<f", struct.pack("<f", value))[0]
+
+
+selection = json.loads(SELECTION.read_text(encoding="utf-8"))
+parent_model = json.loads(PARENT_INPUT.read_text(encoding="utf-8"))["model"]
+tables = parent_model["tables"]
+by_name = {t["name"]: t for t in tables}
+template_gate = json.loads(VAR03_CONTRACT.read_text(encoding="utf-8"))["report_gate"]
+assert len(tables) == 32 and len(by_name) == 32
+assert sum(len(t["instances"][0]["rows"]) for t in tables) == 25
+assert sum(len(t["instances"][0]["rows"]) * len(t["columns"]) for t in tables) == 227
+assert len(selection["parent_source_disk_git"]) == 17
+assert len(selection["prerequisite_source_disk_git"]) == 63
+assert len(selection["mandatory_original_raw"]) == 112
+assert selection["catalog_entries"] == 494
+transfer = by_name["ResourceTransfer"]
+transfer_fields = [c["name"] for c in transfer["columns"]]
+assert transfer_fields == ["STFID", "STTID", "RID", "TFTIME", "TFQTY", "TFDT", "NOTE"]
+assert transfer["instances"][0]["rows"] == [
+    ["BASE-01", "<OUTSIDE>", "P-CREW", 7.75, 1, 0.0, None],
+    ["<OUTSIDE>", "BASE-01", "P-CREW", 10.0, 1, 0.5, None],
+]
+assert by_name["ProblemDescription"]["instances"][0]["rows"] == [
+    ["I03.var01 out_in: second formation at h20; crew transfer comparison"]]
+assert by_name["ResourceAllocation"]["instances"][0]["rows"] == [
+    ["AIR_BASIC", "P-CREW", "BASE-01", 2, None]]
+
+system_classes = template_gate["system_field_classes"]
+stock_fields = template_gate["stock_fields"]
+resource_classes = {k: template_gate["resource_fields"][k] for k in
+                    ("identity_and_interval", "source_event_dynamic", "source_event_zero")}
+topology = template_gate["topology"]
+assert [t["name"] for t in topology] == [
+    "ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults",
+    "ResourceResults", "ResourceResultsTotal"]
+assert sum(t["rows"] * len(t["columns"]) for t in topology) == 5210
+assert set(sum((v for v in system_classes.values()), [])) == set(topology[2]["columns"])
+assert set(sum((v for v in stock_fields.values()), [])) == set(topology[3]["columns"])
+assert set(sum((v for v in resource_classes.values()), [])) == set(topology[4]["columns"])
+
+description = "I03.var05 zero-delay IN at h10 versus accepted positive 0.5-hour IN"
+design = {
+    "schema": "simlox-air-support-i03-var05-prospective-contract-design/v4",
+    "phase": "CONTRACT_DESIGN_ONLY; no package, input, runner, SSH, or native approval",
+    "case_id": "I03",
+    "variant_id": "I03.var05",
+    "package_proposed_absent": "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0",
+    "run_id_proposed_absent": "i03-var05-in-zero-delay-v100-ssh-20261008-01",
+    "native_calls_so_far": 0,
+    "accepted_parent_native_or_checker_reruns": 0,
+    "hypothesis_status": "prospective and falsifiable; any discrepant linked event or expected cell is NO_GO",
+    "scope": {
+        "question": "For this one fixed P-CREW IN row, does TFDT0 move its positive arrival from h10.5 to the scheduled h10, restoring the local crew count one half-hour earlier?",
+        "one_new_child_only": True,
+        "accepted_positive_delay_parent_reused_read_only": True,
+        "source_model": "two aircraft; BASE-01; opening P-CREW=2; one OUT at h7.75 and one IN at h10; two scheduled two-aircraft mission waves h8 and h20; seed1; horizon36; interval0.5h",
+        "difference_from_parent": "only ProblemDescription.PDESC and the IN ResourceTransfer.TFDT=0.5 to 0; existing OUT and all other business cells unchanged",
+        "not_claimed": ["individual crew identity or outside-person pool", "universal zero-time event ordering", "BETWEEN or equipment transfer", "shift/MAXUT and priority competition", "GUI", "cross-engine parity", "performance", "general I03.var05 or all Issue18"],
+    },
+    "source_lineage": {
+        "base_commit": selection["base"],
+        "root_selection_receipt": pin(SELECTION),
+        "root_selection_decision": selection["decision"],
+        "catalog_historical_entries": 494,
+        "catalog_local_point_time": selection["catalog_local"],
+        "catalog_git_base_blob": selection["catalog_git"],
+        "catalog_local_and_git_bytes_distinct": not selection["catalog_byte_equal"],
+        "later_replay_rule": "own exact 494-entry historical local archive and base Git blob; always validate live typed first494 entries, original metadata and unique publication IDs after authorized append; a later live whole-file SHA/count may differ but the gate is never skipped or reduced",
+        "accepted_parent": {
+            "package": selection["parent_package"], "arm": "out_in",
+            "run_id": selection["parent_run"],
+            "input": pin(PARENT_INPUT), "index": pin(PARENT_INDEX),
+            "raw_log": pin(PARENT_RUN / "out_in.log"),
+            "raw_report": pin(PARENT_RUN / "out_in-report-raw.json"),
+            "raw_converter_log": pin(PARENT_RUN / "out_in-run.log"),
+            "independent_GO_verdict": pin(PARENT / "review/independent-verdict.json"),
+            "all_source_refs": selection["parent_source_disk_git"],
+        },
+        "accepted_prerequisites": {
+            "packages": ["C03-shared-crew-formation-v1.0.2", "C03-var01-staffing-v0.1.1", "C08-partial-pool-v1.0.0", "C08-shift-maxut-v1.0.0"],
+            "all_source_refs": selection["prerequisite_source_disk_git"],
+            "scope": "accepted staffing and resource/shifts as source/prerequisite context only; no new shift or max-utilization behavior claimed",
+        },
+        "mandatory_original_raw": selection["mandatory_original_raw"],
+        "mandatory_original_raw_count": 112,
+        "mandatory_source_refs_total": 80,
+        "required_docs": selection["required_docs"],
+        "installed_manual": {"path": str(MANUAL), "bytes": MANUAL.stat().st_size, "sha256": hashlib.sha256(MANUAL.read_bytes()).hexdigest()},
+        "installed_dictionary": {"path": str(DICTIONARY), "bytes": DICTIONARY.stat().st_size, "sha256": hashlib.sha256(DICTIONARY.read_bytes()).hexdigest()},
+        "installed_executable": {
+            "path": str(ENGINE), "bytes": ENGINE.stat().st_size,
+            "sha256": hashlib.sha256(ENGINE.read_bytes()).hexdigest(),
+            "basis": "author and independent reviewer read-only installed-file hash after v1; absent from root selection receipt; rehash at actual preflight"
+        },
+        "root_installed_pin_receipt": pin(INSTALL_RECEIPT),
+        "design_history": [pin(ROOT / "tmp/i03-var05-prospective-contract-design-v1-20261008.json"),
+                           pin(ROOT / "tmp/build-i03-var05-design-v1-20261008.py"),
+                           pin(ROOT / "tmp/i03-var05-prospective-contract-design-v2-20261008.json"),
+                           pin(ROOT / "tmp/build-i03-var05-design-v2-20261008.py"),
+                           pin(ROOT / "tmp/i03-var05-independent-contract-v1-no-go-20261008.md"),
+                           pin(ROOT / "tmp/i03-var05-prospective-contract-design-v3-20261008.json"),
+                           pin(ROOT / "tmp/build-i03-var05-design-v3-20261008.py"),
+                           pin(ROOT / "tmp/i03-var05-independent-contract-v3-no-go-20261008.md")],
+        "root_owner_context_is_point_time_only": selection["owner_context"],
+    },
+    "manual_basis": {
+        "pages_225_226": "Transfer can be delayed or split when an asset is unavailable; resource transfers resemble item transfers, but this child has no resource shortage at scheduled IN.",
+        "pages_476_479": "ResourceTransfer STFID, STTID, RID, TFTIME identify row; TFQTY integer; TFDT double with default0 and field-level IN applicability; the general introductory sentence emphasizes BETWEEN, so this is specifically the later TFDT field wording plus actual positive-delay parent, not a universal rule.",
+        "pages_751_760": "NR physical local number, NRA available local, NRN nominal; interval means and whole-horizon ResourceResultsTotal are distinct; OUT request changes NRN at h7.75 before physical release h8; parent IN nominal and physical both change on observed arrival h10.5.",
+    },
+    "source_delta": {
+        "parent_model_database_version": 20160627,
+        "full_table_count": 32,
+        "table_names_ordered": [t["name"] for t in tables],
+        "full_row_count_including_null_placeholders": 25,
+        "full_cell_count_including_null_placeholders": 227,
+        "authored_source_role": "32 authored tables/25 stored rows/227 stored cells: 11 declared tables have zero rows; 3 existing all-null rows in the other tables are retained unchanged",
+        "zero_row_tables": [t["name"] for t in tables if not t["instances"][0]["rows"]],
+        "all_null_placeholder_tables": [t["name"] for t in tables if len(t["instances"][0]["rows"]) == 1 and all(x is None for x in t["instances"][0]["rows"][0])],
+        "native_roundtrip_role": {
+            "parent_original_roundtrip": pin(PARENT_RUN / "out_in-roundtrip-raw.json"),
+            "expected_tables": 32, "expected_rows": 36, "expected_cells": 368,
+            "added_native_empty_table_placeholders": [{"table": t["name"], "columns": len(t["columns"]), "rows": [[None] * len(t["columns"])]} for t in tables if not t["instances"][0]["rows"]],
+            "gate": "Every originally empty table exports exactly one all-null row of its declared column width; every originally nonempty row and full column/key/datatype/instance metadata type-exact and ordered; no other normalization or loss."
+        },
+        "parent_description": by_name["ProblemDescription"]["instances"][0]["rows"][0][0],
+        "child_description_predeclared": description,
+        "row_key": {"table": "ResourceTransfer", "STFID": "<OUTSIDE>", "STTID": "BASE-01", "RID": "P-CREW", "TFTIME": 10.0},
+        "parent_IN_row": ["<OUTSIDE>", "BASE-01", "P-CREW", 10.0, 1, 0.5, None],
+        "child_IN_row_expected": ["<OUTSIDE>", "BASE-01", "P-CREW", 10.0, 1, 0.0, None],
+        "unchanged_OUT_row": ["BASE-01", "<OUTSIDE>", "P-CREW", 7.75, 1, 0.0, None],
+        "allowed_changes_exactly": ["ProblemDescription.PDESC old exact string -> child_description_predeclared", "ResourceTransfer exact IN row TFDT numeric0.5 -> numeric0.0"],
+        "gate": "construct new input deterministically from exact parent bytes; recursively type-sensitive compare all 32 authored tables/metadata/25 rows/227 cells and accept precisely these two cell changes; reject bool-as-number, duplicate tables/keys/instances, source rewrite or changed defaults; native export must have 32 tables/36 rows/368 cells due solely to exact eleven all-null native placeholder rows, with all metadata intact",
+    },
+    "physical_gate": {
+        "clock_edges_hours_exact": [0, 7.5, 7.75, 8, 8.25, 8.75, 9, 10, 19.5, 20, 20.25, 20.75, 21, 24, 36],
+        "printed_time_rule": "all fixed quarter/half-hour source edges are exactly binary representable and checked exactly; no generic half-last-digit tolerance; zero duration requires linked start and arrival both h10",
+        "OUT_parent_preserved_in_child": "At h7.75 positive request1 while two crew are booked; task0 zero-quantity start/arrival and transfer backorder1 may be emitted as in accepted parent. Task-linked positive task1 starts/departs with quantity1 at h8 after release: reserved_OUT clears and local2->1 once at positive departure; its same-time task-arrived/completed marker does not decrement local again. Nominal crew2->1 at request h7.75, before physical departure h8.",
+        "IN_target": "One and only one task linked to the exact IN source row: created and starts at h10 with quantity1 and printed transfer time0, then task2 arrives at h10 with quantity1. That task-arrived marker creates one pending-local-receipt quantity and does not yet increment local or nominal. The matching P-CREW 'transfer arrives: 1' receipt follows at h10, clears pending receipt, and increments local/nominal1->2 exactly once; only then may free2 snapshot/queue trigger/return check follow. No h10.5 arrival, duplicate receipt, early local increment or IN backorder.",
+        "task_id_expectation": "Accepted parent uses OUT task0 zero, OUT task1 positive, IN task2 positive; child typed parser binds one-to-one task ID/lifecycle/quantity and rejects extra known-pattern events, while an ID renumbering is a review-triggering discrepancy rather than silently discarded.",
+        "derived_quantity_ledger": [
+            {"interval": "[0,7.75)", "local_roster": 2, "booked_at_prep_only": "2 on [7.5,8), else0", "OUT_pending": 0, "departed_OUT": 0, "IN_task_arrived": 0, "IN_pending_local_receipt": 0, "locally_received_IN": 0},
+            {"interval": "[7.75,8)", "local_roster": 2, "booked": 2, "reserved_OUT": 0, "free": 0, "OUT_pending": 1, "departed_OUT": 0, "IN_task_arrived": 0, "IN_pending_local_receipt": 0, "locally_received_IN": 0, "nominal_local": 1},
+            {"interval": "[8,10)", "local_roster": 1, "booked": 0, "reserved_OUT": 0, "free": 1, "OUT_pending": 0, "departed_OUT": 1, "IN_task_arrived": 0, "IN_pending_local_receipt": 0, "locally_received_IN": 0, "nominal_local": 1},
+            {"interval": "[10,36] after the receipt microstep", "local_roster": 2, "booked": "2 on [19.5,20), else0", "reserved_OUT": 0, "free": "local minus booked", "OUT_pending": 0, "departed_OUT": 1, "IN_task_arrived": 1, "IN_pending_local_receipt": 0, "locally_received_IN": 1, "nominal_local": 2},
+        ],
+        "h8_transient_reservation": "First prep release: local2/booked1/reserved_OUT0/free1; backorder removal reserves the newly freed OUT1; second prep release: local2/booked0/reserved_OUT1/free1 (the accepted printed snapshot); positive OUT departure clears reservation and reduces local to1 once, yielding booked0/reserved0/free1. Do not count reservation as completed OUT or decrement local before positive task start/departure.",
+        "h10_transient_receipt": [
+            {"event": "before IN task start", "IN_task_started_unarrived": 0, "IN_task_arrived": 0, "IN_pending_local_receipt": 0, "locally_received_IN": 0, "local": 1, "free": 1, "nominal": 1},
+            {"event": "IN task starts positive1 with printed TFDT0", "IN_task_started_unarrived": 1, "IN_task_arrived": 0, "IN_pending_local_receipt": 0, "locally_received_IN": 0, "local": 1, "free": 1, "nominal": 1},
+            {"event": "linked IN task arrives positive1", "IN_task_started_unarrived": 0, "IN_task_arrived": 1, "IN_pending_local_receipt": 1, "locally_received_IN": 0, "local": 1, "free": 1, "nominal": 1},
+            {"event": "matching P-CREW transfer arrives positive1", "IN_task_started_unarrived": 0, "IN_task_arrived": 1, "IN_pending_local_receipt": 0, "locally_received_IN": 1, "local": 2, "free": 2, "nominal": 2}
+        ],
+        "conservation": "At every supported typed event microstep local roster = opening2 - departed_OUT quantity + locally_received_IN quantity; task-arrived IN creates pending local receipt but does not change roster. Free = local - task booked - reserved_OUT, including h8. Positive OUT departure clears reservation and decrements local once; later same-time OUT task-arrived/completed marker never decrements it twice. This is a bounded task-quantity ledger, not an observed outside-person pool or persistent individual identity.",
+        "mission_and_system_ledger": "Two distinct mission instances wave0/1, aircraft0/1 allocation each; prep starts7.5 and19.5, four one-crew bookings and completions at8/20, mission starts8/20, task operations8.25-8.75/20.25-20.75, success/return9/21, terminal two ready; no failures/damage/PM; all typed lifecycle and untimed continuations consumed with exact family cardinalities and allowed same-time partial order",
+        "native_log_gate": "Parse entire original child log including header36, all timed lines and untimed resource/backorder/availability/queue/return continuations, unique task and aircraft identities, chronological order and terminal boundary; reject missing, duplicate, extra known-pattern or unknown lines, wrong times/quantities/owner/status. Parent original positive IN raw independently checked, never rewritten.",
+    },
+    "report_gate": {
+        "six_tables_in_order": [t["name"] for t in topology],
+        "topology_exact": topology,
+        "cells_per_arm": 5210,
+        "metadata_gate": "Exact root/report/table/column/instance key sets, column datatype/key booleans, names/order, one instance and row counts; ResultSummary.NREP is actual int1 and bool/float1.0 reject; double numeric fields permit finite JSON int/float with exact value and bool reject; string/null exact type. Native trailing comma only at one declared report-tables closing location may be repaired in memory, raw bytes unchanged; duplicate JSON keys, nonfinite values or extra repair positions reject.",
+        "source_event_expected": {
+            "ResultSummary": template_gate["result_summary_expected"],
+            "SystemResults": {
+                "field_classes": system_classes,
+                "row_identity_every_bin": {"UNID": "Total over all Units", "SID": "Total over all Systems"},
+                "per_bin": "for half-hour [a,b), assigned2 on [7.5,9) and [19.5,21), else0; NSYRY=2-assigned; NSYMA=assigned; NSYMO=STACC=2 on [8,9) and [20,21), else0; NSYMP=2 on [7.5,8) and [19.5,20), else0; NSYMR=0; NSYA=2; FTMO=NSYMO/2; NPSTA=2 in bins starting7.5,19.5; NPSUC=2 in bins starting8,20; all source-event-zero fields0, five bounded presentation fields0, SYDT null",
+                "integrals_halfhour_weighted": {"NSYRY": 66, "NSYMA": 6, "NSYMO": 4, "NSYMP": 2, "NSYMR": 0, "NSYA": 72, "FTMO": 2, "STACC": 4},
+                "raw_row_sums_distinct": {"FTMO": 4, "NPSTA": 4, "NPSUC": 4},
+            },
+            "StockTotalResults": {"field_classes": stock_fields,
+                                  "per_bin": "STINT=a, ETINT=b; source-event zeros exactly0; bounded empty-stock PNB1; undefined NBOU/ROS/ROST/WT/WTT/WTS null"},
+            "ResourceResults": {"field_classes": resource_classes,
+                                "row_identity_every_bin": {"RID": "Total over all Resources", "STID": "Total over all Stations"},
+                                "per_bin": "NR=NRA 2 on [0,8),1 on [8,10),2 on [10,36); NRN 2 on [0,7.75),1 on [7.75,10),2 on [10,36). Bin7.5-8 NRN1.5; bin10-10.5 NR=NRA=NRN2. NRUM2 on [7.5,8) and [19.5,20), else0; NRW0; all other fields source-event0; each bin average exact over [a,b).",
+                                "hour_integrals": {"NR": 70, "NRA": 70, "NRN": 69.75, "NRUM": 2, "NRW": 0}},
+            "ResourceResultsTotal": {"expected_float32": {"NR": f32(70/36), "NRA": f32(70/36), "NRN": f32(69.75/36), "NRUM": f32(2/36), "NRW": 0},
+                                     "all_other_numeric": 0, "identity": ["Total over all Resources", "Total over all Stations"],
+                                     "precision": "quantize each derived exact integral/36 to binary32, compare parsed finite numeric exactly; no broad epsilon or posthoc ULP widening"},
+        },
+        "parent_crosscheck_only": "If all hypotheses pass, 5203 report cells equal accepted positive-delay parent; exactly PDESC, three ResourceResults 10-10.5 cells NR/NRA/NRN and three ResourceResultsTotal means differ. This crosscheck is secondary; derive and check every child cell independently from source and typed events plus predeclared bounded presentation constants.",
+        "bounded_presentation_convention_not_general_formula": "System NSYAL/STREQ/STF/STLOW/SYDTU zero; no-downtime SYDT null; empty-stock PNB1 and six undefined stock nulls are exact source-specific native presentation expectations, not proven general mathematical statistics",
+        "unknown_formula": "NO_GO; do not infer expected numeric values from candidate report or widen a bound after seeing native output",
+    },
+    "native_and_provenance_gate": {
+        "ordered_six_stages": ["import", "export", "check_import_export", "calc", "jsonreport", "check_behavior"],
+        "pre_calc": "Exact child source import/export/roundtrip must pass before calc; authored32/25/227 and native32/36/368 with precisely eleven all-null additions and exact metadata, no dropped defaults/rows.",
+        "post_calc_before_jsonreport": "Bind exact new-run model.sxi/model.sxo Input file, Output file and File lines (not parent out_in.sxi/out_in.sxo); native converter Errors:0, Warnings:2, Notes:0 with exactly one Control rec1 #108 'Enabling simulation log may generate extensive data in log file' and one System rec1 #126 'This system contains no items: TEACH-AIR-01', exact full warning message/owner/code, no other warnings/errors/notes. Seal model-run.log SHA/size immediately after natural calc exit; no report stage on missing/mismatched diagnostics.",
+        "preflight": "Separate actual SSH5 -File -PreflightOnly zero-native receipt must bind frozen contract/input/runner/author and independent methods/manifest/source map, unique absent run, mandatory parent/prereq/raw/manual/exe pins and live historical494 catalog; independent GO_PURE_PREFLIGHT then fresh receipt-based GO_PRELAUNCH before root sole native child.",
+        "runner": "One immutable run directory only, six stages serial under Global\\SimloxIssue18NativeQueue; no kill/timeout/retry; hold mutex until every child exits naturally even on observation/capture failure; actual PID/session0/sshd ancestor/integer OS exit/UTC/program/argv/original binary stdout-stderr seals; protected GUI13340/session1/start1790590196826/responding/WTS1 and no competing runner before/after; source bytes before/after, invocation/closure/failure seals and read-only raw. Root is sole SSH/native/Git/catalog owner.",
+        "raw_and_replay": "All 112 accepted original raw remain mandatory, never substituted with copies; new child original raw/closure/invocation mandatory only after approved native; author and independent standalone read-only replays derive full ledger/report; original accepted parent method may be read but not rerun for convenience; any failed run stays excluded and byte-preserved.",
+    },
+    "negative_probes_predeclared": [
+        "TFDT remains0.5, wrong IN row key, changed OUT row, changed 32-table metadata/empty row or bool numeric",
+        "IN start at10 but arrival at10.5, zero quantity, duplicate IN task, wrong transfer time or missing local free2 snapshot",
+        "IN task-arrived without matching P-CREW receipt, receipt before task arrival, early/double local or nominal increment, missing/duplicated pending-local-receipt transition",
+        "OUT positive before h8 release, missing backorder, duplicate/extra zero OUT diagnostic or wrong nominal/physical clock",
+        "positive OUT task-arrived/completed causes second local decrement after positive departure, or reservation fails to clear on departure",
+        "h8 second release free2 instead of reserved-aware free1, missing or duplicated reserve, early local decrement, failure to clear reservation on positive OUT departure",
+        "extra known-pattern task at another hour, missing/duplicated untimed queue/availability/free snapshot, wrong owner/aircraft/mission/terminal",
+        "SystemResults per-bin UNID/SID or ResourceResults RID/STID altered even when instance metadata unchanged",
+        "one cell in each System/Stock/Resource, exact zero tiny nonzero, null->zero, NREP int1->float1.0, wrong table/column/instance metadata, duplicate JSON key or extra trailing comma",
+        "ResourceTotal each five means ±one adjacent binary32 ULP where finite, plus wrong h10-10.5 NR/NRA/NRN and wrong event-derived integrals",
+        "raw/closure/invocation/source/manual/prerequisite SHA mutation, approval/preflight/GUI/session/PID/source-map mismatch, catalog prefix/metadata/unique-ID mutation"
+    ],
+    "publication_rule": "Only new source-bound guarded child and independent direct original raw replay may accept a bounded fixed IN-zero contrast; no report-fit, no old parent rerun, no GUI/performance/cross-engine/general transfer claim. Any source, typed lifecycle, 5210-cell, converter, provenance, or custody mismatch freezes NO_GO evidence and requires a new version, never a rewrite of this prospective contract or raw run.",
+}
+
+OUT.write_text(json.dumps(design, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+print(json.dumps({"path": str(OUT), **pin(OUT), "source_refs": 80,
+                  "raw_originals": 112, "report_cells_per_arm": 5210}, sort_keys=True))

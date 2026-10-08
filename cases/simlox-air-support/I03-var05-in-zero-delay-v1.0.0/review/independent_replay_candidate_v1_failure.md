@@ -1,0 +1,3 @@
+# Independent reader candidate v1 failure
+
+`independent_replay_candidate_v1.py` is 20,038 bytes, SHA-256 `dfaa4d29f06bfd104a14753cef3a53e3e441487461d00bf7cdaccc597c497c23`. Its first read-only `pure_source_event_report` call failed at `Control.rows[0][1]` because the accepted export serializes a declared `double` source value `36.0` as JSON integer `36`. The type-exact whole-row comparison was too strict for this declared numeric column. The repair may allow finite int/float equal values only where the pinned column datatype is `double`; bool, nonfinite, metadata, and other datatypes remain type-exact. The traceback is available only as the command tool transcript, not captured original stdout/stderr bytes. No source/native run was modified.

@@ -1,0 +1,41 @@
+$ErrorActionPreference='Stop'
+$case=(Resolve-Path $PSScriptRoot).Path
+$runner=Join-Path $case 'run_native_ssh.ps1'
+$tokens=$null;$errors=$null
+$ast=[System.Management.Automation.Language.Parser]::ParseFile($runner,[ref]$tokens,[ref]$errors)
+if ($errors.Count) { throw 'runner PowerShell syntax error' }
+$found=@($ast.FindAll({param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+  $node.Name -eq 'Assert-ConverterLog'},$true))
+if ($found.Count -ne 1) { throw 'converter gate function missing/duplicate' }
+Invoke-Expression $found[0].Extent.Text
+function Get-Sha([string]$path) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() }
+$parent=Join-Path (Split-Path $case) 'I03-var01-crew-out-in-v1.0.0'
+$parentRun=Join-Path $parent 'runs\i03-var01-crew-transfer-v100-ssh-20261005-01'
+$original=Get-Content -LiteralPath (Join-Path $parentRun 'out_in-run.log') -Raw -Encoding UTF8
+$testRoot=Join-Path $case ('test-output\converter-'+[guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+$normal=$original.Replace($parentRun,$testRoot).Replace($parentRun.Replace('\','/'),$testRoot.Replace('\','/')).Replace('out_in.sxi','model.sxi').Replace('out_in.sxo','model.sxo')
+$log=Join-Path $testRoot 'model-run.log'
+function Save-Test([string]$text) {
+  [System.IO.File]::WriteAllText($log,$text,[System.Text.UTF8Encoding]::new($false))
+  return Get-Sha $log
+}
+$baselineSha=Save-Test $normal
+Assert-ConverterLog $testRoot $baselineSha
+$rejections=0
+function Reject([string]$candidate) {
+  $hash=Save-Test $candidate
+  try { Assert-ConverterLog $testRoot $hash } catch { $script:rejections++;return }
+  throw 'converter mutation escaped production gate'
+}
+Reject ($normal.Replace('Enabling simulation log may generate extensive data in log file','altered warning message'))
+Reject ($normal.Replace('Form: Control','Form: Resource'))
+Reject ($normal.Replace('Form: System',"rec 1: (note #999) injected`r`nForm: System"))
+Reject ($normal.Replace((Join-Path $testRoot 'model.sxi'),(Join-Path $testRoot 'other.sxi')))
+Reject ($normal.Replace((Join-Path $testRoot 'model.sxo'),(Join-Path $testRoot 'other.sxo')))
+Reject ($normal.Replace('Warnings: 2','Warnings: 3'))
+Reject ($normal.Replace('rec 1: (warning #126)','rec 1: (warning #999)'))
+Reject ($normal.Replace('Form: System',"Form: System`r`nrec 1: (warning #108) extra"))
+[ordered]@{schema='i03-var05-converter-pure-test/v1';baseline_passed=$true;
+  rejected=$rejections;native_calls=0;fixture='accepted converter log with only paths/model stem rebound in ignored test-output'} |
+  ConvertTo-Json -Compress

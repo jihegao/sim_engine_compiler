@@ -1,0 +1,25 @@
+"""Capture live Git refs read-only before the case preflight."""
+from pathlib import Path
+import datetime, hashlib, json, stat, subprocess
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/'tmp/i03-var05-root-live-refs-20261008-01'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+assert not OUT.exists()
+OUT.mkdir();Path(__file__).chmod(stat.S_IREAD)
+argv=['git','ls-remote','origin','refs/heads/main','refs/heads/simlox/main']
+r=subprocess.run(argv,cwd=ROOT,capture_output=True)
+save(OUT/'stdout.bin',r.stdout);save(OUT/'stderr.bin',r.stderr)
+refs={line.split()[1]:line.split()[0] for line in r.stdout.decode('ascii').splitlines()}
+expected={'refs/heads/main':'a1a44c72f64d754b711abe4095f1111f8a5ba896',
+ 'refs/heads/simlox/main':'b321a5d0b19fc016e4473c04e17615458db556f9'}
+good=type(r.returncode) is int and r.returncode==0 and not r.stderr and refs==expected
+receipt={'schema':'i03-var05-root-live-refs/v1','utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+ 'argv':argv,'actual_exit':r.returncode,'stdout':pin(r.stdout),'stderr':pin(r.stderr),
+ 'observed_refs':refs,'expected_refs':expected,'decision':'MATCH' if good else 'NO_GO_RECONCILE',
+ 'git_mutations':0,'native_calls':0}
+body=(json.dumps(receipt,indent=2)+'\n').encode();save(OUT/'receipt.json',body)
+print(json.dumps({'decision':receipt['decision'],'refs':refs,'receipt':pin(body)}))
+assert good

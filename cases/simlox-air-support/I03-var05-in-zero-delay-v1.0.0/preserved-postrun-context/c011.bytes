@@ -1,0 +1,38 @@
+"""One-time approval writer after the exact read-only SSH receipt audit."""
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+CASE = REPO / "cases/simlox-air-support/I03-var05-in-zero-delay-v1.0.0"
+AUDIT = REPO / "tmp/i03-var05-independent-actual-preflight-audit-20261008.py"
+PROOF = REPO / "tmp/i03-var05-independent-actual-preflight-proof-20261008-01"
+APPROVAL = CASE / "review/independent-prelaunch-go.json"
+assert not PROOF.exists() and not APPROVAL.exists()
+PROOF.mkdir()
+before = AUDIT.read_bytes()
+proc = subprocess.run([sys.executable, "-X", "utf8", "-B", str(AUDIT)], cwd=REPO,
+                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+(PROOF / "stdout.bin").write_bytes(proc.stdout)
+(PROOF / "stderr.bin").write_bytes(proc.stderr)
+assert proc.returncode == 0 and proc.stderr == b"" and AUDIT.read_bytes() == before
+result = json.loads(proc.stdout)
+assert result["decision"] == "GO_PRELAUNCH" and result["native_calls"] == 0
+approval = result["approval_candidate"]
+assert approval["decision"] == "GO_PRELAUNCH"
+approval_bytes = (json.dumps(approval, sort_keys=True, indent=2) + "\n").encode("utf-8")
+APPROVAL.write_bytes(approval_bytes)
+assert APPROVAL.read_bytes() == approval_bytes
+receipt = {
+    "schema": "i03-var05-independent-actual-preflight-proof/v1",
+    "auditor": {"bytes": len(before), "sha256": hashlib.sha256(before).hexdigest()},
+    "actual_exit": proc.returncode,
+    "stdout": {"bytes": len(proc.stdout), "sha256": hashlib.sha256(proc.stdout).hexdigest()},
+    "stderr": {"bytes": len(proc.stderr), "sha256": hashlib.sha256(proc.stderr).hexdigest()},
+    "approval": {"bytes": len(approval_bytes), "sha256": hashlib.sha256(approval_bytes).hexdigest()},
+    "native_calls": 0,
+}
+(PROOF / "receipt.json").write_bytes((json.dumps(receipt, sort_keys=True, indent=2) + "\n").encode())
+print(json.dumps(receipt, sort_keys=True))
