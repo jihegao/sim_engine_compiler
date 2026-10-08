@@ -1,0 +1,3 @@
+# Decoded-only self-check development probe
+
+Before source freeze, a local self-check probe exited 1 at the synthetic “converter extra warning” mutation. The accepted parent converter text retained CRLF separators, so the draft mutation searched for an LF-only substring and left the fixture unchanged. The active self-check normalizes that private synthetic fixture to LF before applying mutations; the strict reader still checks actual converter bytes and exact path spelling. This was a local decoded terminal result only. No original stdout/stderr/exit receipt or exact failed draft source bytes were captured; none are claimed here. No SIMLOX or accepted checker ran.

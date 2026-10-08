@@ -1,0 +1,21 @@
+# Native wrapper summary NO_GO attribution
+
+The sole approved I04.var10 v1.0.1 native transport returned actual exit 0
+with empty original stderr. The captured six stages and 39 originals were
+sealed read-only. Its closure has 23 raw records and uses the PowerShell
+success representation `""` for both `error` and `step_error`.
+
+The separate frozen root native capture method
+`tmp/i04-var10-root-native-capture-v101-20261008.py` has a stricter local
+summary predicate at line 96: `closure.get('step_error') is None`. That
+predicate rejected the empty string and marked its receipt
+`NO_GO_PRESERVE_FAILURE`; the method's subsequent exit 1 must be preserved
+as a wrapper failure. Original receipt:
+`tmp/i04-var10-root-native-proofs-v101-20261008/20261008T141303055254Z-76c96921/receipt.json`,
+499,813 bytes, SHA-256
+`82a078a33588621daeaf8641cdbe877aa2820d3d6ef3c87ee8e67aedbb554312`.
+
+The frozen independent case reader already allows `None` or `""` for both
+closure error fields. No native retry, source edit, output normalization or
+behavioral acceptance follows from this attribution. A separate sealed
+recovered-copy replay must pass before a bounded postrun GO can be issued.

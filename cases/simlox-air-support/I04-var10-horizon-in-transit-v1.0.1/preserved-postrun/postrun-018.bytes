@@ -1,0 +1,67 @@
+"""Read-only SSH guard boundary; no SIMLOX command or run directory creation."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import subprocess
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+GUARD = R / 'tmp/issue18-next-owner-guard-20261008.ps1'
+RUN = R / 'tmp/native-runs/i04v10-v101-20261008-01'
+EXPECTED = 'e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+
+def pin(p):
+    b = p.read_bytes()
+    return {'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest()}
+
+assert pin(GUARD) == {'bytes': 2081, 'sha256': EXPECTED}
+assert not RUN.exists()
+for p in (RUN, *RUN.parents):
+    assert not p.is_symlink() and not p.is_junction(), str(p)
+    if p.exists():
+        assert not p.stat().st_file_attributes & 0x400, str(p)
+O = R / 'tmp/i04-var10-root-guard-v101-20261008' / (
+    dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+O.mkdir(parents=True, exist_ok=False)
+command = ['ssh', '-n', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10',
+           '-i', 'C:/Users/user/.ssh/id_rsa', 'user@127.0.0.1',
+           'powershell.exe', '-NoProfile', '-NonInteractive', '-File', GUARD.as_posix()]
+started = dt.datetime.now(dt.timezone.utc).isoformat()
+with (O/'stdout.bin').open('xb') as stdout, (O/'stderr.bin').open('xb') as stderr:
+    code = subprocess.run(command, cwd=R, stdout=stdout, stderr=stderr).returncode
+observed = None
+failure = None
+try:
+    assert type(code) is int and code == 0
+    assert (O/'stderr.bin').stat().st_size == 0
+    observed = json.loads((O/'stdout.bin').read_text(encoding='utf-8-sig'))
+    assert observed['schema'] == 'issue18-next-owner-guard/v1'
+    for key in ('ssh_present', 'sshd_ancestor', 'mutex_free'):
+        assert observed[key] is True, key
+    for key, value in (('self_session', 0), ('powershell_major', 5),
+                       ('session_query_exit', 0), ('active_gui_session1_count', 1)):
+        assert type(observed[key]) is int and observed[key] == value, key
+    assert observed['runner_candidates'] == []
+    assert len(observed['native']) == 1
+    gui = observed['native'][0]
+    assert gui['pid'] == 13340 and gui['session'] == 1
+    assert gui['start_ms'] == 1790590196826 and gui['responding'] is True
+    assert not RUN.exists() and pin(GUARD)['sha256'] == EXPECTED
+except Exception as exc:
+    failure = f'{type(exc).__name__}: {exc}'
+receipt = {'schema': 'i04-var10-root-guard-boundary/v101', 'native_calls': 0,
+           'started_utc': started, 'completed_utc': dt.datetime.now(dt.timezone.utc).isoformat(),
+           'command': command, 'actual_exit': code, 'guard_pin': pin(GUARD),
+           'native_run_directory': str(RUN), 'run_absent_after': not RUN.exists(),
+           'observed': observed, 'error': failure,
+           'streams': {n: pin(O/n) for n in ('stdout.bin', 'stderr.bin')}}
+with (O/'receipt.json').open('xb') as stream:
+    stream.write((json.dumps(receipt, indent=2) + '\n').encode('utf-8'))
+for p in O.iterdir():
+    p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(O/'receipt.json'), **pin(O/'receipt.json'),
+                  'decision': 'GUARD_BOUNDARY_ONLY' if failure is None else 'NO_GO',
+                  'observed': observed, 'error': failure}))
+raise SystemExit(0 if failure is None else 1)

@@ -1,0 +1,29 @@
+"""One approved byte-equal canonical manifest write; no native launch."""
+from pathlib import Path
+import hashlib, json, subprocess, sys
+R=Path(__file__).resolve().parents[1]
+P=R/'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+C=R/'tmp/i04-var10-v101-manifest-candidate-20261008-01.json'
+G=R/'tmp/i04-var10-independent-manifest-candidate-go-v101-20261008.json'
+W=P/'make_prelaunch_manifest.py'
+T=P/'prelaunch-manifest.json'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(G)=={'bytes':1422,'sha256':'00fe38f174d7aee409bdbc5b029c3f4d5f28cbd26bac677c223fa8b4b44d9aaa'}
+assert json.loads(G.read_text(encoding='utf-8-sig'))['decision']=='GO_MANIFEST_WRITE'
+assert pin(C)=={'bytes':584393,'sha256':'32153d25a7426b6300cd2594ca221b491376a70e72e0780828e972b713df0ad6'}
+assert pin(W)=={'bytes':9602,'sha256':'f778239523963ab7890d1d40a216b8b5741c146b3ab2726853f2a059698df8b4'}
+assert not T.exists()
+def check():
+    rows=json.loads(C.read_text(encoding='utf-8-sig'))['source_files']
+    assert len(rows)==1651
+    for row in rows:
+        assert pin(Path(row['path']))=={k:row[k] for k in ('bytes','sha256')}
+check()
+code=subprocess.run([sys.executable,'-X','utf8','-B',str(W),'--write'],cwd=P).returncode
+check()
+if code==0:
+    assert T.read_bytes()==C.read_bytes()
+    T.chmod(0o444)
+    print(json.dumps({'canonical_manifest':str(T),**pin(T),'native_calls':0}))
+raise SystemExit(code)

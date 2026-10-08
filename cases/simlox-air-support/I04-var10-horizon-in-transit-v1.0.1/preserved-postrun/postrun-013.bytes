@@ -1,0 +1,28 @@
+"""Create an external 1651-role candidate after the approved inventory write."""
+from pathlib import Path
+import hashlib, json, subprocess, sys
+R=Path(__file__).resolve().parents[1]
+P=R/'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+I=P/'source-inventory.json'
+W=P/'make_prelaunch_manifest.py'
+O=R/'tmp/i04-var10-v101-manifest-candidate-20261008-01.json'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def check():
+    assert pin(I)=={'bytes':43251,'sha256':'3f5609725b222c11ea322228b9f5b5bddce7e78bee3ca864e8803292803a9844'}
+    assert I.stat().st_file_attributes & 1
+    assert pin(W)=={'bytes':9602,'sha256':'f778239523963ab7890d1d40a216b8b5741c146b3ab2726853f2a059698df8b4'}
+    for row in json.loads(I.read_text(encoding='utf-8-sig'))['source_files']:
+        path=Path(row['path']);assert path.stat().st_file_attributes & 1
+        assert pin(path)=={k:row[k] for k in ('bytes','sha256')}
+check()
+assert not O.exists() and not (P/'prelaunch-manifest.json').exists()
+code=subprocess.run([sys.executable,'-X','utf8','-B',str(W),'--candidate',str(O)],cwd=P).returncode
+check()
+if code==0:
+    d=json.loads(O.read_text(encoding='utf-8-sig'))
+    assert d['source_count']==len(d['source_files'])==1651
+    assert d['owned_pure_proof_copies']==21 and d['new_native_runs_authorized_by_manifest']==0
+    O.chmod(0o444)
+    print(json.dumps({'candidate':str(O),**pin(O),'native_calls':0}))
+raise SystemExit(code)

@@ -1,0 +1,26 @@
+"""Once-only author PURE dispatch bound to the frozen 85-source handoff."""
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+import sys
+
+R=Path(__file__).resolve().parents[1]
+P=R/'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+F=R/'tmp/i04-var10-v101-author85-freeze-candidate-20261008.json'
+def pin(p):
+    b=p.read_bytes(); return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(F)=={'bytes':32356,'sha256':'58d7b0a6abd5d6f267cbaf4ab98a932c00ebe4639b264a5951428163d30b5a72'}
+d=json.loads(F.read_text(encoding='utf-8-sig'))
+assert d['provisional'] is True and d['source_count']==len(d['source_files'])==85
+def check():
+    for row in d['source_files']:
+        path=Path(row['path'])
+        assert path==P/row['relative_path']
+        assert path.stat().st_file_attributes & 1
+        assert pin(path)=={k:row[k] for k in ('bytes','sha256')}
+check()
+assert pin(P/'pure_proof.py')=={'bytes':4009,'sha256':'5ce2ad67d6b288947149417a01c2349a38f1f003dde0213d58f2fe5a4951379d'}
+code=subprocess.run([sys.executable,'-X','utf8','-B',str(P/'pure_proof.py'),'--capture'],cwd=P).returncode
+check()
+raise SystemExit(code)

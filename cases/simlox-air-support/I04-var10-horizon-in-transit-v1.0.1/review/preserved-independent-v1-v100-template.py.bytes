@@ -1,0 +1,301 @@
+"""Independent I04.var10 read-only source, exporter, log, report and run replay.
+
+The prospective contract is a hypothesis. A native difference is a failure,
+never an invitation to change the frozen oracle after observation.
+"""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import math
+import re
+from pathlib import Path
+
+PKG = Path(__file__).resolve().parent.parent
+ROOT = PKG.parents[2]
+PARENT = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+PARENT_RUN = PARENT / "runs/i04-var03-idle-system-between-v101-ssh-20261008-01"
+RUN_ID = "i04-var10-horizon-in-transit-v100-ssh-20261008-01"
+RUN = ROOT / "tmp/native-runs/i04v10-v100-20261008-01"
+CONTRACT_SHA = "c00a8c11ec061e559ffaccf5c83b62e85cd6ab4cedd4a39316877a08bc4cbb69"
+LOG_SHA = "91f9981956a28414feeea056d963eccd4fe59904ec19b28c988fafc876d24b64"
+REPORT_SHA = "bd5c7d0e8993b3aa7866b4900782f30a7dbaacb1a0af5b58650c172ac0e4ef7f"
+DELTA_SHA = "7d53ed9c457bd0a8927e6d90bde0fbded6834ceea51911712a753347f0c620c4"
+PARENT_EXPORT_SHA = "012913693d6af024f1a4176b0bc80a8229053bee6fb0ccfb75fd638c8da900c2"
+PARENT_REPORT_SHA = "83d5519306d0efa692deab6b2a2a2bfd682982aa0a1a3ea1275bef9b5a5257fc"
+NATIVE_MARKER = "         },\n      ]"
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def pairs(items):
+    out = {}
+    for key, value in items:
+        assert key not in out, f"duplicate JSON key {key}"
+        out[key] = value
+    return out
+
+
+def bad_constant(value):
+    raise AssertionError(f"nonfinite JSON number {value}")
+
+
+def strict_json(data: bytes, *, native_report: bool = False):
+    text = data.decode("utf-8-sig")
+    assert "\x00" not in text and "\r" not in text.replace("\r\n", "")
+    text = text.replace("\r\n", "\n")
+    if native_report:
+        assert text.count(NATIVE_MARKER) == 1
+        assert text.endswith("         },\n      ]\n   }\n}\n")
+        text = text.replace(NATIVE_MARKER, "         }\n      ]", 1)
+    value = json.loads(text, object_pairs_hook=pairs, parse_constant=bad_constant)
+
+    def finite(node):
+        if isinstance(node, float):
+            assert math.isfinite(node)
+        elif isinstance(node, list):
+            for item in node:
+                finite(item)
+        elif isinstance(node, dict):
+            for item in node.values():
+                finite(item)
+
+    finite(value)
+    return value
+
+
+def typed(a, b) -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, list):
+        return len(a) == len(b) and all(typed(x, y) for x, y in zip(a, b))
+    if isinstance(a, dict):
+        return list(a) == list(b) and all(typed(a[k], b[k]) for k in a)
+    return a == b
+
+
+def declared_value(actual, expected, datatype: str) -> bool:
+    if expected is None:
+        return actual is None
+    if datatype == "integer":
+        return type(actual) is type(expected) is int and actual == expected
+    if datatype == "double":
+        return (type(actual) in (int, float) and type(expected) in (int, float)
+                and math.isfinite(actual) and math.isfinite(expected) and actual == expected)
+    assert datatype == "string"
+    return type(actual) is type(expected) is str and actual == expected
+
+
+def pin(path: Path, size: int, digest: str) -> bytes:
+    data = path.read_bytes()
+    assert len(data) == size and sha(data) == digest, path
+    return data
+
+
+def contract() -> dict:
+    data = pin(PKG / "prospective-contract.json", 13393, CONTRACT_SHA)
+    out = strict_json(data)
+    assert out["schema"] == "i04-var10-horizon-in-transit-prospective-contract/v1"
+    assert out["phase"] == "CONTRACT_DESIGN_ONLY_NO_CASE_NO_NATIVE"
+    assert out["proposed_run_id"] == RUN_ID
+    assert out["proposed_native_run_directory"] == str(RUN)
+    return out
+
+
+def oracles(c: dict):
+    specs = (("prospective-source-delta.json", DELTA_SHA, "source-delta.json"),
+             ("prospective-log-oracle.json", LOG_SHA, "log-oracle.json"),
+             ("prospective-report-oracle.json", REPORT_SHA, "report-oracle.json"))
+    out = {}
+    for owned, expected_hash, name in specs:
+        spec = c["artifacts"][name]
+        assert spec["sha256"] == expected_hash
+        out[name] = strict_json(pin(PKG / owned, spec["bytes"], expected_hash))
+    return out
+
+
+def source_tables(model: dict) -> list:
+    assert list(model) == ["model"] and list(model["model"]) == ["database_version", "tables"]
+    tables = model["model"]["tables"]
+    assert len(tables) == 34 and len({x["name"] for x in tables}) == 34
+    return tables
+
+
+def table(model: dict, name: str):
+    matches = [t for t in source_tables(model) if t["name"] == name]
+    assert len(matches) == 1
+    return matches[0]
+
+
+def source_expected(c: dict, delta: dict) -> dict:
+    parent = c["parent"]["originals"]["input"]
+    original = strict_json(pin(Path(parent["path"]), parent["bytes"], parent["sha256"]))
+    assert len(source_tables(original)) == 34
+    assert sum(len(i["rows"]) for t in source_tables(original) for i in t["instances"]) == 22
+    assert sum(len(t["columns"]) * len(i["rows"]) for t in source_tables(original) for i in t["instances"]) == 223
+    assert typed(delta["changes"], c["source_changes"])
+    assert len(c["source_changes"]) == 7
+    expected = copy.deepcopy(original)
+    for change in c["source_changes"][:6]:
+        t = table(expected, change["table"])
+        column = next(i for i, item in enumerate(t["columns"]) if item["name"] == change["column"])
+        rows = t["instances"][change["instance"]]["rows"]
+        assert typed(rows[change["row"]][column], change["parent"])
+        rows[change["row"]][column] = change["child"]
+    deletion = c["source_changes"][6]
+    assert deletion["table"] == "OperationProfile" and deletion["row"] == 1
+    assert deletion["operation"] == "delete_entire_future_scheduled_row"
+    profile = table(expected, "OperationProfile")["instances"][0]["rows"]
+    assert len(profile) == 2 and typed(profile[1], deletion["parent"])
+    del profile[1]
+    assert len(profile) == 1 and profile[0][2] == 8.0
+    assert sum(len(i["rows"]) for t in source_tables(expected) for i in t["instances"]) == 21
+    assert sum(len(t["columns"]) * len(i["rows"]) for t in source_tables(expected) for i in t["instances"]) == 211
+    return expected
+
+
+def verify_source(c: dict, delta: dict, actual=None) -> dict:
+    wanted = source_expected(c, delta)
+    given = strict_json((PKG / "native-input.json").read_bytes()) if actual is None else actual
+    assert typed(given, wanted), "authored source differs from frozen seven-change delta"
+    return given
+
+
+def expected_export(c: dict) -> dict:
+    parent = strict_json(pin(PARENT / "child-roundtrip-oracle.json", 49431, PARENT_EXPORT_SHA))
+    out = copy.deepcopy(parent)
+    for change in c["source_changes"][:6]:
+        t = table(out, change["table"])
+        index = next(i for i, col in enumerate(t["columns"]) if col["name"] == change["column"])
+        row = t["instances"][change["instance"]]["rows"][change["row"]]
+        assert typed(row[index], change["parent"])
+        row[index] = change["child"]
+    profile = table(out, "OperationProfile")["instances"][0]["rows"]
+    assert len(profile) == 2 and typed(profile[1], c["source_changes"][6]["parent"])
+    del profile[1]
+    assert len(source_tables(out)) == 34
+    assert sum(len(i["rows"]) for t in source_tables(out) for i in t["instances"]) == 39
+    assert sum(len(t["columns"]) * len(i["rows"]) for t in source_tables(out) for i in t["instances"]) == 395
+    assert sum(not any(i["rows"] for i in t["instances"]) for t in source_tables(out)) == 0
+    return out
+
+
+def verify_export(c: dict, actual: dict) -> None:
+    assert typed(actual, expected_export(c)), "export metadata, placeholder or source cell differs"
+
+
+def lines(data: bytes) -> list[str]:
+    text = data.decode("utf-8-sig")
+    assert "\x00" not in text and "\r" not in text.replace("\r\n", "")
+    assert text.endswith("\n")
+    return text.replace("\r\n", "\n").splitlines()
+
+
+def expected_log(c: dict, oracle: dict) -> list[str]:
+    parent = c["parent"]["originals"]["log"]
+    accepted = lines(pin(Path(parent["path"]), parent["bytes"], parent["sha256"]))
+    assert len(accepted) == 118 and sum(x.startswith("Time:") for x in accepted) == 104
+    proposed = accepted[:1] + ["11"] + accepted[2:61]
+    assert oracle["lines"] == proposed
+    assert oracle["line_count"] == 61 and oracle["timed_record_count"] == 53
+    assert proposed[-1].endswith("system transfered out: <TEACH-AIR-01,0>.")
+    return proposed
+
+
+def verify_log(c: dict, oracle: dict, data: bytes) -> None:
+    actual = lines(data)
+    assert actual == expected_log(c, oracle)
+    assert sum(x.startswith("Time:") for x in actual) == 53
+    assert all("system transfered in:" not in x for x in actual)
+    assert all("mission ordered" not in x or x.startswith("Time: 7 ") for x in actual)
+
+
+def overlap(a: float, b: float, c: float, d: float) -> float:
+    return max(0.0, min(b, d) - max(a, c))
+
+
+def report_expected(c: dict, oracle: dict) -> dict:
+    parent = strict_json(pin(PARENT / "child-report-oracle.json", 95011, PARENT_REPORT_SHA))
+    old = parent["report"]["tables"]
+    assert [t["name"] for t in old] == ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"]
+    result = copy.deepcopy(parent)
+    tables = result["report"]["tables"]
+    tables[0]["instances"][0]["rows"] = [[c["source_changes"][0]["child"]]]
+    tables[1]["instances"][0]["rows"] = [[1, 0.0, 11.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]]
+    system = tables[2]
+    stock = tables[3]
+    sr, st = [], []
+    totals = {key: 0.0 for key in ("NSYRY", "NSYMA", "NSYMO", "NSYMR", "NSYA", "FTMO", "STACC")}
+    for index in range(22):
+        a, b = index / 2.0, (index + 1) / 2.0
+        assigned = 2 * overlap(a, b, 7, 10) / .5
+        flying = 2 * overlap(a, b, 8, 10) / .5
+        reserved = 2 * overlap(a, b, 7, 8) / .5
+        transit = overlap(a, b, 10.5, 12.5) / .5
+        in_unit = 2 - transit
+        values = {"UNID": "Total over all Units", "SID": "Total over all Systems",
+                  "STINT": a, "ETINT": b, "NSYRY": in_unit - assigned,
+                  "NSYMA": assigned, "NSYMO": flying, "NSYMR": reserved,
+                  "NSYA": in_unit, "FTMO": flying / 2, "STACC": flying, "SYDT": None}
+        sr.append([values.get(col["name"], 0.0) for col in system["columns"]])
+        for key in totals:
+            totals[key] += values[key] * .5
+        stock_values = {"STINT": a, "ETINT": b, "PNB": 1.0,
+                        **{key: None for key in ("NBOU", "ROS", "ROST", "WT", "WTT", "WTS")}}
+        st.append([stock_values.get(col["name"], 0.0) for col in stock["columns"]])
+    system["instances"][0]["rows"] = sr
+    stock["instances"][0]["rows"] = st
+    assert totals == {"NSYRY": 15.5, "NSYMA": 6.0, "NSYMO": 4.0,
+                      "NSYMR": 2.0, "NSYA": 21.5, "FTMO": 2.0, "STACC": 4.0}
+    assert totals == c["expected_report"]["system_integrals_hours"]
+    assert sum(len(t["columns"]) * len(t["instances"][0]["rows"]) for t in tables) == 1244
+    # The owned prospective oracle must agree independently with every derived cell.
+    assert report_equal(oracle, result)
+    return result
+
+
+def report_equal(actual: dict, wanted: dict) -> bool:
+    assert list(actual) == list(wanted) == ["report"]
+    at, wt = actual["report"]["tables"], wanted["report"]["tables"]
+    assert len(at) == len(wt) == 4
+    for a, w in zip(at, wt):
+        assert list(a) == list(w) and a["name"] == w["name"]
+        assert typed(a["columns"], w["columns"])
+        assert len(a["instances"]) == len(w["instances"]) == 1
+        ai, wi = a["instances"][0], w["instances"][0]
+        assert list(ai) == list(wi) and ai["instance_name"] == wi["instance_name"]
+        assert len(ai["rows"]) == len(wi["rows"])
+        for ar, wr in zip(ai["rows"], wi["rows"]):
+            assert len(ar) == len(wr) == len(a["columns"])
+            for value, expected, col in zip(ar, wr, a["columns"]):
+                assert declared_value(value, expected, col["datatype"]), col["name"]
+    return True
+
+
+def verify_report(c: dict, oracle: dict, data: bytes) -> None:
+    expected = report_expected(c, oracle)
+    assert report_equal(strict_json(data, native_report=True), expected)
+
+
+def verify_converter(data: bytes, run: Path = RUN) -> None:
+    raw = data.decode("utf-8-sig")
+    assert "\x00" not in raw and "\r" not in raw.replace("\r\n", "") and raw.endswith("\n")
+    text = raw.replace("\r\n", "\n").splitlines()
+    assert len(text) == 17
+    fixed = {0: "Performing simulation", 3: "Simulating.", 4: "Converting input data ...",
+             6: "Form: Control", 7: "rec 1: (warning #108) Enabling simulation log may generate extensive data in log file",
+             8: "Form: System", 9: "rec 1: (warning #126) This system contains no items: TEACH-AIR-01",
+             10: "Input conversion completed. Errors: 0, Warnings: 2, Notes: 0",
+             12: "Starting simulation...", 14: "Saving results ..."}
+    for index, value in fixed.items():
+        assert text[index] == value, index
+    for index, label, name in ((1, "Input file", "model.sxi"),
+                               (2, "Output file", "model.sxo"), (5, "File", "model.sxi")):
+        assert text[index] == label + ": " + str(run / name).replace("\\", "/"), index
+    for index, label in ((11, "Input data conversion time"), (13, "Simulation time"),
+                         (15, "Result saving time"), (16, "Total execution time")):
+        assert re.fullmatch(re.escape(label) + r": [0-9]+(?:\.[0-9]+)? secs\.", text[index])
+    assert len(text[5].encode("ascii")) == 121

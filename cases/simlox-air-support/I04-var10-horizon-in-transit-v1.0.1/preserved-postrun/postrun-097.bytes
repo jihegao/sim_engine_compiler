@@ -1,0 +1,25 @@
+"""Once-only creation of 21 inert PURE copies and their custody map."""
+from pathlib import Path
+import hashlib, json, subprocess, sys
+R=Path(__file__).resolve().parents[1]
+P=R/'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+L=R/'tmp/i04-var10-v101-pure-originals-list-20261008.json'
+W=P/'copy_pure_proof.py'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(L)=={'bytes':7395,'sha256':'eb8eacaea18df5d341ad491ab2265f4d2c36871b4af0344d129b49cf66411bb8'}
+assert pin(W)=={'bytes':4936,'sha256':'45f5dfbb2680042f2f0613e3eebb3d9d16641b9ceeb383474f65a821cae5c4d6'}
+before=pin(W)
+assert W.stat().st_file_attributes & 1
+assert not (P/'pure-proof-custody.json').exists() and not (P/'preserved-pure-proof').exists()
+for row in json.loads(L.read_text(encoding='utf-8-sig'))['records']:
+    path=Path(row['path']);assert path.stat().st_file_attributes & 1
+    assert pin(path)=={k:row[k] for k in ('bytes','sha256')}
+code=subprocess.run([sys.executable,'-X','utf8','-B',str(W),'--write','--originals',str(L)],cwd=P).returncode
+assert pin(W)==before
+if code==0:
+    files=sorted((P/'preserved-pure-proof').iterdir())
+    assert len(files)==21 and all(p.is_file() for p in files)
+    for path in [*files,P/'pure-proof-custody.json']:
+        path.chmod(0o444)
+raise SystemExit(code)

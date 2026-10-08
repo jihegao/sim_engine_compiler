@@ -1,0 +1,121 @@
+"""Strict 1,244-cell terminal hypothesis from the frozen h0–11 ledger."""
+from __future__ import annotations
+
+import argparse
+import json
+import math
+from pathlib import Path
+
+from model_common import pairs, constant, finite, read, typed_equal
+
+HERE = Path(__file__).resolve().parent
+MARKER = b",\r\n      ]"
+NAMES = ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"]
+WIDTHS = [1, 11, 40, 16]
+ROWS = [1, 1, 22, 22]
+SUMMARY = [1, 0.0, 11.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]
+INTEGRALS = {"NSYRY": 15.5, "NSYMA": 6.0, "NSYMO": 4.0, "NSYMR": 2.0,
+             "NSYA": 21.5, "FTMO": 2.0, "STACC": 4.0}
+
+
+def parse_native(data):
+    assert data.count(MARKER) == 1, "native final-array punctuation differs"
+    assert data.endswith(b'         },\r\n      ]\r\n   }\r\n}\r\n')
+    obj = json.loads(data.replace(MARKER, b"\r\n      ]", 1).decode("utf-8-sig"),
+                     object_pairs_hook=pairs, parse_constant=constant)
+    finite(obj)
+    return obj
+
+
+def overlap(a, b, c, d):
+    return max(0.0, min(b, d) - max(a, c))
+
+
+def expected_values(index):
+    a, b = index / 2, (index + 1) / 2
+    assigned = 2 * overlap(a, b, 7, 10) / .5
+    flying = 2 * overlap(a, b, 8, 10) / .5
+    reserved = 2 * overlap(a, b, 7, 8) / .5
+    transit = overlap(a, b, 10.5, 12.5) / .5
+    local = 2 - transit
+    return {"NSYRY": local - assigned, "NSYMA": assigned, "NSYMO": flying,
+            "NSYMR": reserved, "NSYA": local, "FTMO": flying / 2, "STACC": flying}
+
+
+def validate_oracle(oracle):
+    assert list(oracle) == ["report"] and list(oracle["report"]) == ["tables"]
+    tables = oracle["report"]["tables"]
+    assert [t["name"] for t in tables] == NAMES
+    assert [len(t["columns"]) for t in tables] == WIDTHS
+    assert [len(t["instances"]) for t in tables] == [1] * 4
+    assert [len(t["instances"][0]["rows"]) for t in tables] == ROWS
+    assert all(t["instances"][0]["instance_name"] == "" for t in tables)
+    assert tables[0]["instances"][0]["rows"] == [[read(HERE / "prospective-contract.json")["source_changes"][0]["child"]]]
+    assert tables[1]["instances"][0]["rows"] == [SUMMARY]
+    totals = {key: 0.0 for key in INTEGRALS}
+    for index, row in enumerate(tables[2]["instances"][0]["rows"]):
+        assert len(row) == 40
+        values = {c["name"]: value for c, value in zip(tables[2]["columns"], row)}
+        assert values["UNID"] == "Total over all Units" and values["SID"] == "Total over all Systems"
+        assert values["STINT"] == index / 2 and values["ETINT"] == (index + 1) / 2
+        for key, expected in expected_values(index).items():
+            assert values[key] == expected, (index, key)
+            totals[key] += values[key] * .5
+        assert values["SYDT"] is None
+        assert all(value == 0 for name, value in values.items()
+                   if name not in {"UNID", "SID", "STINT", "ETINT", "SYDT", *INTEGRALS})
+    assert totals == INTEGRALS
+    for index, row in enumerate(tables[3]["instances"][0]["rows"]):
+        assert len(row) == 16
+        values = {c["name"]: value for c, value in zip(tables[3]["columns"], row)}
+        assert values["STINT"] == index / 2 and values["ETINT"] == (index + 1) / 2
+        assert values["PNB"] == 1
+        nulls = {"NBOU", "ROS", "ROST", "WT", "WTT", "WTS"}
+        assert all(values[key] is None for key in nulls)
+        assert all(value == 0 for key, value in values.items()
+                   if key not in {"STINT", "ETINT", "PNB", *nulls})
+    assert sum(w * r for w, r in zip(WIDTHS, ROWS)) == 1244
+    return 1244
+
+
+def compare(actual, expected):
+    assert isinstance(actual, dict) and list(actual) == list(expected)
+    assert list(actual["report"]) == list(expected["report"])
+    at, et = actual["report"]["tables"], expected["report"]["tables"]
+    assert len(at) == len(et) == 4
+    cells = 0
+    for a, e in zip(at, et):
+        assert list(a) == list(e) and a["name"] == e["name"]
+        assert typed_equal(a["columns"], e["columns"])
+        assert len(a["instances"]) == len(e["instances"]) == 1
+        ai, ei = a["instances"][0], e["instances"][0]
+        assert list(ai) == list(ei) and ai["instance_name"] == ei["instance_name"]
+        assert len(ai["rows"]) == len(ei["rows"])
+        for ar, er in zip(ai["rows"], ei["rows"]):
+            assert len(ar) == len(er) == len(a["columns"])
+            for av, ev, column in zip(ar, er, a["columns"]):
+                if ev is None:
+                    assert av is None
+                elif column["datatype"] == "integer":
+                    assert type(av) is type(ev) is int and av == ev
+                elif column["datatype"] == "double":
+                    assert type(av) in (int, float) and type(ev) in (int, float)
+                    assert math.isfinite(float(av)) and av == ev
+                else:
+                    assert type(av) is type(ev) is str and av == ev
+                cells += 1
+    assert cells == 1244
+    return cells
+
+
+def validate(data):
+    expected = read(HERE / "child-report-oracle.json")
+    validate_oracle(expected)
+    return {"schema": "i04-var10-full-report-oracle/v100", "cells_checked": compare(parse_native(data), expected),
+            "horizon_bins": 22, "terminal_transit_hypothesis": True}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("report", type=Path)
+    print(json.dumps(validate(parser.parse_args().report.read_bytes()), sort_keys=True))

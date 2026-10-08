@@ -1,0 +1,110 @@
+"""Recover sealed originals and execute the unchanged independent reader once."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import subprocess
+import sys
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+N = R / 'tmp/native-runs/i04v10-v101-20261008-01'
+READER = C / 'review/independent_replay.py'
+G = R / 'tmp/issue18-next-owner-guard-20261008.ps1'
+ORIGINAL = R / 'tmp/i04-var10-root-native-proofs-v101-20261008/20261008T141303055254Z-76c96921/receipt.json'
+def pin(p):
+    b = p.read_bytes()
+    return {'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest()}
+def load(p):
+    return json.loads(p.read_text(encoding='utf-8-sig'))
+def utc():
+    return dt.datetime.now(dt.timezone.utc).isoformat()
+
+assert len(sys.argv) == 1
+assert pin(ORIGINAL) == {'bytes': 499813, 'sha256': '82a078a33588621daeaf8641cdbe877aa2820d3d6ef3c87ee8e67aedbb554312'}
+outer = load(ORIGINAL)
+assert outer['actual_exit'] == 0 and outer['error'] is None and outer['seal_errors'] == []
+assert outer['decision'] == 'NO_GO_PRESERVE_FAILURE' and outer['native_dispatch'] is True
+assert outer['method_before'] == outer['method_after']
+assert outer['authorization_before'] == outer['authorization_after']
+assert outer['source_pins_before'] == outer['source_pins_after']
+assert pin(READER)['sha256'] == '0109ac2d539c625e84df2db3f4c9bf1cb045ead2dfd5dc40765022cef46efea5'
+assert pin(G)['sha256'] == 'e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+assert not N.is_junction() and not N.is_symlink() and not (N / 'failure-seal.json').exists()
+closure = load(N / 'closure.json')
+assert closure['error'] == closure['step_error'] == ''
+assert len(closure['raw']) == 23
+assert {p.name for p in N.iterdir()} == set(closure['raw']) | {'invocation.json', 'closure.json'}
+originals = {p.name: pin(p) for p in N.iterdir()}
+for p in N.iterdir():
+    assert p.is_file() and not p.is_symlink() and not p.stat().st_mode & stat.S_IWRITE
+    assert originals[p.name] == outer['sealed_originals'][str(p)]
+assert originals['invocation.json']['sha256'] == closure['invocation_sha256']
+assert all(originals[name] == expected for name, expected in closure['raw'].items())
+manifest = load(C / 'prelaunch-manifest.json')
+sources = {row['key']: pin(Path(row['path'])) for row in manifest['source_files']}
+assert sources == outer['source_pins_after']
+O = R / 'tmp/i04-var10-root-sealed-replay-v101-20261008' / (
+    dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+O.mkdir(parents=True, exist_ok=False)
+guard_command = ['ssh', '-n', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10',
+                 '-i', 'C:/Users/user/.ssh/id_rsa', 'user@127.0.0.1',
+                 'powershell.exe', '-NoProfile', '-NonInteractive', '-File', G.as_posix()]
+guard_started = utc()
+with (O / 'guard-stdout.bin').open('xb') as out, (O / 'guard-stderr.bin').open('xb') as err:
+    guard_code = subprocess.run(guard_command, cwd=R, stdout=out, stderr=err).returncode
+guard_record = {'command': guard_command, 'started_utc': guard_started, 'completed_utc': utc(),
+                'actual_exit': guard_code, 'native_dispatch': False, 'guard': pin(G),
+                'streams': {n: pin(O / n) for n in ('guard-stdout.bin', 'guard-stderr.bin')}}
+(O / 'guard-receipt.json').write_bytes((json.dumps(guard_record, indent=2) + '\n').encode())
+for name in ('guard-stdout.bin', 'guard-stderr.bin', 'guard-receipt.json'):
+    (O / name).chmod(stat.S_IREAD)
+assert type(guard_code) is int and guard_code == 0 and (O / 'guard-stderr.bin').stat().st_size == 0
+guard = load(O / 'guard-stdout.bin')
+assert guard['ssh_present'] is True and guard['sshd_ancestor'] is True
+assert guard['self_session'] == 0 and guard['powershell_major'] == 5
+assert guard['mutex_free'] is True and guard['runner_candidates'] == []
+assert guard['session_query_exit'] == 0 and guard['active_gui_session1_count'] == 1
+assert len(guard['native']) == 1
+gui = guard['native'][0]
+assert gui['pid'] == 13340 and gui['session'] == 1 and gui['start_ms'] == 1790590196826 and gui['responding'] is True
+recovered = O / 'recovered-evidence'
+recovered.mkdir(exist_ok=False)
+for p in sorted(N.iterdir()):
+    with (recovered / p.name).open('xb') as out:
+        out.write(p.read_bytes())
+    (recovered / p.name).chmod(stat.S_IREAD)
+assert {p.name: pin(p) for p in recovered.iterdir()} == originals
+command = [sys.executable, '-X', 'utf8', '-B', str(READER), '--evidence-dir', str(recovered)]
+before = {'method': pin(Path(__file__)), 'reader': pin(READER), 'manifest': pin(C / 'prelaunch-manifest.json')}
+started = utc()
+with (O / 'stdout.bin').open('xb') as out, (O / 'stderr.bin').open('xb') as err:
+    code = subprocess.run(command, cwd=R, stdout=out, stderr=err).returncode
+after = {'method': pin(Path(__file__)), 'reader': pin(READER), 'manifest': pin(C / 'prelaunch-manifest.json')}
+sources_after = {row['key']: pin(Path(row['path'])) for row in manifest['source_files']}
+originals_after = {p.name: pin(p) for p in N.iterdir()}
+receipt = {'schema': 'i04-var10-root-sealed-independent-replay/v101', 'native_dispatch': False,
+           'original_native_capture': {'path': str(ORIGINAL), **pin(ORIGINAL), 'decision': outer['decision']},
+           'capture_summary_discrepancy': 'The preserved native wrapper required None; typed PowerShell string closure fields are empty strings. Frozen independent reader already accepts None or empty string. No original or source changed.',
+           'command': command, 'actual_exit': code, 'started_utc': started, 'completed_utc': utc(),
+           'guard_receipt': pin(O / 'guard-receipt.json'), 'method_before': before, 'method_after': after,
+           'source_map_unchanged': sources == sources_after, 'originals_before': originals,
+           'originals_after': originals_after, 'copy': str(recovered),
+           'streams': {n: pin(O / n) for n in ('stdout.bin', 'stderr.bin')}}
+with (O / 'receipt.json').open('xb') as out:
+    out.write((json.dumps(receipt, indent=2) + '\n').encode())
+for p in O.iterdir():
+    if p.is_file():
+        p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(O / 'receipt.json'), **pin(O / 'receipt.json'),
+                  'actual_exit': code, 'source_stable': sources == sources_after,
+                  'originals_stable': originals == originals_after, 'method_stable': before == after,
+                  'recovered_evidence': str(recovered), 'streams': receipt['streams']}))
+for name in ('stdout.bin', 'stderr.bin'):
+    if (O / name).stat().st_size:
+        print((O / name).read_bytes().decode('utf-8-sig', 'replace')[:12000])
+assert before == after and sources == sources_after and originals == originals_after
+assert code == 0 and (O / 'stderr.bin').stat().st_size == 0
+assert (O / 'stdout.bin').read_bytes().splitlines() == [b'GO_BOUNDED 61/53 log 1244 report cells 34/21/211 source 34/39/395 export 25 raw']

@@ -1,0 +1,101 @@
+"""Exact 61-line horizon transcript with a two-aircraft microstep ledger."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+from pathlib import Path
+
+from model_common import read
+
+HERE = Path(__file__).resolve().parent
+TIMED = re.compile(r"^Time: ([0-9]+(?:\.[0-9]+)?) ")
+READY = re.compile(r"^Time: ([0-9]+(?:\.[0-9]+)?) <TEACH-AIR-01,([01])> nbr ready (increased|decreased) at unit: <(TEACH-UNIT(?:-2)?) at <(BASE-0[12]),0>>$")
+OUT = "Time: 10.5 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>."
+SOURCE = ("TEACH-UNIT", "BASE-01")
+TARGET = ("TEACH-UNIT-2", "BASE-02")
+
+
+def oracle_lines():
+    artifact = read(HERE / "prospective-log-oracle.json")
+    assert list(artifact) == ["horizon", "lines", "physical_lines", "timed_records"] or set(artifact) >= {"lines"}
+    lines = artifact["lines"]
+    assert type(lines) is list and len(lines) == 61
+    assert lines[:2] == ["SIMLOX LOG FILE", "11"] and lines[-1] == OUT
+    return lines
+
+
+def physical_ledger(lines):
+    locations = {0: SOURCE, 1: TARGET}
+    ready = {SOURCE: set(), TARGET: set()}
+    assigned: set[int] = set()
+    transit: set[int] = set()
+    created = completed = departed = 0
+    history = []
+    for index, line in enumerate(lines):
+        match = READY.fullmatch(line)
+        if match:
+            hour, sid, direction, unit, base = match.groups()
+            hour, sid = float(hour), int(sid)
+            place = (unit, base)
+            assert locations[sid] == place, (index, "ready owner")
+            if direction == "increased":
+                assert sid not in ready[place]
+                if sid in assigned:
+                    assert hour == 10
+                    assigned.remove(sid)
+                else:
+                    assert hour == 0 and sid not in transit
+                    created += 1
+                ready[place].add(sid)
+            else:
+                assert sid in ready[place]
+                ready[place].remove(sid)
+                if hour == 7:
+                    assert sid not in assigned
+                    assigned.add(sid)
+                elif hour == 10.5:
+                    assert sid == 0 and place == SOURCE and not transit and not assigned
+                    locations[sid] = None
+                    transit.add(sid)
+                else:
+                    raise AssertionError("unexpected ready decrement")
+        if line == OUT:
+            assert index == 60 and not departed and transit == {0} and locations[0] is None
+            departed += 1
+        if line == "Time: 10 <BASIC-MISSION,TEACH-GROUP,0,0,0> mission completed: <TEACH-AIR-01,0>,<TEACH-AIR-01,1>":
+            assert assigned == {0, 1} and not completed
+            completed += 1
+        if TIMED.match(line):
+            if created == 2:
+                assert sum(map(len, ready.values())) + len(assigned) + len(transit) == 2
+                assert sum(locations[sid] == SOURCE for sid in (0, 1)) + sum(locations[sid] == TARGET for sid in (0, 1)) + len(transit) == 2
+            history.append((index, tuple(sorted(ready[SOURCE])), tuple(sorted(ready[TARGET])), tuple(sorted(assigned)), tuple(sorted(transit))))
+    assert created == 2 and completed == 1 and departed == 1
+    assert ready == {SOURCE: set(), TARGET: {1}}
+    assert assigned == set() and transit == {0} and locations == {0: None, 1: TARGET}
+    assert history[-1] == (60, (), (1,), (), (0,))
+    return {"initial_aircraft": 2, "first_mission_completed": 1,
+            "source_ready_terminal": 0, "target_ready_terminal": 1,
+            "assigned_terminal": 0, "transit_terminal": 1,
+            "arrived_id0_before_horizon": False,
+            "microstates": len(history)}
+
+
+def validate(data: bytes):
+    lines = oracle_lines()
+    expected = ("\r\n".join(lines) + "\r\n").encode("utf-8")
+    assert data == expected, "native transcript differs from frozen 61-line oracle"
+    hours = [float(match.group(1)) for line in lines if (match := TIMED.match(line))]
+    assert len(hours) == 53 and hours == sorted(hours) and max(hours) == 10.5
+    assert hours.count(10.5) == 2 and not any("system transfered in" in x for x in lines)
+    return {"schema": "i04-var10-event-ledger/v101", "lines": 61, "timed_lines": 53,
+            "raw_bytes": len(data), "raw_sha256": hashlib.sha256(data).hexdigest(),
+            "physical": physical_ledger(lines)}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("log", type=Path)
+    print(json.dumps(validate(parser.parse_args().log.read_bytes()), sort_keys=True))

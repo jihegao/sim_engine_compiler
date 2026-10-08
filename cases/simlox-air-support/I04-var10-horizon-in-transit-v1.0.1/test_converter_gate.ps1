@@ -1,0 +1,107 @@
+$ErrorActionPreference='Stop'
+$case=(Resolve-Path $PSScriptRoot).Path
+$runner=Get-Content -LiteralPath (Join-Path $case 'run_native_ssh.ps1') -Raw -Encoding UTF8
+$start=$runner.IndexOf('function Assert-ConverterLog(')
+$end=$runner.IndexOf('function Save-Steps(', $start)
+if ($start -lt 0 -or $end -le $start) { throw 'runner converter function not found' }
+Invoke-Expression $runner.Substring($start,$end-$start)
+function Get-Sha([string]$path) {
+  $stream=[System.IO.File]::OpenRead($path)
+  $hasher=[System.Security.Cryptography.SHA256]::Create()
+  try { return ([BitConverter]::ToString($hasher.ComputeHash($stream))).Replace('-','').ToLowerInvariant() }
+  finally { $stream.Dispose();$hasher.Dispose() }
+}
+$parent=Join-Path (Split-Path $case -Parent) 'I04-var01-system-between-v1.0.0\runs\i04-var01-system-between-v100-ssh-20261005-01\between-run.log'
+$oldRun=Split-Path $parent -Parent
+$nativeRunDirectory='C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo\tmp\native-runs\i04v10-v101-20261008-01'
+$repo=(Resolve-Path (Join-Path $case '..\..\..')).Path
+$proof=Join-Path $repo ('tmp\pure-proofs\i04v10-t101-'+[Guid]::NewGuid().ToString('N').Substring(0,11))
+if (Test-Path -LiteralPath $proof) { throw 'unique converter PURE proof path already exists' }
+if (('File: '+(Join-Path $proof 'model.sxi').Replace('\','/')).Length -ne 121) {
+  throw 'converter PURE path does not exercise the exact File-line length'
+}
+$cursor=[System.IO.Path]::GetPathRoot($proof)
+foreach ($part in $proof.Substring($cursor.Length).Split([System.IO.Path]::DirectorySeparatorChar)) {
+  if ($part -eq '') { continue }
+  $cursor=Join-Path $cursor $part
+  if (Test-Path -LiteralPath $cursor) {
+    if (((Get-Item -LiteralPath $cursor -Force).Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+      throw 'converter PURE path traverses reparse ancestor'
+    }
+  }
+}
+New-Item -ItemType Directory -Path $proof | Out-Null
+$text=Get-Content -LiteralPath $parent -Raw -Encoding UTF8
+$text=$text.Replace($oldRun.Replace('\','/'),$proof.Replace('\','/')).Replace($oldRun,$proof)
+$text=$text.Replace('between.sxi','model.sxi').Replace('between.sxo','model.sxo')
+$log=Join-Path $proof 'model-run.log'
+Set-Content -LiteralPath $log -Value $text -Encoding UTF8 -NoNewline
+Copy-Item -LiteralPath $log -Destination (Join-Path $proof 'positive.log.bytes')
+Assert-ConverterLog $proof (Get-Sha $log)
+function Assert-RejectedClone([string]$name,[string]$body) {
+  Set-Content -LiteralPath $log -Value $body -Encoding UTF8 -NoNewline
+  Copy-Item -LiteralPath $log -Destination (Join-Path $proof ($name+'.log.bytes'))
+  $rejected=$false
+  try { Assert-ConverterLog $proof (Get-Sha $log) } catch { $rejected=$true }
+  if (-not $rejected) { throw "converter clone escaped: $name" }
+}
+$in=(Join-Path $proof 'model.sxi')
+$out=(Join-Path $proof 'model.sxo')
+$file=$in.Replace('\','/')
+Assert-RejectedClone 'extra-unnumbered-warning' ($text.Replace('Input data conversion time:', "Warning: unnumbered extra diagnostic`r`nInput data conversion time:"))
+Assert-RejectedClone 'forward-input-alias' ($text.Replace('Input file: '+$in, 'Input file: '+$file))
+Assert-RejectedClone 'backslash-file-alias' ($text.Replace('File: '+$file, 'File: '+$in))
+Assert-RejectedClone 'wrong-file-extension' ($text.Replace('File: '+$file, 'File: '+$file.Replace('model.sxi','model.sxo')))
+Assert-RejectedClone 'case-alias' ($text.Replace('Input file: '+$in, 'Input file: '+$in.ToUpperInvariant()))
+Assert-RejectedClone 'corrupt-file-tail' ($text.Replace('File: '+$file, 'File: '+$file.Substring(0,$file.Length-6)+'xyzxyz'))
+$failedRun=Join-Path (Split-Path $case -Parent) 'I04-var05-zero-transport-between-v1.0.0\runs\i04-var05-zero-transport-between-v100-ssh-20261008-01'
+$failedLog=Join-Path $failedRun 'model-run.log'
+if (-not (Test-Path -LiteralPath $failedLog -PathType Leaf)) { throw 'sealed v100 converter negative absent' }
+if ((Get-Item -LiteralPath $failedLog).Length -ne 1122 -or
+    (Get-Sha $failedLog) -ne 'ca209899bce7e299b49d9a482469efd8c0fee0d9f56673ffb99783cbf689457a') {
+  throw 'sealed corrupt converter witness changed'
+}
+$failedRejected=$false
+try { Assert-ConverterLog $failedRun (Get-Sha $failedLog) } catch { $failedRejected=$true }
+if (-not $failedRejected) { throw 'sealed corrupt v100 File path escaped' }
+. (Join-Path $case 'preflight_receipt.ps1')
+$good=[pscustomobject]@{native_run_directory=$nativeRunDirectory}
+Assert-JsonKeys $good @('native_run_directory') 'synthetic approval'
+Assert-RunDirectory $good.native_run_directory $nativeRunDirectory 'synthetic approval path'
+function Must-Reject([scriptblock]$test,[string]$label) {
+  $rejected=$false
+  try { & $test } catch { $rejected=$true }
+  if (-not $rejected) { throw "protocol negative escaped: $label" }
+}
+Must-Reject { Assert-RunDirectory @() $nativeRunDirectory 'array path' } 'array native_run_directory'
+Must-Reject { Assert-RunDirectory ($nativeRunDirectory+'\..\alias') $nativeRunDirectory 'alias path' } 'aliased native_run_directory'
+Must-Reject { Assert-JsonKeys ([pscustomobject]@{}) @('native_run_directory') 'missing path' } 'missing native_run_directory'
+Must-Reject { Assert-JsonKeys ([pscustomobject]@{native_run_directory=$nativeRunDirectory;extra=1}) @('native_run_directory') 'added key' } 'added approval key'
+$pathStart=$runner.IndexOf('function Assert-NativeRunPath {')
+$pathEnd=$runner.IndexOf('function Assert-ConverterLog(', $pathStart)
+if ($pathStart -lt 0 -or $pathEnd -le $pathStart) { throw 'runner native path function not found' }
+Invoke-Expression $runner.Substring($pathStart,$pathEnd-$pathStart)
+$approvedNativeRunDirectory=$nativeRunDirectory
+$alias=Join-Path (Split-Path -Parent $proof) ('i04v10-t101-'+[Guid]::NewGuid().ToString('N').Substring(0,11))
+if (Test-Path -LiteralPath $alias) { throw 'unique reparse negative path already exists' }
+try {
+  New-Item -ItemType Junction -Path $alias -Target $proof | Out-Null
+  $nativeRunDirectory=$alias
+  $manifest=[pscustomobject]@{native_run_directory=$alias}
+  $reparseRejected=$false
+  try { Assert-NativeRunPath } catch {
+    if ($_.Exception.Message -notmatch 'reparse') { throw "wrong reparse rejection: $($_.Exception.Message)" }
+    $reparseRejected=$true
+  }
+  if (-not $reparseRejected) { throw 'native path reparse ancestor escaped' }
+} finally {
+  $nativeRunDirectory=$approvedNativeRunDirectory
+  if (-not (Test-Path -LiteralPath $alias) -or
+      (((Get-Item -LiteralPath $alias -Force).Attributes -band [System.IO.FileAttributes]::ReparsePoint) -eq 0)) {
+    throw 'isolated reparse witness missing after negative test'
+  }
+}
+[ordered]@{schema='i04-var10-horizon-transit-converter-pure-test/v101';positive=$true;
+  negative_clones=6;sealed_v100_corrupt_file_rejected=$true;
+  receipt_schema_negatives=4;reparse_ancestor_rejected=$true;
+  reparse_witness=$alias;proof_directory=$proof;file_line_ascii_bytes=121;native_calls=0} | ConvertTo-Json -Compress

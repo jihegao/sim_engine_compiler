@@ -1,0 +1,112 @@
+"""Derive one hour-11 input and its exact oracles from frozen prospectives."""
+from __future__ import annotations
+
+import argparse
+import copy
+import json
+from pathlib import Path
+
+from model_common import encode, numeric_equal, pin, read, typed_equal, verify_expected
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+PARENT = HERE.parent / "I04-var03-idle-system-between-v1.0.1"
+DESIGN = REPO / "tmp/i04-var10-prospective-v100-20261008-03"
+CONTRACT = HERE / "prospective-contract.json"
+INPUT = HERE / "native-input.json"
+DELTA = HERE / "exact-diff.json"
+EXPORT = HERE / "child-roundtrip-oracle.json"
+REPORT = HERE / "child-report-oracle.json"
+PINS = {
+    "contract.json": (13393, "c00a8c11ec061e559ffaccf5c83b62e85cd6ab4cedd4a39316877a08bc4cbb69"),
+    "log-oracle.json": (4758, "91f9981956a28414feeea056d963eccd4fe59904ec19b28c988fafc876d24b64"),
+    "report-oracle.json": (35690, "bd5c7d0e8993b3aa7866b4900782f30a7dbaacb1a0af5b58650c172ac0e4ef7f"),
+    "source-delta.json": (2071, "7d53ed9c457bd0a8927e6d90bde0fbded6834ceea51911712a753347f0c620c4"),
+}
+PARENT_INPUT_PIN = (44611, "48c346d27d9cd08be09a771292d198e00db72a19d488da5b184689504ace177b")
+PARENT_EXPORT_PIN = (49431, "012913693d6af024f1a4176b0bc80a8229053bee6fb0ccfb75fd638c8da900c2")
+
+
+def require_pin(path: Path, expected: tuple[int, str]):
+    assert pin(path) == {"bytes": expected[0], "sha256": expected[1]}, str(path)
+
+
+def topology(document):
+    tables = document["model"]["tables"]
+    assert len({t["name"] for t in tables}) == len(tables)
+    rows = cells = 0
+    for table in tables:
+        assert len(table["instances"]) == 1
+        assert len({c["name"] for c in table["columns"]}) == len(table["columns"])
+        instance = table["instances"][0]
+        assert instance["instance_name"] == ""
+        for row in instance["rows"]:
+            assert len(row) == len(table["columns"])
+            rows += 1
+            cells += len(row)
+    return {"tables": len(tables), "rows": rows, "cells": cells}
+
+
+def mutate(parent, exported=False):
+    source = copy.deepcopy(parent)
+    changes = read(DESIGN / "source-delta.json")["changes"]
+    tables = source["model"]["tables"]
+    assert len(changes) == 7
+    for spec in changes:
+        name = spec["table"]
+        matches = [table for table in tables if table["name"] == name]
+        assert len(matches) == 1
+        table = matches[0]
+        rows = table["instances"][0]["rows"]
+        if spec.get("operation") == "delete_entire_future_scheduled_row":
+            assert spec["row"] == 1 and len(rows) == 2
+            assert len(rows[1]) == len(spec["parent"]) == len(table["columns"])
+            for actual, expected, column in zip(rows[1], spec["parent"], table["columns"]):
+                if exported and column["datatype"] in ("integer", "double"):
+                    assert numeric_equal(actual, expected)
+                else:
+                    assert typed_equal(actual, expected)
+            rows.pop(1)
+            continue
+        colnames = [col["name"] for col in table["columns"]]
+        assert colnames.count(spec["column"]) == 1
+        value = rows[spec["row"]][colnames.index(spec["column"])]
+        # Native export normalizes declared doubles from 36.0 to 36.
+        assert value == spec["parent"] and type(value) is not bool
+        rows[spec["row"]][colnames.index(spec["column"])] = spec["child"]
+    return source
+
+
+def generated():
+    for name, wanted in PINS.items():
+        require_pin(DESIGN / name, wanted)
+    require_pin(CONTRACT, PINS["contract.json"])
+    require_pin(PARENT / "native-input.json", PARENT_INPUT_PIN)
+    require_pin(PARENT / "child-roundtrip-oracle.json", PARENT_EXPORT_PIN)
+    original = read(PARENT / "native-input.json")
+    assert topology(original) == {"tables": 34, "rows": 22, "cells": 223}
+    child = mutate(original)
+    assert topology(child) == {"tables": 34, "rows": 21, "cells": 211}
+    exported = mutate(read(PARENT / "child-roundtrip-oracle.json"), exported=True)
+    assert topology(exported) == {"tables": 34, "rows": 39, "cells": 395}
+    assert [t["name"] for t in exported["model"]["tables"]].index("SystemTransfer") == 17
+    report = read(DESIGN / "report-oracle.json")
+    assert [len(t["instances"][0]["rows"]) for t in report["report"]["tables"]] == [1, 1, 22, 22]
+    assert sum(len(t["columns"]) * len(t["instances"][0]["rows"]) for t in report["report"]["tables"]) == 1244
+    return {"input": encode(child), "export": encode(exported), "report": encode(report),
+            "diff": (DESIGN / "source-delta.json").read_bytes()}
+
+
+def run(write=False):
+    bodies = generated()
+    return {"schema": "i04-var10-build/v100", "native_calls": 0,
+            "input": verify_expected(INPUT, bodies["input"], write),
+            "diff": verify_expected(DELTA, bodies["diff"], write),
+            "export_oracle": verify_expected(EXPORT, bodies["export"], write),
+            "report_oracle": verify_expected(REPORT, bodies["report"], write)}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    print(json.dumps(run(parser.parse_args().write), sort_keys=True))

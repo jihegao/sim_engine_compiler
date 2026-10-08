@@ -1,0 +1,297 @@
+"""Close safe phase evidence with inert copies; keep large originals host-bound."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+ROOT_PROOFS = "tmp/i04-var09-root-review-proofs-v100-20261008/"
+ARCHIVE = HERE / "preserved-postrun"
+ORIGINAL_MAP = HERE / "postrun-context-originals.json"
+COPY_MAP = ARCHIVE / "custody.json"
+SUMMARY = HERE / "postrun-context-custody.json"
+DEVELOPMENT = HERE / "preserved-postrun-development"
+DEVELOPMENT_MAP = DEVELOPMENT / "custody.json"
+MAX_COPY_BYTES = 200_000
+
+SINGLES = (
+    ("tmp/issue18-active-continuation-20261008-i04v10-v101-native-replay.md", "root_status_checkpoint"),
+    ("tmp/i04-var10-root-native-wrapper-exit-observation-v101-20261008.json", "decoded_outer_wrapper_exit_observation"),
+    ("tmp/i04-var10-independent-native-wrapper-attribution-v101-20261008.md", "independent_wrapper_attribution"),
+    ("tmp/i04-var10-independent-pure-preflight-go-v101-20261008.md", "independent_pure_preflight_go"),
+    ("tmp/i04-var10-independent-actual-preflight-audit-v101-static-no-go-20261008.md", "preflight_auditor_static_no_go"),
+    ("tmp/i04-var10-independent-actual-preflight-audit-v101-20261008.py", "preflight_auditor_unexecuted_draft"),
+    ("tmp/i04-var10-independent-actual-preflight-audit-v102-20261008.py", "preflight_auditor_executed"),
+    ("tmp/i04-var10-independent-actual-preflight-go-v101-20261008.md", "independent_actual_preflight_go"),
+    ("tmp/i04-var10-independent-inventory-candidate-go-v101-20261008.json", "independent_inventory_candidate_go"),
+    ("tmp/i04-var10-independent-manifest-candidate-go-v101-20261008.json", "independent_manifest_candidate_go"),
+    ("tmp/i04-var10-root-inventory-candidate-v101-20261008.py", "root_inventory_candidate_method"),
+    ("tmp/i04-var10-root-inventory-audit-v101-20261008.py", "root_inventory_audit_method"),
+    ("tmp/i04-var10-root-write-inventory-v101-20261008.py", "root_inventory_write_method"),
+    ("tmp/i04-var10-root-manifest-candidate-v101-20261008.py", "root_manifest_candidate_method"),
+    ("tmp/i04-var10-root-manifest-audit-v101-20261008.py", "root_manifest_audit_method"),
+    ("tmp/i04-var10-root-write-manifest-v101-20261008.py", "root_manifest_write_method"),
+    ("tmp/i04-var10-root-independent-preflight-v101-20261008.py", "root_independent_preflight_method"),
+    ("tmp/i04-var10-root-ssh-preflight-v101-20261008.py", "root_actual_ssh_preflight_method"),
+    ("tmp/i04-var10-root-fresh-guard-v101-20261008.py", "root_fresh_guard_method"),
+    ("tmp/i04-var10-root-native-capture-v101-20261008.py", "root_single_native_capture_method"),
+    ("tmp/i04-var10-root-sealed-replay-v101-20261008.py", "root_replay_unexecuted_draft"),
+    ("tmp/i04-var10-root-sealed-replay-v102-20261008.py", "root_replay_executed_method"),
+    ("tmp/i04-var10-v101-author85-freeze-candidate-20261008.json", "author85_source_freeze"),
+    ("tmp/i04-var10-v101-pure-originals-list-20261008.json", "pure21_original_list"),
+    ("tmp/i04-var10-v101-inventory-candidate-20261008-01.json", "exact_inventory_candidate"),
+    ("tmp/i04-var10-v101-manifest-candidate-20261008-01.json", "exact_manifest_candidate"),
+    ("tmp/i04-var10-v101-provisional-manifest-body-20261008-01.json", "provisional_manifest_history_01"),
+    ("tmp/i04-var10-v101-provisional-manifest-body-20261008-02.json", "provisional_manifest_history_02"),
+    ("tmp/i04-var10-v101-provisional-manifest-body-20261008-03.json", "provisional_manifest_history_03"),
+)
+
+OUTER_TRIPLETS = (
+    "i04-var10-v101-author-pure-20261008T134618987692Z-a4a3bd4b",
+    "i04-var10-v101-independent-fixture-20261008T134722688720Z-2b9cce89",
+    "i04-var10-v101-independent-selfcheck-20261008T134724258939Z-ff550bde",
+    "i04-var10-v101-copy-pure-20261008T134851723556Z-ac3831d6",
+    "i04-var10-v101-inventory-candidate-20261008T134929849773Z-22f001d4",
+    "i04-var10-v101-inventory-audit-20261008T134959963000Z-11b907d8",
+    "i04-var10-v101-write-inventory-20261008T135245631024Z-7573aab7",
+    "i04-var10-v101-manifest-candidate-20261008T135246770015Z-e0569fd7",
+    "i04-var10-v101-manifest-audit-20261008T135322855398Z-01604c2d",
+    "i04-var10-v101-write-manifest-20261008T135935074415Z-c2a3eadb",
+    "i04-var10-v101-independent-preflight-20261008T135952291229Z-302a500b",
+    "i04-var10-v101-ssh-preflight-20261008T140231695592Z-be49a117",
+    "i04-var10-v101-actual-preflight-audit-v102-20261008T140646996478Z-032ff666",
+    "i04-var10-v101-fresh-guard-boundary-20261008T133428652338Z-a8ef619e",
+    "i04-var10-v101-fresh-native-boundary-20261008T141117879897Z-209c5f27",
+    "i04-var10-v101-final-dispatch-guard-20261008T141252488000Z-c8cbd87e",
+    "i04-var10-v101-independent-sealed-replay-20261008T141625771825Z-87fbeaa9",
+)
+
+GUARD_TRIPLETS = (
+    "20261008T133428746711Z-29540cf6",
+    "20261008T141117966601Z-bff6d1fb",
+    "20261008T141252569000Z-6b090915",
+)
+
+EXTRA_FILES = (
+    ("tmp/i04-var10-root-native-proofs-v101-20261008/20261008T141303055254Z-76c96921/receipt.json", "native_wrapper_no_go_receipt"),
+    ("tmp/i04-var10-root-native-proofs-v101-20261008/20261008T141303055254Z-76c96921/stdout.bin", "captured_transport_child_stdout"),
+    ("tmp/i04-var10-root-native-proofs-v101-20261008/20261008T141303055254Z-76c96921/stderr.bin", "captured_transport_child_stderr"),
+    ("tmp/i04-var10-root-sealed-replay-v101-20261008/20261008T141626170671Z-ad3cc985/receipt.json", "recovered_replay_receipt"),
+    ("tmp/i04-var10-root-sealed-replay-v101-20261008/20261008T141626170671Z-ad3cc985/stdout.bin", "recovered_replay_stdout"),
+    ("tmp/i04-var10-root-sealed-replay-v101-20261008/20261008T141626170671Z-ad3cc985/stderr.bin", "recovered_replay_stderr"),
+    ("tmp/i04-var10-root-sealed-replay-v101-20261008/20261008T141626170671Z-ad3cc985/guard-receipt.json", "postrun_guard_receipt"),
+    ("tmp/i04-var10-root-sealed-replay-v101-20261008/20261008T141626170671Z-ad3cc985/guard-stdout.bin", "postrun_guard_stdout"),
+    ("tmp/i04-var10-root-sealed-replay-v101-20261008/20261008T141626170671Z-ad3cc985/guard-stderr.bin", "postrun_guard_stderr"),
+)
+
+METHOD_FILES = (
+    ("tmp/i04-var09-root-review-capture-v100-20261008.py", "root_original_capture_method"),
+    ("tmp/i04-var10-root-author-pure-v101-20261008.py", "captured_author_pure_method"),
+    ("tmp/i04-var10-root-independent-fixture-v101-20261008.py", "captured_independent_fixture_method"),
+    ("tmp/i04-var10-root-independent-selfcheck-v101-20261008.py", "captured_independent_selfcheck_method"),
+    ("tmp/i04-var10-root-copy-pure-v101-20261008.py", "captured_pure_copier_method"),
+)
+
+METHOD_CAPTURE_DIRS = (
+    "i04-var10-v101-author-pure-20261008T134618987692Z-a4a3bd4b",
+    "i04-var10-v101-independent-fixture-20261008T134722688720Z-2b9cce89",
+    "i04-var10-v101-independent-selfcheck-20261008T134724258939Z-ff550bde",
+    "i04-var10-v101-copy-pure-20261008T134851723556Z-ac3831d6",
+)
+
+DEVELOPMENT_ROWS = (
+    ("draft-000.bytes", "executed_first_preflight_generator_source", "decoded_tool_output_only_no_original_binary_receipt"),
+    ("draft-001.bytes", "executed_first_preflight_map_14308", "decoded_tool_output_only_no_original_binary_receipt"),
+    ("draft-002.bytes", "intermediate_preflight_status_literal_failure", "decoded_tool_output_only_no_original_binary_receipt"),
+    ("draft-003.bytes", "executed_first_context_copier_98_rows", "superseded_copier_original_bytes_preserved"),
+    ("draft-004.bytes", "executed_first_context_original_map_98_rows", "superseded_map_original_bytes_preserved"),
+    ("draft-005.bytes", "executed_first_context_copy_map_93_rows", "superseded_map_original_bytes_preserved"),
+    ("draft-006.bytes", "executed_first_development_map", "superseded_map_original_bytes_preserved"),
+    ("draft-007.bytes", "executed_first_context_summary_98_rows", "superseded_summary_original_bytes_preserved"),
+)
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def encode(value: dict) -> bytes:
+    return (json.dumps(value, sort_keys=True, indent=2) + "\n").encode("utf-8")
+
+
+def expected_paths() -> list[tuple[str, str]]:
+    values = list(SINGLES)
+    for directory in OUTER_TRIPLETS:
+        for name in ("receipt.json", "stdout.bin", "stderr.bin"):
+            values.append((ROOT_PROOFS + directory + "/" + name, "root_original_capture:" + directory))
+    for directory in GUARD_TRIPLETS:
+        for name in ("receipt.json", "stdout.bin", "stderr.bin"):
+            values.append(("tmp/i04-var10-root-guard-v101-20261008/" + directory + "/" + name,
+                           "root_original_guard:" + directory))
+    values.extend(EXTRA_FILES)
+    # These five methods arrived after the first 98-row context write. Keep the
+    # first 98 roles and 93 copy numbers byte-for-byte stable.
+    values.extend(METHOD_FILES)
+    assert len(values) == len({name.casefold() for name, _ in values})
+    return values
+
+
+def verify_method_capture_links(rows: list[dict]) -> None:
+    by_relative = {row["relative_original"]: row for row in rows}
+    root_method = by_relative[METHOD_FILES[0][0]]
+    for index, directory in enumerate(METHOD_CAPTURE_DIRS, start=1):
+        receipt_relative = ROOT_PROOFS + directory + "/receipt.json"
+        receipt = json.loads((REPO / receipt_relative).read_bytes())
+        assert receipt["schema"] == "issue18-i04-var09-root-review-proof/v100"
+        assert type(receipt["actual_exit"]) is int and receipt["actual_exit"] == 0
+        assert receipt["native_dispatch"] is False
+        method = by_relative[METHOD_FILES[index][0]]
+        assert receipt["method_before"] == receipt["method_after"]
+        assert receipt["method_before"]["root_capture"] == {
+            key: root_method[key] for key in ("bytes", "sha256")}
+        assert receipt["method_before"]["review_method"] == {
+            key: method[key] for key in ("bytes", "sha256")}
+        assert receipt["argv"][-1] == method["original_path"]
+        assert by_relative[receipt_relative]["sha256"] == pin(REPO / receipt_relative)["sha256"]
+
+
+def candidate() -> dict:
+    rows = []
+    for relative, role in expected_paths():
+        assert not relative.startswith("/") and ".." not in Path(relative).parts
+        path = REPO / relative
+        assert path.is_file() and path.resolve(strict=True).is_relative_to(REPO)
+        assert path.stat().st_file_attributes & 1, (relative, "original not read-only")
+        identity = pin(path)
+        copy_number = sum(item["owned_copy"] is not None for item in rows)
+        owned = f"preserved-postrun/postrun-{copy_number:03d}.bytes" if identity["bytes"] <= MAX_COPY_BYTES else None
+        rows.append({"relative_original": relative, "original_path": str(path), "role": role,
+                     **identity, "disposition": "owned_inert_copy" if owned else "mandatory_host_original",
+                     "original_mandatory": owned is None, "owned_copy": owned,
+                     "original_if_present_must_match": True})
+    assert len({row["original_path"].casefold() for row in rows}) == len(rows)
+    assert len(rows) == 103
+    assert [row["relative_original"] for row in rows[:98]] == [name for name, _ in expected_paths()[:98]]
+    verify_method_capture_links(rows)
+    return {"schema": "i04-var10-v101-postrun-originals/v1", "records": rows,
+            "original_count": len(rows),
+            "owned_copy_count": sum(row["owned_copy"] is not None for row in rows),
+            "mandatory_host_count": sum(row["owned_copy"] is None for row in rows),
+            "root_native_wrapper_outer_exit": "decoded-only exit 1; no original outer stdout/stderr binary capture",
+            "native_transport_child_actual_exit": 0,
+            "native_wrapper_decision": "NO_GO_PRESERVE_FAILURE",
+            "independent_recovered_replay": "GO_BOUNDED after byte-identical 25-file copy"}
+
+
+def development_document() -> dict:
+    rows = []
+    for name, role, limit in DEVELOPMENT_ROWS:
+        path = DEVELOPMENT / name
+        assert path.is_file() and path.stat().st_file_attributes & 1
+        rows.append({"path": f"preserved-postrun-development/{name}", **pin(path),
+                     "role": role, "capture_limit": limit})
+    return {"schema": "i04-var10-v101-postrun-development/v1", "records": rows,
+            "metadata_print_path_error": "After the corrected candidate was saved, one PowerShell metadata print used an incorrect relative source path; the saved candidate was subsequently rehashed read-only. Tool-decoded output only.",
+            "crossed_write_history": "The first 98-row context copier completed before a five-method custody correction arrived and the earlier static clearance was withdrawn. Its exact copier/maps remain as inert draft-003 through draft-007; the original 93 copies remain byte-identical. The first write is not final custody acceptance."}
+
+
+def write_once(path: Path, data: bytes) -> None:
+    assert not path.exists()
+    path.parent.mkdir(exist_ok=True)
+    with path.open("xb") as stream:
+        stream.write(data)
+
+
+def write_all() -> dict:
+    document = candidate()
+    original_data = encode(document)
+    write_once(ORIGINAL_MAP, original_data)
+    copies = []
+    for row in document["records"]:
+        if row["owned_copy"] is None:
+            continue
+        source = Path(row["original_path"])
+        target = HERE / row["owned_copy"]
+        data = source.read_bytes()
+        assert pin(source) == {key: row[key] for key in ("bytes", "sha256")}
+        write_once(target, data)
+        target.chmod(0o444)
+        copies.append({"original_path": row["original_path"], "owned_copy": row["owned_copy"],
+                       "bytes": row["bytes"], "sha256": row["sha256"],
+                       "original_if_present_must_match": True})
+    copy_document = {"schema": "i04-var10-v101-postrun-copy-custody/v1", "records": copies,
+                     "originals_optional_after_publication_for_copied_rows": True}
+    copy_data = encode(copy_document)
+    write_once(COPY_MAP, copy_data)
+    development_data = encode(development_document())
+    write_once(DEVELOPMENT_MAP, development_data)
+    summary = {"schema": "i04-var10-v101-postrun-context-custody/v1",
+               "originals_map": {"path": ORIGINAL_MAP.relative_to(HERE).as_posix(), **pin(ORIGINAL_MAP)},
+               "owned_copy_map": {"path": COPY_MAP.relative_to(HERE).as_posix(), **pin(COPY_MAP)},
+               "development_map": {"path": DEVELOPMENT_MAP.relative_to(HERE).as_posix(), **pin(DEVELOPMENT_MAP)},
+               "original_count": document["original_count"],
+               "owned_copy_count": document["owned_copy_count"],
+               "mandatory_host_count": document["mandatory_host_count"]}
+    write_once(SUMMARY, encode(summary))
+    for path in (ORIGINAL_MAP, COPY_MAP, DEVELOPMENT_MAP, SUMMARY):
+        path.chmod(0o444)
+    return summary
+
+
+def verify() -> dict:
+    document = json.loads(ORIGINAL_MAP.read_bytes())
+    assert document["schema"] == "i04-var10-v101-postrun-originals/v1"
+    assert [(row["relative_original"], row["role"]) for row in document["records"]] == expected_paths()
+    assert document["original_count"] == len(document["records"])
+    assert document["owned_copy_count"] + document["mandatory_host_count"] == document["original_count"]
+    copies = json.loads(COPY_MAP.read_bytes())
+    assert copies["schema"] == "i04-var10-v101-postrun-copy-custody/v1"
+    copied = []
+    for row in document["records"]:
+        expected = {key: row[key] for key in ("bytes", "sha256")}
+        source = Path(row["original_path"])
+        if row["original_mandatory"] or source.exists():
+            assert pin(source) == expected
+        if row["owned_copy"] is not None:
+            target = HERE / row["owned_copy"]
+            assert pin(target) == expected
+            copied.append({"original_path": row["original_path"], "owned_copy": row["owned_copy"],
+                           **expected, "original_if_present_must_match": True})
+    assert copies["records"] == copied
+    assert json.loads(DEVELOPMENT_MAP.read_bytes()) == development_document()
+    summary = json.loads(SUMMARY.read_bytes())
+    assert summary == {"schema": "i04-var10-v101-postrun-context-custody/v1",
+                       "originals_map": {"path": ORIGINAL_MAP.relative_to(HERE).as_posix(), **pin(ORIGINAL_MAP)},
+                       "owned_copy_map": {"path": COPY_MAP.relative_to(HERE).as_posix(), **pin(COPY_MAP)},
+                       "development_map": {"path": DEVELOPMENT_MAP.relative_to(HERE).as_posix(), **pin(DEVELOPMENT_MAP)},
+                       "original_count": document["original_count"],
+                       "owned_copy_count": document["owned_copy_count"],
+                       "mandatory_host_count": document["mandatory_host_count"]}
+    return summary
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--candidate", type=Path)
+    args = parser.parse_args()
+    assert not (args.write and args.candidate)
+    if args.candidate:
+        output = args.candidate.absolute()
+        assert output.parent.is_dir() and output.is_relative_to(REPO / "tmp")
+        write_once(output, encode(candidate()))
+        output.chmod(0o444)
+        result = {"candidate": str(output), **pin(output)}
+    elif args.write:
+        result = write_all()
+    else:
+        result = verify()
+    print(json.dumps(result, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
