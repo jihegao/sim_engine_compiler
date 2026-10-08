@@ -1,0 +1,9 @@
+# I04.var09 arrived system in a later mission
+
+This package classifies one part of the existing I04.var09 plan item from the accepted I04.var03 v1.0.1 original run. It creates no model input and performs no new native run. The observed numeric aircraft ID 0 transfers from `TEACH-UNIT` at 10.5, arrives at `TEACH-UNIT-2` at 11, and is allocated from that target unit to the later group mission at 19. That mission starts at 20, runs its task from 20.5 to 21.5, succeeds at 22, and returns ID 0 ready at the target.
+
+The new classifier reads every one of the 118 original log lines and tracks both numeric IDs through ready, mission assignment, flight, task, transfer transit, and unit ownership states. The 104 timed records are checked in order. The outer station descriptor, such as `<TEACH-AIR-01,BASE-02,0>`, is a display location; the inner `<TEACH-AIR-01,0>` identifies the aircraft. The classifier also checks 10 selected behavior values from five original report bins, their 10 interval bounds and 10 row identity cells. The accepted parent's independent review already covered its full 4,044-cell report; this classification does not claim a fresh full-report review.
+
+This is the “arrived system later executes a mission” subclaim. It does not establish a second transfer, all of I04.var09, a general identity rule, an outside aircraft pool, GUI equivalence, another engine, or performance. I04.var07's proposed same-hour transfer remains unready and its separate NO_GO notes are preserved here.
+
+The case evidence index closes the published source files and binds the accepted parent's original raw and preflight files by their mandatory host paths and SHA-256 values. Two unrelated-chat app context originals stay local-only. A checkout without those required host originals cannot claim full sealed replay.

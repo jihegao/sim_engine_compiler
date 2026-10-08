@@ -1,0 +1,78 @@
+"""Root exact reviewed source staging and typed catalog append; no native."""
+from pathlib import Path
+import datetime as dt, hashlib, json, re, stat, subprocess, sys, uuid
+R=Path(__file__).resolve().parents[1];C=R/'cases/simlox-air-support/I04-var09-arrived-system-next-mission-v1.0.0'
+CAT=R/'cases/simlox-air-support/publication-index-v1.json'
+GO=R/'tmp/i04-var09-independent-content-go-v100-20261008.md'
+BASE='223c32e36722587bad5d1d5e8564faee84b91206'
+def pin(b):return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def utc():return dt.datetime.now(dt.timezone.utc).isoformat()
+def typed(a,b):
+ if type(a) is not type(b):return False
+ if isinstance(a,dict):return a.keys()==b.keys() and all(typed(a[k],b[k]) for k in a)
+ if isinstance(a,list):return len(a)==len(b) and all(typed(x,y) for x,y in zip(a,b))
+ return a==b
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+def git(*a):return subprocess.check_output(['git','-c','core.longpaths=true',*a],cwd=R)
+assert len(sys.argv)==4
+go_sha,index_sha,count=sys.argv[1:];count=int(count)
+assert all(re.fullmatch('[0-9a-f]{64}',x) for x in (go_sha,index_sha))
+assert pin(GO.read_bytes())['sha256']==go_sha and 'GO_CONTENT' in GO.read_text(encoding='utf-8-sig')
+assert not GO.stat().st_mode&stat.S_IWRITE
+I=C/'evidence-index.json';assert pin(I.read_bytes())['sha256']==index_sha
+assert git('rev-parse','HEAD').decode().strip()==BASE
+assert git('branch','--show-current').decode().strip()=='codex/simlox-i04-var09-arrived-system-mission-20261008'
+assert not git('diff','--name-only') and not git('diff','--cached','--name-only')
+O=R/'tmp/i04-var09-root-catalog-stage-v100-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+Path(__file__).chmod(stat.S_IREAD)
+d={'schema':'issue18-i04-var09-root-catalog-stage/v101','decision':'IN_PROGRESS','started_utc':utc(),'content_go':pin(GO.read_bytes()),'evidence_index':pin(I.read_bytes()),'wrapper':pin(Path(__file__).read_bytes()),'commands':[],'native_calls':0,'error':None}
+def command(tag,args,allowed=(0,)):
+ argv=['git','-c','core.longpaths=true',*args];started=utc()
+ p=subprocess.run(argv,cwd=R,capture_output=True)
+ save(O/(tag+'-stdout.bin'),p.stdout);save(O/(tag+'-stderr.bin'),p.stderr)
+ d['commands'].append({'tag':tag,'argv':argv,'started_utc':started,'completed_utc':utc(),'actual_exit':p.returncode,'stdout':pin(p.stdout),'stderr':pin(p.stderr)})
+ assert type(p.returncode) is int and p.returncode in allowed,tag
+ return p
+try:
+ index=json.loads(I.read_bytes());assert index['source_count']==len(index['source_files'])==count
+ required=[]
+ for row in index['source_files']:
+  rel=Path(row['path']);assert not rel.is_absolute() and '..' not in rel.parts
+  assert not any(x in ('runs','test-output','transport-evidence','__pycache__') for x in rel.parts)
+  p=(C/rel).resolve(strict=True);assert p.is_relative_to(C.resolve()) and not p.is_symlink()
+  assert pin(p.read_bytes())=={k:row[k] for k in ('bytes','sha256')}
+  assert not p.stat().st_mode&stat.S_IWRITE
+  required.append(p.relative_to(R).as_posix())
+ assert len(required)==len(set(required))==count
+ actual={p.relative_to(C).as_posix() for p in C.rglob('*') if p.is_file() and p.relative_to(C).parts[0] not in ('runs','test-output','transport-evidence') and '__pycache__' not in p.relative_to(C).parts}
+ assert actual=={row['path'] for row in index['source_files']}|{'evidence-index.json'}
+ old_raw=CAT.read_bytes()
+ assert pin(old_raw)=={'bytes':536982,'sha256':'0674cef00db66d7d907fa4c55cc1249e237c4c60b340740ab81f832405d2de5c'}
+ assert old_raw==(C/'preserved-context/owned-catalog-local-498.json.bytes').read_bytes()
+ old=json.loads(old_raw);entry=json.loads((C/'publication-entry.json').read_bytes())
+ assert len(old['entries'])==498 and entry['publication_id']=='I04.var09.arrived_system_next_mission.1.0.0'
+ assert entry['publication_id'] not in {e['publication_id'] for e in old['entries']}
+ assert type(entry['new_native_runs']) is int and entry['new_native_runs']==0
+ assert type(entry['accepted_parent_runs_repeated']) is int and entry['accepted_parent_runs_repeated']==0
+ new={**old,'entries':[*old['entries'],entry]}
+ assert typed(old['entries'],new['entries'][:498]) and typed({k:v for k,v in old.items() if k!='entries'},{k:v for k,v in new.items() if k!='entries'})
+ save(O/'catalog-before-crlf.bytes',old_raw)
+ new_raw=(json.dumps(new,ensure_ascii=False,indent=2)+'\n').replace('\n','\r\n').encode('utf-8')
+ CAT.write_bytes(new_raw);assert typed(json.loads(CAT.read_bytes()),new)
+ save(O/'catalog-after-crlf.bytes',new_raw)
+ d.update(catalog_before=pin(old_raw),catalog_after=pin(new_raw),prior498_and_metadata_type_exact=True,catalog_entries=499)
+ required.extend([I.relative_to(R).as_posix(),CAT.relative_to(R).as_posix()])
+ assert len(required)==len(set(required))==count+2
+ paths=O/'paths.nul';save(paths,('\0'.join(required)+'\0').encode())
+ command('add',['add','--pathspec-from-file='+str(paths),'--pathspec-file-nul'])
+ actual=git('diff','--cached','--name-only','-z').decode().split('\0')[:-1]
+ assert len(actual)==count+2 and set(actual)==set(required)
+ style=command('whitespace',['diff','--cached','--check'],(0,2))
+ d.update(decision='CATALOG_APPEND_AND_EXACT_STAGE_PASS',staged_paths=actual,staged_path_count=len(actual),whitespace_exit=style.returncode,whitespace_passed=style.returncode==0)
+except BaseException as exc:d.update(decision='NO_GO_PRESERVED',error=f'{type(exc).__name__}: {exc}')
+finally:
+ d['completed_utc']=utc();save(O/'receipt.json',(json.dumps(d,indent=2)+'\n').encode())
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin((O/'receipt.json').read_bytes()),'decision':d['decision'],'paths':d.get('staged_path_count'),'whitespace_exit':d.get('whitespace_exit'),'error':d['error']}))
+assert d['decision']=='CATALOG_APPEND_AND_EXACT_STAGE_PASS'

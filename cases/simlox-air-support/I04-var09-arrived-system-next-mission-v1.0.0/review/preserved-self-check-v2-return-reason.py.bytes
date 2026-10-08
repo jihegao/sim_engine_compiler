@@ -1,0 +1,110 @@
+"""Pure, read-only tests of the independent var09 semantic layer."""
+
+from __future__ import annotations
+
+import copy
+import json
+from pathlib import Path
+
+import independent_classifier as reader
+
+
+def reject(label: str, action, expected: str | None = None) -> str:
+    try:
+        action()
+    except AssertionError as exc:
+        message = str(exc)
+        if expected is not None:
+            assert expected in message, (label, expected, message)
+        return message
+    raise AssertionError(f"mutation accepted: {label}")
+
+
+def line_clone(raw: bytes, replacements: dict[int, str], *, swap: tuple[int, int] | None = None) -> bytes:
+    lines = raw.decode("utf-8").splitlines()
+    assert len(lines) == 118
+    for one_based, value in replacements.items():
+        lines[one_based - 1] = value
+    if swap:
+        a, b = swap
+        lines[a - 1], lines[b - 1] = lines[b - 1], lines[a - 1]
+    return ("\r\n".join(lines) + "\r\n").encode("utf-8")
+
+
+def native_report_clone(value: dict[str, object]) -> bytes:
+    """Synthetically reseal a private JSON clone with the one declared comma defect."""
+    valid = json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=True).encode("utf-8")
+    pos = valid.rfind(b"]")
+    assert pos > len(valid) - 100
+    return valid[:pos] + b",\r\n      ]" + valid[pos + 1 :]
+
+
+def main() -> None:
+    log = (reader.RUN / "model.log").read_bytes()
+    report = (reader.RUN / "report-raw.json").read_bytes()
+    baseline = reader.parse_log(log, exact_original=False)
+    assert baseline == {"lines": 118, "timed": 104, "transfer_out": 1, "transfer_in": 1, "terminal_ready_target": 2}
+    reference = reader.strict_json(reader.report_repair(report))
+    assert reader.selected_report(report, reference)["new_selected_cells"] == 10
+    assert reader.allocation_allowed("target", True, None, False, False, False)
+    assert not reader.allocation_allowed("transit", True, None, False, False, False)
+    assert not reader.allocation_allowed("source", False, None, False, False, False)
+    assert not reader.allocation_allowed("target", True, 1, False, False, False)
+    assert not reader.allocation_allowed("target", True, None, True, False, False)
+
+    mutations: list[tuple[str, dict[int, str], str | None]] = [
+        ("missing-transfer-out", {61: "Time: 10.5 <TEACH-AIR-01,0> Next random failure will occur 1e+010"}, "transfer departure microstep"),
+        ("duplicate-transfer-out", {60: "Time: 10.5 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>."}, "departure identity/order"),
+        ("wrong-transfer-in-id", {62: "Time: 11 <TEACH-UNIT-2 at <BASE-02,0>> system transfered in: <TEACH-AIR-01,1>."}, "arrival identity/order"),
+        ("wrong-transfer-in-time", {62: "Time: 10.5 <TEACH-UNIT-2 at <BASE-02,0>> system transfered in: <TEACH-AIR-01,0>."}, "arrival identity/order"),
+        ("wrong-transfer-in-unit", {62: "Time: 11 <TEACH-UNIT at <BASE-01,0>> system transfered in: <TEACH-AIR-01,0>."}, "arrival identity/order"),
+        ("wrong-ready-id", {64: "Time: 11 <TEACH-AIR-01,1> nbr ready increased at unit: <TEACH-UNIT-2 at <BASE-02,0>>"}, "ready increment state"),
+        ("wrong-ready-owner", {64: "Time: 11 <TEACH-AIR-01,0> nbr ready increased at unit: <TEACH-UNIT at <BASE-01,0>>"}, "ready increment owner"),
+        ("wrong-target-roster", {67: "Time: 11 <TEACH-UNIT-2 at <BASE-02,0>> systems ready: 1 :<TEACH-AIR-01,1>"}, "ready roster conservation"),
+        ("wrong-later-mission", {74: "Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,0> mission allocates system: <TEACH-AIR-01,0>"}, "allocation mission/time"),
+        ("wrong-allocation-id", {74: "Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission allocates system: <TEACH-AIR-01,1>"}, "allocation requires prior ready"),
+        ("wrong-flight-id", {87: "Time: 20 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission starting, duration: 2 : <TEACH-AIR-01,1>,<TEACH-AIR-01,1>"}, "duplicate aircraft"),
+        ("wrong-task-start-id", {88: "Time: 20.5 <BASIC-MISSION,TEACH-GROUP,0,0,1> task starting: <TEACH-AIR-01,1>,<TEACH-AIR-01,1>"}, "duplicate aircraft"),
+        ("wrong-task-complete-id", {89: "Time: 21.5 <BASIC-MISSION,TEACH-GROUP,0,0,1> task completed: <TEACH-AIR-01,1>,<TEACH-AIR-01,1>"}, "duplicate aircraft"),
+        ("wrong-completion-id", {91: "Time: 22 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission completed: <TEACH-AIR-01,1>,<TEACH-AIR-01,1>"}, "duplicate aircraft"),
+        ("duplicate-return-id", {109: "Time: 22 <TEACH-AIR-01,BASE-02,0> System arrives <TEACH-AIR-01,1>, mission success, "}, "duplicate mission return identity"),
+        ("wrong-terminal-ready-unit", {112: "Time: 22 <TEACH-AIR-01,0> nbr ready increased at unit: <TEACH-UNIT at <BASE-01,0>>"}, "ready increment owner"),
+        ("extra-ready-message", {116: "Time: 22 <TEACH-AIR-01,BASE-02,0> System ready <TEACH-AIR-01,0>"}, "extra ready announcement"),
+        ("malformed-continuation", {110: " no failure"}, "arrival continuation grammar"),
+        ("unknown-full-line", {56: "Time: 10 unknown event"}, "unknown timed log line"),
+        ("duplicate-mission-order", {68: "Time: 19 <TEACH-GROUP> mission ordered: BASIC-MISSION", 69: "Time: 19 <TEACH-GROUP> mission ordered: BASIC-MISSION"}, "mission order sequence"),
+    ]
+    outcomes = []
+    for label, edits, reason in mutations:
+        clone = line_clone(log, edits)
+        reject(label + "-outer-sha", lambda data=clone: reader.parse_log(data, exact_original=True), "original log byte pin")
+        outcomes.append((label, reject(label + "-semantic", lambda data=clone: reader.parse_log(data, exact_original=False), reason)))
+    swapped = line_clone(log, {}, swap=(61, 62))
+    outcomes.append(("arrival-before-departure", reject("arrival-before-departure", lambda: reader.parse_log(swapped, exact_original=False), "transfer departure microstep")))
+
+    report_mutants: list[tuple[str, dict[str, object], str]] = []
+    def changed(label: str, edit, reason: str) -> None:
+        item = copy.deepcopy(reference)
+        edit(item)
+        report_mutants.append((label, item, reason))
+
+    system = lambda obj: obj["report"]["tables"][2]
+    changed("selected-cell-plus-one", lambda obj: system(obj)["instances"][0]["rows"][21].__setitem__(13, 2), "selected report")
+    changed("selected-cell-bool", lambda obj: system(obj)["instances"][0]["rows"][21].__setitem__(13, True), "selected report")
+    changed("selected-cell-infinity", lambda obj: system(obj)["instances"][0]["rows"][21].__setitem__(13, float("inf")), "nonfinite JSON constant")
+    changed("extra-row", lambda obj: system(obj)["instances"][0]["rows"].append(copy.deepcopy(system(obj)["instances"][0]["rows"][21])), "report row count")
+    changed("extra-table", lambda obj: obj["report"]["tables"].append(copy.deepcopy(system(obj))), "report table count")
+    changed("extra-metadata", lambda obj: system(obj).__setitem__("unexpected", 1), "report table identity")
+    for label, item, reason in report_mutants:
+        clone = native_report_clone(item)
+        outcomes.append((label, reject(label, lambda data=clone: reader.selected_report(data, reference), reason)))
+    duplicate = native_report_clone(reference).replace(b'{"report":', b'{"report":null,"report":', 1)
+    outcomes.append(("duplicate-report-key", reject("duplicate-report-key", lambda: reader.selected_report(duplicate, reference), "duplicate JSON key")))
+    exponent = native_report_clone(copy.deepcopy(reference)).replace(b'"report":', b'"exponent":1e999,"report":', 1)
+    outcomes.append(("nonfinite-exponent", reject("nonfinite-exponent", lambda: reader.selected_report(exponent, reference), "nonfinite JSON exponent")))
+    assert len(outcomes) == 29
+    print(json.dumps({"decision": "PASS_INDEPENDENT_PURE_SEMANTIC", "log_lines": baseline["lines"], "timed": baseline["timed"], "selected_cells": 10, "negative_cases": len(outcomes), "new_native_runs": 0, "accepted_checkers_repeated": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

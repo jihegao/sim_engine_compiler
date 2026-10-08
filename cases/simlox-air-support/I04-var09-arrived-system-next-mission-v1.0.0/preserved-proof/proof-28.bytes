@@ -1,0 +1,184 @@
+"""Read-only prospective I04.var09 contract audit. No Git, checker, SSH, or native call."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import re
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+CONTRACT = ROOT / "tmp/i04-var09-prospective-v100-20261008-01/contract.json"
+PARENT = ROOT / "cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1"
+RUN = PARENT / "runs/i04-var03-idle-system-between-v101-ssh-20261008-01"
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def pinned(path: Path, size: int, digest: str) -> bytes:
+    data = path.read_bytes()
+    assert len(data) == size, (path, "size")
+    assert sha(data) == digest, (path, "sha256")
+    return data
+
+
+def unique(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    out: dict[str, object] = {}
+    for key, value in pairs:
+        assert key not in out, ("duplicate JSON key", key)
+        out[key] = value
+    return out
+
+
+def reject_constant(value: str) -> None:
+    raise AssertionError(("nonfinite JSON constant", value))
+
+
+def strict(data: bytes) -> dict[str, object]:
+    obj = json.loads(data, object_pairs_hook=unique, parse_constant=reject_constant)
+
+    def finite(value: object) -> None:
+        if isinstance(value, float):
+            assert math.isfinite(value)
+        elif isinstance(value, dict):
+            for item in value.values():
+                finite(item)
+        elif isinstance(value, list):
+            for item in value:
+                finite(item)
+
+    finite(obj)
+    assert isinstance(obj, dict)
+    return obj
+
+
+def files_from_index(index: dict[str, object]) -> None:
+    assert index["source_count"] == len(index["source_files"]) == 401
+    assert index["raw_count"] == len(index["raw_files"]) == 153
+    assert index["preflight_original_count"] == len(index["preflight_original_files"]) == 15
+    for row in index["source_files"]:
+        pinned(PARENT / row["path"], row["bytes"], row["sha256"])
+    for row in [*index["raw_files"], *index["preflight_original_files"]]:
+        pinned(Path(row["path"]), row["bytes"], row["sha256"])
+
+
+def roles_from_manifest(manifest: dict[str, object]) -> None:
+    assert manifest["source_count"] == len(manifest["source_files"]) == 456
+    per_path: dict[Path, tuple[int, str]] = {}
+    for row in manifest["source_files"]:
+        path = Path(row["path"]).resolve(strict=True)
+        seal = (row["bytes"], row["sha256"])
+        if path in per_path:
+            assert per_path[path] == seal, ("conflicting role alias", path)
+        per_path[path] = seal
+        pinned(path, *seal)
+
+
+def source_row(model: dict[str, object], name: str) -> tuple[list[str], list[list[object]]]:
+    matches = [table for table in model["tables"] if table["name"] == name]
+    assert len(matches) == 1, name
+    table = matches[0]
+    assert len(table["instances"]) == 1
+    return [column["name"] for column in table["columns"]], table["instances"][0]["rows"]
+
+
+def selected_report(report_data: bytes, contract: dict[str, object]) -> None:
+    text = report_data.decode("utf-8")
+    defects = list(re.finditer(r",\s*]", text))
+    assert len(defects) == 1
+    assert text.count('"name" : "StockTotalResults"') == 1
+    assert defects[0].start() > text.index('"name" : "StockTotalResults"')
+    repaired = text[: defects[0].start()] + text[defects[0].start() + 1 :]
+    report = strict(repaired.encode("utf-8"))["report"]
+    tables = report["tables"]
+    assert [table["name"] for table in tables] == [
+        "ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"
+    ]
+    assert sum(len(table["columns"]) * sum(len(i["rows"]) for i in table["instances"]) for table in tables) == 4044
+    system = tables[2]
+    assert len(system["instances"]) == 1
+    names = [column["name"] for column in system["columns"]]
+    rows = system["instances"][0]["rows"]
+    assert len(rows) == 72
+    for item in contract["new_classifier"]["selected_original_report_cells"]:
+        row = rows[item["row_index"]]
+        assert row[names.index("STINT")] == float(item["bin"].split(",")[0][1:])
+        assert row[names.index("ETINT")] == float(item["bin"].split(",")[1][:-1])
+        for field, expected in item["fields"].items():
+            actual = row[names.index(field)]
+            assert type(actual) is int and actual == expected, (item["row_index"], field, actual)
+
+
+def observed_log(data: bytes) -> None:
+    lines = data.decode("utf-8").splitlines()
+    assert len(lines) == 118
+    assert sum(line.startswith("Time:") for line in lines) == 104
+    expected = {
+        60: "Time: 10.5 <TEACH-AIR-01,0> nbr ready decreased at unit: <TEACH-UNIT at <BASE-01,0>>",
+        61: "Time: 10.5 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>.",
+        62: "Time: 11 <TEACH-UNIT-2 at <BASE-02,0>> system transfered in: <TEACH-AIR-01,0>.",
+        64: "Time: 11 <TEACH-AIR-01,0> nbr ready increased at unit: <TEACH-UNIT-2 at <BASE-02,0>>",
+        67: "Time: 11 <TEACH-UNIT-2 at <BASE-02,0>> systems ready: 2 :<TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+        74: "Time: 19 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission allocates system: <TEACH-AIR-01,0>",
+        75: "Time: 19 <TEACH-AIR-01,0> nbr ready decreased at unit: <TEACH-UNIT-2 at <BASE-02,0>>",
+        87: "Time: 20 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission starting, duration: 2 : <TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+        88: "Time: 20.5 <BASIC-MISSION,TEACH-GROUP,0,0,1> task starting: <TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+        89: "Time: 21.5 <BASIC-MISSION,TEACH-GROUP,0,0,1> task completed: <TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+        90: "Time: 22 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission success: ",
+        91: "Time: 22 <BASIC-MISSION,TEACH-GROUP,0,0,1> mission completed: <TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+        109: "Time: 22 <TEACH-AIR-01,BASE-02,0> System arrives <TEACH-AIR-01,0>, mission success, ",
+        112: "Time: 22 <TEACH-AIR-01,0> nbr ready increased at unit: <TEACH-UNIT-2 at <BASE-02,0>>",
+        115: "Time: 22 <TEACH-UNIT-2 at <BASE-02,0>> systems ready: 2 :<TEACH-AIR-01,1>,<TEACH-AIR-01,0>",
+    }
+    for number, value in expected.items():
+        assert lines[number - 1] == value, number
+    assert sum("system transfered out:" in line for line in lines) == 1
+    assert sum("system transfered in:" in line for line in lines) == 1
+
+
+def main() -> None:
+    contract = strict(pinned(CONTRACT, 13997, "ec2dbe37601d0045185109fe7856ea4656a0b2e01dfe35ac25809de17aa60307"))
+    assert contract["decision"] == "AWAIT_INDEPENDENT_CONTRACT_REVIEW"
+    assert contract["native_execution"]["new_native_runs"] == 0
+    assert contract["native_execution"]["accepted_parent_runs_repeated"] == 0
+    assert contract["native_execution"]["accepted_checkers_repeated"] == 0
+    assert contract["source_lineage"]["accepted_parent_evidence_index"]["total_mandatory_originals"] == 168
+    assert not (ROOT / contract["proposed_package"]).exists()
+    selection = contract["source_lineage"]["root_selection"]
+    pinned(ROOT / selection["path"], selection["bytes"], selection["sha256"])
+    index_pin = contract["source_lineage"]["accepted_parent_evidence_index"]
+    index = strict(pinned(ROOT / index_pin["path"], index_pin["bytes"], index_pin["sha256"]))
+    files_from_index(index)
+    manifest_pin = contract["source_lineage"]["accepted_parent_prelaunch_manifest"]
+    manifest = strict(pinned(ROOT / manifest_pin["path"], manifest_pin["bytes"], manifest_pin["sha256"]))
+    roles_from_manifest(manifest)
+    lineage = contract["source_lineage"]
+    pinned(ROOT / lineage["accepted_independent_postrun_go"]["path"], 4369, lineage["accepted_independent_postrun_go"]["sha256"])
+    original = lineage["accepted_run_originals"]
+    model = strict(pinned(PARENT / "native-input.json", original["input_json"]["bytes"], original["input_json"]["sha256"]))["model"]
+    cols, rows = source_row(model, "SystemTransfer")
+    assert len(rows) == 1
+    assert {name: rows[0][cols.index(name)] for name in ("UFID", "UTID", "SID", "TFTIME", "TFQTY", "TFDT")} == contract["authored_source_and_report_scope"]["system_transfer"]
+    cols, rows = source_row(model, "SystemDeployment")
+    assert {(row[cols.index("USTID")], row[cols.index("QTYPS")]) for row in rows} == {("TEACH-UNIT", 1), ("TEACH-UNIT-2", 1)}
+    log = pinned(RUN / "model.log", original["model_log"]["bytes"], original["model_log"]["sha256"])
+    observed_log(log)
+    report_data = pinned(RUN / "report-raw.json", original["report_raw_json"]["bytes"], original["report_raw_json"]["sha256"])
+    selected_report(report_data, contract)
+    pinned(RUN / "closure.json", original["closure_json"]["bytes"], original["closure_json"]["sha256"])
+    catalog = contract["catalog_identity_and_aliases"]
+    pinned(ROOT / "cases/simlox-air-support/publication-index-v1.json", catalog["current_local_crlf"]["bytes"], catalog["current_local_crlf"]["sha256"])
+    pinned(PARENT / "preserved-context/publication-index-local-496.json.bytes", catalog["accepted_parent_local_archive_crlf"]["bytes"], catalog["accepted_parent_local_archive_crlf"]["sha256"])
+    pinned(PARENT / "preserved-context/publication-index-git-496.json.bytes", catalog["accepted_parent_git_archive_lf"]["bytes"], catalog["accepted_parent_git_archive_lf"]["sha256"])
+    assert manifest["live_catalog_prelaunch_pin"]["sha256"] == catalog["accepted_parent_local_archive_crlf"]["sha256"]
+    assert manifest["live_catalog_prelaunch_pin"]["sha256"] != catalog["current_local_crlf"]["sha256"]
+    assert contract["new_classifier"]["negative_harness_layer"].startswith("Sealed reader first checks")
+    print("PASS_I04_VAR09_PROSPECTIVE_CONTRACT_ONLY sources=401 raw=168 roles=456 log=118/104 selected_cells=10 new_native=0")
+
+
+if __name__ == "__main__":
+    main()

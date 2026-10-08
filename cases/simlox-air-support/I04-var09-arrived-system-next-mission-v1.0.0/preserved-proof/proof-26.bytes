@@ -1,0 +1,60 @@
+"""Original-goal next-contract eligibility; byte reads and guards, never native."""
+from pathlib import Path
+import datetime as dt,hashlib,json,stat,subprocess,uuid
+R=Path(__file__).resolve().parents[1]
+BASE='223c32e36722587bad5d1d5e8564faee84b91206'
+P=R/'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+C=R/'cases/simlox-air-support/I04-var09-arrived-system-next-mission-v1.0.0'
+RUN=R/'tmp/i04-var09-classification-staging-v100-20261008-01'
+O=R/'tmp/i04-var09-root-selection-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8]);O.mkdir(parents=True,exist_ok=False)
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def read(p):return json.loads(p.read_bytes())
+def save(p,b):
+ with p.open('xb') as f:f.write(b)
+ p.chmod(stat.S_IREAD)
+def command(tag,args):
+ q=subprocess.run(args,cwd=R,capture_output=True)
+ save(O/(tag+'-stdout.bin'),q.stdout);save(O/(tag+'-stderr.bin'),q.stderr)
+ steps.append({'tag':tag,'argv':args,'exit':q.returncode,'stdout':pin(O/(tag+'-stdout.bin')),'stderr':pin(O/(tag+'-stderr.bin'))})
+ assert type(q.returncode) is int and q.returncode==0,tag
+ return q.stdout
+steps=[];d={'schema':'issue18-i04-var09-contract-selection/v1','decision':'IN_PROGRESS','started_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'native_calls':0,'steps':steps}
+try:
+ git=['git','-c','core.longpaths=true']
+ assert command('head',git+['rev-parse','HEAD']).decode().strip()==BASE
+ assert not command('tracked-status',git+['status','--porcelain','--untracked-files=no'])
+ refs=command('remote-refs',git+['ls-remote','origin','refs/heads/main','refs/heads/simlox/main']).decode().splitlines()
+ assert {line.split('\t')[1]:line.split('\t')[0] for line in refs}=={'refs/heads/main':'a1a44c72f64d754b711abe4095f1111f8a5ba896','refs/heads/simlox/main':BASE}
+ assert not C.exists() and not RUN.exists()
+ cat=read(R/'cases/simlox-air-support/publication-index-v1.json');assert len(cat['entries'])==498
+ assert not [e for e in cat['entries'] if e.get('variant_id')=='I04.var09' or e['publication_id'].startswith('I04.var09.')]
+ accepted=next(e for e in cat['entries'] if e['publication_id']=='I04.var03.idle_system_between.1.0.1')
+ assert accepted['publication_state']=='reusable_published'
+ planning=next(e for e in read(R/'cases/simlox-air-support/catalog-v2.json')['cases'] if e['case_id']=='I04')
+ assert planning['requires']==planning['instructional_prerequisites']==['A02','A17','D03','D09']
+ ids=['A02.repeated.1.0.0','A17.two_units.1.0.0','D03.calendar_pm.1.0.0','D09.var01.calendar_vs_operational_ncftl_pending_repair.1.0.0']
+ dependencies=[next(e for e in cat['entries'] if e['publication_id']==v) for v in ids]
+ assert pin(P/'evidence-index.json')=={'bytes':176439,'sha256':'09e0fe50532797f97d13b3a17fdd886adfc9a18c925038b15058b3850b2273ff'}
+ index=read(P/'evidence-index.json');assert index['source_count']==401
+ for row in index['source_files']:assert pin(P/row['path'])=={k:row[k] for k in ('bytes','sha256')}
+ selection=read(R/'cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.2/preserved-context/selection.json.bytes')
+ pairs=selection['parent_sources_and_catalog'][:-1];raw=selection['parent_mandatory_originals']
+ assert len(pairs)==403 and len(raw)==168
+ for row in pairs+raw:assert pin(Path(row['path']) if Path(row['path']).is_absolute() else R/row['path'])=={k:row[k] for k in ('bytes','sha256')}
+ manual=read(P/'prospective-contract.json')['manual']['installed_pins']
+ for row in manual.values():assert pin(Path(row['path']))=={k:row[k] for k in ('bytes','sha256')}
+ G=R/'tmp/issue18-next-owner-guard-20261008.ps1';assert pin(G)['sha256']=='e50559f262d708afd1bd261986089ca807af1c80624d87a8c2c3c5fa4b04077f'
+ guard=json.loads(command('ssh-guard',['ssh','-n','-o','BatchMode=yes','-o','ConnectTimeout=10','-i','C:/Users/user/.ssh/id_rsa','user@127.0.0.1','powershell.exe','-NoProfile','-NonInteractive','-File',G.as_posix()]).decode('utf-8-sig'))
+ assert guard['ssh_present'] is True and guard['sshd_ancestor'] is True and guard['self_session']==0 and guard['powershell_major']==5
+ assert guard['mutex_free'] is True and guard['runner_candidates']==[] and guard['session_query_exit']==0 and guard['active_gui_session1_count']==1
+ assert len(guard['native'])==1
+ gui=guard['native'][0];assert (gui['pid'],gui['session'],gui['start_ms'],gui['responding'])==(13340,1,1790590196826,True)
+ assert not C.exists() and not RUN.exists()
+ d.update(decision='ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_ONLY',parent=accepted,dependencies=dependencies,parent_index=pin(P/'evidence-index.json'),parent_sources_verified=401,parent_current_disk_pairs=403,parent_mandatory_raw=168,manual=manual,catalog=pin(R/'cases/simlox-air-support/publication-index-v1.json'),catalog_entries=498,protected_gui=gui,guard=guard,case_path=str(C),classification_scratch_path=str(RUN),paths_absent=True,contract_boundary='Zero-new-native classification only; prospective scope and independent classification review still required. Accepted checkers and native must not be rerun.')
+except BaseException as exc:
+ d.update(decision='NO_GO_SELECTION_PRESERVED',error=f'{type(exc).__name__}: {exc}')
+finally:
+ d['completed_utc']=dt.datetime.now(dt.timezone.utc).isoformat();save(O/'receipt.json',(json.dumps(d,indent=2)+'\n').encode());Path(__file__).chmod(stat.S_IREAD)
+print(json.dumps({'decision':d['decision'],'receipt_path':str(O/'receipt.json'),'receipt':pin(O/'receipt.json'),'error':d.get('error')}))
+assert d['decision']=='ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_ONLY'
