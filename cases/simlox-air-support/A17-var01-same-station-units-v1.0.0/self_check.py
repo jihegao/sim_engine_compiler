@@ -1,0 +1,161 @@
+"""Private below-hash mutations of A17.var01 source, log and report predicates."""
+
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+
+from event_ledger import semantic
+from make_prelaunch_manifest import SPECIAL, assert_special_roles
+from model_common import (EXPORT_SHA, FORMS_SHA, HERE, INPUT_SHA, REPORT_SHA,
+                          compare_tables, compare_typed, read_pinned_json, strict_json)
+
+
+def rejected(action) -> None:
+    try:
+        action()
+    except (AssertionError, ValueError, KeyError, TypeError):
+        return
+    raise AssertionError("semantic mutation unexpectedly passed")
+
+
+def log_bytes(lines: list[str]) -> bytes:
+    return ("\r\n".join(lines) + "\r\n").encode("utf-8")
+
+
+def assert_version(expected: dict, actual: dict) -> None:
+    assert compare_typed(expected["model"]["database_version"],
+                         actual["model"]["database_version"])
+
+
+def main() -> None:
+    inp = read_pinned_json(HERE / "native-input.json", INPUT_SHA)
+    exp = read_pinned_json(HERE / "child-roundtrip-oracle.json", EXPORT_SHA)
+    report = read_pinned_json(HERE / "prospective-report-oracle.json", REPORT_SHA)
+    forms = read_pinned_json(HERE / "prospective-complete-log-forms.json", FORMS_SHA)["full_forms"]
+    primary = forms[0]
+    assert semantic(log_bytes(primary["lines"]))["arm_status"] == "PRIMARY_CONTRACT_PASS_CANDIDATE"
+    assert len(forms) == 8
+    rejected(lambda: semantic(log_bytes(forms[1]["lines"])))
+    negatives = 1
+
+    log_mutants = []
+    for index, old, new in [
+        (5, "<TEACH-AIR-01,1>", "<TEACH-AIR-01,0>"),
+        (7, "systems ready: 1", "systems ready: 2"),
+        (12, "<TEACH-AIR-01,0>", "<TEACH-AIR-01,1>"),
+        (15, "<TEACH-AIR-01,1>", "<TEACH-AIR-01,0>"),
+        (29, "Time: 8.5", "Time: 9.5"),
+        (38, "turnround started", "turnround ended"),
+        (50, "BASE-01,0", "BASE-01,2"),
+        (53, "TEACH-UNIT-2", "TEACH-UNIT"),
+    ]:
+        clone = list(primary["lines"])
+        assert old in clone[index]
+        clone[index] = clone[index].replace(old, new, 1)
+        log_mutants.append(clone)
+    for a, b in [(39, 40), (42, 43), (43, 44), (49, 50)]:
+        clone = list(primary["lines"])
+        clone[a], clone[b] = clone[b], clone[a]
+        log_mutants.append(clone)
+    for index in (41, 42, 48, 58):
+        clone = list(primary["lines"])
+        del clone[index]
+        log_mutants.append(clone)
+    for clone in log_mutants:
+        assert hashlib.sha256(log_bytes(clone)).hexdigest() != primary["crlf_sha256"]
+        rejected(lambda clone=clone: semantic(log_bytes(clone), require_primary=False))
+        negatives += 1
+
+    in_tables = inp["model"]["tables"]
+    ex_tables = exp["model"]["tables"]
+    assert compare_tables(in_tables, copy.deepcopy(in_tables)) == 203
+    assert compare_tables(ex_tables, copy.deepcopy(ex_tables)) == 387
+    for table_name, row_index, col_name, wrong in [
+        ("Unit", 1, "STID", "BASE-02"),
+        ("Unit", 1, "STID", True),
+        ("ProblemDescription", 0, "PDESC", "wrong"),
+        ("SystemDeployment", 1, "QTYPS", False),
+        ("UnitGroupMember", 1, "PRI", 1),
+    ]:
+        clone = copy.deepcopy(inp)
+        table = next(t for t in clone["model"]["tables"] if t["name"] == table_name)
+        columns = [c["name"] for c in table["columns"]]
+        table["instances"][0]["rows"][row_index][columns.index(col_name)] = wrong
+        rejected(lambda clone=clone: compare_tables(in_tables, clone["model"]["tables"]))
+        negatives += 1
+    for mutation in ("missing_export_row", "extra_export_row", "wrong_default", "bool_double", "wrong_unit_station"):
+        clone = copy.deepcopy(exp)
+        tables = clone["model"]["tables"]
+        if mutation == "missing_export_row":
+            next(t for t in tables if t["name"] == "Unit")["instances"][0]["rows"].pop()
+        elif mutation == "extra_export_row":
+            rows = next(t for t in tables if t["name"] == "Unit")["instances"][0]["rows"]
+            rows.append(copy.deepcopy(rows[-1]))
+        elif mutation == "wrong_default":
+            t = next(t for t in tables if t["name"] == "Control")
+            t["instances"][0]["rows"][0][0] = "unreviewed-default"
+        elif mutation == "bool_double":
+            t = next(t for t in tables if t["name"] == "MissionType")
+            col = [c["name"] for c in t["columns"]].index("DURN")
+            t["instances"][0]["rows"][0][col] = True
+        elif mutation == "wrong_unit_station":
+            t = next(t for t in tables if t["name"] == "Unit")
+            col = [c["name"] for c in t["columns"]].index("STID")
+            t["instances"][0]["rows"][1][col] = "BASE-02"
+        rejected(lambda tables=tables: compare_tables(ex_tables, tables))
+        negatives += 1
+    assert compare_typed(exp["model"]["database_version"], exp["model"]["database_version"])
+    wrong_version = copy.deepcopy(exp)
+    wrong_version["model"]["database_version"] = "unexpected-version"
+    rejected(lambda: (assert_version(exp, wrong_version)))
+    negatives += 1
+    rejected(lambda: strict_json(b'{"model":1,"model":2}'))
+    rejected(lambda: strict_json(b'{"model":NaN}'))
+    negatives += 2
+    roles = [{"key": key, "path": str(HERE / rel)} for rel, key in SPECIAL.items()]
+    assert_special_roles(roles)
+    for mutation in ("missing", "renamed", "alias_case"):
+        clone = copy.deepcopy(roles)
+        if mutation == "missing":
+            clone.pop()
+        elif mutation == "renamed":
+            clone[0]["key"] = "unreviewed_runner_role"
+        else:
+            clone.append({"key": roles[0]["key"].upper(), "path": roles[0]["path"]})
+        rejected(lambda clone=clone: assert_special_roles(clone))
+        negatives += 1
+
+    expected_tables = report["tables"]
+    assert compare_tables(expected_tables, copy.deepcopy(expected_tables)) == 4044
+    for mutation in ("ready_bool", "availability_null", "time_shift", "summary_wrong", "stock_bool", "missing_row", "extra_column", "wrong_identity"):
+        clone = copy.deepcopy(expected_tables)
+        system = clone[2]
+        stock = clone[3]
+        if mutation == "ready_bool":
+            system["instances"][0]["rows"][0][4] = True
+        elif mutation == "availability_null":
+            system["instances"][0]["rows"][0][13] = None
+        elif mutation == "time_shift":
+            system["instances"][0]["rows"][14][2] = 7.5
+        elif mutation == "summary_wrong":
+            clone[1]["instances"][0]["rows"][0][3] = 0
+        elif mutation == "stock_bool":
+            stock["instances"][0]["rows"][0][9] = True
+        elif mutation == "missing_row":
+            stock["instances"][0]["rows"].pop()
+        elif mutation == "extra_column":
+            system["columns"].append({"datatype": "double", "name": "EXTRA"})
+        elif mutation == "wrong_identity":
+            system["instances"][0]["rows"][0][1] = "TEACH-AIR-01"
+        rejected(lambda clone=clone: compare_tables(expected_tables, clone))
+        negatives += 1
+    print(json.dumps({"schema": "a17-var01-author-private-self-check/v1", "passed": True,
+                      "negative_clones_rejected": negatives, "positive_log_forms": 1,
+                      "authored_cells": 203, "exported_cells": 387, "report_cells": 4044,
+                      "native_calls": 0, "accepted_checker_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

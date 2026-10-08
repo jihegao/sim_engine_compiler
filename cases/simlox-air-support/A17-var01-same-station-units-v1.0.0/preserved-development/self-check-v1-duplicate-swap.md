@@ -1,0 +1,3 @@
+# Preserved decoded-only development failure
+
+The first local PURE self-check source had SHA-256 c35d98291932b0ccf264b2e6068cd64327985a973028d85aff670d368d81b4c3. A private negative swapped the two identical h10 System ready print lines (45 and 46), so that clone was byte-identical to the positive witness and the self-check exited 1. The observed traceback was returned as decoded tool output only; no original stdout/stderr binary streams or receipt were captured. No native process or accepted checker ran. The corrected self-check replaces that inert swap with a different-order event pair; the behavior oracle was not changed.

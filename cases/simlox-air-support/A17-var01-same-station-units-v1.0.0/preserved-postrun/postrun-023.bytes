@@ -1,0 +1,138 @@
+"""Independent byte-only audit of the exact A17.var01 manifest candidate."""
+from pathlib import Path
+import hashlib
+import json
+import sys
+
+REPO = Path(__file__).resolve().parents[1]
+CASE = REPO/"cases/simlox-air-support/A17-var01-same-station-units-v1.0.0"
+CANDIDATE = REPO/"tmp/a17-var01-root-source-candidates-v100-20261008/manifest-20261008T171418669868Z-516b6d48/prelaunch-manifest.json"
+INNER = CANDIDATE.parent/"receipt.json"
+OUTER = REPO/"tmp/i04-var06-root-publication-proofs-v100-20261008/a17-var01-manifest-candidate-20261008T171418514793Z-52bdc3f8/receipt.json"
+PINS = ((CANDIDATE,64092,"2dd0d83be96bd371405b502cb106422a795cab34500d49a30b20d36fd7b411a7"),
+        (INNER,62000,"80e7dec1f2bc2029ff2749e7532d49a42e49dcf99a6b6fb7e2882148c1e23690"),
+        (OUTER,1434,"2fc6a33ceacf8e05b30a93d57505147875f6d60796ec082bec1be3b6c15144cb"))
+READER_PIN = "8b485cc60130292d02ce4752f9970bb4754dee13b71ebf289eb837005e133e38"
+
+def seal(path):
+    data = path.read_bytes()
+    return {"bytes":len(data),"sha256":hashlib.sha256(data).hexdigest()}
+
+for path,size,sha in PINS:
+    assert seal(path) == {"bytes":size,"sha256":sha}
+    assert path.stat().st_file_attributes & 1
+assert seal(CASE/"review/independent_reader.py")["sha256"] == READER_PIN
+assert not (CASE/"prelaunch-manifest.json").exists()
+
+sys.path.insert(0,str(CASE/"review"))
+import independent_reader as r
+
+inventory = r.source_document()
+doc = r.unique_pairs(CANDIDATE.read_bytes())
+r.exact_keys(doc,r.MANIFEST_KEYS)
+assert doc["schema"] == "a17-var01-prelaunch-manifest/v1"
+assert doc["run_id"] == r.RUN_ID
+assert type(doc["native_run_directory"]) is str and doc["native_run_directory"] == r.RUN
+assert doc["base_commit"] == r.BASE and doc["contract_sha256"] == r.CONTRACT_SHA
+line = "File: " + str(Path(r.RUN)/"model.sxi").replace("\\","/")
+assert line.isascii() and len(line.encode("ascii")) == 191
+r.exact_int(doc["file_line_ascii_bytes"],191)
+r.exact_int(doc["file_line_ascii_max"],199)
+for field,rel in (("execution_binding_sha256","execution-contract.json"),
+                  ("input_sha256","native-input.json"),
+                  ("source_inventory_sha256","source-inventory.json"),
+                  ("runner_sha256","run_native_ssh.ps1"),
+                  ("validator_sha256","validate_native_cli.py"),
+                  ("independent_reader_sha256","review/independent_reader.py")):
+    assert doc[field] == seal(CASE/rel)["sha256"]
+assert doc["input_sha256"] == r.SOURCE_PIN
+for field,value in (("owned_source_count",54),("accepted_source_pair_count",41),
+                    ("required_local_source_count",12),("mandatory_original_count",61),
+                    ("archived_catalog_count",2),("converter_negative_original_count",1),
+                    ("installed_executable_count",2),("catalog_prefix_entries",501),
+                    ("native_commands",4),("pure_checkers",2),
+                    ("new_native_runs_authorized_by_manifest",0)):
+    r.exact_int(doc[field],value)
+assert doc["pure_tools"] == r.TOOLS and doc["stages"] == r.STAGES
+assert doc["independent_method_state"] == "METHOD_ONLY_NO_NATIVE_APPROVAL"
+
+pairs = r.unique_pairs((CASE/"source-maps/accepted-source-pairs.json").read_bytes())
+pins = r.unique_pairs((CASE/"source-maps/prospective-source-pins.json").read_bytes())
+assert len(pairs)==41 and len(pins["required_local_sources"])==12 and len(pins["mandatory_originals"])==61
+r.exact_pin(CASE/"source-maps/accepted-source-pairs.json",
+            {"bytes":pins["accepted_source_pairs"]["bytes"],
+             "sha256":pins["accepted_source_pairs"]["sha256"]})
+expected=[]
+for row in inventory["source_files"]:
+    rel=row["path"]
+    expected.append({"key":r.SPECIAL.get(rel,"owned:"+rel),"path":str(CASE/rel),
+                     "bytes":row["bytes"],"sha256":row["sha256"]})
+expected.append({"key":"owned:source-inventory.json","path":str(CASE/"source-inventory.json"),
+                 **seal(CASE/"source-inventory.json")})
+for row in pairs:
+    r.exact_keys(row,{"path","oid","disk","git","byte_equal"})
+    path=REPO/row["path"]
+    r.exact_pin(path,row["disk"])
+    expected.append({"key":"accepted:"+row["path"],"path":str(path),**row["disk"]})
+for prefix,rows in (("required-local",pins["required_local_sources"]),
+                    ("mandatory",pins["mandatory_originals"])):
+    for i,row in enumerate(rows):
+        path=r.absolute(row["path"])
+        value={"bytes":row["bytes"],"sha256":row["sha256"]}
+        r.exact_pin(path,value)
+        if prefix=="mandatory":
+            assert path.stat().st_mode==row["original_mode"]
+            assert path.stat().st_file_attributes==row["original_attributes"]
+        expected.append({"key":f"{prefix}:{i:02d}","path":str(path),**value})
+for label in ("catalog_local_501","catalog_git_501"):
+    row=pins[label]
+    path=r.absolute(row["path"])
+    value={"bytes":row["bytes"],"sha256":row["sha256"]}
+    r.exact_pin(path,value)
+    expected.append({"key":"archive:"+label,"path":str(path),**value})
+r.exact_pin(r.NEGATIVE_PATH,r.NEGATIVE_PIN)
+expected.append({"key":"converter:failed-file-line-v100","path":str(r.NEGATIVE_PATH),**r.NEGATIVE_PIN})
+for key,path,value in (("installed:simlox-exe",Path(r.EXE),r.EXE_PIN),
+                       ("installed:python-runtime",Path(r.PYTHON),r.PYTHON_PIN)):
+    r.exact_pin(path,value)
+    expected.append({"key":key,"path":str(path),**value})
+r.exact_int(doc["source_count"],173)
+assert len(expected)==len(doc["source_files"])==173
+seen,paths=set(),{}
+for got,want in zip(doc["source_files"],expected,strict=True):
+    r.exact_keys(got,{"key","path","bytes","sha256"})
+    assert got==want
+    folded=got["key"].casefold()
+    assert folded not in seen
+    seen.add(folded)
+    identity=str(Path(got["path"]).resolve(strict=True)).replace("/","\\").casefold()
+    value=(got["bytes"],got["sha256"])
+    assert identity not in paths or paths[identity]==value
+    paths[identity]=value
+
+catalog=REPO/"cases/simlox-air-support/publication-index-v1.json"
+r.exact_keys(doc["live_catalog_prelaunch_pin"],{"path","bytes","sha256"})
+assert doc["live_catalog_prelaunch_pin"]=={"path":str(catalog),**seal(catalog)}
+local=Path(pins["catalog_local_501"]["path"]).read_bytes()
+git=Path(pins["catalog_git_501"]["path"]).read_bytes()
+assert local!=git and local.replace(b"\r\n",b"\n")==git
+live_json=r.unique_pairs(catalog.read_bytes())
+local_json=r.unique_pairs(local)
+git_json=r.unique_pairs(git)
+assert live_json==local_json==git_json and len(live_json["entries"])==501
+
+inner=r.unique_pairs(INNER.read_bytes())
+outer=r.unique_pairs(OUTER.read_bytes())
+assert inner["decision"]=="PASS_EXTERNAL_CANDIDATE_ONLY" and inner["actual_exit"]==0
+assert inner["native_dispatch"] is False and inner["ssh_dispatch"] is False
+assert inner["canonical_mutation"] is False
+assert inner["candidate"]=={"path":str(CANDIDATE),**seal(CANDIDATE)}
+assert inner["case_sources_before"]==inner["case_sources_after"]
+assert inner["mandatory_originals_before"]==inner["mandatory_originals_after"]
+assert inner["canonical_before"]==inner["canonical_after"]
+assert inner["failure"] is None
+assert outer["actual_exit"]==0 and outer["native_dispatch"] is False
+assert outer["method_before"]==outer["method_after"]
+assert outer["streams"]["stderr.bin"]["bytes"]==0
+assert seal(CASE/"review/independent_reader.py")["sha256"]==READER_PIN
+print("PASS_A17_VAR01_EXACT_MANIFEST_CANDIDATE 173 roles canonical_absent native0")

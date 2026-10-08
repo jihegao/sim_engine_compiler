@@ -1,0 +1,143 @@
+"""One read-only replay of recovered native originals with independent custody audit."""
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import stat
+from pathlib import Path
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CASE = REPO / "cases/simlox-air-support/A17-var01-same-station-units-v1.0.0"
+RUN = CASE / "runs/a17-var01-same-station-v100-ssh-20261008-01"
+READER = CASE / "review/independent_reader.py"
+CUSTODY_DIR = REPO / "tmp/a17-var01-root-native-custody-v100-20261008/20261008T172753084781Z-55f294be"
+CUSTODY = CUSTODY_DIR / "receipt.json"
+RECOVERED = CUSTODY_DIR / "recovered-run"
+TRANSPORT_DIR = CASE / "transport-evidence/ssh-native-20261008T172550586811Z-e3579940"
+TRANSPORT = TRANSPORT_DIR / "transport-receipt.json"
+FAILED = REPO / "tmp/i04-var06-root-publication-proofs-v100-20261008/a17-var01-native-seal-copy-20261008T172713120819Z-1ca54bfc/receipt.json"
+SUCCEEDED = REPO / "tmp/i04-var06-root-publication-proofs-v100-20261008/a17-var01-native-seal-copy-v101-20261008T172752671426Z-bcbd66f8/receipt.json"
+ROOT_STATIC = REPO / "tmp/a17-var01-root-static-proofs-v101-20261008/20261008T170439105259Z-a35fff43/receipt.json"
+OLD_METHOD = REPO / "tmp/a17-var01-root-seal-copy-v100-20261008.py"
+NEW_METHOD = REPO / "tmp/a17-var01-root-seal-copy-v101-20261008.py"
+PINS = {
+    READER: (49878, "8b485cc60130292d02ce4752f9970bb4754dee13b71ebf289eb837005e133e38"),
+    CUSTODY: (19688, "eae7f788886f2a2f7a5e9f9855c41540867a75e4c97e579b9a5644f1de77afe0"),
+    TRANSPORT: (1462, "574c75a6b8de43b6f68f90dd130b068f68bbc8b87065448b650e79224391bddc"),
+    FAILED: (1411, "132c90863f3c28863b47c512694c1c106d43d9199606a866fb2ded0782fe3abe"),
+    SUCCEEDED: (1411, "e3d5ac071e931c6be99e40ce8e88b3748c8855df399d6e6833571b18aa6d2d0a"),
+    ROOT_STATIC: (65197, "2afef04546932ff213d9709c59c83c70d762c76e8912f5b1e9accb3a3bb6a30e"),
+    OLD_METHOD: (3635, "4fffd734182e3c63c10733e22b27e73862fd5b4b783ba5dba33a4c7e155124ed"),
+    NEW_METHOD: (3645, "8f931abf3945d9ab333f2547bcfe76774731c6324a3685226c1eab99bcf58573"),
+}
+EMPTY_SHA = hashlib.sha256(b"").hexdigest()
+def pin(path: Path, size: int, sha: str, *, readonly=True) -> bytes:
+    assert path.is_file(), path
+    state = path.stat()
+    if readonly:
+        assert state.st_file_attributes & 1, path
+    data = path.read_bytes()
+    assert len(data) == size and hashlib.sha256(data).hexdigest() == sha, path
+    return data
+
+def main() -> None:
+    for path, (size, sha) in PINS.items():
+        pin(path, size, sha)
+    old = OLD_METHOD.read_bytes()
+    needle = b"closure['error'] is None and closure['step_error'] is None"
+    replacement = b"closure['error'] in (None,'') and closure['step_error'] in (None,'')"
+    assert old.count(needle) == 1 and old.replace(needle, replacement) == NEW_METHOD.read_bytes()
+    spec = importlib.util.spec_from_file_location("a17_independent_reader", READER)
+    assert spec and spec.loader
+    reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reader)
+    failure = reader.unique_pairs(FAILED.read_bytes())
+    assert failure["actual_exit"] == 1 and failure["native_dispatch"] is False
+    assert failure["method_before"] == failure["method_after"]
+    assert failure["streams"]["stdout.bin"] == {"bytes":0,"sha256":EMPTY_SHA}
+    assert failure["streams"]["stderr.bin"] == {"bytes":338,"sha256":"e76f2cef6ed813273e85fa7894153c7e22cf0bd6562e8bb2da119768a133f49f"}
+    pin(FAILED.parent / "stdout.bin",0,EMPTY_SHA)
+    pin(FAILED.parent / "stderr.bin",338,"e76f2cef6ed813273e85fa7894153c7e22cf0bd6562e8bb2da119768a133f49f")
+    assert failure["method_before"]["publication_method"] == {"bytes":3635,"sha256":PINS[OLD_METHOD][1]}
+    success = reader.unique_pairs(SUCCEEDED.read_bytes())
+    assert success["actual_exit"] == 0 and success["native_dispatch"] is False
+    assert success["method_before"] == success["method_after"]
+    assert success["streams"]["stderr.bin"] == {"bytes":0,"sha256":EMPTY_SHA}
+    assert success["streams"]["stdout.bin"] == {"bytes":555,"sha256":"6abe244b3fc28dbf1fa77ce44805fa4955e2411c199e73d859fee8381ba52e25"}
+    pin(SUCCEEDED.parent / "stdout.bin",555,"6abe244b3fc28dbf1fa77ce44805fa4955e2411c199e73d859fee8381ba52e25")
+    pin(SUCCEEDED.parent / "stderr.bin",0,EMPTY_SHA)
+    assert success["method_before"]["publication_method"] == {"bytes":3645,"sha256":PINS[NEW_METHOD][1]}
+    static = reader.unique_pairs(ROOT_STATIC.read_bytes())
+    assert static["mandatory_originals_before"] == static["mandatory_originals_after"]
+    assert type(static["mandatory_originals_before"]) is list and len(static["mandatory_originals_before"]) == 61
+    for item in static["mandatory_originals_before"]:
+        assert set(item) == {"path","bytes","sha256","original_mode","original_attributes"}
+        path = Path(item["path"])
+        pin(path,item["bytes"],item["sha256"],readonly=False)
+        assert path.stat().st_mode == item["original_mode"]
+        assert path.stat().st_file_attributes == item["original_attributes"]
+    custody = reader.unique_pairs(CUSTODY.read_bytes())
+    assert set(custody) == {"schema","native_dispatch","original_run","recovered_run",
+                            "originals","recovered","source_roles","source_bytes_modes_attributes_stable","method"}
+    assert custody["schema"] == "a17-var01-root-native-custody/v1"
+    assert custody["native_dispatch"] is False
+    assert custody["original_run"] == str(RUN) and custody["recovered_run"] == str(RECOVERED)
+    assert type(custody["source_roles"]) is int and custody["source_roles"] == 173
+    assert custody["source_bytes_modes_attributes_stable"] is True
+    assert custody["method"] == {"bytes":3645,"sha256":PINS[NEW_METHOD][1]}
+    assert type(custody["originals"]) is dict and len(custody["originals"]) == 39
+    assert type(custody["recovered"]) is dict and len(custody["recovered"]) == 25
+    assert {p.name for p in RECOVERED.iterdir()} == set(custody["recovered"])
+    assert {str(p) for p in RUN.iterdir()} <= set(custody["originals"])
+    for name, original in custody["originals"].items():
+        path = Path(name)
+        assert set(original) == {"bytes","sha256","mode","attributes","readonly"}
+        assert original["readonly"] is True
+        pin(path, original["bytes"], original["sha256"])
+        assert path.stat().st_mode == original["mode"]
+        assert path.stat().st_file_attributes == original["attributes"]
+    for name, expected in custody["recovered"].items():
+        assert set(expected) == {"bytes","sha256"}
+        copy = RECOVERED / name
+        pin(copy, expected["bytes"], expected["sha256"])
+        original = RUN / name
+        assert str(original) in custody["originals"]
+        assert expected == {k:custody["originals"][str(original)][k] for k in ("bytes","sha256")}
+    transport = reader.unique_pairs(TRANSPORT.read_bytes())
+    assert set(transport) == {"schema","mode","run_id","native_approved","native_run_directory",
+                              "transport_sha256","runner_sha256","manifest_sha256","started_utc",
+                              "completed_utc","command","exit_code","error","streams"}
+    assert transport["schema"] == "a17-var01-ssh-transport/v1" and transport["mode"] == "native"
+    assert transport["run_id"] == reader.RUN_ID and transport["native_run_directory"] == str(RUN)
+    assert type(transport["native_approved"]) is bool and transport["native_approved"] is True
+    assert type(transport["exit_code"]) is int and transport["exit_code"] == 0 and transport["error"] is None
+    assert transport["transport_sha256"] == "4ec26670d510fffdc1d5497fe38b41e0b7f3b33f814287863567b865c078af11"
+    assert transport["runner_sha256"] == "07e1f9701f95c5676b1656a2813e86ef9f67fee7e33a81f12d6c3c772db282a9"
+    assert transport["manifest_sha256"] == "2dd0d83be96bd371405b502cb106422a795cab34500d49a30b20d36fd7b411a7"
+    command = ["ssh","-n","-o","BatchMode=yes","-o","ConnectTimeout=10","-i",
+               "C:/Users/user/.ssh/id_rsa","user@127.0.0.1","powershell.exe","-NoProfile",
+               "-NonInteractive","-File",str(CASE / "run_native_ssh.ps1").replace("\\","/")]
+    assert transport["command"] == command
+    assert reader.utc(transport["started_utc"]) <= reader.utc(transport["completed_utc"])
+    invocation = reader.unique_pairs((RECOVERED / "invocation.json").read_bytes())
+    native_proof = reader.unique_pairs(Path(invocation["pure_proof_path"]).read_bytes())
+    steps = reader.unique_pairs((RECOVERED / "steps.json").read_bytes())
+    assert type(steps) is list and len(steps) == 6
+    assert reader.utc(transport["started_utc"]) <= reader.utc(native_proof["started_utc"])
+    assert reader.utc(steps[-1]["completed_utc"]) <= reader.utc(transport["completed_utc"])
+    assert set(transport["streams"]) == {"ssh-stdout.bin","ssh-stderr.bin"}
+    stdout = pin(TRANSPORT_DIR / "ssh-stdout.bin",112,
+                 "44adb278c76c44846ec887c56d219faeab0d94be70a30b947b3ef53cec0ad281")
+    pin(TRANSPORT_DIR / "ssh-stderr.bin",0,EMPTY_SHA)
+    assert transport["streams"]["ssh-stdout.bin"] == {"bytes":112,"sha256":hashlib.sha256(stdout).hexdigest()}
+    assert transport["streams"]["ssh-stderr.bin"] == {"bytes":0,"sha256":EMPTY_SHA}
+    assert reader.unique_pairs(stdout) == {"decision":"NATIVE_CHILD_COMPLETED","run_id":reader.RUN_ID}
+    result = reader.sealed_replay(RECOVERED)
+    assert result == {"decision":"GO_BOUNDED","full_lines":60,"timed_lines":52,
+                      "report_cells":4044,"authored_cells":203,"export_cells":387,"raw_files":25}
+    for path, (size, sha) in PINS.items():
+        pin(path, size, sha)
+    print("GO_BOUNDED 60/52 4044 203/387 25 recovered 39 originals; wrapper-v100-NO_GO preserved")
+
+if __name__ == "__main__":
+    main()

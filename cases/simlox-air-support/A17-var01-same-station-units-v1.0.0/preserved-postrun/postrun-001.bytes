@@ -1,0 +1,83 @@
+"""Capture frozen local child checks, with the entire case and parent custody stable.
+
+No SSH, SIMLOX, or accepted parent checker is invoked by this orchestrator.
+The separate root-owned freeze record is required before execution.
+"""
+from pathlib import Path
+import datetime as dt, hashlib, json, stat, subprocess, sys, uuid
+
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/A17-var01-same-station-units-v1.0.0'
+F=R/'tmp/a17-var01-root-static-freeze-v101-20261008.json'
+STAGES=('self_check.py','review/independent_self_check.py')
+
+def pin(p):
+ b=p.read_bytes(); return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+
+def snapshot():
+ out={}
+ for p in sorted(C.rglob('*')):
+  if not p.is_file():continue
+  rel=p.relative_to(C).as_posix()
+  assert rel.split('/')[0] not in ('runs','proofs','preflights','__pycache__'),rel
+  assert not p.stat().st_mode&stat.S_IWRITE,rel
+  assert p.resolve().is_relative_to(C.resolve()),rel
+  assert not p.stat().st_file_attributes&1024,rel
+  assert rel.casefold() not in {x.casefold() for x in out},rel
+  out[rel]=pin(p)
+ return out
+
+def originals(rows):
+ result=[]
+ for row in rows:
+  p=Path(row['path']);s=p.stat();v=pin(p)
+  assert v=={k:row[k] for k in ('bytes','sha256')},str(p)
+  assert s.st_mode==row['original_mode'] and s.st_file_attributes==row['original_attributes'],str(p)
+  result.append({'path':str(p),**v,'original_mode':s.st_mode,'original_attributes':s.st_file_attributes})
+ return result
+
+assert F.is_file() and not F.stat().st_mode&stat.S_IWRITE
+f=json.loads(F.read_bytes())
+assert f['schema']=='a17-var01-root-static-freeze/v101' and f['native_dispatch'] is False
+before=snapshot();assert before==f['case_sources']
+assert set(STAGES).issubset(before)
+prior_path=R/'tmp/a17-var01-root-static-proofs-v100-20261008/20261008T170055527189Z-8a746bb1/receipt.json'
+assert pin(prior_path)=={'bytes':63940,'sha256':'7a2f54c190e96c86bc7484bb821d3a49923df5413fafe8c4caa6304f8f46f6e9'}
+assert not prior_path.stat().st_mode&stat.S_IWRITE
+prior=json.loads(prior_path.read_bytes())
+assert prior['decision']=='NO_GO_PRESERVED' and prior['failure']=="AssertionError: ('self_check.py', 1)"
+for pos,rel in enumerate(('build.py','source_gate.py')):
+ row=prior['steps'][pos]
+ assert row['method']==rel and row['actual_exit']==0 and row['method_pin']==before[rel]
+ assert row['streams']['stderr']=={'bytes':0,'sha256':hashlib.sha256(b'').hexdigest()}
+rows=json.loads((C/'source-maps/prospective-source-pins.json').read_bytes())['mandatory_originals']
+assert len(rows)==61
+raw_before=originals(rows)
+method_before=pin(Path(__file__))
+O=R/'tmp/a17-var01-root-static-proofs-v101-20261008'/(dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')+'-'+uuid.uuid4().hex[:8])
+O.mkdir(parents=True,exist_ok=False)
+steps=[];failure=None;after=None;raw_after=None
+try:
+ for i,rel in enumerate(STAGES):
+  assert snapshot()==before
+  argv=[sys.executable,'-X','utf8','-B',str(C/rel)]
+  started=dt.datetime.now(dt.timezone.utc).isoformat()
+  out=O/(str(i)+'-stdout.bin');err=O/(str(i)+'-stderr.bin')
+  with out.open('xb') as so,err.open('xb') as se:
+   code=subprocess.run(argv,cwd=R,stdout=so,stderr=se).returncode
+  row={'method':rel,'method_pin':before[rel],'argv':argv,'started_utc':started,'completed_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'actual_exit':code,'streams':{'stdout':pin(out),'stderr':pin(err)}}
+  steps.append(row)
+  assert type(code) is int and code==0,(rel,code)
+  assert err.read_bytes()==b'',rel
+  assert snapshot()==before
+ after=snapshot();raw_after=originals(rows)
+ assert after==before and raw_after==raw_before and pin(Path(__file__))==method_before
+except BaseException as e:
+ failure=type(e).__name__+': '+str(e)
+ try:after=snapshot();raw_after=originals(rows)
+ except BaseException as extra:failure+='; after audit: '+type(extra).__name__+': '+str(extra)
+record={'schema':'a17-var01-root-static-proof/v101','native_dispatch':False,'accepted_parent_checker_calls':0,'prior_original_proof':{'path':str(prior_path),**pin(prior_path)},'reused_unchanged_static_stages':['build.py','source_gate.py'],'freeze_record':pin(F),'method_before':method_before,'method_after':pin(Path(__file__)),'case_source_count':len(before),'case_sources_before':before,'case_sources_after':after,'mandatory_originals_before':raw_before,'mandatory_originals_after':raw_after,'steps':steps,'decision':'PASS_STATIC_ONLY' if failure is None else 'NO_GO_PRESERVED','failure':failure}
+with (O/'receipt.json').open('xb') as file:file.write((json.dumps(record,indent=2)+'\n').encode())
+for p in O.iterdir():p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O/'receipt.json'),**pin(O/'receipt.json'),'decision':record['decision'],'actual_exits':[s['actual_exit'] for s in steps],'case_source_count':len(before),'mandatory_originals':61,'failure':failure}))
+assert failure is None
