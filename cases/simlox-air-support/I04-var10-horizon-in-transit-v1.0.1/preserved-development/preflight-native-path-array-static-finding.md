@@ -1,0 +1,5 @@
+# Preflight path type finding
+
+Before source freeze, root found that the mutable `preflight_receipt.ps1` compared `native_run_directory` with PowerShell `-cne` without first requiring a JSON string. A malformed JSON array could evade a scalar equality expression. This was a static review finding: no SSH preflight, native child, or failed original process capture exercised that draft. The author then added exact receipt and pure-proof key sets plus an explicit `[string]` and exact literal path check. The new runner approval and manifest checks also require the exact key set and path type. Focused synthetic negatives are required before method freeze.
+
+The separate `source-gate-v1-cwd-dependent-accepted-refs.py.bytes` is an executed development draft that resolved accepted relative source paths against the ambient working directory. Its check succeeded from repository cwd with tool-decoded output. Root identified the case-cwd defect by static review; there was no case-cwd execution of that old draft and no failed original process capture. The corrected source gate resolves those paths beneath the repository root and rehashes all 76 accepted refs there.

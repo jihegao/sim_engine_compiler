@@ -1,0 +1,22 @@
+"""Independent original audit of the external 1651-role manifest candidate."""
+from pathlib import Path
+import hashlib, json, subprocess, sys
+R=Path(__file__).resolve().parents[1]
+P=R/'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+C=R/'tmp/i04-var10-v101-manifest-candidate-20261008-01.json'
+I=P/'source-inventory.json'
+W=P/'review/independent_replay.py'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def check():
+    assert pin(C)=={'bytes':584393,'sha256':'32153d25a7426b6300cd2594ca221b491376a70e72e0780828e972b713df0ad6'}
+    assert pin(I)=={'bytes':43251,'sha256':'3f5609725b222c11ea322228b9f5b5bddce7e78bee3ca864e8803292803a9844'}
+    assert pin(W)=={'bytes':75172,'sha256':'0109ac2d539c625e84df2db3f4c9bf1cb045ead2dfd5dc40765022cef46efea5'}
+    for p in (C,I,W):assert p.stat().st_file_attributes & 1
+    for row in json.loads(I.read_text(encoding='utf-8-sig'))['source_files']:
+        p=Path(row['path']);assert p.stat().st_file_attributes & 1
+        assert pin(p)=={k:row[k] for k in ('bytes','sha256')}
+check()
+code=subprocess.run([sys.executable,'-X','utf8','-B',str(W),'--pure-manifest-candidate',str(C)],cwd=P).returncode
+check()
+raise SystemExit(code)

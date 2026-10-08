@@ -1,0 +1,252 @@
+"""Read-only exact custody for one hour-11 SIMLOX construction."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+
+from build import run as build_run
+from copy_context import verify as verify_context
+from make_prospective_proof_custody import verify as verify_prospective_proof
+from copy_pure_proof import MAP as PURE_MAP, verify as verify_pure_proof
+from model_common import parse, pin, read, typed_equal
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+PARENT = HERE.parent / "I04-var03-idle-system-between-v1.0.1"
+EXCLUDED = HERE.parent / "I04-var10-horizon-in-transit-v1.0.0"
+ARCHIVE = HERE / "preserved-context"
+CAT_REL = "cases/simlox-air-support/publication-index-v1.json"
+CAT_LIVE = REPO / CAT_REL
+BASE = "17571d8dbcaa9fe3a4582b2fa6cae2599eb102a5"
+RUN_ID = "i04-var10-horizon-in-transit-v101-ssh-20261008-01"
+RUN_DIR = REPO / "tmp/native-runs/i04v10-v101-20261008-01"
+CORRUPT_FILE_WITNESS = REPO / "cases/simlox-air-support/I04-var05-zero-transport-between-v1.0.0/runs/i04-var05-zero-transport-between-v100-ssh-20261008-01/model-run.log"
+CORRUPT_FILE_PIN = {"bytes": 1122, "sha256": "ca209899bce7e299b49d9a482469efd8c0fee0d9f56673ffb99783cbf689457a"}
+GIT = Path(r"C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe")
+CONTRACT_PIN = {"bytes": 17674, "sha256": "40b6193c7efabf44901bab2c71f57d7090b8a2b52253117a19f96370363fa1bb"}
+INDEX_PIN = {"bytes": 176439, "sha256": "09e0fe50532797f97d13b3a17fdd886adfc9a18c925038b15058b3850b2273ff"}
+PARENT_MANIFEST_PIN = {"bytes": 161922, "sha256": "d05541613248279a5620349ade72bcaf80b12f3be042b470694f45b6efa690f3"}
+PAIRS_PIN = {"bytes": 138150, "sha256": "f2cc5bcdaa4eb8d491b54e73d1d34cc68e5f34d520d6692a573f0bcb53646e9e"}
+CAT_LOCAL = {"bytes": 539281, "sha256": "ae07b4231038a3c02a4ecbe5959962a4d2ee401f6d810eee9d3998391ae29cdc"}
+CAT_GIT = {"bytes": 534587, "sha256": "2eb277e0a4bba74f2565af5f1097ccbc3e031ea4d0f8a5573528809bac184fc6"}
+
+
+def exact(path: Path, expected):
+    assert path.is_file(), ("missing mandatory source", str(path))
+    got = pin(path)
+    wanted = {key: expected[key] for key in ("bytes", "sha256")}
+    assert got == wanted, (str(path), got, wanted)
+    return got
+
+
+def tree(base=BASE):
+    result = subprocess.run([str(GIT), "ls-tree", "-r", "-z", base, "--", "cases/simlox-air-support"],
+                            cwd=REPO, capture_output=True)
+    assert type(result.returncode) is int and result.returncode == 0, result.stderr.decode(errors="replace")
+    rows = {}
+    for part in result.stdout.split(b"\0"):
+        if not part:
+            continue
+        header, name = part.split(b"\t", 1)
+        mode, kind, oid = header.split(b" ")
+        assert kind == b"blob" and len(oid) == 40
+        path = name.decode("utf-8")
+        assert path not in rows
+        rows[path] = (mode.decode("ascii"), oid.decode("ascii"))
+    return rows
+
+
+def blobs(oids):
+    ordered = list(dict.fromkeys(oids))
+    assert ordered and all(len(x) == 40 and all(c in "0123456789abcdef" for c in x) for x in ordered)
+    result = subprocess.run([str(GIT), "cat-file", "--batch"],
+                            input=("\n".join(ordered) + "\n").encode("ascii"), cwd=REPO, capture_output=True)
+    assert type(result.returncode) is int and result.returncode == 0, result.stderr.decode(errors="replace")
+    raw, offset, found = result.stdout, 0, {}
+    for oid in ordered:
+        end = raw.index(b"\n", offset)
+        header = raw[offset:end].decode("ascii").split(" ")
+        assert len(header) == 3 and header[0] == oid and header[1] == "blob"
+        size = int(header[2]); assert size >= 0
+        data = raw[end + 1:end + 1 + size]
+        assert len(data) == size and raw[end + 1 + size:end + 2 + size] == b"\n"
+        found[oid] = {"bytes": size, "sha256": hashlib.sha256(data).hexdigest(), "data": data}
+        offset = end + size + 2
+    assert offset == len(raw) and len(found) == len(ordered)
+    return found
+
+
+def native_run_path(live: bool):
+    contract = read(HERE / "prospective-contract.json")
+    assert str(RUN_DIR) == contract["proposed_native_run_directory"]
+    assert RUN_DIR.is_absolute() and RUN_DIR.parent == REPO / "tmp/native-runs"
+    if live:
+        assert not RUN_DIR.exists() and not (HERE / "runs" / RUN_ID).exists()
+    for ancestor in (RUN_DIR, *RUN_DIR.parents):
+        if ancestor.exists():
+            assert not ancestor.is_symlink() and not ancestor.is_junction(), ("reparse ancestor", str(ancestor))
+    line = "File: " + (RUN_DIR / "model.sxi").as_posix()
+    assert line == contract["converter_file_line_gate"]["line"]
+    assert line.isascii() and len(line.encode("ascii")) == 121 <= 199
+    return {"native_run_directory": str(RUN_DIR), "file_line_ascii_bytes": 121,
+            "file_line_ascii_max": 199, "absent_observed": not RUN_DIR.exists()}
+
+
+def catalog(mode, base_tree, git_blobs):
+    archive_local = ARCHIVE / "catalog-local-499.json.bytes"
+    archive_git = ARCHIVE / "catalog-git-499.json.bytes"
+    exact(archive_local, CAT_LOCAL); exact(archive_git, CAT_GIT)
+    historical = read(archive_local)
+    current = parse(CAT_LIVE.read_bytes())
+    assert list(historical) == list(current)
+    assert len(historical["entries"]) == 499 and len(current["entries"]) >= 499
+    assert typed_equal({k: v for k, v in historical.items() if k != "entries"},
+                       {k: v for k, v in current.items() if k != "entries"})
+    assert typed_equal(historical["entries"], current["entries"][:499])
+    ids = [row["publication_id"] for row in current["entries"]]
+    assert all(type(item) is str and item for item in ids) and len(ids) == len(set(ids))
+    if mode == "live":
+        exact(CAT_LIVE, CAT_LOCAL)
+    assert base_tree[CAT_REL][1] == "2219c191be1eba1174a553e55354d55e85e707e3"
+    assert git_blobs[base_tree[CAT_REL][1]]["data"] == archive_git.read_bytes()
+    return {"historical_prefix_checked": 499, "live_entries_observed": len(ids),
+            "owned_local": pin(archive_local), "owned_git": pin(archive_git)}
+
+
+def contract_originals(contract):
+    """Rehash every explicitly addressed historical original in the design."""
+    found = {}
+
+    def visit(value):
+        if isinstance(value, dict):
+            if {"path", "bytes", "sha256"} <= value.keys():
+                named = Path(value["path"])
+                if not named.is_absolute():
+                    assert ".." not in named.parts
+                    named = REPO / named
+                    assert named.resolve(strict=True).is_relative_to(REPO)
+                expected = {k: value[k] for k in ("bytes", "sha256")}
+                identity = str(named).casefold()
+                if identity in found:
+                    assert found[identity] == expected
+                else:
+                    exact(named, expected)
+                    found[identity] = expected
+            for item in value.values():
+                visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+
+    visit(contract)
+    assert len(found) >= 20
+    return len(found)
+
+
+def verify(mode="live"):
+    assert mode in ("live", "sealed")
+    exact(HERE / "prospective-contract.json", CONTRACT_PIN)
+    contract = read(HERE / "prospective-contract.json")
+    assert contract["schema"] == "i04-var10-horizon-in-transit-prospective-contract/v2"
+    assert contract["proposed_run_id"] == RUN_ID and contract["proposed_package"] == HERE.name
+    context_count = contract_originals(contract)
+    for name, row in contract["artifacts"].items():
+        exact(HERE / ("prospective-" + name if name != "contract.json" else name), row)
+    assert build_run(False)["native_calls"] == 0
+    parent_index = read(PARENT / "evidence-index.json")
+    exact(PARENT / "evidence-index.json", INDEX_PIN)
+    assert parent_index["source_count"] == len(parent_index["source_files"]) == 401
+    assert len(parent_index["raw_files"]) == 153 and len(parent_index["preflight_original_files"]) == 15
+    for row in parent_index["source_files"]:
+        exact(PARENT / row["path"], row)
+    for name, rows, schema, count in (
+        ("raw-custody-map.json", parent_index["raw_files"], "i04-var10-parent-raw-custody/v101", 153),
+        ("preflight-custody-map.json", parent_index["preflight_original_files"], "i04-var10-parent-preflight-custody/v101", 15),
+    ):
+        owned = read(HERE / name)
+        assert owned == {"schema": schema, "source_parent_index_sha256": INDEX_PIN["sha256"], "records": rows}
+        assert len(rows) == count
+        for row in rows:
+            assert row["original_mandatory"] is True and row["owned_copy"] is None
+            exact(Path(row["path"]), row)
+    manifest = read(PARENT / "prelaunch-manifest.json")
+    exact(PARENT / "prelaunch-manifest.json", PARENT_MANIFEST_PIN)
+    assert manifest["source_count"] == len(manifest["source_files"]) == 456
+    keys = set()
+    for row in manifest["source_files"]:
+        assert row["key"].casefold() not in keys
+        keys.add(row["key"].casefold())
+        exact(Path(row["path"]), row)
+    assert sum(row["key"].startswith("local_only_context_original:") for row in manifest["source_files"]) == 2
+    assert manifest["live_catalog_prelaunch_pin"] == {
+        "path": str(CAT_LIVE), "bytes": 532423,
+        "sha256": "a247e221e524b319f45f62b32a1668366e3e2caf5f066ca79b58ca0838fe59d6"}
+    pairs = read(HERE / "parent-source-pairs.json")
+    exact(HERE / "parent-source-pairs.json", PAIRS_PIN)
+    assert len(pairs["records"]) == 403
+    base_tree = tree()
+    source_rows = pairs["records"]
+    accepted_rows = parent_index["accepted_source_pairs"]
+    assert len(accepted_rows) == 76
+    parent_prefix = PARENT.relative_to(REPO).as_posix() + "/"
+    indexed_paths = {parent_prefix + row["path"] for row in parent_index["source_files"]}
+    assert len(indexed_paths) == 401
+    expected_pair_paths = indexed_paths | {
+        parent_prefix + "evidence-index.json",
+        parent_prefix + "review/independent-content-go-2026-10-08.md",
+    }
+    assert len(expected_pair_paths) == 403
+    assert {row["path"] for row in source_rows} == expected_pair_paths
+    all_blobs = blobs([row["oid"] for row in source_rows + accepted_rows] + [base_tree[CAT_REL][1]])
+    for row in source_rows:
+        assert base_tree[row["path"]][1] == row["oid"]
+        exact(REPO / row["path"], row)
+        assert {k: all_blobs[row["oid"]][k] for k in ("bytes", "sha256")} == row["git"]
+    for row in accepted_rows:
+        assert base_tree[row["path"]][1] == row["oid"]
+        relative = Path(row["path"])
+        assert not relative.is_absolute() and ".." not in relative.parts
+        exact(REPO / relative, row["disk"])
+        assert {k: all_blobs[row["oid"]][k] for k in ("bytes", "sha256")} == row["git"]
+    current_catalog = catalog(mode, base_tree, all_blobs)
+    excluded_inventory = read(REPO / "tmp/i04-var10-v100-excluded-construction-inventory-20261008.json")
+    assert excluded_inventory["source_count"] == len(excluded_inventory["source_files"]) == 24
+    for row in excluded_inventory["source_files"]:
+        exact(REPO / row["path"], row)
+    assert verify_context() == {"schema": "i04-var10-v101-context-custody/v1", "copies": 30,
+                                "development_records": 9}
+    assert verify_prospective_proof() == 24
+    pure_copies = verify_pure_proof() if PURE_MAP.is_file() else 0
+    exact(CORRUPT_FILE_WITNESS, CORRUPT_FILE_PIN)
+    for key, filename in (("root_selection", "root-selection.json.bytes"),
+                          ("fresh_construction_boundary", "root-construction-boundary.json.bytes")):
+        assert (ARCHIVE / filename).is_file(), key
+    assert pin(ARCHIVE / "root-selection.json.bytes") == {"bytes": 9599,
+        "sha256": "ee3604e1bc5d651b5561581964d4666a31d6e00acc5a8f2aa52a86e71e97c0f1"}
+    assert pin(ARCHIVE / "root-construction-boundary.json.bytes") == {"bytes": 10914,
+        "sha256": "2210be4618ac8c16ce25a56ddafbedffa1ad5ad7e9cd0d2715f91f1d76dc5df0"}
+    for name in ("installed_executable", "installed_dictionary"):
+        exact(Path(contract[name]["path"]), contract[name])
+    exact(Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf"),
+          {"bytes": 18124110, "sha256": contract["manual_rule"]["manual_sha256"]})
+    path = native_run_path(mode == "live")
+    return {"schema": "i04-var10-source-gate/v101", "mode": mode,
+            "parent_sources": 401, "parent_git_disk_pairs": 403,
+            "accepted_dependency_pairs": 76, "parent_manifest_roles": 456,
+            "mandatory_parent_original_raw": 153, "mandatory_parent_preflight_originals": 15,
+            "excluded_v100_sources": 24, "owned_context_copies": 30,
+            "converter_negative_witnesses": 1,
+            "mandatory_prospective_proof_originals": 24,
+            "owned_pure_proof_copies": pure_copies,
+            "contract_originals": context_count,
+            "catalog": current_catalog,
+            "native_run_path": path, "native_calls": 0}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=("live", "sealed"), default="live")
+    print(json.dumps(verify(parser.parse_args().mode), sort_keys=True))

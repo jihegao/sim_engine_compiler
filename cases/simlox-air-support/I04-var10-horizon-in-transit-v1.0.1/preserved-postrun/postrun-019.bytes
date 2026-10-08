@@ -1,0 +1,124 @@
+"""Root single native dispatch with truthful binary originals and failure custody."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import subprocess
+import sys
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+P = R / 'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+N = R / 'tmp/native-runs/i04v10-v101-20261008-01'
+M = P / 'prelaunch-manifest.json'
+A = P / 'review/independent-prelaunch-go.json'
+W = P / 'ssh_transport.py'
+F = P / 'review/preflight-ssh0-20261008T140249252Z.json'
+
+def utc():
+    return dt.datetime.now(dt.timezone.utc).isoformat()
+
+def pin(p):
+    b = p.read_bytes()
+    return {'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest()}
+
+def observed(p):
+    try:
+        return pin(p)
+    except Exception as exc:
+        return {'error': f'{type(exc).__name__}: {exc}'}
+
+assert len(sys.argv) == 1
+assert pin(M) == {'bytes': 584393, 'sha256': '32153d25a7426b6300cd2594ca221b491376a70e72e0780828e972b713df0ad6'}
+assert pin(A) == {'bytes': 1212, 'sha256': '5e4062b98f817364828923f7d2c913fc766b43815c08fa529c70274dfafd23eb'}
+assert pin(W) == {'bytes': 6586, 'sha256': '0ed6a0f26e96dffdc50a1c4afa02f6c9566bba695296ca5859836a5321641bbe'}
+assert pin(F)['sha256'] == 'e1aecc244bc18202a2bf3c02a80395aa938aa57035f6fe14b93e62d1d193cddb'
+manifest = json.loads(M.read_text(encoding='utf-8-sig'))
+approval = json.loads(A.read_text(encoding='utf-8-sig'))
+assert len(approval) == 14 and approval['decision'] == 'GO_PRELAUNCH'
+assert approval['native_run_directory'] == str(N) == manifest['native_run_directory']
+assert approval['manifest_sha256'] == pin(M)['sha256']
+assert approval['preflight_sha256'] == pin(F)['sha256']
+before = {row['key']: pin(Path(row['path'])) for row in manifest['source_files']}
+assert len(before) == len(manifest['source_files']) == 1651
+for row in manifest['source_files']:
+    assert before[row['key']] == {k: row[k] for k in ('bytes', 'sha256')}, row['key']
+for path in (N, *N.parents):
+    assert not path.is_symlink() and not path.is_junction(), str(path)
+    if path.exists():
+        assert not path.stat().st_file_attributes & 0x400, str(path)
+assert not N.exists()
+assert not Path(__file__).stat().st_mode & stat.S_IWRITE
+O = R / 'tmp/i04-var10-root-native-proofs-v101-20261008' / (
+    dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+O.mkdir(parents=True, exist_ok=False)
+method_before = pin(Path(__file__))
+authorization_before = {str(p.relative_to(P)): pin(p) for p in (M, A, W, F)}
+transport_before = set((P / 'transport-evidence').glob('*'))
+pure_before = set((P / 'test-output').glob('native-pure-*'))
+command = [sys.executable, '-X', 'utf8', '-B', str(W), 'native']
+started = utc()
+code = None
+failure = None
+try:
+    with (O / 'stdout.bin').open('xb') as out, (O / 'stderr.bin').open('xb') as err:
+        code = subprocess.run(command, cwd=P, stdout=out, stderr=err).returncode
+except Exception as exc:
+    failure = f'{type(exc).__name__}: {exc}'
+completed = utc()
+after = {row['key']: observed(Path(row['path'])) for row in manifest['source_files']}
+authorization_after = {str(p.relative_to(P)): observed(p) for p in (M, A, W, F)}
+transport_new = sorted(set((P / 'transport-evidence').glob('*')) - transport_before)
+pure_new = sorted(set((P / 'test-output').glob('native-pure-*')) - pure_before)
+seal_errors = []
+originals = {}
+for directory in [N, *transport_new, *pure_new]:
+    if directory.is_dir():
+        for path in sorted(directory.iterdir()):
+            if path.is_file():
+                originals[str(path)] = observed(path)
+                try:
+                    path.chmod(stat.S_IREAD)
+                except Exception as exc:
+                    seal_errors.append({'path': str(path), 'error': f'{type(exc).__name__}: {exc}'})
+closure = None
+if (N / 'closure.json').is_file():
+    try:
+        closure = json.loads((N / 'closure.json').read_text(encoding='utf-8-sig'))
+    except Exception as exc:
+        seal_errors.append({'path': str(N / 'closure.json'), 'error': f'{type(exc).__name__}: {exc}'})
+method_after = observed(Path(__file__))
+passed = (type(code) is int and code == 0 and failure is None and not seal_errors
+          and before == after and authorization_before == authorization_after
+          and method_before == method_after and len(transport_new) == len(pure_new) == 1
+          and closure is not None and closure.get('error') is None
+          and closure.get('step_error') is None and not (N / 'failure-seal.json').exists())
+receipt = {'schema': 'i04-var10-root-single-native-dispatch/v101',
+           'native_dispatch': True, 'native_acceptance_claim': False,
+           'run_id': manifest['run_id'], 'native_run_directory': str(N),
+           'command': command, 'started_utc': started, 'completed_utc': completed,
+           'actual_exit': code, 'error': failure, 'seal_errors': seal_errors,
+           'method_before': method_before, 'method_after': method_after,
+           'authorization_before': authorization_before, 'authorization_after': authorization_after,
+           'source_pins_before': before, 'source_pins_after': after,
+           'transport_directories': [str(p) for p in transport_new],
+           'pure_directories': [str(p) for p in pure_new],
+           'sealed_originals': originals,
+           'streams': {n: observed(O / n) for n in ('stdout.bin', 'stderr.bin')},
+           'decision': 'NATIVE_COMPLETED_REQUIRES_INDEPENDENT_REPLAY' if passed else 'NO_GO_PRESERVE_FAILURE'}
+with (O / 'receipt.json').open('xb') as out:
+    out.write((json.dumps(receipt, indent=2) + '\n').encode('utf-8'))
+for path in O.iterdir():
+    path.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(O / 'receipt.json'), **pin(O / 'receipt.json'),
+                  'actual_exit': code, 'decision': receipt['decision'],
+                  'native_run_files': len(list(N.iterdir())) if N.is_dir() else 0,
+                  'source_stable': before == after, 'seal_errors': seal_errors,
+                  'transport_directories': receipt['transport_directories'],
+                  'pure_directories': receipt['pure_directories']}, separators=(',', ':')))
+for name in ('stdout.bin', 'stderr.bin'):
+    path = O / name
+    if path.is_file() and path.stat().st_size:
+        print(path.read_bytes().decode('utf-8-sig', 'replace')[:12000])
+raise SystemExit(0 if passed else 1)

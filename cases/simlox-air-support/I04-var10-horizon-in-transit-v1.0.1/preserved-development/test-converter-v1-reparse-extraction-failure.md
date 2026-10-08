@@ -1,0 +1,3 @@
+# First reparse negative fixture failed before assertion
+
+The executed source `test-converter-v1-reparse-extraction-failure.ps1.bytes` passed its converter and four receipt-schema probes, then failed while extracting the runner path function. It searched for `function Assert-NativeRunPath(` although the actual declaration is `function Assert-NativeRunPath {`; `IndexOf` returned -1 and the next `IndexOf` call raised `ArgumentOutOfRangeException`. This was a fixture error before the reparse assertion ran. The exit code was 1 in a tool-decoded development command; original stdout and stderr byte streams and a durable receipt were not captured for that attempt. The corrected fixture uses the actual declaration and a unique isolated junction, with no SIMLOX call.

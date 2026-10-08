@@ -1,0 +1,8 @@
+The frozen v101 actual-preflight auditor was never executed. Root's static
+review found that it called `reader.sha` on a newly constructed but not yet
+executed module. That method is absent until `exec_module` completes. The
+v101 source bytes remain read-only as an unexecuted static NO_GO. The distinct
+v102 auditor hashes the reader bytes with the standard library before loading
+the module and additionally pins the actual transport-receipt JSON byte SHA.
+It leaves the remaining receipt, source, command and chronology predicates
+unchanged. No SSH or native action followed the v101 draft.

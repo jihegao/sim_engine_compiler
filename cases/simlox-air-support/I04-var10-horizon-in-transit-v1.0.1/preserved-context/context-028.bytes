@@ -1,0 +1,377 @@
+"""Pure prospective I04.var10 contract derivation; never invokes SIMLOX."""
+from __future__ import annotations
+import copy
+import hashlib
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+PARENT = REPO / 'cases/simlox-air-support/I04-var03-idle-system-between-v1.0.1'
+RUN = PARENT / 'runs/i04-var03-idle-system-between-v101-ssh-20261008-01'
+OUT = REPO / 'tmp/i04-var10-prospective-v101-20261008-01'
+PINS = {
+    'input': ('native-input.json', 44611, '48c346d27d9cd08be09a771292d198e00db72a19d488da5b184689504ace177b'),
+    'report_oracle': ('child-report-oracle.json', 95011, '83d5519306d0efa692deab6b2a2a2bfd682982aa0a1a3ea1275bef9b5a5257fc'),
+    'log': ('runs/i04-var03-idle-system-between-v101-ssh-20261008-01/model.log', 8223, 'ab19c3cbc0214b8e72b57d6139d94166beb99f1afa034e07de393693d1079901'),
+    'report_raw': ('runs/i04-var03-idle-system-between-v101-ssh-20261008-01/report-raw.json', 103970, '72a5bd7270f5b3b27736df43c146a56f850990abf6a8e964aa7bae430ffc93b5'),
+}
+DESCRIPTION = 'I04.var10 horizon at hour 11: ID 0 departed BETWEEN transfer and remains in transit'
+E02_H11_RAW = REPO / 'cases/simlox-air-support/E02-var03-terminal-repair-v1.0.0/runs/e02-var03-terminal-repair-v100-ssh-20261006-01/report-raw.json'
+E02_H11_PIN = {'bytes': 38251, 'sha256': 'b6719afc6c1a5c06199fa9777a622104400f834feb2faa8ebd195d8ce35319d7'}
+V100 = REPO / 'tmp/i04-var10-prospective-v100-20261008-03'
+
+
+def pin(data: bytes) -> dict:
+    return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+
+
+def load(key: str) -> bytes:
+    rel, size, sha = PINS[key]
+    data = (PARENT / rel).read_bytes()
+    assert pin(data) == {'bytes': size, 'sha256': sha}, key
+    return data
+
+
+def accepted_h11_instance_names() -> tuple[str, str]:
+    raw = E02_H11_RAW.read_bytes()
+    assert pin(raw) == E02_H11_PIN
+    marker = b',\r\n      ]'
+    assert raw.count(marker) == 1
+    document = json.loads(raw.replace(marker, b'\r\n      ]', 1))
+    tables = document['report']['tables']
+    assert [t['name'] for t in tables] == [
+        'ProblemDescription', 'ResultSummary', 'SystemResults', 'StockTotalResults']
+    names = tuple(t['instances'][0]['instance_name'] for t in tables[2:])
+    assert names == ('Total over all Units;Total over all Systems;0.00;11.00',
+                     '0.00;11.00;')
+    return names
+
+
+def encode(value: object) -> bytes:
+    return (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + '\n').encode()
+
+
+def type_equal(a, b) -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return set(a) == set(b) and all(type_equal(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(type_equal(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def overlap(a: float, b: float, c: float, d: float) -> float:
+    return max(0.0, min(b, d) - max(a, c))
+
+
+def generate_report(template: dict) -> tuple[dict, dict]:
+    """Generate every cell from source/event equations; use template metadata only."""
+    source_tables = template['report']['tables']
+    assert [t['name'] for t in source_tables] == [
+        'ProblemDescription', 'ResultSummary', 'SystemResults', 'StockTotalResults']
+    out = copy.deepcopy(template)
+    tables = out['report']['tables']
+    tables[0]['instances'][0]['rows'] = [[DESCRIPTION]]
+    # One completed first group mission, one repetition, no failure or later mission.
+    summary = [1, 0.0, 11.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]
+    assert [c['name'] for c in tables[1]['columns']] == [
+        'NREP', 'RTILW', 'RTIUP', 'MTMF', 'RSMTMF', 'MSTF',
+        'RSMSTF', 'MSUF', 'RSMSUF', 'STMF', 'RSSTMF']
+    tables[1]['instances'][0]['rows'] = [summary]
+    system = tables[2]
+    stock = tables[3]
+    # Native instance labels encode the result-collection horizon.  The
+    # accepted E02 hour-11 report confirms the 11.00 presentation; the
+    # accepted I04 parent at hour36 confirms the corresponding 36.00 form.
+    assert system['instances'][0]['instance_name'] == 'Total over all Units;Total over all Systems;0.00;36.00'
+    assert stock['instances'][0]['instance_name'] == '0.00;36.00;'
+    child_names = accepted_h11_instance_names()
+    assert child_names[0].endswith(f';0.00;{11.0:.2f}')
+    assert child_names[1] == f'0.00;{11.0:.2f};'
+    system['instances'][0]['instance_name'] = child_names[0]
+    stock['instances'][0]['instance_name'] = child_names[1]
+    system_names = [c['name'] for c in system['columns']]
+    stock_names = [c['name'] for c in stock['columns']]
+    assert len(system_names) == 40 and len(stock_names) == 16
+    assert {'UNID', 'SID', 'STINT', 'ETINT', 'NSYRY', 'NSYMA', 'NSYMO',
+            'NSYMR', 'NSYA', 'FTMO', 'STACC', 'SYDT'} <= set(system_names)
+    assert {'STINT', 'ETINT', 'PNB', 'NBOU', 'ROS', 'ROST', 'WT', 'WTT', 'WTS'} <= set(stock_names)
+    system_rows, stock_rows = [], []
+    integrals = {k: 0.0 for k in ('NSYRY', 'NSYMA', 'NSYMO', 'NSYMR', 'NSYA', 'FTMO', 'STACC')}
+    for i in range(22):
+        a, b = i / 2.0, (i + 1) / 2.0
+        # Both IDs are assigned h7–10; preparation/reservation h7–8;
+        # both fly h8–10. ID0 alone is in transit from h10.5 past the stop.
+        assigned = 2 * overlap(a, b, 7, 10) / .5
+        flying = 2 * overlap(a, b, 8, 10) / .5
+        reserved = 2 * overlap(a, b, 7, 8) / .5
+        transit = overlap(a, b, 10.5, 12.5) / .5
+        in_unit = 2 - transit
+        selected = {'NSYRY': in_unit - assigned, 'NSYMA': assigned,
+                    'NSYMO': flying, 'NSYMR': reserved, 'NSYA': in_unit,
+                    'FTMO': flying / 2, 'STACC': flying}
+        assert all(v >= 0 for v in selected.values())
+        system_values = {'UNID': 'Total over all Units',
+                         'SID': 'Total over all Systems',
+                         'STINT': a, 'ETINT': b, 'SYDT': None, **selected}
+        system_rows.append([system_values.get(c['name'], 0.0) for c in system['columns']])
+        stock_values = {'STINT': a, 'ETINT': b, 'PNB': 1.0,
+                        **{k: None for k in ('NBOU', 'ROS', 'ROST', 'WT', 'WTT', 'WTS')}}
+        stock_rows.append([stock_values.get(c['name'], 0.0) for c in stock['columns']])
+        for k in integrals:
+            integrals[k] += selected[k] * .5
+    system['instances'][0]['rows'] = system_rows
+    stock['instances'][0]['rows'] = stock_rows
+    assert integrals == {'NSYRY': 15.5, 'NSYMA': 6.0, 'NSYMO': 4.0,
+                         'NSYMR': 2.0, 'NSYA': 21.5, 'FTMO': 2.0, 'STACC': 4.0}
+    assert sum(len(t['columns']) * len(t['instances'][0]['rows']) for t in tables) == 1244
+    # Accepted h36 run corroborates only the pre-horizon values. It is not
+    # the generator of the predicted child rows or terminal nulls.
+    for child_table, parent_table in zip(tables[1:], source_tables[1:]):
+        for child_row, parent_row in zip(child_table['instances'][0]['rows'],
+                                         parent_table['instances'][0]['rows']):
+            for value, old, column in zip(child_row, parent_row, child_table['columns']):
+                if column['name'] == 'RTIUP':
+                    assert value == 11 and old == 36
+                elif value is None or old is None:
+                    assert value is old
+                elif column['datatype'] == 'double':
+                    assert type(value) in (int, float) and type(old) in (int, float)
+                    assert value == old
+                else:
+                    assert type(value) is type(old) and value == old
+    return out, integrals
+
+
+def table(model: dict, name: str) -> dict:
+    matches = [t for t in model['model']['tables'] if t['name'] == name]
+    assert len(matches) == 1
+    return matches[0]
+
+
+def modify(t: dict, row: int, field: str, new, changes: list) -> None:
+    columns = [c['name'] for c in t['columns']]
+    idx = columns.index(field)
+    old = t['instances'][0]['rows'][row][idx]
+    assert isinstance(old, float) if field != 'PDESC' else isinstance(old, str)
+    t['instances'][0]['rows'][row][idx] = new
+    changes.append({'table': t['name'], 'instance': 0, 'row': row, 'column': field,
+                    'parent': old, 'child': new})
+
+
+def main() -> None:
+    assert not OUT.exists(), 'prospective output is absent-only'
+    old = {
+        'contract.json': {'bytes': 13393, 'sha256': 'c00a8c11ec061e559ffaccf5c83b62e85cd6ab4cedd4a39316877a08bc4cbb69'},
+        'log-oracle.json': {'bytes': 4758, 'sha256': '91f9981956a28414feeea056d963eccd4fe59904ec19b28c988fafc876d24b64'},
+        'report-oracle.json': {'bytes': 35690, 'sha256': 'bd5c7d0e8993b3aa7866b4900782f30a7dbaacb1a0af5b58650c172ac0e4ef7f'},
+        'source-delta.json': {'bytes': 2071, 'sha256': '7d53ed9c457bd0a8927e6d90bde0fbded6834ceea51911712a753347f0c620c4'},
+    }
+    for name, wanted in old.items():
+        assert pin((V100 / name).read_bytes()) == wanted
+    assert pin((REPO / 'tmp/i04-var10-v100-excluded-construction-inventory-20261008.json').read_bytes()) == {
+        'bytes': 6480, 'sha256': '410514cbb51bc0634d8e74eb14f131a528eab58469d4c3ec04c8b822bc99a780'}
+    assert pin((REPO / 'tmp/i04-var10-independent-prelaunch-static-no-go-v100-20261008.md').read_bytes()) == {
+        'bytes': 2704, 'sha256': '1dc6fb1df0bd6180602941a1a0a5723fca534e985ce3b23e242de8f035503372'}
+    assert pin((REPO / 'tmp/i04-var10-independent-contract-go-v100-20261008.md').read_bytes()) == {
+        'bytes': 5552, 'sha256': '371d534508f881346c34a9af2ad3e79171531a3be3d4757f1ce3902807b53887'}
+    assert pin((REPO / 'tmp/i04-var10-build-prospective-v5-20261008.py').read_bytes()) == {
+        'bytes': 22376, 'sha256': 'b30fb3698006e2d5b7646e5fe94797595780e456d4ce5932efd4791d2688d254'}
+    assert pin((REPO / 'tmp/i04-var10-root-preserved-v100-20261008.json').read_bytes()) == {
+        'bytes': 5990, 'sha256': '34b547424b8ba5857a2c5789138320ebdb45210b9801ca3eb27bdfb2755dad60'}
+    assert pin((REPO / 'tmp/i04-var09-root-review-proofs-v100-20261008/i04-var10-preserve-excluded-v100-20261008T125605564917Z-4db63729/receipt.json').read_bytes()) == {
+        'bytes': 1354, 'sha256': '17c112a54aa4f7226808f9d642c0255eb564dcbd5216f673ee270c5e0dc72513'}
+    old_report = json.loads((V100 / 'report-oracle.json').read_bytes())
+    assert [t['instances'][0]['instance_name'] for t in old_report['report']['tables'][2:]] == [
+        'Total over all Units;Total over all Systems;0.00;36.00', '0.00;36.00;']
+    accepted_h11_instance_names()
+    archives = REPO / 'tmp/i04-var10-catalog-originals-v100-20261008'
+    local = (archives / 'catalog-local-499.json.bytes').read_bytes()
+    git = (archives / 'catalog-head-499.json.bytes').read_bytes()
+    assert pin(local) == {'bytes': 539281, 'sha256': 'ae07b4231038a3c02a4ecbe5959962a4d2ee401f6d810eee9d3998391ae29cdc'}
+    assert pin(git) == {'bytes': 534587, 'sha256': '2eb277e0a4bba74f2565af5f1097ccbc3e031ea4d0f8a5573528809bac184fc6'}
+    assert type_equal(json.loads(local), json.loads(git))
+    assert len(json.loads(local)['entries']) == 499
+    for path, size, sha in (
+        (Path(r'C:\Program Files\Systecon\SIMLOX\Simlox.exe'), 33196032, 'fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0'),
+        (Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf'), 18124110, '39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3'),
+        (Path(r'C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt'), 78577, '11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0'),
+    ):
+        assert pin(path.read_bytes()) == {'bytes': size, 'sha256': sha}
+    source = json.loads(load('input'))
+    child = copy.deepcopy(source)
+    changes: list[dict] = []
+    modify(table(child, 'ProblemDescription'), 0, 'PDESC', DESCRIPTION, changes)
+    modify(table(child, 'Control'), 0, 'SIMPE', 11.0, changes)
+    modify(table(child, 'Control'), 0, 'RCEND', 11.0, changes)
+    modify(table(child, 'ResultCollection'), 0, 'RCEND', 11.0, changes)
+    modify(table(child, 'ResultCollection'), 1, 'RCEND', 11.0, changes)
+    modify(table(child, 'SystemTransfer'), 0, 'TFDT', 2.0, changes)
+    profiles = table(child, 'OperationProfile')['instances'][0]['rows']
+    assert len(profiles) == 2 and profiles[0][2] == 8.0 and profiles[1][2] == 20.0
+    removed_future_profile = profiles.pop(1)
+    changes.append({'table': 'OperationProfile', 'instance': 0, 'row': 1,
+                    'operation': 'delete_entire_future_scheduled_row',
+                    'parent': removed_future_profile, 'child': None,
+                    'reason': 'converter #204 horizon preflight precedent; h20 is after hour-11 stop'})
+    assert len(changes) == 7
+    assert [(x['table'], x['row'], x.get('column')) for x in changes] == [
+        ('ProblemDescription', 0, 'PDESC'), ('Control', 0, 'SIMPE'),
+        ('Control', 0, 'RCEND'), ('ResultCollection', 0, 'RCEND'),
+        ('ResultCollection', 1, 'RCEND'), ('SystemTransfer', 0, 'TFDT'),
+        ('OperationProfile', 1, None)]
+    input_tables = child['model']['tables']
+    assert len(input_tables) == 34
+    assert sum(len(i['rows']) for t in input_tables for i in t['instances']) == 21
+    assert sum(len(t['columns']) * len(i['rows']) for t in input_tables for i in t['instances']) == 211
+    lines = load('log').decode('utf-8-sig').splitlines()
+    assert len(lines) == 118 and sum(x.startswith('Time:') for x in lines) == 104
+    expected_log = lines[:61]
+    assert expected_log[1] == '36', 'accepted parent log numeric horizon header'
+    expected_log[1] = '11'
+    assert len(expected_log) == 61 and sum(x.startswith('Time:') for x in expected_log) == 53
+    assert expected_log[-2].startswith('Time: 10.5 <TEACH-AIR-01,0> nbr ready decreased')
+    assert expected_log[-1].startswith('Time: 10.5 <TEACH-UNIT at <BASE-01,0>> system transfered out: <TEACH-AIR-01,0>')
+    assert all('system transfered in: <TEACH-AIR-01,0>' not in x for x in expected_log)
+    assert 10.5 + 2.0 == 12.5 > 11.0
+    report = json.loads(load('report_oracle'))
+    assert [len(t['instances'][0]['rows']) for t in report['report']['tables']] == [1, 1, 72, 72]
+    out_report, integrals = generate_report(report)
+    OUT.mkdir(parents=True)
+    artifacts = {
+        'source-delta.json': {'schema': 'i04-var10-prospective-source-delta/v1', 'changes': changes,
+                              'parent_source': {'path': str(PARENT / PINS['input'][0]), 'bytes': PINS['input'][1], 'sha256': PINS['input'][2]},
+                              'source_topology': {'tables': 34, 'populated_rows': 21, 'cells': 211},
+                              'native_export_topology_hypothesis': {'tables': 34, 'rows': 39, 'cells': 395}},
+        'log-oracle.json': {'schema': 'i04-var10-prospective-log-oracle/v1', 'lines': expected_log,
+                            'line_count': 61, 'timed_record_count': 53,
+                            'parent_original_sha256': PINS['log'][2]},
+        'report-oracle.json': out_report,
+    }
+    for name, obj in artifacts.items():
+        (OUT / name).write_bytes(encode(obj))
+    contract = {
+        'schema': 'i04-var10-horizon-in-transit-prospective-contract/v2',
+        'phase': 'CONTRACT_DESIGN_ONLY_NO_CASE_NO_NATIVE',
+        'case_id': 'I04', 'variant_id': 'I04.var10',
+        'proposed_package': 'I04-var10-horizon-in-transit-v1.0.1',
+        'proposed_run_id': 'i04-var10-horizon-in-transit-v101-ssh-20261008-01',
+        'proposed_native_run_directory': str(REPO / 'tmp/native-runs/i04v10-v101-20261008-01'),
+        'native_run_directory_rule': 'Distinct short physical path, currently absent; root must freshly reject reparse ancestors and pre-existing run path, bind this exact absolute path in manifest, actual SSH preflight, independent approval, invocation, and closure.',
+        'new_native_runs_authorized': 0, 'accepted_parent_runs_repeated': 0,
+        'parent': {'package': PARENT.name, 'run_id': RUN.name,
+                   'originals': {key: {'path': str(PARENT / rel), 'bytes': size, 'sha256': sha}
+                                 for key, (rel, size, sha) in PINS.items()},
+                   'accepted_indexed_sources': 401, 'current_disk_git_pairs': 403,
+                   'mandatory_original_raw_plus_preflight': 168},
+        'selection': {'path': 'tmp/i04-var10-root-selection-v100-20261008/20261008T123043885656Z-cf200999/receipt.json',
+                      'bytes': 9599, 'sha256': 'ee3604e1bc5d651b5561581964d4666a31d6e00acc5a8f2aa52a86e71e97c0f1'},
+        'horizon_precedent': {
+            'accepted_h11_raw_report': {'path': str(E02_H11_RAW), **E02_H11_PIN,
+                                        'instance_names': list(accepted_h11_instance_names()),
+                                        'meaning': 'Observed E02 native hour-11 result-collection instance-label presentation; this is metadata corroboration, not transfer-at-horizon evidence.'},
+            'converter_no_go': {'path': 'cases/simlox-air-support/E02-var03-terminal-repair-v0.1.0/review/independent-contract-no-go-2026-10-06.md',
+                                'bytes': 3959, 'sha256': 'c16ea1b3c416c41bc06126dd9b3d21e8f50713f3fe38410cd275c24b905e9dcc',
+                                'lesson': 'Retained post-horizon OperationProfile rows caused observed converter #204 in a separate case.'},
+            'accepted_h11': {'path': 'cases/simlox-air-support/E02-var03-terminal-repair-v1.0.1/cli-scope-signoff-2026-10-06.md',
+                             'bytes': 5555, 'sha256': '1a4539fa617263f8f24e634aac57a2065eea4d30dc96deee1e2e1b4b82481c6d',
+                             'lesson': 'A corrected hour-11 run had 22 half-hour bins, but terminal repair accounting changed earlier cells; the I04 terminal-transfer full oracle is therefore an explicit prediction, not inherited fact.'}},
+        'one_mechanism': 'Ready numeric aircraft ID 0 departs BETWEEN at 10.5; TFDT 2 places calculated arrival at 12.5 beyond an hour-11 stop. Entire h20 OperationProfile row is explicitly deleted as necessary converter support for hour-11 SIMPE, not a second observed behavior claim.',
+        'source_changes': changes,
+        'source_roundtrip': {'authored_tables': 34, 'authored_rows': 21, 'authored_cells': 211,
+                             'native_export_tables': 34, 'native_export_rows': 39, 'native_export_cells': 395,
+                             'roundtrip_gate': 'Metadata and declared types type-exact; six cell changes and one complete h20 OperationProfile row deletion only; 18 parent-empty table placeholders stay all-null; reject duplicate keys/nonfinite/bool-as-numeric.'},
+        'manual_rule': {'pages': [225, 230, 231, 480, 481, 532, 533],
+                        'meaning': 'BETWEEN uses ready assets; TFDT is departure-to-arrival delay; schedule may wait for availability; no general horizon terminal presentation rule asserted from manual alone.',
+                        'manual_sha256': '39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3'},
+        'installed_executable': {'path': r'C:\Program Files\Systecon\SIMLOX\Simlox.exe',
+                                 'bytes': 33196032,
+                                 'sha256': 'fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0'},
+        'installed_dictionary': {'path': r'C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt',
+                                 'bytes': 78577,
+                                 'sha256': '11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0'},
+        'catalog_current_499': {
+            'local_crlf': {'path': 'tmp/i04-var10-catalog-originals-v100-20261008/catalog-local-499.json.bytes',
+                           'bytes': 539281, 'sha256': 'ae07b4231038a3c02a4ecbe5959962a4d2ee401f6d810eee9d3998391ae29cdc'},
+            'base_git_lf': {'path': 'tmp/i04-var10-catalog-originals-v100-20261008/catalog-head-499.json.bytes',
+                            'bytes': 534587, 'sha256': '2eb277e0a4bba74f2565af5f1097ccbc3e031ea4d0f8a5573528809bac184fc6',
+                            'oid': '2219c191be1eba1174a553e55354d55e85e707e3',
+                            'head': '17571d8dbcaa9fe3a4582b2fa6cae2599eb102a5'},
+            'rule': 'Recursively type-equivalent 499 entries and metadata, but different local CRLF and base Git LF byte identities; compare them separately and verify immutable prefix after any later append.'},
+        'catalog_archive_capture': {'path': 'tmp/i04-var09-root-review-proofs-v100-20261008/i04-var10-owned-catalog499-20261008T123832433572Z-87c9d846/receipt.json',
+                                    'bytes': 1363, 'sha256': 'bf7b9e607f5353cb17c471c473b7d427ac21c4528f28c9bebfc9c11604b2e052'},
+        'excluded_v100': {
+            'reason': 'Static NO_GO before SSH/native: frozen 1244-cell values but two result-table instance labels retained 36.00 from parent rather than hour-11 RCEND.',
+            'prospective_artifacts': {name: {'path': str(V100 / name), **wanted} for name, wanted in old.items()},
+            'excluded_case_inventory': {'path': 'tmp/i04-var10-v100-excluded-construction-inventory-20261008.json',
+                                        'bytes': 6480, 'sha256': '410514cbb51bc0634d8e74eb14f131a528eab58469d4c3ec04c8b822bc99a780',
+                                        'owned_files': 24},
+            'independent_static_no_go': {'path': 'tmp/i04-var10-independent-prelaunch-static-no-go-v100-20261008.md',
+                                         'bytes': 2704, 'sha256': '1dc6fb1df0bd6180602941a1a0a5723fca534e985ce3b23e242de8f035503372'},
+            'prior_contract_go': {'path': 'tmp/i04-var10-independent-contract-go-v100-20261008.md',
+                                  'bytes': 5552, 'sha256': '371d534508f881346c34a9af2ad3e79171531a3be3d4757f1ce3902807b53887'},
+            'prior_generator': {'path': 'tmp/i04-var10-build-prospective-v5-20261008.py',
+                                'bytes': 22376, 'sha256': 'b30fb3698006e2d5b7646e5fe94797595780e456d4ce5932efd4791d2688d254'},
+            'prior_original_generation_capture': {'path': 'tmp/i04-var09-root-review-proofs-v100-20261008/i04-var10-prospective-generation-v5-20261008T124328302685Z-b60e0042/receipt.json',
+                                                  'bytes': 1358, 'sha256': 'fd5c8a19961e5515315f1d87b6e0c1b5d406232458cf101cf16b3e66dafb5131'},
+            'root_preserved_v100_custody': {'path': 'tmp/i04-var10-root-preserved-v100-20261008.json',
+                                             'bytes': 5990, 'sha256': '34b547424b8ba5857a2c5789138320ebdb45210b9801ca3eb27bdfb2755dad60',
+                                             'source_files': 24},
+            'root_preservation_original_capture': {'path': 'tmp/i04-var09-root-review-proofs-v100-20261008/i04-var10-preserve-excluded-v100-20261008T125605564917Z-4db63729/receipt.json',
+                                                    'bytes': 1354, 'sha256': '17c112a54aa4f7226808f9d642c0255eb564dcbd5216f673ee270c5e0dc72513'},
+            'unexecuted_v101_generator_v1': {'path': 'tmp/i04-var10-build-prospective-v101-20261008.py',
+                                              'bytes': 27875, 'sha256': 'd504ee5e56c0e2f742401aa5736ebbd82998aae2df68a559ac2e2523d5008c15',
+                                              'limit': 'unexecuted; later root preservation receipt prompted distinct v2 generator'},
+            'no_actual_preflight_or_native_v100': True},
+        'preserved_draft_history': {
+            'unexecuted_v1_generator': {'path': 'tmp/i04-var10-build-prospective-v1-retained-future-profile-20261008.py',
+                                        'bytes': 12285, 'sha256': 'e6890e740006c915a224e61ef36291c91c24e1cfb4253948558956c71fc38358',
+                                        'limit': 'retained h20 row; not executed'},
+            'v2_syntax_failure': {'path': 'tmp/i04-var10-build-prospective-v2-20261008.py',
+                                  'bytes': 14951, 'sha256': 'e4b16312866f0f3d4e3fb0433e0be31cb1ef5eab39ac9ad23fa8bcb09e370a0c',
+                                  'limit': 'executed Python syntax error; tool-decoded stderr only, no original binary capture'},
+            'v3_wrong_manual_pin_contract': {'path': 'tmp/i04-var10-prospective-v100-20261008-01/contract.json',
+                                             'bytes': 10496, 'sha256': '7748c3117d737c62e7d44bb367be61db04155fa22c06bdc3d7dbb3eed5108480',
+                                             'limit': 'prospective draft only: incorrect manual SHA and unchanged numeric log header 36 instead of 11; excluded from approval'},
+            'v4_static_no_go_generator': {'path': 'tmp/i04-var10-build-prospective-v4-20261008.py',
+                                          'bytes': 19451, 'sha256': '8db6fddc965fc88d35394c918b53ba8c4ec80ae0c9cffb62e54a0f1181da43c8',
+                                          'limit': 'unexecuted: wrong installed path spelling, wrong converter File line, and copied rather than regenerated report rows'}},
+        'expected_log': {'artifact': 'log-oracle.json', 'physical_lines': 61, 'timed_records': 53,
+                         'rule': 'Numeric header changes 36 to 11; remaining accepted original lines through source transfer-out at 10.5 are exact. No arrival, second mission, or extra horizon diagnostic. Any difference is NO_GO, not postrun fitting.',
+                         'horizon': 11, 'calculated_arrival_not_observed': 12.5},
+        'event_ledger': {'at_horizon': {'source_ready_id0': 0, 'target_ready_id1': 1,
+                                       'transit_id0': 1, 'assigned': 0, 'first_mission_completed': 1,
+                                       'second_mission_ordered': 0},
+                         'conservation': '2 IDs = source ready 0 + target ready 1 + transit 1 + assigned 0; transfer-out decrements source exactly once; no target receipt before horizon.',
+                         'identity_scope': 'Numeric ID 0 is observed in this source trace, not a general selection law.'},
+        'expected_report': {'artifact': 'report-oracle.json', 'tables': 4, 'rows': [1, 1, 22, 22],
+                            'column_widths': [1, 11, 40, 16], 'cells': 1244,
+                            'result_instance_names': list(accepted_h11_instance_names()),
+                            'derivation': 'Every cell is regenerated from the declared h7–10 assignment, h8–10 flight, h7–8 reservation, h10.5–12.5 transit, no item or failure, and one completed mission. Accepted parent first22 bins are used only as corroboration. This is a falsifiable terminal-presentation hypothesis, not an already observed transfer-at-horizon rule.',
+                            'system_integrals_hours': integrals,
+                            'final_bin': '[10.5,11): NSYRY=1, NSYA=1, ID0 in transit',
+                            'strict_types': 'All metadata, identities, nulls, integer values and row count exact; declared doubles permit finite int/float numeric presentation only; bool rejected. In particular SystemResults.SYDT and StockTotalResults.WT/WTT/WTS are predicted to stay null; any terminal backfill differs from oracle and is NO_GO.'},
+        'converter': {'expected_errors': 0, 'expected_warnings': 2, 'expected_warning_codes': [108, 126],
+                      'expected_notes': 0, 'paths': 'Exact new Input/Output/File paths with immediate converter-log seal, including File length preflight and no corrupted-tail allowance.'},
+        'converter_file_line_gate': {'expected_ascii_bytes': 121, 'maximum_ascii_bytes': 199,
+                                     'line': 'File: ' + (REPO / 'tmp/native-runs/i04v10-v101-20261008-01/model.sxi').as_posix(),
+                                     'status': 'prospective path-only calculation; recheck under actual SSH preflight'},
+        'native_protocol': 'Any future construction requires fresh versioned package/run, source-map freeze, independent model GO, actual SSH session0 PowerShell5 -File preflight, fresh independent GO_PRELAUNCH and root-only native dispatch.',
+        'decision_table': [
+            {'observation': 'Exactly 61 proposed lines/53 timed, no arrival/second mission, full 1244-cell oracle and converter exact', 'decision': 'candidate bounded postrun acceptance only after independent sealed review'},
+            {'observation': 'Extra horizon/terminal line, missing or reordered departure, early arrival, second mission, other identity, report extra/missing bin/cell or changed value', 'decision': 'NO_GO; preserve original; new prelaunch contract/version required for any further native study'},
+            {'observation': 'Import/export/converter/source/provenance mismatch or nonzero actual exit', 'decision': 'NO_GO; preserve all original streams, no retry in same run'},
+        ],
+        'limits': ['One pinned source and installed engine only', 'No GUI or cross-engine conclusion',
+                   'No observed h12.5 arrival claim', 'No general end-of-horizon transfer rule',
+                   'Accepted parent/checkers are not rerun'],
+        'artifacts': {name: pin((OUT / name).read_bytes()) for name in artifacts},
+    }
+    (OUT / 'contract.json').write_bytes(encode(contract))
+    print(json.dumps({'decision': 'PROSPECTIVE_ONLY', 'contract': pin((OUT / 'contract.json').read_bytes()),
+                      'artifacts': contract['artifacts']}, sort_keys=True))
+
+
+if __name__ == '__main__':
+    main()

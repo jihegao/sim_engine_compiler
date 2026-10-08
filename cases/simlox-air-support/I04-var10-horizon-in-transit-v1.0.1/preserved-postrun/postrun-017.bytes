@@ -1,0 +1,41 @@
+"""One actual SSH PowerShell5 -File zero-native preflight, original streams preserved."""
+from pathlib import Path
+import hashlib, json, subprocess, sys
+R=Path(__file__).resolve().parents[1]
+P=R/'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+M=P/'prelaunch-manifest.json'
+W=P/'ssh_transport.py'
+N=R/'tmp/native-runs/i04v10-v101-20261008-01'
+def pin(p):
+    b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def check():
+    assert pin(M)=={'bytes':584393,'sha256':'32153d25a7426b6300cd2594ca221b491376a70e72e0780828e972b713df0ad6'}
+    assert pin(W)=={'bytes':6586,'sha256':'0ed6a0f26e96dffdc50a1c4afa02f6c9566bba695296ca5859836a5321641bbe'}
+    for row in json.loads(M.read_text(encoding='utf-8-sig'))['source_files']:
+        assert pin(Path(row['path']))=={k:row[k] for k in ('bytes','sha256')}
+    assert not N.exists()
+check()
+assert not (P/'review/independent-prelaunch-go.json').exists()
+before=set((P/'transport-evidence').glob('*'))
+receipts_before=set((P/'review').glob('preflight-ssh0-*.json'))
+code=subprocess.run([sys.executable,'-X','utf8','-B',str(W),'preflight'],cwd=P).returncode
+check()
+new=set((P/'transport-evidence').glob('*'))-before
+for directory in new:
+    for path in directory.iterdir():
+        if path.is_file():path.chmod(0o444)
+new_receipts=set((P/'review').glob('preflight-ssh0-*.json'))-receipts_before
+for path in new_receipts:
+    path.chmod(0o444)
+    receipt=json.loads(path.read_text(encoding='utf-8-sig'))
+    for original in Path(receipt['pure_proof_directory']).iterdir():
+        if original.is_file():original.chmod(0o444)
+    print(json.dumps({'preflight_receipt':str(path),**pin(path),'native_calls':0}))
+if code==0:
+    assert len(new)==len(new_receipts)==1
+    directory=new.pop()
+    receipt=json.loads((directory/'transport-receipt.json').read_text(encoding='utf-8-sig'))
+    assert receipt['exit_code']==0 and receipt['mode']=='preflight'
+    assert receipt['native_approved'] is False and receipt['error'] is None
+    assert receipt['streams']['ssh-stderr.bin']['bytes']==0
+raise SystemExit(code)

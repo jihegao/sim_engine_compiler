@@ -1,0 +1,98 @@
+"""Independent read-only audit of the one actual zero-native I04.var10 preflight."""
+from __future__ import annotations
+
+import importlib.util
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CASE = ROOT / "cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1"
+READER = CASE / "review/independent_replay.py"
+READER_SHA = "0109ac2d539c625e84df2db3f4c9bf1cb045ead2dfd5dc40765022cef46efea5"
+PREFLIGHT = CASE / "review/preflight-ssh0-20261008T140249252Z.json"
+PREFLIGHT_SHA = "e1aecc244bc18202a2bf3c02a80395aa938aa57035f6fe14b93e62d1d193cddb"
+TRANSPORT = CASE / "transport-evidence/ssh-preflight-20261008T140232493444Z-1b038036"
+OUTER = ROOT / ("tmp/i04-var09-root-review-proofs-v100-20261008/"
+                "i04-var10-v101-ssh-preflight-20261008T140231695592Z-be49a117")
+OUTER_RECEIPT_SHA = "d50b17c97174d618052dc33d25ecb12699c3b6dde00cd11833c16f536d9955fc"
+
+
+def main() -> None:
+    spec = importlib.util.spec_from_file_location("i04_var10_frozen_reader", READER)
+    assert spec is not None and spec.loader is not None
+    reader = importlib.util.module_from_spec(spec)
+    assert hashlib.sha256(READER.read_bytes()).hexdigest() == READER_SHA
+    spec.loader.exec_module(reader)
+    assert reader.PKG == CASE and reader.ROOT == ROOT
+    reader.native_run_path(must_be_absent=True)
+    contract = reader.contract()
+    reader.verify_parent_custody(with_git=True)
+    reader.verify_catalog_499(contract)
+    reader.verify_excluded_v100(contract)
+    reader.verify_context_custody(contract)
+    reader.verify_prospective_proof_custody()
+    reader.verify_pure_history()
+    inventory = reader.strict_json((CASE / "source-inventory.json").read_bytes())
+    reader.verify_inventory_document(inventory, provisional=False)
+    manifest_path = CASE / "prelaunch-manifest.json"
+    manifest_sha = reader.file_record(manifest_path)["sha256"]
+    assert manifest_sha == "32153d25a7426b6300cd2594ca221b491376a70e72e0780828e972b713df0ad6"
+    manifest = reader.strict_json(manifest_path.read_bytes())
+    source_map = reader.verify_manifest_document(contract, manifest, inventory, provisional=False)
+    assert len(source_map) == 1651
+    source_sha = reader.source_map_sha(source_map)
+    receipt = reader.verify_preflight(PREFLIGHT, PREFLIGHT_SHA, manifest_sha, source_map, source_sha)
+    assert receipt["native_process_started"] is False and receipt["run_dirs_absent"] is True
+    assert not reader.RUN.exists()
+
+    transport_path = TRANSPORT / "transport-receipt.json"
+    assert reader.file_record(transport_path)["sha256"] == (
+        "7334de24f862e38552f922be9f5450d89cc1b916634ec1d924a68eb1d0db808d")
+    transport = reader.strict_json(transport_path.read_bytes())
+    assert set(transport) == {"schema", "mode", "run_id", "native_approved",
+                              "native_run_directory", "transport_sha256", "runner_sha256",
+                              "manifest_sha256", "started_utc", "completed_utc", "command",
+                              "exit_code", "error", "streams"}
+    assert transport["schema"] == "i04-var10-horizon-transit-ssh-transport/v101"
+    assert transport["mode"] == "preflight" and transport["run_id"] == reader.RUN_ID
+    assert transport["native_approved"] is False
+    assert type(transport["native_run_directory"]) is str
+    assert transport["native_run_directory"] == str(reader.RUN)
+    assert transport["transport_sha256"] == source_map["owned:ssh_transport.py"]
+    assert transport["runner_sha256"] == source_map["runner_script"]
+    assert transport["manifest_sha256"] == manifest_sha
+    reader.exact_integer(transport["exit_code"], 0)
+    assert transport["error"] is None
+    expected_command = [
+        "ssh", "-n", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+        "-i", "C:/Users/user/.ssh/id_rsa", "user@127.0.0.1",
+        "powershell.exe", "-NoProfile", "-NonInteractive", "-File",
+        (CASE / "run_native_ssh.ps1").as_posix(), "-PreflightOnly",
+    ]
+    assert transport["command"] == expected_command
+    started, completed = reader.utc(transport["started_utc"]), reader.utc(transport["completed_utc"])
+    assert started <= completed
+    assert set(transport["streams"]) == {"ssh-stdout.bin", "ssh-stderr.bin"}
+    for name, wanted in transport["streams"].items():
+        assert set(wanted) == {"bytes", "sha256"}
+        assert reader.file_record(TRANSPORT / name) == wanted
+    assert transport["streams"]["ssh-stderr.bin"]["bytes"] == 0
+    assert (TRANSPORT / "ssh-stdout.bin").read_bytes() == (str(PREFLIGHT) + "\r\n").encode("utf-8")
+
+    outer_file = OUTER / "receipt.json"
+    assert reader.file_record(outer_file)["sha256"] == OUTER_RECEIPT_SHA
+    outer = reader.strict_json(outer_file.read_bytes())
+    assert outer["actual_exit"] == 0 and outer["native_dispatch"] is False
+    assert outer["method_before"] == outer["method_after"]
+    assert outer["streams"]["stderr.bin"]["bytes"] == 0
+    for name, wanted in outer["streams"].items():
+        assert reader.file_record(OUTER / name) == wanted
+    assert reader.utc(outer["started_utc"]) <= started <= completed <= reader.utc(outer["completed_utc"])
+    assert reader.file_record(PREFLIGHT)["sha256"] == PREFLIGHT_SHA
+    print(f"PASS_ACTUAL_ZERO_NATIVE_PREFLIGHT roles={len(source_map)} "
+          f"source_map_sha256={source_sha} preflight_sha256={PREFLIGHT_SHA}")
+
+
+if __name__ == "__main__":
+    main()

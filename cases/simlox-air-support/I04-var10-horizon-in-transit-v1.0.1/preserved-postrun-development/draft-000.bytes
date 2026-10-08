@@ -1,0 +1,88 @@
+"""Pin accepted and actual zero-native preflight originals separately from native raw."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[2]
+OUTER = REPO / "tmp/i04-var09-root-review-proofs-v100-20261008/i04-var10-v101-ssh-preflight-20261008T140231695592Z-be49a117/receipt.json"
+OUTER_PIN = {"bytes": 1359, "sha256": "d50b17c97174d618052dc33d25ecb12699c3b6dde00cd11833c16f536d9955fc"}
+PURE = HERE / "test-output/preflight-pure-20261008T1402396604491Z-504bdc08"
+TRANSPORT = HERE / "transport-evidence/ssh-preflight-20261008T140232493444Z-1b038036"
+REVIEW = HERE / "review/preflight-ssh0-20261008T140249252Z.json"
+OUT = HERE / "preserved-preflight/custody.json"
+
+
+def pin(path: Path) -> dict:
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def encode(value: dict) -> bytes:
+    return (json.dumps(value, sort_keys=True, indent=2) + "\n").encode("utf-8")
+
+
+def row(path: Path, role: str, expected: dict | None = None) -> dict:
+    assert path.is_absolute() and path.is_file()
+    actual = pin(path)
+    if expected is not None:
+        assert actual == {key: expected[key] for key in ("bytes", "sha256")}
+    return {"path": str(path), **actual, "role": role,
+            "original_mandatory": True, "owned_copy": None}
+
+
+def candidate() -> dict:
+    accepted = json.loads((HERE / "preflight-custody-map.json").read_bytes())
+    assert accepted["schema"] == "i04-var10-parent-preflight-custody/v101"
+    assert len(accepted["records"]) == 15
+    records = []
+    for source in accepted["records"]:
+        assert source["original_mandatory"] is True and source["owned_copy"] is None
+        records.append(row(Path(source["path"]), "accepted_parent_preflight", source))
+    assert pin(OUTER) == OUTER_PIN
+    outer = json.loads(OUTER.read_bytes())
+    assert type(outer["actual_exit"]) is int and outer["actual_exit"] == 0
+    assert outer["native_dispatch"] is False
+    pure = sorted(PURE.iterdir(), key=lambda path: path.name)
+    transport = sorted(TRANSPORT.iterdir(), key=lambda path: path.name)
+    assert len(pure) == 11 and len(transport) == 3
+    assert all(path.is_file() and path.stat().st_file_attributes & 1 for path in pure + transport)
+    assert REVIEW.is_file() and REVIEW.stat().st_file_attributes & 1
+    actual = [REVIEW, *pure, *transport]
+    assert len(actual) == 15
+    for path in actual:
+        records.append(row(path, "new_zero_native_preflight"))
+    assert len(records) == 30
+    assert len({item["path"].casefold() for item in records}) == 30
+    return {"schema": "i04-var10-v101-preflight-custody/v1",
+            "accepted_parent_preflight_originals": 15,
+            "new_zero_native_preflight_originals": 15,
+            "mandatory_original_count": 30,
+            "outer_preflight_capture": {"path": str(OUTER), **OUTER_PIN,
+                                        "actual_exit": 0, "native_dispatch": False},
+            "records": records}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    args = parser.parse_args()
+    value = candidate()
+    data = encode(value)
+    if args.write:
+        assert not OUT.exists()
+        OUT.parent.mkdir(exist_ok=True)
+        with OUT.open("xb") as stream:
+            stream.write(data)
+    else:
+        assert OUT.read_bytes() == data
+    print(json.dumps({"schema": value["schema"], "records": len(value["records"]),
+                      "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+                      "written": args.write}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,27 @@
+"""Root original capture dispatch of frozen independent selfcheck; no native."""
+from pathlib import Path
+import hashlib, json, subprocess, sys
+R=Path(__file__).resolve().parents[1]
+P=R/'cases/simlox-air-support/I04-var10-horizon-in-transit-v1.0.1'
+F=R/'tmp/i04-var10-v101-author85-freeze-candidate-20261008.json'
+def pin(p):
+    b=p.read_bytes(); return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+assert pin(F)=={'bytes':32356,'sha256':'58d7b0a6abd5d6f267cbaf4ab98a932c00ebe4639b264a5951428163d30b5a72'}
+D=json.loads(F.read_text(encoding='utf-8-sig'))
+EXTRA={
+ 'review/independent_replay.py':(75172,'0109ac2d539c625e84df2db3f4c9bf1cb045ead2dfd5dc40765022cef46efea5'),
+ 'review/independent_self_check.py':(11506,'81f37f18ace9b70b343bbe4d8b4977e021d0937d3ca740fb31790b53ff05ba66'),
+ 'review/independent-method-static-go-2026-10-08.md':(3231,'82084665cde90f74edb924a9a010ac4989a3e7f69c5ab8bda3159ec4f8c9b1de')}
+def check():
+    assert len(D['source_files'])==85
+    for row in D['source_files']:
+        p=P/row['relative_path'];assert str(p)==row['path'] and p.stat().st_file_attributes & 1
+        assert pin(p)=={k:row[k] for k in ('bytes','sha256')}
+    for name,(size,digest) in EXTRA.items():
+        p=P/name;assert p.stat().st_file_attributes & 1
+        assert pin(p)=={'bytes':size,'sha256':digest}
+check()
+code=subprocess.run([sys.executable,'-X','utf8','-B',str(P/'review/independent_self_check.py'),],cwd=P).returncode
+check()
+raise SystemExit(code)
+
