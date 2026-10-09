@@ -1,0 +1,37 @@
+{
+  "schema": "i05-var07-prospective-report-oracle/v100",
+  "stage": "before_child_observation",
+  "parent_report": {
+    "path": "cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/runs/b04-v101-turnround-20260930-01/report-raw.json",
+    "bytes": 103976,
+    "sha256": "ea429a8c563f50256ca24168e8ae103222e5fe01918fbb52c40c6adf64a66897",
+    "approved_native_trailing_comma_marker_count": 1
+  },
+  "topology": {
+    "ordered_tables": ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"],
+    "problem_description": {"rows": 1, "columns": 1, "cells": 1},
+    "result_summary": {"rows": 1, "columns": 11, "cells": 11},
+    "system_results": {"rows": 72, "columns": 40, "cells": 2880},
+    "stock_total_results": {"rows": 72, "columns": 16, "cells": 1152},
+    "total_typed_cells": 4044
+  },
+  "exact_three_cell_patch": {
+    "table": "SystemResults",
+    "row_index_zero_based": 56,
+    "interval_hours": [28, 28.5],
+    "values": [
+      {"column": "NSYRY", "old": 1, "new": 0},
+      {"column": "NSYMA", "old": 0, "new": 1},
+      {"column": "NSYMT", "old": 0, "new": 1}
+    ]
+  },
+  "complete_predicate": "Use the accepted parent report's exact root/table/column/instance/row topology, metadata, field names, JSON types and all cell values, replacing only the three declared integer cells. Native child must match every one of the 4,044 cells and metadata type-exactly; no tolerance, coercion, extra key, row or table is permitted. This is a strict one-rep representation hypothesis, not a general law.",
+  "source_based_rationale": {
+    "shift": "Only the last half-hour of the second postmission turnround moves from the parent ready interval into the child maintenance/turnround interval. 27–28 remained maintenance in the accepted parent; 28.5–36 remains ready in the child.",
+    "summary": "Both unchanged two-hour missions still launch and succeed at the same times; no request/operation/mission count changes. Exact accepted summary representation remains a strict hypothesis.",
+    "stock": "No item demand, failure or replacement changes; all 72×16 stock cells remain an exact strict parent representation hypothesis. PNB is probability of no backorders and is not a physical on-hand ledger.",
+    "null_and_zero": "All other zero/null/system metrics and column metadata retain the accepted one-rep representation as a falsifiable hypothesis. Unknown metrics or any additional difference are NO_GO."
+  },
+  "native_decode_gate": "Raw report must be UTF-8 no BOM, exact CRLF grammar and one accepted terminal trailing comma marker at the tables-array close. Remove that one marker in memory only; reject duplicate keys and NaN/Infinity. Retain raw bytes/exit before parsing.",
+  "reject": ["bool for numeric zero or one", "null for nonnull cell", "nonfinite number", "changed summary or stock cell", "wrong SystemResults row", "wrong metadata key or datatype", "missing or duplicate table", "unexpected native trailing comma repair"]
+}

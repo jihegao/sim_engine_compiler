@@ -1,0 +1,28 @@
+"""Read actual Python mode/attributes/bytes of 144 frozen roles; no child process."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+M=R/'cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1/prelaunch-manifest.json'
+N=R/'tmp/i05-var07-native-v101-20261009-01'
+O=R/'tmp/i05-var07-root-source-mode-custody-proof-v101-20261009-01'
+def pin(p):
+ b=p.read_bytes();s=p.stat();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'mode':stat.S_IMODE(s.st_mode),'attributes':s.st_file_attributes}
+def guard(p):
+ for a in [p,*p.parents]:
+  assert not a.is_symlink() and not a.is_junction()
+  if a.exists():assert not a.stat().st_file_attributes&0x400
+assert pin(M)=={'bytes':58846,'sha256':'8d94a4def9075796d405f630dda7520e6ef60367668d5bbacd06115249af1d06','mode':292,'attributes':33}
+d=json.loads(M.read_bytes());assert d['source_count']==len(d['source_files'])==144
+assert not N.exists();guard(N);guard(O)
+rows=[]
+for row in d['source_files']:
+ p=Path(row['path']);assert p.is_absolute();guard(p)
+ actual=pin(p);expected={k:row[k] for k in ('bytes','sha256','mode','attributes')}
+ rows.append({'key':row['key'],'path':str(p),'actual':actual,'expected':expected,'match':actual==expected})
+assert len({r['key'] for r in rows})==144
+v={'schema':'i05-var07-root-source-mode-custody/v101','manifest_pin':pin(M),'rows':rows,'passed':all(r['match'] for r in rows),'native_directory_absent':not N.exists(),'native_dispatch':False,'child_processes':0}
+O.mkdir(exist_ok=False);P=O/'receipt.json'
+with P.open('xb') as f:f.write((json.dumps(v,indent=2)+'\n').encode())
+P.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(P),**pin(P),'passed':v['passed'],'checked':len(rows)}))
+assert v['passed'] and not N.exists()

@@ -1,0 +1,41 @@
+"""Freeze exact merged catalog Git bytes distinctly from current local CRLF bytes."""
+from pathlib import Path
+import hashlib, json, stat, subprocess
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/publication-index-v1.json'
+O = R / 'tmp/i05-var07-root-catalog-git-lf-v100-20261009-01'
+BASE = '120adb3d8912acfe9965ea04c939867721f3ede3'
+OID = '7da732e364f420137df80cdcf0ac01c8d9350a92'
+def pin(p):
+    s=p.stat(); b=p.read_bytes()
+    return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),
+            'mode':stat.S_IMODE(s.st_mode),'attributes':s.st_file_attributes}
+before = pin(C)
+assert (before['bytes'],before['sha256']) == (551394,'3946c8b0e849a2c4fec850e0866b3095a97db235def11682a7108a35bc081539')
+argv_oid = ['git','rev-parse',BASE+':cases/simlox-air-support/publication-index-v1.json']
+ref = subprocess.run(argv_oid,cwd=R,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+assert ref.returncode == 0 and ref.stderr == b'' and ref.stdout.strip().decode('ascii') == OID
+argv_blob = ['git','cat-file','blob',OID]
+blob = subprocess.run(argv_blob,cwd=R,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+assert blob.returncode == 0 and blob.stderr == b''
+assert (len(blob.stdout),hashlib.sha256(blob.stdout).hexdigest()) == (546569,'139dae3260e764a90c4f4d228a4fd34eda98c9b6baf17904ff0727ee08fc7fde')
+assert C.read_bytes() != blob.stdout and C.read_bytes().replace(b'\r\n',b'\n') == blob.stdout
+assert pin(C) == before and not O.exists()
+for a in (O.parent,*O.parent.parents):
+    assert not a.is_symlink() and not a.is_junction()
+    assert not getattr(a.stat(),'st_file_attributes',0) & 0x400
+O.mkdir()
+P=O/'publication-index-v1.git-lf.json'
+with P.open('xb') as f: f.write(blob.stdout)
+P.chmod(stat.S_IREAD)
+receipt={'schema':'i05-var07-root-catalog-git-archive/v100','base_commit':BASE,'blob_oid':OID,
+    'git_ref_argv':argv_oid,'git_ref_exit':ref.returncode,'git_ref_stdout_ascii':ref.stdout.decode('ascii'),
+    'git_blob_argv':argv_blob,'git_blob_exit':blob.returncode,'git_stderr_bytes':0,
+    'local_before':before,'local_after':pin(C),'archived_git_bytes':{'path':str(P),**pin(P)},
+    'literal_byte_equal':False,'crlf_normalized_bytes_equal':True,
+    'mode_basis':'stat.S_IMODE','native_dispatch':False}
+Q=O/'receipt.json'
+with Q.open('xb') as f: f.write((json.dumps(receipt,indent=2)+'\n').encode('utf-8'))
+Q.chmod(stat.S_IREAD)
+assert pin(C) == before
+print(json.dumps({'receipt':str(Q),**pin(Q),'archived_git_bytes':receipt['archived_git_bytes']}))

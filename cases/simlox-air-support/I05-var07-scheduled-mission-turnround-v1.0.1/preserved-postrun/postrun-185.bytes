@@ -1,0 +1,25 @@
+$ErrorActionPreference='Stop'
+$taskUtility='C:\Windows\System32\WindowsPowerShell\v1.0\Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1'
+$taskWitness='C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo\tmp\i05-var07-author-freeze-case-v101-20261009-01.json'
+$taskBefore=@(Get-Command Get-FileHash -ErrorAction SilentlyContinue | ForEach-Object { $_.Source })
+$taskModules=@(Get-Module -ListAvailable Microsoft.PowerShell.Utility | ForEach-Object {
+  [ordered]@{path=$_.Path;version=$_.Version.ToString()}
+})
+$taskImportError=$null
+$taskAfter=@()
+$taskWitnessHash=$null
+try {
+  Import-Module -Name $taskUtility -ErrorAction Stop
+  $taskAfter=@(Get-Command Get-FileHash -ErrorAction Stop | ForEach-Object { $_.Source })
+  $taskWitnessHash=(Get-FileHash -LiteralPath $taskWitness -Algorithm SHA256).Hash.ToLowerInvariant()
+} catch { $taskImportError=$_.Exception.Message }
+[ordered]@{schema='i05-var07-ps5-module-diagnostic/v100';utc=[DateTime]::UtcNow.ToString('o');
+  ps_major=$PSVersionTable.PSVersion.Major;session=(Get-Process -Id $PID).SessionId;
+  ssh_present=[bool]$env:SSH_CONNECTION;module_path=$env:PSModulePath;
+  initial_hash_commands=$taskBefore;available_utility_modules=$taskModules;
+  explicit_utility_path=$taskUtility;after_explicit_import=$taskAfter;
+  witness_sha256=$taskWitnessHash;import_error=$taskImportError;native_dispatch=$false
+} | ConvertTo-Json -Depth 5 -Compress
+if ($taskImportError -or $taskWitnessHash -cne '9f5ea717969fc2eb44907f1b2f8146552046e09a95ed6205b9245656a0c9f16b') {
+  exit 1
+}

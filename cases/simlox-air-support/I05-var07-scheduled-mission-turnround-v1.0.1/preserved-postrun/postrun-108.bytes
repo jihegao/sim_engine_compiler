@@ -1,0 +1,91 @@
+"""Absent-only exact source copy; root orchestration, no package or native invocation."""
+from pathlib import Path
+import hashlib
+import json
+import stat
+
+R = Path(__file__).resolve().parents[1]
+E = R / 'tmp/i05-var07-package-author-v101-20261009-01/package'
+C = R / 'cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1'
+F = R / 'tmp/i05-var07-author-freeze-case-v101-20261009-01.json'
+O = R / 'tmp/i05-var07-root-source-promotion-proof-v101-20261009-01'
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+def no_reparse(path):
+    assert path.is_absolute()
+    for node in (path, *path.parents):
+        assert not node.is_symlink() and not node.is_junction()
+        if node.exists():
+            assert not node.stat().st_file_attributes & 1024
+
+def original(path, expected):
+    no_reparse(path)
+    assert path.is_file() and pin(path) == expected
+    assert path.stat().st_file_attributes == 33
+    assert stat.S_IMODE(path.stat().st_mode) == 292
+
+assert pin(F) == {'bytes': 6475, 'sha256': '9f5ea717969fc2eb44907f1b2f8146552046e09a95ed6205b9245656a0c9f16b'}
+original(F, pin(F))
+freeze = json.loads(F.read_bytes())
+assert freeze['schema'] == 'i05-var07-author-freeze-case/v101'
+assert freeze['source_list_count'] == 40 and freeze['present_author_count'] == 37
+assert len(freeze['files']) == 37
+reviews = [
+    ('review/independent_reader.py', R / 'tmp/i05-var07-independent-reader-v101-final-20261009.py',
+     {'bytes': 47308, 'sha256': '08de752940946898ef04a2a8b19f161073890ac7a77270e6dc90f1cccd92312e'}),
+    ('review/independent_self_check.py', R / 'tmp/i05-var07-independent-selfcheck-v101-final-20261009.py',
+     {'bytes': 6189, 'sha256': '132551e21b621c7b428d83f1761c814fdfef641dc6df7ae22ec19d86a2147fed'}),
+    ('review/independent-static-go-2026-10-09.md', R / 'tmp/i05-var07-independent-static-go-v101-final-20261009.md',
+     {'bytes': 4847, 'sha256': '709dcb179b61269c642f7c94993f087d8857ebc957141627be949f6a634871ea'}),
+]
+assert freeze['reserved_review_paths'] == [rel for rel, _, _ in reviews]
+source_list = json.loads((E / 'source-list.json').read_bytes())
+assert pin(E / 'source-list.json') == {'bytes': 1526, 'sha256': 'bfee2a0c61d632324e8d3549264713293f0a3741985e8520f3fe35233a02ec42'}
+assert source_list['schema'] == 'i05-var07-owned-source-list/v101'
+names = source_list['files']
+assert len(names) == len(set(names)) == len({name.casefold() for name in names}) == 40
+sources = {row['path']: (E / row['path'], {key: row[key] for key in ('bytes', 'sha256')}) for row in freeze['files']}
+assert len(sources) == 37
+for rel, path, expected in reviews:
+    assert rel not in sources and not (E / rel).exists()
+    sources[rel] = (path, expected)
+assert set(sources) == set(names)
+for name in names:
+    assert not Path(name).is_absolute() and '..' not in Path(name).parts and Path(name).as_posix() == name
+    original(*sources[name])
+for path in (C, O, R / 'tmp/i05-var07-native-v100-20261009-01', R / 'tmp/i05-var07-native-v101-20261009-01'):
+    no_reparse(path)
+    assert not path.exists(), path
+O.mkdir()
+records = []
+failure = None
+try:
+    C.mkdir()
+    for name in names:
+        source, expected = sources[name]
+        target = C / name
+        no_reparse(target)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open('xb') as stream:
+            stream.write(source.read_bytes())
+        target.chmod(stat.S_IREAD)
+        original(target, expected)
+        records.append({'path': name, 'source': str(source), 'target': str(target), **expected})
+    assert len(records) == 40
+except BaseException as error:
+    failure = type(error).__name__ + ': ' + str(error)
+finally:
+    stable = all(pin(path) == expected and path.stat().st_file_attributes == 33 for path, expected in sources.values())
+    receipt = {'schema': 'i05-var07-root-source-promotion/v101', 'author_freeze': pin(F),
+               'canonical_case': str(C), 'files': records, 'copied_count': len(records),
+               'source_originals_stable': stable, 'failure': failure, 'native_dispatch': False,
+               'package_method_calls': 0, 'git_calls': 0}
+    with (O / 'receipt.json').open('xb') as stream:
+        stream.write((json.dumps(receipt, indent=2) + '\n').encode())
+    (O / 'receipt.json').chmod(stat.S_IREAD)
+    print(json.dumps({'receipt': str(O / 'receipt.json'), **pin(O / 'receipt.json'),
+                      'copied_count': len(records), 'source_originals_stable': stable, 'failure': failure}))
+assert failure is None and stable

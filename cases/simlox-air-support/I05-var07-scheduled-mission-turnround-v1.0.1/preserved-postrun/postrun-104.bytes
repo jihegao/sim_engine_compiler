@@ -1,0 +1,324 @@
+"""Read-only I05.var07 selection audit for root's original capture only."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import stat
+import subprocess
+from pathlib import Path
+
+
+REPO = Path(__file__).resolve().parents[2]
+CASES = REPO / "cases/simlox-air-support"
+MERGED_BASE = "120adb3d8912acfe9965ea04c939867721f3ede3"
+CATALOG = CASES / "publication-index-v1.json"
+CATALOG_PIN = (551394, "3946c8b0e849a2c4fec850e0866b3095a97db235def11682a7108a35bc081539")
+PRIOR_MAP = CASES / "I05-var04-scheduled-item-repair-v1.0.3/source-maps/root-selection-record.json"
+PRIOR_MAP_PIN = (9645, "57d53ce82f61d7408c33ab9380e6b5cf4921e93846bb470d7b3fd61b19004b25")
+PARENT = CASES / "B04-cross-midnight-turnround-v1.0.1"
+EXCLUDED = CASES / "B04-cross-midnight-turnround-v1.0.0"
+LIVE = REPO / "tmp/i05-var07-root-live-eligibility-v100-20261009-01.json"
+LIVE_PIN = (2184, "d2339daa9773dc4c2ff7f5c4fb47a669751d0a517c53fccb3f812a0544fd4995")
+MANUAL_SOURCES = CASES / "manual-sources-v2.json"
+MANUAL_SOURCES_PIN = (6199, "9f145c99fefe9cb751b763331ca983dc889f0fd4e003af3ac466efd25f5e5608")
+INSTALLED = {
+    "manual": (Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\SIMLOX.pdf"), "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3"),
+    "dictionary": (Path(r"C:\Program Files\Systecon\SIMLOX\UserDoc\Table relations\DatabaseDictionary_SIMLOX.txt"), "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"),
+    "executable": (Path(r"C:\Program Files\Systecon\SIMLOX\SIMLOX.exe"), "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0"),
+}
+SOURCE_PINS = {
+    ".gitattributes": (299, "9e98d970ec1a864b5618e8b7d50fc79051569d42a336d7f5efa6283c9556ff9e"),
+    ".gitignore": (7, "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933"),
+    "build.py": (2635, "144d44604f75b7a9ea8818ea137673085a4475cceb92ce85e854b29f829fab02"),
+    "check_roundtrip.py": (5173, "4923ec8f00c13ce66d7147103825a2fe5e70945c0fc82ca438520036c16874f1"),
+    "cli-scope-signoff-2026-09-30.md": (4051, "ba1c23cde50c706881c3d34da3c2d886ed6f43600e4e175a8681f82e122585ef"),
+    "contract.json": (2325, "d65cef9a589fef1234bc1d09c649c61af31190ea867c8d7c4a106aa43f1fb6ca"),
+    "control-input.json": (41773, "9cc5c39a6d2d93b98c03fc0c483bf90963a76e67be6953444003f30bfa8dd98c"),
+    "describe_diff.py": (2699, "7546e19231c11115bef13806b9c5addf076ec29d4fa109796e819ba340b0d7ae"),
+    "exact-diff.json": (3612, "b13bdadbeeda7c7a38bec265882eaee53e3d3d3546748a641f5d06d322942f17"),
+    "README.md": (3656, "84fa7a70c2a7b48fed96fe38ab7c7f2cb8fd2f21794ca5e414efcc1b9480da5d"),
+    "run_native_ssh.ps1": (12126, "1482ebb8fa2d5ac9bc5b52b962212319a07274c76806f4227bfd8e6fa9569bca"),
+    "turnround-input.json": (42867, "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5"),
+    "validate_native.py": (9179, "c48ec0e36ec42fb8929c3e156a0adfec1d4fc738bb7072e3123dddd4c9d61866"),
+    "review/author-native-validation-2026-09-30.json": (1126, "4d13b9e096a4f827a9ad0acf48772c8b906edad38f56636ffefb9a1adaa24832"),
+    "review/independent_turnround_readonly.py": (15648, "6f585f0e03c645a55b50b563d539124da276437c3e9a7126dcf88958e5012fbe"),
+    "review/independent-turnround-2026-09-30.json": (10407, "a3bf505aa878a33f5da64f386d47c7930140bb1284da1200f94bc228a73e1b80"),
+}
+RUNS = {
+    "control": ("b04-v101-control-20260930-01", (6992, "dae7fa3aaf8291bd4faeab30c7baf161e34e0fc7dfc629795325a3797b006495"), (5264, "c1c99765128e22ed73cba808fe019f1b943f95596f8ffb79aff8033781d609d4")),
+    "turnround": ("b04-v101-turnround-20260930-01", (7024, "5e6b7a048367f5305f41512f1e0bba6bf9c4a96aaf6df299b8e21831a125f938"), (5266, "85d25bd8fa2a053639ca9a93b3bbdd78a5c04e3db9a5d826e27998d500f95ae1")),
+}
+EXCLUDED_RUNS = {
+    "b04-control-20260930-01": ((6917, "a5f27381f127b25fc8e725fe3c5beec9cb15f28e5400a75e5c082e830a5e74b6"),
+                                    (5259, "3f9ecc3d8f8996c9302feb5c978c88dde3406815762bff1105ecbf55675938c3")),
+    "b04-turnround-20260930-01": ((6949, "e9b62a7a9a3a4d54e56e1bc436609977eb964c8694efd864827535d2d296bf55"),
+                                      (5261, "5a4c8fec29cfce302b7f02a54067af03810b12d19b99f3a2a65da97b6d272d14")),
+}
+B02_PARENT_INPUT_SHA = "fc9e80de0ac8515f3d3a7fe4a2c9aa916bce23ba5b05e13e2f69857230d9dc34"
+REQUIRED_PUBLICATIONS = {
+    "B01.fixed_prep.1.0.1", "B02.serial_prep.1.0.2",
+    "B04.cross_midnight_turnround.1.0.1", "D01.installed_lru.1.0.0",
+    "D03.calendar_pm.1.0.0", "D06.position_direct_cm.1.0.0",
+    "E05.local_reissue.1.0.0",
+    "H02.var01.primary_lru_damage_local_replacement_repairable_fixed_seed.1.0.0",
+}
+
+
+def digest(blob: bytes) -> str:
+    return hashlib.sha256(blob).hexdigest()
+
+
+def snap(path: Path) -> dict:
+    assert path.is_file() and not path.is_symlink(), path
+    info = path.stat()
+    return {"bytes": info.st_size, "sha256": digest(path.read_bytes()),
+            "mode": stat.S_IMODE(info.st_mode),
+            "attributes": getattr(info, "st_file_attributes", None)}
+
+
+def pin(path: Path, expected: tuple[int, str]) -> dict:
+    value = snap(path)
+    assert (value["bytes"], value["sha256"]) == expected, path
+    return value
+
+
+def no_duplicate(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for key, value in pairs:
+        assert key not in result, key
+        result[key] = value
+    return result
+
+
+def load(path: Path, *, receipt_bom: bool = False) -> dict:
+    data = path.read_bytes()
+    if receipt_bom:
+        assert data.startswith(b"\xef\xbb\xbf"), path
+        data = data[3:]
+        assert not data.startswith(b"\xef\xbb\xbf"), path
+    else:
+        assert not data.startswith(b"\xef\xbb\xbf"), path
+    obj = json.loads(data.decode("utf-8"), object_pairs_hook=no_duplicate,
+                     parse_constant=lambda x: (_ for _ in ()).throw(AssertionError(x)))
+    assert type(obj) is dict, path
+    return obj
+
+
+def same(a: object, b: object) -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(same(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(same(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def git(*args: str) -> bytes:
+    proc = subprocess.run(["git", *args], cwd=REPO, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, check=False)
+    assert proc.returncode == 0, (args, proc.stderr.decode("utf-8", "replace")[:500])
+    return proc.stdout
+
+
+def pair(path: Path, expected: tuple[int, str], oid_expected: str | None = None) -> dict:
+    rel = path.relative_to(REPO).as_posix()
+    before = pin(path, expected)
+    oid = git("rev-parse", f"{MERGED_BASE}:{rel}").decode("ascii").strip()
+    assert len(oid) == 40
+    if oid_expected is not None:
+        assert oid == oid_expected, rel
+    blob = git("cat-file", "blob", oid)
+    assert (len(blob), digest(blob)) == expected and blob == path.read_bytes(), rel
+    assert snap(path) == before, rel
+    return {"path": rel, "oid": oid, **before}
+
+
+def run_check(role: str, run_id: str, invocation_pin: tuple[int, str],
+              closure_pin: tuple[int, str]) -> tuple[list[dict], dict]:
+    base = PARENT / "runs" / run_id
+    inv_path, clo_path = base / "invocation.json", base / "closure.json"
+    inv_before, clo_before = pin(inv_path, invocation_pin), pin(clo_path, closure_pin)
+    inv, closure = load(inv_path, receipt_bom=True), load(clo_path, receipt_bom=True)
+    assert inv["run_id"] == closure["run_id"] == run_id
+    assert closure["invocation_sha256"] == invocation_pin[1]
+    assert closure["error"] is None
+    assert same(closure["source_hashes_before"], closure["source_hashes_after"])
+    source = closure["source_hashes_before"]
+    assert source["input"] == SOURCE_PINS["control-input.json" if role == "control" else "turnround-input.json"][1]
+    assert source["parent"] == B02_PARENT_INPUT_SHA
+    for name, rel in {"contract": "contract.json",
+                      "builder": "build.py", "checker": "check_roundtrip.py",
+                      "runner_script": "run_native_ssh.ps1"}.items():
+        assert source[name] == SOURCE_PINS[rel][1], (role, name)
+    assert len(closure["raw"]) == 12
+    assert closure["raw"]["input.json"]["sha256"] == source["input"]
+    rows = []
+    for name, expected in closure["raw"].items():
+        assert Path(name).name == name
+        path = base / name
+        before = pin(path, (expected["bytes"], expected["sha256"]))
+        rows.append({"run_role": role, "name": name, "path": str(path), **before})
+    assert snap(inv_path) == inv_before and snap(clo_path) == clo_before
+    return rows, {"run_id": run_id,
+                  "invocation_path": str(inv_path), "invocation": inv_before,
+                  "closure_path": str(clo_path), "closure": clo_before,
+                  "source_hashes": source}
+
+
+def excluded_v100() -> tuple[list[dict], list[dict]]:
+    """Keep current v1.0.0 raw identities separate; they are not accepted behavior."""
+    records, receipts = [], []
+    for run_id, (inv_pin, closure_pin) in EXCLUDED_RUNS.items():
+        base = EXCLUDED / "runs" / run_id
+        inv_path, closure_path = base / "invocation.json", base / "closure.json"
+        inv_before, closure_before = pin(inv_path, inv_pin), pin(closure_path, closure_pin)
+        inv, closure = load(inv_path, receipt_bom=True), load(closure_path, receipt_bom=True)
+        assert inv["run_id"] == run_id
+        assert closure["run_id"] == run_id and closure["publication_state"] == "not_published"
+        assert closure["invocation_sha256"] == inv_pin[1]
+        assert same(closure["source_hashes_before"], closure["source_hashes_after"])
+        assert len(closure["raw"]) == 12
+        for name, expected in closure["raw"].items():
+            path = base / name
+            records.append({"run_id": run_id, "name": name, "path": str(path),
+                            **pin(path, (expected["bytes"], expected["sha256"]))})
+        assert snap(inv_path) == inv_before and snap(closure_path) == closure_before
+        receipts.append({"run_id": run_id, "accepted": False,
+                         "invocation_path": str(inv_path), "invocation": inv_before,
+                         "closure_path": str(closure_path), "closure": closure_before})
+    assert len(records) == 24
+    return records, receipts
+
+
+def main() -> None:
+    assert LIVE is not None and LIVE_PIN is not None  # no unpinned live source
+    assert REPO.name == "repo" and Path(git("rev-parse", "--show-toplevel").decode().strip()).resolve() == REPO
+    pin(LIVE, LIVE_PIN)
+    live = load(LIVE)
+    assert live["candidate"] == "I05.var07" and live["tracked_tree_clean"] is True
+    assert live["refs"]["refs/heads/simlox/main"] == MERGED_BASE
+    assert live["open_simlox_main_prs"] == []
+    pin(CATALOG, CATALOG_PIN)
+    catalog = load(CATALOG)
+    assert catalog["schema"] == "simlox-air-support-publication-index/v1"
+    entries = catalog["entries"]
+    assert type(entries) is list and len(entries) == 505
+    ids = [r["publication_id"] for r in entries]
+    assert len(ids) == len(set(ids)) and set(ids) >= REQUIRED_PUBLICATIONS
+    assert ids[-1] == "I05.var04.scheduled_item_repair.1.0.3"
+    assert not any(ident.startswith("I05.var07.") for ident in ids)
+    entry = next(r for r in entries if r["publication_id"] == "B04.cross_midnight_turnround.1.0.1")
+    assert entry["package"] == PARENT.name
+    assert entry["evidence"] == f"{PARENT.name}/cli-scope-signoff-2026-09-30.md"
+    git_oid = git("rev-parse", f"{MERGED_BASE}:cases/simlox-air-support/publication-index-v1.json").decode().strip()
+    git_catalog = git("cat-file", "blob", git_oid)
+    assert CATALOG.read_bytes().replace(b"\r\n", b"\n") == git_catalog
+    assert CATALOG.read_bytes() != git_catalog
+
+    pin(PRIOR_MAP, PRIOR_MAP_PIN)
+    prior = load(PRIOR_MAP)
+    assert prior["decision"] == "PASS_CANDIDATE_DEPENDENCY_BYTES_ONLY"
+    assert prior["native_calls"] == prior["accepted_checker_calls"] == 0
+    assert len(prior["source_pairs"]) == 21
+    dependency_pairs = []
+    for row in prior["source_pairs"]:
+        dependency_pairs.append({"role": row["role"], **pair(REPO / row["path"],
+            (row["bytes"], row["sha256"]), row["git_oid"])})
+    assert len({r["role"] for r in dependency_pairs}) == len({r["path"] for r in dependency_pairs}) == 21
+
+    accepted_sources = [pair(PARENT / rel, expected) for rel, expected in SOURCE_PINS.items()]
+    assert len(accepted_sources) == 16 and len({r["path"] for r in accepted_sources}) == 16
+    no_turnround = load(PARENT / "control-input.json")
+    selected_parent = load(PARENT / "turnround-input.json")
+    assert all(t["name"] != "MissionTurnround" for t in no_turnround["model"]["tables"])
+    turnround_tables = [t for t in selected_parent["model"]["tables"] if t["name"] == "MissionTurnround"]
+    assert len(turnround_tables) == 1
+    assert [c["name"] for c in turnround_tables[0]["columns"]] == [
+        "MTID", "SID", "STID", "DURN", "TID", "DURND", "NOTE"]
+    assert turnround_tables[0]["instances"][0]["rows"] == [
+        ["BASIC-MISSION", "TEACH-AIR-01", "BASE-01", 1.0, None, None, None]]
+    contract = load(PARENT / "contract.json")
+    assert contract["case_id"] == "B04" and contract["version"] == "1.0.1"
+    assert contract["configuration"]["turnround_variant"].endswith("no resources or subtasks")
+    independent = load(PARENT / "review/independent-turnround-2026-09-30.json")
+    assert independent["passed"] is True and independent["failed_count"] == 0
+    assert independent["passed_count"] == 72 and independent["failed"] == []
+    signoff = (PARENT / "cli-scope-signoff-2026-09-30.md").read_text(encoding="utf-8")
+    assert "native_behavior_accepted" in signoff and "paired" in signoff
+    assert RUNS["control"][2][1] in signoff and RUNS["turnround"][2][1] in signoff
+    accepted_raw, accepted_runs = [], []
+    for role, (run_id, invocation_pin, closure_pin) in RUNS.items():
+        rows, summary = run_check(role, run_id, invocation_pin, closure_pin)
+        accepted_raw.extend(rows)
+        accepted_runs.append({"role": role, **summary})
+    assert len(accepted_raw) == 24 and len({r["path"] for r in accepted_raw}) == 24
+    excluded_raw, excluded_receipts = excluded_v100()
+
+    pin(MANUAL_SOURCES, MANUAL_SOURCES_PIN)
+    manual = load(MANUAL_SOURCES)
+    manual_hash = {r["source_id"]: r["sha256"] for r in manual["sources"]}
+    assert manual_hash["SIMLOX-2017-USERS-REFERENCE"] == INSTALLED["manual"][1]
+    assert manual_hash["SIMLOX-2017-TABLE-DICTIONARY"] == INSTALLED["dictionary"][1]
+    installed = {}
+    for role, (path, expected_sha) in INSTALLED.items():
+        before = snap(path)
+        assert before["sha256"] == expected_sha and snap(path) == before
+        installed[role] = {"path": str(path), **before}
+    assert installed["executable"]["sha256"] == accepted_runs[1]["source_hashes"]["simlox_exe"]
+    assert pin(CATALOG, CATALOG_PIN)["sha256"] == CATALOG_PIN[1]
+    assert pin(PRIOR_MAP, PRIOR_MAP_PIN)["sha256"] == PRIOR_MAP_PIN[1]
+    protected = [(LIVE, pin(LIVE, LIVE_PIN)), (CATALOG, pin(CATALOG, CATALOG_PIN)),
+                 (PRIOR_MAP, pin(PRIOR_MAP, PRIOR_MAP_PIN)),
+                 (MANUAL_SOURCES, pin(MANUAL_SOURCES, MANUAL_SOURCES_PIN))]
+    protected.extend((REPO / row["path"], {k: row[k] for k in ("bytes", "sha256", "mode", "attributes")})
+                     for row in dependency_pairs + accepted_sources)
+    protected.extend((Path(row["path"]), {k: row[k] for k in ("bytes", "sha256", "mode", "attributes")})
+                     for row in accepted_raw + excluded_raw)
+    for run in accepted_runs + excluded_receipts:
+        protected += [(Path(run["invocation_path"]), run["invocation"]),
+                      (Path(run["closure_path"]), run["closure"])]
+    protected.extend((Path(row["path"]), {k: row[k] for k in ("bytes", "sha256", "mode", "attributes")})
+                     for row in installed.values())
+    by_path: dict[str, tuple[Path, dict]] = {}
+    for path, before in protected:
+        key = str(path.resolve()).casefold()
+        if key in by_path:
+            assert by_path[key][1] == before, path  # prior dependency and B04 role aliases
+        else:
+            by_path[key] = (path, before)
+    for path, before in by_path.values():
+        assert snap(path) == before, path
+    print(json.dumps({
+        "schema": "i05-var07-root-selection-byte-audit/v100",
+        "decision": "ELIGIBLE_FOR_PROSPECTIVE_CONTRACT_REVIEW_ONLY",
+        "catalog_entries": 505,
+        "catalog_local": {"path": str(CATALOG), **snap(CATALOG)},
+        "catalog_git": {"oid": git_oid, "bytes": len(git_catalog), "sha256": digest(git_catalog)},
+        "candidate_published": False,
+        "required_publications": sorted(REQUIRED_PUBLICATIONS),
+        "prior_dependency_pairs": dependency_pairs,
+        "accepted_parent_source_pairs": accepted_sources,
+        "selected_parent_arm": {"role": "B04 turnround, not B04 no-turnround control",
+                                "path": str(PARENT / "turnround-input.json"),
+                                "sha256": SOURCE_PINS["turnround-input.json"][1],
+                                "roundtrip_turnround_duration_hours": 1.0,
+                                "turnround_subtask_id": None},
+        "accepted_parent_runs": accepted_runs,
+        "accepted_parent_raw_originals": accepted_raw,
+        "accepted_parent_raw_count": 24,
+        "excluded_v100_raw_observed": excluded_raw,
+        "excluded_v100_raw_count": len(excluded_raw),
+        "excluded_v100_receipts_observed": excluded_receipts,
+        "excluded_v100_receipt_count": 4,
+        "protected_original_count": len(by_path),
+        "role_reference_count": len(protected),
+        "installed_sources": installed,
+        "native_calls": 0, "accepted_checker_calls": 0,
+        "meaning": "source/byte eligibility only; no I05.var07 behavior accepted",
+    }, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

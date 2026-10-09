@@ -1,0 +1,51 @@
+"""Root absent-only promotion of independent signed bounded postrun files."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1'
+M=C/'prelaunch-manifest.json'
+O=R/'tmp/i05-var07-root-postrun-promotion-proof-v101-20261009-01'
+PAIRS=[(R/'tmp/i05-var07-independent-postrun-go-v101-20261009.json',C/'review/independent-postrun-go.json',1651,'7caaa82b20f14513aa43c0b6b22e79989816a6a8aa854c25e5a83bf1bbd570fd'),(R/'tmp/i05-var07-independent-postrun-scope-go-v101-20261009.md',C/'review/independent-postrun-scope-2026-10-09.md',2956,'df47e99607596e5c8f8f4b167947dcbdb86a14c57f27e7b5f872445604ac58b2')]
+def pin(p):
+ b=p.read_bytes();s=p.stat();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'mode':stat.S_IMODE(s.st_mode),'attributes':s.st_file_attributes}
+def guard(p):
+ assert p.is_absolute()
+ for a in [p,*p.parents]:
+  assert not a.is_symlink() and not a.is_junction()
+  if a.exists():assert not a.stat().st_file_attributes&0x400
+for p in (M,O):guard(p)
+assert not O.exists()
+assert pin(M)=={'bytes':58846,'sha256':'8d94a4def9075796d405f630dda7520e6ef60367668d5bbacd06115249af1d06','mode':292,'attributes':33}
+manifest=json.loads(M.read_bytes());assert len(manifest['source_files'])==144
+for s,t,size,sha in PAIRS:
+ guard(s);guard(t);assert not t.exists()
+ assert pin(s)=={'bytes':size,'sha256':sha,'mode':292,'attributes':33}
+A=json.loads(PAIRS[0][0].read_bytes())
+assert A['decision']=='GO_BOUNDED_POSTRUN' and A['schema']=='i05-var07-independent-postrun-go/v101'
+assert A['manifest_sha256']==pin(M)['sha256'] and A['run_id']==manifest['run_id'] and A['native_calls']==1
+D=R/'tmp/i05-var07-root-command-proofs-v102-20261009/i05-var07-v101-canonical-postrun-review-20261009T055411719573Z-ec57eb1e/receipt.json'
+guard(D);assert pin(D)=={'bytes':1889,'sha256':'6702f028f2cda7be069fd107f0275d5ef6a391069c98e0f2a65e1df8c3855a3f','mode':292,'attributes':33}
+audit=json.loads(D.read_bytes());assert audit['actual_exit']==0 and type(audit['actual_exit']) is int and audit['native_dispatch'] is False and audit['method_before']==audit['method_after']
+for name,expected in audit['streams'].items():
+ guard(D.parent/name);actual=pin(D.parent/name);assert {k:actual[k] for k in ('bytes','sha256')}==expected and actual['attributes']==33
+assert (D.parent/'stderr.bin').read_bytes()==b''
+assert json.loads((D.parent/'stdout.bin').read_bytes())=={'decision':'GO_BOUNDED','authored_cells':211,'export_cells':374,'physical_lines':115,'timed_lines':107,'report_cells':4044,'raw_files':25}
+for row in manifest['source_files']:guard(Path(row['path']))
+before={row['key']:pin(Path(row['path'])) for row in manifest['source_files']}
+for row in manifest['source_files']:assert before[row['key']]=={k:row[k] for k in ('bytes','sha256','mode','attributes')}
+O.mkdir(exist_ok=False);copied=[];error=None
+try:
+ for s,t,size,sha in PAIRS:
+  guard(s);guard(t)
+  with t.open('xb') as f:f.write(s.read_bytes())
+  t.chmod(stat.S_IREAD);guard(t);assert pin(t)==pin(s)
+  copied.append({'source':str(s),'target':str(t),'pin':pin(t)})
+except Exception as exc:error=repr(exc)
+for row in manifest['source_files']:guard(Path(row['path']))
+after={row['key']:pin(Path(row['path'])) for row in manifest['source_files']}
+receipt={'schema':'i05-var07-root-postrun-promotion/v101','audit_receipt':str(D),'audit_pin':pin(D),'copied':copied,'source_before':before,'source_after':after,'source_stable':before==after,'error':error,'native_dispatch':False}
+P=O/'receipt.json'
+with P.open('xb') as f:f.write((json.dumps(receipt,indent=2)+'\n').encode())
+P.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(P),**pin(P),'source_stable':before==after,'copied':len(copied),'error':error}))
+assert error is None and before==after and len(copied)==2

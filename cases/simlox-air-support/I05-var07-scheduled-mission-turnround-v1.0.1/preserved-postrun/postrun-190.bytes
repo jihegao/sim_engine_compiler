@@ -1,0 +1,63 @@
+{
+  "schema": "i05-var07-root-static-source-nogo/v100",
+  "observed_at_utc": "2026-10-09T05:01:24.9773092Z",
+  "decision": "STATIC_NO_GO",
+  "case": "I05-var07-scheduled-mission-turnround-v1.0.0",
+  "logical_run_id": "i05-var07-turnround-v100-ssh-20261009-01",
+  "physical_run_path": "tmp/i05-var07-native-v100-20261009-01",
+  "observation": "Root full source read and PowerShell JSON metadata inspection; no package method invocation",
+  "native_dispatch": false,
+  "package_method_invocations": 0,
+  "ssh_preflight_invocations": 0,
+  "actual_failed_invocation": null,
+  "failed_exit_code": null,
+  "findings": [
+    {
+      "file": "source_gate.py",
+      "function": "git_pairs",
+      "expected_roles": 37,
+      "observed_unique_paths": 35,
+      "defect": "asserts 37 unique source paths despite two agreeing B04 aliases",
+      "recovery": "retain 37 references, deduplicate 35 paths, verify every alias identity and each unique Git blob"
+    },
+    {
+      "file": "source_gate.py",
+      "function": "verify",
+      "defect": "catalog accesses id absent from all publication-index entries",
+      "recovery": "validate exact entry shape, string publication_id and uniqueness"
+    }
+  ],
+  "preserved_pins": [
+    {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i05-var07-author-freeze-case-v100-20261009-01.json",
+      "bytes": 6474,
+      "sha256": "92a612a9821ae04c78c26f71684e66751c5ea6975e8b71917a4bce538c9ea182",
+      "attributes": 33
+    },
+    {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i05-var07-package-author-v100-20261009-01\\package\\source_gate.py",
+      "bytes": 9024,
+      "sha256": "69905b92608a255e18a44d9246dc10b9393bfea51cc3cf3278a8acb6f9dd8807",
+      "attributes": 33
+    },
+    {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i05-var07-package-author-v100-20261009-01\\package\\source-list.json",
+      "bytes": 1526,
+      "sha256": "b288d1e39c1b394c9a3e0fcddbde73c672e872004767c3cbe7d71a7f7717022c",
+      "attributes": 33
+    },
+    {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i05-var07-package-author-v100-20261009-01\\package\\source-maps\\root-selection-record.json",
+      "bytes": 35711,
+      "sha256": "83896d1ba886926df481d4ae2f6addb0c9f1dba7fd6a7065e8df18e022d9a593",
+      "attributes": 33
+    },
+    {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\publication-index-v1.json",
+      "bytes": 551394,
+      "sha256": "3946c8b0e849a2c4fec850e0866b3095a97db235def11682a7108a35bc081539",
+      "attributes": 32
+    }
+  ],
+  "recovery": "Distinct frozen case v1.0.1 and v101 run/directory, unchanged prospective artifacts, independent changed-source review and fresh guards before any execution"
+}

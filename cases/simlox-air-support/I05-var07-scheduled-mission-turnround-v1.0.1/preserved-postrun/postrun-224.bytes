@@ -1,0 +1,231 @@
+"""Create one finite, external I05.var07 publication proof plan.
+
+This only reads pinned prior captures. It never calls SIMLOX, a case checker,
+Git, SSH, or a package method. Root owns execution and any later promotion.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+COMMAND_BASE = "tmp/i05-var07-root-command-proofs-"
+OUTER_BASE = "tmp/i04-var09-root-review-proofs-v100-20261008/"
+
+# These are the closed capture identities. The fourth command is an actual
+# pre-native PS5 environment failure. All other command captures exited zero.
+COMMAND = (
+    ("v101-20261009", "i05-var07-v101-local-build-20261009T052024256662Z-bd02050e", 1591, "03fe4932a51763221efd23a17dc4294d9b23b0eca6e37f37a31bf86467738f83", "i05-var07-root-local-build-spec-v101-20261009-01.json"),
+    ("v101-20261009", "i05-var07-v101-local-self-check-20261009T052027328725Z-efb6ab91", 1596, "bd1340e1f7d9f9c25abe6316c23380eb62689aad3680f54b11ca3fcfb362040e", "i05-var07-root-local-self-check-spec-v101-20261009-01.json"),
+    ("v101-20261009", "i05-var07-v101-local-source-gate-20261009T052021251190Z-a354c8ea", 1599, "13a18355928b16cc1de6bc9642319f067d526d0d1a039dfd56f91e1c3cd15054", "i05-var07-root-local-source-gate-spec-v101-20261009-01.json"),
+    ("v101-20261009", "i05-var07-v101-local-test-converter-gate-20261009T052028277047Z-03e084c9", 1609, "6dce369d4cb4a29e4e8fac2242846b2c1f9adc5603bcb7fa592bd33b17cf2807", "i05-var07-root-local-test-converter-gate-spec-v101-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-independent-pure-20261009T053901735221Z-e3528c77", 1679, "5e91ac57594573faa1d69a7f0263d57c95fff21ee0abe1dbbfd002d982f0f993", "i05-var07-root-canonical-independent-pure-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-independent-selfcheck-20261009T053852656357Z-1f35962f", 1668, "6a2ad1abf288fee9318a61ba9d6e4644f470dcda0371623f57a7c6975056dc91", "i05-var07-root-canonical-independent-selfcheck-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-inventory-build-20261009T053430101398Z-dce47489", 1816, "ccd6365c3c19e6e19fcf4a521a3387fbe1dca18f910fb72f67c1b29f64e7bd3a", "i05-var07-root-canonical-inventory-build-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-inventory-review-20261009T053440333555Z-7fd25c2a", 1833, "a1a4579490b0693e728a215a0d8758886f0a4553005605b667a056e61ff72a09", "i05-var07-root-canonical-inventory-review-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-manifest-build-20261009T053702429742Z-0daa48d7", 1817, "789cb953d778d5441ba81641da3789c4bef2f231b14e37af5f06c43431399854", "i05-var07-root-canonical-manifest-build-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-manifest-review-20261009T053717391769Z-a4e3071e", 1831, "e4953f134cab4a4326cacbac7306f2860f088b12f69db2fa6c5fcce0256947a3", "i05-var07-root-canonical-manifest-review-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-native-20261009T055155603050Z-182d7517", 1664, "2832e798208b2fffce40e4741ce22e902e0eb421c90676d401a68ae86a8e348a", "i05-var07-root-canonical-native-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-postrun-review-20261009T055411719573Z-ec57eb1e", 1889, "6702f028f2cda7be069fd107f0275d5ef6a391069c98e0f2a65e1df8c3855a3f", "i05-var07-root-canonical-postrun-review-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-preflight-review-20261009T054556148018Z-ea5dfec9", 1684, "00079da041d9e99b24e93169aff9bc0c553d938991d283e397027bf739105e32", "i05-var07-root-canonical-preflight-review-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-canonical-ssh-preflight-20261009T054418641858Z-8a6f1c6d", 1668, "234b18e192805e147d345ab2c149e7bf5773be049550c520f88d72206bb4e5d3", "i05-var07-root-canonical-ssh-preflight-spec-v102-20261009-01.json"),
+    ("v102-20261009", "i05-var07-v101-converter-ps5-system-modules-v102-20261009T052612431382Z-309a4f30", 1726, "a2c8d1685ec088c9413d70b6009079d7b9cb63892c53bdbc771348462dbce0af", "i05-var07-root-local-converter-ps5-recovery-spec-v102-20261009-01.json"),
+)
+
+# Three direct audit outputs have no nested receipt. The other eighteen have
+# an explicitly pinned inner receipt in the captured stdout.
+OUTER = (
+    ("i05-var07-catalog-git-lf-source-archive-20261009T043850352595Z-89bf7248", 1365, "aaf7fe68dd1b6c09ba1d8728021a759462fadd35046e4898a83b798b0a9fd62a", True),
+    ("i05-var07-external-construction-fresh-guard-20261009T044320027212Z-d21d27c2", 1363, "f6d0930a3e1173bbe4832f8d690b46b169ca6a7161a69b6a9e15a4e4cfd5227a", True),
+    ("i05-var07-independent-prospective-four-artifact-audit-20261009T043452729677Z-5fda4ba7", 1374, "305bf44f862b33d3654ff5099a5028e2e9b55d48d38d8591a3ecfd8c2165afbb", False),
+    ("i05-var07-prospective-pure-materialization-first-child-20261009T043331271222Z-1ca9d470", 1365, "cc87dc24934810be735988824450212a4ccdb996e5187b9ecdf2a5ffb71407d6", True),
+    ("i05-var07-python-runtime-before-package-freeze-20261009T044855222996Z-36343d8f", 1362, "04791e4598af8d2d648ca37df546744322ad6ba38e98705800024922449238e1", False),
+    ("i05-var07-selection-guard-20261009T041210231952Z-630e7bb4", 1363, "6a08680fa65b360e87ec796599ab3a725728645733fd16741ad56cb57fe44511", True),
+    ("i05-var07-selection-source-eligibility-only-20261009T041820202154Z-8f14ac75", 1386, "6fc0bd3d321f86ffe0fa34d9fcf6b29b833364fed6dc0e679a55f435d55a1b94", False),
+    ("i05-var07-v101-absent-only-source-promotion-20261009T052901578414Z-bda5d724", 1361, "2526b7b70f26ad80bb86840a9cb76322a237b1c0a4dcdaf74009709571ce9450", True),
+    ("i05-var07-v101-actual-mode-custody-20261009T054158881485Z-81093210", 1365, "1f9228a3cce1054a13db0ea61f7201365cba02cda14f59e3b5b081565952178a", True),
+    ("i05-var07-v101-after-mode-before-preflight-guard-20261009T054407158785Z-719bd0f8", 1363, "9e68284209b32d7c4f3ece27755d3ff73a1f2b930624ae6a50bb890633e4b7af", True),
+    ("i05-var07-v101-after-native-before-recovery-guard-20261009T055251270378Z-07dc38b3", 1363, "2a638cf3da5ff7328284f217314fc3880cc76e3ab141ed41456e9eb7e2eb4311", True),
+    ("i05-var07-v101-before-canonical-gates-guard-20261009T053419184668Z-3e2627d6", 1363, "fc87d61e5aeaac4d0a2012f027d55cc90e0a4e6618628a90816e4dbecc39b7fd", True),
+    ("i05-var07-v101-before-native-guard-20261009T055144512718Z-83c5fcb3", 1363, "ceb89bfae627932e38887c7b0e45239264421a3b57274f1c40ff656d4206f242", True),
+    ("i05-var07-v101-before-source-promotion-guard-20261009T052842417466Z-745ddabe", 1363, "bdd163c93703473c18929045e233d474e4d54dd35e477d58b2a5579bee68be9c", True),
+    ("i05-var07-v101-before-ssh-preflight-guard-20261009T053950015811Z-8ff0a3be", 1363, "c83d3ee943e6bf8a217612ce0bb71d58c9814811de9caa1a2411875bc260d7df", True),
+    ("i05-var07-v101-inventory-byte-promotion-v103-20261009T053653997538Z-d8d1fc49", 1363, "e3ce7d25720dd92dcb9e82cc85027ca1f89b471510c3d31f56d141455b7d87b1", True),
+    ("i05-var07-v101-manifest-byte-promotion-v101-20261009T053843245272Z-6d5094d9", 1362, "0fa2950e583045283c4c4846db71a21739c198f2dc73f6913669b871bc081fb1", True),
+    ("i05-var07-v101-native-byte-recovery-20261009T055302258082Z-9b4916d6", 1360, "5fb37842c5e58649e0778f390ebe6fe9d198a629cb600b8e3a39b8a486ca2964", True),
+    ("i05-var07-v101-postrun-signoff-byte-promotion-20261009T055905125990Z-9c31d579", 1361, "3e284b1b8b3d4c01f65877270051242c13720830355d01065154b4cb94fba5c0", True),
+    ("i05-var07-v101-prelaunch-byte-promotion-20261009T055121579069Z-9a8c1519", 1363, "98347048b944bc2c708a705ed815a3b6325de32d5d00077f27b3978a717508d7", True),
+    ("i05-var07-v101-static-review-fresh-guard-20261009T050545479845Z-50d8be78", 1363, "9f3f279762a1f5fb452d8f534a526dc71c2de58305a358909ae312cb5ca7db8e", True),
+)
+
+DIAGNOSTIC = ("tmp/i05-var04-root-command-proofs-v103-20261009/i05-var07-ps5-module-diagnostic-local-20261009T052342879849Z-725a7d69", 1589, "30b8e069957e34a5679d4412afc99181112f4d0c6f1ed72544cbce6d076c480b")
+SEALS = (
+    ("v100_author_freeze", "tmp/i05-var07-author-freeze-case-v100-20261009-01.json", 6474, "92a612a9821ae04c78c26f71684e66751c5ea6975e8b71917a4bce538c9ea182"),
+    ("v101_author_freeze", "tmp/i05-var07-author-freeze-case-v101-20261009-01.json", 6475, "9f5ea717969fc2eb44907f1b2f8146552046e09a95ed6205b9245656a0c9f16b"),
+    ("v100_static_no_go", "tmp/i05-var07-root-static-nogo-v100-20261009-01.json", 2975, "65528d82ad38be5c1f52c3b0635570b11863fb85b5de4e4a369f25d7031376c7"),
+    ("local_custody_before", "tmp/i05-var07-root-local-custody-before-v101-20261009-01.json", 60493, "4c3b6b85d7e4028ff13b2e605fed46ba2ab40e97d5afd3c3370694168705b491"),
+    ("local_custody_after", "tmp/i05-var07-root-local-custody-after-v101-20261009-01.json", 60479, "f0bfadadaf02dd6834b40f28aea4c23cb57a109f8d3aed8f36ff9e06efdedcf4"),
+    ("ps5_environment_failure_recovery", "tmp/i05-var07-root-local-environment-failure-recovery-seal-v101-20261009-01.json", 5444, "82dbae9cdd8df7383610be22f8d6ea62c923caaf7d307bdffbbb7c4e70f50b27"),
+    ("predispatch_mode_failure", "tmp/i05-var07-root-predispatch-mode-check-failure-v101-20261009-01.json", 1038, "93a207d3fe96446151c37e2bf1be00faa9e6a969e1c270b791010c93a36855b6"),
+    ("signed_postrun_go", "tmp/i05-var07-independent-postrun-go-v101-20261009.json", 1651, "7caaa82b20f14513aa43c0b6b22e79989816a6a8aa854c25e5a83bf1bbd570fd"),
+    ("signed_scope", "tmp/i05-var07-independent-postrun-scope-go-v101-20261009.md", 2956, "df47e99607596e5c8f8f4b167947dcbdb86a14c57f27e7b5f872445604ac58b2"),
+    ("postrun_promotion", "tmp/i05-var07-root-postrun-promotion-proof-v101-20261009-01/receipt.json", 56990, "51fecfba1bf35ac3dcde6d78f32c60936a58ce2f0c56706d51b78a90303acf9e"),
+)
+
+def controlled(path: Path) -> Path:
+    absolute = path.absolute()
+    assert absolute.is_relative_to(REPO)
+    cursor = absolute
+    while cursor != REPO.parent:
+        if cursor.exists():
+            assert not cursor.is_symlink()
+            if hasattr(cursor, "is_junction"):
+                assert not cursor.is_junction()
+            assert not (getattr(cursor.stat(), "st_file_attributes", 0) & 0x400)
+        cursor = cursor.parent
+    return absolute
+
+def pin(path: Path, bytes: int | None = None, sha256: str | None = None) -> dict:
+    path = controlled(path)
+    assert path.is_file() and path.stat().st_mode & stat.S_IWRITE == 0
+    attributes = getattr(path.stat(), "st_file_attributes", 0)
+    assert attributes & 1
+    data = path.read_bytes()
+    actual = {"path": str(path), "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+              "mode": stat.S_IMODE(path.stat().st_mode), "attributes": attributes}
+    if bytes is not None:
+        assert actual["bytes"] == bytes
+    if sha256 is not None:
+        assert actual["sha256"] == sha256
+    return actual
+
+def recheck(value: object) -> None:
+    if type(value) is dict:
+        if {"path", "bytes", "sha256", "mode", "attributes"} <= value.keys():
+            again = pin(Path(value["path"]), value["bytes"], value["sha256"])
+            assert again == value
+        else:
+            for item in value.values():
+                recheck(item)
+    elif type(value) is list:
+        for item in value:
+            recheck(item)
+
+def json_file(path: Path) -> dict:
+    return json.loads(path.read_bytes().decode("utf-8"))
+
+def triplet(folder: Path, size: int, sha: str) -> tuple[dict, dict]:
+    rp = folder / "receipt.json"
+    record = pin(rp, size, sha)
+    receipt = json_file(rp)
+    for name in ("stdout.bin", "stderr.bin"):
+        target = receipt["streams"][name]
+        record[name] = pin(folder / name, target["bytes"], target["sha256"])
+    assert receipt["method_before"] == receipt["method_after"]
+    return record, receipt
+
+def extra_inner(stdout: Path, mandatory: bool) -> dict | None:
+    try:
+        body = json.loads(stdout.read_bytes().decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        body = None
+    if not isinstance(body, dict) or "receipt" not in body:
+        assert not mandatory
+        return None
+    assert mandatory
+    path = controlled(Path(body["receipt"]))
+    assert path.is_relative_to(REPO / "tmp")
+    result = pin(path, body["bytes"], body["sha256"])
+    inner = json_file(path)
+    if "streams" in inner:
+        for name in ("stdout.bin", "stderr.bin"):
+            target = inner["streams"][name]
+            result[name] = pin(path.parent / name, target["bytes"], target["sha256"])
+    if inner.get("schema") == "i04-var06-publication-guard/v100":
+        assert inner["actual_exit"] == 0 and inner["native_dispatch"] is False
+        assert inner["guard_before"] == inner["guard_after"]
+        result["guard_script"] = pin(Path(inner["argv"][-1]), **inner["guard_before"])
+    return result
+
+def command_stage(version: str, name: str, size: int, sha: str, spec_name: str) -> dict:
+    folder = REPO / (COMMAND_BASE + version) / name
+    evidence, receipt = triplet(folder, size, sha)
+    assert receipt["schema"] == f"i05-var07-root-command-proof/{version[:4]}"
+    assert receipt["actual_exit"] == (1 if "local-test-converter-gate" in name else 0)
+    assert receipt["native_dispatch"] is ("canonical-native-" in name)
+    argv = receipt["argv"]
+    method_index = 5 if Path(argv[0]).stem.lower() == "powershell" else 4
+    method = pin(Path(argv[method_index]), **receipt["method_before"]["method"])
+    capture_name = f"i05-var07-root-command-capture-{version[:4]}-20261009.py"
+    capture = pin(REPO / "tmp" / capture_name, **receipt["method_before"]["capture"])
+    spec = pin(REPO / "tmp" / spec_name, **receipt["method_before"]["spec"])
+    return {"name": name, "kind": "root_command", "actual_exit": receipt["actual_exit"],
+            "native_dispatch": receipt["native_dispatch"], "originals": evidence,
+            "method": method, "capture": capture, "spec": spec}
+
+def outer_stage(name: str, size: int, sha: str, has_inner: bool) -> dict:
+    folder = REPO / OUTER_BASE / name
+    evidence, receipt = triplet(folder, size, sha)
+    assert receipt["schema"] == "issue18-i04-var09-root-review-proof/v100"
+    assert receipt["actual_exit"] == 0 and receipt["native_dispatch"] is False
+    argv = receipt["argv"]
+    method = pin(Path(argv[4]), **receipt["method_before"]["review_method"])
+    capture = pin(REPO / "tmp/i04-var09-root-review-capture-v100-20261008.py",
+                  **receipt["method_before"]["root_capture"])
+    inner = extra_inner(folder / "stdout.bin", has_inner)
+    return {"name": name, "kind": "generic_outer", "actual_exit": 0,
+            "native_dispatch": False, "originals": evidence, "method": method,
+            "capture": capture, "inner": inner}
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--candidate", required=True)
+    args = parser.parse_args()
+    destination = controlled(Path(args.candidate))
+    assert destination.parent == REPO / "tmp" and not destination.exists()
+    assert len(COMMAND) == 15 and len(OUTER) == 21
+    stages = [command_stage(*row) for row in COMMAND]
+    stages += [outer_stage(*row) for row in OUTER]
+    folder = REPO / DIAGNOSTIC[0]
+    diagnostic, receipt = triplet(folder, DIAGNOSTIC[1], DIAGNOSTIC[2])
+    assert receipt["actual_exit"] == 0 and receipt["native_dispatch"] is False
+    stages.append({"name": folder.name, "kind": "ps5_diagnostic", "actual_exit": 0,
+                   "native_dispatch": False, "originals": diagnostic,
+                   "method": pin(Path(receipt["argv"][5]), **receipt["method_before"]["method"]),
+                   "capture": pin(REPO / "tmp/i05-var04-root-command-capture-v103-20261009.py",
+                                  **receipt["method_before"]["capture"]),
+                   "spec": pin(REPO / "tmp/i05-var07-root-ps5-diagnostic-spec-v100-20261009-01.json",
+                               **receipt["method_before"]["spec"])})
+    assert len(stages) == 37
+    seals = [{"role": role, **pin(REPO / relative, size, sha)} for role, relative, size, sha in SEALS]
+    environment_seal = json_file(REPO / "tmp/i05-var07-root-local-environment-failure-recovery-seal-v101-20261009-01.json")
+    assert environment_seal["native_dispatch"] is False and environment_seal["native_runs"] == 0
+    assert len(environment_seal["private_clone_files"]) == 11
+    clone_pins = [pin(Path(row["path"]), row["bytes"], row["sha256"])
+                  for row in environment_seal["private_clone_files"]]
+    assert len({row["path"] for row in clone_pins}) == 11
+    record = {"schema": "i05-var07-fixed-publication-proof-plan/v101",
+              "package": "I05-var07-scheduled-mission-turnround-v1.0.1",
+              "run_id": "i05-var07-turnround-v101-ssh-20261009-01",
+              "root_command_capture_count": 15, "generic_outer_capture_count": 21,
+              "ps5_diagnostic_capture_count": 1, "native_dispatch_capture_count": 1,
+              "failed_local_environment_capture_count": 1,
+              "stages": stages, "sealed_context": seals,
+              "private_clone_pins": clone_pins,
+              "pure_mutant_payload_policy": "Eleven host-only pins from the PS5 recovery seal; do not bulk-copy clone payloads.",
+              "publication_policy": "Original host proofs remain mandatory. Later publication captures require a distinct supplement."}
+    recheck(record)
+    encoded = (json.dumps(record, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+    with destination.open("xb") as handle:
+        handle.write(encoded)
+    os.chmod(destination, stat.S_IREAD)
+    print(json.dumps({"decision": "FINITE_PLAN_CANDIDATE_ONLY", "path": str(destination),
+                      "bytes": len(encoded), "sha256": hashlib.sha256(encoded).hexdigest(),
+                      "stages": len(stages), "native_dispatch_capture_count": 1}))
+
+if __name__ == "__main__":
+    main()

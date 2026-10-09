@@ -1,0 +1,94 @@
+"""One prospective pure child; packet byte/attribute custody, never SSH/native/Git."""
+from pathlib import Path
+import datetime as dt
+import hashlib, json, stat, subprocess, sys
+
+R = Path(__file__).resolve().parents[1]
+P = R / 'tmp/i05-var07-contract-author-v100-20261009-01'
+F = P / 'prospective-freeze-v100.json'
+G = R / 'tmp/i05-var07-independent-source-eligibility-go-v100-20261009.json'
+M = P / 'materialize_prospective_v101.py'
+O = R / 'tmp/i05-var07-oracle-materialization-v101-20261009-01'
+Q = R / 'tmp/i05-var07-root-pure-proof-v102-20261009-01'
+A = R / 'tmp/i05-var07-independent-pure-method-go-v100-20261009.json'
+
+def snapshot(p):
+    assert p.is_file() and not p.is_symlink() and not p.is_junction(), p
+    for a in p.parents:
+        assert not a.is_symlink() and not a.is_junction()
+        assert not getattr(a.stat(), 'st_file_attributes', 0) & 0x400
+    s = p.stat(); b = p.read_bytes()
+    return {'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest(),
+            'mode': stat.S_IMODE(s.st_mode), 'attributes': s.st_file_attributes}
+
+def pin(p, count, sha):
+    v = snapshot(p)
+    assert (v['bytes'], v['sha256']) == (count, sha), p
+    assert (v['mode'], v['attributes']) == (292, 33), p
+    return v
+
+assert len(sys.argv) == 1
+freeze = pin(F, 2072, '3e5d9f96527554a58b9f4d43bf64fa44f36de4577992b1bf5a864c894c48fa3f')
+source_go = pin(G, 2520, 'eeec49da9cde34c15a11d07c07544e71f1047544a3aa519b8ef62878afd3095c')
+roster = json.loads(F.read_bytes())['active_ordered_sources']
+assert len(roster) == 6 and len({x['path'] for x in roster}) == 6
+assert {x['path'] for x in roster} == {'source-delta-v100.json', 'event-oracle-v100.json',
+    'report-oracle-v101.json', 'materialize_prospective_v101.py',
+    'prospective-contract-v100.json', 'README-prospective-v100.md'}
+before = {str(F): freeze, str(G): source_go,
+    str(A): pin(A, 4018, '5b41e6de54ec273aee94d7e21df43a2c34db5f07dab1b7924a252e373b9cf9a9')}
+for row in roster:
+    p = P / row['path']; assert p.parent == P
+    before[str(p)] = pin(p, row['bytes'], row['sha256'])
+assert before[str(M)]['sha256'] == '3e1d6f21d659820d433b34c4b577476edbde0fe23363bfb07bdd44f67c7ad0f0'
+parent = R / 'cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1'
+parent_pins = {
+    'turnround-input.json': (42867, '9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5'),
+    'runs/b04-v101-turnround-20260930-01/roundtrip-raw.json': (58901, 'f16c59e16c7fadbf52a94fced3a15d389abeac647301601a434fb16dca8f2677'),
+    'runs/b04-v101-turnround-20260930-01/model.log': (9088, 'ea2cd9cd124b499f69674a9bb8a70d44ec2ab9ffa0fa8b602f34b45f9e37163e'),
+    'runs/b04-v101-turnround-20260930-01/report-raw.json': (103976, 'ea429a8c563f50256ca24168e8ae103222e5fe01918fbb52c40c6adf64a66897'),
+}
+for name, (count, sha) in parent_pins.items():
+    p = parent / name; v = snapshot(p)
+    assert (v['bytes'], v['sha256']) == (count, sha), p
+    assert (v['mode'], v['attributes']) == (438, 32), p
+    before[str(p)] = v
+assert len(before) == 13
+assert not O.exists() and not Q.exists()
+for a in (Q.parent, *Q.parent.parents):
+    assert not a.is_symlink() and not a.is_junction()
+    assert not getattr(a.stat(), 'st_file_attributes', 0) & 0x400
+Q.mkdir()
+argv = [sys.executable, '-X', 'utf8', '-B', str(M)]
+start = dt.datetime.now(dt.timezone.utc).isoformat()
+with (Q/'stdout.bin').open('xb') as out, (Q/'stderr.bin').open('xb') as err:
+    code = subprocess.run(argv, cwd=R, stdout=out, stderr=err).returncode
+for n in ('stdout.bin', 'stderr.bin'): (Q/n).chmod(stat.S_IREAD)
+after = {p: snapshot(Path(p)) for p in before}
+outputs = {}
+if O.exists():
+    assert O.is_dir() and not O.is_symlink() and not O.is_junction()
+    for p in O.iterdir():
+        outputs[p.name] = snapshot(p)
+streams = {n: snapshot(Q/n) for n in ('stdout.bin', 'stderr.bin')}
+failure = None
+if code != 0: failure = 'Pure child exit was not zero'
+elif before != after: failure = 'Frozen packet byte/mode/attribute drift'
+elif streams['stderr.bin']['bytes'] != 0: failure = 'Pure child stderr was nonempty'
+elif set(outputs) != {'prospective-input.json', 'expected-export.json', 'expected-model.log',
+                        'expected-report.json', 'materialization-receipt.json'}:
+    failure = 'Pure output roster mismatch'
+elif any((v['mode'], v['attributes']) != (292, 33) for v in outputs.values()):
+    failure = 'Pure output not frozen RO33'
+receipt = {'schema': 'i05-var07-root-pure-packet-capture/v102', 'argv': argv,
+    'started_utc': start, 'completed_utc': dt.datetime.now(dt.timezone.utc).isoformat(),
+    'actual_exit': code, 'before': before, 'after': after,
+    'mode_basis': 'stat.S_IMODE', 'streams': streams, 'outputs': outputs,
+    'native_dispatch': False, 'ssh_dispatch': False, 'git_dispatch': False,
+    'failure': failure, 'decision': 'PASS_PURE_ONLY' if failure is None else 'NO_GO_PRESERVED'}
+with (Q/'receipt.json').open('xb') as f:
+    f.write((json.dumps(receipt, indent=2) + '\n').encode('utf-8'))
+for p in Q.iterdir(): p.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(Q/'receipt.json'), **snapshot(Q/'receipt.json'),
+                 'actual_exit': code, 'decision': receipt['decision'], 'failure': failure}))
+assert failure is None, failure

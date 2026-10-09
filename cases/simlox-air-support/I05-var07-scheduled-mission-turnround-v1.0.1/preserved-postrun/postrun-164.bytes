@@ -1,0 +1,43 @@
+"""Root byte recovery of the unique completed native directory, no child process."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1'
+RUN_ID='i05-var07-turnround-v101-ssh-20261009-01'
+N=R/'tmp/i05-var07-native-v101-20261009-01'
+T=C/'runs'/RUN_ID
+O=R/'tmp/i05-var07-root-native-recovery-proof-v101-20261009-01'
+ALLOWED=set('input.json model.sxi import.log import-stdout.txt import-stderr.txt roundtrip-raw.json export.log export-stdout.txt export-stderr.txt roundtrip-validation.json check_import_export-stderr.txt model.sxo model.log model-run.log calc-stdout.txt calc-stderr.txt report-raw.json report-export.log jsonreport-stdout.txt jsonreport-stderr.txt author-validation.json check_behavior-stderr.txt steps.json invocation.json closure.json failure-seal.json'.split())
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def guard(p):
+ assert p.is_absolute()
+ for a in [p,*p.parents]:
+  assert not a.is_symlink() and not a.is_junction()
+  if a.exists():assert not a.stat().st_file_attributes&0x400
+for p in (N,T,O):guard(p)
+assert N.is_dir() and not T.exists() and not O.exists()
+files=sorted(N.iterdir());assert files and all(p.is_file() and p.name in ALLOWED for p in files)
+assert 'closure.json' in {p.name for p in files} or 'failure-seal.json' in {p.name for p in files}
+for p in files:guard(p)
+before={p.name:pin(p) for p in files}
+O.mkdir(exist_ok=False);T.mkdir(parents=True,exist_ok=False)
+error=None;copied=[]
+try:
+ for p in files:
+  p.chmod(stat.S_IREAD)
+  assert pin(p)==before[p.name] and p.stat().st_file_attributes==33
+  q=T/p.name;guard(q)
+  with q.open('xb') as f:f.write(p.read_bytes())
+  q.chmod(stat.S_IREAD)
+  assert pin(q)==before[p.name] and q.stat().st_file_attributes==33
+  copied.append(p.name)
+except Exception as exc:error=repr(exc)
+after={p.name:pin(p) for p in files}
+for p in files:guard(p)
+receipt={'schema':'i05-var07-root-native-recovery/v101','run_id':RUN_ID,'original':str(N),'recovered':str(T),'before':before,'after':after,'source_stable':before==after,'copied':copied,'failure':error,'native_dispatch':False,'child_processes':0}
+P=O/'receipt.json'
+with P.open('xb') as f:f.write((json.dumps(receipt,indent=2)+'\n').encode())
+P.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(P),**pin(P),'source_stable':before==after,'files':len(copied),'failure':error}))
+assert error is None and before==after and len(copied)==len(files)

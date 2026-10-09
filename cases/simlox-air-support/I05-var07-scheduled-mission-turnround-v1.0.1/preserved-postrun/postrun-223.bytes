@@ -1,0 +1,117 @@
+"""Create an absent external catalog-506 candidate; never edit shared catalog."""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+TMP = REPO / "tmp/i05-var07-publication-author-v101-20261009-01"
+CASE = REPO / "cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1"
+CURRENT = REPO / "cases/simlox-air-support/publication-index-v1.json"
+LOCAL = CASE / "source-maps/catalog-local-505.json.bytes"
+GIT = CASE / "source-maps/catalog-git-505.json.bytes"
+ENTRY = TMP / "publication-entry.json"
+OUT = TMP / "catalog-506-candidate.json.bytes"
+LOCAL_PIN = (551394, "3946c8b0e849a2c4fec850e0866b3095a97db235def11682a7108a35bc081539")
+GIT_PIN = (546569, "139dae3260e764a90c4f4d228a4fd34eda98c9b6baf17904ff0727ee08fc7fde")
+ENTRY_PIN = (2058, "868dd893304f15f2f62ca2b70b568f9c27e9be1ff01697f175d0aab860c9e119")
+GO_PIN = "7caaa82b20f14513aa43c0b6b22e79989816a6a8aa854c25e5a83bf1bbd570fd"
+PUB_ID = "I05.var07.scheduled_mission_turnround.1.0.1"
+
+def guard(path: Path, absent: bool = False) -> None:
+    assert path.is_absolute() and path.is_relative_to(REPO)
+    assert not path.exists() if absent else path.is_file()
+    for part in (path, *path.parents):
+        if part.exists():
+            assert not part.is_symlink()
+            if hasattr(part, "is_junction"):
+                assert not part.is_junction()
+            assert not (getattr(part.stat(), "st_file_attributes", 0) & 0x400)
+    assert path.parent.resolve(strict=True).is_relative_to(REPO.resolve(strict=True))
+
+def seal(path: Path, readonly: bool = True) -> tuple[int, str]:
+    guard(path)
+    if readonly:
+        assert path.stat().st_mode & stat.S_IWRITE == 0
+    body = path.read_bytes()
+    return len(body), hashlib.sha256(body).hexdigest()
+
+def unique(pairs: list[tuple[str, object]]) -> dict:
+    value = {}
+    for key, item in pairs:
+        assert key not in value, key
+        value[key] = item
+    return value
+
+def strict_json(path: Path) -> dict:
+    value = json.loads(path.read_bytes(), object_pairs_hook=unique,
+                       parse_constant=lambda token: (_ for _ in ()).throw(ValueError(token)))
+    assert type(value) is dict
+    return value
+
+def typed_equal(a: object, b: object) -> bool:
+    if type(a) is not type(b):
+        return False
+    if type(a) is dict:
+        return a.keys() == b.keys() and all(typed_equal(a[k], b[k]) for k in a)
+    if type(a) is list:
+        return len(a) == len(b) and all(typed_equal(x, y) for x, y in zip(a, b, strict=True))
+    return a == b
+
+def render(document: dict) -> bytes:
+    return (json.dumps(document, ensure_ascii=False, indent=2) + "\n").replace("\n", "\r\n").encode("utf-8")
+
+def checked_id(row: dict) -> str:
+    assert type(row) is dict
+    for key in ("publication_id", "case_id", "version", "package", "evidence", "scope"):
+        assert key in row and type(row[key]) is str and row[key]
+    return row["publication_id"]
+
+def build() -> bytes:
+    assert seal(LOCAL) == LOCAL_PIN
+    assert seal(GIT) == GIT_PIN and GIT_PIN != LOCAL_PIN
+    assert seal(CURRENT, readonly=False) == LOCAL_PIN
+    assert seal(ENTRY) == ENTRY_PIN
+    baseline, git, current, entry = [strict_json(p) for p in (LOCAL, GIT, CURRENT, ENTRY)]
+    assert typed_equal(baseline, git) and typed_equal(baseline, current)
+    assert render(baseline) == LOCAL.read_bytes() == CURRENT.read_bytes()
+    assert set(current) == {"schema", "as_of", "catalog_snapshot", "entry_publication_state", "meaning", "entries"}
+    assert current["schema"] == "simlox-air-support-publication-index/v1"
+    assert current["as_of"] == "2026-10-09"
+    assert current["entry_publication_state"] == "reusable_published"
+    assert type(current["entries"]) is list and len(current["entries"]) == 505
+    prior = [checked_id(row) for row in current["entries"]]
+    assert len(set(prior)) == 505 and PUB_ID not in prior
+    assert checked_id(entry) == PUB_ID
+    assert entry["case_id"] == "I05" and entry["variant_id"] == "I05.var07"
+    assert entry["version"] == "1.0.1" and entry["publication_state"] == "reusable_published"
+    assert type(entry["new_native_runs"]) is int and entry["new_native_runs"] == 1
+    assert type(entry["accepted_parent_runs_repeated"]) is int and entry["accepted_parent_runs_repeated"] == 0
+    assert entry["independent_postrun_go_sha256"] == GO_PIN
+    amended = dict(current)
+    amended["as_of"] = "2026-10-09"
+    amended["entries"] = [*current["entries"], entry]
+    assert len(amended["entries"]) == 506
+    assert all(typed_equal(a, b) for a, b in zip(amended["entries"][:505], current["entries"], strict=True))
+    assert all(typed_equal(amended[k], current[k]) for k in current if k not in {"entries", "as_of"})
+    return render(amended)
+
+def main() -> None:
+    assert OUT.parent == TMP
+    guard(OUT, absent=True)
+    body = build()
+    with OUT.open("xb") as handle:
+        handle.write(body)
+    os.chmod(OUT, stat.S_IREAD)
+    assert seal(OUT) == (len(body), hashlib.sha256(body).hexdigest())
+    print(json.dumps({"schema": "i05-var07-catalog-506-candidate/v101",
+                      "path": str(OUT), "bytes": len(body),
+                      "sha256": hashlib.sha256(body).hexdigest(),
+                      "baseline_entries": 505, "candidate_entries": 506,
+                      "shared_catalog_written": False, "native_dispatch": False}, sort_keys=True))
+
+if __name__ == "__main__":
+    main()
