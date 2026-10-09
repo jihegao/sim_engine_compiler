@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-i05-var01-v100-independent-method-no-go/v1",
+  "review_date": "2026-10-09",
+  "decision": "NO_GO_METHOD_ONLY",
+  "reviewer": "a17_static_reviewer",
+  "reviewed_contract": {
+    "path": "../I05-var01-scheduled-cm-location-v1.0.0/contract.json",
+    "sha256": "0cca61b1c92d7f1c998908875330148a4144296c2180ca0c56373073c61f53f7"
+  },
+  "reviewed_native_input": {
+    "path": "../I05-var01-scheduled-cm-location-v1.0.0/native-input.json",
+    "sha256": "57c85c325ed1ed72f96a6ef5b459a568c8d3ff34aab75248dedee2b023d193ed"
+  },
+  "reviewed_event_oracle": {
+    "path": "../I05-var01-scheduled-cm-location-v1.0.0/event-oracle.json",
+    "sha256": "0a40a074f0ca96a979d6926d24c07f33a129a15c0b9fee5beeac2eabab8f1173"
+  },
+  "reviewed_report_oracle": {
+    "path": "../I05-var01-scheduled-cm-location-v1.0.0/report-oracle.json",
+    "sha256": "1f3b8289ee336d108a9cdc13c4e54347c875eeb54224e20bc761f717e93b7dd6"
+  },
+  "findings": [
+    "No executable accepted-parent and synthetic-child positive controls or wrong-arm negative controls.",
+    "Four event templates do not define a closed full-log grammar.",
+    "The 4044-cell report topology lacks a typed per-cell predicate map and explicit full SystemResults, StockTotalResults, and ResultSummary comparisons.",
+    "Aggregate statements do not define an executable reconciliation method."
+  ],
+  "execution_state": {
+    "ssh_preflight_calls": 0,
+    "native_calls": 0,
+    "gui_actions": 0,
+    "run_directory_exists": false
+  },
+  "recovery_condition": "Freeze a new version with separate parent/child event grammars, full-line synthetic positive and wrong-arm negatives, a pinned typed parent-report projection, explicit child row projections for the four duration windows, and an executable full-cell replay. Obtain a new independent contract GO before runner/prelaunch review or any native call."
+}

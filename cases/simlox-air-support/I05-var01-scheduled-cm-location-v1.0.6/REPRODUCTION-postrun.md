@@ -1,0 +1,11 @@
+# Replay-only reproduction
+
+This v1.0.6 package contains no native runner. It must not launch SIMLOX or rerun accepted D06. The source model is byte-identical to the original v1.0.5 native input; v105 native status remains NO_GO. The separate replay identity is i05-var01-cmloc-v106-replay-20261010-01.
+
+Full replay needs the exact host-bound accepted D06 raw parent files in parent-evidence-pins.json and the26 sealed observed v105 original or recovered files in evidence-reference.json. Verify byte lengths/SHA256 and original/recovered equality/read-only attributes first. The full original/recovered trees, installed proprietary manual and executables are preserved on4700-3; they are not shipped in this repository. Missing or mismatched evidence is an explicit unavailable reproduction condition; synthetic method controls are not native evidence.
+
+Using the hash-bound tooling Python, run independent_reader.py --self-check for22 pure method controls, then independent_reader.py --arm child --model-log <sealed model.log> --report <sealed report-raw.json>. Capture stdout/stderr outside raw directories and verify raw hashes before/after. check_roundtrip.py <sealed run directory> checks authored input/export identity; independent acceptance additionally checks exact264 authored cells and metadata. These commands only read source/raw files and do not invoke the native program.
+
+The report parser normalizes trailing commas only in a private buffer. Preserve original bytes. All128 event lines,18 declared substitutions,4044 report cells and metadata,72 System/Stock bins, two completed repairs, repair occupancy3h, two start-registered downtimes totaling3h, one-of-three mission successes, terminal ready1/in-repair0 and zero stock demand/backorders remain asserted. SYDT/NSYDT are derived from completed downtime starts per pinned manual645-646; continuation bins do not get copied samples.
+
+The source-selection publication-index snapshot is preserved separately. The live publication index may advance only after independent acceptance/delivery review; it is not an input to the postrun reader. Frozen v105 launch manifests remain historical execution evidence and must not be edited or reused to rerun the occupied run ID. Current GUI-only functions are outside Issue18 scope; cross-engine/performance and wider variant behavior are unverified.

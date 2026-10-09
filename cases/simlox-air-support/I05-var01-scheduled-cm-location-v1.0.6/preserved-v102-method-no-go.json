@@ -1,0 +1,110 @@
+{
+  "schema": "simlox-i05-var01-method-no-go-preservation/v1",
+  "case_id": "I05",
+  "variant_id": "I05.var01",
+  "version": "1.0.2",
+  "decision": "NO_GO_METHOD_ONLY",
+  "reviewer": "a17_static_reviewer",
+  "review_basis": "independent static review; no source edits, package checker, SSH, accepted checker, GUI, or native tool executed",
+  "finding": {
+    "id": "duration_negative_controls_do_not_isolate_duration_literals",
+    "detail": "wrong_child_duration_negative mutates the priority-list line into an unrelated subtask-start line; wrong_parent_duration_negative mutates a subtask completion-time line. Neither changes only a planned work-duration literal.",
+    "required_repair": "Mutate the exact parent and child task_0_subtask_duration lines, change only the duration token, assert unique target, preserved line count and byte-identical non-target lines, and prove rejection."
+  },
+  "reviewer_recomputed": {
+    "event_substitutions": 18,
+    "unique_parent_line_positions": [
+      37,
+      "45-52",
+      113,
+      "121-128"
+    ],
+    "parent_log_lines": 128,
+    "parent_report_typed_cells": 4044,
+    "projected_rows": 6,
+    "reconciliation": {
+      "NFAIL": 2,
+      "NREPT": 2,
+      "NSYRP_hours": 3.0,
+      "terminal_ready": 1
+    },
+    "recursive_typed_comparator": true,
+    "source_manifest_file_pins_match": 12,
+    "v100_v101_preserved": true
+  },
+  "preserved_contract": {
+    "bytes": 6546,
+    "sha256": "efaf4d429f48630b23afeece7cc8010b81a05e8c2e3171da5d5c2dca5917d507"
+  },
+  "preserved_method_source_manifest": {
+    "bytes": 2202,
+    "sha256": "84ce14a1411ca14e1cb1185910f0dd52eefb53960d1b58f4d8fd42fa42c5b95f"
+  },
+  "preserved_source_files": [
+    {
+      "path": "README.md",
+      "bytes": 1163,
+      "sha256": "ead4b5877a1f4c4bf501d8797f1f1ebb0c8a31ab47b3752de4d4d6d68e38e159"
+    },
+    {
+      "path": "build.py",
+      "bytes": 4816,
+      "sha256": "386c76f284dd9f9804b0e1ffb44fb5d8120eb0ab25232cd857962e332cfc0830"
+    },
+    {
+      "path": "freeze_parent_projection.py",
+      "bytes": 3093,
+      "sha256": "905b60175bdaae1314a7500b9c9946f9f840b26dfe0f6d5f22bc1136a2994b3e"
+    },
+    {
+      "path": "independent_reader.py",
+      "bytes": 18548,
+      "sha256": "6d995ba5c963ed7b7510ccf3ba69699dacc3f7ea9cfc827ebdaf7b3b5ed2fb6a"
+    },
+    {
+      "path": "native-input.json",
+      "bytes": 47799,
+      "sha256": "57c85c325ed1ed72f96a6ef5b459a568c8d3ff34aab75248dedee2b023d193ed"
+    },
+    {
+      "path": "parent-diff.json",
+      "bytes": 932,
+      "sha256": "8e577c933c0b47ca7319ca90891e6bddea3ff7069fecd645aea3c86dccc4cb84"
+    },
+    {
+      "path": "parent-evidence-pins.json",
+      "bytes": 1026,
+      "sha256": "d8c4bffd6b73488954ae044c304946a6a7cc4877c3252f32ec5be50117720b04"
+    },
+    {
+      "path": "event-oracle.json",
+      "bytes": 6449,
+      "sha256": "443a9a428e7d0e97164183f42ce19e3248aa9b7adf0ca067cc9d46878c25bb87"
+    },
+    {
+      "path": "report-oracle.json",
+      "bytes": 5139,
+      "sha256": "15cbd0b0b2c8ee186d9a9836481ff2de8127188fa7d50f172dec26c0107a68fa"
+    },
+    {
+      "path": "parent-report-projection.json",
+      "bytes": 16873,
+      "sha256": "8c196d26e438ddd9828b209e9f52e7181780ad1c02a61e175f1bca1210011a50"
+    },
+    {
+      "path": "preserved-v100-method-no-go.json",
+      "bytes": 1866,
+      "sha256": "1408af7b67775d2bade05613dddcf83903c42e0b31c5305822eb6f606f840f18"
+    },
+    {
+      "path": "preserved-v101-method-no-go.json",
+      "bytes": 3391,
+      "sha256": "d3dfb7f61f3fccbf58c1fff32454bfee2efbb632c8b0325c326abc190be63112"
+    }
+  ],
+  "ssh_preflight_calls": 0,
+  "native_calls": 0,
+  "runner_present": false,
+  "native_run_directory_present": false,
+  "recovery_condition": "Keep v1.0.2 unchanged and excluded. A distinct version must add exact duration-only parent and child negatives with mutation-target assertions, pass independent static review, then obtain fresh PS5/SSH prelaunch GO before any native run."
+}

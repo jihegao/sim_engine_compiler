@@ -1,0 +1,72 @@
+{
+  "schema": "simlox-i05-var01-v101-independent-method-no-go/v1",
+  "review_date": "2026-10-09",
+  "decision": "NO_GO_METHOD_ONLY",
+  "reviewer": "a17_static_reviewer",
+  "reviewed_version": "1.0.1",
+  "reviewed_contract_sha256": "079fd63fb0d8d2ba2238049d52ae9ff4187c2c360b2ea536c93d7fd591bf7359",
+  "reviewed_source_files": {
+    "build.py": {
+      "bytes": 4816,
+      "sha256": "386c76f284dd9f9804b0e1ffb44fb5d8120eb0ab25232cd857962e332cfc0830"
+    },
+    "contract.json": {
+      "bytes": 6346,
+      "sha256": "079fd63fb0d8d2ba2238049d52ae9ff4187c2c360b2ea536c93d7fd591bf7359"
+    },
+    "event-oracle.json": {
+      "bytes": 3021,
+      "sha256": "948305cb371f28f4f8ee416f7f6df56b5b7bd367ccbeec1bcd855bc530060f83"
+    },
+    "freeze_parent_projection.py": {
+      "bytes": 3093,
+      "sha256": "905b60175bdaae1314a7500b9c9946f9f840b26dfe0f6d5f22bc1136a2994b3e"
+    },
+    "independent_reader.py": {
+      "bytes": 12784,
+      "sha256": "79352bb5687a2c677c0a623d7da5d85e6e949d7a5844c483298e65d0ab5c8b3d"
+    },
+    "native-input.json": {
+      "bytes": 47799,
+      "sha256": "57c85c325ed1ed72f96a6ef5b459a568c8d3ff34aab75248dedee2b023d193ed"
+    },
+    "parent-diff.json": {
+      "bytes": 932,
+      "sha256": "8e577c933c0b47ca7319ca90891e6bddea3ff7069fecd645aea3c86dccc4cb84"
+    },
+    "parent-evidence-pins.json": {
+      "bytes": 1026,
+      "sha256": "d8c4bffd6b73488954ae044c304946a6a7cc4877c3252f32ec5be50117720b04"
+    },
+    "parent-report-projection.json": {
+      "bytes": 16873,
+      "sha256": "8c196d26e438ddd9828b209e9f52e7181780ad1c02a61e175f1bca1210011a50"
+    },
+    "preserved-v100-method-no-go.json": {
+      "bytes": 1866,
+      "sha256": "1408af7b67775d2bade05613dddcf83903c42e0b31c5305822eb6f606f840f18"
+    },
+    "README.md": {
+      "bytes": 1304,
+      "sha256": "a1e0a1c8ba555a2f08915273d6eece92dd1843f452af15cf469735affb22ca1a"
+    },
+    "report-oracle.json": {
+      "bytes": 4472,
+      "sha256": "ed8cdc8dc49750f02b5defb265a88a6b23079d90364889d0871c8ee7ac82c80b"
+    }
+  },
+  "findings": [
+    "The closed event projection replaced four duration/subtask lines but omitted the priority-list duration, system CM task completion, and five post-repair readiness lines for each repair; the synthetic child therefore described an impossible mixture of 0.5-hour and 1.5-hour completion state.",
+    "Python equality equates int, float, and bool aliases in report cells and table metadata; demonstrated mutants included SystemResults.NSYRY 1 to true, StockTotalResults.NBO 0 to false, and column key true to 1.",
+    "The pinned dictionary rows 108-114 describe ChangesPMLocation. ChangesCMLocation is at installed dictionary rows 33-39 under the same source SHA-256."
+  ],
+  "execution_state": {
+    "ssh_preflight_calls": 0,
+    "native_calls": 0,
+    "gui_actions": 0,
+    "runner_present": false,
+    "native_run_directory_absent": true
+  },
+  "author_static_self_check": "The 11 local synthetic checks passed, but the independent reviewer showed they missed the three defects above; that result is retained as non-acceptance evidence.",
+  "recovery_condition": "Use a new version with all 18 exact parent-to-child event line substitutions; recursive JSON type-identity comparison and int/float/bool/metadata mutation negatives; corrected dictionary rows 33-39; then obtain a fresh independent method GO before creating or running a native runner."
+}
