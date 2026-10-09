@@ -1,0 +1,31 @@
+$ErrorActionPreference='Stop'
+$self=Get-Process -Id $PID
+$ancestors=[Collections.Generic.List[int]]::new()
+$walk=$PID
+$sshd=$false
+for($i=0;$i -lt 20;$i++){
+ $process=Get-CimInstance Win32_Process -Filter "ProcessId=$walk"
+ if(-not $process -or $process.ParentProcessId -eq 0){break}
+ $walk=[int]$process.ParentProcessId
+ if($ancestors.Contains($walk)){break}
+ $ancestors.Add($walk)
+ $parent=Get-CimInstance Win32_Process -Filter "ProcessId=$walk"
+ if($parent.Name -eq 'sshd.exe'){$sshd=$true}
+}
+$native=@(Get-Process Simlox -ErrorAction SilentlyContinue | ForEach-Object {
+ [ordered]@{pid=$_.Id;session=$_.SessionId;start_utc=$_.StartTime.ToUniversalTime().ToString('o');start_ms=([DateTimeOffset]$_.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds();responding=$_.Responding}
+})
+$runners=@(Get-CimInstance Win32_Process | Where-Object {
+ $_.ProcessId -ne $PID -and -not $ancestors.Contains([int]$_.ProcessId) -and
+ $_.Name -match '^(powershell|pwsh|python|pythonw|cmd)\.exe$' -and
+ $_.CommandLine -match '(?i)(run_native|invoke_loopback|(?:run|invoke|probe)[^\s]*_ssh|(?:ssh_transport|ssh-transport)[^\s]*\.py)'
+} | ForEach-Object {[ordered]@{pid=$_.ProcessId;parent_pid=$_.ParentProcessId;name=$_.Name;session=$_.SessionId}})
+$sessions=@(qwinsta 2>&1)
+$sessionExit=$LASTEXITCODE
+$active=@($sessions | Where-Object {$_ -match '^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+1\s+(?:Active|\u8fd0\u884c\u4e2d)(?:\s|$)'}).Count
+$mutex=[Threading.Mutex]::new($false,'Global\SimloxIssue18NativeQueue')
+$held=$false
+try{
+ try{$held=$mutex.WaitOne(0)}catch [Threading.AbandonedMutexException]{$held=$true}
+ [ordered]@{schema='issue18-next-owner-guard/v1';utc=(Get-Date).ToUniversalTime().ToString('o');ssh_present=[bool]$env:SSH_CONNECTION;sshd_ancestor=$sshd;self_pid=$PID;self_session=$self.SessionId;powershell_major=$PSVersionTable.PSVersion.Major;ancestor_ids=@($ancestors);mutex_free=$held;native=$native;runner_candidates=$runners;session_query_exit=$sessionExit;active_gui_session1_count=$active} | ConvertTo-Json -Depth 8
+}finally{if($held){$mutex.ReleaseMutex()};$mutex.Dispose()}

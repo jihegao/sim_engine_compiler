@@ -1,0 +1,59 @@
+"""Fresh source-byte/attribute and unique-path guard; no SSH or native call."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import sys
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/I05-var04-scheduled-item-repair-v1.0.3'
+N = R / 'tmp/i05-var04-native-v103-20261009-01'
+F = R / 'tmp/i05-var04-root-static-freeze-v103-20261009.json'
+
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+
+def plain(path):
+    for item in (path, *path.parents):
+        if item.exists():
+            assert not item.is_symlink() and not item.is_junction()
+            assert not item.stat().st_file_attributes & 1024
+
+
+assert len(sys.argv) == 4 and sys.argv[1] in ('preflight', 'native')
+phase = sys.argv[1]
+go = Path(sys.argv[2]).resolve(strict=True)
+plain(go)
+assert go.is_relative_to(R) and go.stat().st_file_attributes == 33
+assert pin(go)['sha256'] == sys.argv[3]
+plain(F)
+assert F.stat().st_file_attributes == 33
+assert pin(F) == {'bytes': 407862, 'sha256': '4a87c7d91c4c3d47f46eb8f25e3c896ead9e0fb8a78397b7c45d9e7681bdc065'}
+freeze = json.loads(F.read_bytes())
+assert freeze['schema'] == 'i05-var04-root-static-freeze/v103'
+assert len(freeze['case_sources']) == 62 and len(freeze['source_roles']) == 546
+for relative, wanted in freeze['case_sources'].items():
+    path = C / relative
+    plain(path)
+    assert pin(path) == wanted and path.stat().st_file_attributes == 33
+for row in freeze['source_roles']:
+    path = Path(row['path'])
+    plain(path)
+    assert pin(path) == {key: row[key] for key in ('bytes', 'sha256')}
+    assert path.stat().st_mode == row['mode']
+    assert path.stat().st_file_attributes == row['attributes']
+plain(N)
+assert not N.exists() and not (C / 'runs').exists()
+if phase == 'preflight':
+    assert not (C / 'transport-evidence').exists() and not (C / 'test-output').exists()
+    assert not (C / 'review/independent-prelaunch-go.json').exists()
+else:
+    assert go == C / 'review/independent-prelaunch-go.json'
+print(json.dumps({'schema': 'i05-var04-root-fresh-custody/v103',
+                  'utc': dt.datetime.now(dt.timezone.utc).isoformat(), 'phase': phase,
+                  'source_roles': 546, 'frozen_case_files': 62, 'native_run_absent': True,
+                  'independent_gate': {'path': str(go), **pin(go)},
+                  'native_calls': 0, 'accepted_checker_calls': 0, 'decision': 'PASS_CUSTODY_ONLY'}))

@@ -1,0 +1,323 @@
+"""PURE prospective grammar/report evaluator for I05.var04 contract review.
+
+Runs only on pinned E05 parent and private synthetic clones during contract audit.
+Future child validation must use these same frozen predicates; this is not a native
+runner and does not import an accepted E05 checker.
+"""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import math
+import re
+import struct
+from pathlib import Path
+
+import materialize_oracle as m
+
+PLACEHOLDER = re.compile(r'\{([A-Za-z0-9_.]+)\}')
+NUM = r'(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:e\+[0-9]+)?'
+
+
+def decimal_interval(text: str) -> tuple[float, float]:
+    assert re.fullmatch(NUM, text), ('number syntax', text)
+    value = float(text)
+    assert math.isfinite(value)
+    if 'e+' in text:
+        coefficient, exponent = text.split('e+')
+        places = len(coefficient.partition('.')[2])
+        error = 0.5 * 10.0 ** (int(exponent) - places)
+    else:
+        places = len(text.partition('.')[2])
+        error = 0.5 * 10.0 ** (-places) if places else 0.0
+    return value - error, value + error
+
+
+def match_log(data: bytes, catalog: dict, *, child: bool) -> dict:
+    assert not data.startswith(b'\xef\xbb\xbf') and data.endswith(b'\r\n')
+    assert data.count(b'\r\n') == 222 and data.count(b'\n') == 222
+    lines = data[:-2].decode('ascii').split('\r\n')
+    assert len(lines) == catalog['physical_lines'] == 222
+    assert sum(line.startswith('Time: ') for line in lines) == catalog['timed_lines'] == 186
+    assert len(catalog['lines']) == 222
+    symbols = {}
+    last_timed = -math.inf
+    for line_number, (raw, rule) in enumerate(zip(lines, catalog['lines']), 1):
+        assert rule['line'] == line_number and rule['timed'] == raw.startswith('Time: ')
+        if raw.startswith('Time: '):
+            current_timed = float(raw.split(' ', 2)[1])
+            assert math.isfinite(current_timed) and current_timed >= last_timed, ('time order', line_number)
+            last_timed = current_timed
+        template = rule['template']
+        parts = []
+        names = []
+        offset = 0
+        for placeholder in PLACEHOLDER.finditer(template):
+            parts.append(re.escape(template[offset:placeholder.start()]))
+            parts.append('(' + NUM + ')')
+            names.append(placeholder.group(1))
+            offset = placeholder.end()
+        parts.append(re.escape(template[offset:]))
+        hit = re.fullmatch(''.join(parts), raw)
+        assert hit is not None, ('grammar', line_number)
+        assert names == [x['symbol'] for x in rule['bindings']], ('binding order', line_number)
+        for symbol, value in zip(names, hit.groups()):
+            assert math.isfinite(float(value)), ('nonfinite', line_number)
+            if symbol in symbols:
+                assert symbols[symbol] == value, ('repeated token mismatch', symbol, line_number)
+            else:
+                symbols[symbol] = value
+    assert len(symbols) == 24, ('symbol count', len(symbols), sorted(symbols))
+    assert [symbols[f'cycle{j}.failure_complexity'] for j in range(3)]
+    for j in range(3):
+        assert 0 <= float(symbols[f'cycle{j}.failure_complexity']) <= 1
+        assert 0 <= float(symbols[f'cycle{j}.repair_complexity']) <= 1
+        assert float(symbols[f'cycle{j}.followup_clock']) > float(symbols[f'cycle{j}.failure'])
+    first = {'failure': '9.25527', 'arrival': '9.75527', 'item_start': '9.92193',
+             'system_ready': '10.2553', 'restock': '11.4219' if child else '10.9219'}
+    for key, value in first.items():
+        assert symbols[f'cycle0.{key}'] == value, ('first-cycle hypothesis', key)
+    for j, start in enumerate((8, 20, 32)):
+        failure = float(symbols[f'cycle{j}.failure'])
+        arrival = float(symbols[f'cycle{j}.arrival'])
+        item_start = float(symbols[f'cycle{j}.item_start'])
+        ready = float(symbols[f'cycle{j}.system_ready'])
+        restock = float(symbols[f'cycle{j}.restock'])
+        assert start < failure < start + 2, ('failure window', j)
+        if j == 1: assert 21.5 <= failure < 22, ('second task must complete before failure', j)
+        if j == 2: assert 32.5 <= failure < 33.5, ('third task must start and abort before completion', j)
+        assert _intersect(decimal_interval(symbols[f'cycle{j}.arrival']), _sum_interval(decimal_interval(symbols[f'cycle{j}.failure']), 0.5) if failure + .5 < start + 2 else (start + 2, start + 2)), ('arrival relation', j)
+        assert _intersect(decimal_interval(symbols[f'cycle{j}.item_start']), _sum_interval(decimal_interval(symbols[f'cycle{j}.arrival']), 1/6)), ('remove relation', j)
+        assert _intersect(decimal_interval(symbols[f'cycle{j}.system_ready']), _sum_interval(decimal_interval(symbols[f'cycle{j}.arrival']), .5)), ('system ready relation', j)
+        assert _intersect(decimal_interval(symbols[f'cycle{j}.restock']), _sum_interval(decimal_interval(symbols[f'cycle{j}.item_start']), 1.5 if child else 1)), ('item restock relation', j)
+        assert arrival < item_start < ready < restock < 36
+        if j:
+            assert float(symbols[f'cycle{j-1}.restock']) < arrival
+    return {'symbols': symbols, 'child': child, 'physical_lines': 222, 'timed_lines': 186}
+
+
+def _sum_interval(interval: tuple[float, float], offset: float) -> tuple[float, float]:
+    return interval[0] + offset, interval[1] + offset
+
+
+def _intersect(a: tuple[float, float], b: tuple[float, float]) -> bool:
+    return max(a[0], b[0]) <= min(a[1], b[1]) + 1e-12
+
+
+def time_bounds(symbol: str | int | float, ledger: dict) -> tuple[float, float]:
+    if isinstance(symbol, (int, float)):
+        value = float(symbol)
+        return value, value
+    text = ledger['symbols'][symbol]
+    if symbol == 'cycle1.arrival' and text == '22':
+        return 22.0, 22.0
+    if symbol == 'cycle1.system_ready' and text == '22.5':
+        return 22.5, 22.5
+    return decimal_interval(text)
+
+
+def _overlap_bounds(bin_lo: float, bin_hi: float, start: tuple[float, float], end: tuple[float, float]) -> tuple[float, float]:
+    low = max(0.0, min(bin_hi, end[0]) - max(bin_lo, start[1]))
+    high = max(0.0, min(bin_hi, end[1]) - max(bin_lo, start[0]))
+    return low, high
+
+
+def _occupancy(index: int, windows: list[tuple[object, object]], ledger: dict) -> tuple[float, float]:
+    bin_lo = index / 2
+    bin_hi = (index + 1) / 2
+    segments = [_overlap_bounds(bin_lo, bin_hi, time_bounds(a, ledger), time_bounds(b, ledger)) for a, b in windows]
+    return 2 * sum(pair[0] for pair in segments), 2 * sum(pair[1] for pair in segments)
+
+
+def _bin(symbol: str, ledger: dict) -> int:
+    low, high = time_bounds(symbol, ledger)
+    left = math.floor(2 * low)
+    right = math.floor(2 * high)
+    assert left == right and 0 <= left < 72, ('ambiguous bin', symbol, low, high)
+    return left
+
+
+def _f32_ulp(value: float) -> float:
+    value = abs(value)
+    raw = struct.unpack('<I', struct.pack('<f', value))[0]
+    upper = struct.unpack('<f', struct.pack('<I', raw + 1))[0]
+    base = struct.unpack('<f', struct.pack('<I', raw))[0]
+    return upper - base
+
+
+def _range(low: float, high: float) -> tuple[str, float, float]:
+    assert math.isfinite(low) and math.isfinite(high) and low <= high
+    if low == high and low in (0.0, 0.5, 1.0, 36.0):
+        return ('exact_numeric', low, high)
+    padding = 2 * _f32_ulp(max(abs(low), abs(high)))
+    return ('bounded_numeric', low - padding, high + padding)
+
+
+def expected(table: str, row: int, column: str, ledger: dict):
+    if table == 'ProblemDescription':
+        assert row == 0 and column == 'PDESC'
+        return ('exact_string', 'E05 local LRU repair, stock return and second issue')
+    if table == 'ResultSummary':
+        assert row == 0
+        if column == 'NREP': return ('exact_integer', 1)
+        if column == 'RTIUP': return ('exact_numeric', 36.0, 36.0)
+        if column in ('MTMF', 'STMF'):
+            starts = (8, 20, 32)
+            intervals = [time_bounds(f'cycle{j}.arrival', ledger) for j in range(3)]
+            return _range(sum(v[0]-s for v,s in zip(intervals, starts))/6, sum(v[1]-s for v,s in zip(intervals, starts))/6)
+        if column == 'MSTF': return _range(1.0, 1.0)
+        assert column in ('RTILW','RSMTMF','RSMSTF','MSUF','RSMSUF','RSSTMF')
+        return _range(0.0, 0.0)
+    if table == 'SystemResults':
+        assert 0 <= row < 72
+        if column == 'UNID': return ('exact_string', 'Total over all Units')
+        if column == 'SID': return ('exact_string', 'Total over all Systems')
+        if column == 'STINT': return ('exact_numeric', row/2, row/2)
+        if column == 'ETINT': return ('exact_numeric', (row+1)/2, (row+1)/2)
+        j = range(3)
+        missions = [(s, f'cycle{k}.arrival') for k,s in enumerate((8,20,32))]
+        mobilized = [(s, f'cycle{k}.arrival') for k,s in enumerate((7,19,31))]
+        preparation = [(s, s+1) for s in (7,19,31)]
+        unavailable = [(f'cycle{k}.arrival', f'cycle{k}.system_ready') for k in j]
+        ready = [(0,7), ('cycle0.system_ready',19), ('cycle1.system_ready',31), ('cycle2.system_ready',36)]
+        occupancies = {'NSYRY': ready, 'NSYMA': mobilized, 'NSYMO': missions,
+                       'NSYMR': preparation, 'NSYUA': unavailable, 'FTMO': missions,
+                       'NSYRP': unavailable, 'STACC': missions}
+        if column in occupancies: return _range(*_occupancy(row, occupancies[column], ledger))
+        if column == 'NSYA':
+            lo, hi = _occupancy(row, unavailable, ledger)
+            return _range(1-hi, 1-lo)
+        if column in ('NFAIL','NREPT','NSYDT','SYDT'):
+            symbol = 'failure' if column == 'NFAIL' else ('system_ready' if column == 'NREPT' else 'arrival')
+            count = sum(_bin(f'cycle{k}.{symbol}', ledger) == row for k in j)
+            if column == 'SYDT': return _range(.5,.5) if count else ('exact_null', None)
+            return _range(float(count),float(count))
+        assert column in ('NSYMC','NSYMP','NSYMT','NSYMS','NSYAL','NSYPM','NSYTP','NSYWR','NSYWI','NSYLA','NSYUH','NPMT','NDAM','NPMS','NROBT','NRCFG','STREQ','STF','STLOW','SYDTU','NSYSW','NPSTA','NPSUC')
+        return _range(0.0,0.0)
+    if table == 'StockTotalResults':
+        assert 0 <= row < 72
+        if column == 'STINT': return ('exact_numeric', row/2, row/2)
+        if column == 'ETINT': return ('exact_numeric', (row+1)/2, (row+1)/2)
+        demand_count = sum(_bin(f'cycle{k}.arrival', ledger) == row for k in range(3))
+        if column in ('NBOU','WTS'): return ('exact_null', None)
+        if column in ('ROS','ROST','WT','WTT'): return _range(0.0,0.0) if demand_count else ('exact_null', None)
+        if column == 'PNB': return _range(1.0,1.0)
+        if column in ('NDF','NWT'): return _range(float(demand_count),float(demand_count))
+        assert column in ('NBO','NDD','NDR','NDP','NLD')
+        return _range(0.0,0.0)
+    raise AssertionError(('unknown table', table))
+
+
+def compare_report(raw: bytes, catalog: dict, ledger: dict) -> int:
+    report = m.read_report(raw)['report']
+    expected_tables = catalog['tables']
+    assert len(report['tables']) == len(expected_tables) == 4
+    actual_by_key = {}
+    for table, meta in zip(report['tables'], expected_tables):
+        assert set(table) == {'name','columns','instances'}
+        assert table['name'] == meta['name'] and table['columns'] == meta['columns']
+        assert len(table['instances']) == 1
+        instance = table['instances'][0]
+        assert set(instance) == {'instance_name','rows'}
+        assert instance['instance_name'] == meta['instance_name'] and len(instance['rows']) == meta['rows']
+        for row_index, row in enumerate(instance['rows']):
+            assert type(row) is list and len(row) == len(table['columns'])
+            for column, value in zip(table['columns'], row):
+                actual_by_key[(table['name'],row_index,column['name'])] = (column['datatype'],value)
+    assert len(actual_by_key) == len(catalog['predicates']) == 4044
+    for predicate in catalog['predicates']:
+        key = predicate['table'],predicate['row'],predicate['column']
+        datatype,value = actual_by_key.pop(key)
+        assert datatype == predicate['datatype']
+        want = expected(*key,ledger)
+        if want[0] == 'exact_string': assert type(value) is str and value == want[1], key
+        elif want[0] == 'exact_integer': assert type(value) is int and value == want[1], key
+        elif want[0] == 'exact_null': assert value is None, key
+        else:
+            assert datatype == 'double' and type(value) in (int,float) and math.isfinite(value), key
+            assert want[1] <= value <= want[2], (key,value,want)
+    assert not actual_by_key
+    return 4044
+
+
+def assert_reject(action, label: str) -> None:
+    try:
+        action()
+    except (AssertionError, UnicodeError, ValueError, KeyError, IndexError, TypeError):
+        return
+    raise AssertionError(('negative unexpectedly accepted', label))
+
+
+def private_checks(parent_log: bytes, parent_report: bytes, parent_patterns: dict, child_patterns: dict, predicate_catalog: dict) -> dict:
+    parent = match_log(parent_log,parent_patterns,child=False)
+    assert compare_report(parent_report,predicate_catalog,parent) == 4044
+    lines = parent_log[:-2].decode('ascii').split('\r\n')
+    # A synthetic child is a private positive control, never a native observation.
+    symbols = dict(parent['symbols'])
+    symbols.update({'cycle0.restock':'11.4219','cycle1.restock':'23.6667','cycle2.restock':'35.4746'})
+    synthetic = []
+    for entry in child_patterns['lines']:
+        synthetic.append(PLACEHOLDER.sub(lambda match: symbols[match.group(1)],entry['template']))
+    child_bytes = ('\r\n'.join(synthetic)+'\r\n').encode('ascii')
+    child = match_log(child_bytes,child_patterns,child=True)
+    assert compare_report(parent_report,predicate_catalog,child) == 4044
+    negatives = 0
+    def log_test(mutant, label):
+        nonlocal negatives
+        assert mutant != child_bytes
+        assert_reject(lambda: match_log(mutant,child_patterns,child=True),label)
+        negatives += 1
+    log_test(child_bytes.replace(b'\r\n',b'\n',1),'line ending')
+    log_test(child_bytes.replace(b'planned to last for 1.5 hours',b'planned to last for 1 hours',1),'DIRPT duration')
+    log_test(child_bytes.replace(b'Time: 11.4219  direct repair',b'Time: 10.9219  direct repair',1),'first restock clock')
+    log_test(child_bytes.replace(b'TEACH-LRU-01,0,1> from stock',b'TEACH-LRU-01,0,9> from stock',1),'physical stock identity')
+    log_test(child_bytes.replace(b'complexity: 0.47713 ',b'complexity: 0.97713 ',1),'repeated complexity')
+    shifted = synthetic[:]
+    shifted[54],shifted[55]=shifted[55],shifted[54]
+    log_test(('\r\n'.join(shifted)+'\r\n').encode('ascii'),'same-hour order')
+    log_test(('\r\n'.join(synthetic[:60]+synthetic[61:])+'\r\n').encode('ascii'),'missing line')
+    log_test(('\r\n'.join(synthetic[:60]+[synthetic[60]]+synthetic[60:])+'\r\n').encode('ascii'),'extra line')
+    normalized = parent_report.replace(m.NATIVE_TRAILING_COMMA,b'\r\n      ]')
+    parent_obj = m.strict_json(normalized)
+    def report_test(edit,label):
+        nonlocal negatives
+        clone = copy.deepcopy(parent_obj)
+        edit(clone['report']['tables'])
+        assert_reject(lambda: compare_parsed_report(clone,predicate_catalog,child),label)
+        negatives += 1
+    report_test(lambda t: t[1]['instances'][0]['rows'][0].__setitem__(3,True),'summary bool')
+    report_test(lambda t: t[2]['instances'][0]['rows'][20].__setitem__(23,None),'system null')
+    report_test(lambda t: t[2]['instances'][0]['rows'][20].__setitem__(4,999.0),'occupancy wrong')
+    report_test(lambda t: t[2]['instances'][0]['rows'][20].__setitem__(4,t[2]['instances'][0]['rows'][20][4]+0.001),'occupancy outside frozen precision')
+    report_test(lambda t: t[2]['instances'][0]['rows'].__setitem__(20,{'invalid':'row'}),'row container type')
+    report_test(lambda t: t[3]['instances'][0]['rows'].__setitem__(19,t[3]['instances'][0]['rows'][20]),'wrong demand bin')
+    report_test(lambda t: t[3]['instances'][0]['rows'][19].__setitem__(9,False),'stock bool')
+    report_test(lambda t: t[2]['instances'][0]['rows'].pop(),'missing system row')
+    report_test(lambda t: t[2]['columns'].__setitem__(4,dict(t[2]['columns'][4],datatype='integer')),'metadata datatype')
+    return {'parent_positive_cells':4044,'synthetic_child_positive_cells':4044,'rejected_private_mutants':negatives}
+
+
+def compare_parsed_report(obj: dict, catalog: dict, ledger: dict) -> int:
+    # Encode with the one native marker solely to reuse the exact comparator;
+    # this helper never writes a file or treats a synthetic clone as evidence.
+    raw = json.dumps(obj,separators=(',',':')).encode('utf-8')
+    marker = raw.rfind(b']')
+    assert marker >= 0
+    raw = raw[:marker] + b',\r\n      ' + raw[marker:] + b'\r\n'
+    return compare_report(raw,catalog,ledger)
+
+
+def main() -> None:
+    parent_log = m.pinned(m.LOG,m.PINS[m.LOG])
+    parent_report = m.pinned(m.REPORT,m.PINS[m.REPORT])
+    parent_patterns = m.line_patterns(parent_log,child=False)
+    child_patterns = m.line_patterns(parent_log,child=True)
+    specs = m.load_specs()
+    catalog = m.cell_rules(m.read_report(parent_report),specs['report-oracle.json'])
+    result = private_checks(parent_log,parent_report,parent_patterns,child_patterns,catalog)
+    print(json.dumps({'schema':'i05-var04-prospective-pure-check/v101',**result,'native_calls':0,'accepted_checker_calls':0},separators=(',',':')))
+
+
+if __name__ == '__main__':
+    main()
