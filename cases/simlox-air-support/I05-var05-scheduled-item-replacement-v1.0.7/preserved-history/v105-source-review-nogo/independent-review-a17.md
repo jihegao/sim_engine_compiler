@@ -1,0 +1,3 @@
+# Independent review of I05.var05 v1.0.5 source — A17
+
+Decision: NO_GO_SOURCE_ONLY for source-freeze SHA-256 `33ad962921e334e2ba10b399a08cbb499a5171b63012aa491bcf471bb00c856d`. The checker correctly rejected neither the finite v1.0.4 representation policy nor the preserved failure, but had remaining exactness gaps: JSON float parsing rounded `1.50000000000000001` to `1.5`; `float(huge_int)` could raise OverflowError; an empty instance inside a populated table could accept a null placeholder; tests omitted malformed row width/extra rows and optional-null changes. No preflight, SSH, native or SIMLOX action occurred. Preserve v1.0.5 and make a distinct source revision with exact decimal-token parsing and targeted negatives.

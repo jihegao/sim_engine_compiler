@@ -1,0 +1,6 @@
+Timestamp UTC: 2026-10-09T12:47Z (approximate; command output had no seconds)
+Candidate: I05.var05 v1.0.8, pre-freeze draft.
+Input run: I05.var05 v1.0.7 run `i05-var05-item-replacement-v107-ssh-20261009-01`; raw model.log SHA-256 `320ae836a31be9ac5273d913419c000934c82aea32db6431708d79071f1e82c5`.
+Command: bundled Python `python.exe validate_native_cli.py ..\I05-var05-scheduled-item-replacement-v1.0.7\runs\i05-var05-item-replacement-v107-ssh-20261009-01\raw`.
+The parser regression tests passed. The corrected top-level SURP matcher then reached the cycle chronology gate and exited 1 with `repair duration, task completion, arrival, or stock return differs for cycle 1`. Independent review A17 determined `near(task_end,c_time)` was an unsupported equality: the contract checks SURP duration separately from child direct repair and stock return. This failure is retained for audit; it is superseded by the contract-aligned v1.0.8 draft change.
+Native actions: 0. Source raw files unchanged.

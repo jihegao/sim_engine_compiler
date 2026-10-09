@@ -1,0 +1,3 @@
+# I05.var05 v1.0.3 README review finding
+
+A17 returned NO_GO for the README wording because the preserved v1.0.2 stderr and failure seal report only `competing Issue 18 runner is active`; they do not identify the matching process as the SSH `cmd.exe` wrapper. The wrapper explanation must remain labeled as a diagnosis until runtime evidence records the process identity. This source-review finding is not a preflight or native result.
