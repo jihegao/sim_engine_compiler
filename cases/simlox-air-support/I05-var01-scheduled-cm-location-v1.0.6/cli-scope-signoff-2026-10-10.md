@@ -1,0 +1,9 @@
+# I05.var01 v1.0.6 bounded CLI scope signoff
+
+Bounded behavior acceptance is GO_BOUNDED_REPLAY, independently signed by /root/remaining_inventory, following GO_METHOD_ONLY and exact GO_REPLAY_SOURCE from /root/run04_static_review. The author does not self-sign an independent gate. This scope signoff records those conclusions; publication remains subject to the separate independent content/staged/remote review.
+
+Scope: one accepted D06 fixed-seed source and one explicit hour5 ChangesCMLocation CMT0.5 to1.5 row. Frozen replay identity i05-var01-cmloc-v106-replay-20261010-01; observed native identity remains i05-var01-cmloc-v105-ssh-20261010-01. V106 native calls0 and accepted parent reruns0. Original v105 native status remains NO_GO_REPORT_PROJECTION.
+
+Evidence: exact freeze65d69a3a261cfa6aff7ed7739e991d1a4bbb69dd41c6ddde42d44b396489b427; methodf3ea1c5b16cb7f51e1dc206b0ca28a1bbb33ebef3e4add0d24f8fadf40ce81eb; sourceGOb37daab97f6503d9fdf1f11c835a9790935ea2d15c0ed22f63b508aebce88fe0; boundedGO817dcc80e3f1bd49ca5a2111980a230fae3540663db4a13c5a7885abb07b3e3d. All4044 typed report cells/metadata,128 log lines,72+72 intervals,19 tables/264 authored cells,2 failures/2 repairs/3h occupancy+2 downtimes/3h registration,1/3 mission success and ready1 terminal state pass within this scope. Author22 and independent23 meaningful controls passed.
+
+GUI-only behavior is excluded by current Issue18 policy; GUI process protection remains necessary for native work. Cross-engine, performance, other scheduled fields/timing boundaries/precedence/configurations, wider I05.var01 and overall completion remain unverified. Host-bound exact original/failed evidence stays mandatory; SHA-only references do not make it portable or available elsewhere. No native runner, new engine primitive, product-main edit or schedule is delivered.

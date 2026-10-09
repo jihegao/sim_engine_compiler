@@ -1,0 +1,260 @@
+{
+  "schema": "simlox-i05-var01-contract/v106",
+  "case_id": "I05",
+  "variant_id": "I05.var01",
+  "version": "1.0.6",
+  "status": "REPLAY_SOURCE_READY_PENDING_INDEPENDENT_METHOD_REVIEW",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "case_id": "D06",
+    "publication_id": "D06.position_direct_cm.1.0.0",
+    "version": "1.0.0",
+    "input_sha256": "ee7484a32492d1aa6cd90ad961620ecdd3de1244f09b16ba4a96a2978310ce78",
+    "accepted_run_id": "d06-position-cm-v100-ssh-20260930-02",
+    "run_artifacts": {
+      "invocation_sha256": "db8925c06d1ca4a5d74f5d022d8eb919f68d375db3ed5f9d35693ef84c903108",
+      "closure_sha256": "afd8689161874d247dee92a6f6265211733375b8933f3fcd30bfb297cfe975c7",
+      "model_log_sha256": "92930370c7a60faa7870fa4fb43fffad73d2c3582e187c39506927012198ae1a",
+      "report_raw_sha256": "230403de72c36ae2ba2b6e57939ef9dd94571f94de840fa718084736e93630b8"
+    }
+  },
+  "required_instructional_prerequisites": [
+    {
+      "case_id": "B01",
+      "publication_id": "B01.fixed_prep.1.0.1"
+    },
+    {
+      "case_id": "B02",
+      "publication_id": "B02.serial_prep.1.0.2"
+    },
+    {
+      "case_id": "B04",
+      "publication_id": "B04.cross_midnight_turnround.1.0.1"
+    },
+    {
+      "case_id": "D01",
+      "publication_id": "D01.system_direct.1.0.0"
+    },
+    {
+      "case_id": "D03",
+      "publication_id": "D03.calendar_pm.1.0.0"
+    },
+    {
+      "case_id": "D06",
+      "publication_id": "D06.position_direct_cm.1.0.0"
+    },
+    {
+      "case_id": "E05",
+      "publication_id": "E05.local_reissue.1.0.0"
+    },
+    {
+      "case_id": "H02",
+      "publication_id": "H02.var01.system_damage_local_direct_repair_fixed_seed.1.0.0"
+    }
+  ],
+  "catalog_selection": {
+    "simlox_main_commit": "b7d827d0bd3c0cf1c72f5a23044ee30898b9d629",
+    "publication_index_sha256": "66ee6aa4bfbf2ef7afcf73212e89b9cd231c753d5ad4ec58d86e74239262ae79",
+    "catalog_sha256": "8c491ec16693cd64d212f986ed03dad5ed013d7e0bd8e170c0a4d1bf4450b55d",
+    "published_dependency_count": 8
+  },
+  "candidate": {
+    "native_input_path": "native-input.json",
+    "native_input_sha256": "57c85c325ed1ed72f96a6ef5b459a568c8d3ff34aab75248dedee2b023d193ed",
+    "parent_diff_path": "parent-diff.json",
+    "added_table": "ChangesCMLocation",
+    "added_row": {
+      "FMID": "FM-POS-A",
+      "ID": "TEACH-AIR-01",
+      "STID": "BASE-01",
+      "TIMEC": 5.0,
+      "CMT": 1.5,
+      "CMTD": null,
+      "NOTE": null
+    },
+    "run_id": "i05-var01-cmloc-v106-replay-20261010-01",
+    "description": "D06 position A direct CM with one scheduled CMT update before the first repair",
+    "native_dispatch_allowed": false,
+    "observed_native_run_id": "i05-var01-cmloc-v105-ssh-20261010-01"
+  },
+  "business_question": "Does one source-scheduled ChangesCMLocation.CMT update at hour 5 from 0.5 to 1.5 hours govern future direct FM-POS-A system-CM tasks at BASE-01 in this fixed-seed D06 scenario?",
+  "manual_basis": {
+    "source_id": "SIMLOX-2017-USERS-REFERENCE",
+    "sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "pages": [
+      482,
+      483,
+      484,
+      356,
+      357
+    ],
+    "dictionary_source_id": "SIMLOX-2017-TABLE-DICTIONARY",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "dictionary_rows": [
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ]
+  },
+  "primary_acceptance": {
+    "first_failure_hour": 9.8829,
+    "first_system_return_hour": 10.0,
+    "first_child_cm_complete_hour": 11.5,
+    "second_failure_hour": 33.8602,
+    "second_child_cm_complete_hour": 35.5,
+    "expected_failures": 2,
+    "expected_repairs": 2,
+    "expected_mission_successes": 1,
+    "expected_terminal_ready_systems": 1,
+    "expected_inventory_demands": 0,
+    "expected_backorders": 0,
+    "report_scope": "All4044 typed cells and complete metadata remain asserted. Six state projections are retained with original target interval tokens. SYDT/NSYDT are independently derived from two frozen completed downtime periods per primary manual645-646, registered only in start bins. Reconcile all72 System/Stock bins, event timings, occupancy3h and registered downtime3h."
+  },
+  "limits": [
+    "one fixed-seed D06 parent and one explicit FMID/ID/STID row",
+    "only CMT is changed; CMTD, CMF, CMM, CMC, failure-mode data, mission schedule and stop horizon are unchanged",
+    "no claim about group coverage, group/single precedence, same-time change/failure ordering, distribution changes, subtasks, multi-station behavior, other variants, GUI visuals, cross-engine equivalence, performance, or full Issue #18 completion"
+  ],
+  "preserved_prior_version": {
+    "version": "1.0.3",
+    "decision": "EXCLUDED_NATIVE_RUNNER_VALIDATION_FAILURE",
+    "record_path": "preserved-v103-native-failure-evidence-index.json",
+    "record_sha256": "eed9496721f49ef689279170015ef7719f0f2f4e2ce0f5e19d326c022ee2cde0",
+    "candidate_source_directory": "../I05-var01-scheduled-cm-location-v1.0.3",
+    "native_calls": 1,
+    "behavior_acceptance": false
+  },
+  "event_oracle": {
+    "path": "event-oracle.json",
+    "sha256": "443a9a428e7d0e97164183f42ce19e3248aa9b7adf0ca067cc9d46878c25bb87"
+  },
+  "report_oracle": {
+    "path": "report-oracle.json",
+    "sha256": "1cf47845ec8c1c0cb39545e782d46c98d4a453d7b81134d8b40b61f5fab6cf26"
+  },
+  "typed_parent_report_projection": {
+    "path": "parent-report-projection.json",
+    "sha256": "8c196d26e438ddd9828b209e9f52e7181780ad1c02a61e175f1bca1210011a50",
+    "typed_cell_count": 4044,
+    "source_report_sha256": "230403de72c36ae2ba2b6e57939ef9dd94571f94de840fa718084736e93630b8"
+  },
+  "required_independent_gates": [
+    "Independent diagnosis of frozen v105 report-oracle failure, preserving original native NO_GO.",
+    "GO_METHOD_ONLY and exact replay-source approval for v106 manual-derived projection plus non-tautological mutations.",
+    "Independent raw behavior, source/event/report/ledger custody and bounded postrun acceptance.",
+    "Independent bounded publication review before any simlox/main delivery."
+  ],
+  "preserved_no_go_chain": [
+    {
+      "version": "1.0.0",
+      "decision": "NO_GO_METHOD_ONLY",
+      "record_path": "preserved-v100-method-no-go.json",
+      "record_sha256": "1408af7b67775d2bade05613dddcf83903c42e0b31c5305822eb6f606f840f18"
+    },
+    {
+      "version": "1.0.1",
+      "decision": "NO_GO_METHOD_ONLY",
+      "record_path": "preserved-v101-method-no-go.json",
+      "record_sha256": "d3dfb7f61f3fccbf58c1fff32454bfee2efbb632c8b0325c326abc190be63112"
+    },
+    {
+      "version": "1.0.2",
+      "decision": "NO_GO_METHOD_ONLY",
+      "record_path": "preserved-v102-method-no-go.json",
+      "record_sha256": "05208e393ba99a3251155a96e9a09863938825741a78f0e1a3aceaf99c5b3454"
+    }
+  ],
+  "method_change_from_v102": "Historical v104 converter parser repair (BOM detection, exact timing grammar, original v103 physical paths) was carried unchanged into v105. All v100-v105 excluded attempts keep their original identities. Current v106 is a separate replay-only report-oracle correction of sealed v105 raw output; it does not contain a native runner.",
+  "preserved_native_failure_chain": [
+    {
+      "version": "1.0.3",
+      "decision": "EXCLUDED_NATIVE_RUNNER_VALIDATION_FAILURE",
+      "run_id": "i05-var01-cmloc-v103-ssh-20261009-01",
+      "record_path": "preserved-v103-native-failure-evidence-index.json",
+      "record_sha256": "eed9496721f49ef689279170015ef7719f0f2f4e2ce0f5e19d326c022ee2cde0",
+      "failure_seal_sha256": "08e82fddad1a8ca6f9f77d525d5f3af53031a0508079f96b755b7778cc41eb3f",
+      "closure_sha256": "011c0fda290ff8a6c25b92f78a7f3efc6ab4c4e9d08efed755e03b9a5d626d27",
+      "raw_file_count": 20
+    }
+  ],
+  "converter_log_contract": {
+    "physical_lines": 15,
+    "line_endings": "CRLF",
+    "terminal_crlf": true,
+    "utf8_bom": "optional; detect only by the exact EF BB BF first-three-byte prefix",
+    "expected_fixed_line_1": "Performing simulation",
+    "expected_warning": "rec 1: (warning #108) Enabling simulation log may generate extensive data in log file",
+    "expected_summary": "Input conversion completed. Errors: 0, Warnings: 1, Notes: 0",
+    "timing_lines": {
+      "9": "Input data conversion time",
+      "11": "Simulation time",
+      "13": "Result saving time",
+      "14": "Total execution time"
+    },
+    "all_paths_must_match_unique_run_directory": true
+  },
+  "method_change_from_v104": "Historical environment drift repair in v105 bound the newly observed tooling Python executable without claiming equivalence to the old unavailable executable. V106 retains that Python pin for pure replay; native v105 and its failure remain original.",
+  "execution_environment": {
+    "tooling_python": {
+      "path": "C:\\Users\\user\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+      "bytes": 106448,
+      "sha256": "10d845f50a2af64e3500bb2fcb348b5bc98a75d8ddada63e45ba1da6a1fc79d1",
+      "version": "3.12.14"
+    },
+    "runtime_equivalence_claim": false
+  },
+  "preserved_environment_no_go": {
+    "path": "preserved-v104-run04-environment-no-go.json",
+    "bytes": 1755,
+    "sha256": "d9d06a9ede3e8ad5405c184e83e642b5bd3ab513db4a68e7486bf5317eb1dee6"
+  },
+  "method_change_from_v105": "Replay-only correction of report projection: completed downtime samples register in their start bins, not every occupancy bin. Full4044 typed report predicate retained; no model change, no native call, no accepted-parent rerun. Original v105 native runner remains NO_GO and all raw failure evidence is preserved.",
+  "preserved_v105_failure": {
+    "original_contract": {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var01-scheduled-cm-location-v1.0.5\\contract.json",
+      "bytes": 9967,
+      "sha256": "b9396b68ff0e320b682bd97bb39792a8151d31b78fd707dbf885f51ac05f272b"
+    },
+    "original_manifest": {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var01-scheduled-cm-location-v1.0.5\\prelaunch-manifest-v105-run01.json",
+      "bytes": 103169,
+      "sha256": "b9ffafc4c8bda8fbf4bcd02e706cd57a35657351dce4172a23c8432e4326de42"
+    },
+    "original_native_directory": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\tmp\\i05-var01-native-v105-20261010-01",
+    "recovered_native_directory": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var01-scheduled-cm-location-v1.0.5\\runs\\i05-var01-cmloc-v105-ssh-20261010-01",
+    "failure_seal": {
+      "bytes": 98163,
+      "sha256": "8e7f8dedff2b18f034a12c4c564dfc4d5e13dd796032fae12131dab9ef7bc6e7"
+    },
+    "closure": {
+      "bytes": 6687,
+      "sha256": "bc7e17b9c99092c6712da7604fe29080ce3ceeabca40f327e692cbbabdcbbdca"
+    },
+    "decision": "EXCLUDED_NATIVE_BEHAVIOR_REPORT_PROJECTION_FAILURE"
+  },
+  "observed_native_process_guards": {
+    "ssh_session": 0,
+    "powershell_major": 5,
+    "sshd_ancestry_required": true,
+    "host_mutex": "Global\\SimloxIssue18NativeQueue",
+    "gui": {
+      "pid": 13340,
+      "session_id": 1,
+      "start_unix_ms": 1790590196826,
+      "responding": true
+    },
+    "simlox_sha256": "fe24c5bffc0c0641894bb335484cfb83993e3db2bd60122ddadfedd39a8c4db0",
+    "single_native_attempt": true,
+    "failed_evidence_preserved": true
+  },
+  "process_guards": {
+    "replay_only": true,
+    "native_dispatch_allowed": false,
+    "raw_readonly_required": true,
+    "observed_native_context_is_historical_evidence_not_new_launch_permission": true
+  }
+}
