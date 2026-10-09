@@ -1,0 +1,51 @@
+{
+  "schema": "i05-var05-v108-independent-bounded-postrun-decision/v1",
+  "reviewer": "A17 independent static and replay reviewer",
+  "decision": "GO_BOUNDED_POSTRUN",
+  "decision_scope": "The sealed v1.0.7 native output supports the named I05.var05 v1.0.8 CLI behavior assertions when interpreted by the corrected v1.0.8 validator. This is a read-only postrun decision, not a new native result.",
+  "source_run_id": "i05-var05-item-replacement-v107-ssh-20261009-01",
+  "source_run_failure_seal_sha256": "90ab30ca55d18d1432a9b4f5ae0aab8d15375361c6855c4231ff2224bed9e7a0",
+  "source_freeze": {
+    "path": "source-freeze.json",
+    "bytes": 3245,
+    "sha256": "078ed313c0dd522d0753852b6f70613c8b15cca2708487c56cc44b8a41224fff",
+    "local_source_pins_verified": 10,
+    "external_evidence_references_verified": 28,
+    "before_after_equal": true
+  },
+  "corrected_validator": {
+    "path": "validate_native_cli.py",
+    "bytes": 18124,
+    "sha256": "632e4e9c9d38d1e81382c82a89f12dab165a7a92930b310e2f415667ac1028f9"
+  },
+  "sealed_raw_inputs": {
+    "model_log_sha256": "320ae836a31be9ac5273d913419c000934c82aea32db6431708d79071f1e82c5",
+    "report_raw_sha256": "80aa2fbce64a7d9487c7d05d394e5350add5c15df0e5cfed71194646db9c016a",
+    "raw_directory_file_count": 14,
+    "raw_originals_mutated": false
+  },
+  "independent_replay_capture": {
+    "path": "review/independent-final-replay-v108-20261009/capture.json",
+    "bytes": 5524,
+    "sha256": "274f8f6e37b39e476a80c13789140ff57bcabd369998184cc8dbbd15066d318d",
+    "parser_regression_tests": 2,
+    "tests_exit_code": 0,
+    "validator_exit_code": 0,
+    "validator_stdout_sha256": "4d9b9d5825dbd009170f5f820990121cc5a8263c0cca5ee19af632b8bf33e091",
+    "validator_stderr_bytes": 0,
+    "private_derived_ledger_sha256": "2c9a357bf482ad175c241bccc0f85cfb590d36f7dda1010a368440505178295a"
+  },
+  "verified_behavior_assertions": [
+    "No immediate hour-5 system SURP task; exactly three later top-level tasks, each approximately 1.5 hours.",
+    "Three damage, demand, issue, removal, one-hour direct repair, arrival, and stock-return cycles reconcile physical item serials and stock snapshots.",
+    "The direct repair completion and return agree within the declared tolerance; system task completion is checked for duration and report bin but is not required to equal direct repair completion.",
+    "The declared selected System/Stock/ResultSummary report fields and half-hour bins reconcile with raw events, including approximately 4.5 hours of System repair exposure, terminal readiness, and no observed backorders."
+  ],
+  "limits": [
+    "The 4044 typed report-cell count and report column roster are checked, but values outside the selected report field scope are unasserted.",
+    "The original v1.0.7 runner behavior-check exit and failure seal remain NO_GO as historical process evidence; this decision does not relabel that invocation as passing.",
+    "No publication, new native action, SSH, accepted-parent rerun, GUI claim, broad stochastic claim, or Issue 18 completion is approved."
+  ],
+  "execution_plan_v2_sha256": "b9ad6572e9bedc4bbe6bcd928820a0861806167782910aa46bd83e1b4e0ccc66",
+  "independent_replay_note_sha256": "53713559772d0d782e21bfa97f1368a57887f04ec9bed42e495d546abc75733f"
+}

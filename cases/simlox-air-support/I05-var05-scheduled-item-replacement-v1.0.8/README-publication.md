@@ -1,0 +1,13 @@
+# I05.var05 scheduled item replacement — bounded CLI result
+
+Version 1.0.8 corrects the behavior validator for a single source-bound `ChangesItemReplacement` update. It replays the immutable native output from the v1.0.7 run; v1.0.8 made no native or accepted-parent calls.
+
+The original v1.0.7 runner invocation remains recorded as `NO_GO`: its checker counted nested remove/fit subtask lines as duplicate system task starts. Independent review proved that matcher defect. A second v1.0.7 checker restriction also tied system task completion to the separate child-item repair completion, which the contract never requires and the accepted H02.var04 parent does not exhibit. V1.0.8 fixes those two checker errors in a new frozen source revision. The corrected checker and regression tests passed against a private copy of the sealed v1.0.7 log and report.
+
+The bounded replay found no system SURP task starting at hour 5, three later system tasks lasting 1.49995, 1.5, and 1.5 hours, and three reconciled damage, spare issue, child repair, item arrival, and stock-return cycles. All task starts align with spare issue. It validated the exact accepted report table/column schema, retained all 4,044 typed cells, and checked only the listed event and report metrics. Native input conversion recorded zero errors, two warnings, and zero notes; authored roundtrip passed.
+
+A09's independent postrun inspection and A17's receipt-bound `GO_BOUNDED_POSTRUN` are recorded with the source and replay hashes. The full raw run, transport failure, v1.0.7 failure seal, and failed checker history are retained under v1.0.7. The temporary ledger created by the first local replay was moved out; the original 14 raw files still match their seal.
+
+The complete v1.0.7 `runs/` tree, including the original `model.sxi`, `model.sxo`, report, logs, and other raw outputs, is host-bound evidence. It is excluded from the staged publication set and is not delivered in this repository. Full replay requires access to those exact host-bound files at the pinned path and must verify them against the v1.0.7 failure seal and evidence references. The PR carries the bounded replay record and exact hashes. This package does not include curated raw log copies; the staging allowlist names only files that are currently present and reviewed.
+
+Scope is limited to one fixed seed, one station, one mother-system/child-item relationship, and one hour-5 SURPT update. Other report values are retained but not asserted. GUI behavior, other schedule fields, other event timings, cross-engine equivalence, and the wider I05.var05 family remain unverified. This result does not claim Issue 18 completion.

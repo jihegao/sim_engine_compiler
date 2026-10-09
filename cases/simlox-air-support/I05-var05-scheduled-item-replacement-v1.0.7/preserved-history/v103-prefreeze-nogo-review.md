@@ -1,0 +1,3 @@
+# I05.var05 v1.0.3 preflight manifest review — NO_GO
+
+A09 returned `NO_GO_FOR_PREFLIGHT` for the exact preserved manifest (24,671 bytes, SHA-256 `4b42805b531b92a3ee4dc9696409ebae873a4bfc8158ac8f98361af551da7e45`). Its `execution-contract.json` pinned stale v1.0.2 builder and source-delta-checker hashes (`7c5756f4…` and `fe8a97f2…`) while the v1.0.3 source pins were `eb10a243…` and `2e048119…`. All 57 manifest pins, 12 parent raw pins, and earlier failure preservation checks passed. The reserved v1.0.3 run directory was absent, and no approval, preflight output, SSH dispatch, or native dispatch existed. A09 ran no checker, SSH, or native action. The exact rejected manifest bytes are preserved beside this note.

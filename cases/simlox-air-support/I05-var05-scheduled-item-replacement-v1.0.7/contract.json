@@ -1,0 +1,301 @@
+{
+  "schema": "simlox-i05-var05-contract/v1",
+  "case_id": "I05",
+  "variant_id": "I05.var05",
+  "version": "1.0.7",
+  "publication_state": "not_published",
+  "direct_parent": {
+    "package": "H02-var04-item-damage-replacement-fallback-v1.0.0",
+    "arm": "fallback",
+    "source": "../H02-var04-item-damage-replacement-fallback-v1.0.0/fallback-input.json",
+    "sha256": "2e29c2ea72304544c68281e8629bd242cca3d6252cbbe7cea2c48e0a00716a97",
+    "accepted_publication": "H02.var04.damage_replacement_vs_ordinary_item_replacement_fallback.1.0.0",
+    "parent_run_repeated": false
+  },
+  "accepted_parent_evidence": {
+    "publication_id": "H02.var04.damage_replacement_vs_ordinary_item_replacement_fallback.1.0.0",
+    "scope_signoff": {
+      "path": "../H02-var04-item-damage-replacement-fallback-v1.0.0/cli-scope-signoff-2026-10-02.md",
+      "bytes": 3102,
+      "sha256": "53b9b4152f5f48d5d0003f0d4ad0257b5e5e933892dc85db2c810f8b6ee3681d"
+    },
+    "evidence_index": {
+      "path": "../H02-var04-item-damage-replacement-fallback-v1.0.0/evidence-index.json",
+      "bytes": 7650,
+      "sha256": "bad27eb48f2767db7e26d4209935576c8aefc3e7124c64741cbfcac65692157e"
+    },
+    "fallback_run": {
+      "run_id": "h02-var04-item-fallback-v100-ssh-20261002-01",
+      "raw_artifact_count": 12,
+      "input_sha256": "2e29c2ea72304544c68281e8629bd242cca3d6252cbbe7cea2c48e0a00716a97",
+      "model_log_sha256": "bae8b9dae6be39c09dd3f546975c30f0b3bfe2b220ea6c948caa53553bc4a62a",
+      "report_sha256": "f8a2b9fe56527cff484f9f057eb73581e31bfd19e36716d7e8bdad86e1dabcfa",
+      "raw_file_custody": {
+        "access_policy": "Open and verify original files only for reading; do not change bytes or attributes.",
+        "observed_windows_attributes": 32,
+        "observed_permission_mode": 438,
+        "before_after_hash_and_metadata_must_match": true
+      },
+      "parent_run_must_not_be_repeated": true
+    },
+    "publication_index": {
+      "path": "../publication-index-v1.json",
+      "bytes": 548720,
+      "sha256": "2aa600b129a1b725ca161b3f7cf43ac654e108376be393e4fb93b952b2d5e085"
+    }
+  },
+  "manual_and_dictionary": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_pages": [
+      504,
+      505
+    ],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "dictionary_table": "ChangesItemReplacement",
+    "manual_rules": [
+      "TIMEC identifies the scheduled change time; SURPT, SURPD, and SURPF are the changeable replacement fields.",
+      "The key is the exact MID, IID, STID, TIMEC tuple; MID is the mother item or system and IID is the child item.",
+      "The change can target only an object already present in ItemReplacement.",
+      "An activity already started but not completed is not affected by a scheduled data change.",
+      "STID may name a station or station group; a specific station row takes precedence when both apply.",
+      "SURPF cannot be changed from zero to a positive value."
+    ]
+  },
+  "business_change": {
+    "time_hours": 5.0,
+    "table": "ChangesItemReplacement",
+    "key": {
+      "MID": "TEACH-AIR-01",
+      "IID": "TEACH-LRU-01",
+      "STID": "BASE-01",
+      "TIMEC": 5.0
+    },
+    "before": {
+      "table": "ItemReplacement",
+      "key": {
+        "MID": "TEACH-AIR-01",
+        "IID": "TEACH-LRU-01",
+        "STID": "BASE-01"
+      },
+      "SURPT": 1.0,
+      "SURPF": 1.0
+    },
+    "after": {
+      "SURPT": 1.5
+    },
+    "only_primary_mechanism": "Increase the existing ordinary ItemReplacement SURPT from 1.0 to 1.5 hours by a scheduled change before the first damage event."
+  },
+  "change_table_schema": {
+    "table": "ChangesItemReplacement",
+    "column_order": [
+      "MID",
+      "IID",
+      "STID",
+      "TIMEC",
+      "SURPT",
+      "SURPF",
+      "SURPD",
+      "NOTE"
+    ],
+    "columns": [
+      {
+        "name": "MID",
+        "datatype": "string",
+        "key": true
+      },
+      {
+        "name": "IID",
+        "datatype": "string",
+        "key": true
+      },
+      {
+        "name": "STID",
+        "datatype": "string",
+        "key": true
+      },
+      {
+        "name": "TIMEC",
+        "datatype": "double",
+        "key": true
+      },
+      {
+        "name": "SURPT",
+        "datatype": "double"
+      },
+      {
+        "name": "SURPF",
+        "datatype": "double"
+      },
+      {
+        "name": "SURPD",
+        "datatype": "string"
+      },
+      {
+        "name": "NOTE",
+        "datatype": "string"
+      }
+    ],
+    "exact_row": [
+      "TEACH-AIR-01",
+      "TEACH-LRU-01",
+      "BASE-01",
+      5.0,
+      1.5,
+      null,
+      null,
+      null
+    ],
+    "dictionary_semantics": {
+      "TIMEC": {
+        "unit": "hours",
+        "role": "scheduled-change key"
+      },
+      "SURPT": {
+        "unit": "hours",
+        "required": true
+      },
+      "SURPF": {
+        "optional": true,
+        "value": null
+      },
+      "SURPD": {
+        "optional": true,
+        "value": null
+      },
+      "NOTE": {
+        "optional": true,
+        "value": null
+      }
+    },
+    "typed_values": {
+      "MID": {
+        "type": "string",
+        "value": "TEACH-AIR-01"
+      },
+      "IID": {
+        "type": "string",
+        "value": "TEACH-LRU-01"
+      },
+      "STID": {
+        "type": "string",
+        "value": "BASE-01"
+      },
+      "TIMEC": {
+        "type": "double",
+        "value": 5.0,
+        "unit": "hours"
+      },
+      "SURPT": {
+        "type": "double",
+        "value": 1.5,
+        "unit": "hours"
+      },
+      "SURPF": {
+        "type": "double",
+        "value": null
+      },
+      "SURPD": {
+        "type": "string",
+        "value": null
+      },
+      "NOTE": {
+        "type": "string",
+        "value": null
+      }
+    }
+  },
+  "source_delta": {
+    "parent_sha256": "2e29c2ea72304544c68281e8629bd242cca3d6252cbbe7cea2c48e0a00716a97",
+    "problem_description_cell": {
+      "path": "model.tables[name=ProblemDescription].instances[0].rows[0][0]",
+      "before": "H02.var04 DamageReplacement omitted; ordinary one-hour ItemReplacement fallback",
+      "after": "I05.var05: at hour 5, change existing ItemReplacement SURPT from 1.0 to 1.5 hours."
+    },
+    "allowed_changes": [
+      "Replace only ProblemDescription.PDESC with the exact source_delta.problem_description_cell.after value.",
+      "Append exactly one ChangesItemReplacement table after the parent's final table, DamageReplacement, using change_table_schema.columns in the listed order and exactly change_table_schema.exact_row as its sole row."
+    ],
+    "must_remain_identical": [
+      "Every other parent table name, order, column metadata, instance name, row count, and typed cell.",
+      "The ItemReplacement table and its existing (TEACH-AIR-01, TEACH-LRU-01, BASE-01) row, including SURPT=1.0 and SURPF=1.0.",
+      "All model-level settings, including database version, seed, horizon, mission schedule, damage route, and report configuration."
+    ],
+    "reject": [
+      "Any additional table, changed existing ItemReplacement cell, extra or reordered change row, missing column, changed column order or key metadata, or non-null optional SURPF/SURPD/NOTE value.",
+      "Any parent-to-child difference outside the two allowed changes."
+    ]
+  },
+  "unchanged_parent_configuration": {
+    "seed": 1,
+    "horizon_hours": 36,
+    "scheduled_missions_hours": [
+      8,
+      20,
+      32
+    ],
+    "source_damage_route": "BATTLE-HIT with inherited certain primary-LRU damage and ordinary ItemReplacement fallback",
+    "parent_item_replacement_surpt_hours": 1.0,
+    "item_repair_and_restock": "unchanged from accepted H02.var04 fallback source",
+    "native_parent_files_may_be_reused_read_only": true,
+    "accepted_parent_native_run_must_not_be_repeated": true
+  },
+  "pre_run_hypotheses": {
+    "first_cycle": "The h5 change does not create an immediate replacement activity. The first later item replacement uses a 1.5-hour duration rather than the accepted parent's 1.0 hour, with all task time and physical item identities read from the native log.",
+    "later_cycles": "Any replacement activities started after h5 use the changed 1.5-hour duration if the native event records support the relationship. Later damage-event times, readiness, and report values are measured and reconciled; no general stochastic time-shift is assumed.",
+    "inventory": "For every observed damage/replacement/repair cycle, reconcile the damaged item identity, spare issue, repair start and item return using the raw event log plus aligned System and Stock report bins. Do not infer an individual physical stock draw from an aggregate report cell alone.",
+    "roundtrip": "The predeclared v1.0.5 representation rules retain the exact 36-table order, all column metadata and instance names, every authored nonempty row, and the exact scheduled change row. They permit only exact finite integer/float equivalence in declared double cells and one full-width all-null placeholder for each authored-empty table. v1.0.4 remains excluded."
+  },
+  "acceptance_gates": [
+    "Independent contract and source-delta review before native preflight.",
+    "Fresh session-0 SSH preflight, GUI PID/session/start identity, active-session check, mutex, source pins, and unique absent run directory.",
+    "One child native attempt only, using the host-wide serial mutex; accepted parent runs are read-only and never rerun.",
+    "Zero converter errors, valid nonempty SXI/SXO/ENLOG/report, and the exact prospective v1.0.5 table/row/type-aware roundtrip policy.",
+    "Raw event review for absence of a change-triggered h5 replacement and duration for subsequent replacement tasks.",
+    "Complete physical item, item repair, stock and per-bin System/Stock ledger reconciliation against the frozen child contract.",
+    "Hash-sealed original evidence, independent read-only replay, and separate reviewed publication/PR gates."
+  ],
+  "limits": [
+    "One fixed-seed, one-station, one mother-system/child-item record and one scheduled SURPT change only.",
+    "Does not test changes to SURPD or SURPF, the zero-to-positive SURPF boundary, station-group precedence, nonexistent objects, same-time precedence, or activities already in progress at TIMEC.",
+    "Does not establish general stochastic, timing, queue, GUI, cross-engine or performance behavior, the full I05.var05 family, or Issue #18 completion."
+  ],
+  "roundtrip_policy": {
+    "prospective_basis": "v1.0.5 was independently NO_GO_SOURCE_ONLY for precision-token, huge-integer, mixed-instance placeholder and manifest path issues; this revision changes those methods and keeps v104 NO_GO.",
+    "table_order": "Exactly the 36 authored table names in the same order; column metadata and instance names remain exact.",
+    "authored_populated_tables": 25,
+    "empty_tables": "An all-null placeholder row is permitted only for a table with no authored rows anywhere; then require exactly one full-width all-null row in every matching instance. A blank instance within an otherwise populated table must remain row-empty.",
+    "double_cells": "Parse every JSON numeric token as Decimal before comparison. Accept either exact Decimal numeric equality or the exact 17-significant-digit decimal serializer spelling of the authored finite binary64 value, with no tolerance; this is the only alternate representation, based on the sealed v104 export. Exclude booleans, non-finite values, and overflow. For example, authored 1.5 may not export as 1.50000000000000001.",
+    "other_cells": "All other cell types and values remain exact, including strings, booleans, nulls, and integer-typed values.",
+    "change_row": "ChangesItemReplacement retains the exact ordered key and values; TIMEC=5 and SURPT=1.5 are accepted only as exact numeric equality under declared double metadata.",
+    "sub_ulp_negative": "The output token 1.50000000000000001 is rejected when authored value is 1.5, even though binary64 parsing could round it to 1.5."
+  },
+  "prior_failed_attempts": [
+    {
+      "version": "1.0.4",
+      "run_id": "i05-var05-item-replacement-v104-ssh-20261009-01",
+      "failure_seal": "preserved-history/v104-roundtrip-failure/failure-seal.json",
+      "failure_seal_sha256": "cc5b2a605694557ce6e2137c737a56ccf2bf8ff67e363428b264d351fcd141bb",
+      "decision": "NO_GO; import/export passed, strict roundtrip checker failed; no calculation/report; do not rerun",
+      "independent_reviews": [
+        {
+          "path": "preserved-history/v104-roundtrip-failure/independent-review-a09.md",
+          "sha256": "18de547003d40514b03694dd19107197ddb735e8ebf65e94b6cb2dd1e4c1f7c8"
+        },
+        {
+          "path": "preserved-history/v104-roundtrip-failure/independent-review-a17.md",
+          "sha256": "0a47c5171e13efb7365eec661327c440be335b0867eac29d1fe81325eb7387b3"
+        }
+      ]
+    }
+  ],
+  "prior_source_only_no_go": {
+    "version": "1.0.5",
+    "source_freeze_sha256": "33ad962921e334e2ba10b399a08cbb499a5171b63012aa491bcf471bb00c856d",
+    "seal_path": "preserved-history/v105-source-review-nogo/source-no-go-seal.json",
+    "a17_review_path": "preserved-history/v105-source-review-nogo/independent-review-a17.md",
+    "a09_review_path": "preserved-history/v105-source-review-nogo/independent-review-a09.md",
+    "decision": "NO_GO_SOURCE_ONLY; no preflight/native"
+  },
+  "empty_tables": "An all-null placeholder row is permitted only for a table with no authored rows anywhere; then require exactly one full-width all-null row in every matching instance. A blank instance within an otherwise populated table must remain row-empty.",
+  "prospective_source_revision": "v1.0.7 preserves the v1.0.6 finite roundtrip policy and adds an exact byte/hash pin plus typed unique-entry validation for the authoritative parent publication index in the source freeze and prelaunch manifest. It does not accept v104 behavior."
+}

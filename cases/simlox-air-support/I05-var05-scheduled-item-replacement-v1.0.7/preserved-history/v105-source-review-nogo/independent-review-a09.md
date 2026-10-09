@@ -1,0 +1,3 @@
+# Independent review of I05.var05 v1.0.5 source — A09
+
+Decision: NO_GO_SOURCE_ONLY for source-freeze SHA-256 `33ad962921e334e2ba10b399a08cbb499a5171b63012aa491bcf471bb00c856d`. All 29 frozen sources and 12 accepted H02 parent raw files matched their pins; the v1.0.4 failure copy remained byte-exact and excluded. The prelaunch manifest generator required absent paths `review/superseded-source-freeze-v1.json` and `review/superseded-source-freeze-verification-v1.json`; it would fail during manifest pinning. No checker, SSH, preflight or native action occurred. Preserve v1.0.5 and remove the stale requirements in a separately reviewed source version.

@@ -1,0 +1,13 @@
+# I05.var05 scheduled item replacement — v1.0.3 candidate
+
+Status: v1.0.3 source candidate; it has not reached preflight or native execution. The v1.0.0, v1.0.1, and v1.0.2 preflight failures are preserved under `preserved-history/` with their original streams, receipts, and seals. None dispatched native work. A pre-freeze v1.0.3 local checker pin mismatch is also preserved; it exposed stale v1.0.2 contract hashes in three local checker files and likewise dispatched no SSH or native work. Do not treat expected events as observations.
+
+This version keeps the accepted H02.var04 parent and the single hour-5 `ChangesItemReplacement` row (`TEACH-AIR-01 / TEACH-LRU-01 / BASE-01`, `SURPT=1.0` to `1.5` hours). Its runner corrects the preflight process ownership check: it excludes only the current SSH PowerShell process and its recorded process ancestors, including the SSH-created `cmd.exe` wrapper, when searching session 0 for competing Issue 18 runners. Other matching session-0 processes remain a hard stop. The failed v1.0.2 check saw the wrapper for its own SSH-launched PowerShell and stopped before writing a receipt or dispatching any native action.
+
+The accepted parent input, fallback run, source records, 12 raw files, parent event log, report, sign-off, and evidence index remain pinned read-only and will not be rerun. The only planned behavioral change is the one frozen hour-5 `SURPT` update. Source comparison must continue to show one changed cell in `ProblemDescription` and one appended table with one `ChangesItemReplacement` row; all other parent tables/cells and the original replacement row remain identical.
+
+Manual pages 504–505 and the pinned table dictionary define the scheduled key and the restriction that an already-started unfinished activity is not changed retroactively. This case only checks that no replacement activity starts at hour 5 and that a later activity uses the new duration. Later damage, readiness, stock, and report outcomes must be reconciled from the sealed child evidence; no general stochastic shift is assumed.
+
+The v1.0.3 package requires a fresh independent source review and preflight GO before its unique run ID can be dispatched. A future preflight GO permits preflight only. A separate fresh receipt-bound prelaunch GO is required before any native child. The prior failed packages remain excluded and immutable.
+
+Limits remain one fixed-seed source, one station and one mother-system/child-item record. This does not establish GUI behavior, cross-engine equivalence, other schedule fields, same-time precedence, active-task changes, general stochastic timing, the full I05.var05 family, or Issue 18 completion.

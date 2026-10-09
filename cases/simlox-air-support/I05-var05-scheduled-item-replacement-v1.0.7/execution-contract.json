@@ -1,0 +1,56 @@
+{
+  "schema": "simlox-i05-var05-execution-contract/v1",
+  "version": "1.0.7",
+  "case_id": "I05",
+  "variant_id": "I05.var05",
+  "run_id": "i05-var05-item-replacement-v107-ssh-20261009-01",
+  "native_run_directory": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\tmp\\i05-var05-item-replacement-v107-20261009-01",
+  "parent": {
+    "publication_id": "H02.var04.damage_replacement_vs_ordinary_item_replacement_fallback.1.0.0",
+    "run_id": "h02-var04-item-fallback-v100-ssh-20261002-01",
+    "input_sha256": "2e29c2ea72304544c68281e8629bd242cca3d6252cbbe7cea2c48e0a00716a97",
+    "run_must_not_be_repeated": true,
+    "publication_index_sha256": "2aa600b129a1b725ca161b3f7cf43ac654e108376be393e4fb93b952b2d5e085"
+  },
+  "source": {
+    "contract_sha256": "12cf9fd1382a7c693bf0af910c71a83bf9c31c3ee47f4cead12846b2dd426233",
+    "native_input_sha256": "c30b0849ad46a6351e4c94a2964f0f6f16274b6b926508b8fe47ecd9a5323480",
+    "builder_sha256": "1e6c4223f700032887a1bb902da6f3956429f1eaf68e00625488551c0b68e148",
+    "source_delta_checker_sha256": "cff8c80a9ceb0027aae649a195bfff3791597746c84ea1147b26a5d0b713d311",
+    "roundtrip_checker_sha256": "e2083cf4cd4bb2a6d9770ad3a73ab1c6e89d60d373f791f40229bdab13c869d6"
+  },
+  "native_stages": [
+    "import",
+    "export",
+    "check_roundtrip",
+    "calc",
+    "jsonreport",
+    "check_behavior"
+  ],
+  "fixed_change": {
+    "table": "ChangesItemReplacement",
+    "key": [
+      "TEACH-AIR-01",
+      "TEACH-LRU-01",
+      "BASE-01",
+      5.0
+    ],
+    "before_surpt_hours": 1.0,
+    "after_surpt_hours": 1.5
+  },
+  "acceptance": {
+    "converter_errors": 0,
+    "authored_roundtrip": "all 36 table names/order, exact columns/instance names, 25 populated authored tables; all-null placeholder only for wholly empty tables; declared double cells use exact Decimal equality or the exact 17-significant-digit spelling of the authored finite binary64 value (no tolerance); strict other cells and exact h5 change row",
+    "no_immediate_change_trigger": "no system SURP task starts at hour 5",
+    "post_change_duration": "every completed system SURP task lasts 1.5 hours within 0.00011 hours",
+    "physical_cycle": "each damage identity matches demand, direct-repair start and completion, and stock return; each demand has one coincident spare issue",
+    "opening_spare_flow": "each later spare issue uses the prior repaired return and occurs after that return",
+    "raw_reports": "retain the complete native report and all 4044 typed cells; require exact accepted four-table roster and ordered column schemas. Reconcile every half-hour interval and total-row identity, NDAM/NREPT/NDD/NWT/NBO integer event bins, PNB, the NSYRY/NSYMA/NSYUA/NSYA state partitions, NSYRP exposure against task durations, NFAIL/NSYLA, and terminal NSYRY/MSTF/MSUF. Other raw report metric values are preserved but are outside this variant's asserted metric scope.",
+    "failure_handling": "one native attempt; preserve every file and hash on failure; no in-directory retry"
+  },
+  "limits": [
+    "single fixed-seed source, one station, one mother-system/child-item record, one scheduled SURPT update",
+    "does not establish GUI behavior, cross-engine equivalence, other schedule fields, same-time precedence, active-task changes, general stochastic timing, or full I05.var05 family",
+    "publication_state remains not_published until independent postrun replay and authorized publication review"
+  ]
+}

@@ -1,0 +1,3 @@
+# A09 preflight-only review for I05.var05 v1.0.3
+
+GO_FOR_PREFLIGHT_ONLY for manifest SHA-256 `a61a6d9b4baa8c2d44688f3d788fd31d823ef53e7934626b6ed7521f0ee09ffc` (25,525 bytes). A09 verified 59/59 manifest pins and 12/12 accepted H02.var04 raw pins, exact parent identity and one-row `SURPT=1.5` delta, correct execution-contract source hashes, preserved prior seals, unique absent run path and no output/approval. The reviewer did not execute checker, SSH or native actions. This approval was limited to v1.0.3 preflight and did not authorize native dispatch.

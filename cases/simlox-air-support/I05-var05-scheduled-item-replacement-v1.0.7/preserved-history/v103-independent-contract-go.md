@@ -1,0 +1,5 @@
+# Independent I05.var05 v1.0.3 contract and runner review
+
+**GO_SOURCE_SCOPE_ONLY.** The contract is 10,374 bytes, SHA-256 `8edc843cee0cae8335161c9cbd899e938d5f9218ae188008b228cad43504e0bd`. It is recursively equal to v1.0.2 after changing only top-level version 1.0.2 to 1.0.3. Accepted H02.var04 parent, manual/dictionary pins, exact eight-column schema, sole hour-5 `SURPT=1.0→1.5` change, event/stock/report gates, and limits remain unchanged.
+
+Runner `run_native_ssh.ps1` is 16,575 bytes, SHA-256 `7e8c49e3790794c42da6a587b0988bf9f8ece3c905f3047c38d9fb52590a96f`. The changed process guard collects the session-0 PowerShell process ancestor PIDs, excludes only the current PID and those ancestors from the competing-runner scan, and records ancestor PIDs in preflight and invocation evidence. Other matching session-0 processes remain a hard stop; GUI, WTS, mutex, source, and run-path checks remain. Static review only. A receipt-bound preflight must validate runtime behavior, including process ownership; PID snapshot and command-line matching remain scoped limitations. No checker, SSH, or native action was run by the reviewer.

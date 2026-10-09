@@ -1,0 +1,7 @@
+# Independent review of I05.var05 v1.0.4 failure — A09
+
+Decision: NO_GO; do not rerun or accept v1.0.4. Import and export exited 0; check_roundtrip exited 1; calculation and reporting never started. Independent read-only comparison confirmed 36 tables in exact order and identical column metadata. All 25 authored populated tables had numerically equal row values. The converter serialized 24 integral values in declared `double` columns as JSON integers and emitted one all-null row for each of 11 authored-empty tables. The checker incorrectly expects 26 populated tables where the frozen input has 25 and uses strict JSON numeric type equality. The accepted H02 parent export exhibits the same integer/float normalization. The contract's v1.0.4 strict typed gate nevertheless failed; no retroactive waiver.
+
+Pins: manifest 29,444 bytes `f4f390058c6703b8189313e4290d2268fc2e307cff2e9e4d0045a4c9b839115a`; runner 16,576 bytes `9e652e6f382484818272cd1df37f56a39401db3996b4e903e537141ed23e2bc1`; closure SHA `175ff30ef89335c3882faF4a5362ca0730a265830cb76bc029fb97e15ea2bdb0`; input `c30b0849ad46a6351e4c94a2964f0f6f16274b6b926508b8fe47ecd9a5323480`; SXI `8c1b2c092a1b8ce58771921547b08359594d76ba0ed46cfbf4e3d35af6de6d08`; export `6d185ed62a62142032322bd97a6c5db3fd745ba5abb8da06452acebbb0969fe4`; stderr `fe01095d5bb9499cb316f6779efc725f903112796692204214578bc0aaf2bea5`; transport receipt `792291c474a1aa77a94ea29f09315ef4d089fe864c9864e388efacf62fad26f0`, SSH exit 1/retry 0.
+
+This review was read-only: no checker, SSH, native or accepted-parent rerun.
