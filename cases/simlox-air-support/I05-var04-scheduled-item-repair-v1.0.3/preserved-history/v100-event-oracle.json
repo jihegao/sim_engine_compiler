@@ -1,0 +1,99 @@
+{
+  "schema": "i05-var04-prospective-event-oracle/v100",
+  "state": "strict_positive_hypothesis_no_native_observation",
+  "parent_log": {
+    "path": "cases/simlox-air-support/E05-local-repair-reissue-v1.0.0/runs/e05-v100-ssh-20260929-01/model.log",
+    "bytes": 18758,
+    "sha256": "3ed9e6a5fc2d66dd8eb5fa4f111bc3baa127dfbfc40aadac639ed55e7f8701f8",
+    "physical_crlf_lines": 222,
+    "timed_lines": 186,
+    "untimed_lines": 36
+  },
+  "positive_arm": {
+    "scheduled_missions": [
+      8,
+      20,
+      32
+    ],
+    "mission_duration_hours": 2,
+    "fixed_seed": "1",
+    "complete_lru_failure_cycles": 3,
+    "no_additional_failure_or_unhandled_event": true,
+    "all_three_missions_launch_and_abort": true,
+    "no_backorder": true,
+    "all_three_removed_lrus_direct_repair_and_restock_before_h36": true,
+    "stock_identity_chain": [
+      {
+        "cycle": 0,
+        "issued_id": 0,
+        "failed_id": 1
+      },
+      {
+        "cycle": 1,
+        "issued_id": 1,
+        "failed_id": 2
+      },
+      {
+        "cycle": 2,
+        "issued_id": 2,
+        "failed_id": 3
+      }
+    ],
+    "status": "falsifiable branch; any count, identity, mission, shortage, or grammar deviation is NO_GO, not a revised outcome fit"
+  },
+  "first_cycle_display_hypotheses": {
+    "first_failure": 9.25527,
+    "aborted_return": 9.75527,
+    "remove_completion_and_DIRP_start": 9.92193,
+    "system_ready": 10.2553,
+    "DIRP_duration_hours": 1.5,
+    "DIRP_completion_and_restock": 11.4219,
+    "meaning": "literal time hypotheses for this branch, not a seed invariance law; failure to observe any is NO_GO"
+  },
+  "later_cycles": {
+    "failure_time": "finite observed f_j strictly within each scheduled mission [20,22) or [32,34); values are not inherited from E05",
+    "aborted_return": "a_j from native events, with 0<=a_j-f_j<=0.5 and a_j<=scheduled_start+2; parent capped-return pattern a_j=min(f_j+0.5,scheduled_start+2) is an explicit strict hypothesis",
+    "demand_issue": "at a_j, exactly one usable stock item issued: repaired failed physical ID from prior cycle",
+    "system_REMOVE_end_and_item_DIRP_start": "a_j+1/6 hour, with exact causal ordering and native display precision",
+    "system_REPLACE_end_and_ready": "a_j+1/2 hour; no item repair/stock timing may be substituted for aircraft ready",
+    "item_DIRP_end_and_restock": "item_DIRP_start+1.5 hours, for the same failed physical ID; later demand follows prior restock",
+    "third_completion": "strictly before h36; otherwise NO_GO"
+  },
+  "line_grammar": {
+    "strict_branch_counts": {
+      "physical_crlf_lines": 222,
+      "timed_lines": 186,
+      "untimed_continuations": 36
+    },
+    "source": "ordered E05 parent line descriptors, not copied parent numeric times or report values",
+    "rule": "all physical lines including 36 untimed continuations must match the complete parent event-kind/order grammar, allowing only explicitly declared time/failure-clock/complexity numeric tokens and 1.0-to-1.5 DIRP planned-duration/completion/stock times; no extra change announcement, warning, failure, repair, stock, or mission line; no missing/reordered line",
+    "full_grammar_requirement": "before prelaunch a separate sealed checker must enumerate every one of the 222 line patterns, bind every variable to the causal ledger, and reject every unknown line; this prospective document alone is not a checker",
+    "bounded_random_clock": "all random clock/complexity tokens finite, source-bound and ordered; later draws may differ from accepted E05; no assumed RNG identity"
+  },
+  "physical_conservation": {
+    "opening_stock_ids": [
+      0
+    ],
+    "each_cycle": "on_hand1 -> issue existing ID -> on_hand0 -> removed failed ID starts DIRP -> same ID completes -> on_hand1; no duplicate, lost or spontaneously created ID",
+    "issue_chain": "0, then repaired1, then repaired2; failed3 returns before horizon",
+    "stock_report_PNB_warning": "PNB is an aggregate selected-report field and does not prove physical stock on hand; only ordered stock events establish this ledger"
+  },
+  "time_precision": {
+    "printed_decimal": "for a time displayed with p decimal digits, derive a closed rounding interval of half a last printed unit around that display; source-scheduled integer/half-hour times are exact",
+    "bin_uniqueness": "every stochastic event and derived completion used for a half-hour count must have its whole display interval inside one bin; boundary crossing is NO_GO, except source-exact scheduled rational boundaries with separately frozen parent representation",
+    "comparison": "state occupancy is computed as an interval over display-time uncertainty, expanded only by two binary32 ULPs at the expected magnitude; exact integer, string and null fields do not use tolerance",
+    "no_fit": "do not choose alternate internal times from report values or stretch tolerances after observation"
+  },
+  "excluded": [
+    "one or two failures",
+    "fourth failure",
+    "backorder",
+    "unrepaired or horizon-pending LRU",
+    "different physical issue chain",
+    "extra change diagnostic",
+    "same-time change/start tie",
+    "already-started or suspended item repair",
+    "subitem ItemReplacement repair"
+  ],
+  "new_native_runs_at_design": 0
+}

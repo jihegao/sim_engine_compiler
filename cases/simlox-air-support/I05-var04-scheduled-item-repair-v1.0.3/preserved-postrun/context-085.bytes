@@ -1,0 +1,53 @@
+"""Absent-only promotion of the independently signed v103 native approval."""
+from pathlib import Path
+import hashlib
+import json
+import stat
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/I05-var04-scheduled-item-repair-v1.0.3'
+P = R / 'tmp/i05-var04-independent-prelaunch-go-v103-20261009.json'
+G = R / 'tmp/i05-var04-independent-prelaunch-scope-go-v103-20261009.md'
+D = C / 'review/independent-prelaunch-go.json'
+O = R / 'tmp/i05-var04-root-approval-promotion-v103-20261009.json'
+
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+
+for path in (P, G):
+    assert path.stat().st_file_attributes == 33
+    for item in (path, *path.parents):
+        assert not item.is_symlink() and not item.is_junction()
+        assert not item.stat().st_file_attributes & 1024
+assert pin(P) == {'bytes': 1201, 'sha256': '6180a41299810c478267db9610cbe4a331cd736cdb0218bca7362854cce9ff9b'}
+assert pin(G) == {'bytes': 3991, 'sha256': '2f7a4401b4f25f8a489abc9880ab3702c18ad6ce42c61573bc93ebc81cde2cc5'}
+assert not D.exists() and not O.exists()
+assert not (R / 'tmp/i05-var04-native-v103-20261009-01').exists()
+doc = json.loads(P.read_bytes())
+manifest = json.loads((C / 'prelaunch-manifest.json').read_bytes())
+assert doc['schema'] == 'i05-var04-independent-prelaunch-go/v103'
+assert doc['decision'] == 'GO_PRELAUNCH' and len(doc) == 14
+assert doc['manifest_sha256'] == pin(C / 'prelaunch-manifest.json')['sha256']
+assert doc['preflight_relative_path'] == 'review/preflight-ssh0-20261009T025543167Z.json'
+assert doc['preflight_sha256'] == pin(C / doc['preflight_relative_path'])['sha256']
+for key in ('runner_sha256', 'validator_sha256', 'contract_sha256', 'execution_binding_sha256',
+            'input_sha256', 'independent_reader_sha256', 'run_id', 'native_run_directory'):
+    assert doc[key] == manifest[key], key
+preflight = json.loads((C / doc['preflight_relative_path']).read_bytes().decode('utf-8-sig'))
+assert doc['source_map_sha256'] == preflight['source_map_sha256']
+with D.open('xb') as stream:
+    stream.write(P.read_bytes())
+D.chmod(stat.S_IREAD)
+assert pin(D) == pin(P) and D.stat().st_file_attributes == 33
+body = {'schema': 'i05-var04-root-approval-promotion/v103',
+        'candidate': {'path': str(P), **pin(P)}, 'target': {'path': str(D), **pin(D)},
+        'scope_note': {'path': str(G), **pin(G)}, 'method': pin(Path(__file__)),
+        'native_dispatch': False}
+with O.open('xb') as stream:
+    stream.write((json.dumps(body, indent=2) + '\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(O), **pin(O),
+                  'decision': 'PROMOTED_APPROVAL_BYTES_ONLY', 'native_dispatch': False}))

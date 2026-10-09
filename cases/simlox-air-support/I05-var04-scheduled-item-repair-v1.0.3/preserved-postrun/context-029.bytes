@@ -1,0 +1,109 @@
+"""Root absent-only byte promotion after the new independent candidate audit."""
+from pathlib import Path
+import hashlib
+import json
+import stat
+import sys
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/I05-var04-scheduled-item-repair-v1.0.3'
+N = R / 'tmp/i05-var04-native-v103-20261009-01'
+P = R / 'tmp/i05-var04-root-source-promotion-v103-20261009.json'
+
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+
+def plain(path):
+    for item in (path, *path.parents):
+        if item.exists():
+            assert not item.is_symlink() and not item.is_junction()
+            assert not item.stat().st_file_attributes & 1024
+
+
+def frozen(path, digest):
+    plain(path)
+    assert path.is_file() and path.stat().st_file_attributes == 33
+    assert pin(path)['sha256'] == digest, str(path)
+    return json.loads(path.read_bytes())
+
+
+assert len(sys.argv) == 6
+mode, candidate_sha, audit_arg, audit_sha, promotion_sha = sys.argv[1:]
+assert mode in ('inventory', 'manifest')
+promoted = frozen(P, promotion_sha)
+assert promoted['schema'] == 'i05-var04-root-source-promotion/v103'
+assert promoted['decision'] == 'SOURCE_PROMOTED_ONLY_NO_SSH_OR_NATIVE_APPROVAL'
+assert promoted['case'] == str(C)
+assert promoted['source_hashes_before'] == promoted['source_hashes_after']
+sources = {row['path']: {'bytes': row['bytes'], 'sha256': row['sha256']}
+           for row in promoted['files']}
+assert len(sources) == len(promoted['files']) == promoted['source_count']
+
+
+def stable():
+    for relative, wanted in sources.items():
+        relative_path = Path(relative)
+        assert not relative_path.is_absolute() and '..' not in relative_path.parts
+        path = C / relative_path
+        plain(path)
+        assert path.stat().st_file_attributes == 33 and pin(path) == wanted
+    plain(N)
+    assert not N.exists() and not (C / 'runs').exists()
+
+
+stable()
+candidate_name = ('source-inventory' if mode == 'inventory' else 'prelaunch-manifest')
+candidate = R / f'tmp/i05-var04-{candidate_name}-candidate-v103-20261009.json'
+document = frozen(candidate, candidate_sha)
+audit_path = Path(audit_arg).resolve(strict=True)
+assert audit_path.is_relative_to(R / 'tmp/i05-var04-root-command-proofs-v103-20261009')
+audit = frozen(audit_path, audit_sha)
+assert audit['schema'] == 'i05-var04-root-command-proof/v103'
+assert type(audit['actual_exit']) is int and audit['actual_exit'] == 0
+assert audit['native_dispatch'] is False and audit['method_before'] == audit['method_after']
+assert audit['method_before']['method'] == sources['review/independent_reader.py']
+assert audit['argv'] == [sys.executable, '-X', 'utf8', '-B',
+                         str(C / 'review/independent_reader.py'),
+                         '--' + mode + '-candidate', str(candidate)]
+assert set(audit['streams']) == {'stdout.bin', 'stderr.bin'}
+for name, wanted in audit['streams'].items():
+    path = audit_path.parent / name
+    plain(path)
+    assert path.stat().st_file_attributes == 33 and pin(path) == wanted
+assert (audit_path.parent / 'stderr.bin').read_bytes() == b''
+verdict = json.loads((audit_path.parent / 'stdout.bin').read_bytes())
+assert type(document['source_count']) is int and document['source_count'] > 0
+count = document['source_count']
+if mode == 'inventory':
+    assert count == len(sources)
+else:
+    assert document['owned_source_count'] == len(sources) + 1
+    assert len(document['source_files']) == count
+assert verdict == {'decision': 'PASS_INVENTORY_CANDIDATE' if mode == 'inventory' else 'PASS_MANIFEST_CANDIDATE',
+                   'source_count': count, 'candidate_sha256': candidate_sha}
+assert document['schema'] == ('i05-var04-source-inventory/v103' if mode == 'inventory'
+                              else 'i05-var04-prelaunch-manifest/v103')
+target = C / (candidate_name + '.json')
+output = R / f'tmp/i05-var04-{mode}-promotion-v103-20261009.json'
+plain(target)
+assert not target.exists() and not output.exists()
+stable()
+with target.open('xb') as stream:
+    stream.write(candidate.read_bytes())
+target.chmod(stat.S_IREAD)
+assert pin(target) == pin(candidate) and target.stat().st_file_attributes == 33
+stable()
+receipt = {'schema': 'i05-var04-root-candidate-promotion/v103', 'mode': mode,
+           'candidate': {'path': str(candidate), **pin(candidate)},
+           'target': {'path': str(target), **pin(target)},
+           'independent_audit': {'path': str(audit_path), **pin(audit_path)},
+           'source_promotion': {'path': str(P), **pin(P)}, 'verdict': verdict,
+           'owned_sources_unchanged': len(sources), 'native_calls': 0,
+           'method': pin(Path(__file__))}
+with output.open('xb') as stream:
+    stream.write((json.dumps(receipt, indent=2) + '\n').encode())
+output.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(output), **pin(output), 'mode': mode, 'native_dispatch': False}))

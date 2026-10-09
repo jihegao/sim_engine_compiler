@@ -1,0 +1,97 @@
+"""Absent-only root promotion of the frozen v103 author and reviewer sources."""
+from pathlib import Path
+import hashlib
+import json
+import stat
+import datetime as dt
+import sys
+
+R = Path(__file__).resolve().parents[1]
+A = R / 'tmp/i05-var04-package-author-v103-20261009-01/package'
+C = R / 'cases/simlox-air-support/I05-var04-scheduled-item-repair-v1.0.3'
+F = R / 'tmp/i05-var04-author-freeze-case-v103-20261009-01.json'
+N = R / 'tmp/i05-var04-native-v103-20261009-01'
+OUT = R / 'tmp/i05-var04-root-source-promotion-v103-20261009.json'
+REVIEW = [
+    ('review/independent_reader.py', 'i05-var04-independent-reader-v103-final-20261009.py'),
+    ('review/independent_self_check.py', 'i05-var04-independent-selfcheck-v103-final-20261009.py'),
+    ('review/independent-static-go-2026-10-09.md', 'i05-var04-independent-static-go-v103-final-20261009.md')]
+
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+
+def plain_ancestors(path):
+    cursor = Path(path.anchor)
+    for part in path.parts[1:]:
+        cursor /= part
+        assert not cursor.is_symlink() and not cursor.is_junction()
+        if cursor.exists():
+            assert not cursor.stat().st_file_attributes & 1024
+
+
+def frozen(path, wanted):
+    plain_ancestors(path)
+    assert path.stat().st_file_attributes == 33
+    assert pin(path) == wanted, str(path)
+
+
+assert len(sys.argv) == 5
+digests = sys.argv[1:]
+assert all(len(value) == 64 and all(c in '0123456789abcdef' for c in value) for value in digests)
+assert not C.exists() and not OUT.exists() and not N.exists()
+plain_ancestors(C)
+freeze_pin = pin(F)
+assert freeze_pin['sha256'] == digests[0]
+frozen(F, freeze_pin)
+doc = json.loads(F.read_bytes())
+assert doc['schema'] == 'i05-var04-author-freeze-case/v103'
+assert doc['source_list_count'] == 60 and doc['present_author_count'] == 57
+assert len(doc['files']) == 57
+assert doc['reserved_review_paths'] == [item[0] for item in REVIEW]
+roster = json.loads((A / 'source-list.json').read_bytes())['files']
+assert len(roster) == len(set(roster)) == 60
+author_paths = {item['path'] for item in doc['files']}
+assert len(author_paths) == 57
+assert author_paths | set(doc['reserved_review_paths']) == set(roster)
+assert {path.relative_to(A).as_posix() for path in A.rglob('*') if path.is_file()} == author_paths
+records = {item['path']: (A / item['path'], {'bytes': item['bytes'], 'sha256': item['sha256']})
+           for item in doc['files']}
+for (relative, name), digest in zip(REVIEW, digests[1:], strict=True):
+    path = R / 'tmp' / name
+    wanted = pin(path)
+    assert wanted['sha256'] == digest
+    records[relative] = (path, wanted)
+for path, wanted in records.values():
+    frozen(path, wanted)
+before = {relative: pin(records[relative][0]) for relative in roster}
+C.mkdir(exist_ok=False)
+rows = []
+for relative in roster:
+    assert not Path(relative).is_absolute() and '..' not in Path(relative).parts
+    source, wanted = records[relative]
+    target = C / relative
+    assert target.resolve().is_relative_to(C.resolve())
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open('xb') as stream:
+        stream.write(source.read_bytes())
+    target.chmod(stat.S_IREAD)
+    frozen(target, wanted)
+    rows.append({'path': relative, 'source': str(source), 'destination': str(target),
+                 **pin(target), 'attributes': target.stat().st_file_attributes})
+after = {relative: pin(records[relative][0]) for relative in roster}
+assert before == after and not N.exists()
+receipt = {'schema': 'i05-var04-root-source-promotion/v103',
+           'utc': dt.datetime.now(dt.timezone.utc).isoformat(),
+           'decision': 'SOURCE_PROMOTED_ONLY_NO_SSH_OR_NATIVE_APPROVAL',
+           'case': str(C), 'author_freeze': {'path': str(F), **freeze_pin},
+           'source_count': 60, 'files': rows,
+           'source_hashes_before': before, 'source_hashes_after': after,
+           'native_run_absent': True, 'native_calls': 0, 'accepted_checker_calls': 0,
+           'method': pin(Path(__file__))}
+with OUT.open('xb') as stream:
+    stream.write((json.dumps(receipt, indent=2) + '\n').encode())
+OUT.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(OUT), **pin(OUT), 'decision': receipt['decision'], 'source_count': 60}))

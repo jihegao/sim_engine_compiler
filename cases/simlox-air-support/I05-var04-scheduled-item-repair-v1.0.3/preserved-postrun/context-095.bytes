@@ -1,0 +1,61 @@
+"""Exact-byte promotion of independent postrun signoff; no behavioral replay."""
+from pathlib import Path
+import hashlib,json,stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I05-var04-scheduled-item-repair-v1.0.3'
+F=R/'tmp/i05-var04-root-static-freeze-v103-20261009.json'
+J=R/'tmp/i05-var04-independent-postrun-go-v103-20261009.json'
+G=R/'tmp/i05-var04-independent-postrun-scope-go-v103-20261009.md'
+K=R/'tmp/i05-var04-root-native-custody-v103-20261009/20261009T030153404900Z-922b28c9/receipt.json'
+A=R/'tmp/i05-var04-root-command-proofs-v103-20261009/independent-postrun-v103-20261009T030200507697Z-4376a96f/receipt.json'
+O=R/'tmp/i05-var04-root-postrun-promotion-v103-20261009.json'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def plain(p):
+ for q in (p,*p.parents):
+  assert not q.is_symlink() and not q.is_junction() and not q.stat().st_file_attributes&1024
+def ro(p):
+ plain(p);assert p.is_file() and p.stat().st_file_attributes==33
+def exact(p,sha):
+ ro(p);assert pin(p)['sha256']==sha,str(p)
+ return json.loads(p.read_bytes().decode('utf-8-sig'))
+f=exact(F,'4a87c7d91c4c3d47f46eb8f25e3c896ead9e0fb8a78397b7c45d9e7681bdc065')
+j=exact(J,'f86bae92b10a88979b3dce0e9d0e117999cd3e385f9fcefde8b0c9d064b379eb')
+ro(G);assert pin(G)=={'bytes':3998,'sha256':'d445c24c057b31ad8b169bae89e510b62c3a2f0058ac2fb3a8456ce91392f886'}
+k=exact(K,'4eff235db385fdbb18fb31e34bb28c117da40b865bf30931843ec6dd0433d346')
+a=exact(A,'9aa85fb7b07fbeec61687588a862b46ab94f78c1bd249e557f8e700c796ef6a1')
+assert type(a['actual_exit']) is int and a['actual_exit']==0 and a['native_dispatch'] is False
+assert a['method_before']==a['method_after']
+for name,spec in a['streams'].items():ro(A.parent/name);assert pin(A.parent/name)==spec
+assert (A.parent/'stderr.bin').read_bytes()==b''
+assert json.loads((A.parent/'stdout.bin').read_bytes())=={'authored_cells':284,'decision':'GO_BOUNDED','export_cells':379,'full_lines':222,'raw_files':25,'report_cells':4044,'timed_lines':186}
+assert j['schema']=='i05-var04-independent-postrun-go/v103' and j['decision']=='GO_BOUNDED_POSTRUN' and len(j)==28
+assert j['independent_replay_capture_receipt_sha256']==pin(A)['sha256']
+assert j['byte_custody_receipt_sha256']==pin(K)['sha256']
+assert j['independent_replay_stdout_sha256']==pin(A.parent/'stdout.bin')['sha256']
+assert j['native_attempts_for_v103']==1 and j['excluded_v100_v101_v102_remain_no_go'] is True
+assert (j['authored_cells'],j['export_cells'],j['physical_lines'],j['timed_lines'],j['report_typed_cells'],j['native_originals_sealed'],j['recovered_raw_files'])==(284,379,222,186,4044,39,25)
+def stable():
+ assert len(f['case_sources'])==62 and len(f['source_roles'])==546
+ for rel,spec in f['case_sources'].items():ro(C/rel);assert pin(C/rel)==spec
+ for row in f['source_roles']:
+  p=Path(row['path']);plain(p);assert pin(p)=={key:row[key] for key in ('bytes','sha256')}
+  assert p.stat().st_mode==row['mode'] and p.stat().st_file_attributes==row['attributes']
+ assert len(k['originals'])==39 and len(k['recovered'])==25
+ for path,spec in k['originals'].items():
+  p=Path(path);ro(p);assert pin(p)=={key:spec[key] for key in ('bytes','sha256')}
+  assert p.stat().st_mode==spec['mode'] and p.stat().st_file_attributes==spec['attributes']
+ for name,spec in k['recovered'].items():p=Path(k['recovered_run'])/name;ro(p);assert pin(p)==spec
+stable()
+work=[(J,C/'review/independent-postrun-go.json'),(G,C/'review/independent-postrun-scope-go-2026-10-09.md')]
+assert not O.exists() and all(not dst.exists() for src,dst in work)
+records=[]
+for src,dst in work:
+ with dst.open('xb') as stream:stream.write(src.read_bytes())
+ dst.chmod(stat.S_IREAD);assert pin(dst)==pin(src)
+ records.append({'source':str(src),'target':str(dst),**pin(dst)})
+stable()
+body={'schema':'i05-var04-root-postrun-promotion/v103','native_dispatch':False,'behavior_replayed':False,'promoted':records,'frozen_sources_unchanged':62,'source_roles_unchanged':546,'native_custody':{'path':str(K),**pin(K)},'replay_receipt':{'path':str(A),**pin(A)},'method':pin(Path(__file__))}
+with O.open('xb') as stream:stream.write((json.dumps(body,indent=2)+'\n').encode())
+O.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(O),**pin(O),'promoted':2,'native_dispatch':False}))

@@ -1,0 +1,165 @@
+{
+  "schema": "i05-var04-prospective-source-delta/v100",
+  "state": "contract_only_unexecuted",
+  "parent": {
+    "package": "cases/simlox-air-support/E05-local-repair-reissue-v1.0.0",
+    "input": {
+      "path": "cases/simlox-air-support/E05-local-repair-reissue-v1.0.0/native-input.json",
+      "bytes": 43690,
+      "sha256": "ee294a430382811a1e0f1d058fbca4fd1df6f7f0646300c671ccc1bcbe0055ca"
+    },
+    "roundtrip": {
+      "path": "cases/simlox-air-support/E05-local-repair-reissue-v1.0.0/runs/e05-v100-ssh-20260929-01/roundtrip-raw.json",
+      "table_count": 31
+    },
+    "signoff": {
+      "path": "cases/simlox-air-support/E05-local-repair-reissue-v1.0.0/cli-scope-signoff-2026-09-29.md",
+      "sha256": "e7f4e82be24e09d258345e5f8084ac99e822e8384cb5c8698fbd1ea687105f2f"
+    },
+    "native_invocation_sha256": "a5e5b85421c0d25d1779fad20da0eb7acbb98ea03a347591436157930704bbac",
+    "native_closure_sha256": "e75836bcd99ba838d4ef247973794a2bf38fbddd4904d69337d631ba983d01ef",
+    "independent_verdict_sha256": "ad7801108647a3cb0790a0d93abf85f45c5613377b0dcfb7e6f58d0c59026936"
+  },
+  "root_source_selection": {
+    "receipt_path": "tmp/i04-var09-root-review-proofs-v100-20261008/i05-var04-root-selection-byte-audit-v101-20261008T233314085798Z-c7cb85c3/receipt.json",
+    "receipt_sha256": "9af16fabc94d81543739da1c8ca99c62b743f535b6de919a902efe406529d1fa",
+    "stdout_sha256": "57d53ce82f61d7408c33ab9380e6b5cf4921e93846bb470d7b3fd61b19004b25",
+    "accepted_disk_git_pairs": 21,
+    "accepted_parent_raw_originals": 12,
+    "selected_merge": "7998e59944a8e061db2b48041349602039f4dc10"
+  },
+  "parent_model": {
+    "database_version": 20160627,
+    "tables": 31,
+    "populated_tables": 20,
+    "ItemRepair_row": {
+      "IID": "TEACH-LRU-01",
+      "STID": "BASE-01",
+      "DIRPT": 1.0,
+      "SURPT": 0.0,
+      "DIRPF": 1.0,
+      "SURPF": 1.0,
+      "DIRPTID": null,
+      "SURPTID": null,
+      "DIRPD": null,
+      "SURPD": null
+    },
+    "ItemReplacement_rows": 0,
+    "PDESC": "E05 local LRU repair, stock return and second issue",
+    "seed": "1",
+    "horizon_hours": 36,
+    "scheduled_starts_hours": [
+      8,
+      20,
+      32
+    ],
+    "stock_opening_physical_items": [
+      0
+    ]
+  },
+  "child": {
+    "proposed_case": "I05-var04-scheduled-item-repair-v1.0.0",
+    "run_id": "i05-var04-item-repair-v100-ssh-20261009-01",
+    "business_delta": "one added scheduled ChangesItemRepair record targeting an already-existing ItemRepair row; no baseline ItemRepair value or PDESC edit",
+    "table_count_hypothesis": 32,
+    "populated_table_count_hypothesis": 21,
+    "table_insertion": "immediately after parent ItemRepair, at table index 12; all other table arrays and row values byte-derived from parent input",
+    "source_root_metadata": "same model keyset and integer database_version as parent"
+  },
+  "new_table": {
+    "name": "ChangesItemRepair",
+    "table_keyset": [
+      "name",
+      "columns",
+      "instances"
+    ],
+    "column_metadata": [
+      {
+        "name": "IID",
+        "datatype": "string",
+        "key": true
+      },
+      {
+        "name": "STID",
+        "datatype": "string",
+        "key": true
+      },
+      {
+        "name": "TIMEC",
+        "datatype": "double",
+        "key": true
+      },
+      {
+        "name": "DIRPT",
+        "datatype": "double"
+      },
+      {
+        "name": "SURPT",
+        "datatype": "double"
+      },
+      {
+        "name": "DIRPF",
+        "datatype": "double"
+      },
+      {
+        "name": "SURPF",
+        "datatype": "double"
+      },
+      {
+        "name": "DIRPD",
+        "datatype": "string"
+      },
+      {
+        "name": "SURPD",
+        "datatype": "string"
+      },
+      {
+        "name": "NOTE",
+        "datatype": "string"
+      }
+    ],
+    "instances": [
+      {
+        "instance_name": "",
+        "rows": [
+          [
+            "TEACH-LRU-01",
+            "BASE-01",
+            5.0,
+            1.5,
+            0.0,
+            1.0,
+            1.0,
+            null,
+            null,
+            null
+          ]
+        ]
+      }
+    ],
+    "row_policy": "SURPT0.0 and DIRPF/SURPF1.0 explicitly restate existing values; null distributions and NOTE are preserved, not inferred defaults",
+    "uniqueness_key": [
+      "IID",
+      "STID",
+      "TIMEC"
+    ]
+  },
+  "export_gate": "exact parent export table/column/instance/row topology plus this one table at the declared index; all 31 parent tables exact typed values and array order; new row exact string/null and finite numeric equality (1 may render 1.0 or integer 1 for declared double, bool forbidden); first three columns retain key:true, later columns omit key; unknown/missing/extra rows or metadata NO_GO",
+  "manual_basis": {
+    "manual_path": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\SIMLOX.pdf",
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages": [
+      226,
+      500,
+      501,
+      502,
+      503
+    ],
+    "dictionary_path": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "dictionary_rows": "ChangesItemRepair columns 1-10; IID/STID/TIMEC keys, DIRPT/SURPT mandatory, fractions/distributions optional",
+    "interpretation": "h5 positive time precedes the accepted first random failure h9.25527 and direct item repair start h9.92193. Changes to already-started subtasks are outside this arm."
+  },
+  "no_native_calls": true,
+  "no_accepted_checker_reruns": true
+}

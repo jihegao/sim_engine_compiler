@@ -1,0 +1,116 @@
+"""Recover completed v103 native bytes into a new read-only evidence copy."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import sys
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/I05-var04-scheduled-item-repair-v1.0.3'
+N = R / 'tmp/i05-var04-native-v103-20261009-01'
+D = C / 'runs/i05-var04-item-repair-v103-ssh-20261009-01'
+F = R / 'tmp/i05-var04-root-static-freeze-v103-20261009.json'
+
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+
+def load(path):
+    return json.loads(path.read_bytes().decode('utf-8-sig'))
+
+
+def plain(path):
+    for item in (path, *path.parents):
+        if item.exists():
+            assert not item.is_symlink() and not item.is_junction()
+            assert not item.stat().st_file_attributes & 1024
+
+
+assert len(sys.argv) == 3
+T = Path(sys.argv[1]).resolve(strict=True)
+plain(T)
+assert T.parent == C / 'transport-evidence' and T.name.startswith('ssh-native-')
+assert pin(T / 'transport-receipt.json')['sha256'] == sys.argv[2]
+transport = load(T / 'transport-receipt.json')
+assert transport['mode'] == 'native' and transport['native_approved'] is True
+assert type(transport['exit_code']) is int and transport['exit_code'] == 0
+assert transport['error'] is None and transport['native_run_directory'] == str(N)
+assert pin(F) == {'bytes': 407862, 'sha256': '4a87c7d91c4c3d47f46eb8f25e3c896ead9e0fb8a78397b7c45d9e7681bdc065'}
+freeze = load(F)
+
+
+def stable():
+    for relative, wanted in freeze['case_sources'].items():
+        path = C / relative
+        plain(path)
+        assert pin(path) == wanted and path.stat().st_file_attributes == 33
+    for row in freeze['source_roles']:
+        path = Path(row['path'])
+        plain(path)
+        assert pin(path) == {key: row[key] for key in ('bytes', 'sha256')}
+        assert path.stat().st_mode == row['mode'] and path.stat().st_file_attributes == row['attributes']
+
+
+assert len(freeze['case_sources']) == 62 and len(freeze['source_roles']) == 546
+stable()
+plain(N)
+plain(D)
+assert N.is_dir() and not D.exists() and not (N / 'failure-seal.json').exists()
+closure = load(N / 'closure.json')
+invocation = load(N / 'invocation.json')
+assert closure['error'] in (None, '') and closure['step_error'] in (None, '')
+assert closure['native_run_directory'] == invocation['native_run_directory'] == str(N)
+assert closure['invocation_sha256'] == pin(N / 'invocation.json')['sha256']
+assert len(closure['raw']) == 23
+assert {path.name for path in N.iterdir()} == set(closure['raw']) | {'invocation.json', 'closure.json'}
+for name, wanted in closure['raw'].items():
+    assert Path(name).name == name and pin(N / name) == wanted
+pure = Path(invocation['pure_proof_path']).parent
+assert pure.parent == C / 'test-output' and pure.name.startswith('native-pure-')
+assert pin(pure / 'pure-proof.json')['sha256'] == invocation['pure_proof_sha256']
+assert len(list(pure.iterdir())) == 11 and len(list(T.iterdir())) == 3
+paths = list(N.iterdir()) + list(T.iterdir()) + list(pure.iterdir())
+assert len(paths) == len(set(paths)) == 39
+before = {}
+for path in paths:
+    plain(path)
+    assert path.is_file()
+    before[str(path)] = pin(path)
+for path in paths:
+    path.chmod(stat.S_IREAD)
+originals = {}
+for path in paths:
+    assert pin(path) == before[str(path)] and path.stat().st_file_attributes == 33
+    originals[str(path)] = {**pin(path), 'mode': path.stat().st_mode, 'attributes': 33}
+D.mkdir(parents=True, exist_ok=False)
+recovered = {}
+for path in N.iterdir():
+    target = D / path.name
+    with target.open('xb') as stream:
+        stream.write(path.read_bytes())
+    target.chmod(stat.S_IREAD)
+    assert pin(target) == pin(path) and target.stat().st_file_attributes == 33
+    recovered[path.name] = pin(target)
+assert len(recovered) == 25
+for path in paths:
+    assert pin(path) == before[str(path)] and path.stat().st_file_attributes == 33
+stable()
+out = R / 'tmp/i05-var04-root-native-custody-v103-20261009' / (
+    dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+out.mkdir(parents=True, exist_ok=False)
+receipt = {'schema': 'i05-var04-root-native-custody/v103',
+           'original_run': str(N), 'recovered_run': str(D), 'originals': originals,
+           'recovered': recovered, 'source_bytes_modes_attributes_stable': True,
+           'frozen_case_file_count': 62, 'source_role_count': 546,
+           'native_calls': 0, 'accepted_checker_calls': 0,
+           'semantic_acceptance': False, 'method': pin(Path(__file__))}
+path = out / 'receipt.json'
+with path.open('xb') as stream:
+    stream.write((json.dumps(receipt, indent=2) + '\n').encode())
+path.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(path), **pin(path), 'originals': 39,
+                  'recovered': 25, 'decision': 'PASS_BYTE_CUSTODY_ONLY', 'native_calls': 0}))

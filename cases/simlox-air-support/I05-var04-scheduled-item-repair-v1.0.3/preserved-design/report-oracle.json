@@ -1,0 +1,122 @@
+{
+  "schema": "i05-var04-prospective-report-oracle/v101",
+  "state": "all4044_cell_event_derived_strict_primary_arm",
+  "raw_parent": {
+    "path": "cases/simlox-air-support/E05-local-repair-reissue-v1.0.0/runs/e05-v100-ssh-20260929-01/report-raw.json",
+    "bytes": 104356,
+    "sha256": "fcf9a124546e77fb96871b5bf4b5e111774c00616bfed69c19ad7f1b6c08b4bf"
+  },
+  "topology": {
+    "tables": [
+      "ProblemDescription",
+      "ResultSummary",
+      "SystemResults",
+      "StockTotalResults"
+    ],
+    "rows": {
+      "ProblemDescription": 1,
+      "ResultSummary": 1,
+      "SystemResults": 72,
+      "StockTotalResults": 72
+    },
+    "columns": {
+      "ProblemDescription": 1,
+      "ResultSummary": 11,
+      "SystemResults": 40,
+      "StockTotalResults": 16
+    },
+    "typed_cells": 4044,
+    "strict_metadata": "exact parent root/table/column/instance keysets, table/column/row array order, datatypes, names and instance_name strings; declared-double finite numeric int/float accepted, bool forbidden; exact integer/string/null; no duplicate JSON keys/BOM/nonfinite; only one exact declared native trailing-comma marker may be normalized in memory"
+  },
+  "intervals": {
+    "hours": 36,
+    "width": 0.5,
+    "bin": "[i/2,(i+1)/2)",
+    "comparison": "For event-derived numeric cells use the closed interval induced by predeclared displayed-time uncertainty plus two binary32 ULPs; no report-value fitting. Zero, integer, string, null, metadata and topology exact."
+  },
+  "ProblemDescription": {
+    "PDESC": "exact parent source string E05 local LRU repair, stock return and second issue"
+  },
+  "ResultSummary": {
+    "NREP": "integer1",
+    "RTILW": "numeric0",
+    "RTIUP": "numeric36",
+    "MTMF": "sum_j(a_j-start_j)/6, active mission time from launch through aborted return, manual p552",
+    "RSMTMF": "numeric0 one-rep",
+    "MSTF": "3/3=1 started missions, manual p553",
+    "RSMSTF": "numeric0 one-rep",
+    "MSUF": "0/3=0 successful missions, manual p553",
+    "RSMSUF": "numeric0 one-rep",
+    "STMF": "sum_j(a_j-start_j)/6, active system operation over 6 prescribed hours, manual p552",
+    "RSSTMF": "numeric0 one-rep"
+  },
+  "SystemResults": {
+    "instance_name": "Total over all Units;Total over all Systems;0.00;36.00",
+    "formulas": {
+      "UNID": "exact string Total over all Units",
+      "SID": "exact string Total over all Systems",
+      "STINT": "i/2 for i=0..71",
+      "ETINT": "(i+1)/2",
+      "NSYRY": "2*overlap(bin, [0,7) union [ready_0,19) union [ready_1,31) union [ready_2,36))",
+      "NSYMA": "2*overlap(bin, union_j[start_j-1,a_j))",
+      "NSYMO": "2*overlap(bin, union_j[start_j,a_j))",
+      "NSYMC": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYMP": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYMT": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYMS": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYMR": "2*overlap(bin, union_j[start_j-1,start_j))",
+      "NSYUA": "2*overlap(bin, union_j[a_j,ready_j))",
+      "NSYA": "1-NSYUA, checked against availability event intervals",
+      "NSYAL": "numeric zero, strict parent one-rep rendering hypothesis",
+      "FTMO": "NSYMO",
+      "NSYRP": "2*overlap(bin, union_j[a_j,ready_j)); this is system replacement, not ItemRepair turnaround",
+      "NSYPM": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYTP": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYWR": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYWI": "numeric zero, no system waiting on stock in this strict arm",
+      "NSYLA": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYUH": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NREPT": "one system replacement completion in the uniquely assigned bin of each ready_j, zero elsewhere; source-exact h22.5 uses accepted current-bin representation",
+      "NPMT": "numeric zero",
+      "NFAIL": "one system/LRU failure in uniquely assigned bin of each f_j, zero elsewhere",
+      "NDAM": "numeric zero",
+      "NPMS": "numeric zero",
+      "NROBT": "numeric zero",
+      "NRCFG": "numeric zero",
+      "STREQ": "numeric zero as accepted selected per-unit/system representation, not global requested hours",
+      "STACC": "NSYMO",
+      "STF": "numeric zero, selected representation; ResultSummary.STMF separately derived",
+      "STLOW": "numeric zero, strict parent one-rep rendering hypothesis",
+      "SYDT": "0.5 at each uniquely assigned downtime-start bin a_j after its completion; null at all other bins",
+      "SYDTU": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NSYDT": "one at each downtime-start bin a_j after completion, zero elsewhere",
+      "NSYSW": "numeric zero",
+      "NPSTA": "numeric zero, strict parent one-rep rendering hypothesis",
+      "NPSUC": "numeric zero, strict parent one-rep rendering hypothesis"
+    }
+  },
+  "StockTotalResults": {
+    "instance_name": "0.00;36.00;",
+    "formulas": {
+      "STINT": "i/2",
+      "ETINT": "(i+1)/2",
+      "NBO": "numeric zero in all bins, after event-confirmed no backorder",
+      "NBOU": "null in all bins as accepted one-rep selected representation",
+      "ROS": "numeric zero in bins with demand arrival a_j, null otherwise",
+      "ROST": "numeric zero in bins with demand arrival a_j, null otherwise",
+      "WT": "numeric zero in bins with immediate issue demand a_j, null otherwise",
+      "WTT": "numeric zero in bins with immediate issue demand a_j, null otherwise",
+      "WTS": "null in all bins, no positive wait",
+      "PNB": "numeric one in all bins as selected no-backorder probability representation; never used to infer physical stock",
+      "NDF": "one per demand arrival a_j in unique bin, else zero",
+      "NDD": "numeric zero",
+      "NDR": "numeric zero",
+      "NDP": "numeric zero",
+      "NLD": "numeric zero",
+      "NWT": "one per immediately served demand arrival a_j in unique bin, else zero; parent representation hypothesis"
+    }
+  },
+  "source_interpretation": "manual pp552-553 summary, pp645-646 downtime retrospective attribution, pp684-687 and pp730-731 stock demand/wait rendering; accepted E05 establishes one-rep zero/null shape. Physical repaired-item restock is not an on-hand field in selected StockTotalResults.",
+  "fail_closed": "Every one of 72*40+72*16+11+1 fields must be derived and compared; no parent report copy-as-prediction, omitted field, unknown null, extra row or revised formula after observation.",
+  "preconstruction_materialization": "Before any package construction, a frozen PURE source must enumerate exactly 4044 field predicates with each table, row, column, type, formula and fixed numeric interval rule, and an independent method must test meaningful wrong-cell/null/bool/row/order/precision mutations. Unknown or unreconciled field is NO_GO."
+}

@@ -1,0 +1,113 @@
+"""Root preserve completed v103 local gate originals and source attributes."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import sys
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/I05-var04-scheduled-item-repair-v1.0.3'
+N = R / 'tmp/i05-var04-native-v103-20261009-01'
+P = R / 'tmp/i05-var04-root-command-proofs-v103-20261009'
+OUT = R / 'tmp/i05-var04-root-static-freeze-v103-20261009.json'
+
+def pin(p):
+    b = p.read_bytes()
+    return {'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest()}
+
+def plain(p):
+    for q in (p, *p.parents):
+        if q.exists():
+            assert not q.is_symlink() and not q.is_junction()
+            assert not q.stat().st_file_attributes & 1024
+
+def record(p, readonly=True):
+    plain(p)
+    q = p.stat()
+    if readonly:
+        assert q.st_file_attributes == 33
+    return {'path': str(p), **pin(p), 'mode': q.st_mode, 'attributes': q.st_file_attributes}
+
+assert len(sys.argv) == 2
+assert not OUT.exists() and not N.exists() and not (C / 'runs').exists()
+assert not (C / 'transport-evidence').exists() and not (C / 'test-output').exists()
+manifest_path = C / 'prelaunch-manifest.json'
+assert pin(manifest_path)['sha256'] == sys.argv[1]
+manifest = json.loads(manifest_path.read_bytes())
+assert manifest['source_count'] == len(manifest['source_files']) == 546
+assert manifest['owned_source_count'] == 61
+source_roles = []
+before = {}
+for item in manifest['source_files']:
+    p = Path(item['path'])
+    wanted = {k: item[k] for k in ('bytes', 'sha256')}
+    assert pin(p) == wanted
+    row = record(p, readonly=item['key'].startswith(('owned:', 'historical:', 'excluded-v101:', 'excluded-v102:')))
+    if item['key'].startswith(('mandatory:', 'accepted-context:')):
+        assert row['mode'] == 33206 and row['attributes'] == 32
+    row['key'] = item['key']
+    source_roles.append(row)
+    before[item['key']] = wanted
+sources = {p.relative_to(C).as_posix(): pin(p) for p in C.rglob('*') if p.is_file()}
+assert len(sources) == 62
+for rel in sources:
+    record(C / rel)
+expected = {'source-promote', 'inventory-generate', 'inventory-audit', 'inventory-promote',
+            'manifest-generate', 'manifest-audit', 'manifest-promote', 'build', 'source-gate',
+            'selfcheck', 'independent-private', 'independent-pure', 'converter-fixture'}
+proofs = []
+seen = set()
+fixture_stdout = None
+for p in sorted(P.glob('*/receipt.json')):
+    doc = json.loads(p.read_bytes())
+    label = p.parent.name.split('-v103-')[0]
+    assert label in expected and label not in seen
+    seen.add(label)
+    assert doc['schema'] == 'i05-var04-root-command-proof/v103'
+    assert type(doc['actual_exit']) is int and doc['actual_exit'] == 0
+    assert doc['native_dispatch'] is False and doc['method_before'] == doc['method_after']
+    streams = []
+    for name in ('stdout.bin', 'stderr.bin'):
+        stream = p.parent / name
+        assert pin(stream) == doc['streams'][name]
+        streams.append(record(stream))
+    assert (p.parent / 'stderr.bin').read_bytes() == b''
+    proofs.append({'label': label, 'receipt': record(p), 'streams': streams})
+    if label == 'converter-fixture':
+        fixture_stdout = p.parent / 'stdout.bin'
+assert seen == expected and len(proofs) == 13
+assert fixture_stdout is not None
+fixture = json.loads(fixture_stdout.read_bytes().decode('utf-8-sig').splitlines()[-1])
+assert fixture['schema'] == 'i05-var04-converter-pure-test/v103'
+assert fixture['positive'] is True and fixture['negative_clones'] == 9
+assert fixture['receipt_schema_negatives'] == 4 and fixture['native_calls'] == 0
+fixture_dir = Path(fixture['proof_directory'])
+assert fixture_dir.parent == R / 'tmp/pure-proofs'
+fixture_paths = sorted(fixture_dir.iterdir())
+assert len(fixture_paths) == 10 and all(p.is_file() for p in fixture_paths)
+fixture_before = {str(p): pin(p) for p in fixture_paths}
+for p in fixture_paths:
+    plain(p)
+    p.chmod(stat.S_IREAD)
+fixture_records = [record(p) for p in fixture_paths]
+assert all(pin(p) == fixture_before[str(p)] for p in fixture_paths)
+after = {item['key']: pin(Path(item['path'])) for item in manifest['source_files']}
+assert before == after
+for row in source_roles:
+    p = Path(row['path'])
+    assert p.stat().st_mode == row['mode'] and p.stat().st_file_attributes == row['attributes']
+assert sources == {p.relative_to(C).as_posix(): pin(p) for p in C.rglob('*') if p.is_file()}
+body = {'schema': 'i05-var04-root-static-freeze/v103',
+        'utc': dt.datetime.now(dt.timezone.utc).isoformat(),
+        'decision': 'PASS_LOCAL_BYTE_CUSTODY_ONLY_NO_SSH_OR_NATIVE_APPROVAL',
+        'case_sources': sources, 'source_roles': source_roles,
+        'source_hashes_before': before, 'source_hashes_after': after,
+        'original_local_proofs': proofs, 'converter_fixture_files': fixture_records,
+        'native_calls': 0, 'accepted_checker_calls': 0, 'method': record(Path(__file__))}
+with OUT.open('xb') as stream:
+    stream.write((json.dumps(body, indent=2) + '\n').encode())
+OUT.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(OUT), **pin(OUT), 'case_sources': 62,
+                  'source_roles': 546, 'local_proofs': 13, 'converter_fixture_files': 10,
+                  'native_calls': 0, 'decision': body['decision']}))

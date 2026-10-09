@@ -1,0 +1,7 @@
+# Fixed proof plan argument-position clarification
+
+The frozen proof plan `tmp/i05-var04-root-fixed-publication-proof-plan-v103-20261009.json` is 30,991 bytes, SHA-256 `3dfe2d4b0596bc67a5745e9cdb947c0ed4c1d57e475fcaa69940cb6a3c14cdc5`. Its boolean label `closure_rules.copy_unique_external_method_from_each_capture_argv4` is inaccurate for the PowerShell fixture capture. Preserve that original label and byte identity; do not interpret it as the executable argument-position rule.
+
+The original captured Python invocations identify their method at zero-based `argv[4]`. The PowerShell invocation has `-NoLogo -NoProfile -NonInteractive -File` at `argv[1:5]` and its method at `argv[5]`. Root's executed plan-construction method r2 and the independently reviewed context candidate method v102 use these actual positions. The concrete method file paths and byte pins in the fixed roster are correct. Publication review must validate each supported invocation shape and the resulting method pin, including this PowerShell exception.
+
+Root plan-construction r1 remains unexecuted and read-only. Its two source findings (incorrect inventory/manifest promotion filenames and the Python-only method argument offset) were corrected in a distinct r2 before the single successful plan construction. This note changes no original receipt, frozen model source, native run, accepted behavior, failure classification, or plan bytes. It is a metadata clarification and supplies no execution or retry authorization.
