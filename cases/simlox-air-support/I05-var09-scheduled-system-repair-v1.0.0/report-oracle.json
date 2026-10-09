@@ -1,0 +1,165 @@
+{
+  "schema": "simlox-i05-var09-report-oracle/v100",
+  "parent_run_id": "d01-v100-ssh-20260929-01",
+  "parent_report_raw_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\D01-system-direct-repair-v1.0.0\\runs\\d01-v100-ssh-20260929-01\\report-raw.json",
+  "parent_report_bytes": 104070,
+  "parent_report_sha256": "cb21d4b6f7c3c35b8d42412e60bb6ca85d178b4ef6e9d61d71ca294ba94fc83a",
+  "normalization": "Only remove commas immediately preceding a JSON object or array close in a private in-memory parse buffer. Hash and preserve the original raw report bytes unchanged.",
+  "parent_projection": {
+    "path": "parent-report-projection.json",
+    "sha256": "a88d5d5d687a1d1ce16b44b0dcd0e33b9bea626fb7327647d0ce86ff012e1361",
+    "typed_cells": 4044
+  },
+  "topology": {
+    "ProblemDescription": [
+      1,
+      1
+    ],
+    "ResultSummary": [
+      1,
+      11
+    ],
+    "SystemResults": [
+      72,
+      40
+    ],
+    "StockTotalResults": [
+      72,
+      16
+    ]
+  },
+  "all_cells_rule": "Output table names, order, column metadata, row counts, row widths, and 4044 typed cells must equal the pinned child projection produced from the parent projection. This is a complete predicate for every cell and metadata element.",
+  "projection_rules": {
+    "ProblemDescription": "Set only PDESC[0,0] to the exact frozen child description in contract.json.",
+    "ResultSummary": "All 11 typed cells equal the accepted parent projection.",
+    "StockTotalResults": "All 72x16 typed cells equal the accepted parent projection.",
+    "SystemResults": "Retain the original six state-row projections and target STINT/ETINT JSON tokens. Then derive SYDT/NSYDT independently for all 72 bins from the frozen closed downtime periods and the primary manual pages645-646. A concluded period is counted only in its start bin; no starts means NSYDT integer0/SYDT null. Other fields and full typed topology remain asserted."
+  },
+  "system_row_projection": [
+    {
+      "target_interval": [
+        10.5,
+        11.0
+      ],
+      "source_interval": [
+        10.0,
+        10.5
+      ],
+      "reason": "first direct CM remains in repair after the parent completion time"
+    },
+    {
+      "target_interval": [
+        11.0,
+        11.5
+      ],
+      "source_interval": [
+        10.0,
+        10.5
+      ],
+      "reason": "first direct CM remains in repair until child completion"
+    },
+    {
+      "target_interval": [
+        11.5,
+        12.0
+      ],
+      "source_interval": [
+        10.5,
+        11.0
+      ],
+      "reason": "first direct CM completes at 11.5; transfer the parent post-completion state and NREPT=1"
+    },
+    {
+      "target_interval": [
+        34.5,
+        35.0
+      ],
+      "source_interval": [
+        34.0,
+        34.5
+      ],
+      "reason": "second direct CM remains in repair after the parent completion time"
+    },
+    {
+      "target_interval": [
+        35.0,
+        35.5
+      ],
+      "source_interval": [
+        34.0,
+        34.5
+      ],
+      "reason": "second direct CM remains in repair until child completion"
+    },
+    {
+      "target_interval": [
+        35.5,
+        36.0
+      ],
+      "source_interval": [
+        34.5,
+        35.0
+      ],
+      "reason": "second direct CM completes at 35.5; transfer the parent post-completion state and NREPT=1"
+    }
+  ],
+  "reconciliation": {
+    "failure_count": "sum(SystemResults.NFAIL) == 2 and equals the two exact failure events in the closed child model.log.",
+    "repair_completion_count": "sum(SystemResults.NREPT) == 2 and equals the two exact child completion lines.",
+    "completed_repair_aircraft_hours": "sum(SystemResults.NSYRP * (ETINT-STINT)) == 3.0 exactly within 1e-6 h; the two child repair intervals are [10,11.5) and [34,35.5).",
+    "terminal_state": "last SystemResults row has NSYRY=1 and NSYRP=0.",
+    "stock": "all stock cells equal the parent projection; summed NBO, NDD, NDR, NDP, and NLD remain 0; no inventory effect is asserted.",
+    "summary": "all 11 ResultSummary cells equal the parent projection; MSUF remains 0.3333333432674408.",
+    "downtime": "sum(NSYDT)==2; sum(SYDT*NSYDT for non-null rows)==3.0; equals the two full closed [10,11.5),[34,35.5) intervals, independently of occupancy-bin integration."
+  },
+  "full_scope_count": 4044,
+  "expected_child_reconciliation": {
+    "failure_rows": 2,
+    "repair_completion_rows": 2,
+    "repair_aircraft_hours": 3.0,
+    "tolerance_hours": 1e-06,
+    "terminal_ready": 1,
+    "terminal_in_repair": 0,
+    "stock_totals": {
+      "NBO": 0,
+      "NDD": 0,
+      "NDR": 0,
+      "NDP": 0,
+      "NLD": 0
+    },
+    "summary_mission_success_fraction": 0.3333333432674408,
+    "downtime_period_count": 2,
+    "registered_downtime_hours": 3.0
+  },
+  "typed_json_comparison": "Every JSON node must retain exact Python JSON type identity recursively; int, float, and bool are distinct, including inside table metadata. In addition, each row width and the declared string/double schema are checked. No Python loose equality is permitted.",
+  "negative_controls": [
+    "A parent SystemResults.NSYRY integer 1 changed to float 1.0 is rejected.",
+    "A parent StockTotalResults.NBO integer 0 changed to boolean false is rejected.",
+    "A table column key boolean true changed to integer 1 is rejected.",
+    "A child NREPT completion count or post-repair state cell changed from its projected value is rejected.",
+    "Wrong start-bin SYDT duration is rejected.",
+    "Fake additional downtime in an occupancy continuation bin is rejected.",
+    "Wrong continuation-bin non-null SYDT is rejected.",
+    "Wrong second-period NSYDT count is rejected.",
+    "Wrong unrelated StockTotalResults cell is rejected."
+  ],
+  "system_downtime_projection": {
+    "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "physical_pages_1_based": [
+      645,
+      646
+    ],
+    "periods": [
+      {
+        "start": 10.0,
+        "end": 11.5
+      },
+      {
+        "start": 34.0,
+        "end": 35.5
+      }
+    ],
+    "registration": "concluded downtime is recorded in interval containing its start; NSYDT counts periods and SYDT is their full mean duration; bins with no starts have NSYDT=0 and SYDT=null",
+    "derivation": "Starts and completions are the frozen expected child events, not copied report cells. Both periods conclude before the unchanged hour36 horizon."
+  }
+}
