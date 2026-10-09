@@ -1,0 +1,50 @@
+{
+  "schema": "i05-var07-prospective-source-delta/v100",
+  "stage": "prospective_contract_only",
+  "case_id": "I05.var07",
+  "planned_version": "1.0.0",
+  "direct_parent": {
+    "publication_id": "B04.cross_midnight_turnround.1.0.1",
+    "arm": "turnround",
+    "input": "cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/turnround-input.json",
+    "input_bytes": 42867,
+    "input_sha256": "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5",
+    "export": "cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/runs/b04-v101-turnround-20260930-01/roundtrip-raw.json",
+    "export_bytes": 58901,
+    "export_sha256": "f16c59e16c7fadbf52a94fced3a15d389abeac647301601a434fb16dca8f2677"
+  },
+  "business_delta": "Append exactly one ChangesMissionTurnround row. Preserve all parent cells including ProblemDescription, seed, mission orders, MissionTurnround.DURN=1 and null TID, preparation subtasks, resources, horizon36 and reports settings.",
+  "inherited_problem_description": {
+    "value": "B04 v101 cross-midnight missions, one-hour post-flight turnround",
+    "meaning": "Frozen direct-parent provenance label kept byte-equal under the one-row source policy; it does not assert that the prospective second child turnround lasts one hour."
+  },
+  "new_table": {
+    "name": "ChangesMissionTurnround",
+    "columns": [
+      {"name": "MTID", "datatype": "string", "key": true},
+      {"name": "SID", "datatype": "string", "key": true},
+      {"name": "STID", "datatype": "string", "key": true},
+      {"name": "TIMEC", "datatype": "double", "key": true},
+      {"name": "DURN", "datatype": "double"},
+      {"name": "DURND", "datatype": "string"},
+      {"name": "NOTE", "datatype": "string"}
+    ],
+    "instances": [{"instance_name": "", "rows": [["BASIC-MISSION", "TEACH-AIR-01", "BASE-01", 25.0, 1.5, null, null]]}],
+    "authored_table_index_zero_based": 32,
+    "expected_export_table_index_zero_based": 32,
+    "export_numeric_representation_hypothesis": {"TIMEC": 25, "DURN": 1.5},
+    "export_order_status": "unobserved strict hypothesis; any other position is NO_GO"
+  },
+  "predicted_authored_counts": {"tables": 33, "rows": 23, "cells": 211},
+  "predicted_export_counts": {"tables": 33, "rows": 37, "cells": 374},
+  "source_basis": {
+    "manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+    "manual_physical_pages": [226, 511, 512, 513],
+    "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+    "dictionary_lines": [101, 102, 103, 104, 105, 106, 107],
+    "structural_precedent": "Accepted I05.var06 ChangesMissionPreparation is immediately after MissionPreparation in its export, but does not prove ChangesMissionTurnround placement.",
+    "structural_precedent_export_bytes": 58791,
+    "structural_precedent_export_sha256": "6b0213314dbbd2d23da8c64d1c02fbfa7edb4a15d85b31d3c61b38506fcdeb38"
+  },
+  "limits": "No case/input/native construction at this stage. The h25 change coincides with mission launch but applies prospectively to an unstarted h27 turnround; no same-time ordering law is inferred. No general Changes table serialization law is inferred."
+}

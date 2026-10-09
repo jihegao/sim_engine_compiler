@@ -1,0 +1,211 @@
+"""Create two external, absent-only I05.var07 publication custody candidates.
+
+The root's 54-row seal records *after-freeze* attributes. It explicitly records
+unknown pre-freeze attributes; this method never invents historical values.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+
+REPO = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+TMP = REPO / "tmp"
+CASE = REPO / "cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1"
+RUN = "i05-var07-turnround-v101-ssh-20261009-01"
+PHYSICAL = TMP / "i05-var07-native-v101-20261009-01"
+RECOVERED = CASE / "runs" / RUN
+ROOT_SEAL = TMP / "i05-var07-root-originals-after-freeze-seal-v101-20261009-01.json"
+RECOVERY = TMP / "i05-var07-root-native-recovery-proof-v101-20261009-01/receipt.json"
+PREFLIGHT = CASE / "review/preflight-ssh0-20261009T054435908Z.json"
+CLOSURE = PHYSICAL / "closure.json"
+GO = CASE / "review/independent-postrun-go.json"
+OUT = TMP / "i05-var07-publication-custody-candidates-v101-20261009-01"
+PINS = {
+    ROOT_SEAL: (28505, "9f53acb320e28b90bb0bbb1f0972d1825a9ddeadc71ec13bc7018bc389f34c62"),
+    RECOVERY: (7996, "e1be1a03e3fc2bb4ec3c0d17b399e2416679b7cf6125eca184acb2a3938cd747"),
+    PREFLIGHT: (49896, "7f8f56d50228d6e11e4ecc8473ffaef5215a7270e57bc534e84fcb6d7d07da50"),
+    CLOSURE: (45466, "f53ba2cf43f877a6db370b615d46b0dc555b8096b3aa71d0aaa2e20476a1f27e"),
+    GO: (1651, "7caaa82b20f14513aa43c0b6b22e79989816a6a8aa854c25e5a83bf1bbd570fd"),
+}
+CATEGORIES = {"native_directory": 25, "native_pure": 11,
+              "native_transport": 3, "preflight_pure": 11,
+              "preflight_transport": 3, "preflight_review": 1}
+
+def guard(path: Path, absent: bool = False) -> None:
+    assert path.is_absolute() and path.is_relative_to(REPO)
+    assert not path.exists() if absent else path.is_file()
+    for part in (path, *path.parents):
+        if part.exists():
+            assert not part.is_symlink()
+            if hasattr(part, "is_junction"):
+                assert not part.is_junction()
+            assert not (getattr(part.stat(), "st_file_attributes", 0) & 0x400)
+    assert path.parent.resolve(strict=True).is_relative_to(REPO.resolve(strict=True))
+
+def seal(path: Path, expected: tuple[int, str] | None = None) -> dict:
+    guard(path)
+    status = path.stat()
+    assert status.st_mode & stat.S_IWRITE == 0
+    assert getattr(status, "st_file_attributes", 0) & 1
+    body = path.read_bytes()
+    actual = {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(),
+              "mode": stat.S_IMODE(status.st_mode), "attributes": status.st_file_attributes}
+    if expected is not None:
+        assert (actual["bytes"], actual["sha256"]) == expected
+    return actual
+
+def strict_json(path: Path) -> dict:
+    def unique(pairs: list[tuple[str, object]]) -> dict:
+        value = {}
+        for key, item in pairs:
+            assert key not in value
+            value[key] = item
+        return value
+    result = json.loads(path.read_bytes(), object_pairs_hook=unique,
+                        parse_constant=lambda token: (_ for _ in ()).throw(ValueError(token)))
+    assert type(result) is dict
+    return result
+
+def reference(path: Path) -> dict:
+    expected = PINS[path]
+    current = seal(path, expected)
+    return {"path": str(path), "bytes": current["bytes"], "sha256": current["sha256"]}
+
+def validate() -> tuple[list[dict], list[dict]]:
+    for path in PINS:
+        reference(path)
+    historical = strict_json(ROOT_SEAL)
+    recovery = strict_json(RECOVERY)
+    preflight = strict_json(PREFLIGHT)
+    closure = strict_json(CLOSURE)
+    signed = strict_json(GO)
+    assert historical["schema"] == "i05-var07-root-originals-after-freeze-seal/v101"
+    assert historical["run_id"] == RUN and historical["source_roles_checked"] == 144
+    assert historical["observed_state"] == "after_authorized_read_only_freeze"
+    assert historical["pre_freeze_attributes_state"] == "not_captured_unknown_no_inference"
+    assert historical["recovery_receipt_sha256"] == PINS[RECOVERY][1]
+    assert historical["native_original_count"] == 39 and historical["preflight_original_count"] == 15
+    assert recovery["schema"] == "i05-var07-root-native-recovery/v101"
+    assert recovery["run_id"] == RUN and recovery["original"] == str(PHYSICAL)
+    assert recovery["recovered"] == str(RECOVERED)
+    assert recovery["source_stable"] is True and recovery["failure"] is None
+    assert recovery["native_dispatch"] is False and recovery["child_processes"] == 0
+    assert len(recovery["before"]) == len(recovery["after"]) == len(recovery["copied"]) == 25
+    assert recovery["before"] == recovery["after"]
+    assert preflight["schema"] == "i05-var07-ssh-preflight/v101"
+    assert preflight["run_id"] == RUN and preflight["native_process_started"] is False
+    assert preflight["pure_proof_directory"].startswith(str(CASE / "test-output"))
+    assert len(preflight["pure_checks"]) == 5
+    assert closure["schema"] == "i05-var07-closure/v101"
+    assert closure["run_id"] == RUN and closure["error"] == "" and closure["step_error"] == ""
+    assert closure["source_hashes_before"] == closure["source_hashes_after"]
+    assert len(closure["source_hashes_before"]) == 144
+    assert signed["schema"] == "i05-var07-independent-postrun-go/v101"
+    assert signed["decision"] == "GO_BOUNDED_POSTRUN" and signed["run_id"] == RUN
+    assert len(historical["rows"]) == 54
+
+    counts = {key: 0 for key in CATEGORIES}
+    seen_paths: set[str] = set()
+    native: list[dict] = []
+    pre: list[dict] = []
+    names: set[str] = set()
+    for row in historical["rows"]:
+        assert type(row) is dict and set(row) == {
+            "category", "name", "path", "bytes", "sha256", "mode",
+            "attributes", "pre_freeze_mode", "pre_freeze_attributes"}
+        category = row["category"]
+        assert category in counts
+        counts[category] += 1
+        assert row["pre_freeze_mode"] is None and row["pre_freeze_attributes"] is None
+        original = Path(row["path"])
+        assert str(original) not in seen_paths and original.name == row["name"]
+        seen_paths.add(str(original))
+        observed = seal(original, (row["bytes"], row["sha256"]))
+        assert observed["mode"] == row["mode"] == 292
+        assert observed["attributes"] == row["attributes"] == 33
+        result = dict(row)
+        if category == "native_directory":
+            assert original.parent == PHYSICAL
+            assert row["name"] not in names
+            names.add(row["name"])
+            identity = {"bytes": row["bytes"], "sha256": row["sha256"]}
+            assert recovery["before"][row["name"]] == identity
+            assert row["name"] in recovery["copied"]
+            copy = RECOVERED / row["name"]
+            copied = seal(copy, (row["bytes"], row["sha256"]))
+            assert copied["mode"] == 292 and copied["attributes"] == 33
+            result["recovered_copy"] = {"path": str(copy), **copied}
+            if row["name"] in closure["raw"]:
+                assert closure["raw"][row["name"]] == identity
+        elif category == "native_pure":
+            assert original.is_relative_to(CASE / "test-output")
+        elif category == "native_transport":
+            assert original.is_relative_to(CASE / "transport-evidence")
+        elif category == "preflight_pure":
+            assert original.is_relative_to(Path(preflight["pure_proof_directory"]))
+            matched = [step for step in preflight["pure_checks"]
+                       if original == Path(step["stdout_path"]) or original == Path(step["stderr_path"])]
+            if matched:
+                step = matched[0]
+                stream = "stdout" if original == Path(step["stdout_path"]) else "stderr"
+                assert row["bytes"] == step[f"{stream}_bytes"]
+                assert row["sha256"] == step[f"{stream}_sha256"]
+            else:
+                assert original == Path(preflight["pure_proof_path"])
+                assert row["sha256"] == preflight["pure_proof_sha256"]
+        elif category == "preflight_transport":
+            assert original.is_relative_to(CASE / "transport-evidence")
+        elif category == "preflight_review":
+            assert original == PREFLIGHT
+        (native if category.startswith("native_") else pre).append(result)
+    assert counts == CATEGORIES
+    assert names == set(recovery["before"]) == set(recovery["after"]) == set(recovery["copied"])
+    assert len(native) == 39 and len(pre) == 15 and len(seen_paths) == 54
+    assert len({item["path"] for item in native}) == 39
+    assert len({item["path"] for item in pre}) == 15
+    return native, pre
+
+def encode(value: dict) -> bytes:
+    return (json.dumps(value, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+
+def main() -> None:
+    assert not OUT.exists() and OUT.parent == TMP
+    guard(OUT, absent=True)
+    native, pre = validate()
+    common = {"signed_go": reference(GO), "root_after_freeze_seal": reference(ROOT_SEAL),
+              "pre_freeze_modes_and_attributes": "unknown_not_inferred",
+              "semantic_acceptance": False, "native_dispatch": False,
+              "accepted_parent_runs_repeated": 0}
+    raw_doc = {"schema": "i05-var07-v101-raw-custody-candidate/v100", **common,
+               "root_recovery_receipt": reference(RECOVERY),
+               "native_closure": reference(CLOSURE),
+               "original_run_directory": str(PHYSICAL),
+               "recovered_run_directory": str(RECOVERED),
+               "mandatory_original_count": 39, "native_directory_count": 25,
+               "native_pure_count": 11, "native_transport_count": 3,
+               "recovered_copy_count": 25, "small_owned_raw_copy_count": 0,
+               "records": native}
+    pre_doc = {"schema": "i05-var07-v101-preflight-custody-candidate/v100", **common,
+               "preflight_review_receipt": reference(PREFLIGHT),
+               "mandatory_original_count": 15, "pure_count": 11,
+               "transport_count": 3, "review_count": 1, "records": pre}
+    OUT.mkdir()
+    for name, value in (("raw-custody.json", raw_doc), ("preflight-custody.json", pre_doc)):
+        path = OUT / name
+        body = encode(value)
+        with path.open("xb") as handle:
+            handle.write(body)
+        os.chmod(path, stat.S_IREAD)
+        assert seal(path)["sha256"] == hashlib.sha256(body).hexdigest()
+    native_after, pre_after = validate()
+    assert native_after == native and pre_after == pre
+    print(json.dumps({"schema": "i05-var07-v101-custody-candidates/v100",
+                      "raw": {"path": str(OUT / "raw-custody.json"), **seal(OUT / "raw-custody.json")},
+                      "preflight": {"path": str(OUT / "preflight-custody.json"), **seal(OUT / "preflight-custody.json")},
+                      "native_dispatch": False}, sort_keys=True))
+
+if __name__ == "__main__":
+    main()

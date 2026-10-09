@@ -1,0 +1,232 @@
+"""Independent byte and role audit of the finite I05.var07 proof-plan candidate.
+
+Read-only. This does not import the author builder, run a case checker, or infer
+semantic acceptance from any captured process result.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import stat
+
+ROOT = Path(r"C:\Users\user\Documents\Codex\2026-09-29\simlox-c04-deadline\repo")
+CANDIDATE = ROOT / "tmp/i05-var07-publication-fixed-proof-plan-v101-20261009-01.json"
+CANDIDATE_SIZE = 109288
+CANDIDATE_SHA = "66d1eb430a7aa200fcb33a3758634a30cb383395e0bc726bbdfb6a57dc5f7825"
+CAPTURE = ROOT / "tmp/i05-var07-root-publication-command-proofs-v100-20261009/i05-var07-v101-publication-fixed-proof-plan-20261009T061325057669Z-ea2cdcc7"
+CAPTURE_SIZE = 1783
+CAPTURE_SHA = "9e9317c1ac20e71b47b576aef13d2d01d3bdb84219be1ff647b7bec37e95cede"
+BUILDER = ROOT / "tmp/i05-var07-publication-author-v101-20261009-01/build_fixed_proof_plan.py"
+BUILDER_SHA = "86db60f7255d479213b3dea8b3f9fdf1f9cec26fe4d278a57ad193fe94f93c9b"
+
+COMMAND_NAMES = """i05-var07-v101-local-build-20261009T052024256662Z-bd02050e
+i05-var07-v101-local-self-check-20261009T052027328725Z-efb6ab91
+i05-var07-v101-local-source-gate-20261009T052021251190Z-a354c8ea
+i05-var07-v101-local-test-converter-gate-20261009T052028277047Z-03e084c9
+i05-var07-v101-canonical-independent-pure-20261009T053901735221Z-e3528c77
+i05-var07-v101-canonical-independent-selfcheck-20261009T053852656357Z-1f35962f
+i05-var07-v101-canonical-inventory-build-20261009T053430101398Z-dce47489
+i05-var07-v101-canonical-inventory-review-20261009T053440333555Z-7fd25c2a
+i05-var07-v101-canonical-manifest-build-20261009T053702429742Z-0daa48d7
+i05-var07-v101-canonical-manifest-review-20261009T053717391769Z-a4e3071e
+i05-var07-v101-canonical-native-20261009T055155603050Z-182d7517
+i05-var07-v101-canonical-postrun-review-20261009T055411719573Z-ec57eb1e
+i05-var07-v101-canonical-preflight-review-20261009T054556148018Z-ea5dfec9
+i05-var07-v101-canonical-ssh-preflight-20261009T054418641858Z-8a6f1c6d
+i05-var07-v101-converter-ps5-system-modules-v102-20261009T052612431382Z-309a4f30""".splitlines()
+
+OUTER_NAMES = """i05-var07-catalog-git-lf-source-archive-20261009T043850352595Z-89bf7248
+i05-var07-external-construction-fresh-guard-20261009T044320027212Z-d21d27c2
+i05-var07-independent-prospective-four-artifact-audit-20261009T043452729677Z-5fda4ba7
+i05-var07-prospective-pure-materialization-first-child-20261009T043331271222Z-1ca9d470
+i05-var07-python-runtime-before-package-freeze-20261009T044855222996Z-36343d8f
+i05-var07-selection-guard-20261009T041210231952Z-630e7bb4
+i05-var07-selection-source-eligibility-only-20261009T041820202154Z-8f14ac75
+i05-var07-v101-absent-only-source-promotion-20261009T052901578414Z-bda5d724
+i05-var07-v101-actual-mode-custody-20261009T054158881485Z-81093210
+i05-var07-v101-after-mode-before-preflight-guard-20261009T054407158785Z-719bd0f8
+i05-var07-v101-after-native-before-recovery-guard-20261009T055251270378Z-07dc38b3
+i05-var07-v101-before-canonical-gates-guard-20261009T053419184668Z-3e2627d6
+i05-var07-v101-before-native-guard-20261009T055144512718Z-83c5fcb3
+i05-var07-v101-before-source-promotion-guard-20261009T052842417466Z-745ddabe
+i05-var07-v101-before-ssh-preflight-guard-20261009T053950015811Z-8ff0a3be
+i05-var07-v101-inventory-byte-promotion-v103-20261009T053653997538Z-d8d1fc49
+i05-var07-v101-manifest-byte-promotion-v101-20261009T053843245272Z-6d5094d9
+i05-var07-v101-native-byte-recovery-20261009T055302258082Z-9b4916d6
+i05-var07-v101-postrun-signoff-byte-promotion-20261009T055905125990Z-9c31d579
+i05-var07-v101-prelaunch-byte-promotion-20261009T055121579069Z-9a8c1519
+i05-var07-v101-static-review-fresh-guard-20261009T050545479845Z-50d8be78""".splitlines()
+
+NO_INNER = {OUTER_NAMES[i] for i in (2, 4, 6)}
+DIAGNOSTIC_NAME = "i05-var07-ps5-module-diagnostic-local-20261009T052342879849Z-725a7d69"
+SEAL_ROLES = {
+    "v100_author_freeze", "v101_author_freeze", "v100_static_no_go",
+    "local_custody_before", "local_custody_after",
+    "ps5_environment_failure_recovery", "predispatch_mode_failure",
+    "signed_postrun_go", "signed_scope", "postrun_promotion",
+}
+PIN_KEYS = {"path", "bytes", "sha256", "mode", "attributes"}
+
+
+def strict_json(path: Path) -> dict:
+    def unique(pairs: list[tuple[str, object]]) -> dict:
+        result: dict = {}
+        for key, value in pairs:
+            assert key not in result
+            result[key] = value
+        return result
+
+    def no_constant(value: str) -> object:
+        raise AssertionError(value)
+
+    result = json.loads(path.read_bytes(), object_pairs_hook=unique,
+                        parse_constant=no_constant)
+    assert type(result) is dict
+    return result
+
+
+def no_reparse(path: Path) -> Path:
+    assert path.is_absolute() and path.is_relative_to(ROOT)
+    for ancestor in (path, *path.parents):
+        if ancestor.exists():
+            assert not ancestor.is_symlink() and not ancestor.is_junction()
+            assert not getattr(ancestor.stat(), "st_file_attributes", 0) & 0x400
+    assert path.resolve(strict=True).is_relative_to(ROOT.resolve(strict=True))
+    return path
+
+
+def check_pin(record: dict) -> None:
+    assert type(record) is dict and PIN_KEYS <= record.keys()
+    path = no_reparse(Path(record["path"]))
+    assert path.is_file()
+    mode = stat.S_IMODE(path.stat().st_mode)
+    attributes = getattr(path.stat(), "st_file_attributes", 0)
+    assert mode == record["mode"] and attributes == record["attributes"]
+    assert attributes & 1 and not mode & stat.S_IWRITE
+    body = path.read_bytes()
+    assert len(body) == record["bytes"]
+    assert hashlib.sha256(body).hexdigest() == record["sha256"]
+
+
+def check_nested(value: object) -> int:
+    found = 0
+    if type(value) is dict:
+        if PIN_KEYS <= value.keys():
+            check_pin(value)
+            found += 1
+        for key, item in value.items():
+            if key not in PIN_KEYS:
+                found += check_nested(item)
+    elif type(value) is list:
+        for item in value:
+            found += check_nested(item)
+    return found
+
+
+def original_triplet(stage: dict) -> dict:
+    original = stage["originals"]
+    assert set(original) == PIN_KEYS | {"stdout.bin", "stderr.bin"}
+    folder = Path(original["path"]).parent
+    assert folder.name == stage["name"] and Path(original["path"]).name == "receipt.json"
+    receipt = strict_json(Path(original["path"]))
+    assert receipt["method_before"] == receipt["method_after"]
+    for stream in ("stdout.bin", "stderr.bin"):
+        assert Path(original[stream]["path"]) == folder / stream
+        assert {key: original[stream][key] for key in ("bytes", "sha256")} == receipt["streams"][stream]
+    return receipt
+
+
+def audit() -> dict:
+    candidate_bytes = CANDIDATE.read_bytes()
+    assert len(candidate_bytes) == CANDIDATE_SIZE
+    assert hashlib.sha256(candidate_bytes).hexdigest() == CANDIDATE_SHA
+    candidate = strict_json(CANDIDATE)
+    assert candidate["schema"] == "i05-var07-fixed-publication-proof-plan/v101"
+    assert candidate["package"] == "I05-var07-scheduled-mission-turnround-v1.0.1"
+    assert candidate["run_id"] == "i05-var07-turnround-v101-ssh-20261009-01"
+    assert [candidate[key] for key in ("root_command_capture_count", "generic_outer_capture_count",
+                                      "ps5_diagnostic_capture_count", "native_dispatch_capture_count",
+                                      "failed_local_environment_capture_count")] == [15, 21, 1, 1, 1]
+    stages = candidate["stages"]
+    assert type(stages) is list and len(stages) == 37
+    assert [row["name"] for row in stages] == COMMAND_NAMES + OUTER_NAMES + [DIAGNOSTIC_NAME]
+    assert [row["kind"] for row in stages] == (["root_command"] * 15 + ["generic_outer"] * 21 + ["ps5_diagnostic"])
+    assert sum(row["native_dispatch"] is True for row in stages) == 1
+    assert [row["name"] for row in stages if row["native_dispatch"] is True] == [COMMAND_NAMES[10]]
+    assert [row["name"] for row in stages if row["actual_exit"] == 1] == [COMMAND_NAMES[3]]
+
+    receipt_path = CAPTURE / "receipt.json"
+    capture_body = receipt_path.read_bytes()
+    assert len(capture_body) == CAPTURE_SIZE
+    assert hashlib.sha256(capture_body).hexdigest() == CAPTURE_SHA
+    capture = strict_json(receipt_path)
+    assert capture["schema"] == "i05-var07-publication-root-command-proof/v100"
+    assert capture["actual_exit"] == 0 and capture["native_dispatch"] is False
+    assert capture["method_before"] == capture["method_after"]
+    assert capture["method_before"]["method"] == {"bytes": 18081, "sha256": BUILDER_SHA}
+    assert Path(capture["argv"][4]) == BUILDER
+    for stream in ("stdout.bin", "stderr.bin"):
+        path = CAPTURE / stream
+        body = path.read_bytes()
+        assert len(body) == capture["streams"][stream]["bytes"]
+        assert hashlib.sha256(body).hexdigest() == capture["streams"][stream]["sha256"]
+    assert (CAPTURE / "stderr.bin").stat().st_size == 0
+    produced = strict_json(CAPTURE / "stdout.bin")
+    assert produced["decision"] == "FINITE_PLAN_CANDIDATE_ONLY"
+    assert produced["path"] == str(CANDIDATE)
+    assert (produced["bytes"], produced["sha256"]) == (CANDIDATE_SIZE, CANDIDATE_SHA)
+    assert produced["stages"] == 37 and produced["native_dispatch_capture_count"] == 1
+
+    for i, stage in enumerate(stages):
+        receipt = original_triplet(stage)
+        assert stage["actual_exit"] == receipt["actual_exit"]
+        assert stage["native_dispatch"] is receipt["native_dispatch"]
+        if i < 15:
+            assert receipt["schema"] in {"i05-var07-root-command-proof/v101", "i05-var07-root-command-proof/v102"}
+            assert Path(stage["originals"]["path"]).parent.parent.name in {
+                "i05-var07-root-command-proofs-v101-20261009",
+                "i05-var07-root-command-proofs-v102-20261009"}
+            method_index = 5 if Path(receipt["argv"][0]).stem.lower() == "powershell" else 4
+            assert stage["method"]["path"] == receipt["argv"][method_index]
+            for role in ("method", "capture", "spec"):
+                assert {key: stage[role][key] for key in ("bytes", "sha256")} == receipt["method_before"][role]
+        elif i < 36:
+            assert receipt["schema"] == "issue18-i04-var09-root-review-proof/v100"
+            assert stage["method"]["path"] == receipt["argv"][4]
+            assert {key: stage["method"][key] for key in ("bytes", "sha256")} == receipt["method_before"]["review_method"]
+            if stage["name"] in NO_INNER:
+                assert stage["inner"] is None
+            else:
+                assert type(stage["inner"]) is dict
+                stdout_obj = strict_json(Path(stage["originals"]["stdout.bin"]["path"]))
+                assert stdout_obj["receipt"] == stage["inner"]["path"]
+                assert stdout_obj["bytes"] == stage["inner"]["bytes"]
+                assert stdout_obj["sha256"] == stage["inner"]["sha256"]
+        else:
+            assert receipt["actual_exit"] == 0 and receipt["native_dispatch"] is False
+            assert stage["method"]["path"] == receipt["argv"][5]
+            assert {key: stage["method"][key] for key in ("bytes", "sha256")} == receipt["method_before"]["method"]
+    seals = candidate["sealed_context"]
+    assert type(seals) is list and len(seals) == 10
+    assert {row["role"] for row in seals} == SEAL_ROLES
+    clones = candidate["private_clone_pins"]
+    assert type(clones) is list and len(clones) == 11
+    assert len({row["path"] for row in clones}) == 11
+    environment = next(row for row in seals if row["role"] == "ps5_environment_failure_recovery")
+    environment_doc = strict_json(Path(environment["path"]))
+    assert environment_doc["native_dispatch"] is False and environment_doc["native_runs"] == 0
+    assert [(row["path"], row["bytes"], row["sha256"]) for row in clones] == [
+        (row["path"], row["bytes"], row["sha256"]) for row in environment_doc["private_clone_files"]]
+    pin_count = check_nested(candidate)
+    assert pin_count > 200
+    return {"decision": "PASS_FIXED_PUBLICATION_PLAN_BYTES_ONLY", "stages": len(stages),
+            "root_commands": 15, "generic_outer": 21, "ps5_diagnostic": 1,
+            "native_dispatch_capture_count": 1, "historical_local_failure_capture_count": 1,
+            "seals": 10, "private_clones_host_only": 11,
+            "verified_pin_occurrences": pin_count, "semantic_acceptance": False,
+            "native_dispatch": False}
+
+
+if __name__ == "__main__":
+    print(json.dumps(audit(), sort_keys=True))

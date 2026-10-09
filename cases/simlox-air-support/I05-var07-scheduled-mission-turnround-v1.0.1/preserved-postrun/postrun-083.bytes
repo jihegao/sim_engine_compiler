@@ -1,0 +1,301 @@
+"""Independent, read-only audit of the I05.var07 prospective four-artifact output.
+
+Root captures this method once. It does not import the producer or run SIMLOX.
+"""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import math
+import stat
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+PACKET = ROOT / "tmp/i05-var07-contract-author-v100-20261009-01"
+OUT = ROOT / "tmp/i05-var07-oracle-materialization-v101-20261009-01"
+PACKET_PINS = {
+    "source-delta-v100.json": (3184, "4d4e702270888c35d66247f57c46e77fb7feb7de16725d7d5a55576eb1de9f90"),
+    "event-oracle-v100.json": (2724, "b10dc3205cae71766b8fb909e714bb71f7c73eb346b4712d335f1821f9adc4e6"),
+    "report-oracle-v101.json": (2988, "69108a290de814b4a9b586978c8ba8001771ef2ab72de2214a2b1e3dcf76b808"),
+    "materialize_prospective_v101.py": (21093, "3e1d6f21d659820d433b34c4b577476edbde0fe23363bfb07bdd44f67c7ad0f0"),
+    "prospective-contract-v100.json": (6378, "c34bb3d2b9c88763347f63e5bb111389db00e800d743ff74102e810eab6df0b7"),
+    "README-prospective-v100.md": (2775, "0bfdd99a12ce4940d07cf92f030a7d8b97f2875d19ea9a92219a1c2ea6cf4694"),
+    "prospective-freeze-v100.json": (2072, "3e5d9f96527554a58b9f4d43bf64fa44f36de4577992b1bf5a864c894c48fa3f"),
+}
+PARENT_PINS = {
+    "parent_input": ("cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/turnround-input.json", 42867, "9f985c071d7d1958b55659f8ae39bc4c47580847d3bf6057d5e01f483004a9c5"),
+    "parent_export": ("cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/runs/b04-v101-turnround-20260930-01/roundtrip-raw.json", 58901, "f16c59e16c7fadbf52a94fced3a15d389abeac647301601a434fb16dca8f2677"),
+    "parent_log": ("cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/runs/b04-v101-turnround-20260930-01/model.log", 9088, "ea2cd9cd124b499f69674a9bb8a70d44ec2ab9ffa0fa8b602f34b45f9e37163e"),
+    "parent_report": ("cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/runs/b04-v101-turnround-20260930-01/report-raw.json", 103976, "ea429a8c563f50256ca24168e8ae103222e5fe01918fbb52c40c6adf64a66897"),
+}
+OUTPUT_NAMES = {"prospective-input.json", "expected-export.json", "expected-model.log", "expected-report.json", "materialization-receipt.json"}
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def plain(path: Path) -> None:
+    for node in (path, *path.parents):
+        if node.exists():
+            assert not node.is_symlink() and not node.is_junction(), node
+            assert not (getattr(node.stat(), "st_file_attributes", 0) & 0x400), node
+
+
+def metadata(path: Path) -> dict:
+    plain(path)
+    assert path.is_file(), path
+    st = path.stat()
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": digest(data), "mode": stat.S_IMODE(st.st_mode),
+            "attributes": getattr(st, "st_file_attributes", None)}
+
+
+def pinned(path: Path, size: int, sha: str, readonly: bool | None = None) -> dict:
+    item = metadata(path)
+    assert item["bytes"] == size and item["sha256"] == sha, path
+    if readonly is True:
+        assert item["attributes"] == 33 and not (item["mode"] & stat.S_IWRITE), path
+    return item
+
+
+def no_duplicates(pairs: list[tuple[str, object]]) -> dict:
+    found = {}
+    for key, value in pairs:
+        assert key not in found, key
+        found[key] = value
+    return found
+
+
+def finite(value: object) -> None:
+    if type(value) is float:
+        assert math.isfinite(value)
+    elif type(value) is list:
+        for part in value:
+            finite(part)
+    elif type(value) is dict:
+        for part in value.values():
+            finite(part)
+
+
+def document(data: bytes) -> dict:
+    assert not data.startswith(b"\xef\xbb\xbf")
+    value = json.loads(data.decode("utf-8"), object_pairs_hook=no_duplicates,
+                       parse_constant=lambda token: (_ for _ in ()).throw(AssertionError(token)))
+    assert type(value) is dict
+    finite(value)
+    return value
+
+
+def accepted_report(data: bytes) -> dict:
+    marker = b",\r\n      ]"
+    assert data.count(marker) == 1 and data.endswith(b"\r\n")
+    assert data.count(b"\n") == data.count(b"\r\n")
+    return document(data.replace(marker, b"\r\n      ]"))
+
+
+def exact(left: object, right: object) -> bool:
+    if type(left) is not type(right):
+        return False
+    if type(left) is dict:
+        return left.keys() == right.keys() and all(exact(left[k], right[k]) for k in left)
+    if type(left) is list:
+        return len(left) == len(right) and all(exact(a, b) for a, b in zip(left, right))
+    return left == right
+
+
+def table_counts(value: dict) -> tuple[int, int, int]:
+    assert set(value) == {"model"} and set(value["model"]) == {"database_version", "tables"}
+    tables = value["model"]["tables"]
+    assert type(tables) is list
+    rows = [r for t in tables for ins in t["instances"] for r in ins["rows"]]
+    return len(tables), len(rows), sum(len(r) for r in rows)
+
+
+def change_table(time: float | int) -> dict:
+    return {"name": "ChangesMissionTurnround", "columns": [
+        {"name": "MTID", "datatype": "string", "key": True},
+        {"name": "SID", "datatype": "string", "key": True},
+        {"name": "STID", "datatype": "string", "key": True},
+        {"name": "TIMEC", "datatype": "double", "key": True},
+        {"name": "DURN", "datatype": "double"},
+        {"name": "DURND", "datatype": "string"},
+        {"name": "NOTE", "datatype": "string"}],
+        "instances": [{"instance_name": "", "rows": [["BASIC-MISSION", "TEACH-AIR-01", "BASE-01", time, 1.5, None, None]]}]}
+
+
+def expected_model(parent: dict, time: float | int, rows: int, cells: int) -> dict:
+    assert table_counts(parent) in {(32, 22, 204), (32, 36, 367)}
+    names = [t["name"] for t in parent["model"]["tables"]]
+    assert len(names) == 32 and names[31] == "MissionTurnround"
+    assert "ChangesMissionTurnround" not in names
+    result = copy.deepcopy(parent)
+    result["model"]["tables"].append(change_table(time))
+    assert table_counts(result) == (33, rows, cells)
+    assert [t["name"] for t in result["model"]["tables"]] == names + ["ChangesMissionTurnround"]
+    return result
+
+
+def lines(data: bytes) -> list[str]:
+    assert not data.startswith(b"\xef\xbb\xbf") and data.endswith(b"\r\n")
+    assert data.count(b"\n") == data.count(b"\r\n")
+    pieces = data.decode("utf-8").split("\r\n")
+    assert pieces.pop() == ""
+    return pieces
+
+
+def expected_log(parent: bytes) -> bytes:
+    original = lines(parent)
+    assert len(original) == 115 and sum(s.startswith("Time: ") for s in original) == 107
+    changes = {102: ("planned to last for 1 hours", "planned to last for 1.5 hours")}
+    changes.update({n: ("Time: 28 ", "Time: 28.5 ") for n in (104, 105, 106, 107, 110, 111, 112, 113, 114)})
+    amended = []
+    for ordinal, line in enumerate(original, 1):
+        if ordinal in changes:
+            old, new = changes[ordinal]
+            assert line.count(old) == 1
+            amended.append(line.replace(old, new, 1))
+        else:
+            amended.append(line)
+    assert amended[101].endswith("planned to last for 1.5 hours")
+    assert all(amended[n-1].startswith("Time: 28.5 ") for n in (104,105,106,107,110,111,112,113,114))
+    data = ("\r\n".join(amended) + "\r\n").encode("utf-8")
+    assert len(data) == 9108 and len(lines(data)) == 115
+    assert sum(s.startswith("Time: ") for s in amended) == 107
+    return data
+
+
+def report_counts(value: dict) -> None:
+    assert set(value) == {"report"} and set(value["report"]) == {"tables"}
+    tables = value["report"]["tables"]
+    assert [t["name"] for t in tables] == ["ProblemDescription", "ResultSummary", "SystemResults", "StockTotalResults"]
+    assert [len(t["columns"]) for t in tables] == [1, 11, 40, 16]
+    assert [len(t["instances"][0]["rows"]) for t in tables] == [1, 1, 72, 72]
+    assert sum(len(row) for t in tables for ins in t["instances"] for row in ins["rows"]) == 4044
+
+
+def expected_report(parent: dict) -> dict:
+    report_counts(parent)
+    projected = copy.deepcopy(parent)
+    table = projected["report"]["tables"][2]
+    names = [c["name"] for c in table["columns"]]
+    assert table["instances"][0]["rows"][56][2:4] == [28, 28.5]
+    row = table["instances"][0]["rows"][56]
+    for name, before, after in (("NSYRY", 1, 0), ("NSYMA", 0, 1), ("NSYMT", 0, 1)):
+        index = names.index(name)
+        assert type(row[index]) is int and row[index] == before
+        row[index] = after
+    report_counts(projected)
+    return projected
+
+
+def reject(label: str, action) -> str:
+    try:
+        action()
+    except AssertionError:
+        return label
+    raise AssertionError(("negative_not_rejected", label))
+
+
+def main() -> None:
+    assert ROOT.name == "repo" and PACKET.parent == ROOT / "tmp"
+    self_path = Path(__file__).resolve()
+    before = {"auditor": (self_path, metadata(self_path))}
+    for name, (size, sha) in PACKET_PINS.items():
+        path = PACKET / name
+        before[name] = (path, pinned(path, size, sha, readonly=True))
+    go = ROOT / "tmp/i05-var07-independent-source-eligibility-go-v100-20261009.json"
+    before["selection_go"] = (go, pinned(go, 2520, "eeec49da9cde34c15a11d07c07544e71f1047544a3aa519b8ef62878afd3095c", readonly=True))
+    parent_data = {}
+    for role, (relative, size, sha) in PARENT_PINS.items():
+        path = ROOT / relative
+        before[role] = (path, pinned(path, size, sha))
+        parent_data[role] = path.read_bytes()
+    assert OUT.is_dir() and OUT.parent == ROOT / "tmp"
+    plain(OUT)
+    assert {p.name for p in OUT.iterdir()} == OUTPUT_NAMES
+    assert all(p.is_file() for p in OUT.iterdir())
+    rec_path = OUT / "materialization-receipt.json"
+    receipt = document(rec_path.read_bytes())
+    assert metadata(rec_path)["attributes"] == 33
+    assert set(receipt) == {"schema", "decision", "prospective_input", "expected_export", "physical_log", "typed_report", "private_negative_rejections", "sources", "native_calls", "accepted_checker_calls", "limits"}
+    assert receipt["schema"] == "i05-var07-pure-oracle-materialization/v101"
+    assert receipt["decision"] == "PROSPECTIVE_ONLY_NOT_NATIVE_ACCEPTANCE"
+    assert type(receipt["native_calls"]) is int and receipt["native_calls"] == 0
+    assert type(receipt["accepted_checker_calls"]) is int and receipt["accepted_checker_calls"] == 0
+    assert type(receipt["private_negative_rejections"]) is int and receipt["private_negative_rejections"] == 24
+    source_map = {"method": before["materialize_prospective_v101.py"]}
+    for n in ("source-delta-v100.json", "event-oracle-v100.json", "report-oracle-v101.json"):
+        source_map[n] = before[n]
+    for n in PARENT_PINS:
+        source_map[n] = before[n]
+    assert set(receipt["sources"]) == set(source_map)
+    for role, (path, snap) in source_map.items():
+        assert exact(receipt["sources"][role], {"path": str(path), **snap})
+    products = {}
+    fields = (("prospective_input", "prospective-input.json", {"tables": 33, "rows": 23, "cells": 211}),
+              ("expected_export", "expected-export.json", {"tables": 33, "rows": 37, "cells": 374, "new_table_index": 32}),
+              ("physical_log", "expected-model.log", {"lines": 115, "timed": 107}),
+              ("typed_report", "expected-report.json", {"typed_cells": 4044, "patched_cells": 3}))
+    for key, name, extras in fields:
+        path = OUT / name
+        snap = metadata(path)
+        assert snap["attributes"] == 33 and not (snap["mode"] & stat.S_IWRITE)
+        assert exact(receipt[key], {"path": str(path), **snap, **extras})
+        products[key] = path.read_bytes()
+    actual_input = document(products["prospective_input"])
+    actual_export = document(products["expected_export"])
+    actual_report = document(products["typed_report"])
+    anticipated_input = expected_model(document(parent_data["parent_input"]), 25.0, 23, 211)
+    anticipated_export = expected_model(document(parent_data["parent_export"]), 25, 37, 374)
+    anticipated_log = expected_log(parent_data["parent_log"])
+    anticipated_report = expected_report(accepted_report(parent_data["parent_report"]))
+    assert exact(actual_input, anticipated_input)
+    assert exact(actual_export, anticipated_export)
+    assert products["physical_log"] == anticipated_log
+    assert exact(actual_report, anticipated_report)
+    assert type(actual_input["model"]["tables"][32]["instances"][0]["rows"][0][3]) is float
+    assert type(actual_export["model"]["tables"][32]["instances"][0]["rows"][0][3]) is int
+    assert len(lines(products["physical_log"])) == 115
+    assert sum(s.startswith("Time: ") for s in lines(products["physical_log"])) == 107
+    assert table_counts(actual_input) == (33,23,211) and table_counts(actual_export) == (33,37,374)
+    report_counts(actual_report)
+    negatives = []
+    def mutant(value: dict, change) -> dict:
+        altered = copy.deepcopy(value)
+        change(altered)
+        return altered
+    def require_doc(got: dict, want: dict) -> None:
+        assert exact(got, want)
+    def require_bytes(got: bytes, want: bytes) -> None:
+        assert got == want
+    negatives.append(reject("authored_wrong_index", lambda: require_doc(
+        mutant(actual_input, lambda d: d["model"]["tables"].insert(17, d["model"]["tables"].pop())), anticipated_input)))
+    negatives.append(reject("export_wrong_index", lambda: require_doc(
+        mutant(actual_export, lambda d: d["model"]["tables"].insert(17, d["model"]["tables"].pop())), anticipated_export)))
+    negatives.append(reject("export_integral_double_type", lambda: require_doc(
+        mutant(actual_export, lambda d: d["model"]["tables"][32]["instances"][0]["rows"][0].__setitem__(3, 25.0)), anticipated_export)))
+    negatives.append(reject("authored_duration", lambda: require_doc(
+        mutant(actual_input, lambda d: d["model"]["tables"][32]["instances"][0]["rows"][0].__setitem__(4, 1.0)), anticipated_input)))
+    negatives.append(reject("log_old_duration", lambda: require_bytes(
+        products["physical_log"].replace(b"planned to last for 1.5 hours", b"planned to last for 1 hours"), anticipated_log)))
+    negatives.append(reject("log_extra_h25", lambda: require_bytes(
+        products["physical_log"].replace(b"Time: 25 ", b"Time: 25 change applied\r\nTime: 25 ", 1), anticipated_log)))
+    negatives.append(reject("report_bool", lambda: require_doc(
+        mutant(actual_report, lambda d: d["report"]["tables"][2]["instances"][0]["rows"][56].__setitem__(4, False)), anticipated_report)))
+    negatives.append(reject("report_wrong_bin", lambda: require_doc(
+        mutant(actual_report, lambda d: d["report"]["tables"][2]["instances"][0]["rows"][55].__setitem__(4, 1)), anticipated_report)))
+    negatives.append(reject("report_summary", lambda: require_doc(
+        mutant(actual_report, lambda d: d["report"]["tables"][1]["instances"][0]["rows"][0].__setitem__(3, 0.5)), anticipated_report)))
+    assert len(negatives) == 9
+    for path, snap in before.values():
+        assert metadata(path) == snap, path
+    print(json.dumps({"decision": "PASS_PROSPECTIVE_FOUR_ARTIFACT_BYTES_ONLY", "authored_cells": 211,
+                      "export_cells": 374, "physical_lines": 115, "timed_lines": 107,
+                      "typed_report_cells": 4044, "independent_negative_rejections": len(negatives),
+                      "native_calls": 0, "accepted_checker_calls": 0}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

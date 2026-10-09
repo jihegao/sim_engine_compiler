@@ -1,0 +1,7 @@
+# I05.var07 postrun scope precision
+
+This note corrects one value description in the frozen [bounded postrun scope](independent-postrun-scope-2026-10-09.md), 2,956 bytes/SHA-256 `df47e99607596e5c8f8f4b167947dcbdb86a14c57f27e7b5f872445604ac58b2`.
+
+That scope says the `error` and `step_error` fields in the original `closure.json` are null. The original closure at `tmp/i05-var07-native-v101-20261009-01/closure.json`, 45,466 bytes/SHA-256 `f53ba2cf43f877a6db370b615d46b0dc555b8096b3aa71d0aaa2e20476a1f27e`, contains the JSON empty string `""` for **both** fields. The fields record no error. The frozen independent reader accepted this exact closure, and its original captured verdict remains `GO_BOUNDED`; the separate signed decision remains `GO_BOUNDED_POSTRUN` for this one run.
+
+The old scope, signed decision, canonical files, original closure, native result, and all byte pins remain unchanged. This is a source-text correction for the later publication proof graph. It does not authorize a new native run, accepted checker replay, broader behavioral claim, or publication by itself.

@@ -1,0 +1,63 @@
+"""Root absent-only promotion of one independently checked manifest candidate."""
+from pathlib import Path
+import hashlib, json, stat
+R=Path(__file__).resolve().parents[1]
+C=R/'cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1'
+S=R/'tmp/i05-var07-manifest-candidate-v101-20261009-01.json'
+T=C/'prelaunch-manifest.json'
+O=R/'tmp/i05-var07-root-manifest-promotion-proof-v101-20261009-01'
+def pin(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'attributes':p.stat().st_file_attributes}
+def guard(path):
+ assert path.is_absolute()
+ for place in [path,*path.parents]:
+  assert not place.is_symlink() and not place.is_junction(),str(place)
+  if place.exists():assert not (place.stat().st_file_attributes & 0x400),str(place)
+guard(S);guard(T);guard(O);guard(Path(__file__))
+receipt_refs=[
+ ('i05-var07-v101-canonical-manifest-build-20261009T053702429742Z-0daa48d7',1817,'789cb953d778d5441ba81641da3789c4bef2f231b14e37af5f06c43431399854'),
+ ('i05-var07-v101-canonical-manifest-review-20261009T053717391769Z-a4e3071e',1831,'e4953f134cab4a4326cacbac7306f2860f088b12f69db2fa6c5fcce0256947a3')]
+approved_receipts=[]
+for folder,size,sha in receipt_refs:
+ p=R/'tmp/i05-var07-root-command-proofs-v102-20261009'/folder/'receipt.json'
+ guard(p)
+ assert pin(p)=={'bytes':size,'sha256':sha,'attributes':33}
+ d=json.loads(p.read_bytes());assert type(d['actual_exit']) is int and d['actual_exit']==0 and d['native_dispatch'] is False
+ assert d['method_before']==d['method_after']
+ for name,expected in d['streams'].items():
+  guard(p.parent/name)
+  assert pin(p.parent/name)=={**expected,'attributes':33}
+ assert d['streams']['stderr.bin']=={'bytes':0,'sha256':hashlib.sha256(b'').hexdigest()}
+ if 'manifest-review' in folder:
+  assert d['argv']==[r'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe','-X','utf8','-B',str(C/'review/independent_reader.py'),'--manifest-candidate',str(S)]
+  raw=(p.parent/'stdout.bin').read_bytes()
+  assert len(raw.splitlines())==1
+  assert json.loads(raw)=={'candidate_sha256':'8d94a4def9075796d405f630dda7520e6ef60367668d5bbacd06115249af1d06','decision':'PASS_MANIFEST_CANDIDATE','source_count':144}
+ approved_receipts.append({'path':str(p),'pin':pin(p)})
+assert S.stat().st_file_attributes==33
+assert pin(S)=={'bytes':58846,'sha256':'8d94a4def9075796d405f630dda7520e6ef60367668d5bbacd06115249af1d06','attributes':33}
+assert not T.exists() and not O.exists()
+body=S.read_bytes();doc=json.loads(body)
+assert doc['schema']=='i05-var07-prelaunch-manifest/v101' and doc['source_count']==144
+for row in doc['source_files']:guard(C/row['path'])
+before={row['key']:{**pin(Path(row['path'])),'mode':stat.S_IMODE(Path(row['path']).stat().st_mode)} for row in doc['source_files']}
+assert len(before)==144
+for row in doc['source_files']:assert before[row['key']]=={k:row[k] for k in ('bytes','sha256','attributes','mode')}
+O.mkdir(exist_ok=False)
+error=None
+try:
+ guard(S);guard(T)
+ with T.open('xb') as f:f.write(body)
+ T.chmod(stat.S_IREAD)
+ assert pin(T)==pin(S)
+except Exception as exc:error=repr(exc)
+guard(S);guard(T)
+for row in doc['source_files']:guard(C/row['path'])
+assert pin(S)=={'bytes':58846,'sha256':'8d94a4def9075796d405f630dda7520e6ef60367668d5bbacd06115249af1d06','attributes':33}
+after={row['key']:{**pin(Path(row['path'])),'mode':stat.S_IMODE(Path(row['path']).stat().st_mode)} for row in doc['source_files']}
+receipt={'schema':'i05-var07-root-manifest-promotion/v101','approved_receipts':approved_receipts,'candidate':str(S),'target':str(T),'candidate_pin':pin(S),'target_pin':pin(T) if T.exists() else None,'source_before':before,'source_after':after,'source_stable':before==after,'error':error,'native_dispatch':False}
+P=O/'receipt.json'
+with P.open('xb') as f:f.write((json.dumps(receipt,indent=2)+'\n').encode())
+P.chmod(stat.S_IREAD)
+print(json.dumps({'receipt':str(P),**pin(P),'source_stable':before==after,'error':error}))
+assert error is None and before==after

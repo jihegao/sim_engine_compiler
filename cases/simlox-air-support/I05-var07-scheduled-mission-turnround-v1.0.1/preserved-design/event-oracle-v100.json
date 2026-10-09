@@ -1,0 +1,36 @@
+{
+  "schema": "i05-var07-prospective-event-oracle/v100",
+  "stage": "before_child_observation",
+  "parent_log": {
+    "path": "cases/simlox-air-support/B04-cross-midnight-turnround-v1.0.1/runs/b04-v101-turnround-20260930-01/model.log",
+    "bytes": 9088,
+    "sha256": "ea2cd9cd124b499f69674a9bb8a70d44ec2ab9ffa0fa8b602f34b45f9e37163e",
+    "physical_crlf_lines": 115,
+    "timed_lines": 107
+  },
+  "complete_grammar": "Every parent physical line and byte is required at the same ordinal position except the ten declared substitutions. Exact CRLF terminal, no BOM, exact line count/order/identity/continuations. No additional h25 scheduled-change marker is permitted in this primary arm.",
+  "patches_one_based": [
+    {"line": 102, "old_fragment": "planned to last for 1 hours", "new_fragment": "planned to last for 1.5 hours", "expected_occurrences": 1},
+    {"line": 104, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 105, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 106, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 107, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 110, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 111, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 112, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 113, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "},
+    {"line": 114, "old_prefix": "Time: 28 ", "new_prefix": "Time: 28.5 "}
+  ],
+  "derived_ledger_hypotheses": {
+    "physical_system": "TEACH-AIR-01 numeric ID0 throughout; no substitution or unplanned failure",
+    "first_mission": "BASIC-MISSION ordinal0 starts21.5, succeeds23.5, turnround23.5–24.5 with one-hour planned task",
+    "second_mission": "BASIC-MISSION ordinal1 starts25, succeeds27, turnround starts27 and completes28.5 with 1.5-hour planned task",
+    "ready": "first ready24.5 and final ready28.5, duplicate native ready diagnostics retained exactly",
+    "terminal": "at horizon36 one ready physical system, both mission successes, no failures/PM/stock demand",
+    "change_at_25": "source record is active before the h27 turnround; no separate physical log marker and no claim about same-hour ordering with mission start"
+  },
+  "predicted_child_log_bytes": 9108,
+  "predicted_child_physical_crlf_lines": 115,
+  "predicted_child_timed_lines": 107,
+  "reject": ["extra or missing physical line", "reordered same-time diagnostic", "moved untimed arrival continuation", "wrong physical ID", "second planned duration 1", "first planned duration 1.5", "second completion 28", "lost duplicate ready", "new h25 change marker", "BOM or LF-only text"]
+}

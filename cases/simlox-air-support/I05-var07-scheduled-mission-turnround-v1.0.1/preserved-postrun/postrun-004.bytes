@@ -1,0 +1,87 @@
+"""Root binary capture of one pinned I05.var07 method; no retries or child interruption."""
+from pathlib import Path
+import datetime as dt
+import hashlib
+import json
+import stat
+import subprocess
+import sys
+import uuid
+
+R = Path(__file__).resolve().parents[1]
+C = R / 'cases/simlox-air-support/I05-var07-scheduled-mission-turnround-v1.0.1'
+E = R / 'tmp/i05-var07-package-author-v101-20261009-01/package'
+TOOLS = frozenset({'build.py', 'source_gate.py', 'self_check.py',
+                   'make_source_inventory.py', 'make_prelaunch_manifest.py',
+                   'test_converter_gate.ps1', 'review/independent_reader.py',
+                   'review/independent_self_check.py', 'ssh_transport.py'})
+
+def pin(path):
+    body = path.read_bytes()
+    return {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+def strict_json(body):
+    assert not body.startswith(b'\xef\xbb\xbf')
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            assert key not in result
+            result[key] = value
+        return result
+    def nonfinite(token):
+        raise AssertionError(('nonfinite', token))
+    return json.loads(body.decode('utf-8'), object_pairs_hook=pairs, parse_constant=nonfinite)
+
+assert len(sys.argv) == 3
+spec_path = Path(sys.argv[1]).resolve(strict=True)
+assert spec_path.is_relative_to(R / 'tmp')
+assert spec_path.stat().st_file_attributes == 33
+assert pin(spec_path)['sha256'] == sys.argv[2]
+spec = strict_json(spec_path.read_bytes())
+assert type(spec) is dict and set(spec) == {'schema', 'label', 'method', 'method_pin', 'arguments', 'native_dispatch'}
+assert spec['schema'] == 'i05-var07-root-command-spec/v101'
+assert type(spec['native_dispatch']) is bool
+label = spec['label']
+assert type(label) is str and label and all(ch.isalnum() or ch == '-' for ch in label)
+method = Path(spec['method']).resolve(strict=True)
+places = [place for place in (C, E) if method.is_relative_to(place)]
+assert len(places) == 1 and method.relative_to(places[0]).as_posix() in TOOLS
+assert method.suffix in ('.py', '.ps1') and method.stat().st_file_attributes == 33
+assert pin(method) == spec['method_pin']
+assert type(spec['arguments']) is list and all(type(arg) is str for arg in spec['arguments'])
+if method.name == 'ssh_transport.py':
+    assert method == C / 'ssh_transport.py'
+    assert spec['arguments'] == (['native'] if spec['native_dispatch'] else ['preflight'])
+else:
+    assert spec['native_dispatch'] is False
+assert Path(__file__).stat().st_file_attributes == 33
+assert pin(Path(sys.executable)) == {'bytes': 106448, 'sha256': '10d845f50a2af64e3500bb2fcb348b5bc98a75d8ddada63e45ba1da6a1fc79d1'}
+before = {'capture': pin(Path(__file__)), 'spec': pin(spec_path), 'method': pin(method)}
+argv = ([sys.executable, '-X', 'utf8', '-B', str(method)] if method.suffix == '.py'
+        else [r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
+              '-NoLogo', '-NoProfile', '-NonInteractive', '-File', str(method)]) + spec['arguments']
+outdir = R / 'tmp/i05-var07-root-command-proofs-v101-20261009' / (
+    label + '-' + dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '-' + uuid.uuid4().hex[:8])
+outdir.mkdir(parents=True, exist_ok=False)
+started = dt.datetime.now(dt.timezone.utc).isoformat()
+with (outdir / 'stdout.bin').open('xb') as stdout, (outdir / 'stderr.bin').open('xb') as stderr:
+    code = subprocess.run(argv, cwd=R, stdout=stdout, stderr=stderr).returncode
+after = {'capture': pin(Path(__file__)), 'spec': pin(spec_path), 'method': pin(method)}
+receipt = {'schema': 'i05-var07-root-command-proof/v101', 'argv': argv,
+           'started_utc': started, 'completed_utc': dt.datetime.now(dt.timezone.utc).isoformat(),
+           'native_dispatch': spec['native_dispatch'], 'actual_exit': code,
+           'method_before': before, 'method_after': after,
+           'streams': {name: pin(outdir / name) for name in ('stdout.bin', 'stderr.bin')}}
+with (outdir / 'receipt.json').open('xb') as stream:
+    stream.write((json.dumps(receipt, indent=2) + '\n').encode())
+for path in outdir.iterdir():
+    path.chmod(stat.S_IREAD)
+print(json.dumps({'receipt': str(outdir / 'receipt.json'), **pin(outdir / 'receipt.json'),
+                  'actual_exit': code, 'method_unchanged': before == after,
+                  'native_dispatch': spec['native_dispatch'], 'streams': receipt['streams']}))
+for name in ('stdout.bin', 'stderr.bin'):
+    body = (outdir / name).read_bytes()
+    if body:
+        print(body.decode('utf-8-sig', 'replace')[:12000])
+assert before == after
+raise SystemExit(code)
