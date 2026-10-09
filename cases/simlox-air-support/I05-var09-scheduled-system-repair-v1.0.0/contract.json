@@ -1,0 +1,164 @@
+{
+  "schema": "simlox-i05-var09-restricted-contract/v100",
+  "case_id": "I05.var09",
+  "version": "1.0.0",
+  "candidate": {
+    "description": "I05.var09 scheduled scalar system direct repair: DIRPT 0.5 to 1.5 h at hour 5; fixed D01 parent",
+    "run_id": "i05-var09-system-repair-v100-ssh-20261010-01",
+    "physical_directory": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\tmp\\i05-var09-native-v100-20261010-01",
+    "recovered_directory": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var09-scheduled-system-repair-v1.0.0\\runs\\i05-var09-system-repair-v100-ssh-20261010-01"
+  },
+  "status": "AUTHOR_CANDIDATE_NOT_METHOD_OR_NATIVE_GO",
+  "parent": "D01.system_direct.1.0.0",
+  "delta": {
+    "table": {
+      "name": "ChangesSystemRepair",
+      "columns": [
+        {
+          "name": "SID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "STID",
+          "datatype": "string",
+          "key": true
+        },
+        {
+          "name": "TIMEC",
+          "datatype": "double",
+          "key": true
+        },
+        {
+          "name": "DIRPT",
+          "datatype": "double"
+        },
+        {
+          "name": "SURPT",
+          "datatype": "double"
+        },
+        {
+          "name": "DIRPF",
+          "datatype": "double"
+        },
+        {
+          "name": "SURPF",
+          "datatype": "double"
+        },
+        {
+          "name": "DIRPD",
+          "datatype": "string"
+        },
+        {
+          "name": "SURPD",
+          "datatype": "string"
+        },
+        {
+          "name": "NOTE",
+          "datatype": "string"
+        }
+      ],
+      "instances": [
+        {
+          "instance_name": "",
+          "rows": [
+            [
+              "TEACH-AIR-01",
+              "BASE-01",
+              5.0,
+              1.5,
+              0.0,
+              1.0,
+              1.0,
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "other_changes": [
+      "ProblemDescription.PDESC only"
+    ],
+    "parent_SystemRepair_columns_preserved": 15,
+    "row_bearing_tables_parent": 14,
+    "row_bearing_tables_child": 15,
+    "row_bearing_includes_all_null_rows": true
+  },
+  "source_manual_sha256": "39427027c46809a9ce9ebcb9be04e7396d96746e42a6f8c7c0ba2ddc294ef8a3",
+  "manual_physical_pages": [
+    349,
+    350,
+    351,
+    352,
+    353,
+    354,
+    517,
+    518,
+    519,
+    520,
+    521,
+    645,
+    646
+  ],
+  "dictionary_sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0",
+  "supported_profile": "Exactly this single existing SID/STID object, positive hour5, scalar DIRPT0.5->1.5; SURPT0, fractions1, distributions/task references null; no explicit subtasks",
+  "reject": [
+    "unknown/missing columns",
+    "duplicate key",
+    "nonexistent SID/STID",
+    "group identifiers",
+    "nonpositive or nonfinite time",
+    "bool numeric aliases",
+    "multiple changes",
+    "different fractions/SURPT/distributions",
+    "Tasks or TaskBreakDown authored rows",
+    "same-time or in-progress changes",
+    "different units/horizon/RNG/profile"
+  ],
+  "hypotheses_not_passes": {
+    "ordered_log_lines": 128,
+    "substitutions": 20,
+    "report_cells": 4044,
+    "typed_differences_excluding_description": 22,
+    "repair_intervals": [
+      [
+        10,
+        11.5
+      ],
+      [
+        34,
+        35.5
+      ]
+    ],
+    "repair_aircraft_hours": 3.0,
+    "registered_downtime_hours": 3.0,
+    "registered_periods": 2,
+    "native_warnings": [
+      108,
+      126
+    ]
+  },
+  "gates": [
+    "independent method",
+    "fresh source freeze",
+    "independent static",
+    "actual SSH PS5 session0 pure preflight",
+    "receipt-bound independent GO",
+    "one serial guarded native attempt",
+    "author full raw acceptance",
+    "independent own-reader raw acceptance",
+    "separate publication/remote review",
+    "PR merge/postmerge evidence"
+  ],
+  "excluded": [
+    "all GUI functionality/gates",
+    "whole variant completion",
+    "cross-engine",
+    "performance",
+    "general Changes implementation",
+    "TaskBreakDown overrides"
+  ],
+  "engine_boundary": "No runtime or IR operation change. Native model artifact only; aircraft domain rules and three IR layers with independent RunState preserved."
+}
