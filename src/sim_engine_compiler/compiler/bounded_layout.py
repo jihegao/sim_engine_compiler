@@ -1,11 +1,10 @@
 """Symbol resolution for the opt-in versioned event IR (no case dispatch)."""
 import copy
-from sim_engine_compiler.ir.bounded import CORE, PLAN, Document, require
+from sim_engine_compiler.ir.bounded import PLAN, Document, require, validate_core
 
 
 def compile_bounded(core, *, operations, backend='python-bounded-reference'):
-    require(core.version == CORE, 'unsupported Core IR')
-    p = core.payload
+    p = validate_core(core)
     require(p['operations'] == operations, 'unknown operation or incomplete contract')
     require(all(backend in op['backends'] for op in operations), 'backend capability gap')
     indexes = {}

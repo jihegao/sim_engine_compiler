@@ -1,7 +1,7 @@
 """Plan-only reference operations for aircraft-bounded-events/v1.
 
 All model variation is in the validated Plan. This module contains no case IDs,
-oracle reader, native model call, output schedule, or benchmark dispatch table.
+oracle reader, native model call, hard-coded output schedule, or benchmark dispatch table.
 """
 from __future__ import annotations
 import copy
@@ -75,6 +75,7 @@ class BoundedAircraftRuntime:
             self.schedule(e['time_ticks'], e['operation'], e)
         self.calendar.run(self.record_snapshot)
         self.record_snapshot()
+        self.add_report_snapshots()
         invariants = self.check_invariants()
         return {'schema': 'aircraft-bounded-result/v1', 'plan_fingerprint': self.plan.fingerprint,
                 'source_inputs_sha256': self.p['canonical_sha256'], 'profile': self.p['semantic_profile'],
@@ -103,6 +104,30 @@ class BoundedAircraftRuntime:
             self.snapshots[-1]['state'] = state
         elif not self.snapshots or self.snapshots[-1]['state'] != state:
             self.snapshots.append({'time_ticks': self.now, 'state': state})
+
+    def add_report_snapshots(self):
+        """Sample the observed piecewise-constant state on the Plan's grid.
+
+        Same-tick transitions have already settled in record_snapshot. Keeping
+        those transitions as well as report samples preserves exact integrals.
+        Observation inserts no calendar events or mutable model transitions.
+        """
+        interval = self.p['report_interval_ticks']
+        next_report = 0
+        current = self.snapshots[0]['state']
+        samples = []
+        for transition in self.snapshots:
+            while next_report < transition['time_ticks']:
+                samples.append({'time_ticks': next_report, 'state': copy.deepcopy(current)})
+                next_report += interval
+            samples.append(transition)
+            current = transition['state']
+            if next_report == transition['time_ticks']:
+                next_report += interval
+        while next_report <= self.p['horizon_ticks']:
+            samples.append({'time_ticks': next_report, 'state': copy.deepcopy(current)})
+            next_report += interval
+        self.snapshots = samples
 
     def check_invariants(self):
         require(all(0 <= used <= cap for used, cap in zip(self.crew.used, self.crew.capacities)), 'resource capacity violated')
@@ -297,10 +322,11 @@ class BoundedAircraftRuntime:
             state['flight_ticks'] += elapsed
             state['mission'] = None
             state['state'] = 'ready'
+            if spec['pm'] and spec['pm']['clock'] == 'flight' and state['flight_ticks'] >= spec['pm']['interval_ticks']:
+                state['pm_pending'] = True
             if state['failed']:
                 self.begin_repair(a)
-            elif spec['pm'] and spec['pm']['clock'] == 'flight' and state['flight_ticks'] >= spec['pm']['interval_ticks']:
-                state['pm_pending'] = True
+            elif spec['pm'] and spec['pm']['clock'] == 'flight' and state['pm_pending']:
                 self.begin_pm(a)
             elif spec['turnround_ticks']:
                 state['state'] = 'turnround'
@@ -358,6 +384,8 @@ class BoundedAircraftRuntime:
         require(self.air[a]['state'] == 'repair', 'invalid repair completion')
         self.air[a].update(state='ready', failed=False)
         self.emit('repair_finished', aircraft=self.aid(a))
+        if self.air[a]['pm_pending']:
+            self.begin_pm(a)
         self.wake()
 
     def pm_due(self, a):
@@ -475,6 +503,8 @@ class BoundedAircraftRuntime:
         self.items[item] = ('installed', a)
         state.update(installed=item, replacement=None, fitting=False, failed=False, state='ready')
         self.emit('fit_finished', aircraft=self.aid(a), item=item)
+        if state['pm_pending']:
+            self.begin_pm(a)
         self.wake()
 
     def in_transfer(self, e):

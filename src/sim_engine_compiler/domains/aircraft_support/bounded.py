@@ -64,7 +64,7 @@ def validate_model(m):
         require(ticks(m[name]) > 0, 'time below microsecond precision')
     require(ticks(m['horizon_hours']) % ticks(m['report_interval_hours']) == 0,
             'horizon must contain whole report intervals')
-    require(m['horizon_hours'] / m['report_interval_hours'] <= 10000, 'report budget exceeded')
+    require(ticks(m['horizon_hours']) // ticks(m['report_interval_hours']) <= 10000, 'report budget exceeded')
     ids = {}
     for table in TABLES:
         rows = m[table]
@@ -119,12 +119,15 @@ def validate_model(m):
             require(a['pm']['clock'] in ('calendar', 'flight'), 'unsupported PM clock')
             for key in ('interval_hours', 'duration_hours'):
                 number(a['pm'][key], key, positive=True)
+                require(ticks(a['pm'][key]) > 0, f'PM {key}: time below microsecond precision')
     types = {a['type'] for a in m['aircraft']}
     for miss in m['missions']:
         keys(miss, 'id start_hours notice_hours duration_hours delay_hours priority requirements process depends_on', 'mission')
         for k in ('start_hours', 'notice_hours', 'duration_hours', 'delay_hours'):
             number(miss[k], k, positive=k == 'duration_hours')
+        require(ticks(miss['duration_hours']) > 0, 'mission duration: time below microsecond precision')
         require(miss['notice_hours'] <= miss['start_hours'] < m['horizon_hours'], 'invalid mission notice/start')
+        require(ticks(miss['start_hours']) < ticks(m['horizon_hours']), 'mission start must precede horizon after time quantization')
         number(miss['priority'], 'mission priority', integer=True)
         require(isinstance(miss['requirements'], dict) and miss['requirements'], 'empty formation')
         for t, q in miss['requirements'].items():
@@ -134,19 +137,23 @@ def validate_model(m):
         require(isinstance(miss['depends_on'], list), 'invalid dependencies')
         for other in miss['depends_on']:
             ref('missions', other)
-    by_id = {v['id']: v for v in m['missions']}
-    active, done = set(), set()
-    def visit(mid):
-        require(mid not in active, 'cyclic mission dependencies')
-        if mid in done:
-            return
-        active.add(mid)
-        for other in by_id[mid]['depends_on']:
-            visit(other)
-        active.remove(mid)
-        done.add(mid)
-    for mid in by_id:
-        visit(mid)
+    # The declared 1,000-row bound must not depend on Python recursion depth
+    # or input row order. Count each listed dependency, including repeated ones.
+    remaining = {v['id']: len(v['depends_on']) for v in m['missions']}
+    dependents = {mid: [] for mid in remaining}
+    for mission in m['missions']:
+        for other in mission['depends_on']:
+            dependents[other].append(mission['id'])
+    ready = [mid for mid, count in remaining.items() if count == 0]
+    visited = 0
+    while ready:
+        mid = ready.pop()
+        visited += 1
+        for successor in dependents[mid]:
+            remaining[successor] -= 1
+            if remaining[successor] == 0:
+                ready.append(successor)
+    require(visited == len(remaining), 'cyclic mission dependencies')
     route_pairs = set()
     for route in m['routes']:
         keys(route, 'id source destination duration_hours', 'route')

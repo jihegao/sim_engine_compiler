@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from sim_engine_compiler.ir.bounded import CORE, PLAN, PROFILE, Document, ticks
+from sim_engine_compiler.ir.bounded import CORE, PLAN, PROFILE, TICKS_PER_HOUR, Document, ticks
 from sim_engine_compiler.integrations.spare_mvp.bounded import import_bounded_business
 from sim_engine_compiler.domains.aircraft_support.bounded import lower_bounded, operation_contracts
 from sim_engine_compiler.compiler.bounded_layout import compile_bounded
@@ -42,7 +42,78 @@ def driver(operation,time=3.5,value=0):
     return dict(id='driver',time_hours=time,operation=operation,aircraft='asset-0',node=None,item=None,value_hours=value)
 
 
+def state_at(result, hour):
+    return next(row['state'] for row in result['snapshots'] if row['time_ticks']==ticks(hour))
+
+
+def occupancy_integrals(result):
+    """Integrate observable counts independently of the report interval."""
+    total={key:0 for key in ('flying','ready','assigned','crew','stock','backorders','jobs')}
+    for row, following in zip(result['snapshots'],result['snapshots'][1:]):
+        duration=following['time_ticks']-row['time_ticks'];state=row['state']
+        counts={'flying':sum(a['state']=='flying' for a in state['aircraft']),
+                'ready':sum(a['ready'] for a in state['aircraft']),
+                'assigned':sum(a['assigned'] for a in state['aircraft']),
+                'crew':sum(r['used'] for r in state['resources']),
+                'stock':sum(n['on_hand'] for n in state['stock']),
+                'backorders':state['backorders'],'jobs':state['active_jobs']}
+        for key,count in counts.items():total[key]+=duration*count
+    return total
+
+
 class BoundedEventsTests(unittest.TestCase):
+    def test_report_grid_is_inclusive_sorted_unique_and_retains_transitions(self):
+        for interval in (.25,.5,3):
+            with self.subTest(interval=interval):
+                value=model(1);value['model']['report_interval_hours']=interval
+                result=execute(value);times=[r['time_ticks'] for r in result['snapshots']]
+                self.assertEqual(times,sorted(set(times)))
+                self.assertTrue(set(range(0,ticks(12)+1,ticks(interval))).issubset(times))
+                self.assertIn(ticks(2.75),times)
+                self.assertEqual(times[0],0);self.assertEqual(times[-1],ticks(12))
+                self.assertEqual(state_at(result,12),result['terminal'])
+
+    def test_report_boundary_observes_settled_completion_launch_and_cancellation(self):
+        value=model();value['model'].update(horizon_hours=4.25)
+        value['model']['missions'][0]['delay_hours']=.25
+        result=execute(value)
+        self.assertEqual([a['state'] for a in state_at(result,3)['aircraft']],['prepared','preparing'])
+        self.assertEqual(state_at(result,3)['resources'][0]['used'],1)
+        self.assertTrue(all(a['state']=='flying' for a in state_at(result,3.25)['aircraft']))
+        self.assertEqual(state_at(result,3.25)['resources'][0]['used'],0)
+        self.assertTrue(all(a['ready'] for a in state_at(result,4.25)['aircraft']))
+        value['model']['missions'][0]['delay_hours']=.249
+        cancelled=execute(value)
+        self.assertEqual(hours(cancelled,'mission_cancelled'),[3.249])
+        self.assertTrue(all(a['ready'] for a in state_at(cancelled,3.249)['aircraft']))
+        self.assertTrue(all(a['ready'] for a in state_at(cancelled,3.25)['aircraft']))
+        self.assertEqual(state_at(cancelled,3.25)['resources'][0]['used'],0)
+
+    def test_zero_time_local_convergence_is_visible_at_report_zero(self):
+        value=model(1);m=value['model'];m['processes'][0].update(scalar_hours=0,steps=[])
+        m['missions'][0].update(start_hours=0,notice_hours=0,delay_hours=0)
+        result=execute(value)
+        self.assertEqual(hours(result,'work_finished'),[0]);self.assertEqual(hours(result,'mission_started'),[0])
+        self.assertEqual(state_at(result,0)['aircraft'][0]['state'],'flying')
+        self.assertEqual(state_at(result,0)['resources'][0]['used'],0)
+        self.assertTrue(state_at(result,1)['aircraft'][0]['ready'])
+
+    def test_report_interval_does_not_change_events_state_or_integrals(self):
+        values=[model(),self.replacement(False)]
+        cancelled=model();cancelled['model']['missions'][0]['delay_hours']=.249;values.append(cancelled)
+        for value in values:
+            baseline=execute(value)
+            for interval in (.5,1,3):
+                with self.subTest(interval=interval,repair=value['model']['aircraft'][0]['repair_mode']):
+                    changed=copy.deepcopy(value);changed['model']['report_interval_hours']=interval
+                    result=execute(changed)
+                    for field in ('trace','terminal','mission_states','physical_items','invariants','events_executed'):
+                        self.assertEqual(result[field],baseline[field],field)
+                    self.assertEqual(occupancy_integrals(result),occupancy_integrals(baseline))
+        base=occupancy_integrals(execute(model()))
+        self.assertEqual(base['flying'],ticks(2));self.assertEqual(base['crew'],ticks(.5))
+        self.assertEqual(base['assigned'],ticks(3))
+
     def test_resource_compositions_parallel_and_serial(self):
         self.assertEqual(hours(execute(model(capacity=2)),'mission_started'),[3])
         self.assertEqual(hours(execute(model(capacity=1)),'mission_started'),[3.25])
@@ -111,6 +182,95 @@ class BoundedEventsTests(unittest.TestCase):
         second=copy.deepcopy(m['missions'][0]);second.update(id='second',start_hours=8,notice_hours=7.75);m['missions'].append(second)
         self.assertEqual(hours(execute(value),'pm_started'),[9])
 
+    def test_failed_return_retains_flight_pm_until_direct_repair_finishes(self):
+        value=model(1);m=value['model'];m.update(horizon_hours=6,rng_profile='external-events/v1')
+        m['aircraft'][0].update(repair_mode='direct',repair_hours=.5,
+                              pm=dict(id='usage',clock='flight',interval_hours=1,duration_hours=.5))
+        m['external_events']=[driver('fault')]
+        result=execute(value)
+        returned=next(e for e in result['trace'] if e['kind']=='mission_returned')
+        self.assertEqual((returned['hour'],returned['outcome'],returned['flight_hours']),(4,'aborted',1))
+        self.assertEqual(hours(result,'repair_started'),[4]);self.assertEqual(hours(result,'repair_finished'),[4.5])
+        self.assertEqual(hours(result,'pm_started'),[4.5]);self.assertEqual(hours(result,'pm_finished'),[5])
+        self.assertTrue(result['terminal']['aircraft'][0]['ready']);self.assertTrue(all(result['invariants'].values()))
+
+    def test_failed_return_retains_flight_pm_until_replacement_fit_finishes(self):
+        for stock,finish in ((True,4.3),(False,4.7)):
+            with self.subTest(stock=stock):
+                value=self.replacement(stock);m=value['model'];m['horizon_hours']=6
+                m['aircraft'][0]['pm']=dict(id='usage',clock='flight',interval_hours=1,duration_hours=.5)
+                result=execute(value)
+                self.assertEqual(hours(result,'fit_finished'),[finish]);self.assertEqual(hours(result,'pm_started'),[finish])
+                self.assertEqual(hours(result,'pm_finished'),[finish+.5])
+                self.assertTrue(result['terminal']['aircraft'][0]['ready'])
+                self.assertTrue(all(result['invariants'].values()))
+
+    def test_due_flight_pm_precedes_next_mission_at_repair_completion(self):
+        direct=model(1);m=direct['model'];m['rng_profile']='external-events/v1'
+        m['aircraft'][0].update(repair_mode='direct',repair_hours=.5);m['external_events']=[driver('fault')]
+        for base,finish in ((direct,4.5),(self.replacement(True),4.3)):
+            for delay in (.5,.49):
+                with self.subTest(repair=base['model']['aircraft'][0]['repair_mode'],delay=delay):
+                    value=copy.deepcopy(base);m=value['model'];m['horizon_hours']=6
+                    m['processes'][0].update(scalar_hours=0,steps=[])
+                    m['aircraft'][0]['pm']=dict(id='usage',clock='flight',interval_hours=1,duration_hours=.5)
+                    second=copy.deepcopy(m['missions'][0])
+                    second.update(id='next',start_hours=finish,notice_hours=finish,duration_hours=.5,delay_hours=delay)
+                    m['missions'].append(second)
+                    result=execute(value)
+                    self.assertEqual(hours(result,'pm_started'),[finish]);self.assertEqual(hours(result,'pm_finished'),[finish+.5])
+                    next_starts=[e for e in result['trace'] if e['kind']=='mission_started' and e['mission']=='next']
+                    if delay==.5:
+                        self.assertEqual([e['time_ticks'] for e in next_starts],[ticks(finish)+ticks(.5)])
+                        pm_done=next(e for e in result['trace'] if e['kind']=='pm_finished')
+                        self.assertLess(pm_done['sequence'],next_starts[0]['sequence'])
+                        self.assertEqual(hours(result,'mission_cancelled'),[])
+                    else:
+                        self.assertEqual(next_starts,[])
+                        self.assertEqual([e['time_ticks'] for e in result['trace'] if e['kind']=='mission_cancelled'],
+                                         [ticks(finish)+ticks(delay)])
+                    self.assertTrue(all(result['invariants'].values()))
+
+    def test_positive_pm_times_that_round_to_zero_reject_at_import(self):
+        for clock in ('calendar','flight'):
+            for field in ('interval_hours','duration_hours'):
+                for fraction in (.1,.49,.5):
+                    with self.subTest(clock=clock,field=field,fraction=fraction):
+                        value=model(1);pm=dict(id='usage',clock=clock,interval_hours=1,duration_hours=.5)
+                        pm[field]=fraction/TICKS_PER_HOUR;value['model']['aircraft'][0]['pm']=pm
+                        with self.assertRaisesRegex(ValueError,'PM .*microsecond'):import_bounded_business(value)
+
+    def test_one_tick_pm_times_roundtrip_and_execute_inclusively(self):
+        for clock in ('calendar','flight'):
+            with self.subTest(clock=clock):
+                value=model(1);m=value['model'];m.update(horizon_hours=2/TICKS_PER_HOUR,report_interval_hours=1/TICKS_PER_HOUR)
+                m['processes'][0].update(scalar_hours=0,steps=[])
+                m['missions'][0].update(start_hours=0,notice_hours=0,duration_hours=1/TICKS_PER_HOUR,delay_hours=0)
+                m['aircraft'][0]['pm']=dict(id='usage',clock=clock,interval_hours=1/TICKS_PER_HOUR,duration_hours=1/TICKS_PER_HOUR)
+                runtime=BoundedAircraftRuntime(compile_model(value));result=runtime.run()
+                self.assertEqual([e['time_ticks'] for e in result['trace'] if e['kind']=='pm_started'],[1])
+                self.assertEqual([e['time_ticks'] for e in result['trace'] if e['kind']=='pm_finished'],[2])
+                self.assertEqual([r['time_ticks'] for r in result['snapshots']],[0,1,2])
+                self.assertEqual(runtime.air[0]['flight_ticks'],0);self.assertTrue(result['terminal']['aircraft'][0]['ready'])
+
+    def test_positive_mission_duration_rounding_to_zero_rejects_at_import(self):
+        for fraction in (.1,.49,.5):
+            with self.subTest(fraction=fraction):
+                value=model(1);value['model']['missions'][0]['duration_hours']=fraction/TICKS_PER_HOUR
+                with self.assertRaisesRegex(ValueError,'mission duration.*microsecond'):import_bounded_business(value)
+
+    def test_mission_start_rounding_to_horizon_rejects_at_import(self):
+        value=model(1);value['model']['missions'][0]['start_hours']=12-1e-12
+        self.assertLess(value['model']['missions'][0]['start_hours'],12)
+        with self.assertRaisesRegex(ValueError,'start.*quantization'):import_bounded_business(value)
+
+    def test_report_budget_uses_normalized_integer_ticks(self):
+        value=model(1);m=value['model'];m.update(horizon_hours=12000/TICKS_PER_HOUR,report_interval_hours=1.49/TICKS_PER_HOUR)
+        m['processes'][0].update(scalar_hours=0,steps=[])
+        m['missions'][0].update(start_hours=1000/TICKS_PER_HOUR,notice_hours=0,duration_hours=1000/TICKS_PER_HOUR,delay_hours=0)
+        self.assertLess(m['horizon_hours']/m['report_interval_hours'],10000)
+        with self.assertRaisesRegex(ValueError,'report budget'):import_bounded_business(value)
+
     def replacement(self,stock):
         value=model(1);m=value['model'];m['rng_profile']='external-events/v1'
         m['aircraft'][0].update(repair_mode='replacement',stock_node='store',repair_node='store',installed_item='mounted',remove_hours=.1,fit_hours=.2,item_repair_hours=.4)
@@ -166,6 +326,84 @@ class BoundedEventsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'duplicate'):compile_model(v)
         v=self.replacement(True);v['model']['nodes'][0]['items'].append('mounted')
         with self.assertRaisesRegex(ValueError,'identity reused'):compile_model(v)
+
+    def test_maximum_acyclic_dependency_chain_is_independent_of_row_order(self):
+        value=model(1);base=value['model']['missions'][0]
+        chain=[dict(copy.deepcopy(base),id=f'mission-{i:04d}',depends_on=[f'mission-{i-1:04d}'] if i else [])
+               for i in range(1000)]
+        for rows in (chain,list(reversed(chain))):
+            value['model']['missions']=rows
+            runtime=BoundedAircraftRuntime(compile_model(value))
+            self.assertEqual(len(runtime.missions),1000)
+        chain[0]['depends_on']=['mission-0999'];value['model']['missions']=chain
+        with self.assertRaisesRegex(ValueError,'cyclic'):import_bounded_business(value)
+
+    def reject_core_edit(self,value,edit,message):
+        payload=lower_bounded(import_bounded_business(value)).payload;edit(payload)
+        core=Document.create(CORE,payload)
+        reloaded=Document.from_dict(core.to_dict(),CORE)
+        with self.assertRaisesRegex(ValueError,message):compile_bounded(reloaded,operations=operation_contracts())
+
+    def test_persisted_core_cross_table_references_reject_before_dense_alias(self):
+        value=self.replacement(True);m=value['model'];m['nodes'].append(dict(id='depot',items=[]))
+        m['routes']=[dict(id='transfer',source='store',destination='depot',duration_hours=.5)]
+        m['external_events'].append(dict(id='IN',time_hours=1,operation='in_transfer',aircraft=None,node='store',item='incoming',value_hours=0))
+        patches=[('missions',0,'process','aircraft','asset-0'),
+                 ('missions',0,'depends_on','aircraft',['asset-0']),
+                 ('aircraft',0,'stock_node','resources','technician'),
+                 ('aircraft',0,'repair_node','aircraft','asset-0'),
+                 ('routes',0,'source','aircraft','asset-0'),
+                 ('routes',0,'destination','processes','inspection'),
+                 ('external_events',0,'aircraft','nodes','store'),
+                 ('external_events',1,'node','aircraft','asset-0')]
+        for table,index,field,target,symbol in patches:
+            with self.subTest(table=table,field=field):
+                def edit(p):p['tables'][table][index]['references'][field]={'table':target,'value':symbol}
+                self.reject_core_edit(value,edit,'invalid reference table')
+
+    def test_persisted_core_exact_fields_and_reference_shapes_reject(self):
+        patches=[lambda p:p['tables']['missions'][0]['attributes'].update(process='inspection'),
+                 lambda p:p['tables']['missions'][0]['attributes'].pop('duration_ticks'),
+                 lambda p:p['tables']['missions'][0]['references'].pop('process'),
+                 lambda p:p['tables']['missions'][0]['references']['process'].update(value=['inspection']),
+                 lambda p:p['tables']['missions'][0]['references']['depends_on'].update(value='survey'),
+                 lambda p:p['tables']['missions'][0]['references']['process'].update(extra=True),
+                 lambda p:p['tables']['missions'][0].update(extra=True),
+                 lambda p:p['tables']['missions'][0].update(source_path='/model/aircraft/0'),
+                 lambda p:p['tables'].update(unknown=[]),lambda p:p.update(unknown=True)]
+        for index,patch in enumerate(patches):
+            with self.subTest(patch=index):self.reject_core_edit(model(1),patch,'fields|symbol|reference list|source path')
+
+    def test_persisted_core_resource_demands_are_typed_unique_positive_operands(self):
+        invalid=[{'resource':'asset-0','quantity':1},
+                 {'resource':{'table':'aircraft','value':'asset-0'},'quantity':1},
+                 {'resource':'technician','quantity':1,'table':'aircraft'},
+                 {'resource':'technician','quantity':True},{'resource':'technician','quantity':1.0},
+                 {'resource':'technician','quantity':0},{'resource':'technician','quantity':-1}]
+        for demand in invalid:
+            with self.subTest(demand=demand):
+                def edit(p):p['tables']['processes'][0]['attributes']['steps'][0]['demands']=[demand]
+                self.reject_core_edit(model(1),edit,'symbol|fields|integer operand')
+        def duplicate(p):
+            demands=p['tables']['processes'][0]['attributes']['steps'][0]['demands'];demands.append(copy.deepcopy(demands[0]))
+        self.reject_core_edit(model(1),duplicate,'duplicate demand')
+
+    def test_persisted_core_typed_references_reload_and_execute(self):
+        value=model(2,2);m=value['model']
+        m['nodes']=[dict(id='store',items=[]),dict(id='depot',items=[])]
+        m['routes']=[dict(id='transfer',source='store',destination='depot',duration_hours=.5)]
+        m['aircraft'][0].update(stock_node='store',repair_node='depot')
+        m['external_events']=[dict(id='IN',time_hours=1,operation='in_transfer',aircraft=None,node='store',item='incoming',value_hours=0)]
+        second=copy.deepcopy(m['missions'][0]);second.update(id='next',start_hours=8,notice_hours=7.75,depends_on=['survey'])
+        m['missions'].append(second)
+        plan=compile_model(value);p=plan.payload
+        self.assertEqual(p['tables']['missions'][1]['depends_on'],[0])
+        self.assertEqual(p['tables']['aircraft'][0]['repair_node'],1)
+        self.assertEqual(p['tables']['routes'][0]['source'],0);self.assertEqual(p['tables']['routes'][0]['destination'],1)
+        self.assertEqual(p['tables']['processes'][0]['steps'][0]['demands'],[[0,1]])
+        self.assertEqual(p['tables']['external_events'][0]['node'],0)
+        result=BoundedAircraftRuntime(plan).run()
+        self.assertEqual(hours(result,'mission_started'),[3,8]);self.assertTrue(all(result['invariants'].values()))
 
     def test_unsupported_backend_and_operation_rejected(self):
         with self.assertRaisesRegex(ValueError,'backend'):compile_model(model(),'rust-runtime')

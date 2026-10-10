@@ -34,7 +34,12 @@ neither Project JSON nor native table exports are interpreted. Existing
 Business IR retains stable symbols, source paths and hours. Domain lowering
 produces symbolic Core tables, integer microsecond operands, explicit step
 breakdowns and the complete registered operation contract. Generic layout
-resolves references to dense indexes and emits a source map. Each layer has
+validates the fixed Core operand contract before resolving references to dense
+indexes and emitting a source map. Core rows require exact attribute/reference
+fields and source paths; each reference names its prescribed target table and
+has the prescribed single, optional or list shape. Nested work demands always
+reference resources and carry unique, positive integer quantities. A reference
+to another table cannot become valid by sharing a dense index. Each layer has
 its own version and checksum; Plan records canonical, Business and Core
 fingerprints. Serialization round-trips are exercised before execution. The
 immutable document stores bytes; mutable dictionaries returned by `payload`
@@ -49,7 +54,13 @@ Plan is independently validated before any event executes.
 
 ## Time, ordering and bounded operations
 
-Time is rounded once to integer microseconds, never to minutes. Events are
+Time is rounded once to integer microseconds, never to minutes. Positive PM
+intervals, PM durations and mission durations must remain at least one tick
+after rounding; a positive half-tick that rounds to zero rejects at input
+validation. Mission starts must still precede the horizon in integer ticks.
+Whole report intervals and the report budget are checked in these same ticks,
+so an accepted input can be reloaded as its independently validated Plan.
+Events are
 ordered by `(tick, phase, insertion sequence)`. At the same time, completion
 and arrival operations use phase 0, fault/PM drivers 5, mission notices 10,
 dispatch 20, early feasibility cutoff 30 and final cutoff 40. Zero-time work
@@ -57,6 +68,14 @@ may enqueue an earlier phase at the same tick and then wake dispatch again;
 this local convergence is bounded by the event budget. In particular, a work
 completion and resource release at a launch cutoff can dispatch before the
 cutoff; cancelling a partial task invalidates its old completion token.
+
+Snapshots contain both state-change ticks and every configured report tick,
+including zero and the inclusive horizon. A report at an event tick observes
+the state after all same-tick events, including zero-time completions and
+re-dispatch, have converged. Report samples are filled from the observed
+piecewise-constant state after execution; they insert no calendar events and
+do not change trace, terminal state, event budget, invariants or state integrals.
+Off-grid state transitions remain available for exact integration.
 
 All operations consume validated entity indexes or owned runtime tokens and
 produce trace events, RunState updates and calendar events. `OPS` and
@@ -71,11 +90,11 @@ preconditions and effects:
 | `early_deadline`, `deadline` | Waiting mission; at `start + delay - scalar` cancel an incomplete allocation or a permanently insufficient resource capacity. Temporary occupancy may wait until the final launch cutoff. This is the bounded fixed-capacity rule, not a universal native cancellation algorithm. |
 | `mission_return`, `turnround_done` | Live launched mission/start token or turning aircraft; release mission ownership, accumulate flight exposure, trigger repair/PM/turnround, wake allocation. A zero-duration turnround is represented by the return transition. |
 | `fault`, `damaged_arrival` | Explicit external driver hitting a healthy flying asset. Fault marks the mission aborted but retains its scheduled return. Damaged arrival ends a single-aircraft mission immediately. Neither operation generates failures nor computes native damage/return flight dynamics. |
-| `repair_done` | Landed direct-repair asset; clear the failure and release the aircraft after the duration captured at repair creation. |
-| `pm_due`, `pm_done` | Calendar PM waits for a free landed asset; calendar interval resets at completion. Flight PM accumulates only flight and checks its threshold on return, resets on completion. No in-flight PM interruption is modeled. |
+| `repair_done` | Landed direct-repair asset; clear the failure after the duration captured at repair creation, then start any already-pending PM before waking mission dispatch. |
+| `pm_due`, `pm_done` | Calendar PM waits for a free landed asset; calendar interval resets at completion. Flight PM accumulates only flight and checks its threshold on every return, including aborted flights. Its due obligation survives direct or replacement repair; the exposure counter resets at PM completion. No in-flight PM interruption is modeled. |
 | `remove_done` | Replacement repair with a mounted physical item; detach once, route the failed item to its repair node, allow fitting only after removal and spare arrival. |
 | `item_repair_start`, `item_repair_done` | Detached item in repair transit/repair; finish repair into physical stock and discharge one eligible outstanding demand. |
-| `supply_arrival`, `fit_done` | Correct in-transit/reserved physical item; clear the original backorder once, fit only a removed aircraft and install the item once. |
+| `supply_arrival`, `fit_done` | Correct in-transit/reserved physical item; clear the original backorder once, fit only a removed aircraft and install the item once. Fitting completion starts already-pending PM before waking mission dispatch. |
 | `in_transfer` | New physical identity at a valid stock node; increment nominal and on-hand stock once. Ordinary issues change on-hand stock only; there is no reorder policy. |
 | `set_repair_duration` | Existing direct-repair object, no repair in progress; change only the duration used by later repairs. Arbitrary live state edits, distributions and in-progress changes reject. |
 
@@ -84,6 +103,13 @@ uses an owned lease exactly once. Physical items have one explicit location:
 installed, stock, reserved, supply transit, repair transit or item repair.
 Capacity, reservation ownership, installed identity, stock membership and
 physical item conservation are checked after every calendar event.
+
+After a failed return, repair takes precedence while the PM obligation remains
+pending. At direct-repair or fitting completion, the now-free landed aircraft
+starts that PM immediately. A next mission notified at the same tick waits for
+PM completion; completion at its launch cutoff can still dispatch before the
+cutoff, while an earlier cutoff cancels normally. This repair boundary does
+not change successful-return calendar PM allocation ordering.
 
 Each table/step list has at most 1,000 entries, report output at most 10,000
 intervals, time within signed 64-bit microseconds, and the calendar at most
@@ -122,9 +148,23 @@ separate acceptance gate.
 PYTHONPATH=src python -m unittest discover -s tests/conformance -p test_bounded_events.py -v
 ```
 
-23 executable contract tests cover at least two independent compositions of
+40 executable contract tests cover at least two independent compositions of
 resources, replacement, fleet and maintenance behavior, plus time boundaries,
 dependency/priority changes, parameter changes, conservation, immutable plans,
-invalid references, stale events, unsupported backends and calendar limits.
+typed persisted Core references, stale events, unsupported backends and calendar
+limits. Regressions include report grids and settled boundary states, unchanged
+trace and independently integrated state counts across report intervals, zero
+and one-tick timing boundaries, failed-flight PM after both repair modes and
+competing mission cutoffs, and valid 1,000-mission dependency chains in either
+row order. Cycle detection is iterative and does not depend on recursion depth.
 The companion suite supplies native-observation acceptance separately from
 these operation reuse tests. No existing profile source is modified.
+
+The repair checkout passed syntax and whitespace checks. Independent controller
+validation on AMD128, using its existing Python 3.12.13 and SimPy 4.1.1, passed
+all 40 tests above, nine independent adversarial checks and 17 existing
+reference-event tests. The first reference-event invocation lacked its canonical
+fixture; after supplying that existing fixture, all 17 passed. No dependency
+was installed or substituted. GitHub CI failed because the account's allowance
+was exhausted; the user accepted that infrastructure failure. These recorded
+checks do not assert a passing GitHub CI result or fresh native reproduction.
