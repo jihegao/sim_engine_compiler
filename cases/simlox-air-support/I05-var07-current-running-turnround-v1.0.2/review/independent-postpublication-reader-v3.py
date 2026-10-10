@@ -9,12 +9,14 @@ import sys
 import datetime
 
 from publication_target_v1 import BindingError, published_index, require, require_stable_refs, verify
-from publication_snapshot_v2 import derive_captured_reader, parse_artifact
+from publication_snapshot_v2 import derive_captured_reader, parse_artifact, captured_execution
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 BINDING = HERE / "publication-binding-v1.json"
 BINDING_SHA256 = "a94dec581bece6bcda06c9c2cbd8606c790ae89457cc0bf28c835a9339d6352b"
+GATE_SHA256 = "179667f2981ea1dff806379a41c9e8da2961903ab5a27f0eddc2a66149302f56"
+PROTOCOL_SHA256 = "c6583229f0edbaea0a87f19a5bdb04b4b5cd34fa3bafd547abbac9916901c5db"
 ALLOWED_ORIGINS = {
     "git@github.com:jihegao/sim_engine_compiler.git",
     "https://github.com/jihegao/sim_engine_compiler.git",
@@ -77,10 +79,24 @@ def run(mode, target_path=None, product_path=None):
         require(digest(committed) == source["sha256"], "PUBLISHED_SOURCE_MISMATCH", name)
     inherited = ROOT / binding["inherited_reader"]["path"]
     snapshot_reader = HERE / "original-published-snapshot-reader-v3.py"
-    require(snapshot_reader.read_text(encoding="utf-8") == derive_captured_reader(inherited.read_text(encoding="utf-8"), BINDING_SHA256), "RAW_DERIVATION_CHANGED", "only four approved source replacements allowed")
+    reader_bytes = snapshot_reader.read_bytes()
+    gate_path = HERE / "publication_target_v1.py"
+    protocol_path = HERE / "publication_snapshot_v2.py"
+    gate_bytes = gate_path.read_bytes()
+    protocol_bytes = protocol_path.read_bytes()
+    wrapper_bytes = Path(__file__).read_bytes()
+    require(digest(gate_bytes) == GATE_SHA256, "CAPTURED_GATE_CHANGED", str(gate_path))
+    require(digest(protocol_bytes) == PROTOCOL_SHA256, "CAPTURED_PROTOCOL_CHANGED", str(protocol_path))
+    require(reader_bytes.decode("utf8").replace("\r\n", "\n") == derive_captured_reader(inherited.read_text(encoding="utf-8"), BINDING_SHA256), "RAW_DERIVATION_CHANGED", "only four approved source replacements allowed")
+    artifacts.extend([(snapshot_reader, reader_bytes), (gate_path, gate_bytes),
+                      (protocol_path, protocol_bytes), (Path(__file__), wrapper_bytes)])
+    command, payload = captured_execution(binding_bytes, {
+        "publication_target_v1": (gate_path, gate_bytes),
+        "publication_snapshot_v2": (protocol_path, protocol_bytes),
+        "reader": (snapshot_reader, reader_bytes)})
     published_index(binding, lambda commit, path: git("show", commit + ":" + path).stdout)
     # -E ignores inherited PYTHONOPTIMIZE; all original raw assertions remain. Never relay raw GO.
-    child = subprocess.run([sys.executable, "-E", "-X", "utf8", "-B", str(snapshot_reader)], input=binding_bytes, cwd=ROOT, env={k:v for k,v in os.environ.items() if k not in ("PYTHONOPTIMIZE", "PYTHONPATH", "PYTHONHOME")}, capture_output=True)
+    child = subprocess.run([sys.executable, "-E", "-X", "utf8", "-B", "-c", command], input=payload, cwd=ROOT, env={k:v for k,v in os.environ.items() if k not in ("PYTHONOPTIMIZE", "PYTHONPATH", "PYTHONHOME")}, capture_output=True)
     require(child.returncode == 0 and not child.stderr, "ORIGINAL_RAW_REPLAY_FAILED", f"exit={child.returncode}; stderrSHA256={digest(child.stderr)}")
     try:
         raw = json.loads(child.stdout)
@@ -104,10 +120,11 @@ def run(mode, target_path=None, product_path=None):
             "explicit_target_binding_sha256": digest(target_bytes) if target_bytes is not None else None,
             "explicit_product_binding": str(product_path) if product_path else None,
             "explicit_product_binding_sha256": digest(product_bytes) if product_bytes is not None else None,
-            "reader_v3_sha256": digest(Path(__file__).read_bytes()), "gate_sha256": digest((HERE / "publication_target_v1.py").read_bytes()),
-            "snapshot_reader_sha256": digest(snapshot_reader.read_bytes()), "immutable_published_index_sha256": binding["publication_index"]["sha256"],
-            "snapshot_protocol_sha256": digest((HERE / "publication_snapshot_v2.py").read_bytes()),
-            "subordinate_binding_transport": "captured-stdin-bytes",
+            "reader_v3_sha256": digest(wrapper_bytes), "gate_sha256": digest(gate_bytes),
+            "snapshot_reader_sha256": digest(reader_bytes), "immutable_published_index_sha256": binding["publication_index"]["sha256"],
+            "snapshot_protocol_sha256": digest(protocol_bytes),
+            "subordinate_binding_transport": "captured-code-and-binding-stdin-bundle",
+            "subordinate_bootstrap_sha256": digest(command.encode("utf8")),
             "subordinate_stdout_sha256": digest(child.stdout), "subordinate_raw_evidence": raw,
             "remote_refs_before": before, "remote_refs_after": after,
             "native_calls": 0, "whole_variant_pass": False, "wholeGoalComplete": False, "effective_nonGUI_denominator": None}

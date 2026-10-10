@@ -38,6 +38,23 @@ Additional tests exercise actual captured-input handoff, replacement/restoration
 missing/wrong stdin payload and exact helper derivation. The first unpublished
 PR546 candidate is preserved with its original commit/three-file SHA closure.
 
+PR546 review4238002765 additionally identified a late local module import ABA.
+The final parent captures the exact derived reader and both local modules before
+launch, requires fixed reviewed module SHA256 pins, and sends their bytes plus
+the original binding in one stdin execution bundle. A standard-library-only
+bootstrap validates these bytes against trusted hashes embedded in its command,
+preloads captured modules in sys.modules, and executes the captured reader code.
+It never opens local module or reader paths to load executable code. The original
+four-change reader derivation and all original raw assertions remain unchanged.
+Receipt code hashes use captured bytes; all captured code paths must still match
+before GO. The subordinate's inherited path-based reader hash is historical
+metadata; executed-code identity is the parent's captured snapshot_reader_sha256.
+The previous five-file b2e69449 candidate and its helper-module NO_GO are retained.
+There are53 pure tests (34 original plus19 artifact/code custody regressions),
+including actual bootstrap tampered/missing code and binding rejection, fixed
+module-pin and duplicate execution-key rejection before child launch, and ABA
+of both modules and the reader.
+
 The explicit artifact schemas, origin/repository/source/version/commit/tree,
 original publication/product ancestry, immutable original513-index snapshot,
 all140 source roles/25 readonly pairs and before/raw/after actual refs have exactly
