@@ -8,7 +8,8 @@ import subprocess
 import sys
 import datetime
 
-from publication_target_v1 import BindingError, derive_snapshot_reader, published_index, require, require_stable_refs, verify
+from publication_target_v1 import BindingError, published_index, require, require_stable_refs, verify
+from publication_snapshot_v2 import derive_captured_reader, parse_artifact
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
@@ -49,16 +50,6 @@ def refs():
     return git("ls-remote", "--refs", "origin", "refs/heads/main", "refs/heads/simlox/main").stdout.decode("ascii")
 
 
-def parse_artifact(data):
-    def unique(items):
-        result = {}
-        for key, value in items:
-            require(key not in result, "DUPLICATE_BINDING_KEY", key)
-            result[key] = value
-        return result
-    return json.loads(data, object_pairs_hook=unique)
-
-
 def run(mode, target_path=None, product_path=None):
     require(not sys.flags.optimize, "ASSERTS_DISABLED", "run without -O/-OO")
     binding_bytes = BINDING.read_bytes()
@@ -85,11 +76,11 @@ def run(mode, target_path=None, product_path=None):
         committed = git("show", binding["publication"]["commit"] + ":" + source["path"]).stdout
         require(digest(committed) == source["sha256"], "PUBLISHED_SOURCE_MISMATCH", name)
     inherited = ROOT / binding["inherited_reader"]["path"]
-    snapshot_reader = HERE / "original-published-snapshot-reader-v2.py"
-    require(snapshot_reader.read_text(encoding="utf-8") == derive_snapshot_reader(inherited.read_text(encoding="utf-8")), "RAW_DERIVATION_CHANGED", "only three approved source replacements allowed")
+    snapshot_reader = HERE / "original-published-snapshot-reader-v3.py"
+    require(snapshot_reader.read_text(encoding="utf-8") == derive_captured_reader(inherited.read_text(encoding="utf-8"), BINDING_SHA256), "RAW_DERIVATION_CHANGED", "only four approved source replacements allowed")
     published_index(binding, lambda commit, path: git("show", commit + ":" + path).stdout)
     # -E ignores inherited PYTHONOPTIMIZE; all original raw assertions remain. Never relay raw GO.
-    child = subprocess.run([sys.executable, "-E", "-X", "utf8", "-B", str(snapshot_reader)], cwd=ROOT, env={k:v for k,v in os.environ.items() if k not in ("PYTHONOPTIMIZE", "PYTHONPATH", "PYTHONHOME")}, capture_output=True)
+    child = subprocess.run([sys.executable, "-E", "-X", "utf8", "-B", str(snapshot_reader)], input=binding_bytes, cwd=ROOT, env={k:v for k,v in os.environ.items() if k not in ("PYTHONOPTIMIZE", "PYTHONPATH", "PYTHONHOME")}, capture_output=True)
     require(child.returncode == 0 and not child.stderr, "ORIGINAL_RAW_REPLAY_FAILED", f"exit={child.returncode}; stderrSHA256={digest(child.stderr)}")
     try:
         raw = json.loads(child.stdout)
@@ -115,6 +106,8 @@ def run(mode, target_path=None, product_path=None):
             "explicit_product_binding_sha256": digest(product_bytes) if product_bytes is not None else None,
             "reader_v3_sha256": digest(Path(__file__).read_bytes()), "gate_sha256": digest((HERE / "publication_target_v1.py").read_bytes()),
             "snapshot_reader_sha256": digest(snapshot_reader.read_bytes()), "immutable_published_index_sha256": binding["publication_index"]["sha256"],
+            "snapshot_protocol_sha256": digest((HERE / "publication_snapshot_v2.py").read_bytes()),
+            "subordinate_binding_transport": "captured-stdin-bytes",
             "subordinate_stdout_sha256": digest(child.stdout), "subordinate_raw_evidence": raw,
             "remote_refs_before": before, "remote_refs_after": after,
             "native_calls": 0, "whole_variant_pass": False, "wholeGoalComplete": False, "effective_nonGUI_denominator": None}

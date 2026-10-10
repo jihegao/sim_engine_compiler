@@ -27,6 +27,17 @@ the captured bytes; replacement, deletion or a whitespace-only change rejects
 with nonzero exit. A changed artifact produces BINDING_ARTIFACT_CHANGED; deletion
 produces explicit file-error NO_GO. No GO is forwarded from the raw helper.
 
+The v3 subordinate receives the parent's already captured original binding via
+binary stdin, verifies its immutable SHA256 and parses those same bytes through
+publication_snapshot_v2.py. It never reopens the binding path. A temporary
+replacement followed by restoration therefore cannot change the subordinate's
+commit/path/hash or published index. The exact four-change derivation from v1
+retains the three reviewed v2 changes and replaces only the subordinate binding
+load with this captured-byte protocol. Published v2 helper/module remain untouched.
+Additional tests exercise actual captured-input handoff, replacement/restoration,
+missing/wrong stdin payload and exact helper derivation. The first unpublished
+PR546 candidate is preserved with its original commit/three-file SHA closure.
+
 The explicit artifact schemas, origin/repository/source/version/commit/tree,
 original publication/product ancestry, immutable original513-index snapshot,
 all140 source roles/25 readonly pairs and before/raw/after actual refs have exactly
