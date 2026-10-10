@@ -1,0 +1,3 @@
+# I05.var07 current-running scalar turnround prospective method
+
+Only TIMEC25→23.7 on accepted var07 source. First scalar task23.5–24.5 already running retains1h; next27–28.5 captures1.5h. Full ordered115-line log,4044 typed report data cells and fullmetadata,33table roundtrip/defaults exceptTIMEC are strict prospective oracles, derived before any new native run. Two independent registered-start periods integrate2.5turnround hours, preparation1h,flight4h; NSYDT0/SYDTnull and ready1 at36h. Any unexpected marker/type/cell/default/order/event/RNG or duration is NO_GO. This explicitly does not resolve DURND/NOPER/horizon/wholevariant. All original sources and failures preserved. No formalversion/runID/nativeGO at method design.
