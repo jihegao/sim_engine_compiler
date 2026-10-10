@@ -55,3 +55,24 @@ jobs:
           name: cpu-batch-harness-controls-${{ github.sha }}
           path: ${{ runner.temp }}/cpu-batch-controls
           if-no-files-found: error
+      - name: Verify bounded three-arm controls and selected historical evidence
+        env:
+          PYTHONPATH: src
+        run: |
+          python - <<'PY'
+          import unittest
+          modules = (
+              "tests.conformance.test_three_arm_driver",
+              "tests.conformance.test_three_arm_summary",
+              "tests.conformance.test_three_arm_publication",
+              "tests.conformance.test_three_arm_lifecycle",
+          )
+          suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(module)
+                                     for module in modules)
+          if suite.countTestCases() != 36:
+              raise SystemExit("three-arm bounded control count drift")
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          if result.testsRun != 36 or result.skipped or not result.wasSuccessful():
+              raise SystemExit("three-arm controls or offline evidence check failed")
+          print("executed=36; skips=0; no simulation or performance window executed")
+          PY

@@ -1,0 +1,105 @@
+# Same-Rust dispatch ablation and IR reuse (Issue 6)
+
+This is a new pilot based on PR25 `9737822`, preserving its F35 no-index CPU
+window. It reuses the existing scan, indexed blocked-cache and opt-in candidate
+paths with identical shared preparation. Defaults and historical adoption
+thresholds are unchanged. See [protocol](PROTOCOL.md) for the separate semantic,
+measurement and prospective performance gates, and [source audit](SOURCE_AUDIT.md)
+for the authentic J35 input. Generated results are separate from that snapshot.
+
+- `workloads.py`: bounded synthetic low-contention/sparse/dense families and
+  persisted Business IR edits for frequency, resources and process composition.
+- `admission.py`: current three-layer compilation, independent Python reference,
+  exact Rust three-arm/profile/observation/thread checks, source/build/evidence
+  binding, and diagnostic counters. This does not run formal timing.
+- `driver.py`: consumes admitted artifacts, freezes the matrix, executes one
+  time-limited uninstrumented window, retains incomplete cells on failure.
+- `summarize.py`: reports every frozen cell and paired prospective thresholds.
+
+Build the current checkout's MLIR plugins using pinned LLVM/MLIR 23.1.1, and
+build Rust with `cargo +1.90.0 build --locked --release --manifest-path
+rust/runtime/Cargo.toml --bin sim-engine-runtime --bin stage-c-benchmark`.
+Run the required regression/reuse/control suites before admission. Preserve
+actual logs and the build/semantic receipt; passing an empty status marker is
+not admission. The final report records exact commands and artifact hashes.
+
+```sh
+.venv/bin/python benchmarks/three_arm_v1/verify.py \
+  --plugin-dir tools/mlir_dispatch/build-issue6 \
+  --mlir-opt /tmp/issue6-llvm-23.1.1/bin/mlir-opt
+PYTHONPATH=src .venv/bin/python benchmarks/three_arm_v1/admission.py \
+  --output runs/three-arm-v1/admission \
+  --regression-receipt runs/three-arm-v1/regression-receipt.json \
+  --plugin-dir tools/mlir_dispatch/build-issue6 \
+  --mlir-opt /tmp/issue6-llvm-23.1.1/bin/mlir-opt
+.venv/bin/python benchmarks/three_arm_v1/driver.py prepare \
+  --run-dir runs/three-arm-v1/formal \
+  --semantic-gate runs/three-arm-v1/admission/gate.json \
+  --plan-map runs/three-arm-v1/admission/plan-map.json \
+  --stage-binary rust/runtime/target/release/stage-c-benchmark
+```
+
+Before `measure`, obtain all agent stop acknowledgements and independent gate
+review. Execute on the real host, with visible host processes (not a restricted
+PID namespace). No build/test/compiler/profile overlaps the formal window.
+
+```sh
+.venv/bin/python benchmarks/three_arm_v1/driver.py measure \
+  --run-dir runs/three-arm-v1/formal --deadline-seconds 1200
+.venv/bin/python benchmarks/three_arm_v1/summarize.py runs/three-arm-v1/formal \
+  --output runs/three-arm-v1/summary.json
+```
+
+A failed/partial window is permanent evidence, not permission to retry. A
+bounded performance benefit is not default adoption. Whole-process RSS and
+single-sample counters have the limits explicitly described in the protocol;
+no batch-only memory or unmeasured phase decomposition is inferred.
+
+## Reference compatibility defect found before timing
+
+The first untimed verification at `ec1ac66` passed 36 Rust unit tests and
+40 existing dispatch regressions, but failed two of nine new IR reuse tests.
+Local capacity waiting emitted `organization.resource-capacity` and an extra
+`resource_kind`, while the Python reference emits the local personnel/equipment
+rule with only `step_index`. The three Rust arms agreed with each other, which
+is why the independent reference gate matters. Original logs are retained in
+`runs/three-arm-v1/failed-ec1ac66`; no formal window had started.
+
+The Rust helper now restores local diagnostics when no eligible inbound supply
+route exists, and retains organization diagnostics for eligible routes. Fresh
+dispatch and cached replay share the helper. This is a diagnostic semantic
+compatibility correction; allocation, event ordering, RNG, reference code,
+workloads and comparison tolerances are unchanged. The ablation compares all
+three arms on this same corrected kernel. Full verification must pass anew.
+
+## Completed AMD128 window
+
+The [2026-09-27 report](results/amd128-20260927/REPORT.md) records the sole
+99-cell window at measured source `cf50eec`: 85.675827 seconds, all cells
+complete, zero comparisons meeting the frozen benefit threshold. Independent
+semantic and evidence reviews passed. This is negative performance evidence;
+default dispatch remains unchanged. The publication bundle documents its
+process-argument redaction and preserves original/published hashes. The current
+tree keeps only the 81,633-byte formal measurement selection needed to reproduce
+the negative summary; large raw outputs/logs are external with exact pointers
+and the complete hash catalog. `publication.py` verifies/recomputes the selected
+evidence offline without launching any measured process.
+
+The 2026-10-10 local review passed 36 stdlib driver, summary, selection and
+lifecycle controls on Python 3.12.14. They retain the original 20 controls and
+add tiny Python children and mocked process groups for startup/wait deadlines,
+signal cancellation, leader reaping, surviving descendants and unknown cleanup.
+The current driver keeps cancellation latched through process ownership and
+cleanup, requires a reaped leader and an empty owned group, and accounts startup
+against the original cell deadline. A denied group probe remains unknown even
+if a later probe reports an empty group. Cancellation closes the once-only
+window and preserves its failed cell before another launch.
+
+Temporary fixture paths are resolved before constructing their artifact
+manifest, matching admission's canonical path contract on macOS and Linux.
+The existing bounded-controls workflow now requires these 36 tests; its CI
+execution remains unverified here. Normal SDK/Rust regression acceptance of the
+integrated source is separate and requires the existing supported toolchain.
+These runner corrections were checked with local fixtures; the historical
+99-cell execution remains bound to `cf50eec` and all published result bytes
+remain unchanged. No new formal window was run in this review.

@@ -1,0 +1,157 @@
+{
+  "schema_version": "three-arm-results-review/v1",
+  "review_scope": "read-only independent audit of the sole completed formal window; no benchmark, test, build, profile, or simulation rerun",
+  "verdict": {
+    "evidence_integrity": "passed",
+    "formal_window": "complete-99-of-99",
+    "performance_conclusion": "negative",
+    "bounded_benefit_comparisons": 0,
+    "regression_comparisons": 29,
+    "no_demonstrated_benefit_comparisons": 4,
+    "default_adoption": "unchanged; no authorization"
+  },
+  "identity": {
+    "source_commit": "cf50eec2f9fdf1ac76e3d292e8b42b6f33f98b38",
+    "semantic_gate_source_commit": "cf50eec2f9fdf1ac76e3d292e8b42b6f33f98b38",
+    "manifest_sha256": "17ea2b74527eda5029dc0b9d476ac073581136c67ed27f4f8331523b39a5a38e",
+    "manifest_sidecar_matches": true,
+    "state_manifest_binding_matches": true,
+    "stage_c_benchmark_sha256": "346fb80082b5a0dcee9870943fc13d459f061cfb9c6a738045027aca8ad7020e",
+    "rust_toolchain": "1.90.0",
+    "host": "g-1503-amd128",
+    "cpuset": "0-7",
+    "seeds": [0, 1, 7],
+    "worker_threads": 1,
+    "repeats": 3
+  },
+  "artifact_sha256": {
+    "formal_manifest_json": "17ea2b74527eda5029dc0b9d476ac073581136c67ed27f4f8331523b39a5a38e",
+    "formal_manifest_sha256_file": "ac9d62de84fbd490fb63bdc3cabc3ad6377b7df4eeb2fd95a0d50d9ba1cfd71e",
+    "formal_state_json": "cc6b8f4105e47f55815a3cb92c81a8ffd11f92334895595cc8ce272a2e52ec80",
+    "formal_console_json": "b709ffc0791b7860b307f7063f8e28ed1406947722ac7677a0b5e877590c553a",
+    "summary_json": "948430e8efb6712b85b82e0295020a2478c86786400ec42573056cc1f5a5e2f5",
+    "admission_gate_json": "64a226c83290252c91cef2788b50552b4e7677ec5db0506e15538b544a04d1fa",
+    "admission_artifacts_json": "7dbdc8cc3053d9f2a729aa30abcc452892529ee1609b63c46209646e5e233b74",
+    "regression_receipt_json": "26d5c86e75a8d1ea6abcd5b6ac614356741f3dcb987b00b0ebcdd1fc1a981706"
+  },
+  "raw_evidence_checks": {
+    "state_status": "complete",
+    "cells_planned": 99,
+    "cells_completed": 99,
+    "elapsed_seconds": 85.67582728061825,
+    "record_paths_match_schedule": true,
+    "records_with_valid_cell_identity_report_hash_report_contract_sample_hash_and_gnu_time_hash": 99,
+    "execution_exit_statuses": [0],
+    "execution_timeouts": 0,
+    "execution_overlap_detections": 0,
+    "published_summary_equals_read_only_recomputation": true,
+    "formal_console_semantically_equals_state": true
+  },
+  "host_overlap_review": {
+    "snapshots_checked": 200,
+    "snapshot_failures": 0,
+    "all_heavy_process_lists_empty": true,
+    "all_hosts_match": true,
+    "all_affinities_include_cpuset_0_7": true,
+    "all_normalized_loads_within_0_05": true,
+    "preflight_normalized_load_1m": 0.0016021728515625,
+    "postflight_normalized_load_1m": 0.0092620849609375
+  },
+  "classification_review": {
+    "comparisons": 33,
+    "cache_over_scan": {
+      "regression": 11
+    },
+    "candidates_over_scan": {
+      "regression": 11
+    },
+    "candidates_over_cache": {
+      "regression": 7,
+      "no_demonstrated_benefit": 4
+    },
+    "no_demonstrated_benefit_cases": [
+      "synthetic-low-contention-n4 candidates/cache",
+      "synthetic-sparse-affected-n4 candidates/cache",
+      "synthetic-sparse-affected-n16 candidates/cache",
+      "synthetic-sparse-affected-n64 candidates/cache"
+    ],
+    "j35_summary": [
+      {
+        "comparison": "cache/scan",
+        "classification": "regression",
+        "median_execution_ratio": 1.0951859322298545,
+        "median_end_to_end_ratio": 1.1212934856471883,
+        "median_rss_ratio": 1.146983339858193,
+        "regression_measures": ["execution", "end_to_end", "rss"]
+      },
+      {
+        "comparison": "candidates/scan",
+        "classification": "regression",
+        "median_execution_ratio": 1.1627591461155626,
+        "median_end_to_end_ratio": 1.1817982878026128,
+        "median_rss_ratio": 1.151376745399974,
+        "regression_measures": ["execution", "end_to_end", "rss"]
+      },
+      {
+        "comparison": "candidates/cache",
+        "classification": "regression",
+        "median_execution_ratio": 1.0617002208457202,
+        "median_end_to_end_ratio": 1.050008668009762,
+        "median_rss_ratio": 1.0037924757281553,
+        "regression_measures": ["execution", "end_to_end"]
+      }
+    ],
+    "j35_full": [
+      {
+        "comparison": "cache/scan",
+        "classification": "regression",
+        "median_execution_ratio": 1.211107120030154,
+        "median_end_to_end_ratio": 1.0837890029632773,
+        "median_rss_ratio": 1.046904646339849,
+        "regression_measures": ["execution", "end_to_end"]
+      },
+      {
+        "comparison": "candidates/scan",
+        "classification": "regression",
+        "median_execution_ratio": 1.2728997984186314,
+        "median_end_to_end_ratio": 1.1197473031304956,
+        "median_rss_ratio": 1.0467575637235436,
+        "regression_measures": ["execution", "end_to_end"]
+      },
+      {
+        "comparison": "candidates/cache",
+        "classification": "regression",
+        "median_execution_ratio": 1.0536130550942056,
+        "median_end_to_end_ratio": 1.0331783216741466,
+        "median_rss_ratio": 0.999859507151086,
+        "regression_measures": ["execution"]
+      }
+    ]
+  },
+  "process_snapshot_publication_review": {
+    "files_containing_raw_ps_arguments": [
+      "runs/three-arm-v1/formal/state.json",
+      "runs/three-arm-v1/formal-console.json"
+    ],
+    "state_ps_lines_scanned": 2969,
+    "credential_assignment_or_flag_pattern_occurrences": 8,
+    "unique_matching_command_lines": 4,
+    "matching_indicator": "token assignment",
+    "bearer_token_pattern_occurrences": 0,
+    "uri_userinfo_pattern_occurrences": 0,
+    "private_key_marker_occurrences": 0,
+    "matching_line_sha256": [
+      "06d80a685b6574705b4163c9d123301bdbb914d15058482c9551cc33ccd863e0",
+      "4f336dd1f6f366341a53a39062fb7f45454fbf4733a6808f5fd7ea7064309366",
+      "668f71f68a1848bde3bab2f2fe9348f82a3f6a40c2417aad5e29ec96c135413a",
+      "5221ef12f5f830dc6f37fa10da9419734a23e17bdc64d6e0eb43c9cd291d52c5"
+    ],
+    "assessment": "The pattern scan identifies credential-looking command arguments without determining whether the values are live credentials. Raw argument text was not copied into this review.",
+    "publication_recommendation": "Preserve the immutable originals as restricted raw evidence. Exclude raw ps_output from public artifacts, or publish a derivative with argument values redacted while retaining ps_output_sha256, PID/PPID/comm, heavy-process decisions, load, affinity, namespace, and artifact hashes. Do not rewrite the sole-window originals."
+  },
+  "limits": [
+    "N=3 with one worker thread; this is not 32/256 scaling evidence.",
+    "The privacy scan is pattern based and is not proof that unmatched arguments contain no sensitive data.",
+    "The review validates retained evidence and arithmetic; it does not authorize a retry or default adoption."
+  ]
+}
