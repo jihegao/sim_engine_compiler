@@ -1,0 +1,62 @@
+{
+  "schema": "issue18-independent-transport-source-binding-no-go/v101",
+  "reviewer": "/root/var07_current_static_review",
+  "utc": "2026-10-10T12:14:04.119616+00:00",
+  "decision": "NO_GO_TRANSPORT_SOURCE_BINDING_BEFORE_SSH",
+  "run_id": "i05-var07-current-turnround-v101-ssh-20261010-01",
+  "manifest_sha256": "cf47af5b422cde5c536926bffa734eb16ca416964165e83520b9e66b1eefe4dd",
+  "manifest": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var07-current-running-turnround-v1.0.1\\prelaunch-manifest-v101-run01.json",
+    "bytes": 63801,
+    "sha256": "cf47af5b422cde5c536926bffa734eb16ca416964165e83520b9e66b1eefe4dd"
+  },
+  "builder": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var07-current-running-turnround-v1.0.1\\make_prelaunch_manifest.py",
+    "bytes": 3938,
+    "sha256": "8255c084a715b5ef630440c58f622366c16b33e2b487a45de321ce1bf9a2e67b"
+  },
+  "transport": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var07-current-running-turnround-v1.0.1\\ssh_transport.py",
+    "bytes": 6549,
+    "sha256": "cc0af935217d5ba1695d70bcb9e43a1985384f0a54f44583bf46bfab22e05656"
+  },
+  "earlier_static_GO_preserved": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-10\\issue18-cli-20261009T195400Z\\resume-20261010T114528Z\\var07-static-review\\independent-prelaunch-static-go-v101.json",
+    "bytes": 6378,
+    "sha256": "f71a7cdbbbf899d6a27440b213a7a85552c3f1fd6d554e57397a74ae2ce4de72"
+  },
+  "earlier_static_execution_usability": "Superseded by this additive NO_GO. Earlier AST, pin and comparator checks remain historical evidence; they did not establish transport/manifest interoperability.",
+  "root_cause": "Manifest builder emits owned:* for method files; transport check_frozen_inputs requires current:* for runner, contract and transport. Presence of correct path/hash under another key does not satisfy role-bound lookup.",
+  "missing_required_roles": [
+    "current:run_native_ssh.ps1",
+    "current:contract.json",
+    "current:ssh_transport.py"
+  ],
+  "corresponding_owned_roles_present": [
+    "owned:run_native_ssh.ps1",
+    "owned:contract.json",
+    "owned:ssh_transport.py"
+  ],
+  "independent_pure_reproduction": {
+    "type": "KeyError",
+    "message": "'current:run_native_ssh.ps1'",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\user\\Documents\\Codex\\2026-10-10\\issue18-cli-20261009T195400Z\\resume-20261010T114528Z\\var07-static-review\\transport-integration-no-go-v101.py\", line 8, in <module>\n    try:module.check_frozen_inputs(m)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\I05-var07-current-running-turnround-v1.0.1\\ssh_transport.py\", line 41, in check_frozen_inputs\n    assert {k: pins[key][k] for k in (\"bytes\", \"sha256\")} == seal(path), f\"source pin differs: {key}\"\n               ~~~~^^^^^\nKeyError: 'current:run_native_ssh.ps1'\n"
+  },
+  "native_directory_absent": true,
+  "recovered_directory_absent": true,
+  "recovery": [
+    "Preserve frozen v101 manifest, static receipt and actual failed launch evidence.",
+    "Use new formal version/runID and freeze with source role keys satisfying the existing transport contract; preserve all business input/oracles.",
+    "Future independent static review must import transport under a non-main module name and actually call check_frozen_inputs(frozen_manifest), without SSH/native subprocess. Recheck complete sources, PS5 parsing, controls and guard bindings.",
+    "Successful static interoperability remains insufficient for native release: completed standalone guardian then plain actual SSH0 PS5 pure preflight and exact receipt-bound independent GO are required."
+  ],
+  "reviewer_correction": "Earlier static approval missed this executable integration check. No source or oracle changes are made by this reviewer.",
+  "native_calls": 0,
+  "SSH_calls": 0,
+  "subprocess_calls": 0,
+  "main_called": false,
+  "all_commands_completed": true,
+  "in_flight_writes": false,
+  "effective_nonGUI_denominator": null,
+  "whole_goal_complete": false
+}

@@ -1,0 +1,168 @@
+{
+  "schema": "issue18-var07-current-main-author-method-controls/v1",
+  "utc": "2026-10-10T12:00:52.031754+00:00",
+  "decision": "GO_AUTHOR_METHOD_CONTROLS_ONLY",
+  "positive": {
+    "full_physical_log_lines": 115,
+    "full_typed_report_cells": 4044,
+    "full_export_tables": 33,
+    "system_stock_bins": [
+      72,
+      72
+    ],
+    "start_registered_periods": [
+      {
+        "kind": "preparation",
+        "task": 0,
+        "start": 20.5,
+        "end": 21.0,
+        "hours": 0.5
+      },
+      {
+        "kind": "turnround",
+        "task": 1,
+        "start": 23.5,
+        "end": 24.5,
+        "hours": 1.0
+      },
+      {
+        "kind": "preparation",
+        "task": 2,
+        "start": 24.5,
+        "end": 25.0,
+        "hours": 0.5
+      },
+      {
+        "kind": "turnround",
+        "task": 3,
+        "start": 27.0,
+        "end": 28.5,
+        "hours": 1.5
+      }
+    ],
+    "turnround_hours": 2.5,
+    "preparation_hours": 1.0,
+    "mission_hours": 4.0,
+    "terminal_ready": 1,
+    "native_calls": 0
+  },
+  "full_comparator_negatives": [
+    {
+      "name": "runningdurationchanged",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "runningendchanged",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "laterdurationold",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "laterendold",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "newchangemarker",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "missingevent",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "duplicatedevent",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "RNGmessagechanged",
+      "rejected": true,
+      "reason": "full ordered115 physical event bytes"
+    },
+    {
+      "name": "reportmetadata",
+      "rejected": true,
+      "reason": "keys/order $.report"
+    },
+    {
+      "name": "reporttype",
+      "rejected": true,
+      "reason": "value $.report.tables[2].instances[0].rows[0][0]"
+    },
+    {
+      "name": "reportstockvalue",
+      "rejected": true,
+      "reason": "value $.report.tables[3].instances[0].rows[0][15]"
+    },
+    {
+      "name": "missingbin",
+      "rejected": true,
+      "reason": "length $.report.tables[2].instances[0].rows"
+    },
+    {
+      "name": "columnmetadata",
+      "rejected": true,
+      "reason": "keys/order $.report.tables[2].columns[0]"
+    },
+    {
+      "name": "missingnativedefaulttable",
+      "rejected": true,
+      "reason": "length $.model.tables"
+    },
+    {
+      "name": "exportTIMECold",
+      "rejected": true,
+      "reason": "value $.model.tables[32].instances[0].rows[0][3]"
+    },
+    {
+      "name": "exportdurationchanged",
+      "rejected": true,
+      "reason": "value $.model.tables[32].instances[0].rows[0][4]"
+    },
+    {
+      "name": "exportmetadata",
+      "rejected": true,
+      "reason": "keys/order $.model.tables[0].columns[0]"
+    },
+    {
+      "name": "tableorder",
+      "rejected": true,
+      "reason": "length $.model.tables[0].columns"
+    }
+  ],
+  "direct_start_ledger_negatives": [
+    {
+      "name": "missingmainstart",
+      "rejected": true,
+      "reason": "completion without registered start"
+    },
+    {
+      "name": "duplicatestart",
+      "rejected": true,
+      "reason": "duplicate activity start"
+    },
+    {
+      "name": "missingcomplete",
+      "rejected": true,
+      "reason": "unfinished activity at horizon"
+    },
+    {
+      "name": "wrongduration",
+      "rejected": true,
+      "reason": "captured duration"
+    }
+  ],
+  "checks_total": 22,
+  "formal_version": null,
+  "new_runID": null,
+  "native_calls": 0,
+  "not_simulation_conformance": true
+}
