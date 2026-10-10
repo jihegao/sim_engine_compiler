@@ -1,0 +1,13 @@
+# Independent I05.var02 full raw acceptance
+
+Reviewer `/root/var02_source_review`, signed 2026-10-10T00:45:45.099119+00:00. Decision **GO_BOUNDED** for only I05.var02 scheduled scalar DamageRepair1.0.0 run `i05-var02-damage-repair-v100-ssh-20261010-01`.
+
+My complete raw receipt is SHA256 `4e11d00ce27555783c192dcf1354c6355037ae8d44d3a6e31a79047d20f758b5`,55819bytes; own v2 reader SHA256 `1dd1b6cc72926b338fc5ded06397b7066145861113ff48ea3551859c959dd759`. No author reader import/execution, no reviewer native calls or accepted-parent reruns.92 independent meaningful controls passed.
+
+All85 frozen source keys were independently rehashed before/after this replay and matched invocation/closure before/after maps. Actual SSH session0 PowerShell5/sshd ancestry, exactpreflight/approval/freeze hashes, six serial naturally completed stages including four distinct native PIDs/exit0, closure24raw entries and25 read-only exact original/recovered pairs were verified. Recovery run-summary is separately recorded, not an original raw file.
+
+Full source18authored row-bearing tables/218cells,35 original native tables/18default tables plus11columnChangesDamageRepair, fullmetadata/rows/numeric-double token validation passed.19 CRLF converter lines preserve108/254/126 and Errors0.137 physical event lines matched all30 independently derived substitutions and all other bytes/endings.4044 typed report cells/fullmetadata/72System+72Stock bins matched33 behavior-cell changes plusPDESC. EntireSummary remained typed exact. Independently derived three complete start-registered periods each1.5h/total4.5h matched actual occupancy4.500000029802322h; damage3/repair3, terminalready1/lost0/inrepair0, stock0.
+
+Earlier reader v1 raised an AttributeError because the independent expected-model variable was shadowed by a steps-list variable. Originalv1 remainsSHA `f8ee7dcada70292caa3c257e45e1f68ae85d7aa9d230c9277822f0e14e8f7a5c`; error receipt SHA `7e000bd131bba1e2aac31cce93f99fb8c27a880d5bb3eea3b9d37ce53358f848` is preserved. It gave no acceptance. V2 only separates that variable and identifies its own version; reran sealed evidence read-only. This is a reviewer-code error, not a native failure and not an extra native attempt. Original/frozen/raw bytes were never changed. Author pre-freeze failures remain separately preserved.
+
+Scope remains only one existing scalar DamageRepair atpositivehour5, fixed accepted parent. All GUI-exclusive validation/gates excluded; process protection is safety only. Wider fractions/distributions/groups/in-progress/same-time, wholevariant, cross-engine/performance and wholeIssue/Goal completion remain unverified. Separate publication content/staged/remote/postmerge gates still required. Current completion denominator is unspecified.
