@@ -9,14 +9,14 @@ import sys
 import datetime
 
 from publication_target_v1 import BindingError, published_index, require, require_stable_refs, verify
-from publication_snapshot_v2 import derive_captured_reader, parse_artifact, captured_execution
+from publication_snapshot_v3 import derive_captured_reader, parse_artifact, captured_execution
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 BINDING = HERE / "publication-binding-v1.json"
 BINDING_SHA256 = "a94dec581bece6bcda06c9c2cbd8606c790ae89457cc0bf28c835a9339d6352b"
 GATE_SHA256 = "179667f2981ea1dff806379a41c9e8da2961903ab5a27f0eddc2a66149302f56"
-PROTOCOL_SHA256 = "c6583229f0edbaea0a87f19a5bdb04b4b5cd34fa3bafd547abbac9916901c5db"
+PROTOCOL_SHA256 = "a8f1c80661125ef7512eefaae5c2775bf18f9de5f41fb1cdbc0043b81725c23d"
 GIT_TIMEOUT_SECONDS = 15
 REPLAY_TIMEOUT_SECONDS = 120
 ALLOWED_ORIGINS = {
@@ -87,22 +87,23 @@ def run(mode, target_path=None, product_path=None):
         if mode == "current-target":
             target_blob = git("show", identity["expected_current_commit"] + ":" + source["path"]).stdout
             require(digest(target_blob) == source["sha256"], "CURRENT_TARGET_SOURCE_MISMATCH", name)
-    snapshot_reader = HERE / "original-published-snapshot-reader-v3.py"
+    snapshot_reader = HERE / "original-published-snapshot-reader-v4.py"
     reader_bytes = snapshot_reader.read_bytes()
     gate_path = HERE / "publication_target_v1.py"
-    protocol_path = HERE / "publication_snapshot_v2.py"
+    protocol_path = HERE / "publication_snapshot_v3.py"
     gate_bytes = gate_path.read_bytes()
     protocol_bytes = protocol_path.read_bytes()
     require(digest(gate_bytes) == GATE_SHA256, "CAPTURED_GATE_CHANGED", str(gate_path))
     require(digest(protocol_bytes) == PROTOCOL_SHA256, "CAPTURED_PROTOCOL_CHANGED", str(protocol_path))
     normalize = lambda data: data.decode("utf8").replace("\r\n", "\n").replace("\r", "\n")
-    require(normalize(reader_bytes) == derive_captured_reader(normalize(sources["inherited_reader"]), BINDING_SHA256), "RAW_DERIVATION_CHANGED", "only four approved source replacements allowed")
+    require(normalize(reader_bytes) == derive_captured_reader(normalize(sources["inherited_reader"]), BINDING_SHA256), "RAW_DERIVATION_CHANGED", "exact approved publication and captured-source replacements required")
     artifacts.extend([(snapshot_reader, reader_bytes), (gate_path, gate_bytes),
                       (protocol_path, protocol_bytes)])
     command, payload = captured_execution(binding_bytes, {
         "publication_target_v1": (gate_path, gate_bytes),
-        "publication_snapshot_v2": (protocol_path, protocol_bytes),
-        "reader": (snapshot_reader, reader_bytes)})
+        "publication_snapshot_v3": (protocol_path, protocol_bytes),
+        "reader": (snapshot_reader, reader_bytes)},
+        {name: (ROOT / binding[name]["path"], sources[name]) for name in ("input", "manifest")})
     published_index(binding, lambda commit, path: git("show", commit + ":" + path).stdout)
     # -I excludes cwd/PYTHONPATH and ignores optimization; only captured local code executes.
     child = subprocess.run([sys.executable, "-I", "-X", "utf8", "-B", "-c", command], input=payload, cwd=ROOT, env={k:v for k,v in os.environ.items() if k not in ("PYTHONOPTIMIZE", "PYTHONPATH", "PYTHONHOME")}, capture_output=True, timeout=REPLAY_TIMEOUT_SECONDS)
@@ -114,6 +115,8 @@ def run(mode, target_path=None, product_path=None):
     require(raw.get("decision") == "GO_BOUNDED_PUBLISHED_SNAPSHOT_RAW_REPLAY", "RAW_DECISION", "unexpected subordinate decision")
     require(raw.get("run_id") == binding["run_id"] and raw.get("source_roles") == 140 and raw.get("readonly_pairs") == 25, "RAW_PROVENANCE", "wrong source/version/run custody")
     require(raw.get("native_calls_by_reviewer") == 0 and raw.get("all_commands_terminal") is True, "RAW_EXECUTION_BOUNDARY", "unexpected calls or incomplete checker")
+    require(raw.get("captured_source_sha256") == {name:binding[name]["sha256"] for name in ("input","manifest")}, "RAW_CAPTURED_SOURCE_MISMATCH", "raw must consume captured input/manifest")
+    require(raw.get("replay_script_sha256") == digest(reader_bytes), "RAW_CAPTURED_READER_MISMATCH", "raw must hash captured executed reader")
     after = refs()
     require_stable_refs(before, raw.get("remote_refs", ""), after)
     # Re-inspect actual object/ancestry with the terminal observed ref before emitting a v3 GO.
@@ -135,7 +138,7 @@ def run(mode, target_path=None, product_path=None):
             "reader_v4_sha256": digest(wrapper_bytes), "gate_sha256": digest(gate_bytes),
             "snapshot_reader_sha256": digest(reader_bytes), "immutable_published_index_sha256": binding["publication_index"]["sha256"],
             "snapshot_protocol_sha256": digest(protocol_bytes),
-            "subordinate_binding_transport": "captured-code-and-binding-stdin-bundle",
+            "subordinate_binding_transport": "captured-code-binding-and-source-stdin-bundle",
             "subordinate_bootstrap_sha256": digest(command.encode("utf8")),
             "subordinate_payload_sha256": digest(payload),
             "subordinate_stdout_sha256": digest(child.stdout), "subordinate_raw_evidence": raw,

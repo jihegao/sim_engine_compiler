@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import test_publication_target_v1 as fixture
 from publication_target_v1 import BindingError
-from publication_snapshot_v2 import captured_binding, derive_captured_reader, captured_execution
+from publication_snapshot_v3 import captured_binding, derive_captured_reader, captured_execution
 
 HERE = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("snapshot_reader", HERE / "independent-postpublication-reader-v4.py")
@@ -22,7 +22,7 @@ spec.loader.exec_module(reader)
 
 
 class ArtifactSnapshotTests(unittest.TestCase):
-    def run_fixture(self, mutate=None, target=True, product=True, corrupt_target=None, aba=False, code_aba=None, source_aba=False, corrupt_source=False, future_source=None, future_action="changed", mode="current-target", observed_commit=None):
+    def run_fixture(self, mutate=None, target=True, product=True, corrupt_target=None, aba=False, code_aba=None, source_aba=False, corrupt_source=False, future_source=None, future_action="changed", mode="current-target", observed_commit=None, local_change=None, bad_raw=None):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             binding = root / "original.json"
@@ -48,13 +48,17 @@ class ArtifactSnapshotTests(unittest.TestCase):
                 path = root / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes((reader.ROOT / relative).read_bytes())
+                paths[name] = path
+                captured[name] = path.read_bytes()
+                if local_change == name:
+                    path.write_bytes(b"legitimate evolved local source")
                 if name == "inherited_reader":
                     paths["source_reader"] = path
                     captured["source_reader"] = path.read_bytes()
             if corrupt_source:
                 paths["source_reader"].write_bytes(b"raise RuntimeError('unverified source')\n")
             code_paths = {}
-            for name, filename in (("gate", "publication_target_v1.py"), ("protocol", "publication_snapshot_v2.py"), ("reader", "original-published-snapshot-reader-v3.py")):
+            for name, filename in (("gate", "publication_target_v1.py"), ("protocol", "publication_snapshot_v3.py"), ("reader", "original-published-snapshot-reader-v4.py")):
                 path = root / filename
                 path.write_bytes((HERE / filename).read_bytes())
                 paths[name] = path
@@ -67,11 +71,11 @@ class ArtifactSnapshotTests(unittest.TestCase):
                 child_binding = captured_binding(stdin_binding, fixture.BSHA)
                 self.assertEqual(child_binding["publication"]["commit"], fixture.PUB)
                 self.assertEqual(args[0][-2], "-c")
-                for name, key in (("gate", "publication_target_v1"), ("protocol", "publication_snapshot_v2"), ("reader", "reader")):
+                for name, key in (("gate", "publication_target_v1"), ("protocol", "publication_snapshot_v3"), ("reader", "reader")):
                     self.assertEqual(bytes.fromhex(payload["sources"][key]), captured[name])
                 if code_aba:
                     paths[code_aba].write_bytes(b"raise RuntimeError('mutable-path-code-must-not-execute')\n")
-                    key = {"gate":"publication_target_v1", "protocol":"publication_snapshot_v2", "reader":"reader"}[code_aba]
+                    key = {"gate":"publication_target_v1", "protocol":"publication_snapshot_v3", "reader":"reader"}[code_aba]
                     self.assertEqual(bytes.fromhex(payload["sources"][key]), captured[code_aba])
                     paths[code_aba].write_bytes(captured[code_aba])
                 if aba:
@@ -93,6 +97,12 @@ class ArtifactSnapshotTests(unittest.TestCase):
                     else:
                         value = json.loads(captured[name]); value["commit"] = fixture.WRONG
                         paths[name].write_bytes(json.dumps(value).encode())
+                self.assertEqual({name:bytes.fromhex(value) for name,value in payload["data"].items()}, {name:captured[name] for name in ("input","manifest")})
+                value=json.loads(raw_result.stdout)
+                value["captured_source_sha256"]={name:fixture.BINDING[name]["sha256"] for name in ("input","manifest")}
+                value["replay_script_sha256"]=hashlib.sha256(captured["reader"]).hexdigest()
+                if bad_raw: value[bad_raw]={} if bad_raw=='captured_source_sha256' else '0'*64
+                raw_result.stdout=json.dumps(value).encode()
                 return raw_result
             original_read_text = Path.read_text
             def no_source_reopen(path, *args, **kwargs):
@@ -117,7 +127,7 @@ class ArtifactSnapshotTests(unittest.TestCase):
                 try:
                     result = reader.run(mode, target_path, product_path)
                 except BindingError:
-                    if corrupt_source or (future_source and mode == "current-target"):
+                    if local_change or corrupt_source or (future_source and mode == "current-target"):
                         raw_mock.assert_not_called()
                     raise
                 raw_mock.assert_called_once()
@@ -169,7 +179,7 @@ class ArtifactSnapshotTests(unittest.TestCase):
     def test_binding_replacement_and_restoration_cannot_change_child_snapshot(self):
         result, captured = self.run_fixture(aba=True)
         self.assertEqual(result["decision"], "GO_BOUNDED_CURRENT_TARGET_READONLY_REPLAY")
-        self.assertEqual(result["subordinate_binding_transport"], "captured-code-and-binding-stdin-bundle")
+        self.assertEqual(result["subordinate_binding_transport"], "captured-code-binding-and-source-stdin-bundle")
         self.assertEqual(result["publication_binding_sha256"], hashlib.sha256(captured["binding"]).hexdigest())
 
     def test_missing_wrong_or_replaced_subordinate_payload_rejects(self):
@@ -186,7 +196,7 @@ class ArtifactSnapshotTests(unittest.TestCase):
 
     def test_subordinate_exact_derivation_uses_stdin_not_binding_path(self):
         original = (HERE / "independent-postpublication-reader-v1.py").read_text(encoding="utf8")
-        actual = (HERE / "original-published-snapshot-reader-v3.py").read_text(encoding="utf8")
+        actual = (HERE / "original-published-snapshot-reader-v4.py").read_text(encoding="utf8")
         self.assertEqual(actual, derive_captured_reader(original, fixture.BSHA))
         self.assertIn("captured_binding(sys.stdin.buffer.read(),", actual)
         self.assertNotIn("publication_binding=json.loads((Path(__file__).parent/", actual)
@@ -233,7 +243,7 @@ class ArtifactSnapshotTests(unittest.TestCase):
                 self.run_fixture(future_source=name, future_action="missing")
             self.assertEqual(caught.exception.code, "GIT_OBSERVATION_FAILED")
 
-    def test_historical_source_identity_survives_future_source_evolution(self):
+    def test_historical_frozen_local_identity_survives_remote_source_evolution(self):
         for name in ("input", "manifest", "inherited_reader"):
             for action in ("changed", "missing"):
                 with self.subTest(name=name, action=action):
@@ -243,13 +253,27 @@ class ArtifactSnapshotTests(unittest.TestCase):
                     self.assertEqual(result["source_provenance"]["original_commit"], fixture.PUB)
 
 
+    def test_local_evolution_rejects_both_modes_before_child(self):
+        for name in ("input","manifest","inherited_reader"):
+            for mode in ("current-target","historical-publication"):
+                with self.subTest(name=name,mode=mode),self.assertRaises(BindingError) as caught:
+                    self.run_fixture(local_change=name,mode=mode,target=(mode=="current-target"))
+                self.assertEqual(caught.exception.code,"LOCAL_SOURCE_MISMATCH")
+
+    def test_child_claim_must_match_captured_source_and_executed_reader(self):
+        for field,code in (("captured_source_sha256","RAW_CAPTURED_SOURCE_MISMATCH"),("replay_script_sha256","RAW_CAPTURED_READER_MISMATCH")):
+            with self.subTest(field=field),self.assertRaises(BindingError) as caught:
+                self.run_fixture(bad_raw=field)
+            self.assertEqual(caught.exception.code,code)
+
+
 class CapturedCodeBootstrapTests(unittest.TestCase):
     def bundle(self, folder):
         sources = {
             "publication_target_v1": (folder / "gate.py", b"VALUE='captured-gate'\n"),
-            "publication_snapshot_v2": (folder / "protocol.py", b"VALUE='captured-protocol'\n"),
-            "reader": (folder / "reader.py", b"import publication_target_v1 as g, publication_snapshot_v2 as p, sys\nprint(g.VALUE,p.VALUE,sys.stdin.buffer.read().decode())\n")}
-        return sources, captured_execution(b"original-binding", sources)
+            "publication_snapshot_v3": (folder / "protocol.py", b"VALUE='captured-protocol'\ndef configure_captured_data(*args): pass\n"),
+            "reader": (folder / "reader.py", b"import publication_target_v1 as g, publication_snapshot_v3 as p, sys\nprint(g.VALUE,p.VALUE,sys.stdin.buffer.read().decode())\n")}
+        return sources, captured_execution(b"original-binding", sources, {"input":(folder/"input.json",b"input"),"manifest":(folder/"manifest.json",b"manifest")})
 
     def execute(self, command, payload, cwd=None, env=None):
         return subprocess.run([sys.executable, "-I", "-E", "-B", "-c", command], input=payload, capture_output=True, cwd=cwd, env=env)
@@ -310,6 +334,55 @@ class CapturedCodeBootstrapTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(result.stdout.strip(), b"captured-gate captured-protocol original-binding")
 
+
+
+class CapturedDataBootstrapTests(unittest.TestCase):
+    def bundle(self,folder):
+        data={"input":(folder/"input.json",b'{"source":"input"}'),"manifest":(folder/"manifest.json",b'{"source":"manifest"}')}
+        script=("from publication_snapshot_v3 import captured_read_bytes,captured_size\nimport hashlib,json\n"
+                + "paths="+repr([str(x[0]) for x in data.values()])+"\n"
+                + "for p in paths:\n b=captured_read_bytes(p);assert captured_size(p)==len(b);print(b.decode())\n"
+                + "print(hashlib.sha256(captured_read_bytes(__file__)).hexdigest())\n")
+        sources={"publication_target_v1":(folder/'gate.py',(HERE/'publication_target_v1.py').read_bytes()),"publication_snapshot_v3":(folder/'protocol.py',(HERE/'publication_snapshot_v3.py').read_bytes()),"reader":(folder/'reader.py',script.encode())}
+        return sources,data,captured_execution(b'captured-binding',sources,data)
+    def execute(self,command,payload):
+        return subprocess.run([sys.executable,'-I','-B','-c',command],input=payload,capture_output=True)
+    def test_actual_child_consumes_captured_data_and_code_when_paths_changed_or_deleted(self):
+        for deleted in (False,True):
+            with tempfile.TemporaryDirectory() as d:
+                sources,data,(command,payload)=self.bundle(Path(d))
+                for path,value in list(sources.values())+list(data.values()):
+                    path.write_bytes(b'changed on disk')
+                    if deleted:path.unlink()
+                result=self.execute(command,payload)
+                self.assertEqual(result.returncode,0,result.stderr)
+                expected=[value.decode() for path,value in data.values()]+[hashlib.sha256(sources['reader'][1]).hexdigest()]
+                self.assertEqual(result.stdout.decode().splitlines(),expected)
+    def test_actual_bootstrap_rejects_missing_extra_tampered_and_duplicate_data(self):
+        with tempfile.TemporaryDirectory() as d:
+            sources,data,(command,payload)=self.bundle(Path(d))
+            for name in data:
+                for action in ('tamper','missing'):
+                    value=json.loads(payload)
+                    if action=='tamper':value['data'][name]=b'changed bytes'.hex()
+                    else:del value['data'][name]
+                    result=self.execute(command,json.dumps(value).encode())
+                    self.assertNotEqual(result.returncode,0)
+                    self.assertEqual(result.stdout,b'')
+                    self.assertIn(b'CAPTURED_DATA_MISMATCH' if action=='tamper' else b'MISSING_CAPTURED_DATA',result.stderr)
+            value=json.loads(payload);value['data']['extra']='00'
+            self.assertNotEqual(self.execute(command,json.dumps(value).encode()).returncode,0)
+            value=json.loads(payload);value['data_expected']={name:hashlib.sha256(b'changed bytes').hexdigest() for name in data}
+            self.assertNotEqual(self.execute(command,json.dumps(value).encode()).returncode,0)
+            duplicate=payload[:-1]+b',"data":{}}'
+            result=self.execute(command,duplicate);self.assertNotEqual(result.returncode,0);self.assertIn(b'DUPLICATE_EXECUTION_KEY',result.stderr)
+    def test_duplicate_canonical_data_and_code_paths_reject_before_child(self):
+        with tempfile.TemporaryDirectory() as d:
+            sources,data,payload=self.bundle(Path(d))
+            for name in ('input','manifest'):
+                changed=dict(data);changed[name]=(sources['reader'][0],data[name][1])
+                with self.assertRaises(BindingError) as caught:captured_execution(b'captured-binding',sources,changed)
+                self.assertEqual(caught.exception.code,'DUPLICATE_CAPTURED_PATH')
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
