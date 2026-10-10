@@ -17,6 +17,8 @@ BINDING = HERE / "publication-binding-v1.json"
 BINDING_SHA256 = "a94dec581bece6bcda06c9c2cbd8606c790ae89457cc0bf28c835a9339d6352b"
 GATE_SHA256 = "179667f2981ea1dff806379a41c9e8da2961903ab5a27f0eddc2a66149302f56"
 PROTOCOL_SHA256 = "c6583229f0edbaea0a87f19a5bdb04b4b5cd34fa3bafd547abbac9916901c5db"
+GIT_TIMEOUT_SECONDS = 15
+REPLAY_TIMEOUT_SECONDS = 120
 ALLOWED_ORIGINS = {
     "git@github.com:jihegao/sim_engine_compiler.git",
     "https://github.com/jihegao/sim_engine_compiler.git",
@@ -31,7 +33,7 @@ def digest(data):
 
 def git(*args, accept=(0,)):
     env = dict(os.environ, GIT_NO_REPLACE_OBJECTS="1")
-    result = subprocess.run(["git", "--no-replace-objects", *args], cwd=ROOT, env=env, capture_output=True)
+    result = subprocess.run(["git", "--no-replace-objects", *args], cwd=ROOT, env=env, capture_output=True, timeout=GIT_TIMEOUT_SECONDS)
     require(result.returncode in accept, "GIT_OBSERVATION_FAILED", f"{args[0]} exit {result.returncode}; {result.stderr.decode('utf-8', errors='replace')[:400]}")
     return result
 
@@ -54,6 +56,8 @@ def refs():
 
 def run(mode, target_path=None, product_path=None):
     require(not sys.flags.optimize, "ASSERTS_DISABLED", "run without -O/-OO")
+    wrapper_path = Path(__file__)
+    wrapper_bytes = wrapper_path.read_bytes()
     binding_bytes = BINDING.read_bytes()
     require(digest(binding_bytes) == BINDING_SHA256, "IMMUTABLE_BINDING_CHANGED", str(BINDING))
     binding = parse_artifact(binding_bytes)
@@ -61,7 +65,7 @@ def run(mode, target_path=None, product_path=None):
     product_bytes = Path(product_path).read_bytes() if product_path is not None else None
     target = parse_artifact(target_bytes) if target_bytes is not None else None
     product_target = parse_artifact(product_bytes) if product_bytes is not None else None
-    artifacts = [(BINDING, binding_bytes)]
+    artifacts = [(BINDING, binding_bytes), (wrapper_path, wrapper_bytes)]
     if target_path is not None:
         artifacts.append((Path(target_path), target_bytes))
     if product_path is not None:
@@ -70,33 +74,35 @@ def run(mode, target_path=None, product_path=None):
     require(origin in ALLOWED_ORIGINS, "REMOTE_REPOSITORY_MISMATCH", origin)
     before = refs()
     identity = verify(binding, before, describe, ancestor, mode, target, BINDING_SHA256, product_target)
-    # Source/version provenance belongs to the immutable actual publication, not local index alone.
+    # Derivation and terminal guards use these same authenticated publication bytes.
+    sources = {}
     for name in ("input", "manifest", "inherited_reader"):
         source = binding[name]
         local = ROOT / source["path"]
-        require(digest(local.read_bytes()) == source["sha256"], "LOCAL_SOURCE_MISMATCH", name)
+        sources[name] = local.read_bytes()
+        require(digest(sources[name]) == source["sha256"], "LOCAL_SOURCE_MISMATCH", name)
+        artifacts.append((local, sources[name]))
         committed = git("show", binding["publication"]["commit"] + ":" + source["path"]).stdout
         require(digest(committed) == source["sha256"], "PUBLISHED_SOURCE_MISMATCH", name)
-    inherited = ROOT / binding["inherited_reader"]["path"]
     snapshot_reader = HERE / "original-published-snapshot-reader-v3.py"
     reader_bytes = snapshot_reader.read_bytes()
     gate_path = HERE / "publication_target_v1.py"
     protocol_path = HERE / "publication_snapshot_v2.py"
     gate_bytes = gate_path.read_bytes()
     protocol_bytes = protocol_path.read_bytes()
-    wrapper_bytes = Path(__file__).read_bytes()
     require(digest(gate_bytes) == GATE_SHA256, "CAPTURED_GATE_CHANGED", str(gate_path))
     require(digest(protocol_bytes) == PROTOCOL_SHA256, "CAPTURED_PROTOCOL_CHANGED", str(protocol_path))
-    require(reader_bytes.decode("utf8").replace("\r\n", "\n") == derive_captured_reader(inherited.read_text(encoding="utf-8"), BINDING_SHA256), "RAW_DERIVATION_CHANGED", "only four approved source replacements allowed")
+    normalize = lambda data: data.decode("utf8").replace("\r\n", "\n").replace("\r", "\n")
+    require(normalize(reader_bytes) == derive_captured_reader(normalize(sources["inherited_reader"]), BINDING_SHA256), "RAW_DERIVATION_CHANGED", "only four approved source replacements allowed")
     artifacts.extend([(snapshot_reader, reader_bytes), (gate_path, gate_bytes),
-                      (protocol_path, protocol_bytes), (Path(__file__), wrapper_bytes)])
+                      (protocol_path, protocol_bytes)])
     command, payload = captured_execution(binding_bytes, {
         "publication_target_v1": (gate_path, gate_bytes),
         "publication_snapshot_v2": (protocol_path, protocol_bytes),
         "reader": (snapshot_reader, reader_bytes)})
     published_index(binding, lambda commit, path: git("show", commit + ":" + path).stdout)
-    # -E ignores inherited PYTHONOPTIMIZE; all original raw assertions remain. Never relay raw GO.
-    child = subprocess.run([sys.executable, "-E", "-X", "utf8", "-B", "-c", command], input=payload, cwd=ROOT, env={k:v for k,v in os.environ.items() if k not in ("PYTHONOPTIMIZE", "PYTHONPATH", "PYTHONHOME")}, capture_output=True)
+    # -I excludes cwd/PYTHONPATH and ignores optimization; only captured local code executes.
+    child = subprocess.run([sys.executable, "-I", "-X", "utf8", "-B", "-c", command], input=payload, cwd=ROOT, env={k:v for k,v in os.environ.items() if k not in ("PYTHONOPTIMIZE", "PYTHONPATH", "PYTHONHOME")}, capture_output=True, timeout=REPLAY_TIMEOUT_SECONDS)
     require(child.returncode == 0 and not child.stderr, "ORIGINAL_RAW_REPLAY_FAILED", f"exit={child.returncode}; stderrSHA256={digest(child.stderr)}")
     try:
         raw = json.loads(child.stdout)
@@ -107,7 +113,7 @@ def run(mode, target_path=None, product_path=None):
     require(raw.get("native_calls_by_reviewer") == 0 and raw.get("all_commands_terminal") is True, "RAW_EXECUTION_BOUNDARY", "unexpected calls or incomplete checker")
     after = refs()
     require_stable_refs(before, raw.get("remote_refs", ""), after)
-    # Re-inspect actual object/ancestry with the terminal observed ref before emitting a v2 GO.
+    # Re-inspect actual object/ancestry with the terminal observed ref before emitting a v3 GO.
     require(identity == verify(binding, after, describe, ancestor, mode, target, BINDING_SHA256, product_target), "IDENTITY_CHANGED", "terminal identity differs")
     for path, captured_bytes in artifacts:
         require(path.read_bytes() == captured_bytes, "BINDING_ARTIFACT_CHANGED", str(path))
@@ -125,6 +131,7 @@ def run(mode, target_path=None, product_path=None):
             "snapshot_protocol_sha256": digest(protocol_bytes),
             "subordinate_binding_transport": "captured-code-and-binding-stdin-bundle",
             "subordinate_bootstrap_sha256": digest(command.encode("utf8")),
+            "subordinate_payload_sha256": digest(payload),
             "subordinate_stdout_sha256": digest(child.stdout), "subordinate_raw_evidence": raw,
             "remote_refs_before": before, "remote_refs_after": after,
             "native_calls": 0, "whole_variant_pass": False, "wholeGoalComplete": False, "effective_nonGUI_denominator": None}

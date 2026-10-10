@@ -50,10 +50,39 @@ Receipt code hashes use captured bytes; all captured code paths must still match
 before GO. The subordinate's inherited path-based reader hash is historical
 metadata; executed-code identity is the parent's captured snapshot_reader_sha256.
 The previous five-file b2e69449 candidate and its helper-module NO_GO are retained.
-There are53 pure tests (34 original plus19 artifact/code custody regressions),
+The d4238ebd candidate had53 pure tests (34 original plus19 artifact/code custody regressions),
 including actual bootstrap tampered/missing code and binding rejection, fixed
 module-pin and duplicate execution-key rejection before child launch, and ABA
 of both modules and the reader.
+
+The d4238ebd candidate still reopened the inherited reader after authenticating
+its bytes. A replacement inherited source and consistently derived helper could
+therefore become the captured executable despite the original publication hash.
+It also used Python `-E`, which allowed `json.py` or `hashlib.py` in the child's
+working directory to execute before bootstrap validation and forge a raw receipt.
+The current repair derives the helper from the same captured inherited bytes
+that passed both local and published-source hashes. The child uses Python `-I`
+to exclude the working directory and PYTHONPATH from module imports and ignore
+inherited optimization. Captured local modules remain explicitly preloaded.
+
+The wrapper is captured at entry. Original input, manifest and inherited source,
+the derived helper, both modules, wrapper and all binding artifacts must still
+match their captured bytes before GO. The receipt also records
+subordinate_payload_sha256 for the exact stdin bundle, alongside the bootstrap
+and captured source hashes. Git observations have15-second timeouts and the
+complete subordinate replay has a120-second timeout.
+
+Local validation of this repair passes60 pure tests with zero skips, preserving
+all53 candidate tests and adding seven regressions for authenticated-source
+derivation, terminal source/wrapper custody, captured receipt hashes, timeouts,
+working-directory shadows and inherited Python environment. The bootstrap tests
+execute13 tiny Python children with5-second timeouts; the complete suite has an
+explicit45-second outer timeout. These fixtures and the original-candidate
+controlled exploit probes do not execute the host-bound raw checker or models.
+The full original raw replay, live remote target observations and current CI
+were not rerun in this local repair review. Preserved historical receipts remain
+separate evidence, and the two added helper/protocol files retain their exact
+d4238ebd bytes and four-change derivation.
 
 The explicit artifact schemas, origin/repository/source/version/commit/tree,
 original publication/product ancestry, immutable original513-index snapshot,

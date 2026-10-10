@@ -2,6 +2,7 @@
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import subprocess
@@ -20,7 +21,7 @@ spec.loader.exec_module(reader)
 
 
 class ArtifactSnapshotTests(unittest.TestCase):
-    def run_fixture(self, mutate=None, target=True, product=True, corrupt_target=None, aba=False, code_aba=None):
+    def run_fixture(self, mutate=None, target=True, product=True, corrupt_target=None, aba=False, code_aba=None, source_aba=False):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             binding = root / "original.json"
@@ -40,14 +41,34 @@ class ArtifactSnapshotTests(unittest.TestCase):
             raw_result = route.raw(fixture.LATER if target else fixture.PUB)
             raw_result.stdout = json.dumps({**json.loads(raw_result.stdout), "remote_refs":observed}).encode()
             paths = {"binding":binding, "target":target_path, "product":product_path}
+            source_root = root / "repository"
+            for name in ("input", "manifest", "inherited_reader"):
+                relative = fixture.BINDING[name]["path"]
+                path = source_root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes((reader.ROOT / relative).read_bytes())
+                paths[name] = path
+                captured[name] = path.read_bytes()
             code_paths = {}
-            for name, filename in (("gate", "publication_target_v1.py"), ("protocol", "publication_snapshot_v2.py"), ("reader", "original-published-snapshot-reader-v3.py")):
+            for name, filename in (("gate", "publication_target_v1.py"), ("protocol", "publication_snapshot_v2.py"), ("reader", "original-published-snapshot-reader-v3.py"), ("wrapper", "independent-postpublication-reader-v3.py")):
                 path = root / filename
                 path.write_bytes((HERE / filename).read_bytes())
                 paths[name] = path
                 captured[name] = path.read_bytes()
                 code_paths[name] = path
+            def git(*args, **kwargs):
+                result = route.fake_git(*args, **kwargs)
+                if source_aba and args[0] == "show" and args[1].endswith(":" + fixture.BINDING["inherited_reader"]["path"]):
+                    # Source is changed only after its original bytes were authenticated.
+                    changed = "raise RuntimeError('unreviewed-source')\n" + captured["inherited_reader"].decode("utf8")
+                    paths["inherited_reader"].write_text(changed, encoding="utf8")
+                    paths["reader"].write_text(derive_captured_reader(changed, fixture.BSHA), encoding="utf8")
+                return result
             def raw(*args, **kwargs):
+                self.assertIn("-I", args[0])
+                self.assertEqual(kwargs["timeout"], reader.REPLAY_TIMEOUT_SECONDS)
+                captured["execution_payload"] = kwargs["input"]
+                captured["bootstrap"] = args[0][-1].encode("utf8")
                 payload = json.loads(kwargs["input"])
                 stdin_binding = bytes.fromhex(payload["binding"])
                 self.assertEqual(stdin_binding, captured["binding"])
@@ -81,7 +102,7 @@ class ArtifactSnapshotTests(unittest.TestCase):
                         value = json.loads(captured[name]); value["commit"] = fixture.WRONG
                         paths[name].write_bytes(json.dumps(value).encode())
                 return raw_result
-            with patch.object(reader, "HERE", root), patch.object(reader, "BINDING", binding), patch.object(reader, "git", route.fake_git), patch.object(reader, "refs", return_value=observed), patch.object(reader, "describe", fixture.describe), patch.object(reader, "ancestor", fixture.ancestor), patch.object(reader.subprocess, "run", side_effect=raw) as raw_mock:
+            with patch.object(reader, "HERE", root), patch.object(reader, "ROOT", source_root), patch.object(reader, "__file__", str(paths["wrapper"])), patch.object(reader, "BINDING", binding), patch.object(reader, "git", git), patch.object(reader, "refs", return_value=observed), patch.object(reader, "describe", fixture.describe), patch.object(reader, "ancestor", fixture.ancestor), patch.object(reader.subprocess, "run", side_effect=raw) as raw_mock:
                 result = reader.run("current-target", target_path, product_path)
                 raw_mock.assert_called_once()
             return result, captured
@@ -119,7 +140,7 @@ class ArtifactSnapshotTests(unittest.TestCase):
                 self.changed(name, "same-semantics")
 
     def test_deleted_artifact_rejects_before_go(self):
-        for name in ("binding", "target", "product"):
+        for name in ("binding", "target", "product", "input", "manifest", "inherited_reader", "wrapper"):
             with self.subTest(name=name), self.assertRaises(FileNotFoundError):
                 self.run_fixture(mutate=(name, "remove"))
 
@@ -172,6 +193,33 @@ class ArtifactSnapshotTests(unittest.TestCase):
                 self.run_fixture()
             self.assertEqual(caught.exception.code, code)
 
+    def test_coupled_source_and_reader_change_rejects_before_child(self):
+        with self.assertRaises(BindingError) as caught:
+            self.run_fixture(source_aba=True)
+        self.assertEqual(caught.exception.code, "RAW_DERIVATION_CHANGED")
+
+    def test_all_authenticated_sources_are_stable_before_go(self):
+        for name in ("input", "manifest", "inherited_reader"):
+            with self.subTest(name=name):
+                self.changed(name, "same-semantics")
+
+    def test_wrapper_is_captured_before_raw_and_stable_before_go(self):
+        self.changed("wrapper", "code")
+
+    def test_code_and_bundle_receipts_hash_the_captured_bytes(self):
+        result, captured = self.run_fixture()
+        fields = {"gate":"gate_sha256", "protocol":"snapshot_protocol_sha256", "reader":"snapshot_reader_sha256",
+                  "wrapper":"reader_v3_sha256", "bootstrap":"subordinate_bootstrap_sha256", "execution_payload":"subordinate_payload_sha256"}
+        for name, field in fields.items():
+            with self.subTest(name=name):
+                self.assertEqual(result[field], hashlib.sha256(captured[name]).hexdigest())
+
+    def test_git_observations_are_bounded(self):
+        completed = subprocess.CompletedProcess(["git"], 0, b"", b"")
+        with patch.object(reader.subprocess, "run", return_value=completed) as run:
+            reader.git("status")
+        self.assertEqual(run.call_args.kwargs["timeout"], reader.GIT_TIMEOUT_SECONDS)
+
 
 class CapturedCodeBootstrapTests(unittest.TestCase):
     def bundle(self, folder):
@@ -181,8 +229,8 @@ class CapturedCodeBootstrapTests(unittest.TestCase):
             "reader": (folder / "reader.py", b"import publication_target_v1 as g, publication_snapshot_v2 as p, sys\nprint(g.VALUE,p.VALUE,sys.stdin.buffer.read().decode())\n")}
         return sources, captured_execution(b"original-binding", sources)
 
-    def execute(self, command, payload):
-        return subprocess.run([sys.executable, "-E", "-B", "-c", command], input=payload, capture_output=True)
+    def execute(self, command, payload, **kwargs):
+        return subprocess.run([sys.executable, "-I", "-B", "-c", command], input=payload, capture_output=True, timeout=5, **kwargs)
 
     def test_actual_bootstrap_uses_captured_code_when_all_paths_are_replaced(self):
         with tempfile.TemporaryDirectory() as d:
@@ -228,6 +276,35 @@ class CapturedCodeBootstrapTests(unittest.TestCase):
             result = self.execute(command, duplicate)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(b"DUPLICATE_EXECUTION_KEY", result.stderr)
+
+    def test_isolated_bootstrap_does_not_load_cwd_stdlib_shadows(self):
+        with tempfile.TemporaryDirectory() as d:
+            folder = Path(d)
+            sources, (command, payload) = self.bundle(folder)
+            for name in ("json", "hashlib"):
+                with self.subTest(name=name):
+                    marker = folder / (name + "-executed")
+                    path = folder / (name + ".py")
+                    path.write_text("from pathlib import Path\nPath(" + repr(str(marker)) + ").write_text('untrusted code ran')\nprint('forged GO')\nraise SystemExit(0)\n")
+                    try:
+                        result = self.execute(command, payload, cwd=folder)
+                    finally:
+                        path.unlink()
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout.strip(), b"captured-gate captured-protocol original-binding")
+                    self.assertFalse(marker.exists())
+
+    def test_isolated_bootstrap_ignores_pythonpath_and_optimization(self):
+        with tempfile.TemporaryDirectory() as d:
+            folder = Path(d)
+            sources, _ = self.bundle(folder)
+            sources["reader"] = (folder / "reader.py", b"print(__debug__)\n")
+            command, payload = captured_execution(b"original-binding", sources)
+            (folder / "hashlib.py").write_text("raise RuntimeError('PYTHONPATH shadow executed')\n")
+            env = dict(os.environ, PYTHONPATH=str(folder), PYTHONOPTIMIZE="1")
+            result = self.execute(command, payload, env=env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.strip(), b"True")
 
 
 if __name__ == "__main__":
