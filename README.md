@@ -1,5 +1,10 @@
 # sim_engine_compiler
 
+航空保障20条候选链另有显式 opt-in 的
+[bounded event profile](docs/aircraft-bounded-events.md)：Business/Core/Plan、
+亚分钟截止、资源、维修与库存响应；Python reference 专用，独立于现有产品入口。
+其中5条采用外生故障或损伤返场输入，不能解释为原生随机过程等价。
+
 当前主线的默认入口、能力/验收矩阵及性能采用状态见
 [595cb5e 基线说明](docs/engine-baseline-595cb5e-v1.md)。特别是 PR #9 的共享
 PreparedBatchPlan 已进入普通 aircraft 批量默认路径，但历史 J35 全线程性能门槛
