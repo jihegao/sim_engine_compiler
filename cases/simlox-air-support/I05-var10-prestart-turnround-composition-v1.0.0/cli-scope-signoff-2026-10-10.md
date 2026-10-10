@@ -1,0 +1,1 @@
+Bounded I05.var10 DURN prestart composition only; raw acceptance SHA 40c4870c9c249341a7359bf01ef65d2dcc50765e15b9ee4a5e4dda60281897aa. One guarded native attempt, parentreruns0. Independent content/staged/remote/postmerge gates remain required. GUI features excluded; nonGUI denominator null. No fullvariant/crossengine/performance/CI/wholeIssue claim.

@@ -1,0 +1,15 @@
+# I05.var10: prestart turnround substep duration composition
+
+Independent bounded native behavior acceptance is recorded in [the raw receipt](review/independent-raw-acceptance-v100.json), SHA256 `40c4870c9c249341a7359bf01ef65d2dcc50765e15b9ee4a5e4dda60281897aa`. Separate content, staged, exact remote and actual merge reviews govern publication.
+
+Accepted B04.var05 input `965a3acc431696e56b760b07323e4cf11cb571e030885fff708787ce84f3e42f` is preserved without parent rerun. At hour25, two existing TURN-STEPS rows change SEQ1 DURN from1/6 to0.25 and SEQ2 from1/3 to0.75. The update is strictly before last turnround starts26.75. Both later steps capture the changed durations:26.75–27 and27–27.75. Main task3 ends27.75. Earlier turnround23.5–24, preparations, missions, planned messages, resources and RNG evidence remain unchanged.
+
+One serial guarded SSH0/PowerShell5 native attempt completed four naturalexit0 stages. Full125 ordered loglines match16 predeclared substitutions. Full4044 recursively typed reportcells and allmetadata match7 predeclared changes includingPDESC, with72System+72Stock bins. All33 exported tables preserve native defaults, types, metadata, identities and original relative order, plus the six-column two-row change table.
+
+An independently start-registered event ledger gives turnround0.5+1=1.5h, preparation1h andflight4h. Terminalready1; stock andSummary unchanged. Turnround is activity: allNSYDT0 andSYDTnull, with no maintenance downtime inferred. [Evidence locator](evidence-reference-accepted.json) binds25 readonly original/recovered byte-identical pairs, closure/invocation and98 frozen source roles.
+
+This bounded component covers DURN prestart composition only. DURND, MAINDIST, recurring PM fractional-clock law, same-time priority, pause/resume, other configurations, fullvariant, crossengine, performance, CIpass and wholeIssue completion remain unverified. Earlier D03var10 fractional-clock gap and I05var13 same-time method NO_GO remain intact. No generic engine or IR semantics changed.
+
+Current Issue18 nonGUI amendment excludes all GUI-exclusive feature validation and gates. GUI/WTS/ancestry/mutex checks are execution safety only. The nonGUI completion denominator remains null;512 packages/107 caseIDs are publication metadata. [Index advance](live-index-advance.json) preserves exact511-package bytes before the authorized append. Frozen historical statuses are not rewritten; additive acceptance and publication receipts define later stages.
+
+The additive [postpublication reader](review/independent-postpublication-reader-v2.py) is the current host-bound independent reproduction entry. It retains original-derived full behavior checks,96 literal source roles and2 exact archived511-index roles, allowing only the authorized single-entry512 index append. Its parentjob/source/raw/manual dependencies and command are documented in REPRODUCTION-postrun.md; the older copied raw reader and acceptance receipt remain unchanged historical evidence.
