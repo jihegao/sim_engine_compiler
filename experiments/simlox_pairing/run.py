@@ -41,6 +41,11 @@ def execute_pairing(output: Path, archive: Path = DEFAULT_ARCHIVE) -> dict:
     report["engine_identity_required"] = {
         "commit": source["commit"],
         "build_fingerprint": source["build_fingerprint"],
+        "checkout_head": source["checkout_head"],
+        "executed_source_fingerprint": source["executed_source_fingerprint"],
+        "declared_modified_baseline_source_files": source[
+            "declared_modified_baseline_source_files"
+        ],
         "input_fingerprint": {},
         "execution_plan_fingerprint": {},
         "observation_level": "full",

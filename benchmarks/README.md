@@ -1,5 +1,7 @@
 # Benchmarks
 
+Schelling source candidate 的 51×51 Rust `current` 读视图优化边界与同 Plan 交替测量见 [ABM source scale check](abm_source_scale/README.md)。这是单输入端到端运行时测量，未完成 NetLogo source-gold 或各阶段正式性能验收。
+
 首个上游 oracle 已建立：[spare_mvp F35 43 天对照基线](spare_mvp_f35_43day/README.md)。它验证现有分钟、编译结构与 SimPy 调度路线，仍不表示本项目独立运行时或 Rust 加速已经实现。
 
 独立 Rust runtime 的正式同 Plan 对比见[阶段 C 分段基准](stage_c/README.md)。该报告覆盖 Plan 读取/解析/指纹、RunState 初始化、单样本执行、批量执行、序列化、写盘和端到端路径，并同时保存 Python reference 与 Python 绑定数据。
