@@ -9,6 +9,7 @@ MODULES = (
     "tests.conformance.test_simlox_pairing_canonical",
     "tests.conformance.test_simlox_pairing_observations",
     "tests.conformance.test_simlox_pairing_provenance",
+    "tests.conformance.test_simlox_pairing_engine_delta",
     "tests.conformance.test_simlox_pairing_runner",
     "tests.conformance.test_simlox_pairing_encoding",
 )

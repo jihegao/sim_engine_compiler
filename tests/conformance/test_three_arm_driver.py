@@ -49,7 +49,7 @@ def _reference_comparisons() -> dict[str, object]:
 
 class ThreeArmDriverTests(unittest.TestCase):
     def _fixture(self, directory: str) -> tuple[argparse.Namespace, Path]:
-        root = Path(directory)
+        root = Path(directory).resolve()
         binary = root / "stage-c-benchmark"
         runtime = root / "sim-engine-runtime"
         gnu_time = root / "time"

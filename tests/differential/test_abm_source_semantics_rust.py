@@ -11,7 +11,13 @@ from pathlib import Path
 from sim_engine_compiler import compile_model, run_abm_plan
 from sim_engine_compiler.ir.abm import ABM_PLAN_VERSION, canonical_digest
 from sim_engine_compiler.reference import AbmRuntimeError
-from tests.fixtures.abm_source_semantics.cases import cases, setup_lifecycle_case
+from tests.fixtures.abm_source_semantics.cases import (
+    cases,
+    person,
+    setup_lifecycle_case,
+    source_model,
+    tape,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "rust" / "runtime" / "Cargo.toml"
@@ -218,6 +224,39 @@ class SchellingSourceRustDifferentialTests(unittest.TestCase):
 
         with self.assertRaises(AssertionError):
             _equal_with_frozen_coordinate_tolerance(self, result, mutant)
+
+    def test_current_and_phase_start_views_keep_distinct_write_visibility(self):
+        for read_view, commit_mode, expected in (
+            ("current", "immediate", [1, 2]),
+            ("phase_start", "buffered", [0, 0]),
+        ):
+            with self.subTest(read_view=read_view):
+                phase = {
+                    "id": "observe-writes", "target": "agents", "agent_kind": "person",
+                    "read_view": read_view, "commit_mode": commit_mode,
+                    "traversal": "stable", "random_address": None,
+                    "operations": [
+                        {"op": "increment", "guard": None, "target": "globals",
+                         "field": "seen", "value": 1},
+                        {"op": "set", "guard": None, "target": "self",
+                         "field": "observed", "value": {"op": "get", "scope": "globals", "field": "seen"}},
+                    ],
+                }
+                model = source_model(
+                    f"read-view/{read_view}",
+                    [person("a", "blue", 0, 0, observed=0),
+                     person("b", "orange", 1, 0, observed=0)],
+                    phases=[phase],
+                )
+                model["initial_state"]["globals"] = {"seen": 0}
+                case = {"case_id": f"read-view-{read_view}", "model": model, "random_tape": tape()}
+                plan = compile_model(model).plan
+                python = run_abm_plan(plan, random_tape=case["random_tape"])
+                _, rust = self._run(case)
+                self.assertIsNotNone(rust)
+                _equal_with_frozen_coordinate_tolerance(self, python, rust)
+                self.assertEqual(python["state"]["globals"]["seen"], 2)
+                self.assertEqual([item["vars"]["observed"] for item in python["state"]["agents"]], expected)
 
     def test_rust_loader_rejects_invalid_extension_and_unsupported_combinations(self):
         base = next(item for item in cases() if item["case_id"] == "own-patch-acceptance")["model"]

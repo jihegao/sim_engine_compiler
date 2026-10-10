@@ -79,4 +79,27 @@ The [2026-09-27 report](results/amd128-20260927/REPORT.md) records the sole
 complete, zero comparisons meeting the frozen benefit threshold. Independent
 semantic and evidence reviews passed. This is negative performance evidence;
 default dispatch remains unchanged. The publication bundle documents its
-process-argument redaction and preserves original/published hashes.
+process-argument redaction and preserves original/published hashes. The current
+tree keeps only the 81,633-byte formal measurement selection needed to reproduce
+the negative summary; large raw outputs/logs are external with exact pointers
+and the complete hash catalog. `publication.py` verifies/recomputes the selected
+evidence offline without launching any measured process.
+
+The 2026-10-10 local review passed 36 stdlib driver, summary, selection and
+lifecycle controls on Python 3.12.14. They retain the original 20 controls and
+add tiny Python children and mocked process groups for startup/wait deadlines,
+signal cancellation, leader reaping, surviving descendants and unknown cleanup.
+The current driver keeps cancellation latched through process ownership and
+cleanup, requires a reaped leader and an empty owned group, and accounts startup
+against the original cell deadline. A denied group probe remains unknown even
+if a later probe reports an empty group. Cancellation closes the once-only
+window and preserves its failed cell before another launch.
+
+Temporary fixture paths are resolved before constructing their artifact
+manifest, matching admission's canonical path contract on macOS and Linux.
+The existing bounded-controls workflow now requires these 36 tests; its CI
+execution remains unverified here. Normal SDK/Rust regression acceptance of the
+integrated source is separate and requires the existing supported toolchain.
+These runner corrections were checked with local fixtures; the historical
+99-cell execution remains bound to `cf50eec` and all published result bytes
+remain unchanged. No new formal window was run in this review.

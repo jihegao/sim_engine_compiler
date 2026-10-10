@@ -1,5 +1,14 @@
 # 合同目录规划
 
+本页保留早期合同规划。#10/#11 的首个可执行公共身份基础现位于
+`sim_engine_compiler.identity`，接口、支持范围与未实现能力见
+[公共身份合同 v1](../docs/identity-contract-v1.md)。它不表示下列所有规划合同均已实现。
+
+Issue #29 的 installable aircraft v0.1 产品合同和 `.simpack` 精确版本
+矩阵见 [v0.1 产品合同](../docs/v01-product-contract.md)。这个可执行
+bundle 入口在 PR #20 的离线层关联检查之上增加发布准入，不把
+identity report 的 `partial` 映射覆盖度提升为完整规则因果证据。
+
 此目录尚无可执行 schema。下表是阶段 A/B 的合同清单，名称为本项目草案，不声称等于上游实际字段。先由小案例驱动 schema，再冻结版本；不复制一份新的 Project schema。
 
 | 合同 | 内容 | 首次交付 |

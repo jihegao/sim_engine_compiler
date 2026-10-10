@@ -5,6 +5,13 @@ Engine semantic baseline: `main@595cb5eee9987324b19a8c3566f201f937e05f15`.
 No compiler, Plan, Python/Rust runtime, RNG or business semantics were changed.
 This experiment neither uses nor merges the unmerged PR #20 identity API.
 
+The current main checkout has since added PR #20/#23/#24 and Issue #29 product
+modules. `provenance.py` now lists their exact source digests and separately
+declares the changed package entrypoint and installer metadata. Its frozen
+`595cb5e` Git blob/build fingerprint and the historical `evidence/v1` files
+remain unchanged. A passing current-checkout pairing test is a regression
+check, not new SIMLOX native acceptance.
+
 ## Outcome and acceptance scope
 
 Both independently executed teaching cases match the frozen **mapped**
@@ -131,8 +138,19 @@ Engine source identity now has two explicit layers:
 - The executed-source identity hashes the bytes actually read from the working
   tree and records a mode per file. A file must either equal its Git blob byte
   for byte or equal the single whole-file transformation LF to CRLF. Mixed
-  newlines, bare CR changes, any other content edit, and added or missing engine
-  Python files fail closed. CRLF is therefore audited, not generally normalized.
+  newlines, bare CR changes, any other content edit, and undeclared added or
+  missing engine Python files fail closed. CRLF is therefore audited, not
+  generally normalized.
+
+PR #20 adds five offline `identity` modules, PR #23 adds four offline `review`
+modules, and PR #24 adds four offline `trace_query` modules while updating
+`identity/runs.py`. Contract `simlox-pairing-checkout-additions/v3` declares all
+13 repository paths and their exact LF-byte SHA-256 values in `provenance.py`.
+Every file must be present and byte-identical, with the same audited whole-file
+CRLF allowance, and is recorded under a separate checkout-membership
+fingerprint. They do not enter or alter the frozen `595cb5e` build fingerprint.
+Any later package source addition, deletion, or content change still fails until
+its provenance classification and digest are reviewed explicitly.
 
 The imported `SimpyReferenceRuntime` path must still resolve into this checkout.
 The source verifier reads the exact baseline tree and blobs and never substitutes

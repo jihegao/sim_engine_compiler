@@ -16,6 +16,8 @@ window.  Preparation consumes an already-passed semantic gate and a plan map.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+from contextvars import ContextVar
 import hashlib
 import json
 import os
@@ -26,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from typing import Any, Callable
+from typing import Any, Callable, Iterator
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -107,6 +109,49 @@ class CoordinatorInterrupted(RuntimeError):
     def __init__(self, signum: int):
         super().__init__(f"signal:{signum}")
         self.signum = signum
+
+
+class _Cancellation:
+    """Keep cancellation nonthrowing until owned process cleanup is recorded."""
+
+    def __init__(self) -> None:
+        self.signum: int | None = None
+        self.count = 0
+
+    def latch(self, signum: int, _frame: object) -> None:
+        if self.signum is None:
+            self.signum = signum
+        self.count += 1
+
+    def check(self) -> None:
+        if self.signum is not None:
+            raise CoordinatorInterrupted(self.signum)
+
+
+_ACTIVE_CANCELLATION: ContextVar[_Cancellation | None] = ContextVar(
+    "three_arm_cancellation", default=None
+)
+_CANCELLATION_SIGNALS = (signal.SIGINT, signal.SIGTERM)
+
+
+@contextmanager
+def _cancellation_guard() -> Iterator[_Cancellation]:
+    active = _ACTIVE_CANCELLATION.get()
+    if active is not None:
+        yield active
+        return
+    cancellation = _Cancellation()
+    previous: dict[int, Any] = {}
+    token = _ACTIVE_CANCELLATION.set(cancellation)
+    try:
+        for signum in _CANCELLATION_SIGNALS:
+            previous[signum] = signal.getsignal(signum)
+            signal.signal(signum, cancellation.latch)
+        yield cancellation
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
+        _ACTIVE_CANCELLATION.reset(token)
 
 
 def _canonical_json(value: object) -> bytes:
@@ -887,21 +932,74 @@ def parse_gnu_time(stderr: str) -> dict[str, Any]:
     return result
 
 
-def _terminate(process: subprocess.Popen[str]) -> None:
-    if process.poll() is not None:
-        return
-    try:
-        os.killpg(process.pid, signal.SIGTERM)
-        process.wait(timeout=2)
-    except (ProcessLookupError, subprocess.TimeoutExpired):
+def _terminate(process: subprocess.Popen[str], *, timeout: float = 5.0) -> dict[str, Any]:
+    """Reap the owned leader and independently verify its session's group is empty."""
+    deadline = time.monotonic() + timeout
+    lifecycle: dict[str, Any] = {
+        "child_reaped": False,
+        "process_group_empty_after_wait": False,
+        "process_group_probe_unknown": False,
+        "cleanup_required": False,
+        "cleanup_errors": [],
+    }
+
+    def record_error(operation: str, error: BaseException) -> None:
+        lifecycle["cleanup_errors"].append(
+            {"operation": operation, "type": type(error).__name__, "message": str(error)}
+        )
+
+    def poll_leader() -> None:
+        try:
+            if process.poll() is not None:
+                lifecycle["child_reaped"] = True
+        except BaseException as error:
+            record_error("poll_leader", error)
+
+    def empty_group() -> bool:
+        try:
+            os.killpg(process.pid, 0)
+            return False
+        except ProcessLookupError:
+            return True
+        except BaseException as error:
+            # EPERM is unknown, never evidence that a group is absent.  Keep
+            # this sticky even if a later probe reports that the group exited.
+            lifecycle["process_group_probe_unknown"] = True
+            record_error("probe_group", error)
+            return False
+
+    # Reap an already exited leader before probing (macOS can report EPERM for
+    # an unreaped leader), but do not confuse leader exit with group exit.
+    poll_leader()
+    empty = empty_group()
+    lifecycle["cleanup_required"] = not empty
+    unsafe_group = process.pid <= 1 or process.pid == os.getpgrp()
+    if unsafe_group:
+        record_error("kill_group", RuntimeError("refuse cleanup of caller process group"))
+    elif not empty:
         try:
             os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired as error:
-            raise RuntimeError("owned process group did not terminate after SIGKILL") from error
+        except BaseException as error:
+            lifecycle["process_group_probe_unknown"] = True
+            record_error("kill_group", error)
+    try:
+        process.wait(timeout=max(0.0, deadline - time.monotonic()))
+        lifecycle["child_reaped"] = True
+    except BaseException as error:
+        record_error("wait_leader", error)
+    poll_leader()
+    while not empty and time.monotonic() < deadline:
+        empty = empty_group()
+        if not empty:
+            time.sleep(min(0.01, max(0.0, deadline - time.monotonic())))
+    lifecycle["process_group_empty_after_wait"] = empty_group()
+    lifecycle["completion_unknown"] = bool(
+        lifecycle["cleanup_errors"]
+        or not (lifecycle["child_reaped"] and lifecycle["process_group_empty_after_wait"])
+    )
+    return lifecycle
 
 
 def _run_capture(
@@ -913,66 +1011,109 @@ def _run_capture(
 ) -> dict[str, Any]:
     started = time.monotonic()
     started_ns = time.monotonic_ns()
-    with tempfile.TemporaryFile(mode="w+t", encoding="utf-8") as stdout_file, tempfile.TemporaryFile(
-        mode="w+t", encoding="utf-8"
-    ) as stderr_file:
-        process = subprocess.Popen(
-            command,
-            cwd=ROOT,
-            text=True,
-            stdout=stdout_file,
-            stderr=stderr_file,
-            start_new_session=True,
-            env={**os.environ, **environment},
-        )
+    deadline = started + timeout
+    with _cancellation_guard() as cancellation:
+        process: subprocess.Popen[str] | None = None
         overlap: list[dict[str, Any]] = []
         timed_out = False
-        interrupted: BaseException | None = None
-        try:
-            while process.poll() is None:
-                elapsed = time.monotonic() - started
-                if elapsed > timeout:
-                    timed_out = True
-                    _terminate(process)
-                    break
-                overlap = overlap_check()
-                if overlap:
-                    _terminate(process)
-                    break
+        failure: BaseException | None = None
+        lifecycle: dict[str, Any] = {
+            "child_reaped": False,
+            "process_group_empty_after_wait": True,
+            "process_group_probe_unknown": False,
+            "cleanup_required": False,
+            "cleanup_errors": [],
+            "completion_unknown": False,
+        }
+        with tempfile.TemporaryFile(mode="w+t", encoding="utf-8") as stdout_file, tempfile.TemporaryFile(
+            mode="w+t", encoding="utf-8"
+        ) as stderr_file:
+            try:
+                cancellation.check()
+                # Mask delivery until Popen has returned and ownership is
+                # assigned.  The new session must not inherit this mask.
+                mask = signal.pthread_sigmask(signal.SIG_BLOCK, set(_CANCELLATION_SIGNALS))
+
+                def child_setup() -> None:
+                    signal.pthread_sigmask(signal.SIG_UNBLOCK, set(_CANCELLATION_SIGNALS))
+
                 try:
-                    process.wait(timeout=min(0.25, max(0.001, timeout - elapsed)))
-                except subprocess.TimeoutExpired:
-                    pass
-        except BaseException as error:
-            interrupted = error
-            _terminate(process)
-        stdout_file.seek(0)
-        stderr_file.seek(0)
-        stdout = stdout_file.read()
-        stderr = stderr_file.read()
-    execution = {
-        "command": command,
-        "started_monotonic_ns": started_ns,
-        "finished_monotonic_ns": time.monotonic_ns(),
-        "wall_ns": int((time.monotonic() - started) * 1_000_000_000),
-        "exit_status": process.returncode,
-        "stdout": stdout,
-        "stderr": stderr,
-        "timed_out": timed_out,
-        "overlap": overlap,
-    }
-    if interrupted is not None:
-        execution["interrupted"] = True
-        raise CellFailure(
-            f"coordinator_interrupt:{type(interrupted).__name__}", execution
-        ) from interrupted
-    if timed_out:
-        raise CellFailure("cell_timeout", execution)
-    if overlap:
-        raise CellFailure("foreign_process_overlap", execution)
-    if process.returncode != 0:
-        raise CellFailure(f"cell_exit_status:{process.returncode}", execution)
-    return execution
+                    process = subprocess.Popen(
+                        command,
+                        cwd=ROOT,
+                        text=True,
+                        stdout=stdout_file,
+                        stderr=stderr_file,
+                        start_new_session=True,
+                        preexec_fn=child_setup,
+                        env={**os.environ, **environment},
+                    )
+                finally:
+                    signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+                while True:
+                    cancellation.check()
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        timed_out = True
+                        break
+                    if process.poll() is not None:
+                        break
+                    overlap = overlap_check()
+                    if overlap:
+                        break
+                    try:
+                        process.wait(timeout=min(0.05, max(0.0, deadline - time.monotonic())))
+                    except subprocess.TimeoutExpired:
+                        continue
+                    if time.monotonic() > deadline:
+                        timed_out = True
+                    break
+            except BaseException as error:
+                failure = error
+            finally:
+                if process is not None:
+                    lifecycle = _terminate(process)
+            stdout_file.seek(0)
+            stderr_file.seek(0)
+            stdout = stdout_file.read()
+            stderr = stderr_file.read()
+        finished = time.monotonic()
+        timed_out = timed_out or finished > deadline
+        execution = {
+            "command": command,
+            "started_monotonic_ns": started_ns,
+            "finished_monotonic_ns": time.monotonic_ns(),
+            "wall_ns": int((finished - started) * 1_000_000_000),
+            "pid": process.pid if process is not None else None,
+            "process_started": process is not None,
+            "exit_status": process.returncode if process is not None else None,
+            "stdout": stdout,
+            "stderr": stderr,
+            "timed_out": timed_out,
+            "overlap": overlap,
+            **lifecycle,
+            "interrupted": cancellation.signum is not None
+            or isinstance(failure, (CoordinatorInterrupted, KeyboardInterrupt)),
+            "interruption_signal": cancellation.signum,
+            "cancellation_count": cancellation.count,
+        }
+        if failure is not None:
+            execution["error"] = {"type": type(failure).__name__, "message": str(failure)}
+        if execution["interrupted"]:
+            raise CellFailure("coordinator_interrupt:CoordinatorInterrupted", execution) from failure
+        if failure is not None:
+            raise CellFailure(f"cell_error:{type(failure).__name__}", execution) from failure
+        if lifecycle["completion_unknown"]:
+            raise CellFailure("owned_process_lifecycle_unknown", execution)
+        if timed_out:
+            raise CellFailure("cell_timeout", execution)
+        if overlap:
+            raise CellFailure("foreign_process_overlap", execution)
+        if lifecycle["cleanup_required"]:
+            raise CellFailure("surviving_owned_process_group", execution)
+        if process is None or process.returncode != 0:
+            raise CellFailure(f"cell_exit_status:{execution['exit_status']}", execution)
+        return execution
 
 
 def _case_by_id(manifest: dict[str, Any], case_id: str) -> dict[str, Any]:
@@ -1100,18 +1241,21 @@ def measure(args: argparse.Namespace) -> dict[str, Any]:
         "records": [],
     }
     _persist_state(state_path, state)
-    signals = tuple(
-        signum for signum in (getattr(signal, "SIGINT", None), getattr(signal, "SIGTERM", None))
-        if signum is not None
-    )
-    previous_handlers = {signum: signal.getsignal(signum) for signum in signals}
+    with _cancellation_guard() as cancellation:
+        return _measure_window(args, run_dir, manifest, state_path, state, started, cancellation)
 
-    def interrupt(signum: int, _frame: object) -> None:
-        raise CoordinatorInterrupted(signum)
 
-    for signum in signals:
-        signal.signal(signum, interrupt)
+def _measure_window(
+    args: argparse.Namespace,
+    run_dir: Path,
+    manifest: dict[str, Any],
+    state_path: Path,
+    state: dict[str, Any],
+    started: float,
+    cancellation: _Cancellation,
+) -> dict[str, Any]:
     try:
+        cancellation.check()
         if args.deadline_seconds > WINDOW_DEADLINE_SECONDS or args.deadline_seconds <= 0:
             raise AdmissionError("deadline must be in (0, 1200]")
         _validate_frozen_files(manifest)
@@ -1120,8 +1264,10 @@ def measure(args: argparse.Namespace) -> dict[str, Any]:
         _admit(preflight, manifest["protocol"]["max_normalized_load"])
         state["status"] = "running"
         _persist_state(state_path, state)
+        cancellation.check()
         expected_by_case: dict[str, str] = {}
         for cell in manifest["schedule"]:
+            cancellation.check()
             remaining = args.deadline_seconds - (time.monotonic() - started)
             if remaining < MINIMUM_CELL_START_SECONDS:
                 raise AdmissionError("insufficient_time_for_next_cell_and_postflight")
@@ -1137,13 +1283,16 @@ def measure(args: argparse.Namespace) -> dict[str, Any]:
             if remaining < MINIMUM_CELL_START_SECONDS:
                 raise AdmissionError("insufficient_time_after_cell_preflight")
             timeout = min(CELL_TIMEOUT_SECONDS, remaining - POSTFLIGHT_RESERVE_SECONDS)
+            execution: dict[str, Any] | None = None
             try:
+                cancellation.check()
                 execution = _run_capture(
                     command,
                     timeout=timeout,
                     overlap_check=lambda: heavy_processes(),
                     environment={"RUSTUP_TOOLCHAIN": RUST_TOOLCHAIN},
                 )
+                cancellation.check()
                 report = _load_object(report_path, "stage-c report")
                 digest = _verify_report(manifest, cell, report)
                 timing_text = time_path.read_text(encoding="utf-8")
@@ -1153,6 +1302,7 @@ def measure(args: argparse.Namespace) -> dict[str, Any]:
                     raise ValueError("sample result digest differs across arms or repeats")
                 after = machine_snapshot()
                 _admit(after, manifest["protocol"]["max_normalized_load"])
+                cancellation.check()
                 record = {
                     "cell": cell,
                     "status": "complete",
@@ -1165,8 +1315,15 @@ def measure(args: argparse.Namespace) -> dict[str, Any]:
                     "machine_after": after,
                 }
                 _write_json(cell_dir / "record.json", record)
+                cancellation.check()
             except BaseException as error:
-                execution = error.execution if isinstance(error, CellFailure) else None
+                execution = error.execution if isinstance(error, CellFailure) else execution
+                if execution is not None and cancellation.signum is not None:
+                    execution.update(
+                        interrupted=True,
+                        interruption_signal=cancellation.signum,
+                        cancellation_count=cancellation.count,
+                    )
                 failure = {
                     "cell": cell,
                     "status": "failed",
@@ -1179,14 +1336,17 @@ def measure(args: argparse.Namespace) -> dict[str, Any]:
             state["records"].append(str((cell_dir / "record.json").relative_to(run_dir)))
             state["cells_completed"] += 1
             _persist_state(state_path, state)
+            cancellation.check()
         state["postflight"] = machine_snapshot(detailed_processes=True)
         _admit(state["postflight"], manifest["protocol"]["max_normalized_load"])
+        cancellation.check()
         if time.monotonic() - started > args.deadline_seconds:
             raise AdmissionError("deadline_exceeded_during_postflight")
         state["status"] = "complete"
         state["finished_at_unix_seconds"] = int(time.time())
         state["elapsed_seconds"] = time.monotonic() - started
         _persist_state(state_path, state)
+        cancellation.check()
         if time.monotonic() - started > args.deadline_seconds:
             raise AdmissionError("deadline_exceeded_during_completion_write")
         return state
@@ -1195,11 +1355,14 @@ def measure(args: argparse.Namespace) -> dict[str, Any]:
         state["stop_reason"] = f"{type(error).__name__}:{error}"
         state["finished_at_unix_seconds"] = int(time.time())
         state["elapsed_seconds"] = time.monotonic() - started
+        if cancellation.signum is not None:
+            state.update(
+                interrupted=True,
+                interruption_signal=cancellation.signum,
+                cancellation_count=cancellation.count,
+            )
         _persist_state(state_path, state)
         raise
-    finally:
-        for signum, handler in previous_handlers.items():
-            signal.signal(signum, handler)
 
 
 def status(args: argparse.Namespace) -> dict[str, Any]:

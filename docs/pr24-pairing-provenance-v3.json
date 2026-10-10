@@ -1,0 +1,62 @@
+{
+  "schema_version": "simlox-pairing-checkout-additions-review/v3",
+  "status": "local_pass_exact_head_ci_pending",
+  "scope": "PR24 trace-query modules and the updated identity run projector classified as content-pinned checkout additions outside the frozen pairing engine",
+  "main_commit": "2822a807ed35321aac061a6e058969ad845f51f1",
+  "feature_fix_commit": "4143204",
+  "integration_merge_commit": "92b1f62",
+  "resolution": {
+    "contract": "simlox-pairing-checkout-additions/v3",
+    "frozen_engine_commit": "595cb5eee9987324b19a8c3566f201f937e05f15",
+    "frozen_build_fingerprint": "8b029a0a79495bbdadb7f133ff035eb19c564365fe1c6315b3ba56289496ded1",
+    "frozen_build_changed": false,
+    "declared_source_count": 13,
+    "unknown_additions_still_rejected": true,
+    "changed_identity_source": {
+      "src/sim_engine_compiler/identity/runs.py": "3b1a4c9a9ee0b98a88d539fbd14bd3467d604afb3bc101fe009df9ad089e69e0"
+    },
+    "declared_trace_query_sources": {
+      "src/sim_engine_compiler/trace_query/__init__.py": "c0e6ccf516db95362ef5c37a0c22cec3eee5bbbd27fd908823c2156c2463fbfc",
+      "src/sim_engine_compiler/trace_query/__main__.py": "252556632f749f07d5c66e5b7396dfcc7ea171d00e55eb62dc85e4be89f52e33",
+      "src/sim_engine_compiler/trace_query/facts.py": "1117d82de0879dc533f4bc8366efd69ecc7732ece6cdde4efa82767bc0f75af3",
+      "src/sim_engine_compiler/trace_query/query.py": "a39f4f6f9565f80dea43e1d42ea4dadfb395c6c87e9f56b0d2d5159ddbd8df9a"
+    }
+  },
+  "authority_repairs": [
+    "all trace events validate details before filters, pagination, or output budgets",
+    "caller-supplied or self-signed review envelopes cannot authorize verified design links",
+    "every link-producing facts call revalidates the supplied raw Business/Core/Plan/lineage bundle"
+  ],
+  "reviewed_artifacts": {
+    "experiments/simlox_pairing/provenance.py": "4ba3798df5e31477f53c240212d1ad556175a3b59d6f03e2990c081e9070863c",
+    "tests/conformance/test_simlox_pairing_provenance.py": "dd24587172ebb8a80bb51513b3c3ac8c281f45756af22c194820663d09b7f905",
+    "experiments/simlox_pairing/README.md": "9f810dcfac4c23811f01d0c9a79afbf7c4a53517f7d087f5950b1a7b5f935310"
+  },
+  "verification": [
+    {
+      "command": "PYTHONPATH=src python -m experiments.simlox_pairing.check_tests",
+      "result": "36 collected, 36 executed, 36 passed, 0 skipped",
+      "status": "pass"
+    },
+    {
+      "command": "PYTHONPATH=src python -m pytest -q [identity, review, trace-query, and pairing modules]",
+      "result": "280 passed",
+      "status": "pass"
+    },
+    {
+      "command": "PYTHONPATH=src python -m pytest -q [pairing provenance and four trace-query modules]",
+      "result": "79 passed",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean",
+      "status": "pass"
+    }
+  ],
+  "historical_receipts": [
+    "docs/pr23-pairing-provenance-v2.json",
+    "docs/trace-query-independent-review-v1.json"
+  ],
+  "receipt_boundary": "This v3 integration receipt records the post-main provenance contract and local executable checks. Historical receipts remain unchanged. Exact-head GitHub Actions is still required."
+}

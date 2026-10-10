@@ -6,7 +6,7 @@ import unittest
 from sim_engine_compiler import compile_model, run_abm_batch, run_abm_plan
 from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.reference import AbmRuntimeError
-from sim_engine_compiler.reference.abm_runtime import _unit_from_digest
+from sim_engine_compiler.reference.abm_runtime import AbmTickRuntime, _unit_from_digest
 
 from tests.conformance.test_abm_ir import base_spec, patch
 
@@ -80,6 +80,39 @@ class FireVerticalSliceTests(unittest.TestCase):
     def test_repeat_seed_produces_complete_identical_result(self):
         plan = compile_model(self.spec()).plan
         self.assertEqual(run_abm_plan(plan, seed=9), run_abm_plan(plan, seed=9))
+
+
+class CurrentViewScaleTests(unittest.TestCase):
+    def test_immediate_writes_are_visible_without_copying_world_per_operation(self):
+        spec = base_spec(width=100)
+        for item in spec["initial_state"]["patches"]:
+            item["vars"]["value"] = 0
+        spec["phases"] = [{
+            "id": "advance", "target": "patches", "agent_kind": None,
+            "read_view": "current", "commit_mode": "immediate",
+            "traversal": "stable", "random_address": None,
+            "operations": [
+                {"op": "set", "guard": None, "target": "self", "field": "value",
+                 "value": binary("+", get("self", "value"), 1)},
+                {"op": "increment", "guard": None, "target": "self", "field": "value",
+                 "value": 1},
+            ],
+        }]
+
+        class CountingRuntime(AbmTickRuntime):
+            copies = 0
+
+            def _state_copy(self):
+                self.copies += 1
+                return super()._state_copy()
+
+        runtime = CountingRuntime(compile_model(spec).plan)
+        result = runtime.run()
+
+        self.assertEqual([item["vars"]["value"] for item in result["state"]["patches"]],
+                         [2] * 100)
+        self.assertEqual(len(result["events"]), 200)
+        self.assertLess(runtime.copies, 10)
 
 
 class SchellingStyleTests(unittest.TestCase):

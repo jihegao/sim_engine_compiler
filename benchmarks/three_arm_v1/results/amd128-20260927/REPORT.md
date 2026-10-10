@@ -82,10 +82,34 @@ Preflight normalized 1-minute load: 0.001602173; postflight: 0.009262085; thresh
 
 - `summary.json`: all ratios, paired repeats, arm medians, classification and limits.
 - `pre-window-review.json`: independent admission and stopped-agent receipt.
-- `raw-evidence.tar.gz`: a publication derivative of run-relative evidence, including failed untimed attempt, successful logs/receipt, Business/Core/Plans, reference and Rust outputs, profiles, formal manifest/state and every cell report/time/record. The state omits only pre/post `ps_output`; the duplicate console is excluded.
-- `EVIDENCE.json`: bundle hash, complete file inventory, original/published state hashes and explicit redaction record; original absolute paths identify the originating checkout and are not rewritten.
+- `formal-measurements.tar.gz`: a small, reviewed selection containing unchanged formal manifest/digest, the redacted state, and all 99 cell records, reports and GNU time receipts. It is 81,633 bytes (300 members, 798,202 uncompressed bytes). Simulation traces, source models, build logs and failed-run logs are outside the committed selection.
+- `EVIDENCE.json`: selection hash, complete original 988-file inventory, original/published state hashes and redaction record. The former 15,200,305-byte `raw-evidence.tar.gz` is retained externally; its exact historical Git pointer and AMD128 originating directory are recorded, with SHA-256 `a7c8a50b8518badc3497a64e60ac6a8d4556de1197dee52107b4330de1b4705e`. The external originating directory was not rechecked in this offline review.
 - `toolchain-preparation.json`: download/attestation/build identities. Large external toolchain archives and executable binaries are omitted; their hashes and source versions are retained.
 
-Extract the archive at repository root to recover `runs/three-arm-v1/`. The pure evidence summarizer can verify the frozen run from another checkout; live admission/build validators additionally require the original paths or a newly generated local evidence set. Do not rerun formal timing to reproduce this report. Generated runs remain separate from frozen upstream source snapshots.
+The committed selection preserves every numeric input needed to recompute all
+33 comparisons from the frozen 99 cells. Run the offline verifier from repository
+root; it checks archive/member hashes and finite membership before writing a
+temporary measurement directory, then requires exact equality with the original
+`summary.json`:
+
+```sh
+python benchmarks/three_arm_v1/publication.py benchmarks/three_arm_v1/results/amd128-20260927
+```
+
+This recomputes the negative summary without running a simulation, compiler,
+service or new timing window. Full semantic admission still requires the external
+original output/Plan evidence, whose entire hash catalog remains available; this
+selection does not claim fresh semantic or source-model acceptance. Live
+admission/build validators additionally require the original paths or a newly
+generated local evidence set. Do not rerun formal timing to reproduce this report.
+Generated runs remain separate from frozen upstream source snapshots.
 
 Raw pre/post process arguments contained credential-looking assignments from unrelated services. Original state/console remain immutable locally; the public derivative removes the complete `ps_output` strings and excludes the duplicate console. All load, PID visibility, known-heavy-process lists, per-cell overlap results, command/timing/result hashes and counters remain unchanged. This limits public reinspection of unrelated process arguments, not the disclosed numerical comparisons.
+
+The 2026-10-10 source-only review verified all 988 original publication member
+hashes before selecting these 300 unchanged files. The measured commit remains
+`cf50eec`; no old measurements, failed attempt, negative conclusion, default
+adoption or historical review receipt was rewritten. The large raw archive is
+excluded from the current tree under the requested publication limit. Existing
+`publication-review.json` describes the original historical publication, not a
+new controller approval of this repair.

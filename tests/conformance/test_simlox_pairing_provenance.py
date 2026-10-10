@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import hashlib
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path, PureWindowsPath
 
 from experiments.simlox_pairing.provenance import (
+    DECLARED_BASELINE_OVERRIDE_SHA256,
+    DECLARED_MODIFIED_BASELINE_SOURCE_SHA256,
+    DECLARED_NONBASELINE_SOURCE_CONTRACT,
+    DECLARED_NONBASELINE_SOURCE_SHA256,
     DEFAULT_ARCHIVE,
     MANIFEST_SHA256,
     _canonical_path_key,
@@ -73,6 +78,47 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
             identity["build_fingerprint"], identity["consumer_source_fingerprint"]
         )
         self.assertIsNone(identity["identity_pr20_dependency"])
+        self.assertEqual(
+            identity["declared_nonbaseline_source_files"],
+            DECLARED_NONBASELINE_SOURCE_SHA256,
+        )
+        self.assertEqual(
+            identity["declared_nonbaseline_source_contract"],
+            DECLARED_NONBASELINE_SOURCE_CONTRACT,
+        )
+        self.assertEqual(identity["declared_baseline_overrides"], DECLARED_BASELINE_OVERRIDE_SHA256)
+        self.assertNotEqual(identity["build_fingerprint"], identity["executed_source_fingerprint"])
+        self.assertEqual(
+            set(identity["declared_nonbaseline_source_files"]),
+            {
+                "src/sim_engine_compiler/cli.py",
+                "src/sim_engine_compiler/compiler/bounded_layout.py",
+                "src/sim_engine_compiler/domains/aircraft_support/bounded.py",
+                "src/sim_engine_compiler/domains/aircraft_support/bounded_runtime.py",
+                "src/sim_engine_compiler/domains/aircraft_support/pack.py",
+                "src/sim_engine_compiler/examples/__init__.py",
+                "src/sim_engine_compiler/identity/__init__.py",
+                "src/sim_engine_compiler/identity/__main__.py",
+                "src/sim_engine_compiler/identity/artifacts.py",
+                "src/sim_engine_compiler/identity/common.py",
+                "src/sim_engine_compiler/identity/runs.py",
+                "src/sim_engine_compiler/integrations/spare_mvp/bounded.py",
+                "src/sim_engine_compiler/ir/bounded.py",
+                "src/sim_engine_compiler/product.py",
+                "src/sim_engine_compiler/reference/event_calendar.py",
+                "src/sim_engine_compiler/review/__init__.py",
+                "src/sim_engine_compiler/review/__main__.py",
+                "src/sim_engine_compiler/review/exporter.py",
+                "src/sim_engine_compiler/review/views.py",
+                "src/sim_engine_compiler/trace_query/__init__.py",
+                "src/sim_engine_compiler/trace_query/__main__.py",
+                "src/sim_engine_compiler/trace_query/facts.py",
+                "src/sim_engine_compiler/trace_query/query.py",
+            },
+        )
+        self.assertTrue(identity["checkout_source_membership_fingerprint"])
+        self.assertEqual(identity["declared_modified_baseline_source_files"],
+                         DECLARED_MODIFIED_BASELINE_SOURCE_SHA256)
 
     def test_source_keys_are_posix_for_windows_and_host_path_objects(self):
         self.assertEqual(
@@ -144,6 +190,51 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
             (root / "src/sim_engine_compiler/engine.py").unlink()
             with self.assertRaisesRegex(ValueError, "membership differs"):
                 _verified_engine_sources(root, revision)
+
+    def test_declared_nonbaseline_sources_are_exact_and_do_not_change_baseline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            revision = _make_source_repo(root)
+            baseline = _verified_engine_sources(root, revision)
+            extra = root / "src/sim_engine_compiler/extra.py"
+            extra.write_bytes(b"declared = True\n")
+            declared = {"src/sim_engine_compiler/extra.py": "9" * 64}
+            with self.assertRaisesRegex(ValueError, "differs from pinned content"):
+                _verified_engine_sources(
+                    root,
+                    revision,
+                    declared_nonbaseline_sources=declared,
+                )
+
+            declared["src/sim_engine_compiler/extra.py"] = hashlib.sha256(
+                extra.read_bytes()
+            ).hexdigest()
+            extended = _verified_engine_sources(
+                root,
+                revision,
+                declared_nonbaseline_sources=declared,
+            )
+            self.assertEqual(extended["build_fingerprint"], baseline["build_fingerprint"])
+            self.assertNotEqual(
+                extended["checkout_source_membership_fingerprint"],
+                baseline["checkout_source_membership_fingerprint"],
+            )
+
+            extra.write_bytes(b"declared = False\n")
+            with self.assertRaisesRegex(ValueError, "differs from pinned content"):
+                _verified_engine_sources(
+                    root,
+                    revision,
+                    declared_nonbaseline_sources=declared,
+                )
+
+            extra.unlink()
+            with self.assertRaisesRegex(ValueError, "membership differs"):
+                _verified_engine_sources(
+                    root,
+                    revision,
+                    declared_nonbaseline_sources=declared,
+                )
 
     def test_missing_baseline_object_fails_closed_without_using_head(self):
         with tempfile.TemporaryDirectory() as directory:
