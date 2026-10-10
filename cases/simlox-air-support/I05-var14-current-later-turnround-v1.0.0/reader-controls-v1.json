@@ -1,0 +1,95 @@
+{
+  "utc": "2026-10-10T02:26:38.847106+00:00",
+  "decision": "AUTHOR_SYNTHETIC_METHOD_CONTROLS_ONLY",
+  "positive": {
+    "physical_lines": 125,
+    "typed_cells": 4044,
+    "turnround_periods": [
+      {
+        "task": 1,
+        "start": 23.5,
+        "end": 24,
+        "duration": 0.5,
+        "start_bin": 23.5
+      },
+      {
+        "task": 3,
+        "start": 26.75,
+        "end": 27.75,
+        "duration": 1.0,
+        "start_bin": 26.5
+      }
+    ],
+    "turnround_hours": 1.5,
+    "preparation_hours": 1.0,
+    "flight_hours": 4.0,
+    "maintenance_downtime_count": 0,
+    "terminal_ready": 1
+  },
+  "negatives": [
+    {
+      "name": "parent unchanged",
+      "rejected": true,
+      "reason": "entire ordered eventbytes"
+    },
+    {
+      "name": "current duration overwritten",
+      "rejected": true,
+      "reason": "entire ordered eventbytes"
+    },
+    {
+      "name": "future old duration",
+      "rejected": true,
+      "reason": "entire ordered eventbytes"
+    },
+    {
+      "name": "wrong future completion",
+      "rejected": true,
+      "reason": "entire ordered eventbytes"
+    },
+    {
+      "name": "earlier mission altered",
+      "rejected": true,
+      "reason": "entire ordered eventbytes"
+    },
+    {
+      "name": "dropped column metadata",
+      "rejected": true,
+      "reason": "keys $.report.tables[2].columns[0]"
+    },
+    {
+      "name": "stock changed",
+      "rejected": true,
+      "reason": "value $.report.tables[3].instances[0].rows[0][15]"
+    },
+    {
+      "name": "int changed float token",
+      "rejected": true,
+      "reason": "type $.report.tables[2].instances[0].rows[0][2]"
+    },
+    {
+      "name": "extra report bin",
+      "rejected": true,
+      "reason": "length $.report.tables[2].instances[0].rows"
+    }
+  ],
+  "direct_event_ledger_negatives": [
+    {
+      "name": "missing maincomplete",
+      "rejected": true,
+      "reason": "main turnround clock/count"
+    },
+    {
+      "name": "duplicate maincomplete",
+      "rejected": true,
+      "reason": "main turnround clock/count"
+    },
+    {
+      "name": "old mainend",
+      "rejected": true,
+      "reason": "main turnround clock/count"
+    }
+  ],
+  "native_calls": 0,
+  "formal_runID": null
+}

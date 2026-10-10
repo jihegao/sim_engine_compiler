@@ -1,0 +1,7 @@
+# Read-only replay and new derivation
+
+Use evidence-reference.json to locate the preserved original/recovered run and verify all25SHA256/size/readonly pairs. On4700-3 run author_reader.py --arm child --model-log ORIGINAL/model.log --report ORIGINAL/report-raw.json and check_model.py ORIGINAL_DIRECTORY using the pinned Python. Repeatread-only onrecoveredfiles, then independentlyderiveevents/activity/report andcheck independentrawreceipt. No legacy/reference runtime or nativeSIMLOX rerun is required for evidence replay.
+
+The existing runID/physical/recovered paths are sealed. Native transport onthisfrozenpackage mustfailratherthanreuseoccupiedpaths. A newexperiment requires copiedsource/newversion/newunique runID and freshlypinned liveindex/catalog/install/manual/dictionary/accepteddependencies; keep oldpins andfailedhypotheses. Obtainindependentmethod/static, completedstandaloneguardian thenplainactualSSH0PS5purepreflight, exactreceipt-boundindependentGO, thenoneserialNativeQueue guardedattempt. Preservefullraw/readonlyrecovery/failureseals. Never rerun acceptedparent, forceactual values intooracle, bypassGUI/WTS/sshd/session guards, altergenericruntime or extrapolate thisboundedprofile.
+
+Currentmethod/source snapshots record prereview states. Datedacceptance/publication/postmerge receipts supersede status for their exactboundedscope without alteringfrozeninputs. GUI-exclusivefeatures/gates areoutsideIssue18; protectedGUIidentity remains safetyonly.

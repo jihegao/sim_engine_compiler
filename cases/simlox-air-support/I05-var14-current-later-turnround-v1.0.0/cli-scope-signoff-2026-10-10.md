@@ -1,0 +1,5 @@
+# I05.var14 bounded CLI signoff
+
+Native behavior accepted only for the current/later last TURN-STEPS sequence described in README-publication.md. Independent raw GO_BOUNDED SHA2e780247a3e853642891b6b9a91ce3e13f123f37847592fc1f4db83d269dd74b; one guarded attempt, four naturalexit0 stages,0parent reruns. Source e1967706807545cc42ae887ff77c30f4e7ad58b55ca9c810e2c3e90a7e855259, frozen prelaunch6f7b9a4e007611388741f0bd765e57871745e286acc1d1399b179f4e5c9cfd96. Complete125-event/4044-cell/33-table checks and25readonly pairs support the limited scope. Frozen pre-review status fields are historical; additive acceptance and later exact publication/postmerge receipts govern their respective stages.
+
+Publication requires separate content/staged/remote review and actual authorized simlox/main merge; productmain remains unchanged. GUI-exclusivefeatures/gates excluded; no fullvariant/clockalgorithm/crossengine/performance/CI/overallcompletion claim. Earlier H02 method precision NO_GO remains held evidence, not a native failure. CI status is separately verified; previous zero-step failures are not passes and causes remain unverified.
