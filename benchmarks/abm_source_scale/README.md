@@ -103,3 +103,16 @@ baseline. The new Python ABM bytes are recorded as an explicit, SHA-pinned
 checkout delta; the old baseline hash remains unchanged. Fresh pairing output
 now records both the frozen baseline and executed-source fingerprints. This
 does not retroactively change old evidence or imply SIMLOX native acceptance.
+
+## Review integration
+
+The source-only review integrates #30 with the independently reviewed engine
+main `0f1d4a108db2c9200c2d4724383bfb067bed08eb` after #542. The pairing source
+gate retains main's exact package/installer overrides, pins #542's six new
+modules, and separately pins this PR's ABM reference delta. Frozen baseline
+`595cb5e` and every historical Plan, measurement and result hash above remain
+unchanged. A new checkout is not a new performance measurement. Added offline
+checks exercise both kinds of source delta together, strict CRLF handling and
+duplicate/absent source declarations. Normal SDK and Rust acceptance of this
+integration must be recorded independently; they were not executed in the
+local review environment, which has no SimPy or Rust toolchain.

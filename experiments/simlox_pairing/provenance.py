@@ -27,20 +27,35 @@ REBUILT_ZIP_SHA256 = "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a
 PORTABLE_SHA256 = "ab26c7ea23496938e6e15e02f58eb8e6906db358acc2a9f24b7bdc28bee52d3f"
 DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.zip"
 
-# PRs #20, #23, and #24 add offline identity, review, and trace-query APIs
-# without changing the frozen pairing engine. Keep that checkout delta explicit
-# and content-pinned instead of widening the frozen baseline or ignoring
-# arbitrary new Python files.
-DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v3"
+# PRs #20, #23, #24, Issue #29 and the reviewed #542 add explicit source
+# modules. Keep their bytes and the #30 ABM delta separate from the frozen
+# pairing baseline; neither changes its historic Git blob fingerprint.
+DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v5"
 DECLARED_MODIFIED_BASELINE_SOURCE_CONTRACT = "simlox-pairing-declared-engine-delta/v1"
 DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
-    # The ABM reference clone-elision is a new engine revision. Keep the A01/A02
-    # source baseline frozen and identify the changed executed bytes separately.
     "src/sim_engine_compiler/reference/abm_runtime.py": (
         "46ef80ad188c39bc8d733378b143a29d46c0bba67eda63904067070bb352e10f"
     ),
 }
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
+    "src/sim_engine_compiler/cli.py": (
+        "8eb29736038478826bc01346278760e3266508f954ac3ba90e7c7afd5796e8c7"
+    ),
+    "src/sim_engine_compiler/compiler/bounded_layout.py": (
+        "d25d5954a4530d6e4f9fb08ee19f9041762be2dea80045a916512788afa7cc11"
+    ),
+    "src/sim_engine_compiler/domains/aircraft_support/bounded.py": (
+        "09ed36be1cabc303a5d8f3d03c86f6674e96160475c8c09c06b23693fe26ff47"
+    ),
+    "src/sim_engine_compiler/domains/aircraft_support/bounded_runtime.py": (
+        "c2d89dd900d0b531832876078a5bf96c0a9d39de83397333032eea45b266ba68"
+    ),
+    "src/sim_engine_compiler/domains/aircraft_support/pack.py": (
+        "ba9d1cb086c195a18ef0f9014aea9251f592d2d44f71246e33d264c6b76e1f83"
+    ),
+    "src/sim_engine_compiler/examples/__init__.py": (
+        "eed06b92b7f3972187c4ad316563b05c0c3c848ec60aba6c140d150c944019fe"
+    ),
     "src/sim_engine_compiler/identity/__init__.py": (
         "3cb31c00457b10ac369f0f059df6d536a97896492c3bed51ee4469e08e080c38"
     ),
@@ -55,6 +70,18 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     ),
     "src/sim_engine_compiler/identity/runs.py": (
         "3b1a4c9a9ee0b98a88d539fbd14bd3467d604afb3bc101fe009df9ad089e69e0"
+    ),
+    "src/sim_engine_compiler/integrations/spare_mvp/bounded.py": (
+        "32e5bba4fa1749dbd9dfd644539036fa9cd5aae2c650bb386e870e1a84658d78"
+    ),
+    "src/sim_engine_compiler/ir/bounded.py": (
+        "363131a6018b337a3802e8cf29a3c28d5855fa9e43a92c208fe0816e855f295a"
+    ),
+    "src/sim_engine_compiler/product.py": (
+        "b7da9845ab220f4bd7d68f02de0a00f7c84222c2307a9efa66f0d8e6b1049149"
+    ),
+    "src/sim_engine_compiler/reference/event_calendar.py": (
+        "f2dc90a52c0425be44ce270fcded4bdd49a27a4fe2d0af546f61a943e77efc3d"
     ),
     "src/sim_engine_compiler/review/__init__.py": (
         "aa6fbb2a420bbae2f93bbecd7e9769411348bab559f5b38b4d1ac314c6f61b05"
@@ -79,6 +106,12 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     ),
     "src/sim_engine_compiler/trace_query/query.py": (
         "a39f4f6f9565f80dea43e1d42ea4dadfb395c6c87e9f56b0d2d5159ddbd8df9a"
+    ),
+}
+DECLARED_BASELINE_OVERRIDE_SHA256 = {
+    "pyproject.toml": "eaff5fe0c87adcbf3e676e7047f61ef2bacf780c8cfb3b0029ebd46ea52a673c",
+    "src/sim_engine_compiler/__init__.py": (
+        "73fccdde6a98b5b561ec7017725f87df4618c4e07822d922a39f2208eb606125"
     ),
 }
 
@@ -187,10 +220,12 @@ def _verified_engine_sources(
     revision: str,
     *,
     declared_nonbaseline_sources: dict[str, str] | None = None,
+    declared_baseline_overrides: dict[str, str] | None = None,
     declared_modified_baseline_sources: dict[str, str] | None = None,
 ) -> dict:
     blobs = _baseline_source_blobs(root, revision)
     declared = dict(sorted((declared_nonbaseline_sources or {}).items()))
+    overrides = dict(sorted((declared_baseline_overrides or {}).items()))
     modified = dict(sorted((declared_modified_baseline_sources or {}).items()))
     overlap = set(blobs) & set(declared)
     if overlap:
@@ -198,12 +233,17 @@ def _verified_engine_sources(
             "declared nonbaseline sources overlap frozen baseline: "
             f"{sorted(overlap)}"
         )
+    unknown_overrides = set(overrides) - set(blobs)
+    if unknown_overrides:
+        raise ValueError(f"declared baseline overrides are not baseline blobs: {sorted(unknown_overrides)}")
     missing_modifications = sorted(set(modified) - set(blobs))
     if missing_modifications:
         raise ValueError(
             "declared modified source is absent from frozen baseline: "
             f"{missing_modifications}"
         )
+    if set(modified) & set(overrides):
+        raise ValueError("modified baseline sources overlap baseline overrides")
     actual_paths = sorted((root / "src/sim_engine_compiler").rglob("*.py"))
     actual_paths.append(root / "pyproject.toml")
     actual = {
@@ -227,6 +267,8 @@ def _verified_engine_sources(
             if len(modified[key]) != 64:
                 raise ValueError(f"invalid declared modified source digest: {key}")
             modes[key] = _declared_digest_mode(executed, modified[key], key)
+        elif key in overrides:
+            modes[key] = "declared_postbaseline_" + _declared_digest_mode(executed, overrides[key], key)
         else:
             modes[key] = _executed_byte_mode(blob, executed, key)
         canonical_hashes[key] = sha256(blob)
@@ -250,12 +292,13 @@ def _verified_engine_sources(
         "declared_nonbaseline_source_files": declared,
         "declared_nonbaseline_executed_source_files": declared_executed_hashes,
         "declared_nonbaseline_source_modes": declared_modes,
+        "declared_baseline_overrides": overrides,
         "declared_modified_baseline_source_files": modified,
         "declared_modified_baseline_source_contract": (
             DECLARED_MODIFIED_BASELINE_SOURCE_CONTRACT
         ),
         "checkout_source_membership_fingerprint": json_digest(
-            {**canonical_hashes, **declared, **modified}
+            {**canonical_hashes, **declared, **overrides, **modified}
         ),
         "declared_nonbaseline_source_contract": (
             DECLARED_NONBASELINE_SOURCE_CONTRACT
@@ -339,6 +382,7 @@ def source_identity() -> dict:
         ROOT,
         BASELINE,
         declared_nonbaseline_sources=DECLARED_NONBASELINE_SOURCE_SHA256,
+        declared_baseline_overrides=DECLARED_BASELINE_OVERRIDE_SHA256,
         declared_modified_baseline_sources=DECLARED_MODIFIED_BASELINE_SOURCE_SHA256,
     )
     if engine["build_fingerprint"] != BASELINE_BUILD_SHA256:

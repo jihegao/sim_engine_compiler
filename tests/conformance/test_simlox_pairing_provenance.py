@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path, PureWindowsPath
 
 from experiments.simlox_pairing.provenance import (
+    DECLARED_BASELINE_OVERRIDE_SHA256,
     DECLARED_MODIFIED_BASELINE_SOURCE_SHA256,
     DECLARED_NONBASELINE_SOURCE_CONTRACT,
     DECLARED_NONBASELINE_SOURCE_SHA256,
@@ -85,14 +86,26 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
             identity["declared_nonbaseline_source_contract"],
             DECLARED_NONBASELINE_SOURCE_CONTRACT,
         )
+        self.assertEqual(identity["declared_baseline_overrides"], DECLARED_BASELINE_OVERRIDE_SHA256)
+        self.assertNotEqual(identity["build_fingerprint"], identity["executed_source_fingerprint"])
         self.assertEqual(
             set(identity["declared_nonbaseline_source_files"]),
             {
+                "src/sim_engine_compiler/cli.py",
+                "src/sim_engine_compiler/compiler/bounded_layout.py",
+                "src/sim_engine_compiler/domains/aircraft_support/bounded.py",
+                "src/sim_engine_compiler/domains/aircraft_support/bounded_runtime.py",
+                "src/sim_engine_compiler/domains/aircraft_support/pack.py",
+                "src/sim_engine_compiler/examples/__init__.py",
                 "src/sim_engine_compiler/identity/__init__.py",
                 "src/sim_engine_compiler/identity/__main__.py",
                 "src/sim_engine_compiler/identity/artifacts.py",
                 "src/sim_engine_compiler/identity/common.py",
                 "src/sim_engine_compiler/identity/runs.py",
+                "src/sim_engine_compiler/integrations/spare_mvp/bounded.py",
+                "src/sim_engine_compiler/ir/bounded.py",
+                "src/sim_engine_compiler/product.py",
+                "src/sim_engine_compiler/reference/event_calendar.py",
                 "src/sim_engine_compiler/review/__init__.py",
                 "src/sim_engine_compiler/review/__main__.py",
                 "src/sim_engine_compiler/review/exporter.py",
@@ -106,8 +119,6 @@ class FrozenPairingProvenanceTests(unittest.TestCase):
         self.assertTrue(identity["checkout_source_membership_fingerprint"])
         self.assertEqual(identity["declared_modified_baseline_source_files"],
                          DECLARED_MODIFIED_BASELINE_SOURCE_SHA256)
-        self.assertNotEqual(identity["build_fingerprint"],
-                            identity["executed_source_fingerprint"])
 
     def test_source_keys_are_posix_for_windows_and_host_path_objects(self):
         self.assertEqual(
