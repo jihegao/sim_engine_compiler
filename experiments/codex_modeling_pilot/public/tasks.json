@@ -1,0 +1,412 @@
+{
+  "schema_version": "codex-modeling-pilot-tasks/v1",
+  "scope": "Synthetic bounded-profile modeling pilot; no native SIMLOX acceptance claim.",
+  "candidate_fields": [
+    "task_id",
+    "status",
+    "model",
+    "questions",
+    "reason"
+  ],
+  "candidate_contract": {
+    "status": [
+      "model",
+      "clarify",
+      "unsupported"
+    ],
+    "model": "Full bounded model object for model; null otherwise. Harness performs canonical import, Business/Core/Plan sealing.",
+    "questions": "List of {field,question}; use stable slash-separated field location such as resources/staff/capacity.",
+    "reason": "Short explanation of assumptions, requested clarification, or missing capability."
+  },
+  "common_defaults": {
+    "description": "Apply these explicit defaults only when task does not override them. These are published task requirements, not guesses.",
+    "aircraft": {
+      "turnround_hours": 0,
+      "repair_mode": "none",
+      "repair_hours": 0,
+      "remove_hours": 0,
+      "fit_hours": 0,
+      "item_repair_hours": 0,
+      "stock_node": null,
+      "repair_node": null,
+      "installed_item": null,
+      "pm": null
+    },
+    "model": {
+      "rng_profile": "none",
+      "nodes": [],
+      "routes": [],
+      "external_events": []
+    },
+    "constraints": "Use exactly specified entities and stable IDs. No hidden extra resources/aircraft or omitted missions. All output times are hours. Fully return amended model for modify tasks."
+  },
+  "tasks": [
+    {
+      "task_id": "T01",
+      "title": "共享资源下的三机准备",
+      "task_type": "create",
+      "requirements": [
+        {
+          "id": "T01-R01",
+          "text": "创建模型：时域4小时，每0.1小时报告；飞机 raven-1、raven-2、raven-3，类型均为utility，使用公共默认飞机属性。"
+        },
+        {
+          "id": "T01-R02",
+          "text": "资源staff总容量为2。过程prep的scalar为0.2小时，只有inspection步骤，历时0.2小时，每架独立申请staff 1个；占用直到该步骤结束才释放。"
+        },
+        {
+          "id": "T01-R03",
+          "text": "任务patrol在1.8小时通知、计划2小时起飞，允许延误0.3小时，飞行0.7小时，priority=1；需要3架utility全部准备完成，过程prep，无任务依赖。"
+        }
+      ]
+    },
+    {
+      "task_id": "T02",
+      "title": "分钟输入转换与周转",
+      "task_type": "create",
+      "requirements": [
+        {
+          "id": "T02-R01",
+          "text": "所有以下时间以分钟叙述，输出IR统一用小时。时域180分钟、报告间隔6分钟；只有minute-1飞机，类型utility。"
+        },
+        {
+          "id": "T02-R02",
+          "text": "无人员或设备资源；过程prep无步骤分解，scalar为18分钟。任务minute-flight在第57分钟通知、第75分钟起飞、不允许延误、飞行42分钟；需1架utility，priority=1，过程prep，无依赖。"
+        },
+        {
+          "id": "T02-R03",
+          "text": "minute-1每次成功返航后周转6分钟；其余属性取公共默认。"
+        }
+      ]
+    },
+    {
+      "task_id": "T03",
+      "title": "修改准备过程为显式串行步骤",
+      "task_type": "modify",
+      "requirements": [
+        {
+          "id": "T03-R01",
+          "text": "使用给定base_model，只有以下修改；未提到的字段保持不变。"
+        },
+        {
+          "id": "T03-R02",
+          "text": "过程prep保留scalar_hours=0.9，但新增按序串行执行的safety和warmup两步骤；safety为0.12小时、占staff 1个，warmup为0.18小时、不占任何资源。显式步骤总时长替代scalar执行时长，不能把scalar再次加到步骤上。"
+        },
+        {
+          "id": "T03-R03",
+          "text": "准备完成且达到任务计划起飞时间后才能起飞；staff在safety结束时释放。"
+        }
+      ],
+      "base_model": {
+        "horizon_hours": 4,
+        "report_interval_hours": 0.1,
+        "rng_profile": "none",
+        "aircraft": [
+          {
+            "id": "serial-1",
+            "type": "utility",
+            "turnround_hours": 0,
+            "repair_mode": "none",
+            "repair_hours": 0,
+            "remove_hours": 0,
+            "fit_hours": 0,
+            "item_repair_hours": 0,
+            "stock_node": null,
+            "repair_node": null,
+            "installed_item": null,
+            "pm": null
+          }
+        ],
+        "resources": [
+          {
+            "id": "staff",
+            "capacity": 1
+          }
+        ],
+        "processes": [
+          {
+            "id": "prep",
+            "scalar_hours": 0.9,
+            "steps": []
+          }
+        ],
+        "missions": [
+          {
+            "id": "serial-flight",
+            "start_hours": 2.4,
+            "notice_hours": 2.1,
+            "duration_hours": 0.4,
+            "delay_hours": 0.2,
+            "priority": 1,
+            "requirements": {
+              "utility": 1
+            },
+            "process": "prep",
+            "depends_on": []
+          }
+        ],
+        "nodes": [],
+        "routes": [],
+        "external_events": []
+      }
+    },
+    {
+      "task_id": "T04",
+      "title": "缩短截止并取消旧准备事件",
+      "task_type": "modify",
+      "requirements": [
+        {
+          "id": "T04-R01",
+          "text": "使用base_model，只把任务tight允许延误从0.3小时改成0.29小时，其余输入全部保持。"
+        },
+        {
+          "id": "T04-R02",
+          "text": "截止时未能准备完整编队就取消tight，释放其人员与飞机；取消前已经安排的旧完成事件不能继续改变飞机状态或重复释放资源。"
+        },
+        {
+          "id": "T04-R03",
+          "text": "保留任务recovery独立执行，其通知时刻恰为tight的新截止；取消释放的飞机可以重新使用。"
+        }
+      ],
+      "base_model": {
+        "horizon_hours": 2.4,
+        "report_interval_hours": 0.1,
+        "rng_profile": "none",
+        "aircraft": [
+          {
+            "id": "cancel-1",
+            "type": "utility",
+            "turnround_hours": 0,
+            "repair_mode": "none",
+            "repair_hours": 0,
+            "remove_hours": 0,
+            "fit_hours": 0,
+            "item_repair_hours": 0,
+            "stock_node": null,
+            "repair_node": null,
+            "installed_item": null,
+            "pm": null
+          },
+          {
+            "id": "cancel-2",
+            "type": "utility",
+            "turnround_hours": 0,
+            "repair_mode": "none",
+            "repair_hours": 0,
+            "remove_hours": 0,
+            "fit_hours": 0,
+            "item_repair_hours": 0,
+            "stock_node": null,
+            "repair_node": null,
+            "installed_item": null,
+            "pm": null
+          }
+        ],
+        "resources": [
+          {
+            "id": "staff",
+            "capacity": 1
+          }
+        ],
+        "processes": [
+          {
+            "id": "prep",
+            "scalar_hours": 0.3,
+            "steps": [
+              {
+                "id": "long-check",
+                "duration_hours": 0.3,
+                "demands": {
+                  "staff": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "instant",
+            "scalar_hours": 0,
+            "steps": []
+          }
+        ],
+        "missions": [
+          {
+            "id": "tight",
+            "start_hours": 1.4,
+            "notice_hours": 1.1,
+            "duration_hours": 0.4,
+            "delay_hours": 0.3,
+            "priority": 1,
+            "requirements": {
+              "utility": 2
+            },
+            "process": "prep",
+            "depends_on": []
+          },
+          {
+            "id": "recovery",
+            "start_hours": 1.72,
+            "notice_hours": 1.69,
+            "duration_hours": 0.23,
+            "delay_hours": 0,
+            "priority": 2,
+            "requirements": {
+              "utility": 1
+            },
+            "process": "instant",
+            "depends_on": []
+          }
+        ],
+        "nodes": [],
+        "routes": [],
+        "external_events": []
+      }
+    },
+    {
+      "task_id": "T05",
+      "title": "把前序成功完成加入起飞条件",
+      "task_type": "modify",
+      "requirements": [
+        {
+          "id": "T05-R01",
+          "text": "使用base_model，仅给任务follow加入任务lead作为依赖；其他输入保持不变。"
+        },
+        {
+          "id": "T05-R02",
+          "text": "依赖表示lead成功完成并返航以后，follow才可起飞，不能把通知、开始准备或起飞当作依赖完成。follow本身可以提前准备。"
+        }
+      ],
+      "base_model": {
+        "horizon_hours": 4,
+        "report_interval_hours": 0.1,
+        "rng_profile": "none",
+        "aircraft": [
+          {
+            "id": "lead-1",
+            "type": "leader",
+            "turnround_hours": 0,
+            "repair_mode": "none",
+            "repair_hours": 0,
+            "remove_hours": 0,
+            "fit_hours": 0,
+            "item_repair_hours": 0,
+            "stock_node": null,
+            "repair_node": null,
+            "installed_item": null,
+            "pm": null
+          },
+          {
+            "id": "wing-1",
+            "type": "wing",
+            "turnround_hours": 0,
+            "repair_mode": "none",
+            "repair_hours": 0,
+            "remove_hours": 0,
+            "fit_hours": 0,
+            "item_repair_hours": 0,
+            "stock_node": null,
+            "repair_node": null,
+            "installed_item": null,
+            "pm": null
+          }
+        ],
+        "resources": [],
+        "processes": [
+          {
+            "id": "prep",
+            "scalar_hours": 0.1,
+            "steps": []
+          }
+        ],
+        "missions": [
+          {
+            "id": "lead",
+            "start_hours": 1.6,
+            "notice_hours": 1.4,
+            "duration_hours": 0.8,
+            "delay_hours": 0,
+            "priority": 1,
+            "requirements": {
+              "leader": 1
+            },
+            "process": "prep",
+            "depends_on": []
+          },
+          {
+            "id": "follow",
+            "start_hours": 1.9,
+            "notice_hours": 1.8,
+            "duration_hours": 0.3,
+            "delay_hours": 0.6,
+            "priority": 2,
+            "requirements": {
+              "wing": 1
+            },
+            "process": "prep",
+            "depends_on": []
+          }
+        ],
+        "nodes": [],
+        "routes": [],
+        "external_events": []
+      }
+    },
+    {
+      "task_id": "T06",
+      "title": "外生故障后维修及飞行时维护",
+      "task_type": "create",
+      "requirements": [
+        {
+          "id": "T06-R01",
+          "text": "时域3小时、报告间隔0.1小时；只有fault-1飞机、类型utility；直接维修模式direct，维修耗时0.35小时，不使用共享资源或库存；其余非PM飞机参数为公共默认。"
+        },
+        {
+          "id": "T06-R02",
+          "text": "飞机有flight-pm维护：按实际累计飞行时间clock=flight计时，阈值1.1小时，维护历时0.45小时；阈值在返航时检查，失败航次飞行时数也计入；维修后仍须履行已到期PM，PM结束才可再出动。"
+        },
+        {
+          "id": "T06-R03",
+          "text": "过程prep为零时scalar、无分解步骤。任务first在0.6通知并计划起飞，飞行1.3小时、delay=0；任务next在2.25通知并计划起飞、飞行0.2小时、允许延误0.45小时。两任务均需1架utility，无依赖；priority分别1和2。"
+        },
+        {
+          "id": "T06-R04",
+          "text": "固定外生故障fault-driver在1.05小时作用于fault-1，operation=fault；任务记为中止但维持原计划返航时间，不模拟内生故障概率。必须显式使用external-events/v1，驱动node/item=null、value_hours=0。"
+        }
+      ]
+    },
+    {
+      "task_id": "T07",
+      "title": "关键资源容量缺失",
+      "task_type": "clarify",
+      "requirements": [
+        {
+          "id": "T07-R01",
+          "text": "按照T01的完整文字需求创建一个相同模型，但staff资源容量尚未提供；不要默认容量，也不要从飞机数量推断容量。T01其余条件、ID、时域、步骤、任务和公共默认全部沿用。"
+        },
+        {
+          "id": "T07-R02",
+          "text": "先提出最少必要澄清问题，指出资源staff的capacity需要多少；本轮不要提交带猜测容量的可执行模型。"
+        }
+      ],
+      "reference_task_id": "T01"
+    },
+    {
+      "task_id": "T08",
+      "title": "识别内生随机故障能力缺口",
+      "task_type": "unsupported",
+      "requirements": [
+        {
+          "id": "T08-R01",
+          "text": "必须使用aircraft-bounded-events/v1和python-bounded-reference。1架stochastic-1 utility飞机，无准备时间、无资源库存，时域10小时报告0.1小时；任务stochastic-flight在0小时通知并起飞，计划飞行8小时、delay=0、priority=1、无依赖；直接维修0.3小时，其余飞机属性为公共默认。"
+        },
+        {
+          "id": "T08-R02",
+          "text": "要求运行时按飞行暴露时间生成内生指数故障，均值2小时、seed=19可重放；修复后重新采样。用户没有给任何外生故障时间，禁止自行预采样并替换成固定故障表。"
+        },
+        {
+          "id": "T08-R03",
+          "text": "如果指定profile或后端不能表达该随机机制，应明确说明缺少能力，返回unsupported及model=null，不得降级成无故障或外生驱动并声称完成。"
+        }
+      ]
+    }
+  ]
+}

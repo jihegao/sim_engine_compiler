@@ -1,0 +1,81 @@
+{
+  "task_id": "T06",
+  "status": "model",
+  "model": {
+    "horizon_hours": 3,
+    "report_interval_hours": 0.1,
+    "rng_profile": "external-events/v1",
+    "nodes": [],
+    "routes": [],
+    "external_events": [
+      {
+        "id": "fault-driver",
+        "time_hours": 1.05,
+        "operation": "fault",
+        "aircraft": "fault-1",
+        "node": null,
+        "item": null,
+        "value_hours": 0
+      }
+    ],
+    "aircraft": [
+      {
+        "id": "fault-1",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "direct",
+        "repair_hours": 0.35,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": {
+          "id": "flight-pm",
+          "clock": "flight",
+          "interval_hours": 1.1,
+          "duration_hours": 0.45
+        }
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "first",
+        "start_hours": 0.6,
+        "notice_hours": 0.6,
+        "duration_hours": 1.3,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "utility": 1
+        },
+        "process": "prep",
+        "depends_on": []
+      },
+      {
+        "id": "next",
+        "start_hours": 2.25,
+        "notice_hours": 2.25,
+        "duration_hours": 0.2,
+        "delay_hours": 0.45,
+        "priority": 2,
+        "requirements": {
+          "utility": 1
+        },
+        "process": "prep",
+        "depends_on": []
+      }
+    ]
+  },
+  "questions": [],
+  "reason": "显式外生fault保留计划返航，维修后执行已到期的flight PM；不生成随机故障。"
+}
