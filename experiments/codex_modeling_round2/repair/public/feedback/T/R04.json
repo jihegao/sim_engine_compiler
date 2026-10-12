@@ -1,0 +1,223 @@
+{
+  "schema": "codex-modeling-repair-feedback/v1",
+  "task_id": "R04",
+  "mode": "T",
+  "received": true,
+  "diagnostics": {
+    "candidate_valid": true,
+    "compiled": true,
+    "error": null,
+    "executed": true
+  },
+  "trace_summary": {
+    "trace_event_count": 21,
+    "event_counts": {
+      "aircraft_allocated": 2,
+      "mission_cancelled": 1,
+      "mission_notice": 2,
+      "mission_returned": 1,
+      "mission_started": 1,
+      "preparation_created": 2,
+      "preparation_finished": 2,
+      "resource_acquired": 2,
+      "resource_released": 2,
+      "resource_request": 2,
+      "work_finished": 2,
+      "work_started": 2
+    },
+    "events": [
+      {
+        "hour": 1.1,
+        "kind": "mission_notice",
+        "mission": "tight"
+      },
+      {
+        "hour": 1.1,
+        "kind": "aircraft_allocated",
+        "mission": "tight",
+        "aircraft": "cancel-1"
+      },
+      {
+        "hour": 1.1,
+        "kind": "aircraft_allocated",
+        "mission": "tight",
+        "aircraft": "cancel-2"
+      },
+      {
+        "hour": 1.1,
+        "kind": "preparation_created",
+        "mission": "tight",
+        "aircraft": "cancel-1"
+      },
+      {
+        "hour": 1.1,
+        "kind": "preparation_created",
+        "mission": "tight",
+        "aircraft": "cancel-2"
+      },
+      {
+        "hour": 1.1,
+        "kind": "resource_request",
+        "mission": "tight",
+        "aircraft": "cancel-1",
+        "step": "long-check"
+      },
+      {
+        "hour": 1.1,
+        "kind": "resource_acquired",
+        "owner": "work:0:0:0:0",
+        "resource": "staff",
+        "quantity": 1
+      },
+      {
+        "hour": 1.1,
+        "kind": "work_started",
+        "mission": "tight",
+        "aircraft": "cancel-1",
+        "step": "long-check",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 1.1,
+        "kind": "resource_request",
+        "mission": "tight",
+        "aircraft": "cancel-2",
+        "step": "long-check"
+      },
+      {
+        "hour": 1.4,
+        "kind": "work_finished",
+        "mission": "tight",
+        "aircraft": "cancel-1",
+        "step": "long-check",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 1.4,
+        "kind": "resource_released",
+        "owner": "work:0:0:0:0",
+        "resource": "staff",
+        "quantity": 1,
+        "cancelled": false
+      },
+      {
+        "hour": 1.4,
+        "kind": "preparation_finished",
+        "mission": "tight",
+        "aircraft": "cancel-1"
+      },
+      {
+        "hour": 1.4,
+        "kind": "resource_acquired",
+        "owner": "work:0:1:0:0",
+        "resource": "staff",
+        "quantity": 1
+      },
+      {
+        "hour": 1.4,
+        "kind": "work_started",
+        "mission": "tight",
+        "aircraft": "cancel-2",
+        "step": "long-check",
+        "owner": "work:0:1:0:0"
+      },
+      {
+        "hour": 1.69,
+        "kind": "mission_notice",
+        "mission": "recovery"
+      },
+      {
+        "hour": 1.7,
+        "kind": "work_finished",
+        "mission": "tight",
+        "aircraft": "cancel-2",
+        "step": "long-check",
+        "owner": "work:0:1:0:0"
+      },
+      {
+        "hour": 1.7,
+        "kind": "resource_released",
+        "owner": "work:0:1:0:0",
+        "resource": "staff",
+        "quantity": 1,
+        "cancelled": false
+      },
+      {
+        "hour": 1.7,
+        "kind": "preparation_finished",
+        "mission": "tight",
+        "aircraft": "cancel-2"
+      },
+      {
+        "hour": 1.7,
+        "kind": "mission_started",
+        "mission": "tight",
+        "aircraft": [
+          "cancel-1",
+          "cancel-2"
+        ]
+      },
+      {
+        "hour": 1.72,
+        "kind": "mission_cancelled",
+        "mission": "recovery",
+        "reason": "latest_preparation_feasibility"
+      },
+      {
+        "hour": 2.1,
+        "kind": "mission_returned",
+        "mission": "tight",
+        "outcome": "successful",
+        "aircraft": [
+          "cancel-1",
+          "cancel-2"
+        ],
+        "flight_hours": 0.4
+      }
+    ],
+    "truncated": false
+  },
+  "public_probes": [
+    {
+      "id": "R04-P1",
+      "description": "tight应在1.69小时取消。",
+      "passed": false,
+      "expected": [
+        [
+          1.69
+        ]
+      ],
+      "actual": [],
+      "discrepancy": {
+        "expected": [
+          [
+            1.69
+          ]
+        ],
+        "observed": []
+      }
+    },
+    {
+      "id": "R04-P2",
+      "description": "tight取消后不得再有其工作完成事件生效。",
+      "passed": false,
+      "expected": [],
+      "actual": [
+        {
+          "hour": 1.7,
+          "kind": "work_finished"
+        }
+      ],
+      "discrepancy": {
+        "expected": [],
+        "observed": [
+          {
+            "hour": 1.7,
+            "kind": "work_finished"
+          }
+        ]
+      }
+    }
+  ],
+  "probe_note": "这些预注册公开探针仅覆盖部分业务行为；全部通过不代表最终完整评分通过。"
+}

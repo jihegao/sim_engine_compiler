@@ -1,0 +1,99 @@
+{
+  "condition": "T",
+  "revision": 1,
+  "started_at_utc": "2026-10-12T03:06:12Z",
+  "ended_at_utc": "2026-10-12T03:07:27Z",
+  "files_read": [
+    "experiments/codex_modeling_round2/prompts/repair-T.txt",
+    "experiments/codex_modeling_round2/repair/public/tasks.json",
+    "experiments/codex_modeling_round2/repair/public/schema-guide.md",
+    "experiments/codex_modeling_round2/repair/public/mechanisms.md",
+    "experiments/codex_modeling_round2/repair/public/probes.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R01.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R02.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R03.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R04.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R05.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R06.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/T/R01.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/T/R02.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/T/R03.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/T/R04.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/T/R05.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/T/R06.json"
+  ],
+  "per_task_change_reasons": {
+    "R01": {
+      "changes": {
+        "resources/staff/capacity": {
+          "from": 3,
+          "to": 2
+        }
+      },
+      "reason": "公开要求只提供两名staff。反馈显示三架并行检查且峰值为3；容量2使第三架等待，全部检查结束后才可起飞。"
+    },
+    "R02": {
+      "changes": {
+        "aircraft/minute-1/turnround_hours": {
+          "from": 0.06,
+          "to": 0.1
+        },
+        "missions/minute-flight/duration_hours": {
+          "from": 0.42,
+          "to": 0.7
+        }
+      },
+      "reason": "42分钟等于0.7小时，6分钟等于0.1小时；反馈中的提前返航和提前完成周转由这两处错误换算导致。"
+    },
+    "R03": {
+      "changes": {
+        "processes/prep/steps/order": {
+          "from": [
+            "warmup",
+            "safety"
+          ],
+          "to": [
+            "safety",
+            "warmup"
+          ]
+        }
+      },
+      "reason": "安全检查必须在预热之前；staff在检查结束立即释放。保留账面0.9小时作为提前可行性检查参数，实际仅做两步。"
+    },
+    "R04": {
+      "changes": {
+        "missions/tight/delay_hours": {
+          "from": 0.3,
+          "to": 0.29
+        }
+      },
+      "reason": "最终期限应为1.69小时，早于第二架检查结束。内置取消归还占用并使未完成工作事件失效，独立recovery可随后接用飞机。"
+    },
+    "R05": {
+      "changes": {
+        "missions/follow/depends_on": {
+          "from": [],
+          "to": [
+            "lead"
+          ]
+        }
+      },
+      "reason": "follow必须等待lead成功返航才能起飞，不能以固定猜测时刻或推迟准备代替成功依赖；自身1.8小时通知与0.1小时准备保持不变。"
+    },
+    "R06": {
+      "changes": {
+        "external_events/fault-driver/operation": {
+          "from": "damaged_arrival",
+          "to": "fault"
+        }
+      },
+      "reason": "业务规定故障不提前结束航程。fault保留1.9小时计划返航，累计完整1.3小时失败航次飞行，保留先直接维修后完成已到期飞行维护的规则。"
+    }
+  },
+  "verification": "仅依据公开业务、schema与T条件反馈作语义检查；未调用编译器、验证器、运行器或反馈工具。",
+  "model_id": null,
+  "tokens": null,
+  "cost": null,
+  "usage_note": "模型ID、tokens与cost未知，未估计。",
+  "stage_status": "revision_1_complete_waiting_for_controller_feedback"
+}

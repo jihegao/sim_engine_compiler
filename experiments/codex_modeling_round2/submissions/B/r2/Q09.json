@@ -1,0 +1,111 @@
+{
+  "task_id": "Q09",
+  "status": "model",
+  "model": {
+    "horizon_hours": 1.5,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "HeavyBird",
+        "type": "Heavy",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "LightBird",
+        "type": "Light",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "Crew",
+        "capacity": 1
+      },
+      {
+        "id": "Cart",
+        "capacity": 0
+      }
+    ],
+    "processes": [
+      {
+        "id": "HeavyPreparation",
+        "scalar_hours": 0.18,
+        "steps": [
+          {
+            "id": "Prepare",
+            "duration_hours": 0.18,
+            "demands": {
+              "Crew": 1,
+              "Cart": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": "LightPreparation",
+        "scalar_hours": 0.12,
+        "steps": [
+          {
+            "id": "Prepare",
+            "duration_hours": 0.12,
+            "demands": {
+              "Crew": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "HeavyRun",
+        "start_hours": 0.9,
+        "notice_hours": 0.6,
+        "duration_hours": 0.4,
+        "delay_hours": 0.2,
+        "priority": 1,
+        "requirements": {
+          "Heavy": 1
+        },
+        "process": "HeavyPreparation",
+        "depends_on": []
+      },
+      {
+        "id": "LightRun",
+        "start_hours": 0.8,
+        "notice_hours": 0.65,
+        "duration_hours": 0.3,
+        "delay_hours": 0,
+        "priority": 2,
+        "requirements": {
+          "Light": 1
+        },
+        "process": "LightPreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": ""
+}

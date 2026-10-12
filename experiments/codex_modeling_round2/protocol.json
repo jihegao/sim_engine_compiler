@@ -1,0 +1,116 @@
+{
+  "schema": "codex-modeling-round2/v1",
+  "created_at_utc": "2026-10-12T02:57:54.558042+00:00",
+  "engine_revision": "ee6a2aa7a66d8bf2609059aaf8a7c0fe22fe8683",
+  "pilot_revision": "f06081f04812db0e6e3650b0a7a5e5b2baa9bd1b",
+  "model": {
+    "provider": "OpenAI",
+    "surface": "Codex Work hosted collaboration agents",
+    "framework": "collaboration.spawn_agent/followup_task",
+    "selection": "inherited current session model, same setting for all arms",
+    "exact_model_id": null,
+    "reasoning_effort": null,
+    "sampling_seed": null,
+    "tokens": null,
+    "cost": null,
+    "metadata_limit": "Host does not expose these values; repetition IDs are not RNG seeds."
+  },
+  "scope": "bounded aircraft model configuration authoring through existing three-layer compiler; synthetic requirements, not official/native SIMLOX equivalence; no training or engine changes",
+  "calibration": {
+    "tasks": 4,
+    "fresh_context": true,
+    "holdout_access": false,
+    "purpose": "check usability and protocol before freeze; do not optimize against formal outcomes",
+    "development_holdout_relation": "Different instances and selected combinations inside the same bounded aircraft mechanism family. No unseen-family or cross-domain generalization claim."
+  },
+  "main": {
+    "tasks": 24,
+    "composition": {
+      "business_model": 8,
+      "combined_model": 8,
+      "missing_information": 4,
+      "unsupported": 4
+    },
+    "arms": {
+      "A": "schema and business requests, one submission, no execution",
+      "B": "A plus mechanism cards, one submission, no execution",
+      "C": "B plus public compiler/runtime and trace, initial attempt plus up to two revisions"
+    },
+    "repetitions": 3,
+    "first_responses": 216,
+    "executable_model_opportunities": 144,
+    "context": "fresh per arm/repetition, all 24 tasks share that context",
+    "case_order": "deterministically shuffled by repetition and identical between arms within repetition",
+    "max_wall_seconds_per_run": 1800,
+    "wall_enforcement": "record actual self-reported start/end and controller receipt; flag overruns, do not silently claim enforced",
+    "max_public_validation_calls_per_task": {
+      "A": 0,
+      "B": 0,
+      "C": 3
+    },
+    "final_score_feedback": false
+  },
+  "clarification_followup": {
+    "policy": "After sealing primary responses, supply preregistered simulated-user answer to every response that passes clarification prescreen; retain same author context. No grader results are supplied. Separate answered-model completion and required missing-field coverage from first response metrics.",
+    "no_answer_to_unsupported": true,
+    "user_interventions": "simulated oracle replies counted separately; not actual user interaction",
+    "denominator_per_run": 4,
+    "single_reply_contains": "all and only preregistered answers, supplied together once",
+    "max_validation_calls_per_model": {
+      "A": 0,
+      "B": 0,
+      "C": 3
+    }
+  },
+  "repair": {
+    "tasks": 6,
+    "source": "first-pilot T01-T06 requirements, independent from round2 holdout",
+    "initial_models": "each compiles and executes but fails independent acceptance",
+    "arms": {
+      "N": "receipt only; no compilation or execution",
+      "D": "compile diagnostics only; no runtime execution or trace",
+      "T": "trace plus limited preregistered public behavioral probes"
+    },
+    "revisions_per_task": 2,
+    "same_attempt_budget": true,
+    "r2_may_equal_r1": true,
+    "initial_feedback_provided": true,
+    "after_r1_feedback_provided": true,
+    "after_r2_feedback_before_score": false,
+    "final_grader_hidden": true,
+    "repetitions": 1,
+    "max_wall_seconds_per_stage": 900
+  },
+  "evaluation": {
+    "primary": "critical business constraints plus independently hand-derived trace/terminal expectations and selected held-out parameter interventions",
+    "equivalence": "not full canonical model equality; selected harmless ordering and resource-free preparation equivalences supported, not a complete semantic equivalence decision",
+    "text_responses": "automatic field/keyword prescreen plus separately reported group-blinded AI semantic review",
+    "denominators": "16 model cases, 4 clarification cases, 4 unsupported cases per run; never pool into an executable success rate",
+    "metrics": [
+      "behavior_acceptance",
+      "compile_success",
+      "unsupported_or_clarify_decision",
+      "simulated_user_replies",
+      "authoring_wall_time",
+      "validation_calls",
+      "revisions"
+    ],
+    "statistics": "descriptive per-case/per-run results; repeated outputs and same-context tasks are dependent, no independent-binomial significance claim"
+  },
+  "isolation": {
+    "kind": "instruction-based on shared filesystem",
+    "forbidden": [
+      "private oracles",
+      "scorer source/tests",
+      "source engine browsing",
+      "other participants",
+      "primary/final results"
+    ],
+    "generation_agents_fresh": true,
+    "access_audit": "agent-reported file and command logs, not OS-enforced read audit"
+  },
+  "product_integration": {
+    "status": "conditional follow-on",
+    "gate": "use observed modeling and repair failure modes to specify the user-facing flow; this experiment does not deploy Riffoid or a persistent hosted inference service"
+  }
+}

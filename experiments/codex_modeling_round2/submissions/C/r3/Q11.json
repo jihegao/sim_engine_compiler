@@ -1,0 +1,93 @@
+{
+  "task_id": "Q11",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "PairOne",
+        "type": "Utility",
+        "turnround_hours": 0.2,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "PairTwo",
+        "type": "Utility",
+        "turnround_hours": 0.2,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "Crew",
+        "capacity": 2
+      }
+    ],
+    "processes": [
+      {
+        "id": "PairPreparation",
+        "scalar_hours": 0.1,
+        "steps": [
+          {
+            "id": "Preparation",
+            "duration_hours": 0.1,
+            "demands": {
+              "Crew": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "FirstPair",
+        "start_hours": 0.4,
+        "notice_hours": 0.2,
+        "duration_hours": 0.5,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 2
+        },
+        "process": "PairPreparation",
+        "depends_on": []
+      },
+      {
+        "id": "SecondPair",
+        "start_hours": 1.1,
+        "notice_hours": 0.95,
+        "duration_hours": 0.3,
+        "delay_hours": 0.3,
+        "priority": 2,
+        "requirements": {
+          "Utility": 2
+        },
+        "process": "PairPreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "依据业务请求和公开 schema 完整表达所需机制。"
+}

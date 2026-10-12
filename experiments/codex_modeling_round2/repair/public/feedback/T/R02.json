@@ -1,0 +1,154 @@
+{
+  "schema": "codex-modeling-repair-feedback/v1",
+  "task_id": "R02",
+  "mode": "T",
+  "received": true,
+  "diagnostics": {
+    "candidate_valid": true,
+    "compiled": true,
+    "error": null,
+    "executed": true
+  },
+  "trace_summary": {
+    "trace_event_count": 10,
+    "event_counts": {
+      "aircraft_allocated": 1,
+      "mission_notice": 1,
+      "mission_returned": 1,
+      "mission_started": 1,
+      "preparation_created": 1,
+      "preparation_finished": 1,
+      "turnround_finished": 1,
+      "turnround_started": 1,
+      "work_finished": 1,
+      "work_started": 1
+    },
+    "events": [
+      {
+        "hour": 0.95,
+        "kind": "mission_notice",
+        "mission": "minute-flight"
+      },
+      {
+        "hour": 0.95,
+        "kind": "aircraft_allocated",
+        "mission": "minute-flight",
+        "aircraft": "minute-1"
+      },
+      {
+        "hour": 0.95,
+        "kind": "preparation_created",
+        "mission": "minute-flight",
+        "aircraft": "minute-1"
+      },
+      {
+        "hour": 0.95,
+        "kind": "work_started",
+        "mission": "minute-flight",
+        "aircraft": "minute-1",
+        "step": "prep:scalar",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 1.25,
+        "kind": "work_finished",
+        "mission": "minute-flight",
+        "aircraft": "minute-1",
+        "step": "prep:scalar",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 1.25,
+        "kind": "preparation_finished",
+        "mission": "minute-flight",
+        "aircraft": "minute-1"
+      },
+      {
+        "hour": 1.25,
+        "kind": "mission_started",
+        "mission": "minute-flight",
+        "aircraft": [
+          "minute-1"
+        ]
+      },
+      {
+        "hour": 1.67,
+        "kind": "mission_returned",
+        "mission": "minute-flight",
+        "outcome": "successful",
+        "aircraft": [
+          "minute-1"
+        ],
+        "flight_hours": 0.42
+      },
+      {
+        "hour": 1.67,
+        "kind": "turnround_started",
+        "aircraft": "minute-1"
+      },
+      {
+        "hour": 1.73,
+        "kind": "turnround_finished",
+        "aircraft": "minute-1"
+      }
+    ],
+    "truncated": false
+  },
+  "public_probes": [
+    {
+      "id": "R02-P1",
+      "description": "minute-flight应在第117分钟返航。",
+      "passed": false,
+      "expected": [
+        [
+          1.95
+        ]
+      ],
+      "actual": [
+        [
+          1.67
+        ]
+      ],
+      "discrepancy": {
+        "expected": [
+          [
+            1.95
+          ]
+        ],
+        "observed": [
+          [
+            1.67
+          ]
+        ]
+      }
+    },
+    {
+      "id": "R02-P2",
+      "description": "飞机应在第123分钟完成周转。",
+      "passed": false,
+      "expected": [
+        [
+          2.05
+        ]
+      ],
+      "actual": [
+        [
+          1.73
+        ]
+      ],
+      "discrepancy": {
+        "expected": [
+          [
+            2.05
+          ]
+        ],
+        "observed": [
+          [
+            1.73
+          ]
+        ]
+      }
+    }
+  ],
+  "probe_note": "这些预注册公开探针仅覆盖部分业务行为；全部通过不代表最终完整评分通过。"
+}

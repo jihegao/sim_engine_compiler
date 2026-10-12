@@ -1,0 +1,238 @@
+{
+  "schema": "codex-modeling-repair-public-probes/v1",
+  "arm": "T",
+  "scope": "每题最多两个预注册业务行为探针；不检查完整模型结构，也不是最终验收。",
+  "tasks": {
+    "R01": [
+      {
+        "id": "R01-P1",
+        "description": "完整三机编队应在2.2小时出动。",
+        "type": "projection",
+        "kind": "mission_started",
+        "where": {
+          "mission": "patrol"
+        },
+        "fields": [
+          "hour"
+        ],
+        "expected": [
+          [
+            2.2
+          ]
+        ],
+        "public_derivation": "两人先完成两架检查，第三架随后完成；完整编队再起飞。"
+      },
+      {
+        "id": "R01-P2",
+        "description": "staff同时在岗人数不能超过两人。",
+        "type": "resource_peak",
+        "resource": "staff",
+        "maximum": 2,
+        "public_derivation": "业务只提供两名共享人员。"
+      }
+    ],
+    "R02": [
+      {
+        "id": "R02-P1",
+        "description": "minute-flight应在第117分钟返航。",
+        "type": "projection",
+        "kind": "mission_returned",
+        "where": {
+          "mission": "minute-flight"
+        },
+        "fields": [
+          "hour"
+        ],
+        "expected": [
+          [
+            1.95
+          ]
+        ],
+        "public_derivation": "第75分钟起飞，再飞42分钟。"
+      },
+      {
+        "id": "R02-P2",
+        "description": "飞机应在第123分钟完成周转。",
+        "type": "projection",
+        "kind": "turnround_finished",
+        "where": {},
+        "fields": [
+          "hour"
+        ],
+        "expected": [
+          [
+            2.05
+          ]
+        ],
+        "public_derivation": "第117分钟成功返航后再周转6分钟。"
+      }
+    ],
+    "R03": [
+      {
+        "id": "R03-P1",
+        "description": "实际步骤必须按检查、预热顺序启动。",
+        "type": "projection",
+        "kind": "work_started",
+        "where": {
+          "mission": "serial-flight"
+        },
+        "fields": [
+          "step"
+        ],
+        "expected": [
+          [
+            "safety"
+          ],
+          [
+            "warmup"
+          ]
+        ],
+        "public_derivation": "业务明确先检查后预热。"
+      },
+      {
+        "id": "R03-P2",
+        "description": "staff应在2.22小时结束检查时归还。",
+        "type": "projection",
+        "kind": "resource_released",
+        "where": {
+          "resource": "staff"
+        },
+        "fields": [
+          "hour"
+        ],
+        "expected": [
+          [
+            2.22
+          ]
+        ],
+        "public_derivation": "2.1小时接到通知，检查历时0.12小时，预热不继续占人员。"
+      }
+    ],
+    "R04": [
+      {
+        "id": "R04-P1",
+        "description": "tight应在1.69小时取消。",
+        "type": "projection",
+        "kind": "mission_cancelled",
+        "where": {
+          "mission": "tight"
+        },
+        "fields": [
+          "hour"
+        ],
+        "expected": [
+          [
+            1.69
+          ]
+        ],
+        "public_derivation": "最晚起飞是1.4+0.29；一名人员串行做两架各0.3小时，赶不及完整编队。"
+      },
+      {
+        "id": "R04-P2",
+        "description": "tight取消后不得再有其工作完成事件生效。",
+        "type": "none_after",
+        "kind": "work_finished",
+        "where": {
+          "mission": "tight"
+        },
+        "after_hour": 1.69,
+        "public_derivation": "业务要求取消使先前排定的完成事件失效。"
+      }
+    ],
+    "R05": [
+      {
+        "id": "R05-P1",
+        "description": "lead成功返航必须先于follow起飞被记录。",
+        "type": "ordered_events",
+        "events": [
+          {
+            "label": "lead成功返航",
+            "kind": "mission_returned",
+            "where": {
+              "mission": "lead",
+              "outcome": "successful"
+            }
+          },
+          {
+            "label": "follow起飞",
+            "kind": "mission_started",
+            "where": {
+              "mission": "follow"
+            }
+          }
+        ],
+        "public_derivation": "lead成功返航才解除follow的起飞前置条件；同刻返航完成可以触发后续出动。"
+      },
+      {
+        "id": "R05-P2",
+        "description": "follow可以提前准备，并应在1.9小时准备完成。",
+        "type": "projection",
+        "kind": "preparation_finished",
+        "where": {
+          "mission": "follow"
+        },
+        "fields": [
+          "hour"
+        ],
+        "expected": [
+          [
+            1.9
+          ]
+        ],
+        "public_derivation": "1.8小时通知加0.1小时准备；前序条件只限制起飞。"
+      }
+    ],
+    "R06": [
+      {
+        "id": "R06-P1",
+        "description": "first虽因故障中止，仍应在1.9小时返航。",
+        "type": "projection",
+        "kind": "mission_returned",
+        "where": {
+          "mission": "first"
+        },
+        "fields": [
+          "hour",
+          "outcome"
+        ],
+        "expected": [
+          [
+            1.9,
+            "aborted"
+          ]
+        ],
+        "public_derivation": "0.6小时起飞加原定1.3小时航程，故障不提前返航。"
+      },
+      {
+        "id": "R06-P2",
+        "description": "故障维修结束后必须完成已到期维护，next随后才能起飞。",
+        "type": "ordered_events",
+        "events": [
+          {
+            "label": "故障维修结束",
+            "kind": "repair_finished",
+            "where": {}
+          },
+          {
+            "label": "维护开始",
+            "kind": "pm_started",
+            "where": {}
+          },
+          {
+            "label": "维护结束",
+            "kind": "pm_finished",
+            "where": {}
+          },
+          {
+            "label": "next起飞",
+            "kind": "mission_started",
+            "where": {
+              "mission": "next"
+            }
+          }
+        ],
+        "public_derivation": "first的1.3小时飞行即便失败也超过1.1小时维护阈值；业务要求先修复、后维护、再出动。"
+      }
+    ]
+  }
+}

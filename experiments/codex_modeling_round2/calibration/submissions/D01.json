@@ -1,0 +1,66 @@
+{
+  "task_id": "D01",
+  "status": "model",
+  "model": {
+    "horizon_hours": 1.2,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "Dove",
+        "type": "Utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "Preparation",
+        "scalar_hours": 0.05,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "Morning",
+        "start_hours": 0.1,
+        "notice_hours": 0.05,
+        "duration_hours": 0.35,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "Preparation",
+        "depends_on": []
+      },
+      {
+        "id": "Afternoon",
+        "start_hours": 0.7,
+        "notice_hours": 0.6,
+        "duration_hours": 0.25,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "Preparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "按指定通知、起飞、准备和飞行时间建立两次独立巡航，延误与周转时间均为零。"
+}

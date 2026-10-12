@@ -1,0 +1,198 @@
+{
+  "schema": "codex-modeling-repair-feedback/v1",
+  "task_id": "R05",
+  "mode": "T",
+  "received": true,
+  "diagnostics": {
+    "candidate_valid": true,
+    "compiled": true,
+    "error": null,
+    "executed": true
+  },
+  "trace_summary": {
+    "trace_event_count": 16,
+    "event_counts": {
+      "aircraft_allocated": 2,
+      "mission_notice": 2,
+      "mission_returned": 2,
+      "mission_started": 2,
+      "preparation_created": 2,
+      "preparation_finished": 2,
+      "work_finished": 2,
+      "work_started": 2
+    },
+    "events": [
+      {
+        "hour": 1.4,
+        "kind": "mission_notice",
+        "mission": "lead"
+      },
+      {
+        "hour": 1.4,
+        "kind": "aircraft_allocated",
+        "mission": "lead",
+        "aircraft": "lead-1"
+      },
+      {
+        "hour": 1.4,
+        "kind": "preparation_created",
+        "mission": "lead",
+        "aircraft": "lead-1"
+      },
+      {
+        "hour": 1.4,
+        "kind": "work_started",
+        "mission": "lead",
+        "aircraft": "lead-1",
+        "step": "prep:scalar",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 1.5,
+        "kind": "work_finished",
+        "mission": "lead",
+        "aircraft": "lead-1",
+        "step": "prep:scalar",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 1.5,
+        "kind": "preparation_finished",
+        "mission": "lead",
+        "aircraft": "lead-1"
+      },
+      {
+        "hour": 1.6,
+        "kind": "mission_started",
+        "mission": "lead",
+        "aircraft": [
+          "lead-1"
+        ]
+      },
+      {
+        "hour": 1.8,
+        "kind": "mission_notice",
+        "mission": "follow"
+      },
+      {
+        "hour": 1.8,
+        "kind": "aircraft_allocated",
+        "mission": "follow",
+        "aircraft": "wing-1"
+      },
+      {
+        "hour": 1.8,
+        "kind": "preparation_created",
+        "mission": "follow",
+        "aircraft": "wing-1"
+      },
+      {
+        "hour": 1.8,
+        "kind": "work_started",
+        "mission": "follow",
+        "aircraft": "wing-1",
+        "step": "prep:scalar",
+        "owner": "work:1:1:0:0"
+      },
+      {
+        "hour": 1.9,
+        "kind": "work_finished",
+        "mission": "follow",
+        "aircraft": "wing-1",
+        "step": "prep:scalar",
+        "owner": "work:1:1:0:0"
+      },
+      {
+        "hour": 1.9,
+        "kind": "preparation_finished",
+        "mission": "follow",
+        "aircraft": "wing-1"
+      },
+      {
+        "hour": 1.9,
+        "kind": "mission_started",
+        "mission": "follow",
+        "aircraft": [
+          "wing-1"
+        ]
+      },
+      {
+        "hour": 2.2,
+        "kind": "mission_returned",
+        "mission": "follow",
+        "outcome": "successful",
+        "aircraft": [
+          "wing-1"
+        ],
+        "flight_hours": 0.3
+      },
+      {
+        "hour": 2.4,
+        "kind": "mission_returned",
+        "mission": "lead",
+        "outcome": "successful",
+        "aircraft": [
+          "lead-1"
+        ],
+        "flight_hours": 0.8
+      }
+    ],
+    "truncated": false
+  },
+  "public_probes": [
+    {
+      "id": "R05-P1",
+      "description": "lead成功返航必须先于follow起飞被记录。",
+      "passed": false,
+      "expected": {
+        "each_occurs_once": true,
+        "order": [
+          "lead成功返航",
+          "follow起飞"
+        ]
+      },
+      "actual": [
+        [
+          2.4
+        ],
+        [
+          1.9
+        ]
+      ],
+      "discrepancy": {
+        "expected": {
+          "each_occurs_once": true,
+          "order": [
+            "lead成功返航",
+            "follow起飞"
+          ]
+        },
+        "observed": [
+          [
+            2.4
+          ],
+          [
+            1.9
+          ]
+        ]
+      }
+    },
+    {
+      "id": "R05-P2",
+      "description": "follow可以提前准备，并应在1.9小时准备完成。",
+      "passed": true,
+      "expected": [
+        [
+          1.9
+        ]
+      ],
+      "actual": [
+        [
+          1.9
+        ]
+      ],
+      "discrepancy": null
+    }
+  ],
+  "probe_note": "这些预注册公开探针仅覆盖部分业务行为；全部通过不代表最终完整评分通过。"
+}

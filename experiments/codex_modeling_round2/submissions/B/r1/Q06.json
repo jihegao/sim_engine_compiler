@@ -1,0 +1,111 @@
+{
+  "task_id": "Q06",
+  "status": "model",
+  "model": {
+    "horizon_hours": 1.5,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "RigBird",
+        "type": "RigType",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "CrewBird",
+        "type": "CrewType",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "Crew",
+        "capacity": 2
+      },
+      {
+        "id": "Rig",
+        "capacity": 1
+      }
+    ],
+    "processes": [
+      {
+        "id": "RigPreparation",
+        "scalar_hours": 0.27,
+        "steps": [
+          {
+            "id": "Prepare",
+            "duration_hours": 0.27,
+            "demands": {
+              "Crew": 2,
+              "Rig": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": "CrewPreparation",
+        "scalar_hours": 0.18,
+        "steps": [
+          {
+            "id": "Prepare",
+            "duration_hours": 0.18,
+            "demands": {
+              "Crew": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "RigRun",
+        "start_hours": 0.75,
+        "notice_hours": 0.5,
+        "duration_hours": 0.35,
+        "delay_hours": 0.3,
+        "priority": 1,
+        "requirements": {
+          "RigType": 1
+        },
+        "process": "RigPreparation",
+        "depends_on": []
+      },
+      {
+        "id": "CrewRun",
+        "start_hours": 0.75,
+        "notice_hours": 0.5,
+        "duration_hours": 0.2,
+        "delay_hours": 0.3,
+        "priority": 2,
+        "requirements": {
+          "CrewType": 1
+        },
+        "process": "CrewPreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "按给定业务参数及本配置支持的调度、资源和维护语义建模。"
+}

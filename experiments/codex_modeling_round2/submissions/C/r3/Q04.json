@@ -1,0 +1,81 @@
+{
+  "task_id": "Q04",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2.5,
+    "report_interval_hours": 0.1,
+    "rng_profile": "external-events/v1",
+    "aircraft": [
+      {
+        "id": "ThresholdBird",
+        "type": "Utility",
+        "turnround_hours": 0,
+        "repair_mode": "direct",
+        "repair_hours": 0.25,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": {
+          "id": "ThresholdBird-PM",
+          "clock": "flight",
+          "interval_hours": 1,
+          "duration_hours": 0.35
+        }
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "NoPreparation",
+        "scalar_hours": 0,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "Exposure",
+        "start_hours": 0.35,
+        "notice_hours": 0.35,
+        "duration_hours": 1.15,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "NoPreparation",
+        "depends_on": []
+      },
+      {
+        "id": "DeadlineRun",
+        "start_hours": 1.75,
+        "notice_hours": 1.75,
+        "duration_hours": 0.25,
+        "delay_hours": 0.34,
+        "priority": 2,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "NoPreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": [
+      {
+        "id": "ThresholdFault",
+        "time_hours": 0.95,
+        "operation": "fault",
+        "aircraft": "ThresholdBird",
+        "node": null,
+        "item": null,
+        "value_hours": 0
+      }
+    ]
+  },
+  "questions": [],
+  "reason": "依据业务请求和公开 schema 完整表达所需机制。"
+}

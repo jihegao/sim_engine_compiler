@@ -1,0 +1,78 @@
+{
+  "task_id": "Q17",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2.4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "SerialBird",
+        "type": "Utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "Crew",
+        "capacity": 1
+      }
+    ],
+    "processes": [
+      {
+        "id": "SerialPreparation",
+        "scalar_hours": 0.36,
+        "steps": [
+          {
+            "id": "SafetyInspection",
+            "duration_hours": 0.08,
+            "demands": {
+              "Crew": 1
+            }
+          },
+          {
+            "id": "Warmup",
+            "duration_hours": 0.17,
+            "demands": {}
+          },
+          {
+            "id": "ReleaseInspection",
+            "duration_hours": 0.11,
+            "demands": {
+              "Crew": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "SerialRoute",
+        "start_hours": 1.4,
+        "notice_hours": 1.2,
+        "duration_hours": 0.4,
+        "delay_hours": 0.3,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "SerialPreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "按业务明确给定的实体、参数和公开后端机制建立完整模型。"
+}

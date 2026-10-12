@@ -1,0 +1,84 @@
+{
+  "task_id": "Q01",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2.4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "UsageBird",
+        "type": "Utility",
+        "turnround_hours": 0.1,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": {
+          "id": "UsageBird-PM",
+          "clock": "flight",
+          "interval_hours": 0.8,
+          "duration_hours": 0.3
+        }
+      }
+    ],
+    "resources": [
+      {
+        "id": "Crew",
+        "capacity": 1
+      }
+    ],
+    "processes": [
+      {
+        "id": "UsagePreparation",
+        "scalar_hours": 0.1,
+        "steps": [
+          {
+            "id": "Preparation",
+            "duration_hours": 0.1,
+            "demands": {
+              "Crew": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "ShortHop",
+        "start_hours": 0.25,
+        "notice_hours": 0.1,
+        "duration_hours": 0.45,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "UsagePreparation",
+        "depends_on": []
+      },
+      {
+        "id": "LongHop",
+        "start_hours": 1.4,
+        "notice_hours": 1.25,
+        "duration_hours": 0.4,
+        "delay_hours": 0,
+        "priority": 2,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "UsagePreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "依据业务请求和公开 schema 完整表达所需机制。"
+}

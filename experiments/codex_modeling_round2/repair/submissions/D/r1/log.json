@@ -1,0 +1,37 @@
+{
+  "condition": "D",
+  "revision": 1,
+  "start_utc": "2026-10-12T03:06:07Z",
+  "end_utc": "2026-10-12T03:06:48Z",
+  "files_read": [
+    "experiments/codex_modeling_round2/prompts/repair-D.txt",
+    "experiments/codex_modeling_round2/repair/public/tasks.json",
+    "experiments/codex_modeling_round2/repair/public/schema-guide.md",
+    "experiments/codex_modeling_round2/repair/public/mechanisms.md",
+    "experiments/codex_modeling_round2/repair/public/initial/R01.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R02.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R03.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R04.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R05.json",
+    "experiments/codex_modeling_round2/repair/public/initial/R06.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/D/R01.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/D/R02.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/D/R03.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/D/R04.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/D/R05.json",
+    "experiments/codex_modeling_round2/repair/public/feedback/D/R06.json"
+  ],
+  "per_task_change_reasons": {
+    "R01": "班组只有两人；将staff容量设为2，每架检查仍占用1人直到结束，三架全部完成后成组出动。",
+    "R02": "42分钟飞行换算为0.7小时，6分钟周转换算为0.1小时；其余业务时间已正确换算。",
+    "R03": "实际准备按safety检查、warmup预热的顺序串行执行；保留0.9小时账面估时，仅检查占用staff。",
+    "R04": "tight容许延误改为0.29小时，使最终期限为1.69小时；采用内建取消释放及旧事件失效机制，recovery保持独立。",
+    "R05": "follow增加对lead成功返航的起飞依赖；仍按自己的通知时间提前准备。",
+    "R06": "外部事件采用fault，任务中止但仍按原计划返航；保留飞行累计维护和先维修后维护的配置。"
+  },
+  "feedback_used": "D条件初始反馈仅提供candidate_valid=true、compiled=true、error=null；修订依据公开业务要求和schema语义。",
+  "execution": "仅读取获准文件并序列化JSON；未调用编译器、校验器、运行器或反馈工具。",
+  "model_id": null,
+  "tokens": null,
+  "cost": null
+}
