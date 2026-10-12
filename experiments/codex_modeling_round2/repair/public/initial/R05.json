@@ -1,0 +1,80 @@
+{
+  "task_id": "R05",
+  "status": "model",
+  "model": {
+    "horizon_hours": 4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "lead-1",
+        "type": "leader",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "wing-1",
+        "type": "wing",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0.1,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "lead",
+        "start_hours": 1.6,
+        "notice_hours": 1.4,
+        "duration_hours": 0.8,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "leader": 1
+        },
+        "process": "prep",
+        "depends_on": []
+      },
+      {
+        "id": "follow",
+        "start_hours": 1.9,
+        "notice_hours": 1.8,
+        "duration_hours": 0.3,
+        "delay_hours": 0.6,
+        "priority": 2,
+        "requirements": {
+          "wing": 1
+        },
+        "process": "prep",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "待复核并修复的初始业务模型。"
+}

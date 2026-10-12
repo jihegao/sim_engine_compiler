@@ -1,0 +1,98 @@
+{
+  "task_id": "R04",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2.4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "cancel-1",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "cancel-2",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "staff",
+        "capacity": 1
+      }
+    ],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0.3,
+        "steps": [
+          {
+            "id": "long-check",
+            "duration_hours": 0.3,
+            "demands": {
+              "staff": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": "instant",
+        "scalar_hours": 0,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "tight",
+        "start_hours": 1.4,
+        "notice_hours": 1.1,
+        "duration_hours": 0.4,
+        "delay_hours": 0.29,
+        "priority": 1,
+        "requirements": {
+          "utility": 2
+        },
+        "process": "prep",
+        "depends_on": []
+      },
+      {
+        "id": "recovery",
+        "start_hours": 1.72,
+        "notice_hours": 1.69,
+        "duration_hours": 0.23,
+        "delay_hours": 0,
+        "priority": 2,
+        "requirements": {
+          "utility": 1
+        },
+        "process": "instant",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "将tight容许延误改为0.29小时，使未准备齐的任务在1.69小时取消；使用内置取消释放和失效令牌语义，保留独立recovery。"
+}

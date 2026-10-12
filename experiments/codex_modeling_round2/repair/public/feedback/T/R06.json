@@ -1,0 +1,240 @@
+{
+  "schema": "codex-modeling-repair-feedback/v1",
+  "task_id": "R06",
+  "mode": "T",
+  "received": true,
+  "diagnostics": {
+    "candidate_valid": true,
+    "compiled": true,
+    "error": null,
+    "executed": true
+  },
+  "trace_summary": {
+    "trace_event_count": 19,
+    "event_counts": {
+      "aircraft_allocated": 2,
+      "external_damaged_arrival": 1,
+      "mission_notice": 2,
+      "mission_returned": 2,
+      "mission_started": 2,
+      "preparation_created": 2,
+      "preparation_finished": 2,
+      "repair_finished": 1,
+      "repair_started": 1,
+      "work_finished": 2,
+      "work_started": 2
+    },
+    "events": [
+      {
+        "hour": 0.6,
+        "kind": "mission_notice",
+        "mission": "first"
+      },
+      {
+        "hour": 0.6,
+        "kind": "aircraft_allocated",
+        "mission": "first",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 0.6,
+        "kind": "preparation_created",
+        "mission": "first",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 0.6,
+        "kind": "work_started",
+        "mission": "first",
+        "aircraft": "fault-1",
+        "step": "prep:scalar",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 0.6,
+        "kind": "work_finished",
+        "mission": "first",
+        "aircraft": "fault-1",
+        "step": "prep:scalar",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 0.6,
+        "kind": "preparation_finished",
+        "mission": "first",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 0.6,
+        "kind": "mission_started",
+        "mission": "first",
+        "aircraft": [
+          "fault-1"
+        ]
+      },
+      {
+        "hour": 1.05,
+        "kind": "external_damaged_arrival",
+        "driver": "fault-driver",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 1.05,
+        "kind": "mission_returned",
+        "mission": "first",
+        "outcome": "aborted",
+        "aircraft": [
+          "fault-1"
+        ],
+        "flight_hours": 0.45
+      },
+      {
+        "hour": 1.05,
+        "kind": "repair_started",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 1.4,
+        "kind": "repair_finished",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 2.25,
+        "kind": "mission_notice",
+        "mission": "next"
+      },
+      {
+        "hour": 2.25,
+        "kind": "aircraft_allocated",
+        "mission": "next",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 2.25,
+        "kind": "preparation_created",
+        "mission": "next",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 2.25,
+        "kind": "work_started",
+        "mission": "next",
+        "aircraft": "fault-1",
+        "step": "prep:scalar",
+        "owner": "work:1:0:0:0"
+      },
+      {
+        "hour": 2.25,
+        "kind": "work_finished",
+        "mission": "next",
+        "aircraft": "fault-1",
+        "step": "prep:scalar",
+        "owner": "work:1:0:0:0"
+      },
+      {
+        "hour": 2.25,
+        "kind": "preparation_finished",
+        "mission": "next",
+        "aircraft": "fault-1"
+      },
+      {
+        "hour": 2.25,
+        "kind": "mission_started",
+        "mission": "next",
+        "aircraft": [
+          "fault-1"
+        ]
+      },
+      {
+        "hour": 2.45,
+        "kind": "mission_returned",
+        "mission": "next",
+        "outcome": "successful",
+        "aircraft": [
+          "fault-1"
+        ],
+        "flight_hours": 0.2
+      }
+    ],
+    "truncated": false
+  },
+  "public_probes": [
+    {
+      "id": "R06-P1",
+      "description": "first虽因故障中止，仍应在1.9小时返航。",
+      "passed": false,
+      "expected": [
+        [
+          1.9,
+          "aborted"
+        ]
+      ],
+      "actual": [
+        [
+          1.05,
+          "aborted"
+        ]
+      ],
+      "discrepancy": {
+        "expected": [
+          [
+            1.9,
+            "aborted"
+          ]
+        ],
+        "observed": [
+          [
+            1.05,
+            "aborted"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "R06-P2",
+      "description": "故障维修结束后必须完成已到期维护，next随后才能起飞。",
+      "passed": false,
+      "expected": {
+        "each_occurs_once": true,
+        "order": [
+          "故障维修结束",
+          "维护开始",
+          "维护结束",
+          "next起飞"
+        ]
+      },
+      "actual": [
+        [
+          1.4
+        ],
+        [],
+        [],
+        [
+          2.25
+        ]
+      ],
+      "discrepancy": {
+        "expected": {
+          "each_occurs_once": true,
+          "order": [
+            "故障维修结束",
+            "维护开始",
+            "维护结束",
+            "next起飞"
+          ]
+        },
+        "observed": [
+          [
+            1.4
+          ],
+          [],
+          [],
+          [
+            2.25
+          ]
+        ]
+      }
+    }
+  ],
+  "probe_note": "这些预注册公开探针仅覆盖部分业务行为；全部通过不代表最终完整评分通过。"
+}

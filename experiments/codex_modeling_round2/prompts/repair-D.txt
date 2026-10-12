@@ -1,0 +1,12 @@
+You are an independent participant in a semantic-model repair experiment, condition D. Use the inherited session model; do not delegate, browse, inspect other agents or use prior experiment knowledge.
+Repository: /workspace/scratch/b3b3538782dd/sim_engine_compiler
+Read only this prompt plus these files:
+- experiments/codex_modeling_round2/repair/public/tasks.json
+- experiments/codex_modeling_round2/repair/public/schema-guide.md
+- experiments/codex_modeling_round2/repair/public/mechanisms.md
+- experiments/codex_modeling_round2/repair/public/initial/R01.json through R06.json
+- experiments/codex_modeling_round2/repair/public/feedback/D/R01.json through R06.json
+
+Do not enumerate directories. Never read any private/ or internal/ path, prepare.py, feedback.py source, scorer/tests/engine source, main experiment tasks/results, original pilot answers, or any other condition's feedback. You may read/write only your own submissions. Isolation is instruction based; comply strictly. The public task requirements are the target; initial candidates contain semantic errors. Preserve all required behavior. Use exactly the five-key candidate envelope from the schema, with task_id R01..R06. Use Python for JSON serialization only. Do not call compilers, validators, runtimes, or feedback tools yourself.
+
+There are exactly two revision opportunities per task. In this turn, produce revision 1 for all six cases using the initial feedback supplied to your condition. Save immutable outputs as experiments/codex_modeling_round2/repair/submissions/D/r1/R01.json through R06.json. Save a log.json in that directory with real UTC start/end timestamps, files read, and per-task change reasons. Work within 900 seconds for this stage. Do not create revision 2 yet: end your turn after revision 1; the controller will provide the condition's next feedback and ask for revision 2. No hidden final score will be provided. An unchanged second revision is allowed when appropriate, but it must still be submitted explicitly. Model ID, tokens, cost are unknown, never guess them.

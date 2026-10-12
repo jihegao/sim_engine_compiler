@@ -1,0 +1,80 @@
+{
+  "task_id": "Q19",
+  "status": "model",
+  "model": {
+    "horizon_hours": 1.5,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "DelayOne",
+        "type": "Utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "DelayTwo",
+        "type": "Utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "Crew",
+        "capacity": 1
+      }
+    ],
+    "processes": [
+      {
+        "id": "Preparation",
+        "scalar_hours": 0.24,
+        "steps": [
+          {
+            "id": "CrewCheck",
+            "duration_hours": 0.24,
+            "demands": {
+              "Crew": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "DelayedPair",
+        "start_hours": 0.5,
+        "notice_hours": 0.3,
+        "duration_hours": 0.4,
+        "delay_hours": 0.3,
+        "priority": 1,
+        "requirements": {
+          "Utility": 2
+        },
+        "process": "Preparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "答复明确允许延误0.3小时，最晚起飞为0.8小时；两架分别准备0.24小时并竞争容量为1的Crew。"
+}

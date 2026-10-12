@@ -1,0 +1,53 @@
+{
+  "task_id": "Q22",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "MinuteBird",
+        "type": "Utility",
+        "turnround_hours": 0.15,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "MinutePreparation",
+        "scalar_hours": 0.25,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "MinuteRoute",
+        "start_hours": 0.9,
+        "notice_hours": 0.65,
+        "duration_hours": 0.55,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "MinutePreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "分钟精确转换为小时：观察2、报告0.1、通知0.65、准备0.25、起飞0.9、飞行0.55、周转0.15。"
+}

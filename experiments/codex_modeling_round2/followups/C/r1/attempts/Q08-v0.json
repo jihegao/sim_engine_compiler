@@ -1,0 +1,92 @@
+{
+  "task_id": "Q08",
+  "status": "model",
+  "model": {
+    "horizon_hours": 1.5,
+    "report_interval_hours": 0.1,
+    "rng_profile": "external-events/v1",
+    "aircraft": [
+      {
+        "id": "DependencyScout",
+        "type": "Recon",
+        "turnround_hours": 0,
+        "repair_mode": "direct",
+        "repair_hours": 0.1,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "DependencyCargo",
+        "type": "Cargo",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "NoPreparation",
+        "scalar_hours": 0,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "Front",
+        "start_hours": 0.2,
+        "notice_hours": 0.2,
+        "duration_hours": 0.6,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Recon": 1
+        },
+        "process": "NoPreparation",
+        "depends_on": []
+      },
+      {
+        "id": "Back",
+        "start_hours": 1,
+        "notice_hours": 0.95,
+        "duration_hours": 0.2,
+        "delay_hours": 0.2,
+        "priority": 2,
+        "requirements": {
+          "Cargo": 1
+        },
+        "process": "NoPreparation",
+        "depends_on": [
+          "Front"
+        ]
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": [
+      {
+        "id": "FrontFault",
+        "time_hours": 0.45,
+        "operation": "fault",
+        "aircraft": "DependencyScout",
+        "node": null,
+        "item": null,
+        "value_hours": 0
+      }
+    ]
+  },
+  "questions": [],
+  "reason": "结合原始请求与本阶段明确答复完整建模。"
+}

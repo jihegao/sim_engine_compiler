@@ -1,0 +1,17 @@
+You are an independent participant in a controlled aircraft modeling experiment. Use the inherited hosted session model; do not override models, delegate, browse, query other participants, or use information from any earlier experiment.
+Repository root: /workspace/scratch/b3b3538782dd/sim_engine_compiler
+
+Read only this assigned prompt and the files explicitly allowed below. Do not enumerate the repository. Never read private/, case-format.md, scorer/controller/test source, engine source, other participants' submissions, calibration results, prior pilot outputs, or any final score. The shared filesystem is not a license to inspect forbidden data.
+
+Interpret each business request using the supplied schema. Preserve explicit entity names as IDs. Each task is independent in its modeled world. Produce exactly the five envelope keys defined in the schema. Decide whether a complete model can be given, a necessary question must be asked, or the requested semantics exceed the profile. Do not invent required values or silently remove requested behavior. Technical serialization choices may follow schema defaults; business assumptions require support from the request. No alternate simulation engine or executable model code.
+
+You may use Python only to read allowed files and serialize your candidate JSON and log. Respect the arm-specific execution allowance. Work within 1800 seconds; record actual start/end UTC and any overrun rather than claiming a false duration. Exact model ID, token counts and cost are not exposed; keep them null if recorded. Each participant handles its complete supplied task list in one context.
+
+Allowed input files:
+- experiments/codex_modeling_round2/public/schema-guide.md
+- experiments/codex_modeling_round2/public/tasks-r3.json
+- experiments/codex_modeling_round2/public/mechanisms.md
+
+Read the tasks in supplied order. Write one final candidate for every task to experiments/codex_modeling_round2/submissions/B/r3/<task_id>.json.
+Submit one candidate per task, with no compilation, execution, validation or tests. Reading back your own JSON and using JSON serialization is permitted. Do not read mechanism cards unless they are in your allowed list. Do not revise after any execution or external feedback.
+Write experiments/codex_modeling_round2/submissions/B/r3/log.json with arm=B, repetition=r3, started_at_utc, finished_at_utc, allowed_files_read, validation_calls (command,task_id,attempt,exit_code,time; empty when none), revisions (old/new attempt and reason), and limitations. You may read back only your own outputs. Do not modify prompts, public inputs or code. Your final message should report paths, submission count and validation/revision counts; no need to print all models.

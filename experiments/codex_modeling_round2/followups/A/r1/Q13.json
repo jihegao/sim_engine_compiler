@@ -1,0 +1,71 @@
+{
+  "task_id": "Q13",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2.4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "ClockBird",
+        "type": "Utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": {
+          "id": "ClockBirdFlightPM",
+          "clock": "flight",
+          "interval_hours": 0.9,
+          "duration_hours": 0.25
+        }
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "NoPreparation",
+        "scalar_hours": 0,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "ClockFirst",
+        "start_hours": 0.4,
+        "notice_hours": 0.4,
+        "duration_hours": 0.6,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "NoPreparation",
+        "depends_on": []
+      },
+      {
+        "id": "ClockSecond",
+        "start_hours": 1.4,
+        "notice_hours": 1.4,
+        "duration_hours": 0.45,
+        "delay_hours": 0,
+        "priority": 2,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "NoPreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "答复明确按累计实际飞行小时维护，地面时间不累计，跨航次保留余额并在维护完成后清零；使用flight维护时钟。"
+}

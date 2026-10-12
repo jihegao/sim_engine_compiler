@@ -1,0 +1,195 @@
+{
+  "schema": "codex-modeling-repair-feedback/v1",
+  "task_id": "R03",
+  "mode": "T",
+  "received": true,
+  "diagnostics": {
+    "candidate_valid": true,
+    "compiled": true,
+    "error": null,
+    "executed": true
+  },
+  "trace_summary": {
+    "trace_event_count": 13,
+    "event_counts": {
+      "aircraft_allocated": 1,
+      "mission_notice": 1,
+      "mission_returned": 1,
+      "mission_started": 1,
+      "preparation_created": 1,
+      "preparation_finished": 1,
+      "resource_acquired": 1,
+      "resource_released": 1,
+      "resource_request": 1,
+      "work_finished": 2,
+      "work_started": 2
+    },
+    "events": [
+      {
+        "hour": 2.1,
+        "kind": "mission_notice",
+        "mission": "serial-flight"
+      },
+      {
+        "hour": 2.1,
+        "kind": "aircraft_allocated",
+        "mission": "serial-flight",
+        "aircraft": "serial-1"
+      },
+      {
+        "hour": 2.1,
+        "kind": "preparation_created",
+        "mission": "serial-flight",
+        "aircraft": "serial-1"
+      },
+      {
+        "hour": 2.1,
+        "kind": "work_started",
+        "mission": "serial-flight",
+        "aircraft": "serial-1",
+        "step": "warmup",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 2.28,
+        "kind": "work_finished",
+        "mission": "serial-flight",
+        "aircraft": "serial-1",
+        "step": "warmup",
+        "owner": "work:0:0:0:0"
+      },
+      {
+        "hour": 2.28,
+        "kind": "resource_request",
+        "mission": "serial-flight",
+        "aircraft": "serial-1",
+        "step": "safety"
+      },
+      {
+        "hour": 2.28,
+        "kind": "resource_acquired",
+        "owner": "work:0:0:1:0",
+        "resource": "staff",
+        "quantity": 1
+      },
+      {
+        "hour": 2.28,
+        "kind": "work_started",
+        "mission": "serial-flight",
+        "aircraft": "serial-1",
+        "step": "safety",
+        "owner": "work:0:0:1:0"
+      },
+      {
+        "hour": 2.4,
+        "kind": "work_finished",
+        "mission": "serial-flight",
+        "aircraft": "serial-1",
+        "step": "safety",
+        "owner": "work:0:0:1:0"
+      },
+      {
+        "hour": 2.4,
+        "kind": "resource_released",
+        "owner": "work:0:0:1:0",
+        "resource": "staff",
+        "quantity": 1,
+        "cancelled": false
+      },
+      {
+        "hour": 2.4,
+        "kind": "preparation_finished",
+        "mission": "serial-flight",
+        "aircraft": "serial-1"
+      },
+      {
+        "hour": 2.4,
+        "kind": "mission_started",
+        "mission": "serial-flight",
+        "aircraft": [
+          "serial-1"
+        ]
+      },
+      {
+        "hour": 2.8,
+        "kind": "mission_returned",
+        "mission": "serial-flight",
+        "outcome": "successful",
+        "aircraft": [
+          "serial-1"
+        ],
+        "flight_hours": 0.4
+      }
+    ],
+    "truncated": false
+  },
+  "public_probes": [
+    {
+      "id": "R03-P1",
+      "description": "实际步骤必须按检查、预热顺序启动。",
+      "passed": false,
+      "expected": [
+        [
+          "safety"
+        ],
+        [
+          "warmup"
+        ]
+      ],
+      "actual": [
+        [
+          "warmup"
+        ],
+        [
+          "safety"
+        ]
+      ],
+      "discrepancy": {
+        "expected": [
+          [
+            "safety"
+          ],
+          [
+            "warmup"
+          ]
+        ],
+        "observed": [
+          [
+            "warmup"
+          ],
+          [
+            "safety"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "R03-P2",
+      "description": "staff应在2.22小时结束检查时归还。",
+      "passed": false,
+      "expected": [
+        [
+          2.22
+        ]
+      ],
+      "actual": [
+        [
+          2.4
+        ]
+      ],
+      "discrepancy": {
+        "expected": [
+          [
+            2.22
+          ]
+        ],
+        "observed": [
+          [
+            2.4
+          ]
+        ]
+      }
+    }
+  ],
+  "probe_note": "这些预注册公开探针仅覆盖部分业务行为；全部通过不代表最终完整评分通过。"
+}

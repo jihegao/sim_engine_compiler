@@ -1,0 +1,82 @@
+{
+  "task_id": "Q07",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "Scout",
+        "type": "Recon",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "Carrier",
+        "type": "Cargo",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "Preparation",
+        "scalar_hours": 0.1,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "ReconRun",
+        "start_hours": 0.45,
+        "notice_hours": 0.25,
+        "duration_hours": 0.75,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Recon": 1
+        },
+        "process": "Preparation",
+        "depends_on": []
+      },
+      {
+        "id": "CargoRun",
+        "start_hours": 0.8,
+        "notice_hours": 0.7,
+        "duration_hours": 0.4,
+        "delay_hours": 0.6,
+        "priority": 2,
+        "requirements": {
+          "Cargo": 1
+        },
+        "process": "Preparation",
+        "depends_on": [
+          "ReconRun"
+        ]
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": ""
+}

@@ -1,0 +1,63 @@
+{
+  "task_id": "Q16",
+  "status": "model",
+  "model": {
+    "horizon_hours": 1.8,
+    "report_interval_hours": 0.1,
+    "rng_profile": "external-events/v1",
+    "aircraft": [
+      {
+        "id": "RepairBird",
+        "type": "Utility",
+        "turnround_hours": 0,
+        "repair_mode": "direct",
+        "repair_hours": 0.28,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "NoPreparation",
+        "scalar_hours": 0,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "RepairRoute",
+        "start_hours": 0.2,
+        "notice_hours": 0.2,
+        "duration_hours": 0.9,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "Utility": 1
+        },
+        "process": "NoPreparation",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": [
+      {
+        "id": "KnownFault",
+        "time_hours": 0.65,
+        "operation": "fault",
+        "aircraft": "RepairBird",
+        "node": null,
+        "item": null,
+        "value_hours": 0
+      }
+    ]
+  },
+  "questions": [],
+  "reason": "所述业务规则可由当前配置完整表达。"
+}
