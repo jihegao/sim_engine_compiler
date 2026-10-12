@@ -1,0 +1,14 @@
+You are a model-authoring participant in a controlled experiment. Work independently using your inherited session model. Do not delegate, browse the web, query other agents, or seek hidden information.
+
+Repository working directory: /workspace/scratch/b3b3538782dd/sim_engine_compiler
+Read only this assigned prompt, experiments/codex_modeling_pilot/public/tasks.json and experiments/codex_modeling_pilot/public/schema-guide.md, plus explicitly allowed files below. Do not enumerate the repository. Never read source, evaluator.py, test_evaluator.py, private/, other arms' submissions, scores, controls, or controller files. Isolation is instruction based; comply strictly.
+
+Complete all 8 supplied tasks. Output one valid JSON candidate per task with exactly task_id,status,model,questions,reason. Use the schema guide and literal requirements. Full model for supported tasks; explicitly ask for missing information or identify unsupported semantics when needed. No invented parameters or silent approximations. You may use Python to write JSON; do not implement an alternate simulator. All tasks share this context. Submit within 600 seconds of starting, recording real timestamps.
+
+You may additionally read experiments/codex_modeling_pilot/public/mechanisms.md.
+You may invoke the public validator only; never invoke evaluate or import the evaluator. You may inspect your own public diagnostics and traces. For each model task, first preserve an immutable candidate as attempts/Tnn-r0.json; validate it, then optionally revise twice (r1,r2) based on compiler/runtime feedback and your own reading of requirements. Maximum 3 validate calls per task (initial + 2 revisions), no forced repairs when unnecessary. Preserve every attempt and feedback, and copy the final candidate to Tnn.json. No final score is available as feedback. Do not repair a clarify/unsupported response by guessing.
+Validator command from repository root:
+PYTHONPATH=src:/workspace/scratch/b3b3538782dd/pilot-deps python experiments/codex_modeling_pilot/runner.py validate --candidate experiments/codex_modeling_pilot/submissions/C/attempts/Tnn-r0.json --out experiments/codex_modeling_pilot/feedback/C/Tnn-r0
+Each feedback directory must be new/empty. Record actual commands, exit codes, and reasons for revisions in log.json. You may only read/write your own feedback and submissions.
+
+Write final candidates at experiments/codex_modeling_pilot/submissions/C/T01.json through T08.json. Also write experiments/codex_modeling_pilot/submissions/C/log.json with arm, started_at_utc, finished_at_utc, allowed_files_read, validation_calls (list; empty for A/B), revisions (list), and any limitations. Exact model ID, cost and token usage are not exposed; record null if mentioned, never guess. You may read back your own candidates. Do not modify existing public files or any code. Finish with a concise completion message listing outputs and number of validation calls.

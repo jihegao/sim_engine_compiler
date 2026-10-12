@@ -1,0 +1,53 @@
+{
+  "task_id": "T02",
+  "status": "model",
+  "model": {
+    "horizon_hours": 3,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "nodes": [],
+    "routes": [],
+    "external_events": [],
+    "aircraft": [
+      {
+        "id": "minute-1",
+        "type": "utility",
+        "turnround_hours": 0.1,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0.3,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "minute-flight",
+        "start_hours": 1.25,
+        "notice_hours": 0.95,
+        "duration_hours": 0.7,
+        "delay_hours": 0,
+        "priority": 1,
+        "requirements": {
+          "utility": 1
+        },
+        "process": "prep",
+        "depends_on": []
+      }
+    ]
+  },
+  "questions": [],
+  "reason": "所有分钟值已转换为小时；成功返航后周转0.1小时。"
+}

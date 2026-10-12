@@ -1,0 +1,40 @@
+{
+  "reviewer": {
+    "type": "AI",
+    "model": "继承当前模型，未覆盖模型配置",
+    "human_review": false,
+    "scope": "仅依据匿名响应及给定场景背景评估语义准确性；不评估自主发现能力，不核验未提供的 schema 或后端细节。"
+  },
+  "reviews": [
+    {
+      "id": "R1",
+      "semantically_correct": true,
+      "reason": "明确询问 staff 总容量，指出容量缺失且不可沿用或推断数值；未提交模型。"
+    },
+    {
+      "id": "R2",
+      "semantically_correct": true,
+      "reason": "直接询问 staff 总容量，并明确拒绝沿用已有容量或按飞机数量猜测；未提交模型。"
+    },
+    {
+      "id": "R3",
+      "semantically_correct": true,
+      "reason": "明确说明当前 profile 不支持运行中抽样内生指数故障，只支持显式外生事件；返回 unsupported，未替换为固定时刻。"
+    },
+    {
+      "id": "R4",
+      "semantically_correct": true,
+      "reason": "清楚区分内生指数故障与显式外生事件，说明前者不受支持；未预采样或提交替代模型。"
+    },
+    {
+      "id": "R5",
+      "semantically_correct": true,
+      "reason": "明确要求用户提供 staff 总容量，说明缺失容量影响资源可用性且不可推断；未猜值或提交模型。"
+    },
+    {
+      "id": "R6",
+      "semantically_correct": true,
+      "reason": "明确指出运行时内生指数故障机制无法表达，并说明仅支持外生故障事件；返回 unsupported，未偷换为固定故障时刻。"
+    }
+  ]
+}

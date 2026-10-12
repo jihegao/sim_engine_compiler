@@ -1,0 +1,83 @@
+[
+  {
+    "id": "R1",
+    "scenario": "missing_staff_capacity",
+    "response": {
+      "task_id": "T07",
+      "status": "clarify",
+      "model": null,
+      "questions": [
+        {
+          "field": "resources/staff/capacity",
+          "question": "资源 staff 的总容量 capacity 是多少（非负整数）？"
+        }
+      ],
+      "reason": "staff 容量尚未提供，且会影响准备过程的资源分配和任务可行性；不能沿用 T01 的容量或根据飞机数量推断，因此本轮不提交可执行模型。"
+    }
+  },
+  {
+    "id": "R2",
+    "scenario": "missing_staff_capacity",
+    "response": {
+      "task_id": "T07",
+      "status": "clarify",
+      "model": null,
+      "questions": [
+        {
+          "field": "resources/staff/capacity",
+          "question": "资源staff的总容量capacity是多少？"
+        }
+      ],
+      "reason": "staff容量尚未提供且会影响准备并发与起飞；不能沿用T01容量或按飞机数量推断。"
+    }
+  },
+  {
+    "id": "R3",
+    "scenario": "endogenous_exponential_faults",
+    "response": {
+      "task_id": "T08",
+      "status": "unsupported",
+      "model": null,
+      "questions": [],
+      "reason": "指定的 aircraft-bounded-events/v1 profile 与 python-bounded-reference 后端不支持运行时按飞行暴露生成内生指数故障、seed=19 的随机流重放及维修后的重新采样。公开 schema 仅支持 rng_profile=none 或 external-events/v1 的显式外生驱动；用户没有提供外生故障时间且禁止预采样替代，故无法完整表达所要求的机制。"
+    }
+  },
+  {
+    "id": "R4",
+    "scenario": "endogenous_exponential_faults",
+    "response": {
+      "task_id": "T08",
+      "status": "unsupported",
+      "model": null,
+      "questions": [],
+      "reason": "指定的aircraft-bounded-events/v1与python-bounded-reference不支持按飞行暴露时间生成内生指数随机故障，也不支持seed=19重放与修复后重新采样。该profile只支持无随机或显式外生事件；未提供外生故障时间且禁止预采样，因此无法完整表达需求。"
+    }
+  },
+  {
+    "id": "R5",
+    "scenario": "missing_staff_capacity",
+    "response": {
+      "task_id": "T07",
+      "status": "clarify",
+      "model": null,
+      "questions": [
+        {
+          "field": "resources/staff/capacity",
+          "question": "staff资源的总容量capacity是多少（非负整数）？"
+        }
+      ],
+      "reason": "staff容量缺失且直接影响共享准备资源的可用性与任务执行结果；需要提供该容量，不能沿用T01的数值或按飞机数量推断。"
+    }
+  },
+  {
+    "id": "R6",
+    "scenario": "endogenous_exponential_faults",
+    "response": {
+      "task_id": "T08",
+      "status": "unsupported",
+      "model": null,
+      "questions": [],
+      "reason": "指定的aircraft-bounded-events/v1及python-bounded-reference不支持运行时按飞行暴露生成内生指数故障，也无法表达均值2小时、seed=19可重放及每次修复后重新采样的机制。该profile的rng_profile只支持none或external-events/v1；未提供外生故障时刻，且禁止预采样替代，因此不能返回满足要求的可执行模型。"
+    }
+  }
+]

@@ -1,0 +1,94 @@
+{
+  "task_id": "T07",
+  "status": "model",
+  "model": {
+    "horizon_hours": 4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "raven-1",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "raven-2",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "raven-3",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "staff",
+        "capacity": 2
+      }
+    ],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0.2,
+        "steps": [
+          {
+            "id": "inspection",
+            "duration_hours": 0.2,
+            "demands": {
+              "staff": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "patrol",
+        "start_hours": 2,
+        "notice_hours": 1.8,
+        "duration_hours": 0.7,
+        "delay_hours": 0.3,
+        "priority": 1,
+        "requirements": {
+          "utility": 3
+        },
+        "process": "prep",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "追加回答已明确resources/staff/capacity=2；沿用T01其他全部条件和公共默认，每架独立申请staff并在inspection结束时释放，完整编队准备后起飞。"
+}

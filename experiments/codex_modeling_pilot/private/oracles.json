@@ -1,0 +1,2077 @@
+{
+  "schema_version": "codex-modeling-pilot-oracles/v1",
+  "visibility": "PRIVATE EVALUATOR ONLY; internal controls and assertions must never be in generating agent context.",
+  "oracle_method": "Structural constraints transcribed from published requirements. Behavioral timestamps are hand calculations written before execution. Runtime outputs are used only to validate controls, never to generate expected results.",
+  "tasks": {
+    "T01": {
+      "expected_status": "model",
+      "structural": [
+        {
+          "id": "T01-STRUCT-horizon_hours",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "horizon_hours",
+          "expected": 4
+        },
+        {
+          "id": "T01-STRUCT-report_interval_hours",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "report_interval_hours",
+          "expected": 0.1
+        },
+        {
+          "id": "T01-STRUCT-rng_profile",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "rng_profile",
+          "expected": "none"
+        },
+        {
+          "id": "T01-STRUCT-aircraft",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "aircraft",
+          "expected": [
+            {
+              "id": "raven-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "raven-2",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "raven-3",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ]
+        },
+        {
+          "id": "T01-STRUCT-resources",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "resources",
+          "expected": [
+            {
+              "id": "staff",
+              "capacity": 2
+            }
+          ]
+        },
+        {
+          "id": "T01-STRUCT-processes",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "processes",
+          "expected": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.2,
+              "steps": [
+                {
+                  "id": "inspection",
+                  "duration_hours": 0.2,
+                  "demands": {
+                    "staff": 1
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "T01-STRUCT-missions",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "missions",
+          "expected": [
+            {
+              "id": "patrol",
+              "start_hours": 2,
+              "notice_hours": 1.8,
+              "duration_hours": 0.7,
+              "delay_hours": 0.3,
+              "priority": 1,
+              "requirements": {
+                "utility": 3
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ]
+        },
+        {
+          "id": "T01-STRUCT-nodes",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "nodes",
+          "expected": []
+        },
+        {
+          "id": "T01-STRUCT-routes",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "routes",
+          "expected": []
+        },
+        {
+          "id": "T01-STRUCT-external_events",
+          "requirement_ids": [
+            "T01-R01",
+            "T01-R02",
+            "T01-R03"
+          ],
+          "field": "external_events",
+          "expected": []
+        }
+      ],
+      "behavior": [
+        {
+          "id": "T01-R02-work",
+          "kind": "work_started",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              1.8
+            ],
+            [
+              1.8
+            ],
+            [
+              2
+            ]
+          ]
+        },
+        {
+          "id": "T01-R02-finish",
+          "kind": "work_finished",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2.2
+            ]
+          ]
+        },
+        {
+          "id": "T01-R03-launch",
+          "kind": "mission_started",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              2.2,
+              "patrol"
+            ]
+          ]
+        },
+        {
+          "id": "T01-R03-return",
+          "kind": "mission_returned",
+          "where": {},
+          "fields": [
+            "hour",
+            "outcome"
+          ],
+          "expected": [
+            [
+              2.9,
+              "successful"
+            ]
+          ]
+        }
+      ],
+      "manual_derivation": "2个staff并行准备前2架1.8→2.0，第3架2.0→2.2；全编队2.2起飞，2.9返航。",
+      "internal_control": {
+        "task_id": "T01",
+        "status": "model",
+        "model": {
+          "horizon_hours": 4,
+          "report_interval_hours": 0.1,
+          "rng_profile": "none",
+          "aircraft": [
+            {
+              "id": "raven-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "raven-2",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "raven-3",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ],
+          "resources": [
+            {
+              "id": "staff",
+              "capacity": 2
+            }
+          ],
+          "processes": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.2,
+              "steps": [
+                {
+                  "id": "inspection",
+                  "duration_hours": 0.2,
+                  "demands": {
+                    "staff": 1
+                  }
+                }
+              ]
+            }
+          ],
+          "missions": [
+            {
+              "id": "patrol",
+              "start_hours": 2,
+              "notice_hours": 1.8,
+              "duration_hours": 0.7,
+              "delay_hours": 0.3,
+              "priority": 1,
+              "requirements": {
+                "utility": 3
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ],
+          "nodes": [],
+          "routes": [],
+          "external_events": []
+        },
+        "questions": [],
+        "reason": "Internal hand-authored control, never expose to generating agents."
+      }
+    },
+    "T02": {
+      "expected_status": "model",
+      "structural": [
+        {
+          "id": "T02-STRUCT-horizon_hours",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "horizon_hours",
+          "expected": 3
+        },
+        {
+          "id": "T02-STRUCT-report_interval_hours",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "report_interval_hours",
+          "expected": 0.1
+        },
+        {
+          "id": "T02-STRUCT-rng_profile",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "rng_profile",
+          "expected": "none"
+        },
+        {
+          "id": "T02-STRUCT-aircraft",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "aircraft",
+          "expected": [
+            {
+              "id": "minute-1",
+              "type": "utility",
+              "turnround_hours": 0.1,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ]
+        },
+        {
+          "id": "T02-STRUCT-resources",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "resources",
+          "expected": []
+        },
+        {
+          "id": "T02-STRUCT-processes",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "processes",
+          "expected": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.3,
+              "steps": []
+            }
+          ]
+        },
+        {
+          "id": "T02-STRUCT-missions",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "missions",
+          "expected": [
+            {
+              "id": "minute-flight",
+              "start_hours": 1.25,
+              "notice_hours": 0.95,
+              "duration_hours": 0.7,
+              "delay_hours": 0,
+              "priority": 1,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ]
+        },
+        {
+          "id": "T02-STRUCT-nodes",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "nodes",
+          "expected": []
+        },
+        {
+          "id": "T02-STRUCT-routes",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "routes",
+          "expected": []
+        },
+        {
+          "id": "T02-STRUCT-external_events",
+          "requirement_ids": [
+            "T02-R01",
+            "T02-R02",
+            "T02-R03"
+          ],
+          "field": "external_events",
+          "expected": []
+        }
+      ],
+      "behavior": [
+        {
+          "id": "T02-R02-prepared",
+          "kind": "preparation_finished",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              1.25
+            ]
+          ]
+        },
+        {
+          "id": "T02-R02-launch",
+          "kind": "mission_started",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              1.25
+            ]
+          ]
+        },
+        {
+          "id": "T02-R02-return",
+          "kind": "mission_returned",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              1.95
+            ]
+          ]
+        },
+        {
+          "id": "T02-R03-turnround",
+          "kind": "turnround_finished",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              2.05
+            ]
+          ]
+        }
+      ],
+      "manual_derivation": "57/60+18/60=1.25；返航1.25+42/60=1.95；再6/60小时周转于2.05完成。",
+      "internal_control": {
+        "task_id": "T02",
+        "status": "model",
+        "model": {
+          "horizon_hours": 3,
+          "report_interval_hours": 0.1,
+          "rng_profile": "none",
+          "aircraft": [
+            {
+              "id": "minute-1",
+              "type": "utility",
+              "turnround_hours": 0.1,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ],
+          "resources": [],
+          "processes": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.3,
+              "steps": []
+            }
+          ],
+          "missions": [
+            {
+              "id": "minute-flight",
+              "start_hours": 1.25,
+              "notice_hours": 0.95,
+              "duration_hours": 0.7,
+              "delay_hours": 0,
+              "priority": 1,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ],
+          "nodes": [],
+          "routes": [],
+          "external_events": []
+        },
+        "questions": [],
+        "reason": "Internal hand-authored control, never expose to generating agents."
+      }
+    },
+    "T03": {
+      "expected_status": "model",
+      "structural": [
+        {
+          "id": "T03-STRUCT-horizon_hours",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "horizon_hours",
+          "expected": 4
+        },
+        {
+          "id": "T03-STRUCT-report_interval_hours",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "report_interval_hours",
+          "expected": 0.1
+        },
+        {
+          "id": "T03-STRUCT-rng_profile",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "rng_profile",
+          "expected": "none"
+        },
+        {
+          "id": "T03-STRUCT-aircraft",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "aircraft",
+          "expected": [
+            {
+              "id": "serial-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ]
+        },
+        {
+          "id": "T03-STRUCT-resources",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "resources",
+          "expected": [
+            {
+              "id": "staff",
+              "capacity": 1
+            }
+          ]
+        },
+        {
+          "id": "T03-STRUCT-processes",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "processes",
+          "expected": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.9,
+              "steps": [
+                {
+                  "id": "safety",
+                  "duration_hours": 0.12,
+                  "demands": {
+                    "staff": 1
+                  }
+                },
+                {
+                  "id": "warmup",
+                  "duration_hours": 0.18,
+                  "demands": {}
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "T03-STRUCT-missions",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "missions",
+          "expected": [
+            {
+              "id": "serial-flight",
+              "start_hours": 2.4,
+              "notice_hours": 2.1,
+              "duration_hours": 0.4,
+              "delay_hours": 0.2,
+              "priority": 1,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ]
+        },
+        {
+          "id": "T03-STRUCT-nodes",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "nodes",
+          "expected": []
+        },
+        {
+          "id": "T03-STRUCT-routes",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "routes",
+          "expected": []
+        },
+        {
+          "id": "T03-STRUCT-external_events",
+          "requirement_ids": [
+            "T03-R01",
+            "T03-R02",
+            "T03-R03"
+          ],
+          "field": "external_events",
+          "expected": []
+        }
+      ],
+      "behavior": [
+        {
+          "id": "T03-R02-starts",
+          "kind": "work_started",
+          "where": {},
+          "fields": [
+            "hour",
+            "step"
+          ],
+          "expected": [
+            [
+              2.1,
+              "safety"
+            ],
+            [
+              2.22,
+              "warmup"
+            ]
+          ]
+        },
+        {
+          "id": "T03-R02-finishes",
+          "kind": "work_finished",
+          "where": {},
+          "fields": [
+            "hour",
+            "step"
+          ],
+          "expected": [
+            [
+              2.22,
+              "safety"
+            ],
+            [
+              2.4,
+              "warmup"
+            ]
+          ]
+        },
+        {
+          "id": "T03-R03-launch",
+          "kind": "mission_started",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              2.4
+            ]
+          ]
+        },
+        {
+          "id": "T03-R03-release",
+          "kind": "resource_released",
+          "where": {},
+          "fields": [
+            "hour",
+            "resource"
+          ],
+          "expected": [
+            [
+              2.22,
+              "staff"
+            ]
+          ]
+        }
+      ],
+      "manual_derivation": "串行时间2.1+0.12+0.18=2.4；scalar仅保留为该profile早期可行性截止参数，不增加执行时长。",
+      "internal_control": {
+        "task_id": "T03",
+        "status": "model",
+        "model": {
+          "horizon_hours": 4,
+          "report_interval_hours": 0.1,
+          "rng_profile": "none",
+          "aircraft": [
+            {
+              "id": "serial-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ],
+          "resources": [
+            {
+              "id": "staff",
+              "capacity": 1
+            }
+          ],
+          "processes": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.9,
+              "steps": [
+                {
+                  "id": "safety",
+                  "duration_hours": 0.12,
+                  "demands": {
+                    "staff": 1
+                  }
+                },
+                {
+                  "id": "warmup",
+                  "duration_hours": 0.18,
+                  "demands": {}
+                }
+              ]
+            }
+          ],
+          "missions": [
+            {
+              "id": "serial-flight",
+              "start_hours": 2.4,
+              "notice_hours": 2.1,
+              "duration_hours": 0.4,
+              "delay_hours": 0.2,
+              "priority": 1,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ],
+          "nodes": [],
+          "routes": [],
+          "external_events": []
+        },
+        "questions": [],
+        "reason": "Internal hand-authored control, never expose to generating agents."
+      }
+    },
+    "T04": {
+      "expected_status": "model",
+      "structural": [
+        {
+          "id": "T04-STRUCT-horizon_hours",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "horizon_hours",
+          "expected": 2.4
+        },
+        {
+          "id": "T04-STRUCT-report_interval_hours",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "report_interval_hours",
+          "expected": 0.1
+        },
+        {
+          "id": "T04-STRUCT-rng_profile",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "rng_profile",
+          "expected": "none"
+        },
+        {
+          "id": "T04-STRUCT-aircraft",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "aircraft",
+          "expected": [
+            {
+              "id": "cancel-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "cancel-2",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ]
+        },
+        {
+          "id": "T04-STRUCT-resources",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "resources",
+          "expected": [
+            {
+              "id": "staff",
+              "capacity": 1
+            }
+          ]
+        },
+        {
+          "id": "T04-STRUCT-processes",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "processes",
+          "expected": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.3,
+              "steps": [
+                {
+                  "id": "long-check",
+                  "duration_hours": 0.3,
+                  "demands": {
+                    "staff": 1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "instant",
+              "scalar_hours": 0,
+              "steps": []
+            }
+          ]
+        },
+        {
+          "id": "T04-STRUCT-missions",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "missions",
+          "expected": [
+            {
+              "id": "tight",
+              "start_hours": 1.4,
+              "notice_hours": 1.1,
+              "duration_hours": 0.4,
+              "delay_hours": 0.29,
+              "priority": 1,
+              "requirements": {
+                "utility": 2
+              },
+              "process": "prep",
+              "depends_on": []
+            },
+            {
+              "id": "recovery",
+              "start_hours": 1.72,
+              "notice_hours": 1.69,
+              "duration_hours": 0.23,
+              "delay_hours": 0,
+              "priority": 2,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "instant",
+              "depends_on": []
+            }
+          ]
+        },
+        {
+          "id": "T04-STRUCT-nodes",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "nodes",
+          "expected": []
+        },
+        {
+          "id": "T04-STRUCT-routes",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "routes",
+          "expected": []
+        },
+        {
+          "id": "T04-STRUCT-external_events",
+          "requirement_ids": [
+            "T04-R01",
+            "T04-R02",
+            "T04-R03"
+          ],
+          "field": "external_events",
+          "expected": []
+        }
+      ],
+      "behavior": [
+        {
+          "id": "T04-R01-cancel",
+          "kind": "mission_cancelled",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              1.69,
+              "tight"
+            ]
+          ]
+        },
+        {
+          "id": "T04-R02-finish",
+          "kind": "work_finished",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              1.4,
+              "tight"
+            ],
+            [
+              1.69,
+              "recovery"
+            ]
+          ]
+        },
+        {
+          "id": "T04-R02-cancel-release",
+          "kind": "resource_released",
+          "where": {
+            "cancelled": true
+          },
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              1.69
+            ]
+          ]
+        },
+        {
+          "id": "T04-R03-launch",
+          "kind": "mission_started",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              1.72,
+              "recovery"
+            ]
+          ]
+        },
+        {
+          "id": "T04-R03-return",
+          "kind": "mission_returned",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              1.95,
+              "recovery"
+            ]
+          ]
+        }
+      ],
+      "manual_derivation": "准备1.1→1.4及1.4→1.7；截止1.4+0.29=1.69，第二架计时器取消。recovery于1.69零时准备、1.72起飞、1.95返航；1.7旧事件无作用。",
+      "internal_control": {
+        "task_id": "T04",
+        "status": "model",
+        "model": {
+          "horizon_hours": 2.4,
+          "report_interval_hours": 0.1,
+          "rng_profile": "none",
+          "aircraft": [
+            {
+              "id": "cancel-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "cancel-2",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ],
+          "resources": [
+            {
+              "id": "staff",
+              "capacity": 1
+            }
+          ],
+          "processes": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.3,
+              "steps": [
+                {
+                  "id": "long-check",
+                  "duration_hours": 0.3,
+                  "demands": {
+                    "staff": 1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "instant",
+              "scalar_hours": 0,
+              "steps": []
+            }
+          ],
+          "missions": [
+            {
+              "id": "tight",
+              "start_hours": 1.4,
+              "notice_hours": 1.1,
+              "duration_hours": 0.4,
+              "delay_hours": 0.29,
+              "priority": 1,
+              "requirements": {
+                "utility": 2
+              },
+              "process": "prep",
+              "depends_on": []
+            },
+            {
+              "id": "recovery",
+              "start_hours": 1.72,
+              "notice_hours": 1.69,
+              "duration_hours": 0.23,
+              "delay_hours": 0,
+              "priority": 2,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "instant",
+              "depends_on": []
+            }
+          ],
+          "nodes": [],
+          "routes": [],
+          "external_events": []
+        },
+        "questions": [],
+        "reason": "Internal hand-authored control, never expose to generating agents."
+      }
+    },
+    "T05": {
+      "expected_status": "model",
+      "structural": [
+        {
+          "id": "T05-STRUCT-horizon_hours",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "horizon_hours",
+          "expected": 4
+        },
+        {
+          "id": "T05-STRUCT-report_interval_hours",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "report_interval_hours",
+          "expected": 0.1
+        },
+        {
+          "id": "T05-STRUCT-rng_profile",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "rng_profile",
+          "expected": "none"
+        },
+        {
+          "id": "T05-STRUCT-aircraft",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "aircraft",
+          "expected": [
+            {
+              "id": "lead-1",
+              "type": "leader",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "wing-1",
+              "type": "wing",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ]
+        },
+        {
+          "id": "T05-STRUCT-resources",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "resources",
+          "expected": []
+        },
+        {
+          "id": "T05-STRUCT-processes",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "processes",
+          "expected": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.1,
+              "steps": []
+            }
+          ]
+        },
+        {
+          "id": "T05-STRUCT-missions",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "missions",
+          "expected": [
+            {
+              "id": "lead",
+              "start_hours": 1.6,
+              "notice_hours": 1.4,
+              "duration_hours": 0.8,
+              "delay_hours": 0,
+              "priority": 1,
+              "requirements": {
+                "leader": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            },
+            {
+              "id": "follow",
+              "start_hours": 1.9,
+              "notice_hours": 1.8,
+              "duration_hours": 0.3,
+              "delay_hours": 0.6,
+              "priority": 2,
+              "requirements": {
+                "wing": 1
+              },
+              "process": "prep",
+              "depends_on": [
+                "lead"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "T05-STRUCT-nodes",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "nodes",
+          "expected": []
+        },
+        {
+          "id": "T05-STRUCT-routes",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "routes",
+          "expected": []
+        },
+        {
+          "id": "T05-STRUCT-external_events",
+          "requirement_ids": [
+            "T05-R01",
+            "T05-R02"
+          ],
+          "field": "external_events",
+          "expected": []
+        }
+      ],
+      "behavior": [
+        {
+          "id": "T05-R02-prep",
+          "kind": "preparation_finished",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              1.5,
+              "lead"
+            ],
+            [
+              1.9,
+              "follow"
+            ]
+          ]
+        },
+        {
+          "id": "T05-R02-launch",
+          "kind": "mission_started",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              1.6,
+              "lead"
+            ],
+            [
+              2.4,
+              "follow"
+            ]
+          ]
+        },
+        {
+          "id": "T05-R02-return",
+          "kind": "mission_returned",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              2.4,
+              "lead"
+            ],
+            [
+              2.7,
+              "follow"
+            ]
+          ]
+        }
+      ],
+      "manual_derivation": "lead1.6起飞+0.8=2.4成功返航；follow虽1.9准备完且达到计划时间，必须等待2.4，早于其2.5截止。",
+      "internal_control": {
+        "task_id": "T05",
+        "status": "model",
+        "model": {
+          "horizon_hours": 4,
+          "report_interval_hours": 0.1,
+          "rng_profile": "none",
+          "aircraft": [
+            {
+              "id": "lead-1",
+              "type": "leader",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "wing-1",
+              "type": "wing",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ],
+          "resources": [],
+          "processes": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.1,
+              "steps": []
+            }
+          ],
+          "missions": [
+            {
+              "id": "lead",
+              "start_hours": 1.6,
+              "notice_hours": 1.4,
+              "duration_hours": 0.8,
+              "delay_hours": 0,
+              "priority": 1,
+              "requirements": {
+                "leader": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            },
+            {
+              "id": "follow",
+              "start_hours": 1.9,
+              "notice_hours": 1.8,
+              "duration_hours": 0.3,
+              "delay_hours": 0.6,
+              "priority": 2,
+              "requirements": {
+                "wing": 1
+              },
+              "process": "prep",
+              "depends_on": [
+                "lead"
+              ]
+            }
+          ],
+          "nodes": [],
+          "routes": [],
+          "external_events": []
+        },
+        "questions": [],
+        "reason": "Internal hand-authored control, never expose to generating agents."
+      }
+    },
+    "T06": {
+      "expected_status": "model",
+      "structural": [
+        {
+          "id": "T06-STRUCT-horizon_hours",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "horizon_hours",
+          "expected": 3
+        },
+        {
+          "id": "T06-STRUCT-report_interval_hours",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "report_interval_hours",
+          "expected": 0.1
+        },
+        {
+          "id": "T06-STRUCT-rng_profile",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "rng_profile",
+          "expected": "external-events/v1"
+        },
+        {
+          "id": "T06-STRUCT-aircraft",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "aircraft",
+          "expected": [
+            {
+              "id": "fault-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "direct",
+              "repair_hours": 0.35,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": {
+                "id": "flight-pm",
+                "clock": "flight",
+                "interval_hours": 1.1,
+                "duration_hours": 0.45
+              }
+            }
+          ]
+        },
+        {
+          "id": "T06-STRUCT-resources",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "resources",
+          "expected": []
+        },
+        {
+          "id": "T06-STRUCT-processes",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "processes",
+          "expected": [
+            {
+              "id": "prep",
+              "scalar_hours": 0,
+              "steps": []
+            }
+          ]
+        },
+        {
+          "id": "T06-STRUCT-missions",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "missions",
+          "expected": [
+            {
+              "id": "first",
+              "start_hours": 0.6,
+              "notice_hours": 0.6,
+              "duration_hours": 1.3,
+              "delay_hours": 0,
+              "priority": 1,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            },
+            {
+              "id": "next",
+              "start_hours": 2.25,
+              "notice_hours": 2.25,
+              "duration_hours": 0.2,
+              "delay_hours": 0.45,
+              "priority": 2,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ]
+        },
+        {
+          "id": "T06-STRUCT-nodes",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "nodes",
+          "expected": []
+        },
+        {
+          "id": "T06-STRUCT-routes",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "routes",
+          "expected": []
+        },
+        {
+          "id": "T06-STRUCT-external_events",
+          "requirement_ids": [
+            "T06-R01",
+            "T06-R02",
+            "T06-R03",
+            "T06-R04"
+          ],
+          "field": "external_events",
+          "expected": [
+            {
+              "id": "fault-driver",
+              "time_hours": 1.05,
+              "operation": "fault",
+              "aircraft": "fault-1",
+              "node": null,
+              "item": null,
+              "value_hours": 0
+            }
+          ]
+        }
+      ],
+      "behavior": [
+        {
+          "id": "T06-R04-fault",
+          "kind": "external_fault",
+          "where": {},
+          "fields": [
+            "hour",
+            "driver"
+          ],
+          "expected": [
+            [
+              1.05,
+              "fault-driver"
+            ]
+          ]
+        },
+        {
+          "id": "T06-R03-launch",
+          "kind": "mission_started",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission"
+          ],
+          "expected": [
+            [
+              0.6,
+              "first"
+            ],
+            [
+              2.7,
+              "next"
+            ]
+          ]
+        },
+        {
+          "id": "T06-R04-return",
+          "kind": "mission_returned",
+          "where": {},
+          "fields": [
+            "hour",
+            "mission",
+            "outcome",
+            "flight_hours"
+          ],
+          "expected": [
+            [
+              1.9,
+              "first",
+              "aborted",
+              1.3
+            ],
+            [
+              2.9,
+              "next",
+              "successful",
+              0.2
+            ]
+          ]
+        },
+        {
+          "id": "T06-R01-repair-start",
+          "kind": "repair_started",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              1.9
+            ]
+          ]
+        },
+        {
+          "id": "T06-R01-repair-end",
+          "kind": "repair_finished",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              2.25
+            ]
+          ]
+        },
+        {
+          "id": "T06-R02-pm-start",
+          "kind": "pm_started",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              2.25
+            ]
+          ]
+        },
+        {
+          "id": "T06-R02-pm-end",
+          "kind": "pm_finished",
+          "where": {},
+          "fields": [
+            "hour"
+          ],
+          "expected": [
+            [
+              2.7
+            ]
+          ]
+        }
+      ],
+      "manual_derivation": "first0.6+1.3=1.9返航；含失败航次的1.3小时超过1.1阈值。直接维修1.9+0.35=2.25，再PM0.45到2.7；同刻完成优先于next截止，next2.7起飞。",
+      "internal_control": {
+        "task_id": "T06",
+        "status": "model",
+        "model": {
+          "horizon_hours": 3,
+          "report_interval_hours": 0.1,
+          "rng_profile": "external-events/v1",
+          "aircraft": [
+            {
+              "id": "fault-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "direct",
+              "repair_hours": 0.35,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": {
+                "id": "flight-pm",
+                "clock": "flight",
+                "interval_hours": 1.1,
+                "duration_hours": 0.45
+              }
+            }
+          ],
+          "resources": [],
+          "processes": [
+            {
+              "id": "prep",
+              "scalar_hours": 0,
+              "steps": []
+            }
+          ],
+          "missions": [
+            {
+              "id": "first",
+              "start_hours": 0.6,
+              "notice_hours": 0.6,
+              "duration_hours": 1.3,
+              "delay_hours": 0,
+              "priority": 1,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            },
+            {
+              "id": "next",
+              "start_hours": 2.25,
+              "notice_hours": 2.25,
+              "duration_hours": 0.2,
+              "delay_hours": 0.45,
+              "priority": 2,
+              "requirements": {
+                "utility": 1
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ],
+          "nodes": [],
+          "routes": [],
+          "external_events": [
+            {
+              "id": "fault-driver",
+              "time_hours": 1.05,
+              "operation": "fault",
+              "aircraft": "fault-1",
+              "node": null,
+              "item": null,
+              "value_hours": 0
+            }
+          ]
+        },
+        "questions": [],
+        "reason": "Internal hand-authored control, never expose to generating agents."
+      }
+    },
+    "T07": {
+      "expected_status": "clarify",
+      "question_field": "resources/staff/capacity",
+      "accepted_field_aliases": [
+        "/resources/staff/capacity",
+        "/model/resources/staff/capacity",
+        "resources.staff.capacity",
+        "model.resources.staff.capacity"
+      ],
+      "manual_derivation": "容量决定并发准备数和能否按截止起飞；需求未给，必须澄清。",
+      "preregistered_answer": {
+        "field": "resources/staff/capacity",
+        "value": 2,
+        "text": "staff容量为2，其他条件保持T01不变。"
+      },
+      "resolved_control": {
+        "task_id": "T07",
+        "status": "model",
+        "model": {
+          "horizon_hours": 4,
+          "report_interval_hours": 0.1,
+          "rng_profile": "none",
+          "aircraft": [
+            {
+              "id": "raven-1",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "raven-2",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            },
+            {
+              "id": "raven-3",
+              "type": "utility",
+              "turnround_hours": 0,
+              "repair_mode": "none",
+              "repair_hours": 0,
+              "remove_hours": 0,
+              "fit_hours": 0,
+              "item_repair_hours": 0,
+              "stock_node": null,
+              "repair_node": null,
+              "installed_item": null,
+              "pm": null
+            }
+          ],
+          "resources": [
+            {
+              "id": "staff",
+              "capacity": 2
+            }
+          ],
+          "processes": [
+            {
+              "id": "prep",
+              "scalar_hours": 0.2,
+              "steps": [
+                {
+                  "id": "inspection",
+                  "duration_hours": 0.2,
+                  "demands": {
+                    "staff": 1
+                  }
+                }
+              ]
+            }
+          ],
+          "missions": [
+            {
+              "id": "patrol",
+              "start_hours": 2,
+              "notice_hours": 1.8,
+              "duration_hours": 0.7,
+              "delay_hours": 0.3,
+              "priority": 1,
+              "requirements": {
+                "utility": 3
+              },
+              "process": "prep",
+              "depends_on": []
+            }
+          ],
+          "nodes": [],
+          "routes": [],
+          "external_events": []
+        },
+        "questions": [],
+        "reason": "Internal hand-authored control, never expose to generating agents."
+      }
+    },
+    "T08": {
+      "expected_status": "unsupported",
+      "manual_derivation": "bounded.validate_model仅接受rng_profile none/external-events/v1；operation_contracts所有random_requests为空；BoundedAircraftRuntime只消费外生fault/damaged_arrival，未实现飞行指数时钟或seed采样。",
+      "reason_concepts": [
+        [
+          "随机",
+          "stochastic",
+          "random",
+          "指数",
+          "exponential"
+        ],
+        [
+          "不支持",
+          "unsupported",
+          "cannot",
+          "缺",
+          "未实现",
+          "不具备"
+        ],
+        [
+          "外生",
+          "external",
+          "原生",
+          "内生",
+          "endogenous",
+          "rng"
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "task_id": "T03",
+  "status": "model",
+  "model": {
+    "horizon_hours": 4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "serial-1",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "staff",
+        "capacity": 1
+      }
+    ],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0.9,
+        "steps": [
+          {
+            "id": "safety",
+            "duration_hours": 0.12,
+            "demands": {
+              "staff": 1
+            }
+          },
+          {
+            "id": "warmup",
+            "duration_hours": 0.18,
+            "demands": {}
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "serial-flight",
+        "start_hours": 2.4,
+        "notice_hours": 2.1,
+        "duration_hours": 0.4,
+        "delay_hours": 0.2,
+        "priority": 1,
+        "requirements": {
+          "utility": 1
+        },
+        "process": "prep",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "仅为prep新增safety、warmup两个有序串行步骤，保留scalar_hours=0.9及其余输入；显式步骤替代实际准备时长，staff在safety完成时释放，起飞仍须满足计划时刻与准备完成条件。"
+}

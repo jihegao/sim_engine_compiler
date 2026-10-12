@@ -1,0 +1,98 @@
+{
+  "task_id": "T04",
+  "status": "model",
+  "model": {
+    "horizon_hours": 2.4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "cancel-1",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "cancel-2",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "staff",
+        "capacity": 1
+      }
+    ],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0.3,
+        "steps": [
+          {
+            "id": "long-check",
+            "duration_hours": 0.3,
+            "demands": {
+              "staff": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": "instant",
+        "scalar_hours": 0,
+        "steps": []
+      }
+    ],
+    "missions": [
+      {
+        "id": "tight",
+        "start_hours": 1.4,
+        "notice_hours": 1.1,
+        "duration_hours": 0.4,
+        "delay_hours": 0.29,
+        "priority": 1,
+        "requirements": {
+          "utility": 2
+        },
+        "process": "prep",
+        "depends_on": []
+      },
+      {
+        "id": "recovery",
+        "start_hours": 1.72,
+        "notice_hours": 1.69,
+        "duration_hours": 0.23,
+        "delay_hours": 0,
+        "priority": 2,
+        "requirements": {
+          "utility": 1
+        },
+        "process": "instant",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "仅将 tight 的 delay_hours 改为 0.29，其他输入保持。采用公开 profile 的截止取消、资源与飞机释放、旧完成事件失效语义；recovery 保持独立且通知时刻仍为 1.69。"
+}

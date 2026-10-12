@@ -1,0 +1,94 @@
+{
+  "task_id": "T01",
+  "status": "model",
+  "model": {
+    "horizon_hours": 4,
+    "report_interval_hours": 0.1,
+    "rng_profile": "none",
+    "aircraft": [
+      {
+        "id": "raven-1",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "raven-2",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      },
+      {
+        "id": "raven-3",
+        "type": "utility",
+        "turnround_hours": 0,
+        "repair_mode": "none",
+        "repair_hours": 0,
+        "remove_hours": 0,
+        "fit_hours": 0,
+        "item_repair_hours": 0,
+        "stock_node": null,
+        "repair_node": null,
+        "installed_item": null,
+        "pm": null
+      }
+    ],
+    "resources": [
+      {
+        "id": "staff",
+        "capacity": 2
+      }
+    ],
+    "processes": [
+      {
+        "id": "prep",
+        "scalar_hours": 0.2,
+        "steps": [
+          {
+            "id": "inspection",
+            "duration_hours": 0.2,
+            "demands": {
+              "staff": 1
+            }
+          }
+        ]
+      }
+    ],
+    "missions": [
+      {
+        "id": "patrol",
+        "start_hours": 2,
+        "notice_hours": 1.8,
+        "duration_hours": 0.7,
+        "delay_hours": 0.3,
+        "priority": 1,
+        "requirements": {
+          "utility": 3
+        },
+        "process": "prep",
+        "depends_on": []
+      }
+    ],
+    "nodes": [],
+    "routes": [],
+    "external_events": []
+  },
+  "questions": [],
+  "reason": "按公开默认值和完整需求建模；每架飞机分别执行 inspection，独立占用一个 staff 至步骤结束，完整编队准备完成并达到计划起飞时间后才可起飞。"
+}

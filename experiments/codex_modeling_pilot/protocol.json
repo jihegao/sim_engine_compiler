@@ -1,0 +1,58 @@
+{
+  "schema_version": "codex-modeling-pilot/v0.1",
+  "started_at_utc": "2026-10-11T16:39:30.918716+00:00",
+  "engine_revision": "ee6a2aa7a66d8bf2609059aaf8a7c0fe22fe8683",
+  "environment": {
+    "python": "3.12.14",
+    "system": "Linux",
+    "machine": "x86_64",
+    "cpu_count": 9,
+    "simpy": "4.1.1"
+  },
+  "model": {
+    "provider": "OpenAI",
+    "surface": "Codex Work session subagents",
+    "framework": "hosted collaboration.spawn_agent/followup_task",
+    "selection": "inherited session model for every arm",
+    "exact_model_id": null,
+    "exact_model_id_status": "not exposed by host",
+    "reasoning_effort": null,
+    "token_usage": null,
+    "api_cost": null
+  },
+  "scope": "bounded deterministic synthetic modeling pilot; not native SIMLOX validation; no training",
+  "arms": {
+    "A": "schema + tasks; single submission, no execution feedback",
+    "B": "schema + tasks + mechanism cards; single submission, no execution feedback",
+    "C": "schema + tasks + mechanism cards + up to two execution-feedback revision rounds; no final grader access"
+  },
+  "common_budget": {
+    "tasks_per_arm": 8,
+    "max_execution_rounds_per_task": 3,
+    "fresh_context_per_arm": true,
+    "max_wall_seconds_per_arm": 600,
+    "tools_policy": "A/B read only their supplied public files and write own submissions; C may additionally call runner validate; no evaluator/private/source browsing",
+    "wall_budget_enforcement": "controller records elapsed; overruns flagged, not silently claimed enforced",
+    "repair_rounds": "C initial candidate plus at most two revisions per executable task; A/B one candidate",
+    "execution_calls_per_task_by_arm": {
+      "A": 0,
+      "B": 0,
+      "C": 3
+    }
+  },
+  "limitations": [
+    "One context per arm, one sample per task; within-arm carryover possible",
+    "Shared filesystem with instruction-based isolation, not security-enforced blinded execution",
+    "Exact model snapshot, sampling seed, token usage and metered cost unavailable",
+    "C treatment includes extra tool/repair opportunity; timing not pure inference latency",
+    "Final grading is never fed back; clarification followup is separate from primary scores"
+  ],
+  "scoring": {
+    "model_tasks": "T01-T06 structural requirement checks + independently hand-derived trace assertions",
+    "clarification_task": "T07 first-response question correctness; not counted as executable-model success",
+    "unsupported_task": "T08 correct capability refusal; not counted as executable-model success",
+    "secondary_demonstrations": "T07 answered by preregistered simulated user oracle capacity=2; retain T07 response but relabel a copy to T01 for the identical fully specified structural/behavioral contract; separate from primary scores.",
+    "feedback": "C sees compiler/runtime diagnostics and trace only; final evaluator/oracles never exposed"
+  },
+  "created_before_generation": true
+}
