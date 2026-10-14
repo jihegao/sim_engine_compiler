@@ -105,6 +105,10 @@ cargo +1.90.0 test --locked --release --manifest-path rust/runtime/Cargo.toml
 
 可行性研究阶段的 SIMLOX 外部效率对照方法及 `4700-3` 原始证据位置见 [SIMLOX 对照说明](docs/simlox-feasibility-benchmark.md)。这组案例没有 canonical 输入和语义差分，不属于本项目运行时性能验收。
 
+SIMLOX 2017 的事件循环、重复实验种子、分布采样和提前停止条件见
+[REA/Ghidra 静态分析报告](docs/simlox-2017-static-analysis.md)。报告保留代码观察、
+手册规则及未验证范围；这些静态证据不构成本项目的原生 SIMLOX 语义等价或性能验收。
+
 本地[交互验证入口](demo/README.md)提供 B1、B3、F35 的固定案例对照：选择 seed、样本数和线程数，比较分钟推进与 O5，并在支持的组合下分别检查 MLIR 资源索引与 AOT Plan 缓存。它通过现有 CLI 执行引擎，展示逐样本首处分歧、编译/加载/初始化/执行耗时与资源检查计数；页面的一次计时只是交互诊断，不替代正式重复基准。
 
 ## 设计来源与证据边界
