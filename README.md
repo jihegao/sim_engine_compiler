@@ -132,5 +132,7 @@ Python 与 Rust AOT 的正式链路现为 canonical → Business → symbolic Co
 `python -m sim_engine_compiler.trace_query <result.json> --request <request.json>
 --plan <plan.json>` 只查询已保存事件，支持筛选、分页、事件输出预算和稳定 ID
 解析。设计关联复用原始 bundle 的身份与 #10 审阅校验；缺失原因保持未知。
-本切片仅验收 Python reference 分钟 profile，明确不代表 Rust/O5 采集验收或
-完整因果诊断。支持矩阵、证据限制和离线示例见[查询合同](docs/trace-query-v1.md)。
+本切片验收 Python reference 与 Rust runtime 的分钟 profile，以及受限双服务队列
+profile 的已记录事件。`event-time-v2` 仍未准入。支持矩阵、证据限制和离线示例见
+[查询合同](docs/trace-query-v1.md)。领域 profile 边界见
+[domain-profile-generality-v1](docs/domain-profile-generality-v1.md)。

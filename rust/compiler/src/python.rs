@@ -1,8 +1,10 @@
 use std::{path::PathBuf, str::FromStr};
 
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
+use serde_json::Value;
 use sim_engine_runtime::{
-    ExecutionPlan, ObservationLevel, Runtime, run_batch_from_slice_with_observation,
+    ExecutionPlan, ObservationLevel, Runtime, is_queue_plan, run_batch_from_slice_with_observation,
+    run_queue_batch_json, run_queue_plan_json,
 };
 
 use crate::{CanonicalSampleRequest, run_canonical_batch};
@@ -20,7 +22,15 @@ fn run_plan_json(
     observation_level: &str,
 ) -> PyResult<String> {
     let observation_level = ObservationLevel::from_str(observation_level).map_err(runtime_error)?;
+    let observation_name = match observation_level {
+        ObservationLevel::Full => "full",
+        ObservationLevel::Summary => "summary",
+    };
     py.detach(move || {
+        let raw: Value = serde_json::from_str(&plan_json)?;
+        if is_queue_plan(&raw) {
+            return run_queue_plan_json(&plan_json, seed, 0, until, observation_name);
+        }
         let (plan, raw) = ExecutionPlan::from_slice(plan_json.as_bytes())?;
         let fingerprint = ExecutionPlan::fingerprint(&raw)?;
         let result = Runtime::new_with_observation(plan, fingerprint, seed, observation_level)?
@@ -40,7 +50,21 @@ fn run_batch_json(
     observation_level: &str,
 ) -> PyResult<String> {
     let observation_level = ObservationLevel::from_str(observation_level).map_err(runtime_error)?;
+    let observation_name = match observation_level {
+        ObservationLevel::Full => "full",
+        ObservationLevel::Summary => "summary",
+    };
     py.detach(move || {
+        let raw: Value = serde_json::from_str(&plan_json)?;
+        if is_queue_plan(&raw) {
+            return run_queue_batch_json(
+                &plan_json,
+                &seeds,
+                worker_threads,
+                until,
+                observation_name,
+            );
+        }
         let result = run_batch_from_slice_with_observation(
             plan_json.as_bytes(),
             &seeds,

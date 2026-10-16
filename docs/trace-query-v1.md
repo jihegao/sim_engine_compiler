@@ -14,9 +14,10 @@ contracts is required.
 
 | Input or capability | v1 treatment |
 | --- | --- |
-| Python reference, aircraft-support, unindexed `legacy-minute-v1` Plan, Full | Recorded event queries; always partial evidence |
-| Python `event-time-v2` / O5 | Explicit `unsupported_backend_profile`; Python collector does not implement this profile |
-| Rust result / any other backend | Explicit `unsupported_backend`; not Rust collection acceptance |
+| Python reference or Rust runtime, aircraft-support, unindexed `legacy-minute-v1` Plan, Full | Recorded event queries; always partial evidence. `backend=rust-runtime` is admitted |
+| Python or Rust `event-time-v2` / O5 | Explicit `unsupported_backend_profile`; neither collector is admitted for this profile |
+| Any other backend | Explicit `unsupported_backend` |
+| Restricted `multi-server-queue-v1` result, Python or Rust | Recorded queue events with Business/Core/Plan links when the full bundle recompiles; no stable event IDs |
 | Summary request | No event facts, `summary_observation` evidence insufficiency; not a claim of Python Summary collection |
 | Old result without trace | No event facts, `trace_not_captured` |
 | Missing raw Plan | No facts, `missing_plan`; no reconstruction from result |

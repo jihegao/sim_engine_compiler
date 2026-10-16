@@ -20,6 +20,8 @@ from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile, ZipInfo
 from sim_engine_compiler import __version__
 from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.domains.aircraft_support.pack import PACK
+from sim_engine_compiler.domains.multi_server_queue.model import BUSINESS_VERSION as QUEUE_BUSINESS_VERSION
+from sim_engine_compiler.domains.profiles import pack_for_domain, pack_for_payload, pack_for_schema
 from sim_engine_compiler.identity import (
     build_run_identity,
     inspect_bundle,
@@ -113,6 +115,16 @@ def _json_bytes(raw: bytes, path: str) -> dict[str, Any]:
     return value
 
 
+def _is_canonical(raw: Any) -> bool:
+    return (
+        isinstance(raw, dict)
+        and "schema_version" in raw
+        and "sections" not in raw
+        and "semantic_profile" not in raw
+        and "version" not in raw
+    )
+
+
 def _business(source: Mapping[str, Any] | str | Path) -> BusinessIR:
     if isinstance(source, Mapping):
         try:
@@ -168,20 +180,58 @@ def seal_business(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Explicitly seal an edited Business payload as a new revision.
 
     A stale fingerprint on an existing envelope is never silently repaired.
+    Canonical documents are imported through the profile registered for their
+    schema. Aircraft payloads stay on the aircraft-support-v1 pack.
     """
     try:
-        business = BusinessIR.create(json_value(payload))
+        raw = json_value(payload)
+        if _is_canonical(raw):
+            pack = pack_for_schema(raw.get("schema_version"))
+            business = pack.import_canonical(raw)
+        else:
+            pack = pack_for_payload(raw)
+            business = pack.load_payload(raw)
+        pack.compile(business)
     except (AttributeError, CompilationError, KeyError, TypeError, ValueError) as error:
         raise _compiler_error(error, "business.payload") from error
-    _compile(business)
     return business.to_dict()
+
+
+def _open_saved(source: Mapping[str, Any] | str | Path):
+    """Load a persisted Business envelope and the pack that owns its version."""
+    if isinstance(source, Mapping):
+        try:
+            raw = json_value(source)
+        except ValueError as error:
+            raise ProductError(
+                "invalid_json", str(error), stage="load", path="business"
+            ) from error
+    else:
+        path = Path(source)
+        try:
+            raw = _json_bytes(path.read_bytes(), str(path))
+        except OSError as error:
+            raise ProductError(
+                "input_read_error", str(error), stage="load", path=str(path)
+            ) from error
+    try:
+        version = raw.get("version") if isinstance(raw, dict) else None
+        if version == QUEUE_BUSINESS_VERSION:
+            pack = pack_for_domain("multi-server-queue", "multi-server-queue-pack/v1")
+            business = pack.load_envelope(raw)
+        else:
+            pack = PACK
+            business = pack.load_envelope(raw)
+    except (AttributeError, CompilationError, KeyError, TypeError, ValueError) as error:
+        raise _compiler_error(error, "business") from error
+    return business, pack
 
 
 def validate_business(source: Mapping[str, Any] | str | Path) -> dict[str, Any]:
     """Validate the persisted envelope and its executable lowering."""
     try:
-        business = _business(source)
-        core, plan, _ = _compile(business)
+        business, pack = _open_saved(source)
+        core, plan, _ = pack.compile(business)
     except ProductError as error:
         return {
             "schema_version": "sim-engine-validation/v1",
@@ -202,18 +252,18 @@ def validate_business(source: Mapping[str, Any] | str | Path) -> dict[str, Any]:
 
 
 def _manifest(
-    business: BusinessIR, core: Any, plan: Any, layers: dict[str, bytes]
+    business: Any, core: Any, plan: Any, layers: dict[str, bytes], pack: Any
 ) -> dict[str, Any]:
     manifest = {
         "schema_version": BUNDLE_VERSION,
         "compiler_version": __version__,
         "runtime_version": RUNTIME_VERSION,
-        "domain_pack": {"name": PACK.name, "version": PACK.version},
+        "domain_pack": {"name": pack.name, "version": pack.version},
         "ir_versions": {
-            "business": PACK.business_version,
-            "core": PACK.core_version,
-            "plan": PACK.plan_version,
-            "lineage": "compiler-lineage/v2",
+            "business": pack.business_version,
+            "core": pack.core_version,
+            "plan": pack.plan_version,
+            "lineage": pack.lineage_version,
         },
         "execution_profile": {
             "semantic": plan.semantic_profile,
@@ -233,13 +283,8 @@ def _manifest(
     return manifest
 
 
-def _identity_check(layers: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    report = inspect_bundle(
-        business=layers["business.json"],
-        core=layers["core.json"],
-        plan=layers["plan.json"],
-        lineage=layers["lineage.json"],
-    )
+def _identity_check(layers: dict[str, dict[str, Any]], pack: Any) -> dict[str, Any]:
+    report = pack.associate(layers)
     if report["association_status"] != "verified":
         first = next(
             (item for item in report["diagnostics"] if item["severity"] == "error"),
@@ -266,8 +311,18 @@ def compile_bundle(
             "Python and Rust release versions disagree",
             stage="compile",
         )
-    business = _business(source)
-    core, plan, source_map = _compile(business)
+    business, pack = _open_saved(source)
+    try:
+        core, plan, source_map = pack.compile(business)
+    except (
+        AttributeError,
+        CompilationError,
+        IndexError,
+        KeyError,
+        TypeError,
+        ValueError,
+    ) as error:
+        raise _compiler_error(error, "business") from error
     # Dataclass serialization retains tuples in memory; persistence uses JSON arrays.
     plan_json = json.loads(
         json.dumps(plan.to_dict(), ensure_ascii=False, allow_nan=False)
@@ -278,9 +333,9 @@ def compile_bundle(
         "plan.json": plan_json,
         "lineage.json": source_map,
     }
-    _identity_check(layers)
     contents = {name: _canonical_bytes(value) for name, value in layers.items()}
-    manifest = _manifest(business, core, plan, contents)
+    manifest = _manifest(business, core, plan, contents, pack)
+    _identity_check(layers, pack)
     target = Path(output)
     if target.suffix != ".simpack":
         raise ProductError(
@@ -360,18 +415,24 @@ def _check_manifest(
             stage="bundle",
             path="manifest.json",
         )
-    if manifest["domain_pack"] != {"name": PACK.name, "version": PACK.version}:
+    domain_pack = manifest.get("domain_pack")
+    try:
+        pack = pack_for_domain(
+            domain_pack.get("name") if isinstance(domain_pack, dict) else None,
+            domain_pack.get("version") if isinstance(domain_pack, dict) else None,
+        )
+    except CompilationError as error:
         raise ProductError(
             "unsupported_domain_pack",
-            "unsupported domain pack or version",
+            error.message,
             stage="bundle",
             path="manifest.json",
-        )
+        ) from error
     if manifest["ir_versions"] != {
-        "business": PACK.business_version,
-        "core": PACK.core_version,
-        "plan": PACK.plan_version,
-        "lineage": "compiler-lineage/v2",
+        "business": pack.business_version,
+        "core": pack.core_version,
+        "plan": pack.plan_version,
+        "lineage": pack.lineage_version,
     }:
         raise ProductError(
             "unsupported_ir_version",
@@ -383,11 +444,11 @@ def _check_manifest(
         manifest["execution_profile"]
         != {
             "semantic": layers["plan.json"].get("semantic_profile"),
-            "rng": PACK.rng_profile,
-            "work": PACK.work_policy,
+            "rng": pack.rng_profile,
+            "work": pack.work_policy,
             "resource_dispatch_index": "absent",
         }
-        or manifest["execution_profile"]["semantic"] not in PACK.profiles
+        or manifest["execution_profile"]["semantic"] not in pack.profiles
     ):
         raise ProductError(
             "unsupported_profile",
@@ -479,7 +540,18 @@ def load_bundle(source: str | Path) -> ModelBundle:
             )
     layers = {name: _json_bytes(contents[name], name) for name in LAYER_NAMES}
     _check_manifest(manifest, layers)
-    report = _identity_check(layers)
+    try:
+        pack = pack_for_domain(
+            manifest["domain_pack"]["name"], manifest["domain_pack"]["version"]
+        )
+    except CompilationError as error:
+        raise ProductError(
+            "unsupported_domain_pack",
+            error.message,
+            stage="bundle",
+            path="manifest.json",
+        ) from error
+    report = _identity_check(layers, pack)
     return ModelBundle(
         manifest,
         layers["business.json"],
@@ -564,6 +636,25 @@ def _request_identity(
     observation: str,
     until: int | None,
 ) -> dict[str, Any]:
+    if bundle.manifest["domain_pack"]["name"] != PACK.name:
+        if not isinstance(run_id, str) or not run_id:
+            raise ProductError(
+                "invalid_run_id",
+                "run_id must be a non-empty string",
+                stage="run",
+                path="run_id",
+            )
+        return {
+            "schema_version": "multi-server-queue-run-identity/v1",
+            "run_id": run_id,
+            "sample_index": index,
+            "seed": seed,
+            "observation": observation,
+            "horizon": bundle.plan["duration_minutes"] if until is None else until,
+            "plan_fingerprint": bundle.manifest["identity"]["plan_fingerprint"],
+            "backend": "rust-runtime",
+            "diagnostics": [],
+        }
     value = build_run_identity(
         run_id,
         index,

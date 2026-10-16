@@ -19,6 +19,16 @@ from sim_engine_compiler.ir.plan import LEGACY_MINUTE_PHASES
 BUSINESS_VERSION = 'aircraft-business-ir/v1'
 CORE_VERSION = 'simulation-core-ir/v2'
 PROFILES = ('legacy-minute-v1', 'event-time-v2')
+# Closed vocabulary for aircraft-support-v1. Keys outside this set used to be
+# stored and then ignored by lowering, which also filled missing aircraft
+# collections with defaults. They are now explicit validation errors.
+ADMITTED_BUSINESS_SECTIONS = frozenset({
+    '$root', 'project_identity', 'mission_profile', 'aircraft', 'equipment_tree',
+    'support_network', 'support_activities', 'time', 'monte_carlo', 'stop_policy',
+})
+ADMITTED_ROOT_KEYS = frozenset({
+    'schema_version', 'operations_support_policy', 'seed', 'disable_visualization_frames',
+})
 # Stable symbolic references are resolved only by the layout pass. Ordered table
 # membership preserves the compatibility RNG and source tie-breaking order.
 TABLE_IDS = {
@@ -77,6 +87,27 @@ class BusinessIR:
         require_keys(self.payload['source'], ('schema_version', 'canonical_sha256'), 'business.source')
         if self.payload['source']['schema_version'] != 'aircraft-support-v1-input-v1':
             reject('business.source.schema_version', 'unsupported canonical input schema')
+        sections = self.payload['sections']
+        if not isinstance(sections, dict):
+            reject('business.sections', 'expected section object')
+        unknown = sorted(set(sections) - ADMITTED_BUSINESS_SECTIONS)
+        if unknown:
+            name = unknown[0]
+            reject(
+                f'business.sections.{name}',
+                f"Business section {name!r} is not consumed by profile aircraft-support-v1",
+                code='unconsumed_business_section',
+            )
+        root = sections.get('$root')
+        if isinstance(root, dict) and isinstance(root.get('properties'), dict):
+            extra = sorted(set(root['properties']) - ADMITTED_ROOT_KEYS)
+            if extra:
+                name = extra[0]
+                reject(
+                    f'business.sections.$root.properties.{name}',
+                    f"Business field {name!r} is not consumed by profile aircraft-support-v1",
+                    code='unconsumed_business_section',
+                )
         self.canonical_view()
 
     def canonical_view(self):

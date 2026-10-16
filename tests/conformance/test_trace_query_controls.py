@@ -148,12 +148,22 @@ def test_malformed_or_unknown_request_and_query_fields_fail_closed(
     assert report["events"] == []
 
 
-def test_non_python_backend_is_explicitly_unsupported(result, plan):
-    report = query_trace(result, request(backend="rust-runtime"), plan)
+def test_unknown_backend_is_explicitly_unsupported(result, plan):
+    report = query_trace(result, request(backend="other-runtime"), plan)
 
     assert report["status"] == "unsupported"
     assert "unsupported_backend" in codes(report)
     assert report["events"] == []
+
+
+def test_rust_runtime_backend_is_admitted_for_legacy_minute_results(result, plan):
+    report = query_trace(result, request(backend="rust-runtime"), plan)
+
+    assert_partial_envelope(report)
+    assert "unsupported_backend" not in codes(report)
+    assert report["events"]
+    assert report["support"]["backends"] == ["python-reference", "rust-runtime"]
+    assert report["evidence_binding"]["backend"] == "rust-runtime"
 
 
 def test_wrong_plan_and_mixed_bundle_revision_do_not_publish_events(result, plan):

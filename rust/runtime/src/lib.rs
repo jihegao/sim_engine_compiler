@@ -3,6 +3,7 @@ pub mod abm_runtime;
 pub mod batch;
 pub mod cache;
 pub mod plan;
+pub mod queue;
 pub mod rng;
 pub mod runtime;
 
@@ -29,6 +30,9 @@ pub use cache::{
     is_plan_cache,
 };
 pub use plan::ExecutionPlan;
+pub use queue::{
+    QUEUE_PLAN_VERSION, is_queue_plan, run_queue_batch_json, run_queue_plan_json,
+};
 pub use runtime::{ObservationLevel, PreparedBatchPlan, RunResult, Runtime, RuntimeProfile};
 
 pub const RUNTIME_VERSION: &str = env!("CARGO_PKG_VERSION");

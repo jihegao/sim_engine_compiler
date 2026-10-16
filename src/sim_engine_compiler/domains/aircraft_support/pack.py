@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from sim_engine_compiler.compiler.layout import compile_core, lineage
 from sim_engine_compiler.domains.aircraft_support.lowering import lower_business
+from sim_engine_compiler.integrations.spare_mvp.importer import import_business_ir
 from sim_engine_compiler.ir.layers import (
     BUSINESS_VERSION,
     CORE_VERSION,
@@ -19,12 +20,34 @@ from sim_engine_compiler.ir.plan import PLAN_VERSION
 class AircraftSupportPack:
     name: str = "aircraft-support"
     version: str = "aircraft-support-pack/v0.1"
+    domain_profile: str = "aircraft-support-v1"
+    input_schema: str = "aircraft-support-v1-input-v1"
     business_version: str = BUSINESS_VERSION
     core_version: str = CORE_VERSION
     plan_version: str = PLAN_VERSION
+    lineage_version: str = "compiler-lineage/v2"
     profiles: tuple[str, ...] = ("legacy-minute-v1", "event-time-v2")
     work_policy: str = "stable-topological-serial"
     rng_profile: str = "legacy-sequential-v1"
+
+    def import_canonical(self, inputs, *, semantic_profile: str = "legacy-minute-v1"):
+        return import_business_ir(inputs, semantic_profile=semantic_profile)
+
+    def load_payload(self, payload):
+        return BusinessIR.create(payload)
+
+    def load_envelope(self, raw):
+        return BusinessIR.from_dict(raw)
+
+    def associate(self, layers):
+        from sim_engine_compiler.identity import inspect_bundle
+
+        return inspect_bundle(
+            business=layers["business.json"],
+            core=layers["core.json"],
+            plan=layers["plan.json"],
+            lineage=layers["lineage.json"],
+        )
 
     def compile(self, business: BusinessIR):
         business.validate()
