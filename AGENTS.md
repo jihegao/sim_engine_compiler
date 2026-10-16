@@ -21,3 +21,23 @@
 - Restricted, versioned domain/profile operations remain allowed for compatibility where decomposition is not yet supported. Register their capabilities explicitly, document fixed assumptions and supported ranges, and reject unsupported configurations. Classify them as restricted operations, not general engine primitives; moving an entire case behind an operation name does not establish reuse.
 - Support a reusable-operation claim with executable contract tests independent of the motivating model's name and fixture, including at least two distinct IR compositions or configurations within the declared range. Keep source-model/oracle acceptance separate from these reuse checks, and preserve the affected profiles' Python/Rust semantic regressions. A passing case alone proves neither generality nor cross-domain applicability.
 - Review each new case against this boundary: can its rules be changed or composed within the declared capability range by changing IR/domain definitions without rewriting the generic runtime? If not, identify and classify the remaining capability gap instead of copying the case's rules into another runtime implementation. No speculative universal IR or immediate rewrite of existing compatibility operations is required.
+
+## Cursor Cloud specific instructions
+
+Python 3.12 and Rust 1.90.0 are the pinned toolchains. The editable install with the test extra is `.venv`. Use `.venv/bin/python`, `.venv/bin/pytest`, and `sim-engine` (`/usr/local/bin/sim-engine` points at the venv script).
+
+The local validation UI is `demo/validation_app.py`. It listens on `http://127.0.0.1:8765/` and binds to localhost only. It calls these release binaries:
+
+- `rust/compiler/target/release/sim-engine-compiler-aot`
+- `rust/runtime/target/release/sim-engine-runtime`
+
+LLVM/MLIR 23.1.1 lives at `/opt/llvm-23.1.1`. Login shells export `MLIR_PREFIX`, `SIM_ENGINE_MLIR_OPT`, `SIM_ENGINE_MLIR_PLUGIN_DIR` (`/workspace/tools/mlir_dispatch/build-unix`), and prepend `/opt/llvm-23.1.1/lib` to `LD_LIBRARY_PATH`. Build the plugin with `/usr/bin/gcc` and `/usr/bin/g++`. The image's default `c++` is Clang and does not find `libstdc++`.
+
+Documented acceptance commands:
+
+```bash
+.venv/bin/python -m pytest tests/conformance tests/differential/test_abm_rust_runtime.py
+cargo test --locked --release --manifest-path rust/runtime/Cargo.toml
+```
+
+MLIR integration tests need `SIM_ENGINE_REQUIRE_MLIR=1` and the variables above. Without them, those tests skip. The public product sequence is in `docs/v01-product-contract.md`: `sim-engine example`, then inspect, seal, validate, compile, run, batch, and diff outside the checkout.
