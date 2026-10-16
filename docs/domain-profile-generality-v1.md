@@ -46,3 +46,5 @@ recompiles to the queried plan. Queue events have no stable event id.
 - Execution provenance stays caller-asserted.
 - One server, three or more servers, other disciplines, and other metrics are rejected.
 - The queue runtime is selected by plan version at the artifact boundary. It does not extend the aircraft phase interpreter.
+
+The 2026-10-16 harness record is `docs/evidence/domain-profile-generality-20261016.json`.

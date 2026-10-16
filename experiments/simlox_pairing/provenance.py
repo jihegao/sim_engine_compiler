@@ -27,19 +27,23 @@ REBUILT_ZIP_SHA256 = "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a
 PORTABLE_SHA256 = "ab26c7ea23496938e6e15e02f58eb8e6906db358acc2a9f24b7bdc28bee52d3f"
 DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.zip"
 
-# PRs #20, #23, #24, Issue #29 and the reviewed #542 add explicit source
-# modules. Keep their bytes and the #30 ABM delta separate from the frozen
-# pairing baseline; neither changes its historic Git blob fingerprint.
-DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v5"
+# PRs #20, #23, #24, Issue #29, the reviewed #542 additions, and the
+# domain-profile queue modules are explicit checkout sources. Their pinned
+# bytes and the declared engine delta stay separate from the frozen pairing
+# baseline and do not change its historic Git blob fingerprint.
+DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v6"
 DECLARED_MODIFIED_BASELINE_SOURCE_CONTRACT = "simlox-pairing-declared-engine-delta/v1"
 DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
+    "src/sim_engine_compiler/ir/layers.py": (
+        "4fb0c06cfad201a62f3e000f535b52affec1c583cc8adfa45fdc8793b6388749"
+    ),
     "src/sim_engine_compiler/reference/abm_runtime.py": (
         "46ef80ad188c39bc8d733378b143a29d46c0bba67eda63904067070bb352e10f"
     ),
 }
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/cli.py": (
-        "8eb29736038478826bc01346278760e3266508f954ac3ba90e7c7afd5796e8c7"
+        "b8b2dc25e20d941a7259b08eda2c022dbb965dc43e1db61ba9a06a85a5e7af21"
     ),
     "src/sim_engine_compiler/compiler/bounded_layout.py": (
         "d25d5954a4530d6e4f9fb08ee19f9041762be2dea80045a916512788afa7cc11"
@@ -51,7 +55,25 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "c2d89dd900d0b531832876078a5bf96c0a9d39de83397333032eea45b266ba68"
     ),
     "src/sim_engine_compiler/domains/aircraft_support/pack.py": (
-        "ba9d1cb086c195a18ef0f9014aea9251f592d2d44f71246e33d264c6b76e1f83"
+        "79604414106d3ac03f60fd7e99475af00ebfb81c00eacffa49837e7d4d42209b"
+    ),
+    "src/sim_engine_compiler/domains/multi_server_queue/__init__.py": (
+        "11ba6f23c0a7515239b9b8b7ac818565abf54028194509ad8d201e7df94e58d4"
+    ),
+    "src/sim_engine_compiler/domains/multi_server_queue/model.py": (
+        "bb35796e5ec0ef7776cfa1caeca9db9a2214c27e7e5945e517010b8b9361128d"
+    ),
+    "src/sim_engine_compiler/domains/multi_server_queue/pack.py": (
+        "c5919f5ff97235bd67586bbf099a596457541a168889443e709a250697327fd5"
+    ),
+    "src/sim_engine_compiler/domains/multi_server_queue/runtime.py": (
+        "979be910cff9366b0605229a2c2c380d00b3ac6ee892bb4a8d2a56a769a03685"
+    ),
+    "src/sim_engine_compiler/domains/multi_server_queue/trace.py": (
+        "1a8e0203a95c5b49ef4189f51735568fbb7551788f617c758002fb968d2aff51"
+    ),
+    "src/sim_engine_compiler/domains/profiles.py": (
+        "3ef478edbc39f7eeaf80607339b0bfbd41f2aff0cec358bdaa58a768ef8440d9"
     ),
     "src/sim_engine_compiler/examples/__init__.py": (
         "eed06b92b7f3972187c4ad316563b05c0c3c848ec60aba6c140d150c944019fe"
@@ -78,7 +100,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "363131a6018b337a3802e8cf29a3c28d5855fa9e43a92c208fe0816e855f295a"
     ),
     "src/sim_engine_compiler/product.py": (
-        "b7da9845ab220f4bd7d68f02de0a00f7c84222c2307a9efa66f0d8e6b1049149"
+        "186791fe16f5bd0e19263ff11b6ccff5a53de35d1b7b4583506a6d0da3fe6e6a"
     ),
     "src/sim_engine_compiler/reference/event_calendar.py": (
         "f2dc90a52c0425be44ce270fcded4bdd49a27a4fe2d0af546f61a943e77efc3d"
@@ -105,7 +127,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "1117d82de0879dc533f4bc8366efd69ecc7732ece6cdde4efa82767bc0f75af3"
     ),
     "src/sim_engine_compiler/trace_query/query.py": (
-        "a39f4f6f9565f80dea43e1d42ea4dadfb395c6c87e9f56b0d2d5159ddbd8df9a"
+        "1e6514af510b5cec140f2df1ae11aba3ffe8bc956bd2b4b7d2b520ebac51963d"
     ),
 }
 DECLARED_BASELINE_OVERRIDE_SHA256 = {
