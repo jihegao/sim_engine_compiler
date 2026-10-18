@@ -1,0 +1,23 @@
+param([ValidateSet('preflight','probe0','probe7','native')][string]$Mode,[Parameter(Mandatory=$true)][string]$OutputPath,[Parameter(Mandatory=$true)][string]$ExpectedManifestSha)
+$ErrorActionPreference='Stop';$case=$PSScriptRoot;$mp=Join-Path $case 'selected-manifest-v9.json'
+function Sha([string]$p){(Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash.ToLowerInvariant()}
+if($env:COMPUTERNAME -cne '4700-3' -or (Sha $mp) -cne $ExpectedManifestSha){throw 'host/externally expected manifest differs'}
+$m=Get-Content $mp -Raw -Encoding UTF8|ConvertFrom-Json
+$targetMode=if($Mode -ceq 'preflight'){'native'}else{$Mode};$t=$m.targets.$targetMode;if(-not $t){throw 'selected target missing'}
+foreach($x in $m.sources){if((Sha $x.path) -cne $x.sha256 -or (Get-Item $x.path).Length -ne $x.bytes){throw 'frozen source differs'}}
+$g=@(Get-Process Simlox -ErrorAction SilentlyContinue)
+if($g.Count -ne 1 -or $g[0].Id -ne $m.gui.pid -or $g[0].SessionId -ne $m.gui.session -or $g[0].Path -cne $m.exe.path -or -not $g[0].Responding -or ([DateTimeOffset]$g[0].StartTime.ToUniversalTime()).ToUnixTimeMilliseconds() -ne $m.gui.start_unix_ms){throw 'GUI/native safety differs'}
+$wts=@(qwinsta 2>&1);if($LASTEXITCODE -ne 0 -or @($wts|Where-Object{$_ -match '^\s*>?\s*(Console|RDP-Tcp#\d+)\s+\S+\s+1\s+(?:Active|\u8fd0\u884c\u4e2d)(?:\s|$)'}).Count -ne 1){throw 'WTS1 inactive/ambiguous'}
+$exclude=@($PID);$ancestors=@();$cursor=(Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
+for($i=0;$i -lt 15 -and $cursor -gt 0;$i++){$p=Get-CimInstance Win32_Process -Filter "ProcessId=$cursor";if(-not $p){break};$exclude+=[int]$p.ProcessId;$ancestors+=@([ordered]@{pid=[int]$p.ProcessId;name=$p.Name;created=$p.CreationDate;session=[int]$p.SessionId});$cursor=$p.ParentProcessId}
+$other=@(Get-CimInstance Win32_Process|Where-Object{$_.SessionId -eq 0 -and $_.ProcessId -notin $exclude -and $_.Name -match '^(powershell|pwsh|python|pythonw|cmd|ssh)\.exe$' -and $_.CommandLine -match '(?i)(run_native_ssh|run_selected_ssh|SimloxIssue18NativeQueue|k02-json-dtim-v10[1-4])'})
+if($other.Count){throw 'native contender active'}
+foreach($p in @($t.physical_directory,$t.recovered_directory)){if(Test-Path -LiteralPath $p){throw 'unique directory occupied'}}
+$mutex=[Threading.Mutex]::new($false,'Global\SimloxIssue18NativeQueue');$locked=$false
+try{try{$locked=$mutex.WaitOne(0)}catch [System.Threading.AbandonedMutexException]{Write-Error -ErrorAction Continue 'NO_GO native queue abandoned; ownership held; no automatic release';while($true){Start-Sleep -Seconds 1}};if(-not $locked){throw 'native queue held'}}finally{if($locked){$mutex.ReleaseMutex()};$mutex.Dispose()}
+$executor=[Threading.Mutex]::new($false,'Global\SimloxIssue18CodexCLIExecutor');$free=$false
+try{$free=$executor.WaitOne(0);if($free){$executor.ReleaseMutex()}}finally{$executor.Dispose()}
+if($free){throw 'executor ownership unexpectedly free'}
+if(Test-Path -LiteralPath $OutputPath){throw 'guardian receipt exists'}
+[ordered]@{schema='simlox-k02-selected-standalone-safety/v9';mode=$Mode;decision='GO_STANDALONE_SAFETY_ONLY';terminal=$true;utc=[DateTime]::UtcNow.ToString('o');run_id=$t.run_id;manifest_sha256=$ExpectedManifestSha;guard_pid=$PID;guard_session=(Get-Process -Id $PID).SessionId;ancestors=$ancestors;native_calls=0;native_queue_free=$true;executor_mutex_held=$true;physical_absent=$true;recovered_absent=$true;gui=$m.gui;wts=$wts;gui_functionality_validation='excluded'}|ConvertTo-Json -Depth 20|Set-Content -LiteralPath $OutputPath -Encoding UTF8
+Write-Output $OutputPath

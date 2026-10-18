@@ -1,0 +1,397 @@
+{
+  "schema": "issue18-independent-k02-DTIM-precision-source-feasibility/v2",
+  "utc": "2026-10-11T07:04:50.750725+00:00",
+  "terminal": true,
+  "reviewer": "/root/nongui_requirement_source_audit",
+  "decision": "SOURCE_METHOD_DESIGN_CANDIDATE_ONLY",
+  "candidate_scope": "Existing OperationProfile.DTIM single scalar double precision preservation through CLI JSON import/save/export only; no calc/report or new simulation claim.",
+  "requirement_mapping": {
+    "correct": "K02.var01 additional double precision configuration; catalog integer/floating/text",
+    "not_claimed": "K02.var03 null/default requirement (DTIM proposed change is nonnull->nonnull)",
+    "catalog_variants": [
+      {
+        "variant_id": "K02.var01",
+        "version": null,
+        "status": "planned",
+        "planned_delta": "整数/浮点/文本"
+      },
+      {
+        "variant_id": "K02.var02",
+        "version": null,
+        "status": "planned",
+        "planned_delta": "非 ASCII 标识"
+      },
+      {
+        "variant_id": "K02.var03",
+        "version": null,
+        "status": "planned",
+        "planned_delta": "空值与默认值"
+      },
+      {
+        "variant_id": "K02.var04",
+        "version": null,
+        "status": "planned",
+        "planned_delta": "多表实例与停用行"
+      }
+    ]
+  },
+  "accepted_source": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-09\\i05-var08-pm-location\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\named-input.json",
+    "bytes": 40998,
+    "sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00"
+  },
+  "accepted_roundtrip": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\roundtrip-raw.json",
+    "bytes": 58253,
+    "sha256": "7d3a6ebe5b9b1170dca1d8115555ebb26dc4c47c03cc325e4d6576bd921dc9e9"
+  },
+  "exact_existing_source_table": {
+    "columns": [
+      {
+        "datatype": "string",
+        "key": true,
+        "name": "PRID"
+      },
+      {
+        "datatype": "string",
+        "key": true,
+        "name": "SPRID"
+      },
+      {
+        "datatype": "double",
+        "key": true,
+        "name": "STIM"
+      },
+      {
+        "datatype": "string",
+        "name": "ITYPE"
+      },
+      {
+        "datatype": "integer",
+        "name": "IQTY"
+      },
+      {
+        "datatype": "string",
+        "name": "IQTYD"
+      },
+      {
+        "datatype": "double",
+        "name": "IPER"
+      },
+      {
+        "datatype": "string",
+        "name": "IDISP"
+      },
+      {
+        "datatype": "double",
+        "name": "DTIM"
+      },
+      {
+        "datatype": "double",
+        "name": "XCOORD"
+      },
+      {
+        "datatype": "double",
+        "name": "YCOORD"
+      },
+      {
+        "datatype": "string",
+        "name": "NOTE"
+      }
+    ],
+    "instances": [
+      {
+        "instance_name": "",
+        "rows": [
+          [
+            "BASIC-SCHEDULE",
+            "BASIC-MISSION",
+            8.0,
+            "SCHEDULED",
+            1,
+            null,
+            0,
+            null,
+            0.3333333333333333,
+            null,
+            null,
+            null
+          ]
+        ]
+      }
+    ],
+    "name": "OperationProfile"
+  },
+  "source_identity": {
+    "table": "OperationProfile",
+    "instance": "",
+    "row": 0,
+    "key_PRID": "BASIC-SCHEDULE",
+    "key_SPRID": "BASIC-MISSION",
+    "key_STIM": 8.0,
+    "column": "DTIM",
+    "column_datatype": "double",
+    "old_double": 0.3333333333333333,
+    "old_binary64_hex": "0x1.5555555555555p-2",
+    "accepted_native_old_double": 0.3333333333333333
+  },
+  "new_prospective_value": {
+    "decimal": "0.12345678901234567",
+    "binary64_hex": "0x1.f9add3746f65ep-4",
+    "network_binary64_bytes": "3fbf9add3746f65e",
+    "finite_positive": true,
+    "hours": true
+  },
+  "installed_dictionary": {
+    "path": "C:\\Program Files\\Systecon\\SIMLOX\\UserDoc\\Table relations\\DatabaseDictionary_SIMLOX.txt",
+    "bytes": 78577,
+    "sha256": "11a61537c95489e32742d98ca8532b42aa1ec728c270009e5b1a8643325e96d0"
+  },
+  "installed_OperationProfile_lines": [
+    "OperationProfile;1;PRID;Profile identifier;Index;Text;;;;OperationProfile PRID",
+    "OperationProfile;2;SPRID;Subprofile identifier;Index;Text;;;;OperationProfile PRID, MissionType MTID",
+    "OperationProfile;3;STIM;Start time;Index;Floating point;Hours;;Non-negative number;",
+    "OperationProfile;4;ITYPE;Initiation type;Regular;Text;;SCHEDULED;Multiple choice: SCHEDULED, REGENERATIVE or RANDOM;",
+    "OperationProfile;5;IQTY;Initiation quantity;Regular;Integer;;1;Non-negative integer;",
+    "OperationProfile;6;IQTYD;Initiation quantity distr;Regular;Text;;;Multiple choice: <POISSON>, or element in related table;IntegerDistributions DISTID",
+    "OperationProfile;7;IPER;Initiation period;Regular;Floating point;Hours;0.0;Non-negative number;",
+    "OperationProfile;8;IDISP;Initiation distribution pattern;Regular;Text;;EQUIDIST;Multiple choice: EQUIDIST or RANDOM;",
+    "OperationProfile;9;DTIM;Deferment time;Regular;Floating point;Hours;0.0;Non-negative number;",
+    "OperationProfile;10;XCOORD;Map x coordinate;Regular;Floating point;;0.0;;",
+    "OperationProfile;11;YCOORD;Map y coordinate;Regular;Floating point;;0.0;;",
+    "OperationProfile;12;NOTE;User Note;Comment;Text;;;;"
+  ],
+  "installed_field_contract": "Column9 DTIM Deferment time,Regular,Floating point,Hours,default0.0,Non-negative number; target positivefinite double within declared range.",
+  "manual_support": "Pinned SIMLOX physical152 explicitly JSON precision independent of view;153 checks declared datatype;154 array-values numeric/null typed by corresponding columns. Manual extracts and file pins retained in prior source audit.",
+  "prospective_identity_requirement": "Author must freeze all accepted nativeJSON tables/columns/types/key flags/defaults/instance identities/order/rows/value-types and metadata except exactly OperationProfile defaultinstance row0 DTIM -> specified binary64; no new Station canonicalization allowance beyond exact accepted default21null row. Prettyformat/number decimal spelling may vary only where decoded declared double yields exact predeclared binary64; JSON metadata keys/values and null/string/integer distinctions remain strict. No new description/version field inside model unless independently stated delta; wrapper publication metadata separate.",
+  "JSON_settings_observation": {
+    "pin": {
+      "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-10\\issue18-cli-20261009T195400Z\\resume-20261011T063528Z\\native-export-settings-read-v1.json",
+      "bytes": 1550,
+      "sha256": "92e5bf599539d9142c2a8c85b6c65ca2bbdc2b61931bd65c019cf4326e2deb62"
+    },
+    "readable_export": "Yes",
+    "export_hidden": "No",
+    "semantics": "Read-only methodepoch provenance; no settings writes; semantic typed identity not pretty-byte equality. Snapshot before actual export must be independently checked."
+  },
+  "parent_raw_checks": [
+    {
+      "role": "closure",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\closure.json",
+        "bytes": 7235,
+        "sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\closure.json",
+        "bytes": 7235,
+        "sha256": "86e93d3fc94dcae4b034432b2ccea16e84c7b3e17894d3e5ea6ef1bdb2b999c3"
+      },
+      "matched": true
+    },
+    {
+      "role": "invocation",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\invocation.json",
+        "bytes": 6153,
+        "sha256": "361f7e3634d7c6ec19e496313dc83191782c5b5a36dcb90e827939dbba69581c"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\invocation.json",
+        "bytes": 6153,
+        "sha256": "361f7e3634d7c6ec19e496313dc83191782c5b5a36dcb90e827939dbba69581c"
+      },
+      "matched": true
+    },
+    {
+      "role": "report-export.log",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\report-export.log",
+        "bytes": 64,
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\report-export.log",
+        "bytes": 64,
+        "sha256": "5bb7e1650e00430e5394c96e3ef46b281a59bbf52bf02031a8bfb8c2fe56071e"
+      },
+      "matched": true
+    },
+    {
+      "role": "roundtrip-validation.json",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\roundtrip-validation.json",
+        "bytes": 1578,
+        "sha256": "cc4c23aa9527f7e9d2be17702f0c2406e2d027e709c785a10501a734160e382b"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\roundtrip-validation.json",
+        "bytes": 1578,
+        "sha256": "cc4c23aa9527f7e9d2be17702f0c2406e2d027e709c785a10501a734160e382b"
+      },
+      "matched": true
+    },
+    {
+      "role": "import.log",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\import.log",
+        "bytes": 2275,
+        "sha256": "638a7cddb312a97ec6ff2c85e66256e08fab1ac16786c66af5a057ac14813640"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\import.log",
+        "bytes": 2275,
+        "sha256": "638a7cddb312a97ec6ff2c85e66256e08fab1ac16786c66af5a057ac14813640"
+      },
+      "matched": true
+    },
+    {
+      "role": "model.log",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\model.log",
+        "bytes": 2303,
+        "sha256": "2d2e6c368305203052e347748dab8f36261947dae6f6a189fad4312e47c0a491"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\model.log",
+        "bytes": 2303,
+        "sha256": "2d2e6c368305203052e347748dab8f36261947dae6f6a189fad4312e47c0a491"
+      },
+      "matched": true
+    },
+    {
+      "role": "model.sxo",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\model.sxo",
+        "bytes": 333145,
+        "sha256": "e4ef04747e02887b254b596aa21505267cce2aa156a9f5e8f97426d83615b505"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\model.sxo",
+        "bytes": 333145,
+        "sha256": "e4ef04747e02887b254b596aa21505267cce2aa156a9f5e8f97426d83615b505"
+      },
+      "matched": true
+    },
+    {
+      "role": "run.log",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\run.log",
+        "bytes": 1046,
+        "sha256": "3463ce41bcce726126648fa61e7bb589c90e6d03be7f763934c61ff059729eae"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\run.log",
+        "bytes": 1046,
+        "sha256": "3463ce41bcce726126648fa61e7bb589c90e6d03be7f763934c61ff059729eae"
+      },
+      "matched": true
+    },
+    {
+      "role": "report-raw.json",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\report-raw.json",
+        "bytes": 103945,
+        "sha256": "5a3fd9007de442ce0f7a5210cd61cfe1e3a362774300497020341dc05d478655"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\report-raw.json",
+        "bytes": 103945,
+        "sha256": "5a3fd9007de442ce0f7a5210cd61cfe1e3a362774300497020341dc05d478655"
+      },
+      "matched": true
+    },
+    {
+      "role": "roundtrip-raw.json",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\roundtrip-raw.json",
+        "bytes": 58253,
+        "sha256": "7d3a6ebe5b9b1170dca1d8115555ebb26dc4c47c03cc325e4d6576bd921dc9e9"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\roundtrip-raw.json",
+        "bytes": 58253,
+        "sha256": "7d3a6ebe5b9b1170dca1d8115555ebb26dc4c47c03cc325e4d6576bd921dc9e9"
+      },
+      "matched": true
+    },
+    {
+      "role": "input.json",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\input.json",
+        "bytes": 40998,
+        "sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\input.json",
+        "bytes": 40998,
+        "sha256": "b94e367d46665d4d58f2fb8d15771a61a6d51369070db85ab9bda851c3e76b00"
+      },
+      "matched": true
+    },
+    {
+      "role": "export.log",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\export.log",
+        "bytes": 249,
+        "sha256": "1f5f325ae75e29b271daed829306e7a9a3ac30971a00ab4b5804e9d13eeefe15"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\export.log",
+        "bytes": 249,
+        "sha256": "1f5f325ae75e29b271daed829306e7a9a3ac30971a00ab4b5804e9d13eeefe15"
+      },
+      "matched": true
+    },
+    {
+      "role": "model.sxi",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\model.sxi",
+        "bytes": 189410,
+        "sha256": "60c7a5cddd2af357282d948aa92409f526d751a173b19c931f9a5213f83e8815"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\model.sxi",
+        "bytes": 189410,
+        "sha256": "60c7a5cddd2af357282d948aa92409f526d751a173b19c931f9a5213f83e8815"
+      },
+      "matched": true
+    },
+    {
+      "role": "steps.json",
+      "expected": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\steps.json",
+        "bytes": 3738,
+        "sha256": "7e4585c5af9070ae4013cbc7575525f14d68b5ed49429c0d1391f347783fcd7d"
+      },
+      "actual": {
+        "path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\steps.json",
+        "bytes": 3738,
+        "sha256": "7e4585c5af9070ae4013cbc7575525f14d68b5ed49429c0d1391f347783fcd7d"
+      },
+      "matched": true
+    }
+  ],
+  "all_parent_14_roles_match": true,
+  "dependency": "Accepted K01.var04 CLI foundation and K02 namedJSON canonicalization/signoffs; GUIexcluded not wholecasepass. Parent model events/report/ledger only inherited historical proof; proposed DTIM differs so no newmission/downtime/endstate claim without simulation (none authorized by candidate).",
+  "required_next_gates": [
+    "Full author prospective JSON projection with exact source scalar delta/frozen binary64 and full declared metadata/default tables/instances/cells/falsifiers.",
+    "Independent method review then unique newversion/source/tool freeze/staticGO; no code/source/run yet.",
+    "Standaloneterminalguardian+plainactualSSH0PS5 purepreflight,receiptboundGO,oneguardedNativeQueue serialized attempt; no parentcalc/rerun.",
+    "Author and independent original/recoveredraw acceptance;publication/staged/exactremote/actualmerge reviews."
+  ],
+  "prior_MANHC_NO_GO": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-10-10\\issue18-cli-20261009T195400Z\\resume-20261011T063528Z\\independent-k02-precision-source-v1\\terminal-receipt-v1.json",
+    "bytes": 22364,
+    "sha256": "30b170a12ea8bcc183ae77cecd3ec309aa040713810cf7af2bcb43ee4cc65ff6"
+  },
+  "native_permission": false,
+  "new_source_version_runID": null,
+  "completion_denominator": null,
+  "limits": [
+    "Candidate only, not method/static/nativeGO or measuredprecisionresult.",
+    "No newmodel behavior/wholevariant/crossengine/performance/fullIssueclaim.",
+    "NocoordinateGUIalternative,Unicode ortransposeclaim.",
+    "No nativecall,source/repo/Goal/schedule/config/settingmutation."
+  ]
+}

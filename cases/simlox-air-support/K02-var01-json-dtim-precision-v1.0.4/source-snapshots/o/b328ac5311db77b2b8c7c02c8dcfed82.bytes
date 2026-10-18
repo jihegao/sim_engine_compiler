@@ -1,0 +1,27 @@
+{
+  "schema": "simlox-independent-k02-static-supplement/v1",
+  "decision": "NO_GO_PRELAUNCH_STATIC",
+  "utc": "2026-10-11T08:11:55.5581915Z",
+  "reviewer": "/root/k02_static_review",
+  "manifest_sha256": "560158898b5e178dac7dc7d47c0d1e0fc9744e3804c99670f7bc5d9fc4d209ce",
+  "run_id": "k02-json-dtim-v100-ssh-20261011-01",
+  "v1_receipt_sha256": "d1d16db9401e74d8893baee220ea57fe0d7e0ef7415f2a65889046d77cd415ce",
+  "native_calls": 0,
+  "ssh_calls": 0,
+  "findings": [
+    {
+      "severity": "P1",
+      "repair": "Preserve immutable native-operation closure separately from recovery result. Seal additive recovery-failure receipt including original error/partial hashes; do not re-enter Recover and overwrite/duplicate a sealed closure. Require exact verified complete pairs before recovered-success claim; pure positive and injected-copy/mismatch tests.",
+      "function": "Recover/catch",
+      "counterexample": "Injected reviewer-only Copy-Item failure after success closure: closure success remains true, recovery has 0 files, catch calls Recover(false), Save rejects existing closure and obscures first copy error."
+    },
+    {
+      "severity": "P2",
+      "repair": "Explicitly bind child start to observed process object StartTime and launch interval, in addition to existing PID/session/path/parent gate; preserve early-exit identity NO_GO without termination.",
+      "function": "Capture native child",
+      "observation": "CIM CreationDate is captured but not checked against Start-Process process StartTime or stage-start/current observation interval."
+    }
+  ],
+  "provenance_repair_semantics": "Same DTIM source bytes/oracle/parent method remains behavior-scope-valid. New case version/toolprofile/run paths require independently reviewed additive provenance contract/component binding/manifest and path controls; method/checker historical receipts are not permission for changed new run.",
+  "review_complete": true
+}
