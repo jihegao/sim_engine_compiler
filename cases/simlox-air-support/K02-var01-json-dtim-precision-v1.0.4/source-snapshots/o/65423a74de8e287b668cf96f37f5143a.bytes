@@ -1,0 +1,46 @@
+{
+  "utc": "2026-10-11T08:57:03.845415+00:00",
+  "source_sha256": "fbc95c9359d94c1ad4fc9675bc0bd9adc8e362fc03ad59ab81a3398a4616e3e4",
+  "status": "PASS",
+  "actual_ast_command": true,
+  "controls": [
+    {
+      "label": "completed-guardian",
+      "pid": 11956,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "command": [
+        "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "$ErrorActionPreference='Stop'; $p=@(Get-CimInstance Win32_Process -Filter 'ProcessId=11956'); if($p.Count -gt 0){exit 1}; exit 0"
+      ],
+      "passed": true
+    },
+    {
+      "label": "live-author-process",
+      "pid": 50104,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "",
+      "command": [
+        "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "$ErrorActionPreference='Stop'; $p=@(ThisCmdletMustNotExistK02 Win32_Process -Filter 'ProcessId=50104'); if($p.Count -gt 0){exit 1}; exit 0"
+      ],
+      "passed": true
+    },
+    {
+      "label": "query-environment-failure",
+      "exit_code": 1,
+      "stderr": "ThisCmdletMustNotExistK02 : The term 'ThisCmdletMustNotExistK02' is not recognized as the name of a cmdlet, function, s\r\ncript file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is cor\r\nrect and try again.\r\nAt line:1 char:37\r\n+ $ErrorActionPreference='Stop'; $p=@(ThisCmdletMustNotExistK02 Win32_P ...\r\n+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (ThisCmdletMustNotExistK02:String) [], ParentContainsErrorRecordExceptio \r\n   n\r\n    + FullyQualifiedErrorId : CommandNotFoundException\r\n \r\n",
+      "passed": true
+    }
+  ],
+  "SSH_calls": 0,
+  "native_calls": 0
+}

@@ -1,0 +1,35 @@
+{
+  "schema": "simlox-independent-k02-static-supplement/v2",
+  "utc": "2026-10-11T08:37:26.7791280Z",
+  "decision": "NO_GO_PRELAUNCH_STATIC",
+  "reviewer": "/root/k02_static_review",
+  "manifest_sha256": "b87f6b3e9a669cdd5a87cefb93309913b72918d79fd25033c71fe1f8a2657064",
+  "run_id": "k02-json-dtim-v101-ssh-20261011-01",
+  "prior_static_receipt_sha256": "266f97ef374c75f2cf102b2cf618df69ab3c952a4a3767f8c45ff0b8c312916c",
+  "supersedes_prior_GO": true,
+  "native_calls": 0,
+  "ssh_calls": 0,
+  "counterexample": [
+    {
+      "name": "closure.json",
+      "bytes": 634,
+      "is_readonly": false,
+      "sha256": "2085cb72a07808a20cc78fb8f27a3d9227af1cc8c1f1e85fb02ea3f4a2b3f536"
+    },
+    {
+      "name": "failure-seal-20261011T083236598Z.json",
+      "bytes": 275,
+      "is_readonly": false,
+      "sha256": "85cec8384cce3830457650b58f35e6e5530dabceeaf75ec82214d6e01ac5ed66"
+    },
+    {
+      "name": "synthetic-marker.bin",
+      "bytes": 3,
+      "is_readonly": false,
+      "sha256": "039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"
+    }
+  ],
+  "finding": "Persistent Copy-Item failure reaches actual outercatch and additive recovery-failure receipt, but original files remain writable: readonly flags are set only after successful copy; failure seal and original closure also remain writable.",
+  "repair": "Separate failed-original sealing from recovery copy. After all permitted failure/closure writes, unconditionally hash and mark all original regular files readonly in a final failure/sealing path independent of Copy-Item success. Seal readonly/partial recovery status additively without modifying immutable original receipts; assert complete file coverage and mark already copied recovered files readonly. Add pure persistent-copy/partial-copy controls verifying every failed original readonly, error preserved and no recovered-success overclaim. Preserve frozen v1.0.1 and this counterexample; freeze additive repaired tool/sourceversion/manifest/newrun for re-review.",
+  "scope": "Guard/failure-evidence repair only; source/oracle/delta remains compatible; no native permission."
+}

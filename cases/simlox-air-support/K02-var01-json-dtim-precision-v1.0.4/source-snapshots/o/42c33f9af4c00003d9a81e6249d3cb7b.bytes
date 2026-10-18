@@ -1,0 +1,55 @@
+param([Parameter(Mandatory=$true)][string]$OutputDirectory)
+$ErrorActionPreference='Stop'
+$source='C:\Users\user\Documents\Codex\2026-10-09\i05-var08-pm-location\cases\simlox-air-support\K02-var01-json-dtim-precision-v1.0.3\run_native_ssh_v4.ps1'
+if(Test-Path -LiteralPath $OutputDirectory){throw 'pure proof directory occupied'}
+New-Item -ItemType Directory -Path $OutputDirectory|Out-Null
+$tokens=$null;$errors=$null;$ast=[Management.Automation.Language.Parser]::ParseFile($source,[ref]$tokens,[ref]$errors)
+if($errors.Count){throw 'PS5 syntax errors'}
+foreach($f in $ast.FindAll({param($x)$x -is [Management.Automation.Language.FunctionDefinitionAst] -and $x.Name -in @('Sha','Save','Recover','SealOriginals')},$true)){. ([ScriptBlock]::Create($f.Extent.Text))}
+$outer=@($ast.EndBlock.Statements|Where-Object{$_ -is [Management.Automation.Language.TryStatementAst]})[-1]
+$catchText=$outer.CatchClauses[0].Body.Extent.Text.TrimStart('{').TrimEnd('}')
+$run='C:\Users\user\Documents\Codex\2026-10-09\i05-var08-pm-location\tmp\k02-json-dtim-v103-20261011-01'
+# Extract the repaired foreach's actual collection expression from the source AST.
+$pathLoop=$ast.FindAll({param($x)$x -is [Management.Automation.Language.ForEachStatementAst] -and $x.Variable.VariablePath.UserPath -eq 'line'},$true)[0]
+$paths=@(& ([ScriptBlock]::Create($pathLoop.Condition.Extent.Text)))
+if($paths.Count -ne 2 -or @($paths|Where-Object{[Text.Encoding]::ASCII.GetByteCount($_) -gt 199}).Count){throw 'path guard still joins operands'}
+$pathProof=[ordered]@{count=$paths.Count;lengths=@($paths|ForEach-Object{[Text.Encoding]::ASCII.GetByteCount($_)});values=$paths;actual_expression=$pathLoop.Condition.Extent.Text}
+$results=@()
+function Copy-Item{
+ param([string]$LiteralPath,[string]$Destination)
+ $script:copyCount++
+ if(($script:mode -eq 'partial' -and $script:copyCount -ge 2) -or $script:mode -eq 'persistent' -or ($script:mode -eq 'transient' -and $script:copyCount -eq 1)){throw 'INJECTED_RECOVERY_COPY_ERROR'}
+ Microsoft.PowerShell.Management\Copy-Item -LiteralPath $LiteralPath -Destination $Destination
+}
+foreach($testMode in @('normal','transient','persistent','partial')){
+ $script:mode=$testMode;$script:copyCount=0;$script:recoveryOwned=$false
+ $case=Join-Path $OutputDirectory $testMode;New-Item -ItemType Directory -Path $case|Out-Null
+ New-Item -ItemType Directory -Path (Join-Path $case 'review')|Out-Null
+ $run=Join-Path $case 'original';$recover=Join-Path $case 'recovered';New-Item -ItemType Directory -Path $run|Out-Null
+ [IO.File]::WriteAllBytes((Join-Path $run 'synthetic-marker.bin'),[byte[]]@(1,2,3))
+ $created=$true;$steps=@();$m=[pscustomobject]@{run_id='PURE_RECOVERY_CONTROL_NOT_NATIVE'};$observedError=$null
+ $exercise=[ScriptBlock]::Create('try{Recover $true $null}catch{'+$catchText+'}finally{SealOriginals}');try{. $exercise}catch{$observedError=$_.Exception.Message}
+ $closure=Get-Content (Join-Path $run 'closure.json') -Raw|ConvertFrom-Json
+ $failures=@(Get-ChildItem -LiteralPath $run -Filter 'failure-seal-*.json')
+ $recoveryFailures=@(Get-ChildItem -LiteralPath (Join-Path $case 'review') -Filter 'recovery-failure-*.json')
+ $complete=@(Get-ChildItem -LiteralPath (Join-Path $case 'review') -Filter 'recovery-*.json'|Where-Object{$_.Name -notlike 'recovery-failure-*'})
+ if($closure.recovery_status -cne 'pending'){throw 'closure overclaims recovery'}
+ if($testMode -eq 'normal'){
+  if($observedError -or $complete.Count -ne 1 -or $failures.Count){throw 'normal complete positive differs'}
+ }else{
+  if($observedError -cne 'INJECTED_RECOVERY_COPY_ERROR' -or $failures.Count -ne 1){throw ('original error obscured or failure seal missing: '+$observedError+' count='+$failures.Count)}
+  if($testMode -eq 'transient' -and ($complete.Count -ne 1 -or $recoveryFailures.Count)){throw 'owned transient recovery did not complete'}
+  if($testMode -in @('persistent','partial') -and ($complete.Count -ne 0 -or $recoveryFailures.Count -ne 1)){throw 'persistent failure overclaims completion'}
+  if($testMode -in @('persistent','partial')){$receipt=Get-Content $recoveryFailures[0].FullName -Raw|ConvertFrom-Json;if($receipt.original_error -cne $observedError -or $receipt.recovery_status -cne 'incomplete'){throw 'failure receipt identity'}}
+ }
+ if($complete.Count){foreach($f in Get-ChildItem $run -File){$target=Join-Path $recover $f.Name;if((Sha $target) -cne (Sha $f.FullName) -or -not (Get-Item $target).IsReadOnly -or -not $f.IsReadOnly){throw 'readonly raw pair mismatch'}}}
+ foreach($f in Get-ChildItem -LiteralPath $run -File){if(-not $f.IsReadOnly){throw 'failed original remains writable'}}
+ foreach($f in Get-ChildItem -LiteralPath $recover -File -ErrorAction SilentlyContinue){if(-not $f.IsReadOnly){throw 'owned partial recovery remains writable'}}
+ $seals=@(Get-ChildItem -LiteralPath (Join-Path $case 'review') -Filter 'original-seal-*.json');if($seals.Count -ne 1){throw 'final seal receipt missing'}
+ $seal=Get-Content $seals[0].FullName -Raw|ConvertFrom-Json;if(-not $seal.all_originals_hashed_readonly -or -not $seals[0].IsReadOnly){throw 'seal incomplete'}
+ foreach($row in $seal.originals){if((Sha (Join-Path $run $row.name)) -cne $row.sha256 -or -not $row.readonly){throw 'final seal hash differs'}}
+ $results+=@([ordered]@{mode=$testMode;original_error=$observedError;closure_recovery_status=$closure.recovery_status;failure_seals=$failures.Count;complete_receipts=$complete.Count;incomplete_receipts=$recoveryFailures.Count;copy_calls=$script:copyCount;passed=$true;synthetic_not_native=$true})
+}
+$result=[ordered]@{schema='simlox-k02-guard-recovery-pure/v2';status='PASS';source_sha256=(Sha $source);ps_major=$PSVersionTable.PSVersion.Major;path_guard=$pathProof;recovery_controls=$results;native_calls=0;SSH_calls=0;source_code_modified=$false}
+$result|ConvertTo-Json -Depth 20|Set-Content -LiteralPath (Join-Path $OutputDirectory 'terminal.json') -Encoding UTF8
+$result|ConvertTo-Json -Depth 20

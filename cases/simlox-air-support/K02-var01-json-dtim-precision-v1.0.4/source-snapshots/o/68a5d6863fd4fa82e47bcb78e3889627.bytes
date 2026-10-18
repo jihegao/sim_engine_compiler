@@ -1,0 +1,30 @@
+{
+  "utc": "2026-10-11T08:54:20.943903+00:00",
+  "guard_pid": 11956,
+  "results": [
+    {
+      "label": "original",
+      "command": "$p=Get-Process -Id 11956 -ErrorAction SilentlyContinue; if($p){exit 1}",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "explicit-zero",
+      "command": "$p=Get-Process -Id 11956 -ErrorAction SilentlyContinue; if($p){exit 1}; exit 0",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "inventory",
+      "command": "Get-CimInstance Win32_Process -Filter 'ProcessId=11956' | Select-Object ProcessId,Name,CreationDate,SessionId | ConvertTo-Json; exit 0",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "SSH_calls": 0,
+  "native_calls": 0,
+  "preflight_state": "local transport guard refused before SSH invocation"
+}
