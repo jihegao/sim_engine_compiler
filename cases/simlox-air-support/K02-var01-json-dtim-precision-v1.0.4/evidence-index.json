@@ -2527,8 +2527,8 @@
     },
     {
       "relative_path": "REPLAY.md",
-      "bytes": 1238,
-      "sha256": "d6fd320e202682b46a0b30b1686055837d9f2e4e48068741151f5a3a6bbf82dc",
+      "bytes": 1850,
+      "sha256": "f91bf61a2a940e7f14dbf1dca5b7cfc4079c85afaeaece0a65471b78ecde457e",
       "role": "read-only replay instructions and historical publication flag qualification"
     },
     {
@@ -2628,11 +2628,41 @@
       "sha256": "7e4585c5af9070ae4013cbc7575525f14d68b5ed49429c0d1391f347783fcd7d",
       "role": "historical accepted parent raw custody; not native01 generated output or installed runtime",
       "original_path": "C:\\Users\\user\\Documents\\Codex\\2026-09-29\\simlox-c04-deadline\\repo\\cases\\simlox-air-support\\K02-var01-json-structure-v1.0.1\\runs\\k02-var01-named-v101-ssh-20261004-01\\steps.json"
+    },
+    {
+      "relative_path": "replay_archived_native01_v2.py",
+      "bytes": 5882,
+      "sha256": "1ba3501e5a8425a3a0044f410378f32b6da1e9ad47ff5e8551b8f00c41906b0e",
+      "role": "PR556 delivery-only portable path and exact log-byte correction; no model/oracle/native change",
+      "original_path": "C:\\Users\\user\\Documents\\Codex\\2026-10-10\\issue18-cli-20261009T195400Z\\k02pub-v104\\cases\\simlox-air-support\\K02-var01-json-dtim-precision-v1.0.4\\replay_archived_native01_v2.py"
+    },
+    {
+      "relative_path": "test_archived_replay_v2.py",
+      "bytes": 1901,
+      "sha256": "9c052c4bfc16a7d439e4b842c2a9fbf49c896eee537be0602709fc07e943ae4a",
+      "role": "PR556 delivery-only portable path and exact log-byte correction; no model/oracle/native change",
+      "original_path": "C:\\Users\\user\\Documents\\Codex\\2026-10-10\\issue18-cli-20261009T195400Z\\k02pub-v104\\cases\\simlox-air-support\\K02-var01-json-dtim-precision-v1.0.4\\test_archived_replay_v2.py"
     }
   ],
   "independent_native_receipt_sha256": "781ff9972211538ccab5c3cdcdb05ad3f4abe2ed12d249869cdf549f6c67125b",
   "native_behavior_accepted": true,
   "publication_GO": false,
   "denominator": null,
-  "whole_scope_complete": false
+  "whole_scope_complete": false,
+  "delivery_replay_correction": {
+    "version": 2,
+    "script": "replay_archived_native01_v2.py",
+    "negative_controls": "test_archived_replay_v2.py",
+    "historical_checkers_unchanged": true,
+    "frozen_component_binding_unchanged": true,
+    "raw_model_oracle_unchanged": true,
+    "source_reviews": [
+      "https://github.com/jihegao/sim_engine_compiler/pull/556#discussion_r4306732051",
+      "https://github.com/jihegao/sim_engine_compiler/pull/556#discussion_r4306732055"
+    ],
+    "changes": [
+      "Parse Windows component separators independently of replay OS; Windows semantics for provenance only",
+      "Validate entire log bytes including CRLF and final terminator; only path and elapsed variability"
+    ]
+  }
 }
