@@ -40,9 +40,10 @@ class AircraftRuntimeState:
     flight_hours: float = 0.0
     takeoff_count: int = 0
     landing_count: int = 0
-    failure_remaining: dict[int, float] = field(default_factory=dict)
-    component_failure_minutes: dict[int, int] = field(default_factory=dict)
+    failure_remaining: dict[tuple[int, int], float] = field(default_factory=dict)
+    instance_failure_minutes: dict[tuple[int, int], int] = field(default_factory=dict)
     failed_component_index: int | None = None
+    failed_component_instance_index: int | None = None
     failed_component_minute: int | None = None
     in_flight_failure: bool = False
 
@@ -77,6 +78,7 @@ class JobRuntimeState:
     reserved_personnel: int = 0
     reserved_equipment: int = 0
     component_index: int | None = None
+    component_instance_index: int | None = None
     preventive_cycle_index: int | None = None
     maintenance_method: str | None = None
     injected_spares: tuple[tuple[str, int], ...] = ()
@@ -194,12 +196,13 @@ class SimpyReferenceRuntime:
         self._delayed_missions: set[int] = set()
         self._activity_by_group_phase = self._index_activities()
         self._children_by_component = self._index_component_children()
-        self._failure_components_by_aircraft = tuple(
+        self._failure_instance_slots = tuple(
             tuple(
-                component.index
+                (component.index, instance_index)
                 for component in self.plan.components
                 if component.failure_rate_per_hour > 0
                 and aircraft_index in component.aircraft_indexes
+                for instance_index in range(component.quantity)
             )
             for aircraft_index in range(len(self.aircraft))
         )
@@ -211,35 +214,37 @@ class SimpyReferenceRuntime:
             result.setdefault(component.parent_index, []).append(component.index)
         return {key: tuple(value) for key, value in result.items()}
 
-    def _sample_failure_minutes(
-        self, component_index: int, aircraft_index: int, reason: str
+    def _sample_instance_minutes(
+        self,
+        component_index: int,
+        aircraft_index: int,
+        instance_index: int,
+        reason: str,
     ) -> float:
         component = self.plan.components[component_index]
-        samples: list[float] = []
-        for quantity_index in range(component.quantity):
-            value = (
-                self.rng.expovariate(component.failure_rate_per_hour) * 60.0
-                if component.failure_rate_per_hour > 0
-                else math.inf
-            )
-            self.sample_requests.append(
-                {
-                    "sequence": len(self.sample_requests) + 1,
-                    "time": self.minute,
-                    "phase": self.phase,
-                    "stream": "legacy-sequential-v1",
-                    "distribution": "exponential",
-                    "entity": self.aircraft[aircraft_index].tail_number,
-                    "component_id": component.component_id,
-                    "quantity_index": quantity_index,
-                    "rate_per_hour": component.failure_rate_per_hour,
-                    "value_minutes": value,
-                    "reason": reason,
-                    "source_path": component.source_path,
-                }
-            )
-            samples.append(value)
-        return min(samples) if samples else math.inf
+        value = (
+            self.rng.expovariate(component.failure_rate_per_hour) * 60.0
+            if component.failure_rate_per_hour > 0
+            else math.inf
+        )
+        self.sample_requests.append(
+            {
+                "sequence": len(self.sample_requests) + 1,
+                "time": self.minute,
+                "phase": self.phase,
+                "stream": "legacy-sequential-v1",
+                "distribution": "exponential",
+                "entity": self.aircraft[aircraft_index].tail_number,
+                "component_id": component.component_id,
+                "quantity_index": instance_index,
+                "instance_index": instance_index,
+                "rate_per_hour": component.failure_rate_per_hour,
+                "value_minutes": value,
+                "reason": reason,
+                "source_path": component.source_path,
+            }
+        )
+        return value
 
     def _initialize_failure_timers(self) -> None:
         # Preserve the old model's draw-before-applicability order.
@@ -247,11 +252,12 @@ class SimpyReferenceRuntime:
             for component in self.plan.components:
                 if component.failure_rate_per_hour <= 0:
                     continue
-                sampled = self._sample_failure_minutes(
-                    component.index, aircraft_index, "initialize"
-                )
-                if aircraft_index in component.aircraft_indexes:
-                    aircraft.failure_remaining[component.index] = sampled
+                for instance_index in range(component.quantity):
+                    sampled = self._sample_instance_minutes(
+                        component.index, aircraft_index, instance_index, "initialize"
+                    )
+                    if aircraft_index in component.aircraft_indexes:
+                        aircraft.failure_remaining[(component.index, instance_index)] = sampled
 
     def _index_activities(self) -> dict[tuple[str, str], tuple[int, ...]]:
         result: dict[tuple[str, str], list[int]] = {}
@@ -349,6 +355,7 @@ class SimpyReferenceRuntime:
         kind: str,
         mission_index: int | None,
         component_index: int | None = None,
+        component_instance_index: int | None = None,
         preventive_cycle_index: int | None = None,
     ) -> None:
         self._job_sequence += 1
@@ -359,6 +366,7 @@ class SimpyReferenceRuntime:
             activity_index=activity.index,
             mission_index=mission_index,
             component_index=component_index,
+            component_instance_index=component_instance_index,
             preventive_cycle_index=preventive_cycle_index,
         )
         if kind in {"repair", "preventive"}:
@@ -455,15 +463,53 @@ class SimpyReferenceRuntime:
                 aircraft.tail_number,
             )
         elif job.kind == "repair":
-            aircraft.state = "available"
+            if (job.component_index is None) != (job.component_instance_index is None):
+                raise RuntimeError(
+                    f"repair job {job.job_id!r} has incomplete component instance identity"
+                )
+            repaired_slot = None
             if job.component_index is not None:
-                aircraft.failure_remaining[job.component_index] = self._sample_failure_minutes(
-                    job.component_index, job.aircraft_index, "repair_completed"
+                repaired_slot = (job.component_index, job.component_instance_index)
+                aircraft.failure_remaining[repaired_slot] = self._sample_instance_minutes(
+                    job.component_index,
+                    job.aircraft_index,
+                    job.component_instance_index,
+                    "repair_completed",
                 )
             aircraft.failed_component_index = None
+            aircraft.failed_component_instance_index = None
             aircraft.failed_component_minute = None
-            aircraft.component_failure_minutes.clear()
-            aircraft.in_flight_failure = False
+            if repaired_slot is not None:
+                aircraft.instance_failure_minutes.pop(repaired_slot, None)
+            aircraft.in_flight_failure = bool(aircraft.instance_failure_minutes)
+            if aircraft.instance_failure_minutes:
+                next_slot = min(
+                    aircraft.instance_failure_minutes,
+                    key=lambda slot: (
+                        aircraft.instance_failure_minutes[slot],
+                        slot[0],
+                        slot[1],
+                    ),
+                )
+                next_component = self.plan.components[next_slot[0]]
+                if next_component.repair_activity_index < 0:
+                    raise UnsupportedPlanError(
+                        f"no repair activity for component {next_component.component_id!r}"
+                    )
+                aircraft.state = "maintenance"
+                aircraft.failed_component_index = next_slot[0]
+                aircraft.failed_component_instance_index = next_slot[1]
+                aircraft.failed_component_minute = aircraft.instance_failure_minutes[next_slot]
+                self._create_job(
+                    job.aircraft_index,
+                    self.plan.activities[next_component.repair_activity_index],
+                    kind="repair",
+                    mission_index=job.mission_index,
+                    component_index=next_slot[0],
+                    component_instance_index=next_slot[1],
+                )
+            else:
+                aircraft.state = "available"
             self._emit(
                 "repair_completed",
                 "maintenance.repair-complete",
@@ -471,7 +517,8 @@ class SimpyReferenceRuntime:
                 {
                     "component_id": self.plan.components[job.component_index].component_id
                     if job.component_index is not None
-                    else None
+                    else None,
+                    "instance_index": repaired_slot[1] if repaired_slot is not None else None,
                 },
             )
         elif job.kind == "preventive" and job.preventive_cycle_index is not None:
@@ -696,19 +743,25 @@ class SimpyReferenceRuntime:
             if cycle_spec.aircraft_index == aircraft_index:
                 self.preventive_cycles[cycle_index].life_flight_hours += flight_hours
                 self.preventive_cycles[cycle_index].life_landing_cycles += 1
-        failed_on_return = bool(aircraft.in_flight_failure or aircraft.component_failure_minutes)
+        failed_on_return = bool(aircraft.in_flight_failure or aircraft.instance_failure_minutes)
         if failed_on_return:
             aircraft.state = "maintenance"
             if aircraft.in_flight_failure:
                 self.failed_sorties += 1
-            component_index = (
-                aircraft.failed_component_index
+            failure_slot = (
+                (aircraft.failed_component_index, aircraft.failed_component_instance_index)
                 if aircraft.failed_component_index is not None
+                and aircraft.failed_component_instance_index is not None
                 else min(
-                    aircraft.component_failure_minutes,
-                    key=aircraft.component_failure_minutes.get,
+                    aircraft.instance_failure_minutes,
+                    key=lambda slot: (
+                        aircraft.instance_failure_minutes[slot],
+                        slot[0],
+                        slot[1],
+                    ),
                 )
             )
+            component_index, instance_index = failure_slot
             component = self.plan.components[component_index]
             if component.repair_activity_index < 0:
                 raise UnsupportedPlanError(
@@ -720,6 +773,7 @@ class SimpyReferenceRuntime:
                 kind="repair",
                 mission_index=mission_index,
                 component_index=component_index,
+                component_instance_index=instance_index,
             )
             if mission_index is not None and aircraft.in_flight_failure:
                 state = self.missions[mission_index]
@@ -732,7 +786,11 @@ class SimpyReferenceRuntime:
                 "mission_failed_returned" if early_return else "mission_returned_with_component_failure",
                 "failure.return-and-create-repair",
                 aircraft.tail_number,
-                {"mission_id": self._mission_id(mission_index), "component_id": component.component_id},
+                {
+                    "mission_id": self._mission_id(mission_index),
+                    "component_id": component.component_id,
+                    "instance_index": instance_index,
+                },
             )
         else:
             self.completed_sorties += 1
@@ -803,7 +861,7 @@ class SimpyReferenceRuntime:
                 job.remaining = 0
 
     def _failure_reaches_root(self, aircraft_index: int) -> bool:
-        failed = set(self.aircraft[aircraft_index].component_failure_minutes)
+        failed = {component_index for component_index, _ in self.aircraft[aircraft_index].instance_failure_minutes}
         changed = True
         while changed:
             changed = False
@@ -830,30 +888,32 @@ class SimpyReferenceRuntime:
         for aircraft_index, aircraft in enumerate(self.aircraft):
             if aircraft.state != "flying" or aircraft.in_flight_failure:
                 continue
-            for component_index in self._failure_components_by_aircraft[aircraft_index]:
+            for failure_slot in self._failure_instance_slots[aircraft_index]:
+                component_index, instance_index = failure_slot
                 component = self.plan.components[component_index]
-                if component.index in aircraft.component_failure_minutes:
+                if failure_slot in aircraft.instance_failure_minutes:
                     continue
-                remaining = aircraft.failure_remaining.get(component.index)
+                remaining = aircraft.failure_remaining.get(failure_slot)
                 if remaining is None:
-                    remaining = self._sample_failure_minutes(
-                        component.index, aircraft_index, "missing_timer"
+                    remaining = self._sample_instance_minutes(
+                        component_index, aircraft_index, instance_index, "missing_timer"
                     )
-                remaining -= 1
-                aircraft.failure_remaining[component.index] = remaining
+                remaining -= 1.0
+                aircraft.failure_remaining[failure_slot] = remaining
                 if remaining > 0:
                     continue
-                aircraft.component_failure_minutes[component.index] = self.minute
+                aircraft.instance_failure_minutes[failure_slot] = self.minute
                 self.lru_failures += 1
                 self._emit(
                     "component_failed",
                     "failure.flight-exposure-countdown",
                     aircraft.tail_number,
-                    {"component_id": component.component_id},
+                    {"component_id": component.component_id, "instance_index": instance_index},
                     component.source_path,
                 )
                 if self._failure_reaches_root(aircraft_index):
-                    aircraft.failed_component_index = component.index
+                    aircraft.failed_component_index = component_index
+                    aircraft.failed_component_instance_index = instance_index
                     aircraft.failed_component_minute = self.minute
                     aircraft.in_flight_failure = True
                     self.in_flight_failures += 1
@@ -861,7 +921,7 @@ class SimpyReferenceRuntime:
                         "aircraft_failed",
                         "failure.tree-root-propagation",
                         aircraft.tail_number,
-                        {"component_id": component.component_id},
+                        {"component_id": component.component_id, "instance_index": instance_index},
                         component.source_path,
                     )
                     self._return_aircraft(aircraft_index, early_return=True)
@@ -1353,7 +1413,7 @@ class SimpyReferenceRuntime:
             "in_flight_failures": self.in_flight_failures,
             "failed_sorties": self.failed_sorties,
             "preventive_maintenance_events": self.preventive_maintenance_events,
-            "failed_count": sum(bool(item.component_failure_minutes) for item in self.aircraft),
+            "failed_count": sum(bool(item.instance_failure_minutes) for item in self.aircraft),
             "repairing_count": sum(
                 any(
                     job.aircraft_index == index
@@ -1382,6 +1442,15 @@ class SimpyReferenceRuntime:
             / (60 * max(1, self.transport_replenishment_events)),
         }
 
+    def _component_failure_view(self, aircraft: AircraftRuntimeState) -> dict[str, int]:
+        # Legacy terminal-state shape: per component the earliest failed instance minute.
+        result: dict[str, int] = {}
+        for (component_index, _instance), minute in aircraft.instance_failure_minutes.items():
+            component_id = self.plan.components[component_index].component_id
+            if component_id not in result or minute < result[component_id]:
+                result[component_id] = minute
+        return result
+
     def _terminal_state(self) -> dict[str, Any]:
         return {
             "aircraft": [
@@ -1402,10 +1471,7 @@ class SimpyReferenceRuntime:
                     "failed_component_id": self.plan.components[item.failed_component_index].component_id
                     if item.failed_component_index is not None
                     else None,
-                    "component_failure_minutes": {
-                        self.plan.components[index].component_id: minute
-                        for index, minute in item.component_failure_minutes.items()
-                    },
+                    "component_failure_minutes": self._component_failure_view(item),
                     "in_flight_failure": item.in_flight_failure,
                 }
                 for item in self.aircraft

@@ -45,7 +45,7 @@ flowchart TD
 ## 任务—飞机—保障关系
 
 - `MissionTemplate → MissionInstance → MissionSlot` 描述需求；`AircraftBinding` 在运行时选择和预约飞机。起飞前替补与起飞后补充出动是不同规则。
-- `ProductType` 共享目录参数；`ComponentSlot` 表示安装位置；`ComponentInstance` 持有单机组件状态。组件数量的兼容含义需单独核验。
+- `ProductType` 共享目录参数；`ComponentSlot` 表示安装位置；Aircraft Runtime 按飞机、组件与 LRU 实例槽位保存故障计时、故障记录与维修状态。组件 `quantity=N` 表示 N 个独立 LRU 实例：各自采样、各自倒计时、各自故障与维修，一个实例的故障或维修不改变其他实例。
 - `SupportProcessTemplate / WorkStepTemplate` 描述保障；`SupportProcessInstance / WorkStepInstance` 持有本次运行进度、触发来源、对象及预约凭证。
 - 任务消耗飞机可用性，保障占用人员、设备和库存，保障结果改变后续任务的可行性。静态定义与运行绑定分别存储。
 
@@ -70,6 +70,8 @@ flowchart TD
 资源区分可释放容量、消耗库存、预约和在途量。按照 profile 定义分阶段事务，不把“先预约备件再等待人员”擅自改为一次性全资源申请。取消与完成凭预约凭证只结算一次。
 
 故障时钟显式区分日历与飞行暴露量。采样时机、维修后的年龄恢复规则、取整和分布变换均属于语义合同。随机流以稳定实体身份定位；兼容模式还需固定旧 RNG 的算法与调用顺序。
+
+Aircraft Support canonical 输入可在 `equipment_tree.components[*].failure_distribution` 中使用指数 MTBF：`distributionType: "exponential"`、正数有限 `mtbf`、`timeUnit: "hour"` 和 `timeBasis: "flight_hour"`。领域校验保留输入来源路径；Aircraft Lowering 转换为 `failure_rate_per_hour = 1 / mtbf`，不因 `quantity` 改变单体故障率。Plan 保存该领域故障率，由 Aircraft Runtime 仅在飞机 `flying` 时累计暴露并执行故障传播和维修。`quantity` 在 Runtime 展开为独立实例槽：每实例独立采样与计时，维修任务携带组件与实例身份，完成后只为被修实例重采样；组件级故障传播继续按故障子组件节点与父级 `failure_threshold` 计数；组件节点在任一实例仍故障时视为故障态（这是旧“多抽样取最早故障”语义的延用而非新增聚合规则），实例数量不参与系统冗余判断。`k_out_of_n.enabled=false` 的旧输入仍可用；启用的 `k_out_of_n` 当前明确拒绝，不会映射为 `failure_threshold`。通用 Reliability 架构和系统 K-out-of-N 不属于当前支持能力。
 
 Python/Rust 以计划和批量运行请求交互，避免逐事件跨语言回调。批量请求以输入位置作为稳定 `sample_index`，允许重复 seed；Rust 线程池共享 `Arc<ExecutionPlan>`，每个样本创建独立 RunState，完成后按 `sample_index` 排序。线程数变化已验证不改变逐样本结果。当前实现提供 `full` 与 `summary`：前者保留完整 trace，后者不 materialize trace 事件 JSON，但保留同一调度、随机请求 tape、metrics 与终态；F35 seeds `0、1、7` 已通过跨级别差分。阶段 C 正式分段基准使用 `full`，热路径报告单独比较两级别。
 

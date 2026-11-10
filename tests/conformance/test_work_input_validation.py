@@ -12,6 +12,15 @@ FIXTURES = ROOT / "tests/fixtures/synthetic"
 
 
 class WorkInputValidationTests(unittest.TestCase):
+    def failure_input(self, distribution):
+        inputs = json.loads((FIXTURES / "b2-failure-repair.json").read_text())
+        component = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        component["failure_distribution"] = distribution
+        return inputs
+
     def test_shared_python_rust_contract(self):
         base = json.loads((FIXTURES / "b1-daily-operations.json").read_text())
         cases = json.loads((FIXTURES / "work-input-validation.json").read_text())
@@ -44,6 +53,108 @@ class WorkInputValidationTests(unittest.TestCase):
         component_id = inputs["equipment_tree"]["components"][0]["id"]
         inputs["support_activities"]["activities"][0]["equipment_id"] = component_id
         self.assertEqual(compile_aircraft_support(inputs).activities[0].equipment_component_index, 0)
+
+    def test_explicit_mtbf_uses_aircraft_flight_hour_contract(self):
+        inputs = self.failure_input({
+            "distributionType": "exponential",
+            "mtbf": 50,
+            "timeUnit": "hour",
+            "timeBasis": "flight_hour",
+        })
+        for profile in ("legacy-minute-v1", "event-time-v2"):
+            with self.subTest(profile=profile):
+                plan = compile_aircraft_support(inputs, semantic_profile=profile)
+                component = next(item for item in plan.components if item.component_id == "radar-lru")
+                self.assertEqual(component.failure_rate_per_hour, 0.02)
+
+    def test_quantity_does_not_scale_single_component_rate(self):
+        inputs = self.failure_input({
+            "distributionType": "exponential",
+            "mtbf": 50,
+            "timeUnit": "hour",
+            "timeBasis": "flight_hour",
+        })
+        component_input = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        component_input["quantity"] = 3
+
+        for profile in ("legacy-minute-v1", "event-time-v2"):
+            with self.subTest(profile=profile):
+                plan = compile_aircraft_support(inputs, semantic_profile=profile)
+                component = next(item for item in plan.components if item.component_id == "radar-lru")
+                self.assertEqual(component.quantity, 3)
+                self.assertEqual(component.failure_rate_per_hour, 0.02)
+                self.assertEqual(component.failure_threshold, 1)
+
+    def test_enabled_k_out_of_n_is_rejected_but_disabled_legacy_field_is_accepted(self):
+        inputs = self.failure_input({"distributionType": "exponential", "rate": 0.5})
+        component = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        component["k_out_of_n"] = {"enabled": False, "k": 1, "n": 3}
+        compile_aircraft_support(inputs)
+
+        component["k_out_of_n"]["enabled"] = True
+        with self.assertRaises(CompilationError) as raised:
+            compile_aircraft_support(inputs)
+        self.assertEqual(raised.exception.code, "unsupported_k_out_of_n")
+        self.assertTrue(
+            raised.exception.source_path.endswith(
+                "equipment_tree.components[1].k_out_of_n"
+            )
+        )
+
+        component["k_out_of_n"] = {"k": 1, "n": 3}
+        with self.assertRaises(CompilationError) as raised:
+            compile_aircraft_support(inputs)
+        self.assertEqual(raised.exception.code, "invalid_k_out_of_n")
+
+    def test_invalid_mtbf_contract_is_rejected(self):
+        valid = {
+            "distributionType": "exponential",
+            "mtbf": 50,
+            "timeUnit": "hour",
+            "timeBasis": "flight_hour",
+        }
+        cases = (
+            ({**valid, "mtbf": 0}, "invalid_mtbf", ".mtbf"),
+            ({**valid, "mtbf": -1}, "invalid_mtbf", ".mtbf"),
+            ({key: value for key, value in valid.items() if key != "timeUnit"},
+             "missing_failure_time_unit", ".timeUnit"),
+            ({**valid, "timeUnit": "day"}, "unsupported_failure_time_unit", ".timeUnit"),
+            ({key: value for key, value in valid.items() if key != "timeBasis"},
+             "missing_failure_time_basis", ".timeBasis"),
+            ({**valid, "timeBasis": "calendar_hour"},
+             "unsupported_failure_time_basis", ".timeBasis"),
+            ({**valid, "distributionType": "weibull"},
+             "unsupported_failure_distribution", ".failure_distribution"),
+        )
+        for distribution, code, path_suffix in cases:
+            for profile in ("legacy-minute-v1", "event-time-v2"):
+                with self.subTest(distribution=distribution, profile=profile):
+                    with self.assertRaises(CompilationError) as raised:
+                        compile_aircraft_support(
+                            self.failure_input(distribution), semantic_profile=profile
+                        )
+                    self.assertEqual(raised.exception.code, code)
+                    self.assertTrue(raised.exception.source_path.endswith(path_suffix))
+
+    def test_unknown_legacy_distribution_does_not_become_zero_rate(self):
+        inputs = self.failure_input({"distributionType": "gamma", "rate": 0.5})
+        with self.assertRaises(CompilationError) as raised:
+            compile_aircraft_support(inputs)
+        self.assertEqual(raised.exception.code, "unsupported_failure_distribution")
+
+    def test_legacy_rate_input_retains_existing_conversion(self):
+        inputs = json.loads((FIXTURES / "b2-failure-repair.json").read_text())
+        component = next(
+            item for item in compile_aircraft_support(inputs).components
+            if item.component_id == "radar-lru"
+        )
+        self.assertEqual(component.failure_rate_per_hour, 20.0)
 
     def test_all_five_saved_plans_unchanged(self):
         pairs = [(FIXTURES / f"{source}.json", FIXTURES / f"{plan}.json") for source, plan in (

@@ -861,7 +861,7 @@ fn compile_components(
     inputs: &Map<String, Value>,
     aircraft: &[AircraftSpec],
     activities: &[ActivitySpec],
-) -> Vec<ComponentSpec> {
+) -> Result<Vec<ComponentSpec>> {
     let equipment = object(inputs.get("equipment_tree"))
         .cloned()
         .unwrap_or_default();
@@ -884,24 +884,25 @@ fn compile_components(
         .collect::<Vec<_>>();
     raw.iter()
         .enumerate()
-        .map(|(index, item)| {
+        .map(|(index, item)| -> Result<ComponentSpec> {
             let component_id = text(item.get("id"));
             let quantity = positive_usize(item.get("quantity"), 1).max(1);
             let distribution = object(item.get("failure_distribution"))
                 .cloned()
                 .unwrap_or_default();
-            let mut rate = failure_distribution_rate(&distribution).unwrap_or(0.0);
-            let k_out = object(item.get("k_out_of_n")).cloned().unwrap_or_default();
-            let enabled = k_out
-                .get("enabled")
-                .and_then(Value::as_bool)
-                .unwrap_or(false);
-            if enabled {
-                let k = positive_usize(k_out.get("k"), 1).max(1);
-                let n = positive_usize(k_out.get("n"), k).max(k);
-                rate /= (n - k + 1).max(1) as f64;
-            }
-            rate *= (quantity as f64).sqrt().max(1.0);
+            let rate = match distribution.get("mtbf") {
+                Some(mtbf) => {
+                    let mtbf = mtbf.as_f64().ok_or_else(|| {
+                        anyhow::anyhow!("MTBF must be a positive finite number")
+                    })?;
+                    let rate = 1.0 / mtbf;
+                    if !rate.is_finite() || rate <= 0.0 {
+                        bail!("MTBF produces an invalid failure rate");
+                    }
+                    rate
+                }
+                None => failure_distribution_rate(&distribution).unwrap_or(0.0),
+            };
             let applicable = aircraft
                 .iter()
                 .filter(|candidate| component_applies(&text(item.get("aircraft_model")), candidate))
@@ -931,7 +932,7 @@ fn compile_components(
             let special = object(item.get("special_repair_profile"))
                 .cloned()
                 .unwrap_or_default();
-            ComponentSpec {
+            Ok(ComponentSpec {
                 index,
                 component_id: component_id.clone(),
                 name: {
@@ -950,18 +951,14 @@ fn compile_components(
                 product_type: text(item.get("product_type")),
                 quantity,
                 failure_rate_per_hour: rate.max(0.0),
-                failure_threshold: if enabled {
-                    positive_usize(k_out.get("k"), 1).max(1)
-                } else {
-                    1
-                },
+                failure_threshold: positive_usize(item.get("failure_threshold"), 1).max(1),
                 repair_activity_index: exact
                     .first()
                     .or_else(|| compatible.first())
                     .map_or(-1, |value| *value as i64),
                 repair_duration_minutes: positive_i64(special.get("repairTimeMinutes"), 0),
                 source_path: format!("equipment_tree.components[{index}]"),
-            }
+            })
         })
         .collect()
 }
@@ -1267,7 +1264,7 @@ pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layer
         .collect::<HashMap<_, _>>();
     let activities = compile_activities(inputs, &resource_nodes, &component_indexes)?;
     let missions = compile_missions(inputs, duration_minutes);
-    let components = compile_components(inputs, &aircraft, &activities);
+    let components = compile_components(inputs, &aircraft, &activities)?;
     let preventive_cycles = compile_preventive_cycles(inputs, &activities)?;
     let supply_routes = compile_supply_routes(inputs, &resource_nodes);
 

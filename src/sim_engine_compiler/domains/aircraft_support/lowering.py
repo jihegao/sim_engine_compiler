@@ -411,6 +411,8 @@ def _compile_missions(inputs: dict[str, Any], duration_minutes: int) -> tuple[Mi
 
 
 def _failure_distribution_rate(distribution: dict[str, Any]) -> float | None:
+    if "mtbf" in distribution:
+        return 1.0 / float(distribution["mtbf"])
     parameters = distribution.get("parameters") or distribution.get("params")
     multiplier = max(0.0, float(distribution.get("_rate_multiplier") or 1.0))
     if isinstance(parameters, (int, float)):
@@ -481,12 +483,6 @@ def _compile_components(
         component_id = str(item.get("id"))
         quantity = max(1, int(item.get("quantity") or 1))
         rate = _failure_distribution_rate(item.get("failure_distribution") or {}) or 0.0
-        k_out = item.get("k_out_of_n") if isinstance(item.get("k_out_of_n"), dict) else {}
-        if k_out.get("enabled"):
-            k = max(1, int(k_out.get("k") or 1))
-            n = max(k, int(k_out.get("n") or k))
-            rate /= max(1, n - k + 1)
-        rate *= max(1.0, math.sqrt(float(quantity)))
         applicable = tuple(
             aircraft_item.index
             for aircraft_item in aircraft
@@ -520,7 +516,7 @@ def _compile_components(
                 product_type=str(item.get("product_type") or ""),
                 quantity=quantity,
                 failure_rate_per_hour=max(0.0, rate),
-                failure_threshold=max(1, int(k_out.get("k") or 1)) if k_out.get("enabled") else 1,
+                failure_threshold=_positive_int(item.get("failure_threshold"), 1),
                 repair_activity_index=repair_activity,
                 repair_duration_minutes=_positive_int(special.get("repairTimeMinutes"), 0),
                 source_path=f"equipment_tree.components[{index}]",

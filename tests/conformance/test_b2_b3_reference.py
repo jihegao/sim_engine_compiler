@@ -8,6 +8,7 @@ import unittest
 from sim_engine_compiler.compiler import compile_aircraft_support
 from sim_engine_compiler.reference import SimpyReferenceRuntime
 from sim_engine_compiler.reference.conformance import first_divergence
+from sim_engine_compiler.reference.simpy_runtime import JobRuntimeState
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -15,6 +16,277 @@ SYNTHETIC = ROOT / "tests" / "fixtures" / "synthetic"
 
 
 class B2PreventiveTests(unittest.TestCase):
+    def test_failure_exposure_advances_only_while_aircraft_is_flying(self):
+        inputs = json.loads((SYNTHETIC / "b2-failure-repair.json").read_text())
+        runtime = SimpyReferenceRuntime(compile_aircraft_support(inputs), seed=0)
+        aircraft = runtime.aircraft[0]
+        aircraft.failure_remaining[(1, 0)] = 0.5
+
+        runtime._phase_failures()
+
+        self.assertEqual(aircraft.failure_remaining[(1, 0)], 0.5)
+        self.assertNotIn((1, 0), aircraft.instance_failure_minutes)
+
+        aircraft.state = "flying"
+        runtime.minute = 1
+        runtime._phase_failures()
+
+        self.assertEqual(aircraft.failure_remaining[(1, 0)], -0.5)
+        self.assertEqual(aircraft.instance_failure_minutes[(1, 0)], 1)
+
+    def test_repair_only_clears_the_target_component_failure(self):
+        inputs = json.loads((SYNTHETIC / "b2-failure-repair.json").read_text())
+        inputs["equipment_tree"]["components"].append(
+            {
+                "id": "auxiliary-lru",
+                "name": "Auxiliary LRU",
+                "parent_id": "f35",
+                "aircraft_model": "F35",
+                "product_id": "spare-auxiliary",
+                "product_type": "LRU",
+                "quantity": 1,
+                "failure_distribution": {"distributionType": "exponential", "rate": 20},
+            }
+        )
+        generic_repair = copy.deepcopy(
+            inputs["support_activities"]["activities"][-1]
+        )
+        generic_repair["id"] = "generic-corrective"
+        generic_repair["name"] = "Generic corrective repair"
+        generic_repair.pop("equipment_id")
+        inputs["support_activities"]["activities"].append(generic_repair)
+        runtime = SimpyReferenceRuntime(compile_aircraft_support(inputs), seed=0)
+        aircraft = runtime.aircraft[0]
+        aircraft.instance_failure_minutes = {(1, 0): 4, (2, 0): 5}
+        aircraft.failure_remaining = {(1, 0): 12.0, (2, 0): 0.0}
+        job = JobRuntimeState(
+            job_id="repair-test",
+            aircraft_index=0,
+            kind="repair",
+            activity_index=0,
+            mission_index=None,
+            component_index=1,
+            component_instance_index=0,
+        )
+
+        runtime._complete_job(job)
+
+        self.assertEqual(aircraft.instance_failure_minutes, {(2, 0): 5})
+        self.assertTrue(aircraft.in_flight_failure)
+        self.assertEqual(aircraft.state, "maintenance")
+        self.assertGreater(aircraft.failure_remaining[(1, 0)], 0.0)
+        self.assertEqual(aircraft.failure_remaining[(2, 0)], 0.0)
+        self.assertEqual(runtime.jobs[-1].component_index, 2)
+        self.assertEqual(runtime.jobs[-1].component_instance_index, 0)
+
+        runtime._complete_job(runtime.jobs[-1])
+
+        self.assertEqual(aircraft.instance_failure_minutes, {})
+        self.assertFalse(aircraft.in_flight_failure)
+        self.assertEqual(aircraft.state, "available")
+
+        requests_before = len(runtime.sample_requests)
+        broken_job = JobRuntimeState(
+            job_id="repair-broken-identity",
+            aircraft_index=0,
+            kind="repair",
+            activity_index=0,
+            mission_index=None,
+            component_index=1,
+        )
+        with self.assertRaises(RuntimeError):
+            runtime._complete_job(broken_job)
+        self.assertEqual(len(runtime.sample_requests), requests_before)
+        self.assertEqual(aircraft.state, "available")
+
+    def test_quantity_instances_fail_and_repair_independently(self):
+        inputs = json.loads((SYNTHETIC / "b2-failure-repair.json").read_text())
+        component = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        component["quantity"] = 2
+        runtime = SimpyReferenceRuntime(compile_aircraft_support(inputs), seed=0)
+        aircraft = runtime.aircraft[0]
+
+        self.assertEqual(runtime._failure_instance_slots[0], ((1, 0), (1, 1)))
+        self.assertIn((1, 0), aircraft.failure_remaining)
+        self.assertIn((1, 1), aircraft.failure_remaining)
+        initialize = [
+            request
+            for request in runtime.sample_requests
+            if request["reason"] == "initialize"
+            and request["component_id"] == "radar-lru"
+            and request["entity"] == aircraft.tail_number
+        ]
+        self.assertEqual(
+            [request["instance_index"] for request in initialize], [0, 1]
+        )
+        self.assertTrue(
+            all(
+                request["quantity_index"] == request["instance_index"]
+                for request in initialize
+            )
+        )
+
+        aircraft.failure_remaining[(1, 0)] = 0.5
+        aircraft.failure_remaining[(1, 1)] = 30.5
+        aircraft.state = "flying"
+        runtime.minute = 5
+        runtime._phase_failures()
+
+        self.assertEqual(aircraft.instance_failure_minutes, {(1, 0): 5})
+        self.assertEqual(aircraft.failure_remaining[(1, 1)], 30.5)
+        self.assertEqual(aircraft.failed_component_index, 1)
+        self.assertEqual(aircraft.failed_component_instance_index, 0)
+        self.assertTrue(aircraft.in_flight_failure)
+        self.assertEqual(aircraft.state, "maintenance")
+        repair_job = runtime.jobs[-1]
+        self.assertEqual((repair_job.component_index, repair_job.component_instance_index), (1, 0))
+
+        requests_before = len(runtime.sample_requests)
+        runtime._complete_job(repair_job)
+
+        self.assertEqual(len(runtime.sample_requests), requests_before + 1)
+        last_request = runtime.sample_requests[-1]
+        self.assertEqual(last_request["reason"], "repair_completed")
+        self.assertEqual(last_request["instance_index"], 0)
+        self.assertEqual(aircraft.instance_failure_minutes, {})
+        self.assertEqual(aircraft.failure_remaining[(1, 1)], 30.5)
+        self.assertFalse(aircraft.in_flight_failure)
+        self.assertEqual(aircraft.state, "available")
+
+        aircraft.instance_failure_minutes = {(1, 0): 7, (1, 1): 8}
+        aircraft.in_flight_failure = True
+        first_job = JobRuntimeState(
+            job_id="repair-instance-0",
+            aircraft_index=0,
+            kind="repair",
+            activity_index=runtime.plan.components[1].repair_activity_index,
+            mission_index=None,
+            component_index=1,
+            component_instance_index=0,
+        )
+        runtime._complete_job(first_job)
+
+        self.assertEqual(aircraft.instance_failure_minutes, {(1, 1): 8})
+        self.assertTrue(aircraft.in_flight_failure)
+        self.assertEqual(aircraft.state, "maintenance")
+        self.assertEqual(aircraft.failed_component_instance_index, 1)
+        chained_job = runtime.jobs[-1]
+        self.assertEqual(
+            (chained_job.component_index, chained_job.component_instance_index), (1, 1)
+        )
+
+        runtime._complete_job(chained_job)
+
+        self.assertEqual(aircraft.instance_failure_minutes, {})
+        self.assertFalse(aircraft.in_flight_failure)
+        self.assertEqual(aircraft.state, "available")
+
+    def test_component_failure_view_keeps_earliest_instance_minute(self):
+        inputs = json.loads((SYNTHETIC / "b2-failure-repair.json").read_text())
+        component = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        component["quantity"] = 2
+        runtime = SimpyReferenceRuntime(compile_aircraft_support(inputs), seed=0)
+        aircraft = runtime.aircraft[0]
+        aircraft.instance_failure_minutes = {(1, 1): 9, (1, 0): 6}
+
+        self.assertEqual(
+            runtime._component_failure_view(aircraft), {"radar-lru": 6}
+        )
+
+    def test_same_minute_instance_failures_count_as_one_failed_component(self):
+        inputs = json.loads((SYNTHETIC / "b2-failure-repair.json").read_text())
+        root = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "f35"
+        )
+        root["failure_threshold"] = 2
+        radar = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        radar["quantity"] = 2
+        inputs["equipment_tree"]["components"].append(
+            {
+                "id": "auxiliary-lru",
+                "name": "Auxiliary LRU",
+                "parent_id": "f35",
+                "aircraft_model": "F35",
+                "product_id": "spare-auxiliary",
+                "product_type": "LRU",
+                "quantity": 1,
+                "failure_distribution": {"distributionType": "exponential", "rate": 20},
+            }
+        )
+        runtime = SimpyReferenceRuntime(compile_aircraft_support(inputs), seed=0)
+        aircraft = runtime.aircraft[0]
+        self.assertEqual(
+            runtime._failure_instance_slots[0], ((1, 0), (1, 1), (2, 0))
+        )
+
+        aircraft.state = "flying"
+        aircraft.failure_remaining[(1, 0)] = 0.5
+        aircraft.failure_remaining[(1, 1)] = 0.4
+        aircraft.failure_remaining[(2, 0)] = 500.0
+        runtime.minute = 8
+        runtime._phase_failures()
+
+        self.assertEqual(
+            aircraft.instance_failure_minutes, {(1, 0): 8, (1, 1): 8}
+        )
+        self.assertEqual(aircraft.failure_remaining[(2, 0)], 499.0)
+        self.assertEqual(aircraft.state, "flying")
+        self.assertFalse(aircraft.in_flight_failure)
+        component_failed = [
+            event for event in runtime.trace if event["kind"] == "component_failed"
+        ]
+        self.assertEqual(
+            [
+                (event["details"]["component_id"], event["details"]["instance_index"])
+                for event in component_failed
+            ],
+            [("radar-lru", 0), ("radar-lru", 1)],
+        )
+        self.assertFalse(
+            [event for event in runtime.trace if event["kind"] == "aircraft_failed"]
+        )
+        self.assertFalse(runtime._failure_reaches_root(0))
+        aircraft.instance_failure_minutes[(2, 0)] = 8
+        self.assertTrue(runtime._failure_reaches_root(0))
+        aircraft.instance_failure_minutes.pop((2, 0))
+
+        runtime._return_aircraft(0, early_return=False)
+
+        self.assertEqual(aircraft.state, "maintenance")
+        repair_job = runtime.jobs[-1]
+        self.assertEqual(
+            (repair_job.component_index, repair_job.component_instance_index), (1, 0)
+        )
+        requests_before = len(runtime.sample_requests)
+        runtime._complete_job(repair_job)
+
+        self.assertEqual(aircraft.instance_failure_minutes, {(1, 1): 8})
+        chained_job = runtime.jobs[-1]
+        self.assertEqual(
+            (chained_job.component_index, chained_job.component_instance_index), (1, 1)
+        )
+        runtime._complete_job(chained_job)
+
+        self.assertEqual(aircraft.instance_failure_minutes, {})
+        self.assertEqual(aircraft.state, "available")
+        self.assertEqual(len(runtime.sample_requests), requests_before + 2)
+        resamples = [
+            request
+            for request in runtime.sample_requests
+            if request["reason"] == "repair_completed"
+        ]
+        self.assertEqual([request["instance_index"] for request in resamples], [0, 1])
+
     def test_initial_calendar_due_matches_oracle(self):
         inputs = json.loads((SYNTHETIC / "b2-preventive-maintenance.json").read_text())
         oracle = json.loads(

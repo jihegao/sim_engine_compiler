@@ -41,6 +41,14 @@ spare_mvp Project JSON
                                            → Result / Trace / Diagnostics
 ```
 
+Aircraft Support 的可靠性业务合同由领域校验和 Lowering 实现：指数 MTBF 使用
+`hour` / `flight_hour`，并转换为 `failure_rate_per_hour = 1 / MTBF`。Runtime
+仅在飞机飞行时累计故障暴露，沿用飞机组件故障传播与维修流程。`quantity=N` 表示
+N 个独立 LRU 实例：各自采样、各自累计故障暴露、各自记录故障并进入独立维修链，
+维修只恢复对应实例；单体 MTBF 与 λ 不随 `quantity` 改变。组件级故障传播仍按
+故障子组件节点计数，不引入实例级 K-out-of-N 聚合；启用的 `k_out_of_n` 暂不支持
+并会显式报错。
+
 Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负责数组状态、事件调度、资源事务及样本并行。模型更新通常重新生成执行计划，无需每次重新编译 Rust 二进制。
 
 ## 初始目录
