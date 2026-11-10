@@ -36,6 +36,20 @@ DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/reference/abm_runtime.py": (
         "46ef80ad188c39bc8d733378b143a29d46c0bba67eda63904067070bb352e10f"
     ),
+    # PR #561 (Issue #560) keeps the Aircraft MTBF conversion, withdraws the
+    # generic reliability rate bypass, and models quantity=N as independent LRU
+    # instances. These reviewed baseline sources change content while the frozen
+    # 595cb5e build fingerprint stays intact; the executed bytes are pinned by
+    # the LF commit-blob digests below.
+    "src/sim_engine_compiler/domains/aircraft_support/lowering.py": (
+        "418e39ee90fbf5adee4ff2f887c9808398d9415f6a18aef119f1cf7201aa1011"
+    ),
+    "src/sim_engine_compiler/domains/aircraft_support/validation.py": (
+        "ee07adc9aa05a1b895330e8c5c2bb3954f180add16b82b0df0ff882267cb032c"
+    ),
+    "src/sim_engine_compiler/reference/simpy_runtime.py": (
+        "05e213be6044e8db6100267acae2f2b9fbab3b58d936c2d7e5670e2f77a68692"
+    ),
 }
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/cli.py": (
