@@ -199,93 +199,32 @@ class B2PreventiveTests(unittest.TestCase):
             runtime._component_failure_view(aircraft), {"radar-lru": 6}
         )
 
-    def test_same_minute_instance_failures_count_as_one_failed_component(self):
+    def test_fused_reliability_plan_expands_series_instances(self):
         inputs = json.loads((SYNTHETIC / "b2-failure-repair.json").read_text())
-        root = next(
-            item for item in inputs["equipment_tree"]["components"]
-            if item["id"] == "f35"
-        )
-        root["failure_threshold"] = 2
+        for component in inputs["equipment_tree"]["components"]:
+            component["component_type_id"] = component["id"]
         radar = next(
             item for item in inputs["equipment_tree"]["components"]
             if item["id"] == "radar-lru"
         )
         radar["quantity"] = 2
-        inputs["equipment_tree"]["components"].append(
-            {
-                "id": "auxiliary-lru",
-                "name": "Auxiliary LRU",
-                "parent_id": "f35",
-                "aircraft_model": "F35",
-                "product_id": "spare-auxiliary",
-                "product_type": "LRU",
-                "quantity": 1,
-                "failure_distribution": {"distributionType": "exponential", "rate": 20},
-            }
-        )
-        runtime = SimpyReferenceRuntime(compile_aircraft_support(inputs), seed=0)
-        aircraft = runtime.aircraft[0]
-        self.assertEqual(
-            runtime._failure_instance_slots[0], ((1, 0), (1, 1), (2, 0))
-        )
 
-        aircraft.state = "flying"
-        aircraft.failure_remaining[(1, 0)] = 0.5
-        aircraft.failure_remaining[(1, 1)] = 0.4
-        aircraft.failure_remaining[(2, 0)] = 500.0
-        runtime.minute = 8
-        runtime._phase_failures()
-
-        self.assertEqual(
-            aircraft.instance_failure_minutes, {(1, 0): 8, (1, 1): 8}
+        plan = compile_aircraft_support(inputs)
+        self.assertEqual(plan.plan_version, "aircraft-support-plan/v1alpha2")
+        self.assertEqual(plan.reliability_policy, "instance-redundancy/v1")
+        self.assertEqual(plan.components, ())
+        group = next(
+            item for item in plan.component_groups if item.group_id == "radar-lru"
         )
-        self.assertEqual(aircraft.failure_remaining[(2, 0)], 499.0)
-        self.assertEqual(aircraft.state, "flying")
-        self.assertFalse(aircraft.in_flight_failure)
-        component_failed = [
-            event for event in runtime.trace if event["kind"] == "component_failed"
+        self.assertEqual(group.redundancy_kind, "series")
+        self.assertEqual(group.redundancy_n, 2)
+        instances = [
+            item for item in plan.component_instances
+            if item.group_index == group.index
         ]
-        self.assertEqual(
-            [
-                (event["details"]["component_id"], event["details"]["instance_index"])
-                for event in component_failed
-            ],
-            [("radar-lru", 0), ("radar-lru", 1)],
-        )
-        self.assertFalse(
-            [event for event in runtime.trace if event["kind"] == "aircraft_failed"]
-        )
-        self.assertFalse(runtime._failure_reaches_root(0))
-        aircraft.instance_failure_minutes[(2, 0)] = 8
-        self.assertTrue(runtime._failure_reaches_root(0))
-        aircraft.instance_failure_minutes.pop((2, 0))
-
-        runtime._return_aircraft(0, early_return=False)
-
-        self.assertEqual(aircraft.state, "maintenance")
-        repair_job = runtime.jobs[-1]
-        self.assertEqual(
-            (repair_job.component_index, repair_job.component_instance_index), (1, 0)
-        )
-        requests_before = len(runtime.sample_requests)
-        runtime._complete_job(repair_job)
-
-        self.assertEqual(aircraft.instance_failure_minutes, {(1, 1): 8})
-        chained_job = runtime.jobs[-1]
-        self.assertEqual(
-            (chained_job.component_index, chained_job.component_instance_index), (1, 1)
-        )
-        runtime._complete_job(chained_job)
-
-        self.assertEqual(aircraft.instance_failure_minutes, {})
-        self.assertEqual(aircraft.state, "available")
-        self.assertEqual(len(runtime.sample_requests), requests_before + 2)
-        resamples = [
-            request
-            for request in runtime.sample_requests
-            if request["reason"] == "repair_completed"
-        ]
-        self.assertEqual([request["instance_index"] for request in resamples], [0, 1])
+        self.assertEqual([item.instance_template_id for item in instances],
+                         ["radar-lru-0", "radar-lru-1"])
+        self.assertNotIn("failure_threshold", plan.to_dict())
 
     def test_initial_calendar_due_matches_oracle(self):
         inputs = json.loads((SYNTHETIC / "b2-preventive-maintenance.json").read_text())

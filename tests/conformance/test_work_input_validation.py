@@ -88,24 +88,26 @@ class WorkInputValidationTests(unittest.TestCase):
                 self.assertEqual(component.failure_rate_per_hour, 0.02)
                 self.assertEqual(component.failure_threshold, 1)
 
-    def test_enabled_k_out_of_n_is_rejected_but_disabled_legacy_field_is_accepted(self):
+    def test_fused_compile_accepts_explicit_k_out_of_n_and_rejects_malformed_shape(self):
         inputs = self.failure_input({"distributionType": "exponential", "rate": 0.5})
+        for item in inputs["equipment_tree"]["components"]:
+            item["component_type_id"] = item["id"]
         component = next(
             item for item in inputs["equipment_tree"]["components"]
             if item["id"] == "radar-lru"
         )
-        component["k_out_of_n"] = {"enabled": False, "k": 1, "n": 3}
-        compile_aircraft_support(inputs)
+        component["quantity"] = 3
+        component["k_out_of_n"] = {"enabled": True, "k": 2, "n": 3}
 
-        component["k_out_of_n"]["enabled"] = True
-        with self.assertRaises(CompilationError) as raised:
-            compile_aircraft_support(inputs)
-        self.assertEqual(raised.exception.code, "unsupported_k_out_of_n")
-        self.assertTrue(
-            raised.exception.source_path.endswith(
-                "equipment_tree.components[1].k_out_of_n"
-            )
+        plan = compile_aircraft_support(inputs)
+        self.assertEqual(plan.components, ())
+        self.assertEqual(plan.reliability_policy, "instance-redundancy/v1")
+        group = next(
+            item for item in plan.component_groups if item.group_id == "radar-lru"
         )
+        self.assertEqual((group.redundancy_kind, group.redundancy_k, group.redundancy_n),
+                         ("k_out_of_n", 2, 3))
+        self.assertNotIn("failure_threshold", plan.to_dict())
 
         component["k_out_of_n"] = {"k": 1, "n": 3}
         with self.assertRaises(CompilationError) as raised:

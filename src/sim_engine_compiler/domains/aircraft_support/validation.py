@@ -15,6 +15,29 @@ from typing import Any
 from sim_engine_compiler.diagnostics import CompilationError
 
 
+def _new_reliability_component(component: dict[str, Any]) -> bool:
+    legacy = component.get("k_out_of_n")
+    return any(
+        key in component
+        for key in ("component_type_id", "instances", "redundancy", "parent_instance_id")
+    ) or (isinstance(legacy, dict) and legacy.get("enabled") is True)
+
+
+def _reject_failure_threshold(value: Any, path: str) -> None:
+    if isinstance(value, dict):
+        if "failure_threshold" in value:
+            raise CompilationError(
+                "failure_threshold is not allowed in canonical inputs",
+                code="failure_threshold_in_new_plan",
+                source_path=f"{path}.failure_threshold",
+            )
+        for key, child in value.items():
+            _reject_failure_threshold(child, f"{path}.{key}")
+    elif isinstance(value, (list, tuple)):
+        for index, child in enumerate(value):
+            _reject_failure_threshold(child, f"{path}[{index}]")
+
+
 def _duration(value: Any, path: str) -> None:
     if value is None:
         return
@@ -126,26 +149,35 @@ def _failure_distribution(value: Any, path: str) -> None:
 def validate_canonical_work(inputs: dict[str, Any]) -> None:
     equipment_tree = inputs.get("equipment_tree")
     components = equipment_tree.get("components", []) if isinstance(equipment_tree, dict) else []
+    new_reliability_document = any(
+        _new_reliability_component(component)
+        for component in components
+        if isinstance(component, dict)
+    )
     for index, component in enumerate(components):
         if isinstance(component, dict):
+            path = f"equipment_tree.components[{index}]"
+            _reject_failure_threshold(component, path)
+            if new_reliability_document and (
+                not isinstance(component.get("component_type_id"), str)
+                or not component.get("component_type_id")
+            ):
+                raise CompilationError(
+                    "component_type_id is required for the reliability schema",
+                    code="component_type_missing",
+                    source_path=f"{path}.component_type_id",
+                )
             redundancy = component.get("k_out_of_n")
             if redundancy is not None:
-                path = f"equipment_tree.components[{index}].k_out_of_n"
                 if not isinstance(redundancy, dict) or type(redundancy.get("enabled")) is not bool:
                     raise CompilationError(
                         "k_out_of_n must be an object with a boolean enabled field",
                         code="invalid_k_out_of_n",
-                        source_path=path,
-                    )
-                if redundancy["enabled"]:
-                    raise CompilationError(
-                        "aircraft-support k_out_of_n is not supported",
-                        code="unsupported_k_out_of_n",
-                        source_path=path,
+                        source_path=f"{path}.k_out_of_n",
                     )
             _failure_distribution(
                 component.get("failure_distribution"),
-                f"equipment_tree.components[{index}].failure_distribution",
+                f"{path}.failure_distribution",
             )
     component_ids = {str(item["id"]) for item in components
                      if isinstance(item, dict) and item.get("id") not in (None, "")}

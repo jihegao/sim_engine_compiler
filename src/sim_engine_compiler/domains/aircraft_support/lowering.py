@@ -7,10 +7,12 @@ constructed in this module. The generic layout pass owns dense Plan addresses.
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from typing import Any
 
 from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.domains.aircraft_support.validation import validate_canonical_work
+from sim_engine_compiler.ir.reliability import RELIABILITY_POLICY
 from sim_engine_compiler.ir.plan import (
     LEGACY_MINUTE_PHASES,
     ActivitySpec,
@@ -516,7 +518,7 @@ def _compile_components(
                 product_type=str(item.get("product_type") or ""),
                 quantity=quantity,
                 failure_rate_per_hour=max(0.0, rate),
-                failure_threshold=_positive_int(item.get("failure_threshold"), 1),
+                failure_threshold=1,
                 repair_activity_index=repair_activity,
                 repair_duration_minutes=_positive_int(special.get("repairTimeMinutes"), 0),
                 source_path=f"equipment_tree.components[{index}]",
@@ -701,6 +703,11 @@ def lower_business(business):
         and str(condition.get("type") or "") in {"duration", "specified_time"}
         for condition in stop_conditions
     )
+    from sim_engine_compiler.domains.aircraft_support.reliability import (
+        build_reliability_plan_records,
+        is_reliability_input,
+    )
+
     aircraft = _compile_aircraft(inputs)
     nodes = _compile_nodes(inputs)
     raw_component_indexes = {
@@ -710,11 +717,40 @@ def lower_business(business):
     }
     activities = _compile_activities(inputs, nodes, raw_component_indexes)
     missions = _compile_missions(inputs, duration)
-    components = _compile_components(inputs, aircraft, activities)
+    fused_reliability = is_reliability_input(inputs)
+    if fused_reliability:
+        groups, instances = build_reliability_plan_records(
+            inputs,
+            aircraft_ids=tuple(item.tail_number for item in aircraft),
+        )
+        components = ()
+        activities = tuple(
+            replace(item, equipment_component_index=-1) for item in activities
+        )
+    else:
+        groups, instances = (), ()
+        components = _compile_components(inputs, aircraft, activities)
     preventive_cycles = _compile_preventive_cycles(inputs, activities)
     supply_routes = _compile_supply_routes(inputs, nodes)
 
     features: list[str] = []
+    records = {
+        "aircraft": aircraft,
+        "missions": missions,
+        "activities": activities,
+        "resource_nodes": nodes,
+        "components": components,
+        "preventive_cycles": preventive_cycles,
+        "supply_routes": supply_routes,
+    }
+    if fused_reliability:
+        records.update(
+            {
+                "component_groups": groups,
+                "component_instances": instances,
+                "reliability_policy": RELIABILITY_POLICY,
+            }
+        )
 
     return core_from_records(
         business=business,
@@ -726,12 +762,6 @@ def lower_business(business):
         duration_minutes=duration,
         natural_completion_enabled=natural_completion_enabled,
         phases=LEGACY_MINUTE_PHASES,
-        aircraft=aircraft,
-        missions=missions,
-        activities=activities,
-        resource_nodes=nodes,
-        components=components,
-        preventive_cycles=preventive_cycles,
-        supply_routes=supply_routes,
         unsupported_features=tuple(sorted(features)),
+        **records,
     )

@@ -126,13 +126,30 @@ fn elapsed_ns(started: Instant) -> u64 {
     started.elapsed().as_nanos().try_into().unwrap_or(u64::MAX)
 }
 
-fn cache_file_name(source_inputs_sha256: &str) -> String {
-    let compiler = COMPILER_VERSION.rsplit('/').next().unwrap_or("unknown");
+pub fn plan_cache_file_name(
+    identity: &str,
+    adapter_digest: Option<&str>,
+    compiler_version: &str,
+    semantic_profile: &str,
+) -> String {
+    let compiler = compiler_version.rsplit('/').next().unwrap_or("unknown");
     let format = PLAN_CACHE_FORMAT_VERSION
         .rsplit('/')
         .next()
         .unwrap_or("unknown");
-    format!("{source_inputs_sha256}-{compiler}-{SEMANTIC_PROFILE}-{format}.seplan")
+    format!(
+        "{identity}-{}-{compiler}-{semantic_profile}-{format}.seplan",
+        adapter_digest.unwrap_or("canonical")
+    )
+}
+
+fn cache_file_name(source_inputs_sha256: &str) -> String {
+    plan_cache_file_name(
+        source_inputs_sha256,
+        None,
+        COMPILER_VERSION,
+        SEMANTIC_PROFILE,
+    )
 }
 
 fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
@@ -607,6 +624,142 @@ mod tests {
             result.samples[0].result.plan_fingerprint,
             result.samples[1].result.plan_fingerprint
         );
+    }
+
+    #[test]
+    fn compiler_version_change_invalidates_old_cache_file_name() {
+        let old_name = plan_cache_file_name(
+            "abc",
+            None,
+            "aircraft-support-aot/v1alpha5",
+            SEMANTIC_PROFILE,
+        );
+        let new_name = plan_cache_file_name("abc", None, COMPILER_VERSION, SEMANTIC_PROFILE);
+        assert_ne!(old_name, new_name);
+        assert!(new_name.contains("v1alpha6"));
+        assert!(!new_name.contains("v1alpha5"));
+        let adapter_name = plan_cache_file_name(
+            "abc",
+            Some("adapter-sha"),
+            COMPILER_VERSION,
+            SEMANTIC_PROFILE,
+        );
+        assert!(adapter_name.starts_with("abc-adapter-sha-v1alpha6-"));
+        assert_ne!(adapter_name, new_name);
+    }
+
+    #[test]
+    fn stale_v1alpha5_cache_is_not_reused() {
+        let cache = temporary_cache();
+        let inputs = fixture("tests/fixtures/synthetic/b1-daily-operations.json");
+        let canonical = ExecutionPlan::python_canonical(&inputs).unwrap();
+        let identity = format!("{:x}", Sha256::digest(canonical.as_bytes()));
+        let mut old_plan =
+            compile_aircraft_support_with_profile(&inputs, SEMANTIC_PROFILE).unwrap();
+        old_plan.source_inputs_sha256 = identity.clone();
+        let fingerprint =
+            ExecutionPlan::fingerprint(&serde_json::to_value(&old_plan).unwrap()).unwrap();
+        let old_bytes =
+            encode_plan_cache(old_plan, "aircraft-support-aot/v1alpha5", &fingerprint).unwrap();
+        fs::create_dir_all(&cache).unwrap();
+        let old_path = cache.join(plan_cache_file_name(
+            &identity,
+            None,
+            "aircraft-support-aot/v1alpha5",
+            SEMANTIC_PROFILE,
+        ));
+        fs::write(&old_path, old_bytes).unwrap();
+
+        let result =
+            run_canonical_batch(vec![request(0, 0, inputs)], Some(1), Some(&cache)).unwrap();
+        assert_eq!(result.plan_cache_status, "miss");
+        assert!(old_path.exists());
+        assert!(cache.join(cache_file_name(&identity)).exists());
+        fs::remove_dir_all(cache).unwrap();
+    }
+
+    #[test]
+    fn stale_v1alpha5_envelope_under_current_name_is_rejected() {
+        let cache = temporary_cache();
+        let inputs = fixture("tests/fixtures/synthetic/b1-daily-operations.json");
+        let canonical = ExecutionPlan::python_canonical(&inputs).unwrap();
+        let identity = format!("{:x}", Sha256::digest(canonical.as_bytes()));
+        let mut old_plan =
+            compile_aircraft_support_with_profile(&inputs, SEMANTIC_PROFILE).unwrap();
+        old_plan.source_inputs_sha256 = identity.clone();
+        let fingerprint =
+            ExecutionPlan::fingerprint(&serde_json::to_value(&old_plan).unwrap()).unwrap();
+        let old_bytes =
+            encode_plan_cache(old_plan, "aircraft-support-aot/v1alpha5", &fingerprint).unwrap();
+        fs::create_dir_all(&cache).unwrap();
+        fs::write(cache.join(cache_file_name(&identity)), old_bytes).unwrap();
+
+        let result =
+            run_canonical_batch(vec![request(0, 0, inputs)], Some(1), Some(&cache)).unwrap();
+        assert_eq!(result.plan_cache_status, "rebuilt");
+        assert!(
+            result.cache_groups[0]
+                .rebuild_reason
+                .as_deref()
+                .unwrap_or_default()
+                .contains("compiler version")
+        );
+        fs::remove_dir_all(cache).unwrap();
+    }
+
+    #[test]
+    fn stale_cache_cannot_bypass_reliability_validation() {
+        let cache = temporary_cache();
+        let mut valid = fixture("tests/fixtures/synthetic/b2-failure-repair.json");
+        for component in valid["equipment_tree"]["components"]
+            .as_array_mut()
+            .unwrap()
+        {
+            component["component_type_id"] = component["id"].clone();
+        }
+        valid["equipment_tree"]["components"][1]["quantity"] = Value::from(3);
+        valid["equipment_tree"]["components"][1]["k_out_of_n"] =
+            serde_json::json!({"enabled": true, "k": 2, "n": 3});
+        valid["equipment_tree"]["components"][1]
+            .as_object_mut()
+            .unwrap()
+            .remove("failure_distribution");
+        valid["equipment_tree"]["components"][1]["failure_rate_per_hour"] = Value::from(0.5);
+        let mut old_plan = compile_aircraft_support_with_profile(&valid, SEMANTIC_PROFILE).unwrap();
+
+        let mut invalid = valid.clone();
+        invalid["equipment_tree"]["components"][1]["k_out_of_n"] =
+            serde_json::json!({"enabled": true, "k": 2, "n": 2});
+        let canonical = ExecutionPlan::python_canonical(&invalid).unwrap();
+        let identity = format!("{:x}", Sha256::digest(canonical.as_bytes()));
+        old_plan.source_inputs_sha256 = identity.clone();
+        let fingerprint =
+            ExecutionPlan::fingerprint(&serde_json::to_value(&old_plan).unwrap()).unwrap();
+        let old_bytes =
+            encode_plan_cache(old_plan, "aircraft-support-aot/v1alpha5", &fingerprint).unwrap();
+        fs::create_dir_all(&cache).unwrap();
+        fs::write(
+            cache.join(plan_cache_file_name(
+                &identity,
+                None,
+                "aircraft-support-aot/v1alpha5",
+                SEMANTIC_PROFILE,
+            )),
+            old_bytes,
+        )
+        .unwrap();
+
+        let result =
+            run_canonical_batch(vec![request(0, 0, invalid)], Some(1), Some(&cache)).unwrap();
+        assert!(result.samples.is_empty());
+        assert_eq!(result.failed_samples.len(), 1);
+        assert_eq!(result.failed_samples[0].stage, "compile");
+        assert!(
+            result.failed_samples[0]
+                .error
+                .contains("redundancy_n_mismatch")
+        );
+        fs::remove_dir_all(cache).unwrap();
     }
 
     #[test]

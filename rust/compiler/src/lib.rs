@@ -7,7 +7,7 @@ pub use aircraft_support::{
 };
 pub use canonical_batch::{
     CANONICAL_BATCH_CONTRACT_VERSION, CanonicalBatchResult, CanonicalSampleRequest,
-    run_canonical_batch,
+    plan_cache_file_name, run_canonical_batch,
 };
 
 #[cfg(feature = "python")]

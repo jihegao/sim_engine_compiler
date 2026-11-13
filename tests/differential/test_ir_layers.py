@@ -119,7 +119,7 @@ class PersistedIRTests(unittest.TestCase):
                 rust_plan_component['failure_rate_per_hour'],
                 plan_component.failure_rate_per_hour)
 
-    def test_quantity_and_redundancy_do_not_change_single_instance_rate(self):
+    def test_legacy_failure_threshold_is_rejected_consistently(self):
         inputs=json.loads(CASES[1].read_text())
         component_input=next(
             row for row in inputs['equipment_tree']['components'] if row['id']=='radar-lru')
@@ -127,24 +127,26 @@ class PersistedIRTests(unittest.TestCase):
             'distributionType':'exponential','mtbf':50,'timeUnit':'hour','timeBasis':'flight_hour'}
         component_input['quantity']=3
         component_input['failure_threshold']=2
+        component_index=next(
+            index for index,row in enumerate(inputs['equipment_tree']['components'])
+            if row['id']=='radar-lru')
+        path=f'equipment_tree.components[{component_index}].failure_threshold'
 
-        business=import_business_ir(inputs)
-        core=lower_business(business)
-        core_component=next(
-            row for row in core.payload['tables']['components'] if row['id']=='radar-lru')
-        self.assertEqual(core_component['attributes']['failure_rate_per_hour'],0.02)
-        self.assertEqual(core_component['attributes']['failure_threshold'],2)
+        with self.assertRaises(CompilationError) as raised:
+            compile_aircraft_support(inputs)
+        self.assertEqual(raised.exception.code,'failure_threshold_in_new_plan')
+        self.assertEqual(raised.exception.source_path,path)
 
         with tempfile.TemporaryDirectory() as tmp:
             tmp=Path(tmp)
             source=tmp/'inputs.json';source.write_text(json.dumps(inputs))
-            rust_core=self.invoke(source,tmp/'core.json','core')
-            self.assertEqual(rust_core,core.to_dict())
-            rust_component=next(
-                row for row in rust_core['payload']['tables']['components']
-                if row['id']=='radar-lru')
-            self.assertEqual(rust_component['attributes']['failure_rate_per_hour'],0.02)
-            self.assertEqual(rust_component['attributes']['failure_threshold'],2)
+            result=subprocess.run(
+                [str(self.binary),str(source),str(tmp/'out.json'),
+                 '--output-kind','plan'],
+                capture_output=True,text=True,cwd=ROOT)
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('failure_threshold_in_new_plan',result.stderr)
+        self.assertIn(path,result.stderr)
 
     def test_mtbf_validation_errors_match_rust_compiler(self):
         inputs=json.loads(CASES[1].read_text())
@@ -190,29 +192,27 @@ class PersistedIRTests(unittest.TestCase):
                     self.assertIn(code,result.stderr)
                     self.assertIn(path,result.stderr)
 
-    def test_enabled_k_out_of_n_is_rejected_consistently(self):
+    def test_fused_v1alpha2_accepts_explicit_k_out_of_n(self):
         inputs=json.loads(CASES[1].read_text())
+        for row in inputs['equipment_tree']['components']:
+            row['component_type_id']=row['id']
         component=next(
             row for row in inputs['equipment_tree']['components']
             if row['id']=='radar-lru')
-        component['k_out_of_n']={'enabled':True,'k':1,'n':3}
-        path='equipment_tree.components[1].k_out_of_n'
+        component['quantity']=3
+        component['k_out_of_n']={'enabled':True,'k':2,'n':3}
 
-        with self.assertRaises(CompilationError) as raised:
-            compile_aircraft_support(inputs)
-        self.assertEqual(raised.exception.code,'unsupported_k_out_of_n')
-        self.assertEqual(raised.exception.source_path,path)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp=Path(tmp)
-            source=tmp/'inputs.json';source.write_text(json.dumps(inputs))
-            result=subprocess.run(
-                [str(self.binary),str(source),str(tmp/'out.json'),
-                 '--output-kind','plan'],
-                capture_output=True,text=True,cwd=ROOT)
-        self.assertNotEqual(result.returncode,0)
-        self.assertIn('unsupported_k_out_of_n',result.stderr)
-        self.assertIn(path,result.stderr)
+        plan=compile_aircraft_support(inputs)
+        self.assertEqual(plan.plan_version,'aircraft-support-plan/v1alpha2')
+        self.assertEqual(plan.reliability_policy,'instance-redundancy/v1')
+        self.assertEqual(plan.components,())
+        self.assertEqual(
+            (plan.component_groups[1].redundancy_kind,
+             plan.component_groups[1].redundancy_k,
+             plan.component_groups[1].redundancy_n),
+            ('k_out_of_n',2,3),
+        )
+        self.assertNotIn('failure_threshold',plan.to_dict())
 
     def test_core_edit_does_not_require_business_or_canonical_input(self):
         core=lower_business(import_business_ir(json.loads(CASES[0].read_text())))

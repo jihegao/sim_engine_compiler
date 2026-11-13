@@ -8,11 +8,14 @@ use sim_engine_runtime::plan::{
     ActivitySpec, AircraftSpec, ComponentSpec, ExecutionPlan, MissionSpec, PreventiveCycleSpec,
     ResourceNodeSpec, SupplyRouteSpec, WorkStepSpec,
 };
+use sim_engine_runtime::reliability::{
+    RELIABILITY_POLICY, ReliabilityComponentGroupSpec, ReliabilityComponentInstanceSpec,
+};
 
 pub mod validation;
 
 // Input acceptance changed: never reuse caches emitted before strict validation.
-pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha5";
+pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha6";
 
 const LEGACY_MINUTE_PHASES: &[&str] = &[
     "transport_arrivals",
@@ -857,6 +860,590 @@ fn component_applies(component_model: &str, aircraft: &AircraftSpec) -> bool {
         || !component.is_disjoint(&aircraft_tokens(&aircraft.model))
 }
 
+fn is_reliability_input(inputs: &Map<String, Value>) -> bool {
+    let equipment = object(inputs.get("equipment_tree"));
+    array(equipment.and_then(|value| value.get("components")))
+        .iter()
+        .filter_map(Value::as_object)
+        .any(|component| {
+            [
+                "component_type_id",
+                "instances",
+                "redundancy",
+                "parent_instance_id",
+            ]
+            .iter()
+            .any(|key| component.contains_key(*key))
+                || component
+                    .get("k_out_of_n")
+                    .and_then(Value::as_object)
+                    .and_then(|value| value.get("enabled"))
+                    .and_then(Value::as_bool)
+                    == Some(true)
+        })
+}
+
+fn contains_failure_threshold(value: &Value) -> bool {
+    match value {
+        Value::Object(map) => {
+            map.contains_key("failure_threshold") || map.values().any(contains_failure_threshold)
+        }
+        Value::Array(items) => items.iter().any(contains_failure_threshold),
+        _ => false,
+    }
+}
+
+fn optional_text(value: Option<&Value>, path: &str, code: &'static str) -> Result<Option<String>> {
+    match value {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::String(value)) if value.is_empty() => Ok(None),
+        Some(Value::String(value)) => Ok(Some(value.clone())),
+        _ => bail!("{code} at {path}: expected string"),
+    }
+}
+
+fn strict_positive_usize(
+    value: Option<&Value>,
+    default: Option<usize>,
+    path: &str,
+) -> Result<usize> {
+    match value {
+        None if default.is_some() => Ok(default.unwrap()),
+        Some(value) => {
+            let parsed = value
+                .as_u64()
+                .and_then(|value| usize::try_from(value).ok())
+                .filter(|value| *value > 0);
+            match parsed {
+                Some(value) => Ok(value),
+                None => bail!("invalid_quantity at {path}: expected a positive integer"),
+            }
+        }
+        None => bail!("invalid_quantity at {path}: expected a positive integer"),
+    }
+}
+
+fn strict_nonnegative_i64(value: Option<&Value>, path: &str, code: &'static str) -> Result<i64> {
+    value
+        .and_then(Value::as_i64)
+        .filter(|value| *value >= 0)
+        .ok_or_else(|| anyhow::anyhow!("{code} at {path}: expected a nonnegative integer"))
+}
+
+fn strict_repair_activity(value: Option<&Value>, path: &str) -> Result<i64> {
+    value
+        .and_then(Value::as_i64)
+        .filter(|value| *value >= -1)
+        .ok_or_else(|| {
+            anyhow::anyhow!("invalid_repair_activity at {path}: expected an index >= -1")
+        })
+}
+
+fn strict_rate(value: &Value, path: &str) -> Result<f64> {
+    value
+        .as_f64()
+        .filter(|value| value.is_finite() && *value >= 0.0)
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "invalid_failure_rate at {path}: failure rate must be finite and nonnegative"
+            )
+        })
+}
+
+fn reliability_rate(item: &Map<String, Value>, path: &str) -> Result<Option<f64>> {
+    let explicit = item
+        .get("failure_rate_per_hour")
+        .filter(|value| !value.is_null())
+        .or_else(|| item.get("failure_rate").filter(|value| !value.is_null()));
+    let distribution = object(item.get("failure_distribution")).filter(|value| !value.is_empty());
+    if explicit.is_some() && distribution.is_some() {
+        bail!(
+            "ambiguous_failure_parameter at {path}: failure_rate_per_hour and failure_distribution are mutually exclusive"
+        );
+    }
+    if let Some(value) = explicit {
+        return strict_rate(value, &format!("{path}.failure_rate_per_hour")).map(Some);
+    }
+    let Some(distribution) = distribution else {
+        return Ok(None);
+    };
+    if let Some(mtbf) = distribution.get("mtbf") {
+        if distribution.get("timeUnit").and_then(Value::as_str) != Some("hour") {
+            bail!(
+                "unsupported_failure_time_unit at {path}.failure_distribution.timeUnit: MTBF timeUnit must be 'hour'"
+            );
+        }
+        if distribution.get("timeBasis").and_then(Value::as_str) != Some("flight_hour") {
+            bail!(
+                "unsupported_failure_time_basis at {path}.failure_distribution.timeBasis: MTBF timeBasis must be 'flight_hour'"
+            );
+        }
+        let mtbf = mtbf
+            .as_f64()
+            .filter(|value| value.is_finite() && *value > 0.0)
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "invalid_mtbf at {path}.failure_distribution.mtbf: MTBF must be a positive finite number"
+                )
+            })?;
+        return strict_rate(
+            &Value::from(1.0 / mtbf),
+            &format!("{path}.failure_distribution"),
+        )
+        .map(Some);
+    }
+    let converted = failure_distribution_rate(distribution).ok_or_else(|| {
+        anyhow::anyhow!(
+            "unsupported_failure_distribution at {path}.failure_distribution: unsupported failure distribution"
+        )
+    })?;
+    strict_rate(
+        &Value::from(converted),
+        &format!("{path}.failure_distribution"),
+    )
+    .map(Some)
+}
+
+fn repair_activity(profile: Option<&Map<String, Value>>, path: &str) -> Result<i64> {
+    let Some(profile) = profile else {
+        return Ok(-1);
+    };
+    match profile
+        .get("repair_activity_index")
+        .filter(|value| !value.is_null())
+        .or_else(|| profile.get("repairActivityIndex"))
+    {
+        None => Ok(-1),
+        value => strict_repair_activity(value, path),
+    }
+}
+
+fn repair_duration(profile: Option<&Map<String, Value>>, path: &str) -> Result<Option<i64>> {
+    let Some(profile) = profile else {
+        return Ok(None);
+    };
+    match profile
+        .get("repair_duration_minutes")
+        .filter(|value| !value.is_null())
+        .or_else(|| profile.get("repairTimeMinutes"))
+    {
+        None => Ok(None),
+        value => strict_nonnegative_i64(value, path, "invalid_repair_duration").map(Some),
+    }
+}
+
+fn repair_profile(item: &Map<String, Value>) -> Option<&Map<String, Value>> {
+    if item.contains_key("repair_profile") {
+        item.get("repair_profile").and_then(Value::as_object)
+    } else {
+        item.get("special_repair_profile")
+            .and_then(Value::as_object)
+    }
+}
+
+fn parse_redundancy(
+    item: &Map<String, Value>,
+    path: &str,
+    instance_count: usize,
+) -> Result<(String, usize, usize)> {
+    let redundancy = item.get("redundancy").filter(|value| !value.is_null());
+    let legacy = item.get("k_out_of_n").filter(|value| !value.is_null());
+    if redundancy.is_some() && legacy.is_some() {
+        bail!("ambiguous_redundancy at {path}: redundancy and k_out_of_n are mutually exclusive");
+    }
+    if let Some(redundancy) = redundancy {
+        let Some(redundancy) = redundancy.as_object() else {
+            bail!("invalid_redundancy at {path}: redundancy must be an object");
+        };
+        let kind = text(redundancy.get("kind"));
+        if kind != "series" && kind != "k_out_of_n" {
+            bail!("invalid_redundancy_kind at {path}: invalid redundancy kind");
+        }
+        if kind == "series" {
+            if redundancy.get("k").is_some_and(|value| !value.is_null()) {
+                bail!("redundancy_k_on_series at {path}: series must not define k");
+            }
+            if let Some(n) = redundancy.get("n").filter(|value| !value.is_null()) {
+                if n.as_u64() != Some(instance_count as u64) {
+                    bail!("redundancy_n_mismatch at {path}: redundancy_n must equal quantity");
+                }
+            }
+            return Ok((kind, 0, instance_count));
+        }
+        let n = redundancy
+            .get("n")
+            .and_then(Value::as_u64)
+            .and_then(|value| usize::try_from(value).ok())
+            .filter(|value| *value == instance_count)
+            .ok_or_else(|| {
+                anyhow::anyhow!("redundancy_n_mismatch at {path}: redundancy_n must equal quantity")
+            })?;
+        let k = redundancy
+            .get("k")
+            .and_then(Value::as_u64)
+            .and_then(|value| usize::try_from(value).ok())
+            .filter(|value| *value >= 1 && *value <= n)
+            .ok_or_else(|| {
+                anyhow::anyhow!("invalid_redundancy_k at {path}: k must be between 1 and n")
+            })?;
+        return Ok((kind, k, n));
+    }
+    if let Some(legacy) = legacy {
+        let Some(legacy) = legacy.as_object() else {
+            bail!(
+                "invalid_k_out_of_n at {path}: k_out_of_n must be an object with a boolean enabled field"
+            );
+        };
+        let Some(enabled) = legacy.get("enabled").and_then(Value::as_bool) else {
+            bail!(
+                "invalid_k_out_of_n at {path}: k_out_of_n must be an object with a boolean enabled field"
+            );
+        };
+        if !enabled {
+            return Ok(("series".into(), 0, instance_count));
+        }
+        let n = legacy
+            .get("n")
+            .and_then(Value::as_u64)
+            .and_then(|value| usize::try_from(value).ok())
+            .filter(|value| *value == instance_count)
+            .ok_or_else(|| {
+                anyhow::anyhow!("redundancy_n_mismatch at {path}: k_out_of_n n must equal quantity")
+            })?;
+        let k = legacy
+            .get("k")
+            .and_then(Value::as_u64)
+            .and_then(|value| usize::try_from(value).ok())
+            .filter(|value| *value >= 1 && *value <= n)
+            .ok_or_else(|| {
+                anyhow::anyhow!("invalid_redundancy_k at {path}: k must be between 1 and n")
+            })?;
+        return Ok(("k_out_of_n".into(), k, n));
+    }
+    Ok(("series".into(), 0, instance_count))
+}
+
+fn reliability_applies(item: &Map<String, Value>, aircraft: &[AircraftSpec]) -> Vec<usize> {
+    let model = text(item.get("aircraft_model"));
+    let component_tokens = aircraft_tokens(&model);
+    if component_tokens.is_empty() {
+        return (0..aircraft.len()).collect();
+    }
+    aircraft
+        .iter()
+        .enumerate()
+        .filter(|(_, value)| {
+            let tokens = aircraft_tokens(&value.tail_number)
+                .into_iter()
+                .chain(aircraft_tokens(&value.aircraft_type))
+                .chain(aircraft_tokens(&value.model))
+                .collect::<HashSet<_>>();
+            !component_tokens.is_disjoint(&tokens)
+        })
+        .map(|(index, _)| index)
+        .collect()
+}
+
+struct ReliabilityRawInstance {
+    instance_id: String,
+    failure_rate_per_hour: f64,
+    repair_activity_index: i64,
+    repair_duration_minutes: i64,
+    source_path: String,
+}
+
+struct ReliabilityRawGroup {
+    group_id: String,
+    component_type_id: String,
+    name: String,
+    quantity: usize,
+    parent_id: Option<String>,
+    parent_instance_id: Option<String>,
+    instances: Vec<ReliabilityRawInstance>,
+    redundancy_kind: String,
+    redundancy_k: usize,
+    redundancy_n: usize,
+    repair_activity_index: i64,
+    repair_duration_minutes: i64,
+    aircraft_indexes: Vec<usize>,
+    source_path: String,
+}
+
+fn build_reliability_plan_records(
+    inputs: &Map<String, Value>,
+    aircraft: &[AircraftSpec],
+) -> Result<(
+    Vec<ReliabilityComponentGroupSpec>,
+    Vec<ReliabilityComponentInstanceSpec>,
+)> {
+    let equipment = object(inputs.get("equipment_tree"))
+        .cloned()
+        .unwrap_or_default();
+    let rows = array(equipment.get("components"));
+    let mut raw_groups = Vec::<ReliabilityRawGroup>::new();
+    let mut seen_groups = HashSet::<String>::new();
+    let mut seen_instances = HashSet::<String>::new();
+
+    for (index, value) in rows.iter().enumerate() {
+        let path = format!("equipment_tree.components[{index}]");
+        let Some(item) = value.as_object() else {
+            bail!("invalid_component at {path}: component must be an object");
+        };
+        if contains_failure_threshold(&Value::Object(item.clone())) {
+            bail!(
+                "failure_threshold_in_new_plan at {path}.failure_threshold: failure_threshold is not allowed in the reliability schema"
+            );
+        }
+        let group_id = item
+            .get("id")
+            .and_then(Value::as_str)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| {
+                anyhow::anyhow!("invalid_component_id at {path}.id: component id is required")
+            })?
+            .to_owned();
+        if !seen_groups.insert(group_id.clone()) {
+            bail!("duplicate_component_group_id at {path}.id: duplicate component id");
+        }
+        let component_type_id = item
+            .get("component_type_id")
+            .and_then(Value::as_str)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| anyhow::anyhow!("component_type_missing at {path}.component_type_id: component_type_id is required"))?
+            .to_owned();
+        let group_rate = reliability_rate(item, &path)?;
+        let profile = repair_profile(item);
+        let group_repair_activity = repair_activity(profile, &format!("{path}.repair_profile"))?;
+        let group_repair_duration = repair_duration(profile, &format!("{path}.repair_profile"))?;
+        let parent_id = optional_text(
+            item.get("parent_id"),
+            &format!("{path}.parent_id"),
+            "invalid_parent_group",
+        )?;
+        let parent_instance_id = optional_text(
+            item.get("parent_instance_id"),
+            &format!("{path}.parent_instance_id"),
+            "invalid_parent_instance",
+        )?;
+
+        let mut instances = Vec::<ReliabilityRawInstance>::new();
+        let explicit = item.get("instances").filter(|value| !value.is_null());
+        let quantity = if let Some(explicit) = explicit {
+            let Some(values) = explicit.as_array().filter(|values| !values.is_empty()) else {
+                bail!("invalid_instances at {path}.instances: instances must be a nonempty list");
+            };
+            if let Some(quantity_value) = item.get("quantity").filter(|value| !value.is_null()) {
+                if quantity_value.as_u64() != Some(values.len() as u64) {
+                    bail!(
+                        "quantity_instance_mismatch at {path}.quantity: quantity must equal the explicit instance count"
+                    );
+                }
+            }
+            for (instance_index, value) in values.iter().enumerate() {
+                let instance_path = format!("{path}.instances[{instance_index}]");
+                let Some(instance) = value.as_object() else {
+                    bail!("invalid_instance at {instance_path}: instance must be an object");
+                };
+                let instance_id = instance
+                    .get("instance_id")
+                    .and_then(Value::as_str)
+                    .filter(|value| !value.is_empty())
+                    .ok_or_else(|| anyhow::anyhow!("invalid_instance_id at {instance_path}.instance_id: instance_id is required"))?
+                    .to_owned();
+                if !seen_instances.insert(instance_id.clone()) {
+                    bail!(
+                        "duplicate_instance_id at {instance_path}.instance_id: duplicate instance_id"
+                    );
+                }
+                let failure_rate = reliability_rate(instance, &instance_path)?
+                    .unwrap_or_else(|| group_rate.unwrap_or(0.0));
+                let instance_profile = instance.get("repair_profile").and_then(Value::as_object);
+                let (repair_activity_index, repair_duration_minutes) =
+                    if let Some(instance_profile) = instance_profile {
+                        (
+                            repair_activity(
+                                Some(instance_profile),
+                                &format!("{instance_path}.repair_profile"),
+                            )?,
+                            repair_duration(
+                                Some(instance_profile),
+                                &format!("{instance_path}.repair_profile"),
+                            )?
+                            .unwrap_or(0),
+                        )
+                    } else {
+                        (group_repair_activity, group_repair_duration.unwrap_or(0))
+                    };
+                instances.push(ReliabilityRawInstance {
+                    instance_id,
+                    failure_rate_per_hour: failure_rate,
+                    repair_activity_index,
+                    repair_duration_minutes,
+                    source_path: instance_path,
+                });
+            }
+            values.len()
+        } else {
+            let quantity =
+                strict_positive_usize(item.get("quantity"), Some(1), &format!("{path}.quantity"))?;
+            let failure_rate = group_rate.unwrap_or(0.0);
+            for instance_index in 0..quantity {
+                let instance_id = format!("{group_id}-{instance_index}");
+                if !seen_instances.insert(instance_id.clone()) {
+                    bail!(
+                        "duplicate_instance_id at {path}: generated instance_id collides with another instance"
+                    );
+                }
+                instances.push(ReliabilityRawInstance {
+                    instance_id,
+                    failure_rate_per_hour: failure_rate,
+                    repair_activity_index: group_repair_activity,
+                    repair_duration_minutes: group_repair_duration.unwrap_or(0),
+                    source_path: format!("{path}.instances[{instance_index}]"),
+                });
+            }
+            quantity
+        };
+
+        if instances.len() != quantity {
+            bail!("invalid_instances at {path}.instances: instance count mismatch");
+        }
+        let (redundancy_kind, redundancy_k, redundancy_n) =
+            parse_redundancy(item, &format!("{path}.redundancy"), quantity)?;
+        raw_groups.push(ReliabilityRawGroup {
+            group_id,
+            component_type_id,
+            name: {
+                let name = text(item.get("name"));
+                if name.is_empty() {
+                    text(item.get("id"))
+                } else {
+                    name
+                }
+            },
+            quantity,
+            parent_id,
+            parent_instance_id,
+            instances,
+            redundancy_kind,
+            redundancy_k,
+            redundancy_n,
+            repair_activity_index: group_repair_activity,
+            repair_duration_minutes: group_repair_duration.unwrap_or(0),
+            aircraft_indexes: reliability_applies(item, aircraft),
+            source_path: path,
+        });
+    }
+
+    let group_indexes = raw_groups
+        .iter()
+        .enumerate()
+        .map(|(index, group)| (group.group_id.clone(), index))
+        .collect::<HashMap<_, _>>();
+    for index in 0..raw_groups.len() {
+        let parent_id = raw_groups[index].parent_id.clone();
+        let parent_instance = raw_groups[index].parent_instance_id.clone();
+        let source_path = raw_groups[index].source_path.clone();
+        let Some(parent_id) = parent_id else {
+            if parent_instance.is_some() {
+                bail!(
+                    "parent_instance_mismatch at {source_path}: parent_instance_id requires parent_id"
+                );
+            }
+            continue;
+        };
+        let Some(parent_index) = group_indexes.get(&parent_id).copied() else {
+            bail!("unknown_parent_group at {source_path}: unknown parent group");
+        };
+        let parent_instances = raw_groups[parent_index]
+            .instances
+            .iter()
+            .map(|instance| instance.instance_id.clone())
+            .collect::<Vec<_>>();
+        if parent_instances.len() > 1 && parent_instance.is_none() {
+            bail!(
+                "ambiguous_parent_instance at {source_path}: parent_instance_id is required when the parent has multiple instances"
+            );
+        }
+        let parent_instance_id = parent_instance
+            .or_else(|| parent_instances.first().cloned())
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "unknown_parent_group at {source_path}: parent group has no instances"
+                )
+            })?;
+        if !parent_instances.contains(&parent_instance_id) {
+            bail!(
+                "parent_instance_group_mismatch at {source_path}: parent_instance_id does not belong to the parent group"
+            );
+        }
+        raw_groups[index].parent_instance_id = Some(parent_instance_id);
+    }
+
+    for group in &raw_groups {
+        let mut seen = HashSet::<String>::new();
+        let mut current = Some(group.group_id.clone());
+        while let Some(id) = current {
+            if !seen.insert(id.clone()) {
+                bail!(
+                    "cyclic_component_parent at {}: cyclic component parent groups are unsupported",
+                    group.source_path
+                );
+            }
+            current = raw_groups[group_indexes[&id]].parent_id.clone();
+        }
+    }
+
+    let instance_indexes = raw_groups
+        .iter()
+        .flat_map(|group| group.instances.iter())
+        .enumerate()
+        .map(|(index, instance)| (instance.instance_id.clone(), index))
+        .collect::<HashMap<_, _>>();
+    let mut groups = Vec::with_capacity(raw_groups.len());
+    let mut instances = Vec::with_capacity(instance_indexes.len());
+    for (index, group) in raw_groups.iter().enumerate() {
+        let parent_group_index = group
+            .parent_id
+            .as_ref()
+            .and_then(|id| group_indexes.get(id))
+            .map_or(-1, |value| *value as i64);
+        let parent_instance_index = group
+            .parent_instance_id
+            .as_ref()
+            .and_then(|id| instance_indexes.get(id))
+            .map_or(-1, |value| *value as i64);
+        groups.push(ReliabilityComponentGroupSpec {
+            index,
+            group_id: group.group_id.clone(),
+            component_type_id: group.component_type_id.clone(),
+            name: group.name.clone(),
+            parent_group_index,
+            aircraft_indexes: group.aircraft_indexes.clone(),
+            quantity: group.quantity,
+            redundancy_kind: group.redundancy_kind.clone(),
+            redundancy_k: group.redundancy_k,
+            redundancy_n: group.redundancy_n,
+            repair_activity_index: group.repair_activity_index,
+            repair_duration_minutes: group.repair_duration_minutes,
+            source_path: group.source_path.clone(),
+        });
+        for instance in &group.instances {
+            instances.push(ReliabilityComponentInstanceSpec {
+                index: instances.len(),
+                instance_template_id: instance.instance_id.clone(),
+                group_index: index,
+                parent_instance_index,
+                failure_rate_per_hour: instance.failure_rate_per_hour,
+                repair_activity_index: instance.repair_activity_index,
+                repair_duration_minutes: instance.repair_duration_minutes,
+                source_path: instance.source_path.clone(),
+            });
+        }
+    }
+    Ok((groups, instances))
+}
+
 fn compile_components(
     inputs: &Map<String, Value>,
     aircraft: &[AircraftSpec],
@@ -892,9 +1479,9 @@ fn compile_components(
                 .unwrap_or_default();
             let rate = match distribution.get("mtbf") {
                 Some(mtbf) => {
-                    let mtbf = mtbf.as_f64().ok_or_else(|| {
-                        anyhow::anyhow!("MTBF must be a positive finite number")
-                    })?;
+                    let mtbf = mtbf
+                        .as_f64()
+                        .ok_or_else(|| anyhow::anyhow!("MTBF must be a positive finite number"))?;
                     let rate = 1.0 / mtbf;
                     if !rate.is_finite() || rate <= 0.0 {
                         bail!("MTBF produces an invalid failure rate");
@@ -951,7 +1538,7 @@ fn compile_components(
                 product_type: text(item.get("product_type")),
                 quantity,
                 failure_rate_per_hour: rate.max(0.0),
-                failure_threshold: positive_usize(item.get("failure_threshold"), 1).max(1),
+                failure_threshold: 1,
                 repair_activity_index: exact
                     .first()
                     .or_else(|| compatible.first())
@@ -1262,21 +1849,49 @@ pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layer
             (!id.is_empty()).then_some((id, index))
         })
         .collect::<HashMap<_, _>>();
-    let activities = compile_activities(inputs, &resource_nodes, &component_indexes)?;
+    let fused_reliability = is_reliability_input(inputs);
+    let (groups, instances) = if fused_reliability {
+        build_reliability_plan_records(inputs, &aircraft)?
+    } else {
+        (Vec::new(), Vec::new())
+    };
+    let mut activities = compile_activities(inputs, &resource_nodes, &component_indexes)?;
+    if fused_reliability {
+        for activity in &mut activities {
+            activity.equipment_component_index = -1;
+        }
+    }
     let missions = compile_missions(inputs, duration_minutes);
-    let components = compile_components(inputs, &aircraft, &activities)?;
+    let components = if fused_reliability {
+        Vec::new()
+    } else {
+        compile_components(inputs, &aircraft, &activities)?
+    };
     let preventive_cycles = compile_preventive_cycles(inputs, &activities)?;
     let supply_routes = compile_supply_routes(inputs, &resource_nodes);
 
     let provenance = core_provenance(business, &aircraft)?;
-    let records = serde_json::json!({
+    let mut records = serde_json::json!({
         "domain": "aircraft-support", "semantic_profile": semantic_profile,
         "work_policy": "stable-topological-serial", "rng_profile": "legacy-sequential-v1",
         "duration_minutes": duration_minutes, "natural_completion_enabled": natural_completion_enabled,
         "phases": LEGACY_MINUTE_PHASES, "aircraft": aircraft, "missions": missions,
         "activities": activities, "resource_nodes": resource_nodes, "components": components,
-        "preventive_cycles": preventive_cycles, "supply_routes": supply_routes, "unsupported_features": []
+        "preventive_cycles": preventive_cycles, "supply_routes": supply_routes,
+        "unsupported_features": []
     });
+    if fused_reliability {
+        let records = records.as_object_mut().unwrap();
+        records.insert("component_groups".into(), serde_json::to_value(groups)?);
+        records.insert(
+            "component_instances".into(),
+            serde_json::to_value(instances)?,
+        );
+        records.insert(
+            "reliability_policy".into(),
+            serde_json::json!(RELIABILITY_POLICY),
+        );
+    }
     crate::layers::core_from_records(business, records, provenance)
 }
 
@@ -1379,9 +1994,208 @@ mod tests {
                 "tests/fixtures/spare_mvp/f35-43day-5352a0d/simulation-inputs.json",
                 "tests/fixtures/spare_mvp/f35-43day-5352a0d/execution-plan.json",
             ),
+            (
+                "tests/fixtures/reliability/r1-fused-input.json",
+                "tests/fixtures/reliability/r1-fused-input-plan.json",
+            ),
         ] {
             assert_matches_python_fixture(input, expected);
         }
+    }
+
+    fn fused_reliability_input() -> Value {
+        let mut inputs: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/b2-failure-repair.json")).unwrap(),
+        )
+        .unwrap();
+        inputs["equipment_tree"]["components"] = serde_json::json!([
+            {
+                "id": "f35",
+                "component_type_id": "airframe",
+                "name": "F35",
+                "aircraft_model": "F35",
+                "instances": [{"instance_id": "f35-1"}]
+            },
+            {
+                "id": "radar-lru",
+                "component_type_id": "radar-lru",
+                "name": "Radar LRU",
+                "aircraft_model": "F35",
+                "parent_id": "f35",
+                "parent_instance_id": "f35-1",
+                "instances": [
+                    {
+                        "instance_id": "radar-a",
+                        "failure_rate_per_hour": 0.5,
+                        "repair_profile": {
+                            "repair_activity_index": 0,
+                            "repair_duration_minutes": 10
+                        }
+                    },
+                    {
+                        "instance_id": "radar-b",
+                        "failure_rate_per_hour": 0.25,
+                        "repair_profile": {
+                            "repair_activity_index": 0,
+                            "repair_duration_minutes": 20
+                        }
+                    }
+                ],
+                "redundancy": {"kind": "k_out_of_n", "k": 1, "n": 2}
+            }
+        ]);
+        inputs
+    }
+
+    #[test]
+    fn fused_reliability_compiles_groups_instances_and_parent_mapping() {
+        let plan = compile_aircraft_support(&fused_reliability_input()).unwrap();
+
+        assert_eq!(plan.reliability_policy.as_deref(), Some(RELIABILITY_POLICY));
+        assert!(plan.components.is_empty());
+        assert_eq!(plan.component_groups.len(), 2);
+        assert_eq!(plan.component_instances.len(), 3);
+        assert_eq!(plan.component_groups[0].redundancy_kind, "series");
+        assert_eq!(plan.component_groups[0].redundancy_k, 0);
+        assert_eq!(plan.component_groups[0].redundancy_n, 1);
+        assert_eq!(plan.component_groups[1].redundancy_kind, "k_out_of_n");
+        assert_eq!(plan.component_groups[1].redundancy_k, 1);
+        assert_eq!(plan.component_groups[1].redundancy_n, 2);
+        assert_eq!(plan.component_groups[1].parent_group_index, 0);
+        assert_eq!(plan.component_instances[1].parent_instance_index, 0);
+        assert_eq!(plan.component_instances[2].parent_instance_index, 0);
+        assert_eq!(plan.component_instances[1].failure_rate_per_hour, 0.5);
+        assert_eq!(plan.component_instances[2].failure_rate_per_hour, 0.25);
+        assert_eq!(plan.component_instances[1].repair_duration_minutes, 10);
+        assert_eq!(plan.component_instances[2].repair_duration_minutes, 20);
+        assert!(
+            plan.activities
+                .iter()
+                .all(|activity| activity.equipment_component_index == -1)
+        );
+    }
+
+    #[test]
+    fn fused_reliability_defaults_to_series_for_generated_instances() {
+        let mut inputs = fused_reliability_input();
+        inputs["equipment_tree"]["components"][1] = serde_json::json!({
+            "id": "radar-lru",
+            "component_type_id": "radar-lru",
+            "aircraft_model": "F35",
+            "parent_id": "f35",
+            "quantity": 2,
+            "failure_rate_per_hour": 0.75
+        });
+        let plan = compile_aircraft_support(&inputs).unwrap();
+        let group = &plan.component_groups[1];
+        assert_eq!(group.redundancy_kind, "series");
+        assert_eq!(group.redundancy_k, 0);
+        assert_eq!(group.redundancy_n, 2);
+        assert_eq!(
+            plan.component_instances
+                .iter()
+                .filter(|instance| instance.group_index == 1)
+                .map(|instance| instance.instance_template_id.as_str())
+                .collect::<Vec<_>>(),
+            ["radar-lru-0", "radar-lru-1"]
+        );
+    }
+
+    #[test]
+    fn fused_reliability_accepts_legacy_k_out_alias_and_mtbf() {
+        let mut inputs = fused_reliability_input();
+        inputs["equipment_tree"]["components"][1] = serde_json::json!({
+            "id": "radar-lru",
+            "component_type_id": "radar-lru",
+            "aircraft_model": "F35",
+            "parent_id": "f35",
+            "quantity": 2,
+            "failure_distribution": {
+                "distributionType": "exponential",
+                "mtbf": 2,
+                "timeUnit": "hour",
+                "timeBasis": "flight_hour"
+            },
+            "k_out_of_n": {"enabled": true, "k": 1, "n": 2}
+        });
+        let plan = compile_aircraft_support(&inputs).unwrap();
+        assert_eq!(plan.component_groups[1].redundancy_kind, "k_out_of_n");
+        assert_eq!(plan.component_groups[1].redundancy_k, 1);
+        assert_eq!(
+            plan.component_instances
+                .iter()
+                .filter(|instance| instance.group_index == 1)
+                .map(|instance| instance.failure_rate_per_hour)
+                .collect::<Vec<_>>(),
+            [0.5, 0.5]
+        );
+    }
+
+    #[test]
+    fn fused_reliability_rejects_direct_and_nested_failure_threshold() {
+        let mut inputs = fused_reliability_input();
+        inputs["equipment_tree"]["components"][1]["failure_threshold"] = Value::from(2);
+        let error = compile_aircraft_support(&inputs).unwrap_err();
+        let diagnostic = error
+            .downcast_ref::<validation::CompilationDiagnostic>()
+            .unwrap();
+        assert_eq!(diagnostic.code, "failure_threshold_in_new_plan");
+
+        let mut inputs = fused_reliability_input();
+        inputs["equipment_tree"]["components"][1]["instances"][0]["failure_threshold"] =
+            Value::from(2);
+        assert!(compile_aircraft_support(&inputs).is_err());
+    }
+
+    #[test]
+    fn legacy_and_mixed_inputs_reject_failure_threshold() {
+        let mut inputs: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/b2-failure-repair.json")).unwrap(),
+        )
+        .unwrap();
+        inputs["equipment_tree"]["components"][1]["failure_threshold"] = Value::from(2);
+        let error = compile_aircraft_support(&inputs).unwrap_err();
+        let diagnostic = error
+            .downcast_ref::<validation::CompilationDiagnostic>()
+            .unwrap();
+        assert_eq!(diagnostic.code, "failure_threshold_in_new_plan");
+        assert_eq!(
+            diagnostic.source_path,
+            "equipment_tree.components[1].failure_threshold"
+        );
+
+        let mut mixed: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/b2-failure-repair.json")).unwrap(),
+        )
+        .unwrap();
+        mixed["equipment_tree"]["components"][1]["component_type_id"] = Value::from("radar-lru");
+        let error = compile_aircraft_support(&mixed).unwrap_err();
+        let diagnostic = error
+            .downcast_ref::<validation::CompilationDiagnostic>()
+            .unwrap();
+        assert_eq!(diagnostic.code, "component_type_missing");
+        assert_eq!(
+            diagnostic.source_path,
+            "equipment_tree.components[0].component_type_id"
+        );
+
+        let mut nested: Value = serde_json::from_slice(
+            &fs::read(root().join("tests/fixtures/synthetic/b2-failure-repair.json")).unwrap(),
+        )
+        .unwrap();
+        nested["equipment_tree"]["components"][0]["component_type_id"] = Value::from("f35");
+        nested["equipment_tree"]["components"][1]["component_type_id"] = Value::from("radar-lru");
+        nested["equipment_tree"]["components"][1]["instances"] =
+            serde_json::json!([{"instance_id": "radar-0", "failure_threshold": 2}]);
+        let error = compile_aircraft_support(&nested).unwrap_err();
+        let diagnostic = error
+            .downcast_ref::<validation::CompilationDiagnostic>()
+            .unwrap();
+        assert_eq!(diagnostic.code, "failure_threshold_in_new_plan");
+        assert_eq!(
+            diagnostic.source_path,
+            "equipment_tree.components[1].instances[0].failure_threshold"
+        );
     }
 
     #[test]
