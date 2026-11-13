@@ -32,6 +32,70 @@ class DeclaredEngineDeltaTests(unittest.TestCase):
         self.assertIn("src/sim_engine_compiler/ir/bounded.py",
                       identity["declared_nonbaseline_source_files"])
 
+    def test_pr561_reliability_modules_are_reviewed_additions(self):
+        expected = {
+            "src/sim_engine_compiler/domains/aircraft_support/reliability.py": (
+                "5acb6d755357259739be0da4e4181781e95f2d63b7757c166ff47f23b03b893a"
+            ),
+            "src/sim_engine_compiler/ir/reliability.py": (
+                "d8bc76eb79b87bfdc82b1153e1c8485da79010abee2275e7e4379faabc0a2043"
+            ),
+        }
+        for key, digest in expected.items():
+            self.assertEqual(DECLARED_NONBASELINE_SOURCE_SHA256[key], digest)
+        identity = _verified_engine_sources(
+            ROOT, BASELINE,
+            declared_nonbaseline_sources=DECLARED_NONBASELINE_SOURCE_SHA256,
+            declared_baseline_overrides=DECLARED_BASELINE_OVERRIDE_SHA256,
+            declared_modified_baseline_sources=DECLARED_MODIFIED_BASELINE_SOURCE_SHA256,
+        )
+        self.assertEqual(identity["build_fingerprint"], BASELINE_BUILD_SHA256)
+        for key, digest in expected.items():
+            self.assertEqual(identity["declared_nonbaseline_source_files"][key], digest)
+            self.assertIn(key, identity["declared_nonbaseline_source_modes"])
+            self.assertEqual(
+                identity["declared_nonbaseline_executed_source_files"][key],
+                hashlib.sha256((ROOT / key).read_bytes()).hexdigest(),
+            )
+
+    def test_registered_additions_preserve_membership_rejection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            revision = _make_source_repo(root)
+            baseline = _verified_engine_sources(root, revision)
+            added = root / "src/sim_engine_compiler/added.py"
+            key = "src/sim_engine_compiler/added.py"
+            added.write_bytes(b"reviewed = True\n")
+            declared = {key: hashlib.sha256(added.read_bytes()).hexdigest()}
+            extended = _verified_engine_sources(
+                root, revision, declared_nonbaseline_sources=declared
+            )
+            self.assertEqual(extended["build_fingerprint"], baseline["build_fingerprint"])
+            self.assertNotEqual(
+                extended["checkout_source_membership_fingerprint"],
+                baseline["checkout_source_membership_fingerprint"],
+            )
+            self.assertEqual(extended["declared_nonbaseline_source_files"], declared)
+
+            unregistered = root / "src/sim_engine_compiler/unregistered.py"
+            unregistered.write_bytes(b"unexpected = True\n")
+            with self.assertRaisesRegex(ValueError, "membership differs"):
+                _verified_engine_sources(
+                    root, revision, declared_nonbaseline_sources=declared
+                )
+            unregistered.unlink()
+
+            added.write_bytes(b"reviewed = False\n")
+            with self.assertRaisesRegex(ValueError, "differs from pinned content"):
+                _verified_engine_sources(
+                    root, revision, declared_nonbaseline_sources=declared
+                )
+            added.unlink()
+            with self.assertRaisesRegex(ValueError, "membership differs"):
+                _verified_engine_sources(
+                    root, revision, declared_nonbaseline_sources=declared
+                )
+
     def test_delta_is_pinned_without_rewriting_frozen_identity(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

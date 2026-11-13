@@ -30,9 +30,12 @@ DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.
 # PRs #20, #23, #24, Issue #29 and the reviewed #542 add explicit source
 # modules. Keep their bytes and the #30 ABM delta separate from the frozen
 # pairing baseline; neither changes its historic Git blob fingerprint.
-DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v5"
+DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v6"
 DECLARED_MODIFIED_BASELINE_SOURCE_CONTRACT = "simlox-pairing-declared-engine-delta/v1"
 DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
+    "src/sim_engine_compiler/compiler/layout.py": (
+        "d45749cca95a44c726e9674cfaf4608f0552e96fb6290a6b94d91a56af800efa"
+    ),
     "src/sim_engine_compiler/reference/abm_runtime.py": (
         "46ef80ad188c39bc8d733378b143a29d46c0bba67eda63904067070bb352e10f"
     ),
@@ -42,10 +45,19 @@ DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
     # 595cb5e build fingerprint stays intact; the executed bytes are pinned by
     # the LF commit-blob digests below.
     "src/sim_engine_compiler/domains/aircraft_support/lowering.py": (
-        "418e39ee90fbf5adee4ff2f887c9808398d9415f6a18aef119f1cf7201aa1011"
+        "c97af6d94bf1454b090f9a46aceed04e29125d27c3aa044e29d1be9dc5970540"
     ),
     "src/sim_engine_compiler/domains/aircraft_support/validation.py": (
-        "ee07adc9aa05a1b895330e8c5c2bb3954f180add16b82b0df0ff882267cb032c"
+        "bd6bdd52acf562e9c97570a9aa8f38a97f9909f7bda5b019388cffacbe142330"
+    ),
+    "src/sim_engine_compiler/ir/__init__.py": (
+        "7e51be82af8dfeb1547f326df11606acd117c9c47def180332528312fcfdab55"
+    ),
+    "src/sim_engine_compiler/ir/layers.py": (
+        "623bc65a5118d9219149afce8e92f5d8d6334dda71a54743fc509fcf03c668b5"
+    ),
+    "src/sim_engine_compiler/ir/plan.py": (
+        "27c3003709605dfc7ee181f43ce3b42afb15a6c797f8bee987c8822a93d26202"
     ),
     "src/sim_engine_compiler/reference/simpy_runtime.py": (
         "05e213be6044e8db6100267acae2f2b9fbab3b58d936c2d7e5670e2f77a68692"
@@ -67,6 +79,9 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/domains/aircraft_support/pack.py": (
         "ba9d1cb086c195a18ef0f9014aea9251f592d2d44f71246e33d264c6b76e1f83"
     ),
+    "src/sim_engine_compiler/domains/aircraft_support/reliability.py": (
+        "5acb6d755357259739be0da4e4181781e95f2d63b7757c166ff47f23b03b893a"
+    ),
     "src/sim_engine_compiler/examples/__init__.py": (
         "eed06b92b7f3972187c4ad316563b05c0c3c848ec60aba6c140d150c944019fe"
     ),
@@ -77,7 +92,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "e0df441b01f212591e6658e3f6513548f3b0246962054ddb342d88a55e49be32"
     ),
     "src/sim_engine_compiler/identity/artifacts.py": (
-        "07667396c189d6ba77c01e53c9d34012a4b973c641a9c3f9f89911d2fc08a555"
+        "75c62100c7921ddfe98e5b9aee38f7c2797191e20efbdf7e6384619cb5d07a7d"
     ),
     "src/sim_engine_compiler/identity/common.py": (
         "759932aa37d96ac261dbfecae5b24858fc7483e7a7866bbf259166666daef1fd"
@@ -90,6 +105,9 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     ),
     "src/sim_engine_compiler/ir/bounded.py": (
         "363131a6018b337a3802e8cf29a3c28d5855fa9e43a92c208fe0816e855f295a"
+    ),
+    "src/sim_engine_compiler/ir/reliability.py": (
+        "d8bc76eb79b87bfdc82b1153e1c8485da79010abee2275e7e4379faabc0a2043"
     ),
     "src/sim_engine_compiler/product.py": (
         "b7da9845ab220f4bd7d68f02de0a00f7c84222c2307a9efa66f0d8e6b1049149"
