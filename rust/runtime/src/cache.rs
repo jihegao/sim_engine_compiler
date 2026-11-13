@@ -134,7 +134,10 @@ pub fn decode_plan_cache(
         source_inputs_sha256: wire.source_inputs_sha256,
         plan_version: wire.plan_version,
         plan_fingerprint: wire.plan_fingerprint,
-        plan: serde_json::from_slice(&wire.plan_json).context("decode cached plan JSON")?,
+        plan: ExecutionPlan::from_json_value(
+            serde_json::from_slice(&wire.plan_json).context("decode cached plan JSON")?,
+        )
+        .context("decode cached plan JSON")?,
     };
     if envelope.cache_format_version != PLAN_CACHE_FORMAT_VERSION {
         bail!(
@@ -198,9 +201,39 @@ mod tests {
             components: Vec::new(),
             preventive_cycles: Vec::new(),
             supply_routes: Vec::new(),
+            reliability_policy: None,
+            component_groups: Vec::new(),
+            component_instances: Vec::new(),
             resource_dispatch_index: None,
             unsupported_features: Vec::new(),
         }
+    }
+
+    #[test]
+    fn cache_decode_rejects_failure_threshold_in_fused_plan() {
+        let bytes = include_bytes!("../../../tests/fixtures/reliability/r1-fused-plan.json");
+        let (plan, _) = ExecutionPlan::from_slice(bytes).unwrap();
+        let plan_fingerprint =
+            ExecutionPlan::fingerprint(&serde_json::to_value(&plan).unwrap()).unwrap();
+        let encoded = encode_plan_cache(plan, "compiler/v1", &plan_fingerprint).unwrap();
+        let (mut wire, consumed) = bincode_serde::decode_from_slice::<CachedPlanWire, _>(
+            &encoded[MAGIC.len()..],
+            config::standard(),
+        )
+        .unwrap();
+        assert_eq!(consumed, encoded.len() - MAGIC.len());
+        let mut value: serde_json::Value = serde_json::from_slice(&wire.plan_json).unwrap();
+        value["components"] = serde_json::json!([{"failure_threshold": 2}]);
+        wire.plan_json = serde_json::to_vec(&value).unwrap();
+        let payload = bincode_serde::encode_to_vec(&wire, config::standard()).unwrap();
+        let mut tampered = MAGIC.to_vec();
+        tampered.extend_from_slice(&payload);
+
+        let error = decode_plan_cache(&tampered, Some("compiler/v1"), None, None).unwrap_err();
+        assert!(
+            format!("{error:#}").contains("failure_threshold_in_new_plan"),
+            "{error:#}"
+        );
     }
 
     #[test]
