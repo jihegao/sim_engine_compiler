@@ -160,6 +160,23 @@ class QueueProfileDifferentialTests(unittest.TestCase):
         self.assertEqual(report["events"][0]["facts"]["design_links"]["status"], "verified")
         self.assertTrue(report["events"][0]["facts"]["design_links"]["links"])
         self.assertEqual(report["evidence_binding"]["backend"], "rust-runtime")
+        self.assertTrue(
+            {"seed", "sample_index", "semantic_profile"}
+            <= set(report["evidence_binding"]["verified_result_fields"])
+        )
+        for field, wrong_value in (("seed", 7), ("sample_index", 99)):
+            with self.subTest(field=field):
+                request = {
+                    "run_id": "queue-rust-0",
+                    "sample_index": 0,
+                    "seed": 0,
+                    "backend": "rust-runtime",
+                }
+                request[field] = wrong_value
+                mismatched = query_trace(rust, request, plan, bundle=bundle)
+                self.assertEqual(mismatched["status"], "invalid")
+                self.assertEqual(mismatched["events"], [])
+                self.assertEqual(mismatched["diagnostics"][0]["path"], f"result.{field}")
         filtered = query_trace(
             rust,
             {
