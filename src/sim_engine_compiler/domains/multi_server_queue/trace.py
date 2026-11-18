@@ -13,6 +13,7 @@ from typing import Any
 
 from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.identity.common import content_digest, diagnostic, json_value
+from sim_engine_compiler.trace_query.query import normalize_page
 
 from .model import PLAN_VERSION, SEMANTIC_PROFILE, QueueBusiness, lower
 
@@ -118,12 +119,7 @@ def _normalize_query(query: Any) -> dict[str, Any]:
             raise ValueError(f"query.{key} must be finite nonnegative time")
     if raw.get("time_start", 0) > raw.get("time_end", math.inf):
         raise ValueError("time_start must not exceed time_end; window is [start,end)")
-    if "offset" in raw:
-        _integer(raw["offset"], 0, 2**63 - 1, "query.offset")
-    if "limit" in raw:
-        _integer(raw["limit"], 0, 1000, "query.limit")
-    if "max_event_bytes" in raw:
-        _integer(raw["max_event_bytes"], 2, 1048576, "query.max_event_bytes")
+    normalize_page(raw)
     targets = raw.get("resolve_event_ids", [])
     if (
         type(targets) is not list
@@ -135,8 +131,8 @@ def _normalize_query(query: Any) -> dict[str, Any]:
     return raw
 
 
-def _select(events: list[dict[str, Any]], request: dict[str, Any], query: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any], list[dict[str, Any]]]:
-    """Apply the supplied filters. Absent limit and budget keep the matched prefix."""
+def _select(report: dict[str, Any], events: list[dict[str, Any]], request: dict[str, Any], query: dict[str, Any]) -> None:
+    """Apply filters and return the prefix allowed by the normalized page and budget."""
     matched = []
     for event in events:
         if query.get("run_id", request["run_id"]) != request["run_id"]:
@@ -156,15 +152,12 @@ def _select(events: list[dict[str, Any]], request: dict[str, Any], query: dict[s
         if not (event["time"] >= start and event["time"] < end):
             continue
         matched.append(event)
-    offset = query.get("offset", 0)
-    limit = query.get("limit", len(matched))
-    page = matched[offset:offset + limit]
+    page = matched[query["offset"]:query["offset"] + query["limit"]]
     selected = []
     used_bytes = 2
-    budget = "max_event_bytes" in query
     for event in page:
         size = len(_encoded(event)) + bool(selected)
-        if budget and used_bytes + size > query["max_event_bytes"]:
+        if used_bytes + size > query["max_event_bytes"]:
             break
         selected.append(event)
         used_bytes += size
@@ -196,7 +189,23 @@ def _select(events: list[dict[str, Any]], request: dict[str, Any], query: dict[s
             "reason": "queue_events_have_no_stable_event_id",
             "recorded_sequence": None,
         })
-    return selected, coverage, resolutions
+    report["events"] = selected
+    report["coverage"] = coverage
+    report["resolutions"] = resolutions
+    report["budget"] = {
+        "scope": "canonical_utf8_events_array_only",
+        "used_event_bytes": used_bytes,
+        "max_event_bytes": query["max_event_bytes"],
+        "max_events": query["limit"],
+        "runtime_collection_budget": False,
+    }
+    if coverage["budget_exhausted"]:
+        report["diagnostics"].append(diagnostic(
+            "offline_output_budget_exhausted",
+            "event array budget omitted the remaining page prefix",
+            stage="trace-query",
+            severity="warning",
+        ))
 
 
 def query_queue_trace(result: Any, request: dict[str, Any], plan: Any, *, bundle: Any = None, query: Any = None) -> dict[str, Any]:
@@ -330,10 +339,7 @@ def query_queue_trace(result: Any, request: dict[str, Any], plan: Any, *, bundle
                 },
             })
         normalized = _normalize_query(raw_query)
-        selected, coverage, resolutions = _select(events, request, normalized)
         report["query"] = normalized
-        report["events"] = selected
-        report["resolutions"] = resolutions
         report["run_identity"] = {
             "run_id": request["run_id"],
             "sample_index": request["sample_index"],
@@ -366,7 +372,7 @@ def query_queue_trace(result: Any, request: dict[str, Any], plan: Any, *, bundle
                 "core_fingerprint": linked["core"]["fingerprint"],
                 "plan_fingerprint": content_digest(linked["plan"]),
             }
-        report["coverage"] = coverage
+        _select(report, events, request, normalized)
         report["status"] = "partial"
         report["diagnostics"].append(diagnostic(
             "trace_evidence_partial",

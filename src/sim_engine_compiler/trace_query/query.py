@@ -71,6 +71,16 @@ def _text(value, field):
         raise ValueError(f"{field} must be a nonempty string of at most 4096 characters")
 
 
+def normalize_page(query):
+    """Apply the public trace pagination defaults and bounds."""
+    for key, default, low, high in (
+        ("offset", 0, 0, 2**63 - 1), ("limit", 100, 0, 1000),
+        ("max_event_bytes", 65536, 2, 1048576),
+    ):
+        query.setdefault(key, default)
+        _integer(query[key], low, high, f"query.{key}")
+
+
 def _query(value):
     raw = {} if value is None else json_value(value)
     if type(raw) is not dict or not set(raw) <= QUERY_FIELDS:
@@ -86,12 +96,7 @@ def _query(value):
             raise ValueError(f"query.{key} must be finite nonnegative time")
     if raw.get("time_start", 0) > raw.get("time_end", math.inf):
         raise ValueError("time_start must not exceed time_end; window is [start,end)")
-    for key, default, low, high in (
-        ("offset", 0, 0, 2**63 - 1), ("limit", 100, 0, 1000),
-        ("max_event_bytes", 65536, 2, 1048576),
-    ):
-        raw.setdefault(key, default)
-        _integer(raw[key], low, high, f"query.{key}")
+    normalize_page(raw)
     targets = raw.setdefault("resolve_event_ids", [])
     if (type(targets) is not list or len(targets) > 32
             or any(type(target) is not str for target in targets)

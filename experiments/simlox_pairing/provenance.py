@@ -91,7 +91,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "979be910cff9366b0605229a2c2c380d00b3ac6ee892bb4a8d2a56a769a03685"
     ),
     "src/sim_engine_compiler/domains/multi_server_queue/trace.py": (
-        "c1cb3aa87525e41d34a6790671dfbce74f1063d8cead60f66732149436c4a1b9"
+        "ead1b1ae1e2ea9065de4a0284f50ce78668593130aac6f2a2bc8282750f5f3ca"
     ),
     "src/sim_engine_compiler/domains/profiles.py": (
         "3ef478edbc39f7eeaf80607339b0bfbd41f2aff0cec358bdaa58a768ef8440d9"
@@ -154,7 +154,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "1117d82de0879dc533f4bc8366efd69ecc7732ece6cdde4efa82767bc0f75af3"
     ),
     "src/sim_engine_compiler/trace_query/query.py": (
-        "1e6514af510b5cec140f2df1ae11aba3ffe8bc956bd2b4b7d2b520ebac51963d"
+        "10fed0189aa9e823de8642fb5e4468729862ce14bfe084ae0742cc8756cd14a6"
     ),
 }
 DECLARED_BASELINE_OVERRIDE_SHA256 = {
