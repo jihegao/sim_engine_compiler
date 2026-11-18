@@ -14,7 +14,7 @@ from typing import Any
 from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.identity.common import content_digest, diagnostic, json_value
 
-from .model import PLAN_VERSION, QueueBusiness, lower
+from .model import PLAN_VERSION, SEMANTIC_PROFILE, QueueBusiness, lower
 
 SCHEMA_VERSION = "simulation-trace-query/v1"
 KNOWN_KINDS = frozenset({
@@ -207,8 +207,21 @@ def query_queue_trace(result: Any, request: dict[str, Any], plan: Any, *, bundle
         raw_query = {} if query is None else json_value(query)
         if not isinstance(raw_plan, dict) or raw_plan.get("plan_version") != PLAN_VERSION:
             raise ValueError("queue plan version is required")
+        if raw_plan.get("semantic_profile") != SEMANTIC_PROFILE:
+            raise ValueError("queue plan semantic profile is required")
         if not isinstance(raw_result, dict):
             raise ValueError("result must be a persisted JSON object")
+        for field, expected, authority in (
+            ("seed", request["seed"], "the request"),
+            ("sample_index", request["sample_index"], "the request"),
+            ("semantic_profile", raw_plan["semantic_profile"], "the plan"),
+        ):
+            recorded = raw_result.get(field)
+            if type(recorded) is not type(expected) or recorded != expected:
+                raise CompilationError(
+                    f"result.{field} must match {authority}",
+                    source_path=f"result.{field}",
+                )
         for field in ("backend", "run_id", "observation"):
             expected = request.get(field, "full" if field == "observation" else None)
             if field in raw_result and raw_result[field] != expected:
@@ -333,8 +346,8 @@ def query_queue_trace(result: Any, request: dict[str, Any], plan: Any, *, bundle
             "business_fingerprint": raw_result.get("business_fingerprint"),
             "core_fingerprint": raw_result.get("core_fingerprint"),
             "verified_result_fields": [
-                field for field in ("plan_fingerprint", "business_fingerprint", "core_fingerprint", "seed")
-                if field in raw_result
+                "plan_fingerprint", "seed", "sample_index", "semantic_profile",
+                *(("business_fingerprint", "core_fingerprint") if linked is not None else ()),
             ],
             "binding_strength": "recompiled_bundle" if linked else "plan_fingerprint_cross_checked",
             "proves_runtime_consumed_plan": False,

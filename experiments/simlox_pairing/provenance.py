@@ -91,7 +91,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "979be910cff9366b0605229a2c2c380d00b3ac6ee892bb4a8d2a56a769a03685"
     ),
     "src/sim_engine_compiler/domains/multi_server_queue/trace.py": (
-        "1a8e0203a95c5b49ef4189f51735568fbb7551788f617c758002fb968d2aff51"
+        "c1cb3aa87525e41d34a6790671dfbce74f1063d8cead60f66732149436c4a1b9"
     ),
     "src/sim_engine_compiler/domains/profiles.py": (
         "3ef478edbc39f7eeaf80607339b0bfbd41f2aff0cec358bdaa58a768ef8440d9"
