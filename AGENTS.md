@@ -24,20 +24,21 @@
 
 ## Cursor Cloud specific instructions
 
-Python 3.12 and Rust 1.90.0 are the pinned toolchains. The editable install with the test extra is `.venv`. Use `.venv/bin/python`, `.venv/bin/pytest`, and `sim-engine` (`/usr/local/bin/sim-engine` points at the venv script).
+Use Python 3.12 and Rust 1.90.0. Install the package with the test extra in `.venv` and use `.venv/bin/python`, `.venv/bin/pytest`, and `.venv/bin/sim-engine` from the checkout.
 
-The local validation UI is `demo/validation_app.py`. It listens on `http://127.0.0.1:8765/` and binds to localhost only. It calls these release binaries:
+The local validation UI is `demo/validation_app.py`. Follow [the demo setup](demo/README.md) to run it at `http://127.0.0.1:8765/`. It binds to localhost and calls these release binaries:
 
 - `rust/compiler/target/release/sim-engine-compiler-aot`
 - `rust/runtime/target/release/sim-engine-runtime`
 
-LLVM/MLIR 23.1.1 lives at `/opt/llvm-23.1.1`. Login shells export `MLIR_PREFIX`, `SIM_ENGINE_MLIR_OPT`, `SIM_ENGINE_MLIR_PLUGIN_DIR` (`/workspace/tools/mlir_dispatch/build-unix`), and prepend `/opt/llvm-23.1.1/lib` to `LD_LIBRARY_PATH`. Build the plugin with `/usr/bin/gcc` and `/usr/bin/g++`. The image's default `c++` is Clang and does not find `libstdc++`.
+Use LLVM/MLIR 23.1.1 for the integration checks. If the environment installs it at `/opt/llvm-23.1.1`, set `MLIR_PREFIX` to that directory and prepend its `lib` directory to `LD_LIBRARY_PATH`. Set `SIM_ENGINE_MLIR_OPT` to the installed `mlir-opt` and `SIM_ENGINE_MLIR_PLUGIN_DIR` to the plugin build directory under this checkout. Use the C++ toolchain that matches the installed LLVM build. The [Linux acceptance workflow](.github/workflows/o5-mlir-integration.yml) has the build and loader checks.
 
 Documented acceptance commands:
 
 ```bash
 .venv/bin/python -m pytest tests/conformance tests/differential/test_abm_rust_runtime.py
-cargo test --locked --release --manifest-path rust/runtime/Cargo.toml
+cargo +1.90.0 test --locked --release --manifest-path rust/runtime/Cargo.toml
+cargo +1.90.0 test --locked --release --manifest-path rust/compiler/Cargo.toml
 ```
 
-MLIR integration tests need `SIM_ENGINE_REQUIRE_MLIR=1` and the variables above. Without them, those tests skip. The public product sequence is in `docs/v01-product-contract.md`: `sim-engine example`, then inspect, seal, validate, compile, run, batch, and diff outside the checkout.
+Set `SIM_ENGINE_REQUIRE_MLIR=1` for MLIR acceptance so missing plugins fail the check. The [product contract](docs/v01-product-contract.md) documents the CLI flow from `sim-engine example` through inspect, seal, validate, compile, run, batch, and diff outside the checkout.
