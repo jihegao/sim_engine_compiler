@@ -1,0 +1,83 @@
+{
+  "schema_version": "domain-profile-generality-evidence/v1",
+  "date": "2026-10-16",
+  "issue": "https://github.com/jihegao/riffology-cloud/issues/224",
+  "implementation_commit": "3daa86d0",
+  "toolchain": {
+    "python": "3.12",
+    "rustc": "1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo +1.90.0 test --locked --release --manifest-path rust/runtime/Cargo.toml"
+  },
+  "gaps": {
+    "1_domain_profile_boundary": "pass",
+    "2_unconsumed_business_sections": "pass",
+    "3_rust_trace_admission": "pass",
+    "4_two_server_queue_profile": "pass"
+  },
+  "aircraft_b1_example": {
+    "seal": "pass",
+    "validate": "valid",
+    "compile": "valid",
+    "run_schema": "sim-engine-run/v1",
+    "run_stop_reason": "duration",
+    "run_sha256": "9ea0ce1254a0b7cbbbe069bb38cd4946e1748dfbd5bcfb8c5799e3e7db114e53",
+    "batch_seeds": [0, 1, 7],
+    "batch_repeat_sha256": "7e5fb8329730669432b80c303560d130a200cb023f666dc77aab60b67ba3b30a",
+    "batch_repeat_byte_identical": true,
+    "seed0_sample_requests": 0,
+    "note": "The packaged aircraft B1 example matches identity fingerprint 58bc6d1abdc3339a071e387bd359ce92d7f22e57204182e30d991fc0e6b1e0de. Its seed-0 sample_requests list is empty, and the saved synthetic B1 reference result is also empty. Stochastic draws are covered by the queue profile."
+  },
+  "queue_profile": {
+    "seal": "pass",
+    "validate": "valid",
+    "compile": "valid",
+    "run_schema": "sim-engine-run/v1",
+    "run_stop_reason": "horizon",
+    "run_sha256": "32e88dd7b3213262baf809320460e422d5a421e8075d50ad0cfaaf26f966a6d3",
+    "batch_seeds": [0, 1, 7],
+    "batch_repeat_sha256": "dd54ec45b274e15f3178850d6ab96d575c90a193296d2bd4a785297a4454fe08",
+    "batch_repeat_byte_identical": true,
+    "python_rust_cli_agreement": [
+      {"seed": 0, "equal": true, "sample_requests": 43, "arrivals": 14, "mean_wait": 0.0},
+      {"seed": 1, "equal": true, "sample_requests": 55, "arrivals": 18, "mean_wait": 0.039888326327678435},
+      {"seed": 7, "equal": true, "sample_requests": 70, "arrivals": 23, "mean_wait": 1.4164798111951566}
+    ],
+    "second_ir_configuration": "pass on seeds 0, 1, and 7 in tests/differential/test_queue_profile.py"
+  },
+  "rust_trace_query": {
+    "aircraft_b1": {
+      "backend": "rust-runtime",
+      "status": "partial",
+      "events": 26,
+      "unsupported_backend": false,
+      "review_association": "verified"
+    },
+    "queue": {
+      "backend": "rust-runtime",
+      "status": "partial",
+      "events": 43,
+      "design_link_status": "verified"
+    }
+  },
+  "tests": {
+    "pytest": "PYTHONPATH=/workspace/src python3.12 -m pytest tests/conformance tests/differential -q",
+    "pytest_result": "558 passed, 18 skipped, exit 0",
+    "skips": [
+      "9 candidate-dispatch tests: candidate dispatch requires MLIR 23.1.1 plugins",
+      "4 MLIR resource-dispatch tests: event-time MLIR combination requires MLIR 23.1.1 plugins",
+      "4 three-arm tests: prebuilt runtime and pinned MLIR 23.1.1 plugins are absent",
+      "1 validation-app test: pinned MLIR plugins are not configured"
+    ],
+    "cargo_result": "exit 0; lib 39 passed including queue fixture draws and repeat; remaining runtime bins 6+6+3 passed"
+  },
+  "limits": [
+    "multi-server-queue-v1 is restricted to exactly two servers, Poisson arrivals, exponential service, one nonpreemptive priority rule, and mean_wait",
+    "mean wait is the sequential IEEE-754 sum of waits for customers who start service at or before the horizon",
+    "event-time-v2 trace query remains unadmitted for Python and Rust",
+    "queue events have no stable event id; design links require a full recompilable bundle",
+    "diff_runs and aircraft run identity stay on the aircraft contract; queue runs use multi-server-queue-run-identity/v1",
+    "execution provenance stays caller-asserted",
+    "missing admitted aircraft sections still use historical defaults; only unknown sections are rejected",
+    "MLIR 23.1.1 plugin tests were skipped because those plugins are not installed in this environment"
+  ]
+}

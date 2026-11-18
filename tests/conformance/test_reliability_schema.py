@@ -37,7 +37,6 @@ def inputs(components, *, aircraft_ids=("F35-01",)):
     return {
         "schema_version": "aircraft-support-v1-input-v1",
         "operations_support_policy": "daily-v1",
-        "semantic_profile": "legacy-minute-v1",
         "equipment_tree": {"components": components},
         "aircraft": {
             "assets": [

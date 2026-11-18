@@ -152,11 +152,10 @@ fingerprint. They do not enter or alter the frozen `595cb5e` build fingerprint.
 Any later package source addition, deletion, or content change still fails until
 its provenance classification and digest are reviewed explicitly.
 
-PR #561 (Issue #560) extends the same reviewed-addition contract to
-`domains/aircraft_support/reliability.py` and `ir/reliability.py`. The current
-declared-addition contract is `simlox-pairing-checkout-additions/v6`; both files
-remain outside the frozen `595cb5e` build fingerprint and are pinned by exact
-LF-byte SHA-256 with the same audited whole-file CRLF allowance.
+The current contract `simlox-pairing-checkout-additions/v7` includes the
+reliability modules from PR #561 and the queue and profile modules from PR #554.
+These files remain outside the frozen `595cb5e` build fingerprint and are pinned
+by exact LF-byte SHA-256 with the same audited whole-file CRLF allowance.
 
 The imported `SimpyReferenceRuntime` path must still resolve into this checkout.
 The source verifier reads the exact baseline tree and blobs and never substitutes

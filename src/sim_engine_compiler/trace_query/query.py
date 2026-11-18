@@ -26,14 +26,14 @@ LIMITATIONS = [
     "no_causality_inferred_from_event_adjacency",
     "unrecorded_guard_candidate_cache_and_trigger_state_unknown",
     "offline_event_payload_budget_not_runtime_collection_or_total_envelope_budget",
-    "rust_collection_unsupported_in_this_slice",
+    "event_time_v2_trace_query_not_admitted",
 ]
 
 
 def _envelope():
     return {
         "schema_version": SCHEMA_VERSION, "status": "invalid",
-        "support": {"backends": ["python-reference"],
+        "support": {"backends": ["python-reference", "rust-runtime"],
                     "profiles": ["legacy-minute-v1"],
                     "unsupported_profiles": ["event-time-v2"],
                     "observations": ["full", "summary-evidence-insufficient"],
@@ -225,12 +225,16 @@ def query_trace(result: Any, request: Any, plan: Any, *, bundle=None, query=None
         for field in ("engine_version", "domain_package_version"):
             if field in req:
                 _text(req[field], f"request.{field}")
-        if req["backend"] != "python-reference":
+        if req["backend"] not in {"python-reference", "rust-runtime"}:
             report["status"] = "unsupported"
             report["diagnostics"].append(diagnostic(
-                "unsupported_backend", "only Python reference recorded results are admitted; Rust unverified",
+                "unsupported_backend",
+                f"backend {req['backend']!r} is not admitted; admitted backends are python-reference and rust-runtime",
                 stage="trace-query", path="request.backend"))
             return _finish(report)
+        if isinstance(plan, dict) and plan.get("plan_version") == "multi-server-queue-plan/v1":
+            from sim_engine_compiler.domains.multi_server_queue.trace import query_queue_trace
+            return query_queue_trace(result, req, plan, bundle=bundle, query=query)
         if "source_truncated" in req and type(req["source_truncated"]) is not bool:
             raise ValueError("source_truncated must be boolean")
         stage = "query"
@@ -269,7 +273,7 @@ def query_trace(result: Any, request: Any, plan: Any, *, bundle=None, query=None
         if identity["execution_contract"]["semantic_profile"] != "legacy-minute-v1":
             report["status"] = "unsupported"
             report["diagnostics"].append(diagnostic(
-                "unsupported_backend_profile", "Python reference does not collect event-time-v2 results",
+                "unsupported_backend_profile", "event-time-v2 trace query is not admitted for Python or Rust results",
                 stage="trace-query", path="plan.semantic_profile"))
             return _finish(report)
         stage = "result"

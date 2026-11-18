@@ -80,9 +80,15 @@ def _parser() -> argparse.ArgumentParser:
     diff.add_argument("after")
     diff.add_argument("--output")
     example = commands.add_parser(
-        "example", help="write the packaged B1 Business revision and bundle"
+        "example", help="write a packaged Business revision and bundle"
     )
     example.add_argument("directory")
+    example.add_argument(
+        "--profile",
+        default="aircraft-support-v1",
+        choices=("aircraft-support-v1", "multi-server-queue-v1"),
+        help="domain profile to materialize",
+    )
     return parser
 
 
@@ -143,12 +149,17 @@ def _execute(args: argparse.Namespace) -> dict:
         result = product.diff_runs(_read_json(args.before), _read_json(args.after))
     elif args.command == "example":
         root = Path(args.directory)
-        business = product._json_bytes(
-            files("sim_engine_compiler.examples")
-            .joinpath("aircraft_b1_business.json")
-            .read_bytes(),
-            "aircraft_b1_business.json",
-        )
+        if args.profile == "multi-server-queue-v1":
+            from sim_engine_compiler.domains.multi_server_queue.model import EXAMPLE_INPUT
+
+            business = product.seal_business(EXAMPLE_INPUT)
+        else:
+            business = product._json_bytes(
+                files("sim_engine_compiler.examples")
+                .joinpath("aircraft_b1_business.json")
+                .read_bytes(),
+                "aircraft_b1_business.json",
+            )
         business_path, bundle_path = root / "business.json", root / "baseline.simpack"
         _write_json(str(business_path), business)
         compiled = product.compile_bundle(business_path, bundle_path)

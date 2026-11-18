@@ -291,14 +291,33 @@ class ReferenceCapabilityBoundaryTests(unittest.TestCase):
         self.assertEqual(report["events"], [])
         self.assertNotIn("event-time-v2", report["support"]["profiles"])
 
-    def test_rust_collection_request_is_explicitly_unsupported(self) -> None:
+    def test_rust_runtime_backend_projects_recorded_events(self) -> None:
         report = query_trace(
             self.result,
             _request(
-                run_id="rust-not-accepted",
+                run_id="rust-admitted",
                 sample_index=0,
                 seed=0,
                 backend="rust-runtime",
+            ),
+            self.plan,
+            query=_wide_query(),
+        )
+
+        self.assertEqual(report["status"], "partial")
+        self.assertNotIn("unsupported_backend", _codes(report))
+        self.assertTrue(report["events"])
+        self.assertEqual(report["evidence_binding"]["backend"], "rust-runtime")
+        self.assertIn(LIMITATION, report["limitations"])
+
+    def test_unknown_backend_is_explicitly_unsupported(self) -> None:
+        report = query_trace(
+            self.result,
+            _request(
+                run_id="other-runtime",
+                sample_index=0,
+                seed=0,
+                backend="other-runtime",
             ),
             self.plan,
         )
