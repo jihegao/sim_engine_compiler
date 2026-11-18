@@ -9,10 +9,12 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use sim_engine_compiler_aot::{COMPILER_VERSION, compile_aircraft_support_with_profile};
+use sim_engine_compiler_aot::{
+    COMPILER_VERSION, compile_aircraft_support_with_profile, plan_cache_file_name,
+};
 use sim_engine_runtime::{
-    ExecutionPlan, ObservationLevel, PLAN_CACHE_FORMAT_VERSION, Runtime, decode_plan_cache,
-    decode_plan_cache_with_identity, encode_plan_cache_with_identity,
+    ExecutionPlan, ObservationLevel, Runtime, decode_plan_cache, decode_plan_cache_with_identity,
+    encode_plan_cache_with_identity,
 };
 
 #[derive(Parser)]
@@ -64,7 +66,7 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let started = Instant::now();
     if args.project_json.is_some() && args.cache_dir.is_none() {
-        bail!("--project-json requires --cache-dir so the pre-Adapter lookup is durable");
+        bail!("--project-json requires --cache-dir so the project-keyed cache is durable");
     }
 
     let mut project_read_nanos = 0_u128;
@@ -85,37 +87,46 @@ fn main() -> Result<()> {
     } else {
         None
     };
+    let adapter_digest = args
+        .adapter_contract_version
+        .as_ref()
+        .map(|value| format!("{:x}", Sha256::digest(value.as_bytes())));
     let cache_name = |identity: &str| {
-        let adapter_digest = args
-            .adapter_contract_version
-            .as_ref()
-            .map(|value| format!("{:x}", Sha256::digest(value.as_bytes())));
-        format!(
-            "{}-{}-{}-{}-{}.seplan",
+        plan_cache_file_name(
             identity,
-            adapter_digest.as_deref().unwrap_or("canonical"),
-            COMPILER_VERSION.rsplit('/').next().unwrap_or("unknown"),
-            args.semantic_profile,
-            PLAN_CACHE_FORMAT_VERSION
-                .rsplit('/')
-                .next()
-                .unwrap_or("unknown"),
+            adapter_digest.as_deref(),
+            COMPILER_VERSION,
+            &args.semantic_profile,
         )
     };
-    let mut cache_path = source_model_sha256.as_ref().and_then(|identity| {
-        args.cache_dir
-            .as_ref()
-            .map(|directory| directory.join(cache_name(identity)))
-    });
     let mut cache_hit = false;
-    let mut read_nanos = 0_u128;
-    let mut parse_nanos = 0_u128;
-    let mut fingerprint_nanos = 0_u128;
     let mut compile_nanos = 0_u128;
     let mut cache_decode_nanos = 0_u128;
     let mut run_init_nanos = 0_u128;
     let mut run_execute_nanos = 0_u128;
-    let mut source_inputs_sha256 = String::new();
+
+    let read_started = Instant::now();
+    let input_bytes = fs::read(&args.input)?;
+    let read_nanos = read_started.elapsed().as_nanos();
+    let parse_started = Instant::now();
+    let inputs: Value = serde_json::from_slice(&input_bytes)?;
+    let parse_nanos = parse_started.elapsed().as_nanos();
+    let fingerprint_started = Instant::now();
+    let canonical = ExecutionPlan::python_canonical(&inputs)?;
+    let source_inputs_sha256 = format!("{:x}", Sha256::digest(canonical.as_bytes()));
+    let fingerprint_nanos = fingerprint_started.elapsed().as_nanos();
+
+    let cache_identity = match source_model_sha256.as_deref() {
+        Some(project) => format!(
+            "{:x}",
+            Sha256::digest(format!("{project}:{source_inputs_sha256}").as_bytes())
+        ),
+        None => source_inputs_sha256.clone(),
+    };
+    let cache_path = args
+        .cache_dir
+        .as_ref()
+        .map(|directory| directory.join(cache_name(&cache_identity)));
 
     let mut resolved = None;
     if let Some(path) = cache_path.as_ref()
@@ -123,73 +134,48 @@ fn main() -> Result<()> {
     {
         let cache_started = Instant::now();
         let bytes = fs::read(path)?;
-        let cached = decode_plan_cache_with_identity(
-            &bytes,
-            Some(COMPILER_VERSION),
-            None,
-            Some(&args.semantic_profile),
-            source_model_sha256.as_deref(),
-            args.adapter_contract_version.as_deref(),
-        )?;
-        cache_decode_nanos = cache_started.elapsed().as_nanos();
-        cache_hit = true;
-        source_inputs_sha256 = cached.source_inputs_sha256.clone();
-        resolved = Some((cached.plan, cached.plan_fingerprint, bytes));
-    }
-
-    if resolved.is_none() {
-        let read_started = Instant::now();
-        let input_bytes = fs::read(&args.input)?;
-        read_nanos = read_started.elapsed().as_nanos();
-        let parse_started = Instant::now();
-        let inputs: Value = serde_json::from_slice(&input_bytes)?;
-        parse_nanos = parse_started.elapsed().as_nanos();
-        let fingerprint_started = Instant::now();
-        let canonical = ExecutionPlan::python_canonical(&inputs)?;
-        source_inputs_sha256 = format!("{:x}", Sha256::digest(canonical.as_bytes()));
-        fingerprint_nanos = fingerprint_started.elapsed().as_nanos();
-        if cache_path.is_none() {
-            cache_path = args
-                .cache_dir
-                .as_ref()
-                .map(|directory| directory.join(cache_name(&source_inputs_sha256)));
-        }
-
-        if let Some(path) = cache_path.as_ref()
-            && path.is_file()
-        {
-            let cache_started = Instant::now();
-            let bytes = fs::read(path)?;
-            let cached = decode_plan_cache(
+        let cached = if source_model_sha256.is_some() {
+            decode_plan_cache_with_identity(
                 &bytes,
                 Some(COMPILER_VERSION),
                 Some(&source_inputs_sha256),
                 Some(&args.semantic_profile),
-            )?;
-            cache_decode_nanos = cache_started.elapsed().as_nanos();
-            cache_hit = true;
-            resolved = Some((cached.plan, cached.plan_fingerprint, bytes));
-        } else {
-            let compile_started = Instant::now();
-            let plan = compile_aircraft_support_with_profile(&inputs, &args.semantic_profile)?;
-            compile_nanos = compile_started.elapsed().as_nanos();
-            if plan.source_inputs_sha256 != source_inputs_sha256 {
-                bail!("compiler source fingerprint does not match cache key");
-            }
-            let raw = serde_json::to_value(&plan)?;
-            let plan_fingerprint = ExecutionPlan::fingerprint(&raw)?;
-            let bytes = encode_plan_cache_with_identity(
-                plan.clone(),
-                COMPILER_VERSION,
-                &plan_fingerprint,
                 source_model_sha256.as_deref(),
                 args.adapter_contract_version.as_deref(),
-            )?;
-            if let Some(path) = cache_path.as_ref() {
-                write_atomic(path, &bytes)?;
-            }
-            resolved = Some((plan, plan_fingerprint, bytes));
+            )?
+        } else {
+            decode_plan_cache(
+                &bytes,
+                Some(COMPILER_VERSION),
+                Some(&source_inputs_sha256),
+                Some(&args.semantic_profile),
+            )?
+        };
+        cache_decode_nanos = cache_started.elapsed().as_nanos();
+        cache_hit = true;
+        resolved = Some((cached.plan, cached.plan_fingerprint, bytes));
+    }
+
+    if resolved.is_none() {
+        let compile_started = Instant::now();
+        let plan = compile_aircraft_support_with_profile(&inputs, &args.semantic_profile)?;
+        compile_nanos = compile_started.elapsed().as_nanos();
+        if plan.source_inputs_sha256 != source_inputs_sha256 {
+            bail!("compiler source fingerprint does not match cache key");
         }
+        let raw = serde_json::to_value(&plan)?;
+        let plan_fingerprint = ExecutionPlan::fingerprint(&raw)?;
+        let bytes = encode_plan_cache_with_identity(
+            plan.clone(),
+            COMPILER_VERSION,
+            &plan_fingerprint,
+            source_model_sha256.as_deref(),
+            args.adapter_contract_version.as_deref(),
+        )?;
+        if let Some(path) = cache_path.as_ref() {
+            write_atomic(path, &bytes)?;
+        }
+        resolved = Some((plan, plan_fingerprint, bytes));
     }
     let (plan, plan_fingerprint, cache_bytes) = resolved.context("plan was not resolved")?;
 

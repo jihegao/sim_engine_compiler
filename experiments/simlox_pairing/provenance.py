@@ -27,18 +27,39 @@ REBUILT_ZIP_SHA256 = "4f78ba072f5b458231ba8ba394e25bc9fc953e2bf288f28e30682a4e7a
 PORTABLE_SHA256 = "ab26c7ea23496938e6e15e02f58eb8e6906db358acc2a9f24b7bdc28bee52d3f"
 DEFAULT_ARCHIVE = ROOT / "tests/fixtures/simlox_pairing/a01-a02-handoff-519b209.zip"
 
-# PRs #20, #23, #24, Issue #29, the reviewed #542 additions, and the
-# domain-profile queue modules are explicit checkout sources. Their pinned
-# bytes and the declared engine delta stay separate from the frozen pairing
-# baseline and do not change its historic Git blob fingerprint.
-DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v6"
+# The pinned checkout includes both fused aircraft reliability and queue
+# profiles. Their source digests are separate from the frozen pairing baseline.
+DECLARED_NONBASELINE_SOURCE_CONTRACT = "simlox-pairing-checkout-additions/v7"
 DECLARED_MODIFIED_BASELINE_SOURCE_CONTRACT = "simlox-pairing-declared-engine-delta/v1"
 DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
-    "src/sim_engine_compiler/ir/layers.py": (
-        "4fb0c06cfad201a62f3e000f535b52affec1c583cc8adfa45fdc8793b6388749"
+    "src/sim_engine_compiler/compiler/layout.py": (
+        "d45749cca95a44c726e9674cfaf4608f0552e96fb6290a6b94d91a56af800efa"
     ),
     "src/sim_engine_compiler/reference/abm_runtime.py": (
         "46ef80ad188c39bc8d733378b143a29d46c0bba67eda63904067070bb352e10f"
+    ),
+    # PR #561 (Issue #560) keeps the Aircraft MTBF conversion, withdraws the
+    # generic reliability rate bypass, and models quantity=N as independent LRU
+    # instances. These reviewed baseline sources change content while the frozen
+    # 595cb5e build fingerprint stays intact; the executed bytes are pinned by
+    # the LF commit-blob digests below.
+    "src/sim_engine_compiler/domains/aircraft_support/lowering.py": (
+        "a16542afc515c1758ec449e69ce7559c185f5e77b78d22410b35fb3916883f5d"
+    ),
+    "src/sim_engine_compiler/domains/aircraft_support/validation.py": (
+        "bd6bdd52acf562e9c97570a9aa8f38a97f9909f7bda5b019388cffacbe142330"
+    ),
+    "src/sim_engine_compiler/ir/__init__.py": (
+        "7e51be82af8dfeb1547f326df11606acd117c9c47def180332528312fcfdab55"
+    ),
+    "src/sim_engine_compiler/ir/layers.py": (
+        "3d20f75302086c7bed498671d0ca2086233dc348914a91e650e5b72f0ce8dd6e"
+    ),
+    "src/sim_engine_compiler/ir/plan.py": (
+        "9a932e0e2e23a9f0d85e45673935d6ea6eba65deafdb6cc4b4e6d49cc6180ffc"
+    ),
+    "src/sim_engine_compiler/reference/simpy_runtime.py": (
+        "1bcebe9b3e5edd5072fbcc0a6c1ee4de20741ba4dee15de8217740a71b687305"
     ),
 }
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
@@ -75,6 +96,9 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/domains/profiles.py": (
         "3ef478edbc39f7eeaf80607339b0bfbd41f2aff0cec358bdaa58a768ef8440d9"
     ),
+    "src/sim_engine_compiler/domains/aircraft_support/reliability.py": (
+        "81609ca387dcaa697a4277226b6062fb59feec5d57d43f32b8aec22a9affff86"
+    ),
     "src/sim_engine_compiler/examples/__init__.py": (
         "eed06b92b7f3972187c4ad316563b05c0c3c848ec60aba6c140d150c944019fe"
     ),
@@ -85,7 +109,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "e0df441b01f212591e6658e3f6513548f3b0246962054ddb342d88a55e49be32"
     ),
     "src/sim_engine_compiler/identity/artifacts.py": (
-        "07667396c189d6ba77c01e53c9d34012a4b973c641a9c3f9f89911d2fc08a555"
+        "75c62100c7921ddfe98e5b9aee38f7c2797191e20efbdf7e6384619cb5d07a7d"
     ),
     "src/sim_engine_compiler/identity/common.py": (
         "759932aa37d96ac261dbfecae5b24858fc7483e7a7866bbf259166666daef1fd"
@@ -99,8 +123,11 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
     "src/sim_engine_compiler/ir/bounded.py": (
         "363131a6018b337a3802e8cf29a3c28d5855fa9e43a92c208fe0816e855f295a"
     ),
+    "src/sim_engine_compiler/ir/reliability.py": (
+        "991de1953f2c2aefb70513ad0208d1aa4e76d9ba7792eb9de826aa0ebf8e6f36"
+    ),
     "src/sim_engine_compiler/product.py": (
-        "186791fe16f5bd0e19263ff11b6ccff5a53de35d1b7b4583506a6d0da3fe6e6a"
+        "b8102ac7d0848efa0abbce9df0143cab644be399da69e9846964148a2f971913"
     ),
     "src/sim_engine_compiler/reference/event_calendar.py": (
         "f2dc90a52c0425be44ce270fcded4bdd49a27a4fe2d0af546f61a943e77efc3d"

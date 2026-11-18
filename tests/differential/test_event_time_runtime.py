@@ -8,6 +8,11 @@ import subprocess
 import tempfile
 import unittest
 
+from sim_engine_compiler.compiler import compile_aircraft_support
+from sim_engine_compiler.ir.plan import ExecutionPlan
+from sim_engine_compiler.reference import SimpyReferenceRuntime
+from sim_engine_compiler.reference.conformance import first_divergence
+
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "rust" / "runtime" / "Cargo.toml"
@@ -270,6 +275,73 @@ class EventTimeRuntimeConformanceTests(unittest.TestCase):
         legacy = self._run(legacy_plan)
         event = self._run(event_plan)
         self.assert_results_match_except_plan_identity(legacy, event)
+
+    def _quantity_two_failure_inputs(self):
+        inputs = json.loads(
+            (SYNTHETIC / "b2-failure-repair.json").read_text(encoding="utf-8")
+        )
+        radar = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        radar["quantity"] = 2
+        radar["failure_distribution"] = {
+            "distributionType": "exponential",
+            "mtbf": 0.02,
+            "timeUnit": "hour",
+            "timeBasis": "flight_hour",
+        }
+        calendar = inputs["mission_profile"]["mission_calendar"]
+        composite_task_id = calendar[0]["composite_task_id"]
+        for day in (2, 3, 4):
+            calendar.append({"day_index": day, "composite_task_id": composite_task_id})
+        inputs["time"]["duration_minutes"] = 5760
+        inputs["mission_profile"]["duration_minutes"] = 5760
+        return inputs
+
+    def test_10_quantity_instances_event_time_matches_legacy_and_python_runtime(self):
+        legacy_plan_model = compile_aircraft_support(
+            self._quantity_two_failure_inputs(), semantic_profile="legacy-minute-v1"
+        )
+        event_plan_model = compile_aircraft_support(
+            self._quantity_two_failure_inputs(), semantic_profile="event-time-v2"
+        )
+        legacy_plan = self._write_raw_plan(
+            "quantity-two-legacy", legacy_plan_model.to_dict()
+        )
+        event_plan = self._write_raw_plan(
+            "quantity-two-event", event_plan_model.to_dict()
+        )
+
+        expected = SimpyReferenceRuntime(
+            ExecutionPlan.from_dict(json.loads(legacy_plan.read_text())), seed=0
+        ).run()
+        legacy = self._run(legacy_plan)
+        self.assertIsNone(
+            first_divergence(expected, legacy, float_rel_tol=2e-15, float_abs_tol=1e-12)
+        )
+        event = self._run(event_plan)
+        self.assert_results_match_except_plan_identity(legacy, event)
+
+        failures = [
+            item["details"]["instance_index"]
+            for item in expected["trace"]
+            if item["kind"] == "component_failed"
+        ]
+        repairs = [
+            item["details"]["instance_index"]
+            for item in expected["trace"]
+            if item["kind"] == "repair_completed"
+        ]
+        self.assertEqual(sorted(set(failures)), [0, 1])
+        self.assertEqual(sorted(set(repairs)), [0, 1])
+        self.assertEqual(len(repairs), len(failures))
+        resamples = [
+            item["instance_index"]
+            for item in expected["sample_requests"]
+            if item["reason"] == "repair_completed"
+        ]
+        self.assertEqual(resamples, repairs)
 
 
 if __name__ == "__main__":

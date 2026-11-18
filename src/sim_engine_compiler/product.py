@@ -162,9 +162,9 @@ def _compiler_error(error: Exception, path: str) -> ProductError:
     )
 
 
-def _compile(business: BusinessIR):
+def _compile(business, pack):
     try:
-        return PACK.compile(business)
+        return pack.compile(business)
     except (
         AttributeError,
         CompilationError,
@@ -191,9 +191,9 @@ def seal_business(payload: Mapping[str, Any]) -> dict[str, Any]:
         else:
             pack = pack_for_payload(raw)
             business = pack.load_payload(raw)
-        pack.compile(business)
     except (AttributeError, CompilationError, KeyError, TypeError, ValueError) as error:
         raise _compiler_error(error, "business.payload") from error
+    _compile(business, pack)
     return business.to_dict()
 
 
@@ -231,7 +231,7 @@ def validate_business(source: Mapping[str, Any] | str | Path) -> dict[str, Any]:
     """Validate the persisted envelope and its executable lowering."""
     try:
         business, pack = _open_saved(source)
-        core, plan, _ = pack.compile(business)
+        core, plan, _ = _compile(business, pack)
     except ProductError as error:
         return {
             "schema_version": "sim-engine-validation/v1",
@@ -312,17 +312,7 @@ def compile_bundle(
             stage="compile",
         )
     business, pack = _open_saved(source)
-    try:
-        core, plan, source_map = pack.compile(business)
-    except (
-        AttributeError,
-        CompilationError,
-        IndexError,
-        KeyError,
-        TypeError,
-        ValueError,
-    ) as error:
-        raise _compiler_error(error, "business") from error
+    core, plan, source_map = _compile(business, pack)
     # Dataclass serialization retains tuples in memory; persistence uses JSON arrays.
     plan_json = json.loads(
         json.dumps(plan.to_dict(), ensure_ascii=False, allow_nan=False)

@@ -147,10 +147,8 @@ impl Runtime {
                     );
                 }
                 if !aircraft.in_flight_failure {
-                    for (slot, failure_minute) in aircraft
-                        .component_failure_minutes_by_slot
-                        .iter()
-                        .enumerate()
+                    for (slot, failure_minute) in
+                        aircraft.instance_failure_minutes_by_slot.iter().enumerate()
                     {
                         if failure_minute.is_some() {
                             continue;
@@ -312,7 +310,7 @@ impl Runtime {
                     .failure_remaining_by_slot
                     .len()
                 {
-                    if self.aircraft[aircraft_index].component_failure_minutes_by_slot[slot]
+                    if self.aircraft[aircraft_index].instance_failure_minutes_by_slot[slot]
                         .is_some()
                     {
                         continue;

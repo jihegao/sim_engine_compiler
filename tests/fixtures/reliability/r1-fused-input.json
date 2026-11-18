@@ -1,0 +1,257 @@
+{
+  "schema_version": "aircraft-support-v1-input-v1",
+  "operations_support_policy": "daily-v1",
+  "project_identity": {
+    "project_id": "synthetic-b2-failure-repair",
+    "project_version": "1",
+    "scenario_id": "scenario-1",
+    "source_import_id": "hand-calculable"
+  },
+  "mission_profile": {
+    "profile_id": "b2-profile",
+    "name": "One failure and repair",
+    "duration_minutes": 30,
+    "basic_missions": [
+      {
+        "id": "basic-sortie",
+        "missionId": "basic-sortie",
+        "name": "Failure sortie",
+        "advanceNoticeMinutes": 2,
+        "cancelMinutes": 5,
+        "equipmentQuantity": 1,
+        "equipmentType": "F35",
+        "minRequiredSorties": 1,
+        "successPoint": 0.5,
+        "taskDurationMinutes": 20
+      }
+    ],
+    "composite_tasks": [
+      {
+        "id": "failure-sortie",
+        "name": "Failure sortie",
+        "priority": 1,
+        "taskItems": [
+          {
+            "id": "sortie-failure",
+            "basicMissionId": "basic-sortie",
+            "basicTaskName": "Failure sortie",
+            "firstWaveTime": "00:05",
+            "dailyRepeatCount": 1,
+            "equipmentType": "F35",
+            "operations_plan_group_id": "f35-daily"
+          }
+        ]
+      }
+    ],
+    "mission_calendar": [
+      {
+        "day_index": 1,
+        "composite_task_id": "failure-sortie"
+      }
+    ],
+    "mission_phases": [],
+    "airports": []
+  },
+  "aircraft": {
+    "fleet_count": 1,
+    "initial_ready": 1,
+    "models": [
+      "F35"
+    ],
+    "assets": [
+      {
+        "tail_number": "F35-01",
+        "aircraft_type": "F35",
+        "model": "F35",
+        "initial_state": "available"
+      }
+    ]
+  },
+  "equipment_tree": {
+    "root_component_id": "f35",
+    "components": [
+      {
+        "id": "f35",
+        "component_type_id": "airframe",
+        "name": "F35",
+        "aircraft_model": "F35",
+        "instances": [
+          {
+            "instance_id": "f35-1"
+          }
+        ]
+      },
+      {
+        "id": "radar-lru",
+        "component_type_id": "radar-lru",
+        "name": "Radar LRU",
+        "aircraft_model": "F35",
+        "parent_id": "f35",
+        "parent_instance_id": "f35-1",
+        "instances": [
+          {
+            "instance_id": "radar-a",
+            "failure_rate_per_hour": 0.5,
+            "repair_profile": {
+              "repair_activity_index": 0,
+              "repair_duration_minutes": 10
+            }
+          },
+          {
+            "instance_id": "radar-b",
+            "failure_rate_per_hour": 0.25,
+            "repair_profile": {
+              "repair_activity_index": 0,
+              "repair_duration_minutes": 20
+            }
+          }
+        ],
+        "redundancy": {
+          "kind": "k_out_of_n",
+          "k": 1,
+          "n": 2
+        }
+      }
+    ]
+  },
+  "support_network": {
+    "nodes": [
+      {
+        "id": "flight-line",
+        "name": "Flight line",
+        "personnel_capacity": 1,
+        "equipment_capacity": 1,
+        "inventory": {}
+      }
+    ]
+  },
+  "support_activities": {
+    "activities": [
+      {
+        "id": "f35-daily-preflight",
+        "name": "Preflight",
+        "operations_phase": "preflight",
+        "plan_group_id": "f35-daily",
+        "aircraft_model": "F35",
+        "resource_id": "flight-line",
+        "priority": 1,
+        "jobs": [
+          {
+            "activityCode": "PRE-1",
+            "durationMinutes": 1,
+            "personnel": [
+              {
+                "professional": "crew",
+                "quantity": 1
+              }
+            ],
+            "equipment": [
+              {
+                "model": "cart",
+                "quantity": 1
+              }
+            ],
+            "spare": [],
+            "predecessors": []
+          }
+        ]
+      },
+      {
+        "id": "f35-daily-relaunch",
+        "name": "Relaunch",
+        "operations_phase": "relaunch",
+        "plan_group_id": "f35-daily",
+        "aircraft_model": "F35",
+        "resource_id": "flight-line",
+        "priority": 1,
+        "jobs": []
+      },
+      {
+        "id": "f35-daily-postflight",
+        "name": "Postflight",
+        "operations_phase": "postflight",
+        "plan_group_id": "f35-daily",
+        "aircraft_model": "F35",
+        "resource_id": "flight-line",
+        "priority": 1,
+        "jobs": [
+          {
+            "activityCode": "POST-1",
+            "durationMinutes": 2,
+            "personnel": [
+              {
+                "professional": "crew",
+                "quantity": 1
+              }
+            ],
+            "equipment": [
+              {
+                "model": "cart",
+                "quantity": 1
+              }
+            ],
+            "spare": [],
+            "predecessors": []
+          }
+        ]
+      },
+      {
+        "id": "corrective-radar",
+        "name": "Radar repair",
+        "activity_type": "corrective",
+        "aircraft_model": "F35",
+        "equipment_id": "radar-lru",
+        "resource_id": "flight-line",
+        "priority": 1,
+        "maintenance_methods": [
+          "non_replacement"
+        ],
+        "replacement_ratio": 0,
+        "jobs": [
+          {
+            "activityCode": "REPAIR-1",
+            "durationMinutes": 3,
+            "personnel": [
+              {
+                "professional": "repair",
+                "quantity": 1
+              }
+            ],
+            "equipment": [
+              {
+                "model": "bench",
+                "quantity": 1
+              }
+            ],
+            "spare": [],
+            "predecessors": []
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "duration_minutes": 30,
+    "tick_minutes": 1,
+    "sample_every_minutes": 30,
+    "max_state_frames_single": 2000,
+    "requested_steps": 30
+  },
+  "monte_carlo": {
+    "sample_count": 1,
+    "sweep": {}
+  },
+  "seed": 0,
+  "stop_policy": {
+    "schema_version": "stop-policy-v1",
+    "mode": "or",
+    "conditions": [
+      {
+        "type": "duration",
+        "duration_minutes": 30
+      }
+    ],
+    "defaulted": false
+  },
+  "disable_visualization_frames": true
+}

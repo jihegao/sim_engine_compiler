@@ -4,6 +4,11 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::reliability::{
+    RELIABILITY_POLICY, ReliabilityComponentGroupSpec, ReliabilityComponentInstanceSpec,
+    ReliabilityExecutionPlan, reject_failure_threshold, validate_repair_activity_references,
+};
+
 pub const PLAN_VERSION: &str = "aircraft-support-plan/v1alpha2";
 pub const EVENT_TIME_V2_PHASES: [&str; 15] = [
     "transport_arrivals",
@@ -274,20 +279,73 @@ pub struct ExecutionPlan {
     #[serde(default)]
     pub unsupported_features: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reliability_policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub component_groups: Vec<ReliabilityComponentGroupSpec>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub component_instances: Vec<ReliabilityComponentInstanceSpec>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resource_dispatch_index: Option<ResourceDispatchIndex>,
 }
 
 impl ExecutionPlan {
+    pub(crate) fn from_json_value(raw: Value) -> Result<Self> {
+        if raw
+            .get("reliability_policy")
+            .is_some_and(|policy| !policy.is_null())
+        {
+            reject_failure_threshold(&raw, "$")?;
+        }
+        let plan: Self = serde_json::from_value(raw)?;
+        plan.validate()?;
+        Ok(plan)
+    }
+
     pub fn from_slice(bytes: &[u8]) -> Result<(Self, Value)> {
         let raw: Value = serde_json::from_slice(bytes)?;
-        let plan: Self = serde_json::from_value(raw.clone())?;
-        plan.validate()?;
+        let plan = Self::from_json_value(raw.clone())?;
         Ok((plan, raw))
     }
 
     pub fn validate(&self) -> Result<()> {
         if self.plan_version != PLAN_VERSION {
             bail!("unsupported plan version {:?}", self.plan_version);
+        }
+        match (
+            &self.reliability_policy,
+            self.component_groups.is_empty(),
+            self.component_instances.is_empty(),
+        ) {
+            (None, true, true) => {}
+            (Some(policy), _, _) => {
+                if policy != RELIABILITY_POLICY {
+                    bail!("unsupported reliability policy {:?}", policy);
+                }
+                ReliabilityExecutionPlan {
+                    plan_version: self.plan_version.clone(),
+                    domain: self.domain.clone(),
+                    semantic_profile: self.semantic_profile.clone(),
+                    work_policy: self.work_policy.clone(),
+                    rng_profile: self.rng_profile.clone(),
+                    reliability_policy: policy.clone(),
+                    source_inputs_sha256: self.source_inputs_sha256.clone(),
+                    duration_minutes: self.duration_minutes,
+                    aircraft_ids: self
+                        .aircraft
+                        .iter()
+                        .map(|item| item.tail_number.clone())
+                        .collect(),
+                    component_groups: self.component_groups.clone(),
+                    component_instances: self.component_instances.clone(),
+                }
+                .validate()?;
+                validate_repair_activity_references(
+                    &self.component_groups,
+                    &self.component_instances,
+                    self.activities.len(),
+                )?;
+            }
+            _ => bail!("reliability tables require reliability_policy"),
         }
         if !matches!(
             self.semantic_profile.as_str(),
@@ -812,12 +870,101 @@ fn python_float_repr(value: f64) -> String {
 #[cfg(test)]
 mod fingerprint_tests {
     use super::{ExecutionPlan, python_float_repr};
+    use serde_json::Value;
 
     fn failure_plan() -> ExecutionPlan {
         let bytes = include_bytes!(
             "../../../tests/fixtures/synthetic/b2-failure-repair-execution-plan.json"
         );
         ExecutionPlan::from_slice(bytes).unwrap().0
+    }
+
+    #[test]
+    fn fused_v1alpha2_reliability_plan_loads_and_validates() {
+        let bytes = include_bytes!("../../../tests/fixtures/reliability/r1-fused-plan.json");
+        let (plan, _) = ExecutionPlan::from_slice(bytes).unwrap();
+        assert_eq!(
+            plan.reliability_policy.as_deref(),
+            Some("instance-redundancy/v1")
+        );
+        assert!(plan.components.is_empty());
+        assert_eq!(plan.component_groups.len(), 2);
+        assert_eq!(plan.component_instances.len(), 3);
+
+        let mut invalid: Value = serde_json::from_slice(bytes).unwrap();
+        invalid["component_groups"][0]["failure_threshold"] = 2.into();
+        assert!(ExecutionPlan::from_slice(&serde_json::to_vec(&invalid).unwrap()).is_err());
+    }
+
+    #[test]
+    fn fused_plan_rejects_unknown_policy_and_out_of_range_repair_activities() {
+        let bytes = include_bytes!("../../../tests/fixtures/reliability/r1-fused-input-plan.json");
+        let base: Value = serde_json::from_slice(bytes).unwrap();
+        let mut raw = base.clone();
+        raw["reliability_policy"] = "instance-redundancy/v999".into();
+        let error = ExecutionPlan::from_json_value(raw).unwrap_err();
+        assert!(error.to_string().contains("unsupported reliability policy"));
+
+        let activity_count = base["activities"].as_array().unwrap().len();
+        for table in ["component_groups", "component_instances"] {
+            let mut raw = base.clone();
+            raw[table][1]["repair_activity_index"] = activity_count.into();
+            let error = ExecutionPlan::from_json_value(raw).unwrap_err();
+            assert!(
+                error.to_string().contains(&format!(
+                    "invalid_repair_activity at {table}[1].repair_activity_index"
+                )),
+                "{error:#}"
+            );
+        }
+    }
+
+    #[test]
+    fn fused_reliability_plan_rejects_failure_threshold_everywhere() {
+        let bytes = include_bytes!("../../../tests/fixtures/reliability/r1-fused-plan.json");
+        let base: Value = serde_json::from_slice(bytes).unwrap();
+        ExecutionPlan::from_slice(bytes).unwrap();
+
+        let mut components = base.clone();
+        components["components"] = serde_json::json!([{"failure_threshold": 2}]);
+        let mut top_level = base.clone();
+        top_level["failure_threshold"] = Value::from(2);
+        let mut deep_object = base.clone();
+        deep_object["component_groups"][0]["nested"] =
+            serde_json::json!({"layer": [{"failure_threshold": 2}]});
+        let mut array_element = base.clone();
+        array_element["component_instances"][0]["nested"] =
+            serde_json::json!([{"failure_threshold": 2}]);
+
+        for (name, value) in [
+            ("components", components),
+            ("top_level", top_level),
+            ("deep_object", deep_object),
+            ("array_element", array_element),
+        ] {
+            let error =
+                ExecutionPlan::from_slice(&serde_json::to_vec(&value).unwrap()).unwrap_err();
+            assert!(
+                error.to_string().contains("failure_threshold_in_new_plan"),
+                "{name}: {error:#}"
+            );
+        }
+    }
+
+    #[test]
+    fn legacy_plan_failure_threshold_still_loads() {
+        let bytes = include_bytes!(
+            "../../../tests/fixtures/synthetic/b2-failure-repair-execution-plan.json"
+        );
+        let mut value: Value = serde_json::from_slice(bytes).unwrap();
+        value["components"][0]["failure_threshold"] = Value::from(2);
+        let (plan, _) = ExecutionPlan::from_slice(&serde_json::to_vec(&value).unwrap()).unwrap();
+        assert!(plan.reliability_policy.is_none());
+        assert_eq!(plan.components[0].failure_threshold, 2);
+
+        let mut null_policy = value;
+        null_policy["reliability_policy"] = Value::Null;
+        assert!(ExecutionPlan::from_slice(&serde_json::to_vec(&null_policy).unwrap()).is_ok());
     }
 
     #[test]

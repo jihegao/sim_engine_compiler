@@ -46,6 +46,18 @@ def test_aircraft_b1_business_fingerprint_is_unchanged():
     assert report["identity"]["business_fingerprint"] == AIRCRAFT_FINGERPRINT
 
 
+def test_validation_reports_aircraft_lowering_error_with_source_path():
+    payload = json.loads(B1_BUSINESS.read_text())["payload"]
+    activities = payload["sections"]["support_activities"]["collections"]["activities"]
+    activities[0]["definition"]["jobs"][0]["durationMinutes"] = -1
+    checked = validate_business(BusinessIR.create(payload).to_dict())
+    assert checked["status"] == "invalid"
+    (diagnostic,) = checked["diagnostics"]
+    assert diagnostic["code"] == "negative_duration"
+    assert diagnostic["stage"] == "validate"
+    assert diagnostic["path"] == "support_activities.activities[0].jobs[0].durationMinutes"
+
+
 def test_queue_payload_labeled_as_aircraft_fails_with_an_unconsumed_section():
     labeled = dict(EXAMPLE_INPUT)
     labeled["schema_version"] = "aircraft-support-v1-input-v1"

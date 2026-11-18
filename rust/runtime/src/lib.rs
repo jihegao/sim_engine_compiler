@@ -4,6 +4,7 @@ pub mod batch;
 pub mod cache;
 pub mod plan;
 pub mod queue;
+pub mod reliability;
 pub mod rng;
 pub mod runtime;
 

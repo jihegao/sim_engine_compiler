@@ -31,6 +31,72 @@ class PersistedIRTests(unittest.TestCase):
         self.assertEqual(completed.returncode,0,completed.stderr)
         return json.loads(destination.read_text())
 
+    def test_fused_instance_failure_distribution_validates_in_both_compilers(self):
+        fixture = ROOT / "tests/fixtures/reliability/r1-fused-input.json"
+        inputs = json.loads(fixture.read_text())
+        instance = inputs["equipment_tree"]["components"][1]["instances"][0]
+        del instance["failure_rate_per_hour"]
+        field = "equipment_tree.components[1].instances[0].failure_distribution"
+        distribution = {
+            "distributionType": "exponential",
+            "mtbf": 50,
+            "timeUnit": "hour",
+            "timeBasis": "flight_hour",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "input.json"
+            output = Path(directory) / "plan.json"
+            instance["failure_distribution"] = distribution
+            source.write_text(json.dumps(inputs))
+            python = compile_aircraft_support(inputs)
+            rust = self.invoke(source, output, "plan")
+            self.assertEqual(rust, json.loads(json.dumps(python.to_dict())))
+            self.assertEqual(python.component_instances[1].failure_rate_per_hour, 0.02)
+            for changed, code in (
+                ({**distribution, "distributionType": "weibull"}, "unsupported_failure_distribution"),
+                ("exponential", "invalid_failure_distribution"),
+            ):
+                with self.subTest(distribution=changed):
+                    instance["failure_distribution"] = changed
+                    source.write_text(json.dumps(inputs))
+                    with self.assertRaises(CompilationError) as raised:
+                        compile_aircraft_support(inputs)
+                    self.assertEqual(
+                        (raised.exception.code, raised.exception.source_path), (code, field)
+                    )
+                    result = subprocess.run(
+                        [str(self.binary), str(source), str(output), "--output-kind", "plan"],
+                        capture_output=True, text=True,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(code, result.stderr)
+                    self.assertIn(field, result.stderr)
+
+    def test_fused_invalid_repair_reference_fails_before_symbol_resolution(self):
+        fixture = ROOT / "tests/fixtures/reliability/r1-fused-input.json"
+        inputs = json.loads(fixture.read_text())
+        instance = inputs["equipment_tree"]["components"][1]["instances"][0]
+        instance["repair_profile"]["repair_activity_index"] = len(
+            inputs["support_activities"]["activities"]
+        )
+        field = "component_instances[1].repair_activity_index"
+        with self.assertRaises(CompilationError) as raised:
+            compile_aircraft_support(inputs)
+        self.assertEqual(
+            (raised.exception.code, raised.exception.source_path),
+            ("invalid_repair_activity", field),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "input.json"
+            source.write_text(json.dumps(inputs))
+            result = subprocess.run(
+                [str(self.binary), str(source), str(Path(directory) / "plan.json"), "--output-kind", "plan"],
+                capture_output=True, text=True,
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("invalid_repair_activity", result.stderr)
+        self.assertIn(field, result.stderr)
+
     def test_all_fixtures_cross_language_artifacts_and_disk_reload(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp=Path(tmp)
@@ -66,6 +132,153 @@ class PersistedIRTests(unittest.TestCase):
         self.assertNotEqual(old_plan.fingerprint,new_plan.fingerprint)
         self.assertEqual(new_plan.activities[0].steps[0].duration_minutes,30)
         self.assertNotEqual(SimpyReferenceRuntime(old_plan).run()['trace'],SimpyReferenceRuntime(new_plan).run()['trace'])
+
+    def test_mtbf_is_preserved_in_business_and_lowered_to_rate_in_core_and_plan(self):
+        inputs=json.loads(CASES[1].read_text())
+        component_input=next(
+            row for row in inputs['equipment_tree']['components'] if row['id']=='radar-lru')
+        component_input['failure_distribution']={
+            'distributionType':'exponential','mtbf':50,'timeUnit':'hour','timeBasis':'flight_hour'}
+        business=import_business_ir(inputs)
+        expected_distribution=component_input['failure_distribution']
+        business_component=next(
+            row for row in business.canonical_view()['equipment_tree']['components']
+            if row['id']=='radar-lru')
+        self.assertEqual(
+            business_component['failure_distribution'],
+            {
+                'distributionType':'exponential',
+                'mtbf':50,
+                'timeUnit':'hour',
+                'timeBasis':'flight_hour',
+            })
+        core=lower_business(business)
+        component=next(row for row in core.payload['tables']['components'] if row['id']=='radar-lru')
+        self.assertEqual(component['attributes']['failure_rate_per_hour'],0.02)
+        plan=compile_core(core)
+        plan_component=next(
+            row for row in plan.components if row.component_id=='radar-lru')
+        self.assertEqual(plan_component.failure_rate_per_hour,0.02)
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp=Path(tmp)
+            source=tmp/'inputs.json';source.write_text(json.dumps(inputs))
+            rust_business=self.invoke(source,tmp/'business.json','business')
+            rust_component=next(
+                row for row in rust_business['payload']['sections']['equipment_tree']['collections']['components']
+                if row['business_id']=='radar-lru')
+            self.assertEqual(
+                rust_component['definition']['failure_distribution'],
+                expected_distribution)
+            rust_core=self.invoke(source,tmp/'core.json','core')
+            self.assertEqual(rust_core,core.to_dict())
+            rust_core_component=next(
+                row for row in rust_core['payload']['tables']['components']
+                if row['id']=='radar-lru')
+            self.assertEqual(
+                rust_core_component['attributes']['failure_rate_per_hour'],
+                component['attributes']['failure_rate_per_hour'])
+            rust_plan=self.invoke(source,tmp/'plan.json','plan')
+            self.assertEqual(rust_plan,json.loads(json.dumps(plan.to_dict())))
+            rust_plan_component=next(
+                row for row in rust_plan['components'] if row['component_id']=='radar-lru')
+            self.assertEqual(
+                rust_plan_component['failure_rate_per_hour'],
+                plan_component.failure_rate_per_hour)
+
+    def test_legacy_failure_threshold_is_rejected_consistently(self):
+        inputs=json.loads(CASES[1].read_text())
+        component_input=next(
+            row for row in inputs['equipment_tree']['components'] if row['id']=='radar-lru')
+        component_input['failure_distribution']={
+            'distributionType':'exponential','mtbf':50,'timeUnit':'hour','timeBasis':'flight_hour'}
+        component_input['quantity']=3
+        component_input['failure_threshold']=2
+        component_index=next(
+            index for index,row in enumerate(inputs['equipment_tree']['components'])
+            if row['id']=='radar-lru')
+        path=f'equipment_tree.components[{component_index}].failure_threshold'
+
+        with self.assertRaises(CompilationError) as raised:
+            compile_aircraft_support(inputs)
+        self.assertEqual(raised.exception.code,'failure_threshold_in_new_plan')
+        self.assertEqual(raised.exception.source_path,path)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp=Path(tmp)
+            source=tmp/'inputs.json';source.write_text(json.dumps(inputs))
+            result=subprocess.run(
+                [str(self.binary),str(source),str(tmp/'out.json'),
+                 '--output-kind','plan'],
+                capture_output=True,text=True,cwd=ROOT)
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('failure_threshold_in_new_plan',result.stderr)
+        self.assertIn(path,result.stderr)
+
+    def test_mtbf_validation_errors_match_rust_compiler(self):
+        inputs=json.loads(CASES[1].read_text())
+        component_index=next(
+            index for index,row in enumerate(inputs['equipment_tree']['components'])
+            if row['id']=='radar-lru')
+        distribution_path=f'equipment_tree.components[{component_index}].failure_distribution'
+        valid={
+            'distributionType':'exponential','mtbf':50,'timeUnit':'hour','timeBasis':'flight_hour'}
+        cases=(
+            ({**valid,'mtbf':0},'invalid_mtbf',
+             f'{distribution_path}.mtbf'),
+            ({key:value for key,value in valid.items() if key!='timeUnit'},
+             'missing_failure_time_unit',f'{distribution_path}.timeUnit'),
+            ({**valid,'timeUnit':'day'},'unsupported_failure_time_unit',
+             f'{distribution_path}.timeUnit'),
+            ({key:value for key,value in valid.items() if key!='timeBasis'},
+             'missing_failure_time_basis',f'{distribution_path}.timeBasis'),
+            ({**valid,'timeBasis':'calendar_hour'},'unsupported_failure_time_basis',
+             f'{distribution_path}.timeBasis'),
+            ({**valid,'distributionType':'weibull'},'unsupported_failure_distribution',
+             distribution_path),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp=Path(tmp)
+            for index,(distribution,code,path) in enumerate(cases):
+                with self.subTest(code=code):
+                    changed=copy.deepcopy(inputs)
+                    component=next(
+                        row for row in changed['equipment_tree']['components']
+                        if row['id']=='radar-lru')
+                    component['failure_distribution']=distribution
+                    with self.assertRaises(CompilationError) as raised:
+                        compile_aircraft_support(changed)
+                    self.assertEqual(raised.exception.code,code)
+                    source=tmp/f'invalid-{index}.json'
+                    source.write_text(json.dumps(changed))
+                    result=subprocess.run(
+                        [str(self.binary),str(source),str(tmp/f'out-{index}.json'),
+                         '--output-kind','plan'],
+                        capture_output=True,text=True,cwd=ROOT)
+                    self.assertNotEqual(result.returncode,0)
+                    self.assertIn(code,result.stderr)
+                    self.assertIn(path,result.stderr)
+
+    def test_fused_v1alpha2_accepts_explicit_k_out_of_n(self):
+        inputs=json.loads(CASES[1].read_text())
+        for row in inputs['equipment_tree']['components']:
+            row['component_type_id']=row['id']
+        component=next(
+            row for row in inputs['equipment_tree']['components']
+            if row['id']=='radar-lru')
+        component['quantity']=3
+        component['k_out_of_n']={'enabled':True,'k':2,'n':3}
+
+        plan=compile_aircraft_support(inputs)
+        self.assertEqual(plan.plan_version,'aircraft-support-plan/v1alpha2')
+        self.assertEqual(plan.reliability_policy,'instance-redundancy/v1')
+        self.assertEqual(plan.components,())
+        self.assertEqual(
+            (plan.component_groups[1].redundancy_kind,
+             plan.component_groups[1].redundancy_k,
+             plan.component_groups[1].redundancy_n),
+            ('k_out_of_n',2,3),
+        )
+        self.assertNotIn('failure_threshold',plan.to_dict())
 
     def test_core_edit_does_not_require_business_or_canonical_input(self):
         core=lower_business(import_business_ir(json.loads(CASES[0].read_text())))
