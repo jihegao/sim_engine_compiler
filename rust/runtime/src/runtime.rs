@@ -373,7 +373,7 @@ impl PreparedBatchPlan {
     pub fn from_plan(plan: Arc<ExecutionPlan>) -> Result<Self> {
         plan.validate()?;
         let fingerprint = ExecutionPlan::fingerprint(&serde_json::to_value(plan.as_ref())?)?;
-        Ok(Self::from_validated_plan(plan, fingerprint))
+        Self::from_validated_plan(plan, fingerprint)
     }
 
     // Existing Runtime and batch APIs accept a caller-supplied fingerprint.
@@ -383,22 +383,25 @@ impl PreparedBatchPlan {
         fingerprint: String,
     ) -> Result<Self> {
         plan.validate()?;
-        Ok(Self::from_validated_plan(plan, fingerprint))
+        Self::from_validated_plan(plan, fingerprint)
     }
 
     pub fn from_slice(bytes: &[u8]) -> Result<Self> {
         let (plan, raw) = ExecutionPlan::from_slice(bytes)?;
         let fingerprint = ExecutionPlan::fingerprint(&raw)?;
-        Ok(Self::from_validated_plan(Arc::new(plan), fingerprint))
+        Self::from_validated_plan(Arc::new(plan), fingerprint)
     }
 
-    fn from_validated_plan(plan: Arc<ExecutionPlan>, fingerprint: String) -> Self {
+    fn from_validated_plan(plan: Arc<ExecutionPlan>, fingerprint: String) -> Result<Self> {
+        if let Some(policy) = &plan.reliability_policy {
+            bail!("Rust runtime does not support reliability policy {policy:?}");
+        }
         let prepared = Arc::new(PreparedRuntimePlan::from_plan(&plan));
-        Self {
+        Ok(Self {
             plan,
             prepared,
             fingerprint,
-        }
+        })
     }
 
     pub fn fingerprint(&self) -> &str {
@@ -3563,6 +3566,28 @@ mod phase_tests {
             "../../../tests/fixtures/synthetic/b2-failure-repair-execution-plan.json"
         );
         ExecutionPlan::from_slice(bytes).unwrap().0
+    }
+
+    #[test]
+    fn fused_plan_is_loadable_but_cannot_be_prepared_for_execution() {
+        let bytes = include_bytes!("../../../tests/fixtures/reliability/r1-fused-input-plan.json");
+        let (plan, raw) = ExecutionPlan::from_slice(bytes).unwrap();
+        let fingerprint = ExecutionPlan::fingerprint(&raw).unwrap();
+        for profile in ["legacy-minute-v1", "event-time-v2"] {
+            let mut plan = plan.clone();
+            plan.semantic_profile = profile.into();
+            let bytes = serde_json::to_vec(&plan).unwrap();
+            for error in [
+                PreparedBatchPlan::from_slice(&bytes).unwrap_err(),
+                PreparedBatchPlan::from_plan(Arc::new(plan.clone())).unwrap_err(),
+                Runtime::new(plan, fingerprint.clone(), 0).err().unwrap(),
+            ] {
+                assert!(
+                    error.to_string().contains("Rust runtime does not support reliability policy"),
+                    "{error:#}"
+                );
+            }
+        }
     }
 
     #[test]

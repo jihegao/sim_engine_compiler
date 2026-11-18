@@ -12,7 +12,10 @@ from typing import Any
 
 from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.domains.aircraft_support.validation import validate_canonical_work
-from sim_engine_compiler.ir.reliability import RELIABILITY_POLICY
+from sim_engine_compiler.ir.reliability import (
+    RELIABILITY_POLICY,
+    validate_repair_activity_references,
+)
 from sim_engine_compiler.ir.plan import (
     LEGACY_MINUTE_PHASES,
     ActivitySpec,
@@ -723,6 +726,7 @@ def lower_business(business):
             inputs,
             aircraft_ids=tuple(item.tail_number for item in aircraft),
         )
+        validate_repair_activity_references(groups, instances, len(activities))
         components = ()
         activities = tuple(
             replace(item, equipment_component_index=-1) for item in activities

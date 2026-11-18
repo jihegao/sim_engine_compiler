@@ -274,6 +274,29 @@ impl ReliabilityExecutionPlan {
     }
 }
 
+pub fn validate_repair_activity_references(
+    groups: &[ReliabilityComponentGroupSpec],
+    instances: &[ReliabilityComponentInstanceSpec],
+    activity_count: usize,
+) -> Result<()> {
+    let groups = groups
+        .iter()
+        .enumerate()
+        .map(|(index, row)| ("component_groups", index, row.repair_activity_index));
+    let instances = instances
+        .iter()
+        .enumerate()
+        .map(|(index, row)| ("component_instances", index, row.repair_activity_index));
+    for (table, index, activity) in groups.chain(instances) {
+        if activity >= activity_count as i64 {
+            bail!(
+                "invalid_repair_activity at {table}[{index}].repair_activity_index: repair activity index {activity} is out of range"
+            );
+        }
+    }
+    Ok(())
+}
+
 fn children_by_parent_instance(plan: &ReliabilityExecutionPlan) -> Vec<Vec<usize>> {
     let mut result = vec![Vec::new(); plan.component_instances.len()];
     for group in &plan.component_groups {

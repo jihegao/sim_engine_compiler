@@ -10,12 +10,13 @@ use sim_engine_runtime::plan::{
 };
 use sim_engine_runtime::reliability::{
     RELIABILITY_POLICY, ReliabilityComponentGroupSpec, ReliabilityComponentInstanceSpec,
+    validate_repair_activity_references,
 };
 
 pub mod validation;
 
 // Input acceptance changed: never reuse caches emitted before strict validation.
-pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha6";
+pub const COMPILER_VERSION: &str = "aircraft-support-aot/v1alpha7";
 
 const LEGACY_MINUTE_PHASES: &[&str] = &[
     "transport_arrivals",
@@ -955,7 +956,10 @@ fn reliability_rate(item: &Map<String, Value>, path: &str) -> Result<Option<f64>
         .get("failure_rate_per_hour")
         .filter(|value| !value.is_null())
         .or_else(|| item.get("failure_rate").filter(|value| !value.is_null()));
-    let distribution = object(item.get("failure_distribution")).filter(|value| !value.is_empty());
+    let distribution_path = format!("{path}.failure_distribution");
+    let distribution = item.get("failure_distribution");
+    validation::failure_distribution(distribution, distribution_path.clone())?;
+    let distribution = object(distribution).filter(|value| !value.is_empty());
     if explicit.is_some() && distribution.is_some() {
         bail!(
             "ambiguous_failure_parameter at {path}: failure_rate_per_hour and failure_distribution are mutually exclusive"
@@ -968,19 +972,8 @@ fn reliability_rate(item: &Map<String, Value>, path: &str) -> Result<Option<f64>
         return Ok(None);
     };
     if let Some(mtbf) = distribution.get("mtbf") {
-        if distribution.get("timeUnit").and_then(Value::as_str) != Some("hour") {
-            bail!(
-                "unsupported_failure_time_unit at {path}.failure_distribution.timeUnit: MTBF timeUnit must be 'hour'"
-            );
-        }
-        if distribution.get("timeBasis").and_then(Value::as_str) != Some("flight_hour") {
-            bail!(
-                "unsupported_failure_time_basis at {path}.failure_distribution.timeBasis: MTBF timeBasis must be 'flight_hour'"
-            );
-        }
         let mtbf = mtbf
             .as_f64()
-            .filter(|value| value.is_finite() && *value > 0.0)
             .ok_or_else(|| {
                 anyhow::anyhow!(
                     "invalid_mtbf at {path}.failure_distribution.mtbf: MTBF must be a positive finite number"
@@ -988,7 +981,7 @@ fn reliability_rate(item: &Map<String, Value>, path: &str) -> Result<Option<f64>
             })?;
         return strict_rate(
             &Value::from(1.0 / mtbf),
-            &format!("{path}.failure_distribution"),
+            &distribution_path,
         )
         .map(Some);
     }
@@ -997,11 +990,7 @@ fn reliability_rate(item: &Map<String, Value>, path: &str) -> Result<Option<f64>
             "unsupported_failure_distribution at {path}.failure_distribution: unsupported failure distribution"
         )
     })?;
-    strict_rate(
-        &Value::from(converted),
-        &format!("{path}.failure_distribution"),
-    )
-    .map(Some)
+    strict_rate(&Value::from(converted), &distribution_path).map(Some)
 }
 
 fn repair_activity(profile: Option<&Map<String, Value>>, path: &str) -> Result<i64> {
@@ -1857,6 +1846,7 @@ pub fn lower_business(business: &crate::layers::Artifact) -> Result<crate::layer
     };
     let mut activities = compile_activities(inputs, &resource_nodes, &component_indexes)?;
     if fused_reliability {
+        validate_repair_activity_references(&groups, &instances, activities.len())?;
         for activity in &mut activities {
             activity.equipment_component_index = -1;
         }

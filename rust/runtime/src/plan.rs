@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::reliability::{
     RELIABILITY_POLICY, ReliabilityComponentGroupSpec, ReliabilityComponentInstanceSpec,
-    ReliabilityExecutionPlan, reject_failure_threshold,
+    ReliabilityExecutionPlan, reject_failure_threshold, validate_repair_activity_references,
 };
 
 pub const PLAN_VERSION: &str = "aircraft-support-plan/v1alpha2";
@@ -339,6 +339,11 @@ impl ExecutionPlan {
                     component_instances: self.component_instances.clone(),
                 }
                 .validate()?;
+                validate_repair_activity_references(
+                    &self.component_groups,
+                    &self.component_instances,
+                    self.activities.len(),
+                )?;
             }
             _ => bail!("reliability tables require reliability_policy"),
         }
@@ -889,6 +894,29 @@ mod fingerprint_tests {
         let mut invalid: Value = serde_json::from_slice(bytes).unwrap();
         invalid["component_groups"][0]["failure_threshold"] = 2.into();
         assert!(ExecutionPlan::from_slice(&serde_json::to_vec(&invalid).unwrap()).is_err());
+    }
+
+    #[test]
+    fn fused_plan_rejects_unknown_policy_and_out_of_range_repair_activities() {
+        let bytes = include_bytes!("../../../tests/fixtures/reliability/r1-fused-input-plan.json");
+        let base: Value = serde_json::from_slice(bytes).unwrap();
+        let mut raw = base.clone();
+        raw["reliability_policy"] = "instance-redundancy/v999".into();
+        let error = ExecutionPlan::from_json_value(raw).unwrap_err();
+        assert!(error.to_string().contains("unsupported reliability policy"));
+
+        let activity_count = base["activities"].as_array().unwrap().len();
+        for table in ["component_groups", "component_instances"] {
+            let mut raw = base.clone();
+            raw[table][1]["repair_activity_index"] = activity_count.into();
+            let error = ExecutionPlan::from_json_value(raw).unwrap_err();
+            assert!(
+                error.to_string().contains(&format!(
+                    "invalid_repair_activity at {table}[1].repair_activity_index"
+                )),
+                "{error:#}"
+            );
+        }
     }
 
     #[test]

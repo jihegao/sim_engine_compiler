@@ -14,6 +14,7 @@ from .reliability import (
     _reject,
     _reject_failure_threshold,
     _validate_component_tables,
+    validate_repair_activity_references,
 )
 
 
@@ -198,6 +199,12 @@ class ExecutionPlan:
 
         reliability_policy = value.get("reliability_policy")
         if reliability_policy is not None:
+            if reliability_policy != RELIABILITY_POLICY:
+                _reject(
+                    f"unsupported reliability policy {reliability_policy!r}",
+                    "unsupported_reliability_policy",
+                    "reliability_policy",
+                )
             _reject_failure_threshold(value)
         groups = tuple(
             ReliabilityComponentGroupSpec(
@@ -217,6 +224,9 @@ class ExecutionPlan:
                 groups,
                 instances,
                 aircraft_count=len(value.get("aircraft", ())),
+            )
+            validate_repair_activity_references(
+                groups, instances, len(value.get("activities", ()))
             )
         elif groups or instances:
             _reject(

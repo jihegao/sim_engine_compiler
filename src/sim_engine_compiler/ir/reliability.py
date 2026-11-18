@@ -518,6 +518,21 @@ def _validate_component_tables(
     plan.validate()
 
 
+def validate_repair_activity_references(
+    groups: Sequence[ReliabilityComponentGroupSpec],
+    instances: Sequence[ReliabilityComponentInstanceSpec],
+    activity_count: int,
+) -> None:
+    for name, rows in (("component_groups", groups), ("component_instances", instances)):
+        for index, row in enumerate(rows):
+            if row.repair_activity_index >= activity_count:
+                _reject(
+                    f"repair activity index {row.repair_activity_index} is out of range",
+                    "invalid_repair_activity",
+                    f"{name}[{index}].repair_activity_index",
+                )
+
+
 def lower_reliability_core(
     model: ReliabilityBusinessModel,
     *,

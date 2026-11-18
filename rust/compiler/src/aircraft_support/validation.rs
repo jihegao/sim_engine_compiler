@@ -67,7 +67,7 @@ fn duration(value: Option<&Value>, path: String) -> Result<()> {
     Ok(())
 }
 
-fn failure_distribution(value: Option<&Value>, path: String) -> Result<()> {
+pub(super) fn failure_distribution(value: Option<&Value>, path: String) -> Result<()> {
     let Some(value) = value.filter(|v| !v.is_null()) else {
         return Ok(());
     };

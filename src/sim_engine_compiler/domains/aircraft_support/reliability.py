@@ -15,6 +15,7 @@ from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.domains.aircraft_support.lowering import (
     _failure_distribution_rate,
 )
+from sim_engine_compiler.domains.aircraft_support.validation import _failure_distribution
 from sim_engine_compiler.ir.reliability import (
     K_OUT_OF_N,
     SERIES,
@@ -63,6 +64,8 @@ def _failure_rate(item: Mapping[str, Any], path: str) -> float | None:
     if explicit is None:
         explicit = item.get("failure_rate")
     distribution = item.get("failure_distribution")
+    distribution_path = f"{path}.failure_distribution"
+    _failure_distribution(distribution, distribution_path)
     distribution_present = isinstance(distribution, dict) and bool(distribution)
     if explicit is not None and distribution_present:
         _reject(
@@ -73,34 +76,14 @@ def _failure_rate(item: Mapping[str, Any], path: str) -> float | None:
     if explicit is not None:
         return _rate(explicit, f"{path}.failure_rate_per_hour")
     if distribution_present:
-        if "mtbf" in distribution:
-            if distribution.get("timeUnit") != "hour":
-                _reject(
-                    "MTBF timeUnit must be 'hour'",
-                    "unsupported_failure_time_unit",
-                    f"{path}.failure_distribution.timeUnit",
-                )
-            if distribution.get("timeBasis") != "flight_hour":
-                _reject(
-                    "MTBF timeBasis must be 'flight_hour'",
-                    "unsupported_failure_time_basis",
-                    f"{path}.failure_distribution.timeBasis",
-                )
-            mtbf = distribution.get("mtbf")
-            if type(mtbf) not in (int, float) or not math.isfinite(mtbf) or mtbf <= 0:
-                _reject(
-                    "MTBF must be a positive finite number",
-                    "invalid_mtbf",
-                    f"{path}.failure_distribution.mtbf",
-                )
         converted = _failure_distribution_rate(distribution)
         if converted is None:
             _reject(
                 "unsupported failure distribution",
                 "unsupported_failure_distribution",
-                f"{path}.failure_distribution",
+                distribution_path,
             )
-        return _rate(converted, f"{path}.failure_distribution")
+        return _rate(converted, distribution_path)
     return None
 
 
@@ -581,4 +564,3 @@ def build_reliability_plan_records(
         for index, instance in enumerate(model.instances)
     )
     return groups, instances
-

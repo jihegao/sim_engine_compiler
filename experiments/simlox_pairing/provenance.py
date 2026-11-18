@@ -45,7 +45,7 @@ DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
     # 595cb5e build fingerprint stays intact; the executed bytes are pinned by
     # the LF commit-blob digests below.
     "src/sim_engine_compiler/domains/aircraft_support/lowering.py": (
-        "c97af6d94bf1454b090f9a46aceed04e29125d27c3aa044e29d1be9dc5970540"
+        "a16542afc515c1758ec449e69ce7559c185f5e77b78d22410b35fb3916883f5d"
     ),
     "src/sim_engine_compiler/domains/aircraft_support/validation.py": (
         "bd6bdd52acf562e9c97570a9aa8f38a97f9909f7bda5b019388cffacbe142330"
@@ -57,10 +57,10 @@ DECLARED_MODIFIED_BASELINE_SOURCE_SHA256 = {
         "623bc65a5118d9219149afce8e92f5d8d6334dda71a54743fc509fcf03c668b5"
     ),
     "src/sim_engine_compiler/ir/plan.py": (
-        "27c3003709605dfc7ee181f43ce3b42afb15a6c797f8bee987c8822a93d26202"
+        "9a932e0e2e23a9f0d85e45673935d6ea6eba65deafdb6cc4b4e6d49cc6180ffc"
     ),
     "src/sim_engine_compiler/reference/simpy_runtime.py": (
-        "05e213be6044e8db6100267acae2f2b9fbab3b58d936c2d7e5670e2f77a68692"
+        "1bcebe9b3e5edd5072fbcc0a6c1ee4de20741ba4dee15de8217740a71b687305"
     ),
 }
 DECLARED_NONBASELINE_SOURCE_SHA256 = {
@@ -80,7 +80,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "ba9d1cb086c195a18ef0f9014aea9251f592d2d44f71246e33d264c6b76e1f83"
     ),
     "src/sim_engine_compiler/domains/aircraft_support/reliability.py": (
-        "5acb6d755357259739be0da4e4181781e95f2d63b7757c166ff47f23b03b893a"
+        "81609ca387dcaa697a4277226b6062fb59feec5d57d43f32b8aec22a9affff86"
     ),
     "src/sim_engine_compiler/examples/__init__.py": (
         "eed06b92b7f3972187c4ad316563b05c0c3c848ec60aba6c140d150c944019fe"
@@ -107,7 +107,7 @@ DECLARED_NONBASELINE_SOURCE_SHA256 = {
         "363131a6018b337a3802e8cf29a3c28d5855fa9e43a92c208fe0816e855f295a"
     ),
     "src/sim_engine_compiler/ir/reliability.py": (
-        "d8bc76eb79b87bfdc82b1153e1c8485da79010abee2275e7e4379faabc0a2043"
+        "991de1953f2c2aefb70513ad0208d1aa4e76d9ba7792eb9de826aa0ebf8e6f36"
     ),
     "src/sim_engine_compiler/product.py": (
         "b7da9845ab220f4bd7d68f02de0a00f7c84222c2307a9efa66f0d8e6b1049149"

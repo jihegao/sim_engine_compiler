@@ -631,20 +631,20 @@ mod tests {
         let old_name = plan_cache_file_name(
             "abc",
             None,
-            "aircraft-support-aot/v1alpha5",
+            "aircraft-support-aot/v1alpha6",
             SEMANTIC_PROFILE,
         );
         let new_name = plan_cache_file_name("abc", None, COMPILER_VERSION, SEMANTIC_PROFILE);
         assert_ne!(old_name, new_name);
-        assert!(new_name.contains("v1alpha6"));
-        assert!(!new_name.contains("v1alpha5"));
+        assert!(new_name.contains("v1alpha7"));
+        assert!(!new_name.contains("v1alpha6"));
         let adapter_name = plan_cache_file_name(
             "abc",
             Some("adapter-sha"),
             COMPILER_VERSION,
             SEMANTIC_PROFILE,
         );
-        assert!(adapter_name.starts_with("abc-adapter-sha-v1alpha6-"));
+        assert!(adapter_name.starts_with("abc-adapter-sha-v1alpha7-"));
         assert_ne!(adapter_name, new_name);
     }
 

@@ -35,10 +35,10 @@ class DeclaredEngineDeltaTests(unittest.TestCase):
     def test_pr561_reliability_modules_are_reviewed_additions(self):
         expected = {
             "src/sim_engine_compiler/domains/aircraft_support/reliability.py": (
-                "5acb6d755357259739be0da4e4181781e95f2d63b7757c166ff47f23b03b893a"
+                "81609ca387dcaa697a4277226b6062fb59feec5d57d43f32b8aec22a9affff86"
             ),
             "src/sim_engine_compiler/ir/reliability.py": (
-                "d8bc76eb79b87bfdc82b1153e1c8485da79010abee2275e7e4379faabc0a2043"
+                "991de1953f2c2aefb70513ad0208d1aa4e76d9ba7792eb9de826aa0ebf8e6f36"
             ),
         }
         for key, digest in expected.items():

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import tempfile
 from pathlib import Path
 import unittest
@@ -26,6 +27,10 @@ from sim_engine_compiler.ir.reliability import (
     repair_duration_minutes_for,
     runtime_instance_ids,
 )
+from sim_engine_compiler.reference import SimpyReferenceRuntime, UnsupportedPlanError
+
+
+FUSED_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "reliability"
 
 
 def inputs(components, *, aircraft_ids=("F35-01",)):
@@ -80,6 +85,32 @@ def states(plan, aircraft_index=0, aircraft_id="F35-01", overrides=None):
 
 
 class ReliabilitySchemaTests(unittest.TestCase):
+    def test_fused_plan_is_loadable_but_cannot_run_in_python(self):
+        raw = json.loads((FUSED_FIXTURE / "r1-fused-input-plan.json").read_text())
+        plan = ExecutionPlan.from_dict(raw)
+        with self.assertRaisesRegex(UnsupportedPlanError, "instance-redundancy/v1"):
+            SimpyReferenceRuntime(plan, seed=0)
+
+    def test_plan_rejects_unknown_reliability_policy(self):
+        raw = json.loads((FUSED_FIXTURE / "r1-fused-input-plan.json").read_text())
+        raw["reliability_policy"] = "instance-redundancy/v999"
+        with self.assertRaises(CompilationError) as raised:
+            ExecutionPlan.from_dict(raw)
+        self.assertEqual(raised.exception.code, "unsupported_reliability_policy")
+        self.assertEqual(raised.exception.source_path, "reliability_policy")
+
+    def test_plan_rejects_repair_references_past_activity_table(self):
+        for table in ("component_groups", "component_instances"):
+            with self.subTest(table=table):
+                raw = json.loads((FUSED_FIXTURE / "r1-fused-input-plan.json").read_text())
+                raw[table][1]["repair_activity_index"] = len(raw["activities"])
+                with self.assertRaises(CompilationError) as raised:
+                    ExecutionPlan.from_dict(raw)
+                self.assertEqual(raised.exception.code, "invalid_repair_activity")
+                self.assertEqual(
+                    raised.exception.source_path, f"{table}[1].repair_activity_index"
+                )
+
     def test_different_component_groups_are_series(self):
         plan = compile_aircraft_support(
             inputs(

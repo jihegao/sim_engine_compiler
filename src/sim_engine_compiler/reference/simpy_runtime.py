@@ -125,6 +125,10 @@ class SimpyReferenceRuntime:
     )
 
     def __init__(self, plan: ExecutionPlan, *, seed: int = 0):
+        if plan.reliability_policy is not None:
+            raise UnsupportedPlanError(
+                f"Python reference runtime does not support reliability policy {plan.reliability_policy!r}"
+            )
         if plan.semantic_profile != "legacy-minute-v1":
             raise UnsupportedPlanError(f"unsupported time profile {plan.semantic_profile!r}")
         if plan.work_policy != "stable-topological-serial":

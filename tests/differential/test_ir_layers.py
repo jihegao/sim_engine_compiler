@@ -31,6 +31,72 @@ class PersistedIRTests(unittest.TestCase):
         self.assertEqual(completed.returncode,0,completed.stderr)
         return json.loads(destination.read_text())
 
+    def test_fused_instance_failure_distribution_validates_in_both_compilers(self):
+        fixture = ROOT / "tests/fixtures/reliability/r1-fused-input.json"
+        inputs = json.loads(fixture.read_text())
+        instance = inputs["equipment_tree"]["components"][1]["instances"][0]
+        del instance["failure_rate_per_hour"]
+        field = "equipment_tree.components[1].instances[0].failure_distribution"
+        distribution = {
+            "distributionType": "exponential",
+            "mtbf": 50,
+            "timeUnit": "hour",
+            "timeBasis": "flight_hour",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "input.json"
+            output = Path(directory) / "plan.json"
+            instance["failure_distribution"] = distribution
+            source.write_text(json.dumps(inputs))
+            python = compile_aircraft_support(inputs)
+            rust = self.invoke(source, output, "plan")
+            self.assertEqual(rust, json.loads(json.dumps(python.to_dict())))
+            self.assertEqual(python.component_instances[1].failure_rate_per_hour, 0.02)
+            for changed, code in (
+                ({**distribution, "distributionType": "weibull"}, "unsupported_failure_distribution"),
+                ("exponential", "invalid_failure_distribution"),
+            ):
+                with self.subTest(distribution=changed):
+                    instance["failure_distribution"] = changed
+                    source.write_text(json.dumps(inputs))
+                    with self.assertRaises(CompilationError) as raised:
+                        compile_aircraft_support(inputs)
+                    self.assertEqual(
+                        (raised.exception.code, raised.exception.source_path), (code, field)
+                    )
+                    result = subprocess.run(
+                        [str(self.binary), str(source), str(output), "--output-kind", "plan"],
+                        capture_output=True, text=True,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(code, result.stderr)
+                    self.assertIn(field, result.stderr)
+
+    def test_fused_invalid_repair_reference_fails_before_symbol_resolution(self):
+        fixture = ROOT / "tests/fixtures/reliability/r1-fused-input.json"
+        inputs = json.loads(fixture.read_text())
+        instance = inputs["equipment_tree"]["components"][1]["instances"][0]
+        instance["repair_profile"]["repair_activity_index"] = len(
+            inputs["support_activities"]["activities"]
+        )
+        field = "component_instances[1].repair_activity_index"
+        with self.assertRaises(CompilationError) as raised:
+            compile_aircraft_support(inputs)
+        self.assertEqual(
+            (raised.exception.code, raised.exception.source_path),
+            ("invalid_repair_activity", field),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "input.json"
+            source.write_text(json.dumps(inputs))
+            result = subprocess.run(
+                [str(self.binary), str(source), str(Path(directory) / "plan.json"), "--output-kind", "plan"],
+                capture_output=True, text=True,
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("invalid_repair_activity", result.stderr)
+        self.assertIn(field, result.stderr)
+
     def test_all_fixtures_cross_language_artifacts_and_disk_reload(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp=Path(tmp)
