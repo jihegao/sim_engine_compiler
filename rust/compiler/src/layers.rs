@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
 use sim_engine_runtime::plan::{EVENT_TIME_V2_PHASES, ExecutionPlan, PLAN_VERSION};
+use sim_engine_runtime::reliability::RELIABILITY_POLICY;
 use std::collections::{BTreeMap, HashSet};
 
 pub const BUSINESS_VERSION: &str = "aircraft-business-ir/v1";
@@ -17,6 +18,17 @@ const TABLES: &[(&str, &str)] = &[
     ("preventive_cycles", ""),
     ("supply_routes", "route_id"),
 ];
+const RELIABILITY_TABLES: &[(&str, &str)] = &[
+    ("component_groups", "group_id"),
+    ("component_instances", "instance_template_id"),
+];
+fn table_names(include_reliability: bool) -> Vec<(&'static str, &'static str)> {
+    let mut names = TABLES.to_vec();
+    if include_reliability {
+        names.extend(RELIABILITY_TABLES.iter().copied());
+    }
+    names
+}
 fn refs(table: &str) -> Vec<(&'static str, &'static str, bool)> {
     match table {
         "activities" => vec![
@@ -26,6 +38,16 @@ fn refs(table: &str) -> Vec<(&'static str, &'static str, bool)> {
         "components" => vec![
             ("parent_index", "components", true),
             ("aircraft_indexes", "aircraft", false),
+            ("repair_activity_index", "activities", true),
+        ],
+        "component_groups" => vec![
+            ("parent_group_index", "component_groups", true),
+            ("aircraft_indexes", "aircraft", false),
+            ("repair_activity_index", "activities", true),
+        ],
+        "component_instances" => vec![
+            ("group_index", "component_groups", false),
+            ("parent_instance_index", "component_instances", true),
             ("repair_activity_index", "activities", true),
         ],
         "preventive_cycles" => vec![
@@ -38,6 +60,9 @@ fn refs(table: &str) -> Vec<(&'static str, &'static str, bool)> {
         ],
         _ => vec![],
     }
+}
+fn is_reliability_table(name: &str) -> bool {
+    RELIABILITY_TABLES.iter().any(|(table, _)| *table == name)
 }
 pub fn digest(value: &Value) -> Result<String> {
     Ok(format!(
@@ -304,8 +329,11 @@ pub fn core_from_records(
     mut records: Value,
     provenance: Value,
 ) -> Result<Artifact> {
+    let include_reliability =
+        records.get("component_groups").is_some() || records.get("component_instances").is_some();
+    let names = table_names(include_reliability);
     let mut symbols = BTreeMap::new();
-    for (name, id) in TABLES {
+    for (name, id) in &names {
         symbols.insert(
             *name,
             if id.is_empty() {
@@ -321,7 +349,7 @@ pub fn core_from_records(
         );
     }
     let mut tables = Map::new();
-    for (name, id) in TABLES {
+    for (name, id) in &names {
         let rows = records
             .as_object_mut()
             .unwrap()
@@ -379,10 +407,14 @@ pub fn core_from_records(
                     origin.clone(),
                 )
             } else {
-                let origin = &provenance[*name][row[*id].as_str().context("business identity")?];
+                let identity = row[*id].as_str().context("business identity")?;
+                let origin = provenance
+                    .get(*name)
+                    .and_then(|value| value.get(identity))
+                    .unwrap_or(&Value::Null);
                 (
                     row[*id].clone(),
-                    if origin.is_null() {
+                    if origin.is_null() || is_reliability_table(name) {
                         json!({"source_path": row["source_path"]})
                     } else {
                         origin.clone()
@@ -444,20 +476,26 @@ pub fn validate_core(core: &Artifact) -> Result<()> {
         }
     }
     let contract = &core.payload["contract"];
-    keys(
-        contract,
-        &[
-            "domain",
-            "semantic_profile",
-            "work_policy",
-            "rng_profile",
-            "duration_minutes",
-            "natural_completion_enabled",
-            "phases",
-            "unsupported_features",
-        ],
-        "core.contract",
-    )?;
+    let mut contract_fields = vec![
+        "domain",
+        "semantic_profile",
+        "work_policy",
+        "rng_profile",
+        "duration_minutes",
+        "natural_completion_enabled",
+        "phases",
+        "unsupported_features",
+    ];
+    if contract.get("reliability_policy").is_some() {
+        contract_fields.push("reliability_policy");
+    }
+    keys(contract, &contract_fields, "core.contract")?;
+    if contract
+        .get("reliability_policy")
+        .is_some_and(|value| !value.is_null() && value.as_str() != Some(RELIABILITY_POLICY))
+    {
+        bail!("core.contract: unsupported reliability policy");
+    }
     if contract["domain"] != "aircraft-support"
         || !matches!(
             contract["semantic_profile"].as_str(),
@@ -479,13 +517,16 @@ pub fn validate_core(core: &Artifact) -> Result<()> {
         bail!("core.operations: unknown operation or incomplete dependency/backend contract");
     }
     let tables = &core.payload["tables"];
+    let include_reliability =
+        tables.get("component_groups").is_some() || tables.get("component_instances").is_some();
+    let names = table_names(include_reliability);
     keys(
         tables,
-        &TABLES.iter().map(|v| v.0).collect::<Vec<_>>(),
+        &names.iter().map(|v| v.0).collect::<Vec<_>>(),
         "core.tables",
     )?;
     let mut ids = BTreeMap::new();
-    for (name, id) in TABLES {
+    for (name, id) in &names {
         let mut set = HashSet::new();
         for row in sequence(&tables[*name], name)? {
             let mut fields = vec!["id", "attributes", "references", "steps", "source_path"];
@@ -515,7 +556,7 @@ pub fn validate_core(core: &Artifact) -> Result<()> {
         }
         ids.insert(*name, set);
     }
-    for (name, _) in TABLES {
+    for (name, _) in &names {
         for row in sequence(&tables[*name], name)? {
             for (field, target, optional) in refs(name) {
                 let value = &row["references"][field];
@@ -564,8 +605,11 @@ pub fn validate_core(core: &Artifact) -> Result<()> {
 pub fn compile_core(core: &Artifact) -> Result<ExecutionPlan> {
     validate_core(core)?;
     let tables = &core.payload["tables"];
+    let include_reliability =
+        tables.get("component_groups").is_some() || tables.get("component_instances").is_some();
+    let names = table_names(include_reliability);
     let mut ids = BTreeMap::new();
-    for (name, _) in TABLES {
+    for (name, _) in &names {
         ids.insert(
             *name,
             sequence(&tables[*name], name)?
@@ -581,7 +625,7 @@ pub fn compile_core(core: &Artifact) -> Result<ExecutionPlan> {
         "source_inputs_sha256".into(),
         core.payload["source"]["canonical_sha256"].clone(),
     );
-    for (name, _) in TABLES {
+    for (name, _) in &names {
         let mut rows = vec![];
         for (i, row) in sequence(&tables[*name], name)?.iter().enumerate() {
             let mut attrs = row["attributes"]

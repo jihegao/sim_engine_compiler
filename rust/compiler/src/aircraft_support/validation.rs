@@ -67,9 +67,203 @@ fn duration(value: Option<&Value>, path: String) -> Result<()> {
     Ok(())
 }
 
+pub(super) fn failure_distribution(value: Option<&Value>, path: String) -> Result<()> {
+    let Some(value) = value.filter(|v| !v.is_null()) else {
+        return Ok(());
+    };
+    let Some(distribution) = value.as_object() else {
+        return Err(reject(
+            "invalid_failure_distribution",
+            path,
+            "expected failure distribution object",
+        ));
+    };
+    if distribution.is_empty() {
+        return Ok(());
+    }
+
+    let raw_type = distribution
+        .get("distributionType")
+        .filter(|value| !value.is_null())
+        .or_else(|| distribution.get("distribution_type"));
+    if raw_type.is_some_and(|value| !value.is_string()) {
+        return Err(reject(
+            "unsupported_failure_distribution",
+            path,
+            "failure distribution type must be a string",
+        ));
+    }
+    let distribution_type = raw_type
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_lowercase();
+    if let Some(mtbf_value) = distribution.get("mtbf") {
+        if !matches!(distribution_type.as_str(), "exponential" | "指数分布") {
+            return Err(reject(
+                "unsupported_failure_distribution",
+                path,
+                "MTBF is currently supported only for the exponential distribution",
+            ));
+        }
+        let mtbf = mtbf_value
+            .as_f64()
+            .filter(|value| value.is_finite() && *value > 0.0)
+            .ok_or_else(|| {
+                reject(
+                    "invalid_mtbf",
+                    format!("{path}.mtbf"),
+                    "MTBF must be a positive finite number",
+                )
+            })?;
+        if distribution.get("timeUnit").is_none() {
+            return Err(reject(
+                "missing_failure_time_unit",
+                format!("{path}.timeUnit"),
+                "MTBF timeUnit is required",
+            ));
+        }
+        if distribution.get("timeUnit").and_then(Value::as_str) != Some("hour") {
+            return Err(reject(
+                "unsupported_failure_time_unit",
+                format!("{path}.timeUnit"),
+                "aircraft-support MTBF timeUnit must be 'hour'",
+            ));
+        }
+        if distribution.get("timeBasis").is_none() {
+            return Err(reject(
+                "missing_failure_time_basis",
+                format!("{path}.timeBasis"),
+                "aircraft-support MTBF timeBasis is required",
+            ));
+        }
+        if distribution.get("timeBasis").and_then(Value::as_str) != Some("flight_hour") {
+            return Err(reject(
+                "unsupported_failure_time_basis",
+                format!("{path}.timeBasis"),
+                "aircraft-support MTBF timeBasis must be 'flight_hour'",
+            ));
+        }
+        if !(1.0 / mtbf).is_finite() {
+            return Err(reject(
+                "invalid_mtbf",
+                format!("{path}.mtbf"),
+                "MTBF is outside the supported numeric range",
+            ));
+        }
+    } else if !distribution_type.is_empty()
+        && ![
+            "exponential",
+            "\u{6307}\u{6570}",
+            "weibull",
+            "\u{5A01}\u{5E03}\u{5C14}",
+            "normal",
+            "\u{6B63}\u{6001}",
+            "uniform",
+            "\u{5747}\u{5300}",
+            "fixed",
+            "\u{56FA}\u{5B9A}",
+        ]
+        .iter()
+        .any(|kind| distribution_type.contains(kind))
+    {
+        return Err(reject(
+            "unsupported_failure_distribution",
+            path,
+            format!("unsupported failure distribution {distribution_type:?}"),
+        ));
+    }
+    Ok(())
+}
+
+fn failure_threshold_path(value: &Value, path: &str) -> Option<String> {
+    match value {
+        Value::Object(map) => {
+            if map.contains_key("failure_threshold") {
+                return Some(format!("{path}.failure_threshold"));
+            }
+            map.iter()
+                .find_map(|(key, child)| failure_threshold_path(child, &format!("{path}.{key}")))
+        }
+        Value::Array(items) => items
+            .iter()
+            .enumerate()
+            .find_map(|(index, child)| failure_threshold_path(child, &format!("{path}[{index}]"))),
+        _ => None,
+    }
+}
+
+fn is_new_reliability_component(component: &Map<String, Value>) -> bool {
+    [
+        "component_type_id",
+        "instances",
+        "redundancy",
+        "parent_instance_id",
+    ]
+    .iter()
+    .any(|key| component.contains_key(*key))
+        || component
+            .get("k_out_of_n")
+            .filter(|value| !value.is_null())
+            .and_then(Value::as_object)
+            .and_then(|value| value.get("enabled"))
+            .and_then(Value::as_bool)
+            == Some(true)
+}
+
 pub fn validate_canonical_work(inputs: &Map<String, Value>) -> Result<()> {
     let components = object(inputs.get("equipment_tree"));
-    let ids: HashSet<String> = array(components.and_then(|v| v.get("components")))
+    let component_rows = array(components.and_then(|v| v.get("components")));
+    let new_reliability_document = component_rows
+        .iter()
+        .filter_map(Value::as_object)
+        .any(is_new_reliability_component);
+    for (index, value) in component_rows.iter().enumerate() {
+        let Some(component) = value.as_object() else {
+            continue;
+        };
+        let path = format!("equipment_tree.components[{index}]");
+        if let Some(field_path) = failure_threshold_path(value, &path) {
+            return Err(reject(
+                "failure_threshold_in_new_plan",
+                field_path,
+                "failure_threshold is not allowed in canonical inputs",
+            ));
+        }
+        if new_reliability_document
+            && !component
+                .get("component_type_id")
+                .and_then(Value::as_str)
+                .is_some_and(|value| !value.is_empty())
+        {
+            return Err(reject(
+                "component_type_missing",
+                format!("{path}.component_type_id"),
+                "component_type_id is required for the reliability schema",
+            ));
+        }
+        if let Some(redundancy) = component.get("k_out_of_n").filter(|value| !value.is_null()) {
+            let Some(redundancy) = redundancy.as_object() else {
+                return Err(reject(
+                    "invalid_k_out_of_n",
+                    format!("{path}.k_out_of_n"),
+                    "k_out_of_n must be an object with a boolean enabled field",
+                ));
+            };
+            if !redundancy.get("enabled").is_some_and(Value::is_boolean) {
+                return Err(reject(
+                    "invalid_k_out_of_n",
+                    format!("{path}.k_out_of_n"),
+                    "k_out_of_n must be an object with a boolean enabled field",
+                ));
+            }
+        }
+        failure_distribution(
+            component.get("failure_distribution"),
+            format!("{path}.failure_distribution"),
+        )?;
+    }
+    let ids: HashSet<String> = component_rows
         .iter()
         .filter_map(Value::as_object)
         .filter_map(|v| v.get("id"))

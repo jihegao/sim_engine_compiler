@@ -7,6 +7,16 @@ import hashlib
 import json
 from typing import Any
 
+from .reliability import (
+    RELIABILITY_POLICY,
+    ReliabilityComponentGroupSpec,
+    ReliabilityComponentInstanceSpec,
+    _reject,
+    _reject_failure_threshold,
+    _validate_component_tables,
+    validate_repair_activity_references,
+)
+
 
 PLAN_VERSION = "aircraft-support-plan/v1alpha2"
 LEGACY_MINUTE_PHASES = (
@@ -165,18 +175,65 @@ class ExecutionPlan:
     preventive_cycles: tuple[PreventiveCycleSpec, ...]
     supply_routes: tuple[SupplyRouteSpec, ...]
     unsupported_features: tuple[str, ...]
+    reliability_policy: str | None = None
+    component_groups: tuple[ReliabilityComponentGroupSpec, ...] = ()
+    component_instances: tuple[ReliabilityComponentInstanceSpec, ...] = ()
     resource_dispatch_index: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         value = asdict(self)
         if self.resource_dispatch_index is None:
             value.pop("resource_dispatch_index")
+        if self.reliability_policy is None:
+            value.pop("reliability_policy")
+        if not self.component_groups:
+            value.pop("component_groups")
+        if not self.component_instances:
+            value.pop("component_instances")
         return value
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "ExecutionPlan":
         if value.get("plan_version") != PLAN_VERSION:
             raise ValueError(f"unsupported plan version {value.get('plan_version')!r}")
+
+        reliability_policy = value.get("reliability_policy")
+        if reliability_policy is not None:
+            if reliability_policy != RELIABILITY_POLICY:
+                _reject(
+                    f"unsupported reliability policy {reliability_policy!r}",
+                    "unsupported_reliability_policy",
+                    "reliability_policy",
+                )
+            _reject_failure_threshold(value)
+        groups = tuple(
+            ReliabilityComponentGroupSpec(
+                **{
+                    **item,
+                    "aircraft_indexes": tuple(item.get("aircraft_indexes", ())),
+                }
+            )
+            for item in value.get("component_groups", ())
+        )
+        instances = tuple(
+            ReliabilityComponentInstanceSpec(**item)
+            for item in value.get("component_instances", ())
+        )
+        if reliability_policy is not None:
+            _validate_component_tables(
+                groups,
+                instances,
+                aircraft_count=len(value.get("aircraft", ())),
+            )
+            validate_repair_activity_references(
+                groups, instances, len(value.get("activities", ()))
+            )
+        elif groups or instances:
+            _reject(
+                "component_groups/component_instances require reliability_policy",
+                "unsupported_reliability_policy",
+                "reliability_policy",
+            )
 
         activities = []
         for activity in value.get("activities", []):
@@ -244,6 +301,9 @@ class ExecutionPlan:
                 SupplyRouteSpec(**item) for item in value.get("supply_routes", [])
             ),
             unsupported_features=tuple(value.get("unsupported_features", ())),
+            reliability_policy=reliability_policy,
+            component_groups=groups,
+            component_instances=instances,
             resource_dispatch_index=value.get("resource_dispatch_index"),
         )
 

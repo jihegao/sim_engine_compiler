@@ -19,6 +19,7 @@ from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.domains.aircraft_support.lowering import lower_business
 from sim_engine_compiler.identity.common import content_digest, diagnostic, json_value
 from sim_engine_compiler.ir.layers import (
+    ALL_TABLE_IDS,
     BUSINESS_VERSION,
     CORE_VERSION,
     PROFILES,
@@ -135,10 +136,14 @@ def _plan_elements(plan: ExecutionPlan) -> list[dict[str, Any]]:
         "activities": "activity_id",
         "resource_nodes": "node_id",
         "components": "component_id",
+        "component_groups": "group_id",
+        "component_instances": "instance_template_id",
         "supply_routes": "route_id",
     }
     elements = []
     for table, identity_field in identity_fields.items():
+        if table not in value:
+            continue
         for index, row in enumerate(value[table]):
             elements.append({
                 "element_id": row[identity_field],
@@ -205,7 +210,10 @@ def _lineage(value: Mapping[str, Any]) -> dict[str, Any]:
                 stage="lineage", path=field,
             ))
     symbols = value["symbols"]
-    if not isinstance(symbols, dict) or set(symbols) != set(TABLE_IDS):
+    if not isinstance(symbols, dict) or set(symbols) not in (
+        set(TABLE_IDS),
+        set(ALL_TABLE_IDS),
+    ):
         result["diagnostics"].append(diagnostic(
             "invalid_lineage_symbols", "symbols must contain exactly the supported Core tables",
             stage="lineage", path="symbols",
@@ -317,6 +325,10 @@ def _validate_plan_tables(raw: dict[str, Any]) -> None:
         "preventive_cycles": None,
         "supply_routes": "route_id",
     }
+    optional_identity_fields = {
+        "component_groups": "group_id",
+        "component_instances": "instance_template_id",
+    }
     tables: dict[str, list[dict[str, Any]]] = {}
     for table, identity_field in identity_fields.items():
         rows = raw.get(table)
@@ -337,6 +349,27 @@ def _validate_plan_tables(raw: dict[str, Any]) -> None:
                 if not isinstance(identity, str) or not identity or identity in seen:
                     raise ValueError(f"plan.{table}[{index}] has invalid or duplicate stable identity")
                 seen.add(identity)
+    for table, identity_field in optional_identity_fields.items():
+        if table not in raw:
+            continue
+        rows = raw.get(table)
+        if not isinstance(rows, list):
+            raise TypeError(f"{table} must be a list")
+        tables[table] = rows
+        identity_fields[table] = identity_field
+        seen: set[str] = set()
+        for index, row in enumerate(rows):
+            _record(row, TABLE_TYPES[table], f"plan.{table}[{index}]")
+            if type(row["index"]) is not int or row["index"] != index:
+                raise ValueError(f"plan.{table}[{index}].index must equal its persisted position")
+            if "source_path" in row and (
+                not isinstance(row["source_path"], str) or not row["source_path"]
+            ):
+                raise ValueError(f"plan.{table}[{index}].source_path is required")
+            identity = row[identity_field]
+            if not isinstance(identity, str) or not identity or identity in seen:
+                raise ValueError(f"plan.{table}[{index}] has invalid or duplicate stable identity")
+            seen.add(identity)
 
     def reference(table: str, row: int, field: str, target: str, *, optional: bool = False) -> None:
         value = tables[table][row][field]
@@ -356,12 +389,16 @@ def _validate_plan_tables(raw: dict[str, Any]) -> None:
         "activities": ("priority",),
         "resource_nodes": ("personnel_capacity", "equipment_capacity"),
         "components": ("quantity", "failure_threshold", "repair_duration_minutes"),
+        "component_groups": ("quantity", "redundancy_k", "redundancy_n", "repair_duration_minutes"),
+        "component_instances": ("repair_duration_minutes",),
         "preventive_cycles": (
             "calendar_days", "landing_cycles", "initial_calendar_days", "initial_landing_cycles",
         ),
         "supply_routes": ("capacity", "transport_minutes"),
     }
     for table, fields in nonnegative_fields.items():
+        if table not in tables:
+            continue
         for index, row in enumerate(tables[table]):
             for field in fields:
                 if type(row[field]) is not int or row[field] < 0:
@@ -397,6 +434,18 @@ def _validate_plan_tables(raw: dict[str, Any]) -> None:
                 or any(type(value) is not int or not 0 <= value < len(tables["aircraft"])
                        for value in aircraft)):
             raise ValueError(f"plan.components[{index}].aircraft_indexes is invalid")
+    for index, group in enumerate(tables.get("component_groups", ())):
+        reference("component_groups", index, "parent_group_index", "component_groups", optional=True)
+        reference("component_groups", index, "repair_activity_index", "activities", optional=True)
+        aircraft = group["aircraft_indexes"]
+        if (len(set(aircraft)) != len(aircraft)
+                or any(type(value) is not int or not 0 <= value < len(tables["aircraft"])
+                       for value in aircraft)):
+            raise ValueError(f"plan.component_groups[{index}].aircraft_indexes is invalid")
+    for index, instance in enumerate(tables.get("component_instances", ())):
+        reference("component_instances", index, "group_index", "component_groups")
+        reference("component_instances", index, "parent_instance_index", "component_instances", optional=True)
+        reference("component_instances", index, "repair_activity_index", "activities", optional=True)
     for index in range(len(tables["preventive_cycles"])):
         reference("preventive_cycles", index, "aircraft_index", "aircraft")
         reference("preventive_cycles", index, "activity_index", "activities")

@@ -26,11 +26,21 @@ TABLE_IDS = {
     'resource_nodes': 'node_id', 'components': 'component_id',
     'preventive_cycles': None, 'supply_routes': 'route_id',
 }
+RELIABILITY_TABLE_IDS = {
+    'component_groups': 'group_id', 'component_instances': 'instance_template_id',
+}
+ALL_TABLE_IDS = {**TABLE_IDS, **RELIABILITY_TABLE_IDS}
 REFERENCES = {
     'activities': {'resource_node_index': ('resource_nodes', False),
                    'equipment_component_index': ('components', True)},
     'components': {'parent_index': ('components', True), 'aircraft_indexes': ('aircraft', False),
                    'repair_activity_index': ('activities', True)},
+    'component_groups': {'parent_group_index': ('component_groups', True),
+                         'aircraft_indexes': ('aircraft', False),
+                         'repair_activity_index': ('activities', True)},
+    'component_instances': {'group_index': ('component_groups', False),
+                            'parent_instance_index': ('component_instances', True),
+                            'repair_activity_index': ('activities', True)},
     'preventive_cycles': {'aircraft_index': ('aircraft', False), 'activity_index': ('activities', False)},
     'supply_routes': {'source_node_index': ('resource_nodes', False), 'destination_node_index': ('resource_nodes', False)},
 }
@@ -149,15 +159,21 @@ class CoreIR:
             if not isinstance(value, str) or len(value) != 64 or any(c not in '0123456789abcdef' for c in value):
                 reject(f'core.source.{key}', 'expected SHA-256')
         contract = self.payload['contract']
-        require_keys(contract, ('domain', 'semantic_profile', 'work_policy', 'rng_profile', 'duration_minutes', 'natural_completion_enabled', 'phases', 'unsupported_features'), 'core.contract')
+        contract_fields = {'domain', 'semantic_profile', 'work_policy', 'rng_profile', 'duration_minutes',
+                           'natural_completion_enabled', 'phases', 'unsupported_features'}
+        if set(contract) not in (contract_fields, contract_fields | {'reliability_policy'}):
+            reject('core.contract', f'expected fields {sorted(set(contract))}')
         if contract['domain'] != 'aircraft-support' or contract['semantic_profile'] not in PROFILES or contract['work_policy'] != 'stable-topological-serial' or contract['rng_profile'] != 'legacy-sequential-v1' or contract['phases'] != list(LEGACY_MINUTE_PHASES) or contract['unsupported_features']:
             reject('core.contract', 'unsupported compatibility contract')
+        if 'reliability_policy' in contract and contract['reliability_policy'] not in ('instance-redundancy/v1', None):
+            reject('core.contract.reliability_policy', 'unsupported reliability policy')
         if type(contract['duration_minutes']) is not int or not 0 < contract['duration_minutes'] < 2**63 or type(contract['natural_completion_enabled']) is not bool:
             reject('core.contract', 'invalid duration or termination policy type')
         if self.payload['operations'] != operation_contracts():
             reject('core.operations', 'unknown operation or incomplete read/write/time/backend contract', 'unsupported_operation')
         tables = self.payload['tables']
-        require_keys(tables, TABLE_IDS, 'core.tables')
+        if set(tables) not in (set(TABLE_IDS), set(ALL_TABLE_IDS)):
+            reject('core.tables', 'expected legacy or fused reliability table set')
         ids = {}
         for name, rows in tables.items():
             if not isinstance(rows, list):
@@ -171,7 +187,10 @@ class CoreIR:
                     reject(f'core.tables.{name}', 'duplicate or missing symbol')
                 ids[name].add(row['id'])
                 validate_attributes(row['attributes'], name, f'core.tables.{name}.{row["id"]}.attributes')
-                if TABLE_IDS[name] is not None and row['attributes'].get(TABLE_IDS[name]) != row['id']:
+                identity_field = TABLE_IDS.get(name)
+                if identity_field is None:
+                    identity_field = RELIABILITY_TABLE_IDS.get(name)
+                if identity_field is not None and row['attributes'].get(identity_field) != row['id']:
                     reject(f'core.tables.{name}', 'symbol and business identity disagree')
                 require_keys(row['references'], REFERENCES.get(name, {}), f'core.tables.{name}.{row["id"]}.references')
                 if not isinstance(row['steps'], list):
@@ -256,8 +275,13 @@ def core_from_records(*, business, provenance, **records):
     and compatibility rates; layout below can be run from this artifact alone.
     """
     tables = {}
-    symbol_lists = {name: [getattr(row, field) for row in records[name]] if field else [] for name, field in TABLE_IDS.items()}
-    for name in TABLE_IDS:
+    table_names = [name for name in ALL_TABLE_IDS if name in records]
+    symbol_lists = {
+        name: [getattr(row, ALL_TABLE_IDS[name]) for row in records[name]]
+        if ALL_TABLE_IDS[name] else []
+        for name in table_names
+    }
+    for name in table_names:
         tables[name] = []
         for record in records.pop(name):
             attrs = asdict(record)
@@ -277,7 +301,7 @@ def core_from_records(*, business, provenance, **records):
                 origin = provenance[name][attrs['source_path']]
                 identity = preventive_symbol(refs, origin['cycle_key'])
             else:
-                identity = attrs[TABLE_IDS[name]]
+                identity = attrs[ALL_TABLE_IDS[name]]
                 origin = provenance.get(name, {}).get(identity, {'source_path': attrs.get('source_path')})
             tables[name].append({'id': identity, 'attributes': attrs, 'references': refs, 'steps': core_steps, **origin})
     # JSON normalization makes tuple/list transport identical in both backends.

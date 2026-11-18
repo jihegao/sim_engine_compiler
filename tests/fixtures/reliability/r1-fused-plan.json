@@ -1,0 +1,244 @@
+{
+  "plan_version": "aircraft-support-plan/v1alpha2",
+  "domain": "aircraft-support",
+  "semantic_profile": "legacy-minute-v1",
+  "work_policy": "stable-topological-serial",
+  "rng_profile": "legacy-sequential-v1",
+  "source_inputs_sha256": "eda7d64343d4e3408efe946b2379bfeaef7655029794b228d5ad508edd23bc89",
+  "duration_minutes": 30,
+  "natural_completion_enabled": false,
+  "phases": [
+    "transport_arrivals",
+    "mission_returns",
+    "job_progress_and_completions",
+    "failures",
+    "operations_postflight_before_preparation",
+    "preventive_generation",
+    "preflight_generation",
+    "resource_dispatch",
+    "mission_dispatch",
+    "operations_postflight_after_dispatch",
+    "mission_success",
+    "daily_readiness",
+    "operational_availability",
+    "downtime",
+    "stop"
+  ],
+  "aircraft": [
+    {
+      "index": 0,
+      "tail_number": "F35-01",
+      "aircraft_type": "F35",
+      "model": "F35",
+      "initial_state": "available",
+      "airport": "",
+      "airport_id": "",
+      "initial_calendar_days": 0,
+      "initial_flight_hours": 0.0,
+      "initial_cycles": 0
+    }
+  ],
+  "missions": [
+    {
+      "index": 0,
+      "mission_id": "sortie-failure-d1-w1",
+      "name": "Failure sortie",
+      "planned_start": 5,
+      "preparation_start": 3,
+      "duration_minutes": 20,
+      "required_aircraft": 1,
+      "min_required_aircraft": 1,
+      "priority": 1,
+      "cancel_minutes": 5,
+      "success_point": 0.5,
+      "required_aircraft_type": "F35",
+      "operations_plan_group_id": "f35-daily",
+      "source_path": "mission_profile.composite_tasks[0].taskItems[0]"
+    }
+  ],
+  "activities": [
+    {
+      "index": 0,
+      "activity_id": "f35-daily-preflight",
+      "name": "Preflight",
+      "phase": "preflight",
+      "plan_group_id": "f35-daily",
+      "aircraft_model": "F35",
+      "resource_node_index": 0,
+      "priority": 1,
+      "kind": "preflight",
+      "equipment_component_index": -1,
+      "maintenance_methods": [],
+      "replacement_ratio": 0.0,
+      "steps": [
+        {
+          "index": 0,
+          "code": "PRE-1",
+          "duration_minutes": 1,
+          "personnel": 1,
+          "equipment": 1,
+          "spares": [],
+          "predecessors": [],
+          "source_path": "support_activities.activities[0].jobs[0]"
+        }
+      ],
+      "source_path": "support_activities.activities[0]"
+    },
+    {
+      "index": 1,
+      "activity_id": "f35-daily-relaunch",
+      "name": "Relaunch",
+      "phase": "relaunch",
+      "plan_group_id": "f35-daily",
+      "aircraft_model": "F35",
+      "resource_node_index": 0,
+      "priority": 1,
+      "kind": "relaunch",
+      "equipment_component_index": -1,
+      "maintenance_methods": [],
+      "replacement_ratio": 0.0,
+      "steps": [],
+      "source_path": "support_activities.activities[1]"
+    },
+    {
+      "index": 2,
+      "activity_id": "f35-daily-postflight",
+      "name": "Postflight",
+      "phase": "postflight",
+      "plan_group_id": "f35-daily",
+      "aircraft_model": "F35",
+      "resource_node_index": 0,
+      "priority": 1,
+      "kind": "postflight",
+      "equipment_component_index": -1,
+      "maintenance_methods": [],
+      "replacement_ratio": 0.0,
+      "steps": [
+        {
+          "index": 0,
+          "code": "POST-1",
+          "duration_minutes": 2,
+          "personnel": 1,
+          "equipment": 1,
+          "spares": [],
+          "predecessors": [],
+          "source_path": "support_activities.activities[2].jobs[0]"
+        }
+      ],
+      "source_path": "support_activities.activities[2]"
+    },
+    {
+      "index": 3,
+      "activity_id": "corrective-radar",
+      "name": "Radar repair",
+      "phase": "",
+      "plan_group_id": "",
+      "aircraft_model": "F35",
+      "resource_node_index": 0,
+      "priority": 1,
+      "kind": "repair",
+      "equipment_component_index": -1,
+      "maintenance_methods": [
+        "non_replacement"
+      ],
+      "replacement_ratio": 0.0,
+      "steps": [
+        {
+          "index": 0,
+          "code": "REPAIR-1",
+          "duration_minutes": 3,
+          "personnel": 1,
+          "equipment": 1,
+          "spares": [],
+          "predecessors": [],
+          "source_path": "support_activities.activities[3].jobs[0]"
+        }
+      ],
+      "source_path": "support_activities.activities[3]"
+    }
+  ],
+  "resource_nodes": [
+    {
+      "index": 0,
+      "node_id": "flight-line",
+      "personnel_capacity": 1,
+      "equipment_capacity": 1,
+      "inventory": [],
+      "organization_node_id": "flight-line",
+      "source_path": "support_network.nodes[0]"
+    }
+  ],
+  "components": [],
+  "preventive_cycles": [],
+  "supply_routes": [],
+  "unsupported_features": [],
+  "reliability_policy": "instance-redundancy/v1",
+  "component_groups": [
+    {
+      "index": 0,
+      "group_id": "f35",
+      "component_type_id": "f35",
+      "name": "F35",
+      "parent_group_index": -1,
+      "aircraft_indexes": [
+        0
+      ],
+      "quantity": 1,
+      "redundancy_kind": "series",
+      "redundancy_k": 0,
+      "redundancy_n": 1,
+      "repair_activity_index": -1,
+      "repair_duration_minutes": 0,
+      "source_path": "equipment_tree.components[0]"
+    },
+    {
+      "index": 1,
+      "group_id": "radar-lru",
+      "component_type_id": "radar-lru",
+      "name": "Radar LRU",
+      "parent_group_index": 0,
+      "aircraft_indexes": [
+        0
+      ],
+      "quantity": 2,
+      "redundancy_kind": "k_out_of_n",
+      "redundancy_k": 1,
+      "redundancy_n": 2,
+      "repair_activity_index": -1,
+      "repair_duration_minutes": 0,
+      "source_path": "equipment_tree.components[1]"
+    }
+  ],
+  "component_instances": [
+    {
+      "index": 0,
+      "instance_template_id": "f35-0",
+      "group_index": 0,
+      "parent_instance_index": -1,
+      "failure_rate_per_hour": 0.0,
+      "repair_activity_index": -1,
+      "repair_duration_minutes": 0,
+      "source_path": "equipment_tree.components[0].instances[0]"
+    },
+    {
+      "index": 1,
+      "instance_template_id": "radar-lru-0",
+      "group_index": 1,
+      "parent_instance_index": 0,
+      "failure_rate_per_hour": 20.0,
+      "repair_activity_index": -1,
+      "repair_duration_minutes": 0,
+      "source_path": "equipment_tree.components[1].instances[0]"
+    },
+    {
+      "index": 2,
+      "instance_template_id": "radar-lru-1",
+      "group_index": 1,
+      "parent_instance_index": 0,
+      "failure_rate_per_hour": 20.0,
+      "repair_activity_index": -1,
+      "repair_duration_minutes": 0,
+      "source_path": "equipment_tree.components[1].instances[1]"
+    }
+  ]
+}

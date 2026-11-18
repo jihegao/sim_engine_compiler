@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import unittest
 
+from sim_engine_compiler.compiler import compile_aircraft_support
 from sim_engine_compiler.ir.plan import ExecutionPlan
 from sim_engine_compiler.reference import SimpyReferenceRuntime
 from sim_engine_compiler.reference.conformance import first_divergence
@@ -15,6 +16,7 @@ from sim_engine_compiler.reference.conformance import first_divergence
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "rust" / "runtime" / "Cargo.toml"
 F35 = ROOT / "tests" / "fixtures" / "spare_mvp" / "f35-43day-5352a0d"
+SYNTHETIC_PATH = ROOT / "tests" / "fixtures" / "synthetic"
 SYNTHETIC = (
     "b1",
     "b2-failure-repair",
@@ -140,6 +142,27 @@ class RustRuntimeConformanceTests(unittest.TestCase):
                 summary = self._run_rust(plan_path, 0, "summary")
                 self.assertIsNone(first_divergence(expected, full))
                 self.assert_observation_equivalent(full, summary)
+
+    def test_quantity_instances_match_python_reference_full_result(self):
+        inputs = json.loads((SYNTHETIC_PATH / "b2-failure-repair.json").read_text())
+        component = next(
+            item for item in inputs["equipment_tree"]["components"]
+            if item["id"] == "radar-lru"
+        )
+        component["quantity"] = 2
+        plan = compile_aircraft_support(inputs)
+        plan_path = Path(self.tempdir.name) / "b2-quantity-2-execution-plan.json"
+        plan_path.write_text(json.dumps(plan.to_dict()))
+        plan_roundtrip = ExecutionPlan.from_dict(json.loads(plan_path.read_text()))
+        expected = SimpyReferenceRuntime(plan_roundtrip, seed=0).run()
+        actual = self._run_rust(plan_path, 0, "full")
+        self.assertIsNone(
+            first_divergence(
+                expected, actual, float_rel_tol=2e-15, float_abs_tol=1e-12
+            )
+        )
+        summary = self._run_rust(plan_path, 0, "summary")
+        self.assert_observation_equivalent(actual, summary)
 
     def test_f35_required_seeds_match_python_reference_full_result(self):
         plan_path = F35 / "execution-plan.json"

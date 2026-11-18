@@ -41,6 +41,16 @@ spare_mvp Project JSON
                                            → Result / Trace / Diagnostics
 ```
 
+Aircraft Support 的 `aircraft-support-plan/v1alpha2` 现在同时承载 legacy
+`components` 与可选的 `component_groups`/`component_instances` 可靠性表。
+`compile_aircraft_support` 仍是唯一编译入口：R1 输入通过原 Business IR、
+Check/Seal、Core IR 和 Lowering 生成融合的 v1alpha2 Plan；`quantity=N`
+展开 N 个独立实例模板，`component_type_id`、`redundancy`/`k_out_of_n` 和
+`parent_instance_id` 由该 Plan 显式表达。所有 canonical 输入的新编译一律禁止
+`failure_threshold`，legacy 输入也不例外；历史无 `reliability_policy` 的
+v1alpha2 Plan 继续按 legacy `components` 语义执行。融合 Plan 可编译和读取。
+Python 和 Rust Runtime 会显式拒绝执行融合 Plan，实例级故障聚合、返航和维修恢复待交付。
+
 Python 负责建模、验证、编译、诊断及独立参考执行；Rust 负责数组状态、事件调度、资源事务及样本并行。模型更新通常重新生成执行计划，无需每次重新编译 Rust 二进制。
 
 ## 初始目录

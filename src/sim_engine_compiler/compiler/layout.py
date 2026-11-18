@@ -6,12 +6,20 @@ from dataclasses import fields
 import math
 from typing import get_type_hints, get_origin, get_args
 
-from sim_engine_compiler.ir.layers import CoreIR, TABLE_IDS, REFERENCES, reject
+from sim_engine_compiler.ir.layers import CoreIR, TABLE_IDS, ALL_TABLE_IDS, REFERENCES, reject
 from sim_engine_compiler.ir import plan as schema
+from sim_engine_compiler.ir.reliability import (
+    ReliabilityComponentGroupSpec,
+    ReliabilityComponentInstanceSpec,
+)
 
 TABLE_TYPES = dict(zip(TABLE_IDS, (schema.AircraftSpec, schema.MissionSpec, schema.ActivitySpec,
                                   schema.ResourceNodeSpec, schema.ComponentSpec,
                                   schema.PreventiveCycleSpec, schema.SupplyRouteSpec)))
+TABLE_TYPES.update({
+    'component_groups': ReliabilityComponentGroupSpec,
+    'component_instances': ReliabilityComponentInstanceSpec,
+})
 
 
 def _typed(value, kind, path):
@@ -115,9 +123,9 @@ def revision_impact(before: CoreIR, after: CoreIR):
         if left is not None and right is not None and old_path != new_path:
             changes.append({'kind': 'layout', **common})
 
-    for table in TABLE_IDS:
-        old = {row['id']: (i, row) for i, row in enumerate(before.payload['tables'][table])}
-        new = {row['id']: (i, row) for i, row in enumerate(after.payload['tables'][table])}
+    for table in [name for name in ALL_TABLE_IDS if name in before.payload['tables'] or name in after.payload['tables']]:
+        old = {row['id']: (i, row) for i, row in enumerate(before.payload['tables'].get(table, []))}
+        new = {row['id']: (i, row) for i, row in enumerate(after.payload['tables'].get(table, []))}
         for symbol in sorted(old.keys() | new.keys()):
             left, right = old.get(symbol), new.get(symbol)
             a, b = left[1] if left else None, right[1] if right else None
