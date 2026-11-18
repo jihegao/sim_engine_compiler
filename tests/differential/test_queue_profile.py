@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from sim_engine_compiler.diagnostics import CompilationError
 from sim_engine_compiler.domains.multi_server_queue.model import (
     EXAMPLE_INPUT,
     import_canonical,
@@ -191,6 +192,41 @@ class QueueProfileDifferentialTests(unittest.TestCase):
         )
         self.assertEqual(filtered["events"], [])
         self.assertGreater(filtered["coverage"]["omitted_by_filter"], 0)
+
+    def test_python_and_rust_agree_on_queue_class_weight_bounds(self):
+        _, plan, _ = lower(import_canonical(EXAMPLE_INPUT))
+        plan["classes"][0]["weight"] = 1
+        plan["classes"][1]["weight"] = 1_000_000
+        python = execute(plan, seed=0, sample_index=0)
+        self.assertEqual(python, self._rust(plan, 0))
+        self.assertEqual(python, run_plan(plan, seed=0))
+        for weight in (-1, 0, 1_000_001, True, 1.5):
+            with self.subTest(weight=weight):
+                plan["classes"][0]["weight"] = weight
+                with self.assertRaises(CompilationError) as error:
+                    execute(plan, seed=0, sample_index=0)
+                self.assertEqual(error.exception.source_path, "plan.classes[0].weight")
+                with self.assertRaisesRegex(RuntimeError, r"plan\.classes\[0\]\.weight"):
+                    run_plan(plan, seed=0)
+
+    def test_python_and_rust_queue_traces_share_default_limits(self):
+        inputs = {
+            **EXAMPLE_INPUT,
+            "arrivals": {**EXAMPLE_INPUT["arrivals"], "rate_per_minute": 5.0},
+        }
+        _, plan, _ = lower(import_canonical(inputs))
+        request = {"run_id": "dense-queue", "sample_index": 0, "seed": 0}
+        python = query_trace(
+            execute(plan, seed=0, sample_index=0), {**request, "backend": "python-reference"}, plan,
+        )
+        rust = query_trace(self._rust(plan, 0), {**request, "backend": "rust-runtime"}, plan)
+        for key in ("query", "events", "budget", "coverage"):
+            self.assertEqual(python[key], rust[key], key)
+        self.assertTrue(rust["events"])
+        self.assertEqual(rust["budget"]["max_events"], 100)
+        self.assertEqual(rust["budget"]["max_event_bytes"], 65_536)
+        self.assertGreater(rust["coverage"]["omitted_by_page"], 0)
+        self.assertTrue(rust["coverage"]["budget_exhausted"])
 
     def test_rust_aircraft_result_is_traceable(self):
         plan = json.loads((B1 / "plan.json").read_text())

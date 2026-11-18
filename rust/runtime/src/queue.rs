@@ -202,10 +202,16 @@ fn parse_plan(raw: &Value) -> Result<Plan> {
         if source != format!("arrivals.classes[{index}]") {
             bail!("class source path does not match its position");
         }
+        let weight = item["weight"]
+            .as_i64()
+            .filter(|weight| (1..=1_000_000).contains(weight))
+            .ok_or_else(|| {
+                anyhow::anyhow!("plan.classes[{index}].weight must be an integer in [1, 1000000]")
+            })?;
         classes.push(Class {
             id,
             priority: item["priority"].as_i64().ok_or_else(|| anyhow::anyhow!("invalid priority"))?,
-            weight: item["weight"].as_i64().ok_or_else(|| anyhow::anyhow!("invalid weight"))?,
+            weight,
         });
     }
     let mut servers = Vec::new();
@@ -612,7 +618,7 @@ pub fn is_queue_plan(value: &Value) -> bool {
 mod tests {
     use super::{parse_plan, run_queue_plan_json};
     use crate::plan::ExecutionPlan;
-    use serde_json::Value;
+    use serde_json::{Value, json};
 
     #[test]
     fn fixture_plan_draws_real_requests_and_repeats() {
@@ -629,6 +635,24 @@ mod tests {
         assert_eq!(parsed["sample_requests"][0]["purpose"], "interarrival");
         assert!(parsed["sample_requests"][0]["value_minutes"].as_f64().unwrap() > 0.0);
         assert!(parsed["metrics"]["arrival_count"].as_i64().unwrap() > 0);
+    }
+
+    #[test]
+    fn validates_class_weight_bounds() {
+        let mut raw: Value =
+            serde_json::from_str(include_str!("../../../tests/fixtures/queue/plan.json")).unwrap();
+        for weight in [json!(1), json!(1_000_000)] {
+            raw["classes"][0]["weight"] = weight;
+            parse_plan(&raw).unwrap();
+        }
+        for weight in [json!(-1), json!(0), json!(1_000_001), json!(true), json!(1.5)] {
+            raw["classes"][0]["weight"] = weight;
+            let error = parse_plan(&raw).err().expect("invalid weight must be rejected");
+            assert_eq!(
+                error.to_string(),
+                "plan.classes[0].weight must be an integer in [1, 1000000]"
+            );
+        }
     }
 
     #[test]
